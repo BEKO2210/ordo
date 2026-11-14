@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright (c) 2026 Ordo contributors
+  ~ SPDX-License-Identifier: GPL-3.0-or-later
+  -->
+
+<!-- "Aurora": cyan, blue and mint for the on-device AI. Text pairs meet WCAG AA (4.5:1). -->
+<resources>
+    <color name="ai_glow_1">#22D3EE</color>
+    <color name="ai_glow_2">#3B82F6</color>
+    <color name="ai_glow_3">#34D399</color>
+    <color name="ai_accent">#67E8F9</color>
+    <color name="ai_on_accent">#083344</color>
+    <color name="ai_delete">#FCA5A5</color>
+    <color name="ai_on_delete">#450A0A</color>
+    <color name="ai_sheet_glass">#E60B1220</color>
+    <color name="ai_glass_stroke">#26FFFFFF</color>
+    <color name="ai_card">#14FFFFFF</color>
+</resources>

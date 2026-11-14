@@ -1,0 +1,44 @@
+/*
+ * Copyright (c) 2026 Ordo contributors
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
+// llama.cpp (MIT, git submodule in src/main/cpp/llama.cpp) for on-device command plans.
+apply plugin: 'com.android.library'
+
+android {
+    namespace 'me.zhanghai.android.files.llm'
+    compileSdk = 37
+    ndkVersion '30.0.16248370'
+    defaultConfig {
+        minSdk 23
+        testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
+        ndk {
+            // 64-bit only: a 4B model needs more memory than 32-bit phones have.
+            abiFilters 'arm64-v8a', 'x86_64'
+        }
+        externalNativeBuild {
+            cmake {
+                arguments '-DANDROID_STL=c++_static', '-DCMAKE_BUILD_TYPE=Release'
+            }
+        }
+    }
+    buildTypes {
+        // Inference in a debug build of llama.cpp is unusably slow.
+        debug { externalNativeBuild { cmake { arguments '-DCMAKE_BUILD_TYPE=Release' } } }
+    }
+    externalNativeBuild {
+        cmake {
+            path 'src/main/cpp/CMakeLists.txt'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+}
+
+dependencies {
+    androidTestImplementation 'androidx.test:runner:1.6.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.2.1'
+}

@@ -8,7 +8,7 @@
     <string name="ai_open">Ordo einen Befehl geben</string>
     <string name="ai_title">Was soll Ordo tun?</string>
     <string name="ai_subtitle">Schreib oder diktiere einen Befehl. Ordo zeigt dir alles, bevor sich etwas ändert.</string>
-    <string name="ai_hint">z. B. Verschiebe meine MP3s aus Download nach Musik</string>
+    <string name="ai_hint">z. B. MP3s aus Download nach Musik</string>
     <string name="ai_send">Senden</string>
     <string-array name="ai_examples">
         <item>Verschiebe alle MP3s aus Download nach Musik</item>
@@ -83,8 +83,6 @@
     <string name="ai_refused_trash_off_text">Ordo löscht nur in den Papierkorb. Schalte ihn zuerst in den Einstellungen ein.</string>
     <string name="ai_no_files_title">Keine passenden Dateien</string>
     <string name="ai_no_files_text">In %s passt keine Datei zu deinem Befehl.</string>
-    <string name="ai_error_title">Ordo ist gerade nicht erreichbar</string>
-    <string name="ai_error_text">Prüf die Verbindung und versuch es noch einmal.</string>
 
     <plurals name="ai_done_move">
         <item quantity="one">%d Datei verschoben</item>
@@ -103,4 +101,24 @@
         <item quantity="other">%d Dateien einsortiert</item>
     </plurals>
     <string name="ai_undo">Rückgängig</string>
+    <string name="ai_setup_title">Ordo-KI einrichten</string>
+    <string name="ai_setup_subtitle">Gib Befehle in deinen eigenen Worten. Ordo macht daraus einen Plan, den du bestätigst.</string>
+    <string name="ai_setup_privacy">Läuft komplett auf deinem Handy. Deine Dateien und Befehle verlassen das Gerät nie.</string>
+    <string name="ai_check_ram">Arbeitsspeicher: %1$s (nötig %2$s)</string>
+    <string name="ai_check_space">Freier Speicher: %1$s (nötig %2$s)</string>
+    <string name="ai_check_device_ok">64-Bit-Prozessor</string>
+    <string name="ai_check_device_bad">Braucht einen 64-Bit-Prozessor</string>
+    <string name="ai_setup_download">KI herunterladen (%s)</string>
+    <string name="ai_setup_not_enough">Auf diesem Handy läuft die Ordo-KI nicht</string>
+    <string name="ai_setup_retry">Download erneut starten</string>
+    <string name="ai_download_progress">%1$s von %2$s · %3$d %% · läuft im Hintergrund weiter</string>
+    <string name="ai_download_paused">Pausiert – wartet auf eine Verbindung</string>
+    <string name="ai_download_failed">Der Download wurde unterbrochen. Prüf die Verbindung und versuch es noch einmal.</string>
+    <string name="ai_verifying">Prüfe den Download …</string>
+    <string name="ai_verify_failed">Der Download war beschädigt und wurde entfernt. Bitte versuch es noch einmal.</string>
+    <string name="ai_ready">Bereit. Gib deinen ersten Befehl.</string>
+    <string name="ai_starting">Die KI wird geweckt …</string>
+    <string name="ai_start_failed_title">Die KI konnte nicht starten</string>
+    <string name="ai_start_failed_text">Schließ andere Apps, um Speicher freizumachen, und versuch es noch einmal.</string>
+    <string name="ai_retry">Erneut versuchen</string>
 </resources>

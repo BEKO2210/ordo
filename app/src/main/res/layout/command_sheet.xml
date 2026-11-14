@@ -23,25 +23,24 @@
             android:layout_height="wrap_content" />
 
         <LinearLayout
+            android:id="@+id/headerLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
-            <ImageView
-                android:id="@+id/headerIcon"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_marginEnd="12dp"
-                android:importantForAccessibility="no"
-                android:padding="8dp"
-                android:background="@drawable/home_icon_circle"
-                android:src="@drawable/assistant_icon_white_24dp" />
+            <me.zhanghai.android.files.ai.AiOrbView
+                android:id="@+id/headerOrb"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:layout_marginEnd="12dp" />
 
             <TextView
+                android:id="@+id/titleText"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:accessibilityHeading="true"
                 android:text="@string/ai_title"
                 android:textAppearance="?textAppearanceHeadline6" />
         </LinearLayout>
@@ -50,10 +49,96 @@
             android:id="@+id/subtitleText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
+            android:layout_marginTop="6dp"
             android:text="@string/ai_subtitle"
             android:textAppearance="?textAppearanceBody2"
             android:textColor="?android:textColorSecondary" />
+
+        <!-- First run: device check and model download -->
+        <LinearLayout
+            android:id="@+id/setupLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <me.zhanghai.android.files.ai.AiOrbView
+                android:id="@+id/setupOrb"
+                android:layout_width="120dp"
+                android:layout_height="120dp"
+                android:layout_gravity="center_horizontal" />
+
+            <TextView
+                android:id="@+id/setupPrivacy"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:background="@drawable/ai_glass_card"
+                android:drawablePadding="12dp"
+                android:gravity="center_vertical"
+                android:padding="16dp"
+                android:text="@string/ai_setup_privacy"
+                android:textAppearance="?textAppearanceBody2"
+                app:drawableStartCompat="@drawable/ai_privacy_icon_white_24dp"
+                app:drawableTint="@color/ai_accent" />
+
+            <LinearLayout
+                android:id="@+id/checkList"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/checkRam"
+                    style="@style/Widget.Ordo.AiCheckRow"
+                    app:drawableStartCompat="@drawable/ai_memory_icon_white_24dp" />
+
+                <TextView
+                    android:id="@+id/checkSpace"
+                    style="@style/Widget.Ordo.AiCheckRow"
+                    app:drawableStartCompat="@drawable/ai_storage_icon_white_24dp" />
+
+                <TextView
+                    android:id="@+id/checkDevice"
+                    style="@style/Widget.Ordo.AiCheckRow"
+                    app:drawableStartCompat="@drawable/ai_phone_icon_white_24dp" />
+            </LinearLayout>
+
+            <com.google.android.material.progressindicator.LinearProgressIndicator
+                android:id="@+id/downloadProgress"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:max="1000"
+                android:visibility="gone"
+                app:indicatorColor="@color/ai_accent"
+                app:trackColor="@color/ai_card"
+                app:trackCornerRadius="4dp"
+                app:trackThickness="8dp" />
+
+            <TextView
+                android:id="@+id/downloadText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:accessibilityLiveRegion="polite"
+                android:textAppearance="?textAppearanceBody2"
+                android:textColor="?android:textColorSecondary"
+                android:visibility="gone" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/setupButton"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginTop="16dp"
+                android:backgroundTint="@color/ai_accent"
+                android:textAllCaps="false"
+                android:textColor="@color/ai_on_accent"
+                android:textSize="16sp"
+                app:cornerRadius="28dp" />
+        </LinearLayout>
 
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/commandLayout"
@@ -62,14 +147,17 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:hint="@string/ai_hint"
+            android:visibility="gone"
             app:boxCornerRadiusBottomEnd="28dp"
             app:boxCornerRadiusBottomStart="28dp"
             app:boxCornerRadiusTopEnd="28dp"
             app:boxCornerRadiusTopStart="28dp"
+            app:boxStrokeColor="@color/ai_accent"
             app:endIconContentDescription="@string/ai_send"
             app:endIconDrawable="@drawable/send_icon_white_24dp"
             app:endIconMode="custom"
-            app:endIconTint="?colorPrimary">
+            app:endIconTint="@color/ai_accent"
+            app:hintTextColor="@color/ai_accent">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/commandEdit"
@@ -78,6 +166,7 @@
                 android:imeOptions="actionGo"
                 android:inputType="textCapSentences|textMultiLine"
                 android:maxLines="3"
+                android:minHeight="56dp"
                 android:paddingStart="20dp"
                 android:paddingEnd="8dp" />
         </com.google.android.material.textfield.TextInputLayout>
@@ -90,7 +179,8 @@
             android:layout_marginTop="8dp"
             android:clipToPadding="false"
             android:paddingHorizontal="24dp"
-            android:scrollbars="none">
+            android:scrollbars="none"
+            android:visibility="gone">
 
             <com.google.android.material.chip.ChipGroup
                 android:id="@+id/exampleChips"
@@ -109,26 +199,29 @@
             android:orientation="vertical"
             android:visibility="gone">
 
-            <com.google.android.material.loadingindicator.LoadingIndicator
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
+            <me.zhanghai.android.files.ai.AiOrbView
+                android:id="@+id/thinkingOrb"
+                android:layout_width="104dp"
+                android:layout_height="104dp" />
 
             <TextSwitcher
                 android:id="@+id/loadingText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:inAnimation="@android:anim/fade_in"
-                android:outAnimation="@android:anim/fade_out" />
+                android:layout_marginTop="16dp"
+                android:accessibilityLiveRegion="polite"
+                android:inAnimation="@anim/ai_text_in"
+                android:outAnimation="@anim/ai_text_out" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/cancelButton"
                 style="@style/Widget.MaterialComponents.Button.TextButton"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
+                android:layout_height="48dp"
+                android:layout_marginTop="8dp"
                 android:text="@android:string/cancel"
-                android:textAllCaps="false" />
+                android:textAllCaps="false"
+                android:textColor="@color/ai_accent" />
         </LinearLayout>
 
         <!-- Question, refusal or error -->
@@ -137,13 +230,16 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
+            android:background="@drawable/ai_glass_card"
             android:orientation="vertical"
+            android:padding="20dp"
             android:visibility="gone">
 
             <TextView
                 android:id="@+id/messageTitle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:accessibilityLiveRegion="polite"
                 android:textAppearance="?textAppearanceSubtitle1"
                 android:textStyle="bold" />
 
@@ -160,118 +256,123 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/retryButton"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="48dp"
+                android:layout_gravity="end"
+                android:text="@string/ai_retry"
+                android:textAllCaps="false"
+                android:textColor="@color/ai_accent"
+                android:visibility="gone" />
         </LinearLayout>
 
         <!-- Preview -->
-        <com.google.android.material.card.MaterialCardView
+        <LinearLayout
             android:id="@+id/previewCard"
-            style="@style/Widget.Ordo.HomeCard"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
-            android:visibility="gone"
-            app:cardCornerRadius="24dp">
+            android:background="@drawable/ai_glass_card"
+            android:orientation="vertical"
+            android:padding="20dp"
+            android:visibility="gone">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="20dp">
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:id="@+id/actionIcon"
+                    android:layout_width="44dp"
+                    android:layout_height="44dp"
+                    android:layout_marginEnd="12dp"
+                    android:background="@drawable/home_icon_circle"
+                    android:importantForAccessibility="no"
+                    android:padding="10dp" />
 
                 <LinearLayout
-                    android:layout_width="match_parent"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
+                    android:layout_weight="1"
+                    android:orientation="vertical">
 
-                    <ImageView
-                        android:id="@+id/actionIcon"
-                        android:background="@drawable/home_icon_circle"
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:layout_marginEnd="12dp"
-                        android:importantForAccessibility="no"
-                        android:padding="8dp" />
-
-                    <LinearLayout
-                        android:layout_width="0dp"
+                    <TextView
+                        android:id="@+id/actionTitle"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
+                        android:accessibilityHeading="true"
+                        android:textAppearance="?textAppearanceSubtitle1"
+                        android:textStyle="bold" />
 
-                        <TextView
-                            android:id="@+id/actionTitle"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:textAppearance="?textAppearanceSubtitle1"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:id="@+id/routeText"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:textAppearance="?textAppearanceBody2"
-                            android:textColor="?android:textColorSecondary" />
-                    </LinearLayout>
-                </LinearLayout>
-
-                <com.google.android.material.chip.ChipGroup
-                    android:id="@+id/filterChips"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp" />
-
-                <TextView
-                    android:id="@+id/summaryText"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:textAppearance="?textAppearanceSubtitle2" />
-
-                <TextView
-                    android:id="@+id/fileListText"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:lineSpacingMultiplier="1.2"
-                    android:textAppearance="?textAppearanceBody2"
-                    android:textColor="?android:textColorSecondary" />
-
-                <TextView
-                    android:id="@+id/noteText"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:drawablePadding="8dp"
-                    android:gravity="center_vertical"
-                    android:textAppearance="?textAppearanceCaption"
-                    android:visibility="gone" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:gravity="end"
-                    android:orientation="horizontal">
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/editButton"
-                        style="@style/Widget.MaterialComponents.Button.TextButton"
-                        android:layout_width="wrap_content"
+                    <TextView
+                        android:id="@+id/routeText"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginEnd="8dp"
-                        android:text="@string/ai_edit"
-                        android:textAllCaps="false" />
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/confirmButton"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:textAllCaps="false"
-                        android:textColor="@android:color/white"
-                        app:cornerRadius="24dp" />
+                        android:textAppearance="?textAppearanceBody2"
+                        android:textColor="?android:textColorSecondary" />
                 </LinearLayout>
             </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/filterChips"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp" />
+
+            <TextView
+                android:id="@+id/summaryText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:textAppearance="?textAppearanceSubtitle2" />
+
+            <TextView
+                android:id="@+id/fileListText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:lineSpacingMultiplier="1.25"
+                android:textAppearance="?textAppearanceBody2"
+                android:textColor="?android:textColorSecondary" />
+
+            <TextView
+                android:id="@+id/noteText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:textAppearance="?textAppearanceBody2"
+                android:textColor="?android:textColorSecondary"
+                android:visibility="gone" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:gravity="end|center_vertical"
+                android:orientation="horizontal">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/editButton"
+                    style="@style/Widget.MaterialComponents.Button.TextButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="48dp"
+                    android:layout_marginEnd="8dp"
+                    android:text="@string/ai_edit"
+                    android:textAllCaps="false"
+                    android:textColor="@color/ai_accent" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/confirmButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="52dp"
+                    android:textAllCaps="false"
+                    app:cornerRadius="26dp" />
+            </LinearLayout>
+        </LinearLayout>
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>

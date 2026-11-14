@@ -49,6 +49,6 @@ class LayoutResourcesTest {
                 }
             }
         }
-        assertEquals(12, loadingIndicators)
+        assertEquals(11, loadingIndicators)
     }
 }

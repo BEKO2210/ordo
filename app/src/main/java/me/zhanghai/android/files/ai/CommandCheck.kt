@@ -88,7 +88,7 @@ object CommandCheck {
         ALIASES[key]?.let { alias -> File(root, alias).takeIf { it.isDirectory }?.let { return it } }
         val clean = name.trim().removeFolderWord()
         if (clean.startsWith("/")) {
-            return File(clean).takeIf { it.isDirectory && it.path.startsWith(root.path + "/") }
+            return File(clean).canonicalFile.takeIf { it.isDirectory && it.path.startsWith(root.canonicalPath + "/") }
         }
         // Breadth first, three levels deep, so nested folders such as "Projekte/2026/Fertig" are found.
         var level = listOf(root)
@@ -102,13 +102,18 @@ object CommandCheck {
     }
 
     fun isProtected(dir: File, root: File, cameraNamed: Boolean): Boolean {
-        if (dir.path != root.path && !dir.path.startsWith(root.path + "/")) {
+        // Canonical paths, so "Music/../Android" or a symlink cannot slip past the checks below.
+        val path = dir.canonicalPath
+        val rootPath = root.canonicalPath
+        if (path != rootPath && !path.startsWith("$rootPath/")) {
             return true
         }
-        val parts = dir.path.removePrefix(root.path).split('/').filter { it.isNotEmpty() }
+        // Shared storage ignores case, so "android/data" is the same folder as "Android/data".
+        val parts = path.removePrefix(rootPath).split('/').filter { it.isNotEmpty() }
+            .map { it.lowercase(Locale.ROOT) }
         return parts.any { it.startsWith(".") } ||
-            parts.firstOrNull() == "Android" ||
-            (!cameraNamed && parts.take(2) == listOf("DCIM", "Camera"))
+            parts.firstOrNull() == "android" ||
+            (!cameraNamed && parts.take(2) == listOf("dcim", "camera"))
     }
 
     private fun File.childDirs(): List<File> =

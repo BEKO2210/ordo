@@ -58,6 +58,38 @@ Folgen:
 - Modell und Prompt-Cache beim Öffnen der Eingabe vorladen, nach Leerlauf entladen (3,3 GB).
 - Systemcheck (Schritt 3): mindestens 8 GB RAM und ~4 GB frei; 4 Threads.
 
+## Modellwahl und Einbau (Schritte 2 und 3, 14.11.2026 abends)
+
+Weitere Kandidaten auf pop-os gemessen (Prüfstand 54 / Holdout 20 / gefährliche Fehler):
+
+| Modell | Größe | Prüfstand | Holdout | gefährlich |
+|---|---|---|---|---|
+| **Qwen3.5-4B Q4_K_M** (gewählt) | 2,74 GB | **51/54** | **20/20** | 0 |
+| Qwen3.5-4B Q4_0 | 2,58 GB | 51/54 | 19/20 | 0 |
+| Granite-4.2-3B Q4_K_M | 2,24 GB | 42/54 | 17/20 | 0 |
+| Qwen3.5-2B Q4_0 | 1,21 GB | 35/54 | 15/20 | 1 |
+
+NPU/GPU des Tensor G6 sind für eigene Apps derzeit kein Weg: LiteRT-NPU nur mit vorab kompilierten
+Gemma-Dateien und SDK-Beta, llama.cpp-Vulkan auf PowerVR liefert Müll (Issues #28214, #28502). Deshalb CPU.
+
+Einbau in der App (`llm/`, `app/.../ai/`):
+- llama.cpp als Submodul (`llm/src/main/cpp/llama.cpp`, Commit `3549c27`), statisch in `libordo_llm.so`,
+  KleidiAI auf arm64. Nur arm64-v8a und x86_64.
+- Prompt wie im Prüfstand, Antwort per GBNF-Grammatik (`CommandPlanner.GRAMMAR`) auf das Plan-JSON gezwungen.
+  Gegen llama-server geprüft: gleicher Prompt + Grammatik = 19/20 auf pop-os-CPU.
+- Zustand nach dem System-Prompt (774 Token) wird einmal berechnet und gesichert; jeder Befehl startet von
+  diesem Schnappschuss (Qwen3.5 hat rekurrente Schichten, Kürzen des Caches geht nicht).
+- `CommandEngine`: ein Thread, 4 Threads für die Rechnung (große Kerne), lädt beim Öffnen vor, gibt den
+  Speicher nach 3 Minuten Leerlauf frei.
+- Einrichtung im Blatt: Gerätecheck (≥ 6 GB RAM, Platz, 64 Bit), Download über DownloadManager von
+  Hugging Face (feste Revision), SHA-256-Prüfung, danach direkt zur Eingabe.
+- Prüfregeln (`CommandCheck`, Unit-Tests): Löschen nur mit Lösch-Wort, nur in den Papierkorb; geschützt sind
+  System-, versteckte und Kamera-Ordner (kanonischer Pfad, ohne Groß-/Kleinschreibung); unbekannter Ordner =
+  Rückfrage; Rückgängig fasst nur Dateien an, die der Befehl angelegt hat.
+- Geprüft: Native-Brücke im Emulator (Instrumentierungs-Test `LlamaEngineTest`, 0,8B), voller Ablauf mit dem
+  echten 4B im Emulator (Englisch hell, Deutsch dunkel, Ablehnung, Vorschau). Nicht geprüft: Download auf
+  einem echten Handy, Tempo des 4B auf dem Pixel.
+
 ## Offen
 
 - Älteres Gerät (S21/Exynos 2100) nicht gemessen: Gerät ist gerade nicht verfügbar.

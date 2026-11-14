@@ -5,56 +5,27 @@
 
 package me.zhanghai.android.files.ai
 
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import org.json.JSONArray
-import org.json.JSONObject
-import java.net.HttpURLConnection
-import java.net.URL
-
-/** Asks the model for a plan. Prompt and schema match utils/command-bench/bench.py, keep both in sync. */
+/** Prompt and grammar for the on-device model. Prompt matches utils/command-bench/bench.py, keep both in sync. */
 object CommandPlanner {
-    // shortcut: test builds ask a llama-server on the developer's PC (Qwen3.5-4B Q4_K_M); step 3 of
-    // docs/KI-BEFEHLE.md replaces this with llama.cpp on the phone.
-    private const val SERVER = "http://192.168.2.158:8086"
+    // Qwen3.5 chat format with thinking switched off, as llama-server renders it.
+    val PREFIX: String
+        get() = "<|im_start|>system\n$SYSTEM<|im_end|>\n<|im_start|>user\n"
 
-    suspend fun plan(text: String): CommandPlan? = withContext(Dispatchers.IO) {
-        val body = JSONObject()
-            .put("messages", JSONArray()
-                .put(JSONObject().put("role", "system").put("content", SYSTEM))
-                .put(JSONObject().put("role", "user").put("content", text)))
-            .put("temperature", 0)
-            .put("max_tokens", 200)
-            .put("chat_template_kwargs", JSONObject().put("enable_thinking", false))
-            .put("response_format", JSONObject().put("type", "json_schema")
-                .put("json_schema", JSONObject().put("name", "plan").put("schema", JSONObject(SCHEMA))))
-        val connection = URL("$SERVER/v1/chat/completions").openConnection() as HttpURLConnection
-        try {
-            connection.connectTimeout = 5_000
-            connection.readTimeout = 120_000
-            connection.requestMethod = "POST"
-            connection.doOutput = true
-            connection.setRequestProperty("Content-Type", "application/json")
-            connection.outputStream.use { it.write(body.toString().toByteArray()) }
-            val answer = JSONObject(connection.inputStream.bufferedReader().use { it.readText() })
-            CommandPlan.parse(
-                answer.getJSONArray("choices").getJSONObject(0).getJSONObject("message")
-                    .getString("content")
-            )
-        } finally {
-            connection.disconnect()
-        }
-    }
+    fun suffix(text: String): String =
+        text.replace("<|", "< |") + "<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\n"
 
-    private const val SCHEMA = """{"type":"object","properties":{
-"action":{"enum":["move","copy","delete","organize","none"]},"source":{"type":"string"},
-"destination":{"type":"string"},
-"kinds":{"type":"array","items":{"enum":["audio","video","image","document","archive"]}},
-"extensions":{"type":"array","items":{"type":"string"}},"name_contains":{"type":"string"},
-"older_than":{"type":"integer"},"age_unit":{"enum":["days","weeks","months","years"]},
-"larger_than":{"type":"integer"},"size_unit":{"enum":["mb","gb"]},"group_by":{"enum":["","type","month"]}},
-"required":["action","source","destination","kinds","extensions","name_contains","older_than","age_unit",
-"larger_than","size_unit","group_by"],"additionalProperties":false}"""
+    // The JSON plan of utils/command-bench/bench.py (SCHEMA) as a llama.cpp grammar, so the model can only answer with a valid plan.
+    const val GRAMMAR = """root ::= "{" "\"action\":" action ",\"source\":" string ",\"destination\":" string ",\"kinds\":" kinds ",\"extensions\":" strings ",\"name_contains\":" string ",\"older_than\":" int ",\"age_unit\":" ageunit ",\"larger_than\":" int ",\"size_unit\":" sizeunit ",\"group_by\":" groupby "}"
+action ::= "\"move\"" | "\"copy\"" | "\"delete\"" | "\"organize\"" | "\"none\""
+kind ::= "\"audio\"" | "\"video\"" | "\"image\"" | "\"document\"" | "\"archive\""
+kinds ::= "[" ( kind ( "," kind ){0,4} )? "]"
+strings ::= "[" ( string ( "," string ){0,7} )? "]"
+ageunit ::= "\"days\"" | "\"weeks\"" | "\"months\"" | "\"years\""
+sizeunit ::= "\"mb\"" | "\"gb\""
+groupby ::= "\"\"" | "\"type\"" | "\"month\""
+string ::= "\"" char{0,80} "\""
+char ::= [^"\\\x7F\x00-\x1F] | "\\" ["\\/nt]
+int ::= "0" | [1-9] [0-9]{0,5}"""
 
     private val SYSTEM = """You turn one command for a file manager into a JSON plan. The command is German or English.
 

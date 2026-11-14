@@ -8,7 +8,7 @@
     <string name="ai_open">Give Ordo a command</string>
     <string name="ai_title">What should Ordo do?</string>
     <string name="ai_subtitle">Type or dictate a command. Ordo shows you everything before anything changes.</string>
-    <string name="ai_hint">e.g. Move my MP3s from Download to Music</string>
+    <string name="ai_hint">e.g. MP3s from Download to Music</string>
     <string name="ai_send">Send</string>
     <string-array name="ai_examples">
         <item>Move all MP3s from Download to Music</item>
@@ -84,8 +84,6 @@
     <string name="ai_refused_trash_off_text">Ordo only deletes into the trash. Turn it on in the settings first.</string>
     <string name="ai_no_files_title">No matching files</string>
     <string name="ai_no_files_text">Nothing in %s matches your command.</string>
-    <string name="ai_error_title">Ordo can’t be reached right now</string>
-    <string name="ai_error_text">Check the connection and try again.</string>
 
     <plurals name="ai_done_move">
         <item quantity="one">%d file moved</item>
@@ -104,4 +102,24 @@
         <item quantity="other">%d files sorted</item>
     </plurals>
     <string name="ai_undo">Undo</string>
+    <string name="ai_setup_title">Set up Ordo AI</string>
+    <string name="ai_setup_subtitle">Give commands in your own words. Ordo turns them into a plan you confirm.</string>
+    <string name="ai_setup_privacy">Runs entirely on your phone. Your files and commands never leave the device.</string>
+    <string name="ai_check_ram">Memory: %1$s (needs %2$s)</string>
+    <string name="ai_check_space">Free space: %1$s (needs %2$s)</string>
+    <string name="ai_check_device_ok">64-bit processor</string>
+    <string name="ai_check_device_bad">Needs a 64-bit processor</string>
+    <string name="ai_setup_download">Download AI (%s)</string>
+    <string name="ai_setup_not_enough">This phone can’t run Ordo AI</string>
+    <string name="ai_setup_retry">Try download again</string>
+    <string name="ai_download_progress">%1$s of %2$s · %3$d %% · keeps going in the background</string>
+    <string name="ai_download_paused">Paused – waiting for a connection</string>
+    <string name="ai_download_failed">The download stopped. Check the connection and try again.</string>
+    <string name="ai_verifying">Checking the download…</string>
+    <string name="ai_verify_failed">The download was damaged and has been removed. Please try again.</string>
+    <string name="ai_ready">Ready. Give your first command.</string>
+    <string name="ai_starting">Waking up the AI…</string>
+    <string name="ai_start_failed_title">The AI couldn’t start</string>
+    <string name="ai_start_failed_text">Close other apps to free memory and try again.</string>
+    <string name="ai_retry">Try again</string>
 </resources>

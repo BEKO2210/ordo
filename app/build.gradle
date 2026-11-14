@@ -104,6 +104,7 @@ dependencies {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation project(':llm')
 
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
 

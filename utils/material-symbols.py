@@ -21,6 +21,12 @@ RES = Path(__file__).resolve().parent.parent / "app/src/main/res"
 ICONS = {
     "about_icon_white_24dp": "help",
     "add_icon_white_24dp": "add",
+    "ai_check_icon_white_24dp": "check_circle",
+    "ai_cross_icon_white_24dp": "cancel",
+    "ai_memory_icon_white_24dp": "memory",
+    "ai_phone_icon_white_24dp": "smartphone",
+    "ai_privacy_icon_white_24dp": "shield_lock",
+    "ai_storage_icon_white_24dp": "hard_drive",
     "assistant_icon_white_24dp": "wand_stars",
     "send_icon_white_24dp": "arrow_upward",
     "alarm_icon_white_24dp": "alarm",

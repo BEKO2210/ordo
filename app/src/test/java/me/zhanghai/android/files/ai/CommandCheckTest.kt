@@ -87,6 +87,10 @@ class CommandCheckTest {
             .copy(source = File(root, "Android/data").path)))
         assertEquals(refused, check("delete all in OrdoTrash", CommandPlan("delete", File(root, ".OrdoTrash").path)))
         assertEquals(refused, check("verschiebe nach Download", CommandPlan("move", "Download", "Download")))
+        assertTrue(CommandCheck.isProtected(File(root, "android/data"), root, false))
+        assertTrue(CommandCheck.isProtected(File(root, "Music/../Android/data"), root, false))
+        assertTrue(CommandCheck.isProtected(File(root, "dcim/CAMERA"), root, false))
+        assertTrue(CommandCheck.isProtected(File(root, "../x"), root, false))
     }
 
     @Test
