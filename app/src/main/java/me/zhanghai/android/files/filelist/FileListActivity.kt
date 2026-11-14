@@ -15,6 +15,7 @@ import androidx.fragment.app.commit
 import java8.nio.file.Path
 import me.zhanghai.android.files.app.AppActivity
 import me.zhanghai.android.files.file.MimeType
+import me.zhanghai.android.files.home.HomeCategory
 import me.zhanghai.android.files.util.createIntent
 import me.zhanghai.android.files.util.extraPath
 import me.zhanghai.android.files.util.putArgs
@@ -48,6 +49,12 @@ class FileListActivity : AppActivity() {
             FileListActivity::class.createIntent()
                 .setAction(Intent.ACTION_VIEW)
                 .apply { extraPath = path }
+
+        fun createCategoryIntent(category: HomeCategory): Intent =
+            FileListActivity::class.createIntent()
+                .putExtra(EXTRA_HOME_CATEGORY, category.name)
+
+        const val EXTRA_HOME_CATEGORY = "me.zhanghai.android.files.extra.HOME_CATEGORY"
     }
 
     class OpenFileContract : ActivityResultContract<List<MimeType>, Path?>() {

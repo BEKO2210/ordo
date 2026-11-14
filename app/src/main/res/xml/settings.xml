@@ -57,6 +57,11 @@
 
     <PreferenceCategory android:title="@string/settings_behavior_title">
 
+        <SwitchPreferenceCompat
+            android:key="@string/pref_key_show_home_on_start"
+            android:title="@string/settings_show_home_on_start_title"
+            android:defaultValue="@bool/pref_default_value_show_home_on_start" />
+
         <me.zhanghai.android.files.settings.DefaultDirectoryPreference
             android:key="@string/pref_key_file_list_default_directory"
             android:title="@string/settings_default_directory_title"

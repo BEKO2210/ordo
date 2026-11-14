@@ -637,6 +637,7 @@
         <item>Laufschrift</item>
     </string-array>
     <string name="settings_behavior_title">Verhalten</string>
+    <string name="settings_show_home_on_start_title">Beim Start Startseite zeigen</string>
     <string name="settings_default_directory_title">Startordner</string>
     <string name="settings_standard_directories_title">Standardordner</string>
     <string name="settings_standard_directories_summary_empty">Keine Standardordner aktiviert</string>
@@ -663,6 +664,28 @@
     <string name="settings_show_pdf_thumbnail_pre_28_title">Miniaturansicht für PDF-Dateien anzeigen</string>
     <string name="settings_show_pdf_thumbnail_pre_28_summary">Kann die App auf älteren Versionen von Android instabil machen</string>
     <string name="settings_read_remote_files_for_thumbnail_title">Remote-Dateien für Miniaturansichten lesen</string>
+
+    <string name="home_title">Startseite</string>
+    <string name="home_browse">Dateien durchsuchen</string>
+    <string name="home_recent">Zuletzt verwendet</string>
+    <string name="home_recent_empty">Keine zuletzt verwendeten Dateien</string>
+    <string name="home_categories">Kategorien</string>
+    <string name="home_storage">Speicher</string>
+    <string name="home_quick_access">Schnellzugriff</string>
+    <string name="home_permission_message">Erlaube den Speicherzugriff, um Dateien, Kategorien und die Speicherbelegung anzuzeigen.</string>
+    <string name="home_permission_action">Zugriff erlauben</string>
+    <string name="home_category_images">Bilder</string>
+    <string name="home_category_videos">Videos</string>
+    <string name="home_category_audio">Audio</string>
+    <string name="home_category_documents">Dokumente</string>
+    <string name="home_category_downloads">Downloads</string>
+    <string name="home_category_apks">APKs</string>
+    <string name="home_category_archives">Archive</string>
+    <plurals name="home_category_summary">
+        <item quantity="one">%1$d Datei · %2$s</item>
+        <item quantity="other">%1$d Dateien · %2$s</item>
+    </plurals>
+    <string name="home_storage_summary">%1$s von %2$s verwendet</string>
 
     <string name="about_title">Über</string>
     <string name="about_version_title">Version</string>
