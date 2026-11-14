@@ -33,6 +33,7 @@ object CommandModel {
     private const val KEY_DOWNLOAD = "download_id"
     private const val KEY_VERIFIED = "verified"
     private const val KEY_STAMP = "stamp"
+    private const val KEY_DOWNLOAD_FOR = "download_for"
 
     // 3.3 GB peak measured on a Pixel 11 Pro XL; phones sold as "6 GB" report about 5.5 GB.
     const val MIN_RAM = 5_500_000_000L
@@ -85,7 +86,14 @@ object CommandModel {
             }
             prefs.edit().putBoolean(KEY_VERIFIED, false).apply()
         }
-        val id = prefs.getLong(KEY_DOWNLOAD, -1)
+        var id = prefs.getLong(KEY_DOWNLOAD, -1)
+        // A download started by an older app version was for another model file: forget it, so its old
+        // result (e.g. "not enough space") is not shown for the current model.
+        if (id != -1L && prefs.getString(KEY_DOWNLOAD_FOR, null) != FILE_NAME) {
+            context.getSystemService(DownloadManager::class.java).remove(id)
+            prefs.edit().remove(KEY_DOWNLOAD).commit()
+            id = -1L
+        }
         if (id == -1L) {
             return if (file.length() == SIZE) State.Verifying else State.Missing
         }
@@ -128,7 +136,7 @@ object CommandModel {
                 .setAllowedOverRoaming(false)
                 .setDestinationInExternalFilesDir(context, "models", FILE_NAME)
             // commit, not apply: if the app dies right after enqueue, the id must already be stored.
-            prefs.edit().putLong(KEY_DOWNLOAD, manager.enqueue(request)).commit()
+            prefs.edit().putLong(KEY_DOWNLOAD, manager.enqueue(request)).putString(KEY_DOWNLOAD_FOR, FILE_NAME).commit()
             true
         } catch (e: RuntimeException) {
             e.printStackTrace()
