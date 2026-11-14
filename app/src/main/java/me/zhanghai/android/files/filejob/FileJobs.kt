@@ -10,6 +10,10 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
+import android.provider.DocumentsContract
+import android.system.ErrnoException
+import android.system.Os
+import android.system.OsConstants
 import android.text.format.DateUtils
 import android.widget.Toast
 import androidx.annotation.AnyRes
@@ -18,6 +22,7 @@ import androidx.annotation.StringRes
 import java.io.ByteArrayInputStream
 import java.io.File
 import java.io.IOException
+import java.io.InputStream
 import java.io.InterruptedIOException
 import java.nio.channels.Channels
 import java8.nio.channels.FileChannel
@@ -34,12 +39,18 @@ import java8.nio.file.SimpleFileVisitor
 import java8.nio.file.StandardCopyOption
 import java8.nio.file.StandardOpenOption
 import java8.nio.file.attribute.BasicFileAttributes
+import java8.nio.file.attribute.FileTime
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 import kotlinx.coroutines.runBlocking
 import me.zhanghai.android.files.R
 import me.zhanghai.android.files.app.BackgroundActivityStarter
 import me.zhanghai.android.files.app.mainExecutor
+import me.zhanghai.android.files.backup.BackupStatus
+import me.zhanghai.android.files.backup.BackupStatusLiveData
+import me.zhanghai.android.files.backup.backupEntryName
+import me.zhanghai.android.files.backup.uniqueEntryName
+import me.zhanghai.android.files.backup.withoutNestedFolders
 import me.zhanghai.android.files.compat.mainExecutorCompat
 import me.zhanghai.android.files.file.FileItem
 import me.zhanghai.android.files.file.MimeType
@@ -80,6 +91,7 @@ import me.zhanghai.android.files.provider.common.newByteChannel
 import me.zhanghai.android.files.provider.common.newDirectoryStream
 import me.zhanghai.android.files.provider.common.newInputStream
 import me.zhanghai.android.files.provider.common.newOutputStream
+import me.zhanghai.android.files.provider.common.open
 import me.zhanghai.android.files.provider.common.readAttributes
 import me.zhanghai.android.files.provider.common.resolveForeign
 import me.zhanghai.android.files.provider.common.restoreSeLinuxContext
@@ -105,6 +117,7 @@ import me.zhanghai.android.files.util.withChooser
 import me.zhanghai.android.files.vault.Vault
 import me.zhanghai.android.files.vault.VaultEntry
 import me.zhanghai.android.files.vault.copyInterruptiblyTo
+import me.zhanghai.android.libarchive.Archive
 
 fun FileJob.getString(@StringRes stringRes: Int): String {
     return service.getString(stringRes)
@@ -2566,5 +2579,248 @@ class RestoreVaultJob(private val entries: List<VaultEntry>) : FileJob() {
                 }
             }
         }
+    }
+}
+
+/**
+ * Ordo: writes the chosen folders and the vault into one ZIP at [target], a document the user
+ * picked on a USB drive or in a cloud app. Files that cannot be read are skipped and reported
+ * instead of failing the whole backup.
+ */
+class BackupJob(
+    private val folders: List<Path>,
+    private val includeVault: Boolean,
+    private val target: Uri,
+    private val password: String?
+) : FileJob() {
+    private val skipped = mutableListOf<String>()
+
+    @Throws(IOException::class)
+    override fun run() {
+        var writtenSize = 0L
+        try {
+            postProgress(-1, null)
+            val sources = collectSources()
+            if (sources.isEmpty()) {
+                deleteTarget()
+                BackupStatusLiveData.postValue(BackupStatus.Failed(null, false))
+                return
+            }
+            val totalSize = sources.sumOf { it.size }.coerceAtLeast(1)
+            var fileCount = 0
+            var lastProgressMillis = 0L
+            // Truncating, because the system picker can hand out a file that already exists.
+            val pfd = service.contentResolver.openFileDescriptor(target, "wt")
+                ?: throw IOException("Cannot open $target")
+            val fileDescriptor = pfd.fileDescriptor
+            val channel = FileChannel::class.open(pfd, "wt")
+            channel.use {
+                // Minutes of copying should not end with a full drive. Cloud providers hand out a
+                // pipe, which reports no blocks.
+                val stat = Os.fstatvfs(fileDescriptor)
+                val freeSize = stat.f_bavail * stat.f_frsize
+                if (stat.f_blocks > 0 && freeSize < totalSize) {
+                    deleteTarget()
+                    BackupStatusLiveData.postValue(
+                        BackupStatus.Failed(
+                            null, false,
+                            getString(
+                                R.string.backup_failed_space_format,
+                                totalSize.asFileSize().formatHumanReadable(service),
+                                freeSize.asFileSize().formatHumanReadable(service)
+                            )
+                        )
+                    )
+                    return
+                }
+                ArchiveWriter(channel, Archive.FORMAT_ZIP, Archive.FILTER_NONE, password).use {
+                    writer ->
+                    for (source in sources) {
+                        throwIfInterrupted()
+                        val inputStream = try {
+                            source.open()
+                        } catch (e: InterruptedIOException) {
+                            throw e
+                        } catch (e: IOException) {
+                            e.printStackTrace()
+                            skipped += source.name
+                            writtenSize += source.size
+                            continue
+                        }
+                        try {
+                            BackupSourceStream(inputStream, source.size).use {
+                                writer.write(
+                                    it, source.name, source.size, source.lastModifiedTime,
+                                    PROGRESS_INTERVAL_MILLIS
+                                ) { size ->
+                                    writtenSize += size
+                                    val currentTimeMillis = System.currentTimeMillis()
+                                    if (currentTimeMillis >=
+                                        lastProgressMillis + NOTIFICATION_INTERVAL_MILLIS) {
+                                        lastProgressMillis = currentTimeMillis
+                                        postProgress(
+                                            (writtenSize * 100 / totalSize).toInt().coerceAtMost(100),
+                                            source.name.substringAfterLast('/')
+                                        )
+                                    }
+                                }
+                            }
+                            ++fileCount
+                        } catch (e: BackupSourceException) {
+                            e.printStackTrace()
+                            skipped += source.name
+                        }
+                    }
+                }
+                // People unplug the drive right after "done", so the data must be on it by then.
+                // A full drive also only shows up here: writes land in the cache first, and
+                // closing a ParcelFileDescriptor swallows errors.
+                try {
+                    Os.fsync(fileDescriptor)
+                } catch (e: ErrnoException) {
+                    // EINVAL is a pipe of a cloud provider, which cannot be synced.
+                    if (e.errno != OsConstants.EINVAL) {
+                        throw IOException(e)
+                    }
+                }
+            }
+            BackupStatusLiveData.postValue(
+                BackupStatus.Done(fileCount, writtenSize, skipped.toList())
+            )
+            showToast(R.string.backup_done_toast)
+        } catch (e: Exception) {
+            // A blocked write that gets cancelled fails with the interrupt flag still set.
+            val isCancelled = e is InterruptedIOException || Thread.interrupted()
+            deleteTarget()
+            if (isCancelled) {
+                // Also replaces a progress update of this job that is still on its way.
+                val runningJobId = (BackupStatusLiveData.value as? BackupStatus.Running)?.jobId
+                if (runningJobId == null || runningJobId == id) {
+                    BackupStatusLiveData.postValue(BackupStatus.Idle)
+                }
+                return
+            }
+            e.printStackTrace()
+            BackupStatusLiveData.postValue(
+                BackupStatus.Failed(e.toString(), writtenSize >= FAT32_FILE_SIZE_HINT)
+            )
+        }
+    }
+
+    @Throws(IOException::class)
+    private fun collectSources(): List<BackupSource> {
+        val storageRoot = Environment.getExternalStorageDirectory().path
+        val usedNames = mutableSetOf<String>()
+        val sources = mutableListOf<BackupSource>()
+        for (folder in withoutNestedFolders(folders.map { it.toString() })) {
+            Files.walkFileTree(Paths.get(folder), object : SimpleFileVisitor<Path>() {
+                override fun visitFile(
+                    file: Path,
+                    attributes: BasicFileAttributes
+                ): FileVisitResult {
+                    throwIfInterrupted()
+                    if (attributes.isRegularFile) {
+                        val name = uniqueEntryName(
+                            backupEntryName(file.toString(), storageRoot), usedNames
+                        )
+                        sources += BackupSource(
+                            name, attributes.size(), attributes.lastModifiedTime()
+                        ) { file.newInputStream() }
+                    }
+                    return FileVisitResult.CONTINUE
+                }
+
+                override fun visitFileFailed(file: Path, exception: IOException): FileVisitResult {
+                    if (exception is InterruptedIOException) {
+                        throw exception
+                    }
+                    exception.printStackTrace()
+                    skipped += backupEntryName(file.toString(), storageRoot)
+                    return FileVisitResult.CONTINUE
+                }
+            })
+        }
+        if (includeVault) {
+            val vaultFolder = getString(R.string.backup_vault_folder)
+            for (entry in Vault.store.entries()) {
+                val name = uniqueEntryName(
+                    "$vaultFolder/${backupEntryName(entry.originalPath, storageRoot)}", usedNames
+                )
+                sources += BackupSource(name, entry.size, FileTime.fromMillis(entry.addedAt)) {
+                    Vault.store.open(entry)
+                }
+            }
+        }
+        return sources
+    }
+
+    private fun postProgress(progress: Int, fileName: String?) {
+        BackupStatusLiveData.postValue(BackupStatus.Running(id, progress, fileName))
+        postNotification(
+            getString(R.string.backup_notification_title), fileName, null, null, 100,
+            progress.coerceAtLeast(0), progress < 0, true
+        )
+    }
+
+    // A half-written backup looks like a real one, so it must not stay on the drive.
+    private fun deleteTarget() {
+        try {
+            DocumentsContract.deleteDocument(service.contentResolver, target)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    private class BackupSource(
+        val name: String,
+        val size: Long,
+        val lastModifiedTime: FileTime,
+        val open: () -> InputStream
+    )
+
+    private class BackupSourceException(cause: IOException) : IOException(cause)
+
+    /**
+     * Marks read failures, so an unreadable file can be told apart from a failing target. Stops at
+     * the size announced in the archive, which also keeps a backup saved into a folder it backs up
+     * from reading itself forever.
+     */
+    private class BackupSourceStream(
+        private val inputStream: InputStream,
+        private var remainingSize: Long
+    ) : InputStream() {
+        @Throws(IOException::class)
+        override fun read(): Int {
+            val buffer = ByteArray(1)
+            return if (read(buffer, 0, 1) == -1) -1 else buffer[0].toInt() and 0xFF
+        }
+
+        @Throws(IOException::class)
+        override fun read(buffer: ByteArray, offset: Int, length: Int): Int {
+            if (remainingSize <= 0) {
+                return -1
+            }
+            val size = try {
+                inputStream.read(buffer, offset, minOf(length.toLong(), remainingSize).toInt())
+            } catch (e: InterruptedIOException) {
+                throw e
+            } catch (e: IOException) {
+                throw BackupSourceException(e)
+            }
+            if (size > 0) {
+                remainingSize -= size
+            }
+            return size
+        }
+
+        @Throws(IOException::class)
+        override fun close() {
+            inputStream.close()
+        }
+    }
+
+    companion object {
+        // FAT32 drives cannot hold a file of 4 GB or more.
+        private const val FAT32_FILE_SIZE_HINT = 3_900_000_000L
     }
 }

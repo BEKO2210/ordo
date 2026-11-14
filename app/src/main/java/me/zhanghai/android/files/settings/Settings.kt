@@ -67,6 +67,17 @@ object Settings {
             R.bool.pref_default_value_home_show_quick_access
         )
 
+    // Folders are backed up unless listed here, so new folders are included by themselves.
+    val BACKUP_EXCLUDED: SettingLiveData<Set<String>> =
+        StringSetSettingLiveData(
+            R.string.pref_key_backup_excluded, R.array.pref_default_value_empty_set
+        )
+
+    val BACKUP_EXTRA_FOLDERS: SettingLiveData<Set<String>> =
+        StringSetSettingLiveData(
+            R.string.pref_key_backup_extra_folders, R.array.pref_default_value_empty_set
+        )
+
     val FILE_LIST_SEARCH_CONTENT: SettingLiveData<Boolean> =
         BooleanSettingLiveData(
             R.string.pref_key_file_list_search_content,

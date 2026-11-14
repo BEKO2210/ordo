@@ -18,6 +18,7 @@ import java8.nio.file.Paths
 import me.zhanghai.android.files.R
 import me.zhanghai.android.files.analysis.AnalysisActivity
 import me.zhanghai.android.files.apps.AppsActivity
+import me.zhanghai.android.files.backup.BackupActivity
 import me.zhanghai.android.files.about.AboutActivity
 import me.zhanghai.android.files.compat.getDescriptionCompat
 import me.zhanghai.android.files.compat.isPrimaryCompat
@@ -358,7 +359,7 @@ private class BookmarkDirectoryItem(
 }
 
 private val menuItems: List<NavigationItem>
-    @Size(7)
+    @Size(8)
     get() = listOf(
         IntentMenuItem(
             R.drawable.apps_icon_white_24dp, R.string.navigation_apps,
@@ -375,6 +376,10 @@ private val menuItems: List<NavigationItem>
         IntentMenuItem(
             R.drawable.lock_icon_white_24dp, R.string.navigation_vault,
             VaultActivity::class.createIntent()
+        ),
+        IntentMenuItem(
+            R.drawable.backup_icon_white_24dp, R.string.navigation_backup,
+            BackupActivity::class.createIntent()
         ),
         IntentMenuItem(
             R.drawable.shared_directory_icon_white_24dp, R.string.navigation_ftp_server,

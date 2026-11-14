@@ -78,6 +78,11 @@ object Vault {
         }
     }
 
+    /** Lists the files without creating a vault (and its key) just to look inside. */
+    @Throws(IOException::class)
+    fun entriesIfCreated(): List<VaultEntry> =
+        if (File(application.noBackupFilesDir, "vault").isDirectory) store.entries() else emptyList()
+
     /** Decrypts into the app's private cache so a viewer can read it; cleared when locking. */
     @Throws(IOException::class)
     fun decryptToCache(entry: VaultEntry): File {

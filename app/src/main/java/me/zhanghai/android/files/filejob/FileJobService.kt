@@ -8,9 +8,12 @@ package me.zhanghai.android.files.filejob
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.IBinder
 import androidx.annotation.MainThread
 import java8.nio.file.Path
+import me.zhanghai.android.files.backup.BackupStatus
+import me.zhanghai.android.files.backup.BackupStatusLiveData
 import me.zhanghai.android.files.file.MimeType
 import me.zhanghai.android.files.provider.common.PosixFileModeBit
 import me.zhanghai.android.files.provider.common.PosixGroup
@@ -147,6 +150,20 @@ class FileJobService : Service() {
 
         fun restoreFromVault(entries: List<VaultEntry>, context: Context) {
             startJob(RestoreVaultJob(entries), context)
+        }
+
+        @MainThread
+        fun backup(
+            folders: List<Path>,
+            includeVault: Boolean,
+            target: Uri,
+            password: String?,
+            context: Context
+        ) {
+            val job = BackupJob(folders, includeVault, target, password)
+            // Set here, so the backup screen switches at once and knows which job to cancel.
+            BackupStatusLiveData.value = BackupStatus.Running(job.id, -1, null)
+            startJob(job, context)
         }
 
         fun move(sources: List<Path>, targetDirectory: Path, context: Context) {

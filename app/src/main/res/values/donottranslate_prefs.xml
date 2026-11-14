@@ -108,4 +108,9 @@
     <string name="pref_default_value_home_recent_view">row</string>
     <string name="pref_key_home_show_quick_access">key_home_show_quick_access</string>
     <bool name="pref_default_value_home_show_quick_access">true</bool>
+
+    <!-- Ordo: backup -->
+    <string name="pref_key_backup_excluded">key_backup_excluded</string>
+    <string name="pref_key_backup_extra_folders">key_backup_extra_folders</string>
+    <string-array name="pref_default_value_empty_set" />
 </resources>

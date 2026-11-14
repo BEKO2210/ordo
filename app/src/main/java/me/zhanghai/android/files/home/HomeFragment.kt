@@ -26,6 +26,7 @@ import androidx.recyclerview.widget.LinearSnapHelper
 import me.zhanghai.android.files.R
 import me.zhanghai.android.files.analysis.AnalysisActivity
 import me.zhanghai.android.files.apps.AppsActivity
+import me.zhanghai.android.files.backup.BackupActivity
 import me.zhanghai.android.files.databinding.HomeFragmentBinding
 import me.zhanghai.android.files.file.MimeType
 import me.zhanghai.android.files.file.asFileSize
@@ -90,6 +91,12 @@ class HomeFragment : Fragment(), ShowRequestAllFilesAccessRationaleDialogFragmen
         binding.vaultIcon.setTintedCircleIcon(R.drawable.lock_icon_white_24dp, R.color.home_vault)
         binding.vaultCard.setOnClickListener {
             startActivity(Intent(requireContext(), VaultActivity::class.java))
+        }
+        binding.backupIcon.setTintedCircleIcon(
+            R.drawable.backup_icon_white_24dp, R.color.home_backup
+        )
+        binding.backupCard.setOnClickListener {
+            startActivity(Intent(requireContext(), BackupActivity::class.java))
         }
         val storageAdapter = StorageAdapter(
             { startActivity(Intent(requireContext(), AnalysisActivity::class.java)) }

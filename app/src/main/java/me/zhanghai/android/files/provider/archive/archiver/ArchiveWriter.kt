@@ -20,6 +20,8 @@ import me.zhanghai.android.files.provider.common.readSymbolicLinkByteString
 import me.zhanghai.android.files.provider.common.size
 import java.io.Closeable
 import java.io.IOException
+import java.io.InputStream
+import java8.nio.file.attribute.FileTime
 
 class ArchiveWriter @Throws(IOException::class) constructor(
     channel: SeekableByteChannel,
@@ -69,6 +71,23 @@ class ArchiveWriter @Throws(IOException::class) constructor(
         } else {
             listener?.invoke(attributes.size())
         }
+    }
+
+    // Ordo: for content that is not a file on disk, e.g. files decrypted from the vault.
+    @Throws(IOException::class)
+    fun write(
+        inputStream: InputStream,
+        name: String,
+        size: Long,
+        lastModifiedTime: FileTime,
+        intervalMillis: Long,
+        listener: ((Long) -> Unit)?
+    ) {
+        archive.Entry(
+            name, lastModifiedTime, null, null, PosixFileType.REGULAR_FILE, size, null, null,
+            PosixFileMode.FILE_DEFAULT, null
+        ).use { archive.writeEntry(it) }
+        inputStream.copyTo(archive.newDataOutputStream(), intervalMillis, listener)
     }
 
     @Throws(IOException::class)

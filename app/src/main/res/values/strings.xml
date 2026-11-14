@@ -859,6 +859,62 @@
     <string name="file_job_vault_error_message_format">There was an error with “%1$s”.\n%2$s</string>
     <string name="home_vault_summary">Protected by your screen lock</string>
 
+    <!-- Ordo: backup -->
+    <string name="navigation_backup">Backup</string>
+    <string name="backup_title">Backup</string>
+    <string name="home_backup_summary">Back up to a USB drive or the cloud</string>
+    <string name="backup_target_title">Where to save?</string>
+    <string name="backup_target_usb">USB drive</string>
+    <string name="backup_target_usb_waiting">Plug in a USB drive. It shows up here by itself.</string>
+    <string name="backup_target_usb_connected_format">Connected · %1$s free</string>
+    <string name="backup_target_usb_connected">Connected. You pick it in the next step.</string>
+    <string name="backup_target_other">Google Drive or another place</string>
+    <string name="backup_target_other_summary">You choose the place in the next step</string>
+    <string name="backup_target_usb_missing_error">No USB drive found yet. Plug it in or choose the other place.</string>
+    <string name="backup_content_title">What to back up?</string>
+    <plurals name="backup_vault_summary_format">
+        <item quantity="one">%1$d file, only with a password</item>
+        <item quantity="other">%1$d files, only with a password</item>
+    </plurals>
+    <string name="backup_add_folder">Add folder</string>
+    <string name="backup_add_folder_error">This folder can’t be backed up. Choose a folder on your device.</string>
+    <string name="backup_content_empty_error">Choose at least one folder.</string>
+    <string name="backup_protection_title">Protection</string>
+    <string name="backup_encrypt">Encrypt with a password</string>
+    <string name="backup_encrypt_summary">Only you can open the backup</string>
+    <string name="backup_encrypt_vault_summary">Needed because the vault is included</string>
+    <string name="backup_password_hint">Password</string>
+    <string name="backup_password_repeat_hint">Repeat password</string>
+    <string name="backup_password_short_error">The password needs at least 8 characters.</string>
+    <string name="backup_password_mismatch_error">The passwords don’t match.</string>
+    <string name="backup_password_notice">Remember the password well. Without it nobody can open the backup, not even you. File names stay readable.</string>
+    <string name="backup_start_action">Back up now</string>
+    <string name="backup_file_name_format">Ordo-Backup-%1$s</string>
+    <string name="backup_vault_prompt_title">Unlock vault for the backup</string>
+    <string name="backup_vault_folder">Vault</string>
+    <string name="backup_notification_title">Backup in progress</string>
+    <string name="backup_running_title">Backing up …</string>
+    <string name="backup_counting">Counting files …</string>
+    <string name="backup_running_notice">The backup keeps running when you leave Ordo. Unplug a USB drive only when it is finished.</string>
+    <string name="backup_cancel_action">Cancel backup</string>
+    <string name="backup_done_toast">Backup finished</string>
+    <plurals name="backup_done_message_format">
+        <item quantity="one">%1$d file backed up (%2$s)</item>
+        <item quantity="other">%1$d files backed up (%2$s)</item>
+    </plurals>
+    <plurals name="backup_done_skipped_format">
+        <item quantity="one">%1$d file couldn’t be read and is missing:\n%2$s</item>
+        <item quantity="other">%1$d files couldn’t be read and are missing:\n%2$s</item>
+    </plurals>
+    <string name="backup_done_restore_hint">To get files back, open the backup in Ordo and copy them out.</string>
+    <string name="backup_done_action">Done</string>
+    <string name="backup_failed_title">Backup not finished</string>
+    <string name="backup_failed_empty">There are no files in the chosen folders.</string>
+    <string name="backup_failed_large">The backup is larger than 4 GB. Many USB drives can’t store files that large. Choose fewer folders or another place.</string>
+    <string name="backup_failed_message">Check that the USB drive is still plugged in and has enough space. Then try again.</string>
+    <string name="backup_failed_space_format">There isn’t enough space. The backup needs %1$s, but only %2$s is free. Choose fewer folders or another place.</string>
+    <string name="backup_retry_action">Try again</string>
+
     <!-- Ordo: trash -->
     <string name="navigation_trash">Trash</string>
     <string name="trash_title">Trash</string>

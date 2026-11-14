@@ -15,16 +15,24 @@ import androidx.core.view.updatePadding
 import androidx.recyclerview.widget.RecyclerView
 import me.zhanghai.android.files.R
 
-/** Wires the bar from `restore_delete_bar_include.xml`. */
-fun View.setUpRestoreDeleteBar(onRestore: () -> Unit, onDelete: () -> Unit) {
-    // The bar reaches the screen edge; only its buttons stay clear of the system bars.
+/**
+ * A bottom bar reaches the screen edge; only its content stays clear of the system bars and the
+ * keyboard.
+ */
+fun View.fitBottomBarInsets() {
     ViewCompat.setOnApplyWindowInsetsListener(this) { view, windowInsets ->
         val insets = windowInsets.getInsets(
-            WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
+            WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout() or
+                WindowInsetsCompat.Type.ime()
         )
         view.updatePadding(left = insets.left, right = insets.right, bottom = insets.bottom)
         windowInsets
     }
+}
+
+/** Wires the bar from `restore_delete_bar_include.xml`. */
+fun View.setUpRestoreDeleteBar(onRestore: () -> Unit, onDelete: () -> Unit) {
+    fitBottomBarInsets()
     findViewById<View>(R.id.restoreButton).setOnClickListener { onRestore() }
     findViewById<View>(R.id.deletePermanentlyButton).setOnClickListener { onDelete() }
 }

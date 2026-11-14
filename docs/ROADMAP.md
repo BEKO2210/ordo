@@ -36,6 +36,8 @@ Themes inkl. Schwarz.
 - [x] Mehrere Dateien umbenennen (Muster mit Nummer).
 - [x] PDF-Ansicht eingebaut (PdfRenderer).
 - [x] Startseite: Suchfeld, Speicherkarte mit Prozent, Glas-Leiste oben; Auswahlleiste als Glas (BlurView).
+- [x] Sicherung auf USB-Stick oder anderen Ort (Drive über die Systemauswahl) als ZIP, optional AES-256,
+      inkl. Tresor. Offen: automatische Sicherung nach Zeitplan, Wiederherstellen per Knopf.
 - [ ] Datenmüll: leere Ordner, Thumbnail-Caches, Restdateien in der Speicheranalyse.
 - [ ] Ungenutzte Apps (Nutzungsdaten-Erlaubnis), Erinnerung „Speicher fast voll".
 - [ ] Teilen in der Nähe (Quick Share über Android-Teilen).
