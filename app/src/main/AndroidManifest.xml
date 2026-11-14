@@ -284,6 +284,12 @@
             android:theme="@style/Theme.MaterialFiles" />
 
         <activity
+            android:name="me.zhanghai.android.files.analysis.AnalysisActivity"
+            android:label="@string/analysis_title"
+            android:launchMode="singleTop"
+            android:theme="@style/Theme.MaterialFiles" />
+
+        <activity
             android:name="me.zhanghai.android.files.trash.TrashActivity"
             android:label="@string/trash_title"
             android:launchMode="singleTop"

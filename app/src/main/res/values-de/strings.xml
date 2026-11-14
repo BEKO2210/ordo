@@ -733,4 +733,38 @@
         <item>Nach 90 Tagen</item>
         <item>Nie</item>
     </string-array>
+
+    <!-- Ordo: storage analysis -->
+    <string name="navigation_analysis">Speicher analysieren</string>
+    <string name="analysis_title">Speicher analysieren</string>
+    <string name="analysis_tab_large">Große Dateien</string>
+    <string name="analysis_tab_duplicates">Duplikate</string>
+    <string name="analysis_tab_old">Ungenutzt</string>
+    <string name="analysis_tab_apks">APK-Dateien</string>
+    <string name="analysis_tab_folders">Ordner</string>
+    <string name="analysis_tab_title_format">%1$s (%2$d)</string>
+    <plurals name="analysis_progress_scanning">
+        <item quantity="one">Suche läuft… %1$d Datei gefunden</item>
+        <item quantity="other">Suche läuft… %1$d Dateien gefunden</item>
+    </plurals>
+    <string name="analysis_progress_duplicates">Suche nach Duplikaten…</string>
+    <string name="analysis_empty">Hier wurde nichts gefunden</string>
+    <plurals name="analysis_duplicate_header_format">
+        <item quantity="one">%1$d Kopie · %2$s lassen sich freigeben</item>
+        <item quantity="other">%1$d Kopien · %2$s lassen sich freigeben</item>
+    </plurals>
+    <string name="analysis_file_description_format">%1$s · %2$s\n%3$s</string>
+    <string name="analysis_selection_format">%1$d ausgewählt · %2$s</string>
+    <string name="analysis_delete">Löschen</string>
+    <string name="analysis_select_all_but_newest">Alle außer der neuesten auswählen</string>
+    <string name="analysis_choose_storage">Speicher wählen</string>
+    <string name="analysis_rescan">Neu analysieren</string>
+    <plurals name="analysis_trash_message_format">
+        <item quantity="one">%1$d Datei (%2$s) in den Papierkorb verschieben?</item>
+        <item quantity="other">%1$d Dateien (%2$s) in den Papierkorb verschieben?</item>
+    </plurals>
+    <plurals name="analysis_delete_message_format">
+        <item quantity="one">%1$d Datei (%2$s) endgültig löschen? Das lässt sich nicht rückgängig machen.</item>
+        <item quantity="other">%1$d Dateien (%2$s) endgültig löschen? Das lässt sich nicht rückgängig machen.</item>
+    </plurals>
 </resources>

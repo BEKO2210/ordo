@@ -23,7 +23,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import java8.nio.file.Paths
 import me.zhanghai.android.files.R
 import me.zhanghai.android.files.databinding.TrashFragmentBinding
-import me.zhanghai.android.files.databinding.TrashItemBinding
+import me.zhanghai.android.files.databinding.CheckableFileItemBinding
 import me.zhanghai.android.files.file.asFileSize
 import me.zhanghai.android.files.filejob.FileJobService
 import me.zhanghai.android.files.util.getQuantityString
@@ -168,7 +168,7 @@ class TrashFragment : Fragment() {
         override fun getItemCount(): Int = items.size
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder =
-            ViewHolder(TrashItemBinding.inflate(LayoutInflater.from(parent.context), parent, false))
+            ViewHolder(CheckableFileItemBinding.inflate(LayoutInflater.from(parent.context), parent, false))
 
         override fun onBindViewHolder(holder: ViewHolder, position: Int) {
             val item = items[position]
@@ -200,7 +200,7 @@ class TrashFragment : Fragment() {
             }
         }
 
-        inner class ViewHolder(val binding: TrashItemBinding) :
+        inner class ViewHolder(val binding: CheckableFileItemBinding) :
             RecyclerView.ViewHolder(binding.root)
     }
 }
