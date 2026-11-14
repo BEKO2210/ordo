@@ -137,7 +137,7 @@ class AiOrbView @JvmOverloads constructor(
 
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
-        if (ValueAnimator.areAnimatorsEnabled()) {
+        if (me.zhanghai.android.files.ui.Motion.any) {
             lastFrame = 0L
             animator.start()
         }
@@ -150,7 +150,7 @@ class AiOrbView @JvmOverloads constructor(
 
     override fun onVisibilityAggregated(isVisible: Boolean) {
         super.onVisibilityAggregated(isVisible)
-        if (!ValueAnimator.areAnimatorsEnabled()) return
+        if (!me.zhanghai.android.files.ui.Motion.any) return
         if (isVisible && !animator.isStarted) animator.start() else if (!isVisible) animator.cancel()
     }
 
@@ -190,9 +190,13 @@ class AiOrbView @JvmOverloads constructor(
             blobPaint.shader = shader
             canvas.drawCircle(x, y, r * 0.62f, blobPaint)
         }
-        swirlMatrix.setRotate(-time * 70f, cx, cy)
-        swirlPaint.shader.setLocalMatrix(swirlMatrix)
-        canvas.drawCircle(cx, cy, inner, swirlPaint)
+        // Swirl, ripples and orbiting lights are decoration: only with motion set to "full".
+        val decorated = me.zhanghai.android.files.ui.Motion.full
+        if (decorated) {
+            swirlMatrix.setRotate(-time * 70f, cx, cy)
+            swirlPaint.shader.setLocalMatrix(swirlMatrix)
+            canvas.drawCircle(cx, cy, inner, swirlPaint)
+        }
         canvas.drawCircle(cx - inner * 0.25f, cy - inner * 0.3f, inner * 0.6f, corePaint)
         if (pulse > 0f) {
             canvas.drawColor((255 * pulse * 0.5f).toInt() shl 24 or 0x00FFFFFF, android.graphics.PorterDuff.Mode.SRC_ATOP)
@@ -211,8 +215,10 @@ class AiOrbView @JvmOverloads constructor(
         rimMatrix.setRotate(time * 90f, cx, cy)
         rimPaint.shader.setLocalMatrix(rimMatrix)
         canvas.drawCircle(cx, cy, inner, rimPaint)
-        drawRipples(canvas, cx, cy, r)
-        drawParticles(canvas, cx, cy, r)
+        if (decorated) {
+            drawRipples(canvas, cx, cy, r)
+            drawParticles(canvas, cx, cy, r)
+        }
     }
 
     // While thinking, rings leave the sphere like sound waves and fade out at the edge of the view.

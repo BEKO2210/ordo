@@ -14,13 +14,12 @@ import androidx.annotation.StyleRes
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.LocaleListCompat
 import androidx.fragment.app.add
+import androidx.lifecycle.Lifecycle
 import androidx.fragment.app.commit
 import kotlinx.parcelize.Parcelize
-import kotlinx.parcelize.WriteWith
 import me.zhanghai.android.files.app.AppActivity
 import me.zhanghai.android.files.theme.custom.CustomThemeHelper.OnThemeChangedListener
 import me.zhanghai.android.files.theme.night.NightModeHelper.OnNightModeChangedListener
-import me.zhanghai.android.files.util.BundleParceler
 import me.zhanghai.android.files.util.ParcelableArgs
 import me.zhanghai.android.files.util.createIntent
 import me.zhanghai.android.files.util.getArgsOrNull
@@ -30,9 +29,15 @@ import me.zhanghai.android.files.util.startActivitySafe
 class SettingsActivity : AppActivity(), OnThemeChangedListener, OnNightModeChangedListener {
     private var isRestarting = false
 
+    /** Null for the overview; otherwise one of [SECTIONS]. */
+    val section: String?
+        // An intent from an older version or another app may not unparcel as these Args: then show the overview.
+        get() = runCatching { intent.extras?.getArgsOrNull<Args>()?.section }.getOrNull()?.takeIf { it in SECTIONS }
+
     override fun onCreate(savedInstanceState: Bundle?) {
-        val args = intent.extras?.getArgsOrNull<Args>()
-        val savedInstanceState = savedInstanceState ?: args?.savedInstanceState
+        // The state carried over by restart() stays in this process: this activity is exported, and a saved state
+        // Bundle from another app's intent could make it restore fragments of that app's choosing.
+        val savedInstanceState = savedInstanceState ?: restartState.also { restartState = null }
         super.onCreate(savedInstanceState)
 
         // Calls ensureSubDecor().
@@ -53,22 +58,27 @@ class SettingsActivity : AppActivity(), OnThemeChangedListener, OnNightModeChang
         // ActivityCompat.recreate() may call ActivityRecreator.recreate() without calling
         // Activity.recreate(), so we cannot simply override it. To work around this, we just
         // manually call restart().
-        restart()
+        restartOrRecreate()
     }
 
     override fun onNightModeChangedFromHelper(nightMode: Int) {
         // ActivityCompat.recreate() may call ActivityRecreator.recreate() without calling
         // Activity.recreate(), so we cannot simply override it. To work around this, we just
         // manually call restart().
-        restart()
+        restartOrRecreate()
+    }
+
+    // The overview stays in the back stack under a section: restarting it would start it on top of the section.
+    private fun restartOrRecreate() {
+        if (lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) restart() else recreate()
     }
 
     private fun restart() {
-        val savedInstanceState = Bundle().apply {
+        restartState = Bundle().apply {
             onSaveInstanceState(this)
         }
         finish()
-        val intent = SettingsActivity::class.createIntent().putArgs(Args(savedInstanceState))
+        val intent = SettingsActivity::class.createIntent().putArgs(Args(section))
         startActivitySafe(intent)
         overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
         isRestarting = true
@@ -96,5 +106,18 @@ class SettingsActivity : AppActivity(), OnThemeChangedListener, OnNightModeChang
     }
 
     @Parcelize
-    class Args(val savedInstanceState: @WriteWith<BundleParceler> Bundle?) : ParcelableArgs
+    class Args(val section: String? = null) : ParcelableArgs
+
+    companion object {
+        const val SECTION_APPEARANCE = "appearance"
+        const val SECTION_AI = "ai"
+        const val SECTION_FILES = "files"
+        const val SECTION_STORAGE = "storage"
+        const val SECTION_TRASH = "trash"
+        val SECTIONS = listOf(SECTION_APPEARANCE, SECTION_AI, SECTION_FILES, SECTION_STORAGE, SECTION_TRASH)
+
+        private var restartState: Bundle? = null
+
+        fun createIntent(section: String) = SettingsActivity::class.createIntent().putArgs(Args(section))
+    }
 }

@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright (c) 2026 Ordo contributors
+  ~ SPDX-License-Identifier: GPL-3.0-or-later
+  -->
+
+<androidx.core.widget.NestedScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/overviewScroll"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:clipToPadding="false"
+    android:paddingBottom="24dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingHorizontal="16dp"
+        android:paddingTop="8dp">
+
+        <!-- Usage -->
+        <LinearLayout
+            android:id="@+id/usageCard"
+            style="@style/Widget.Ordo.DashboardCard">
+
+            <TextView
+                style="@style/Widget.Ordo.DashboardTitle"
+                android:text="@string/analysis_usage_title" />
+
+            <TextView
+                android:id="@+id/usageSubtitle"
+                style="@style/Widget.Ordo.DashboardSubtitle" />
+
+            <com.github.mikephil.charting.charts.PieChart
+                android:id="@+id/usageChart"
+                android:layout_width="match_parent"
+                android:layout_height="232dp"
+                android:layout_marginTop="8dp" />
+
+            <LinearLayout
+                android:id="@+id/usageLegend"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:orientation="vertical" />
+        </LinearLayout>
+
+        <!-- Cleanup -->
+        <LinearLayout
+            android:id="@+id/cleanupCard"
+            style="@style/Widget.Ordo.DashboardCard">
+
+            <TextView
+                style="@style/Widget.Ordo.DashboardTitle"
+                android:text="@string/analysis_cleanup_title" />
+
+            <TextView
+                android:id="@+id/cleanupHeadline"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:textAppearance="?textAppearanceHeadline5"
+                android:textStyle="bold" />
+
+            <me.zhanghai.android.files.analysis.StackedBarView
+                android:id="@+id/cleanupBar"
+                android:layout_width="match_parent"
+                android:layout_height="14dp"
+                android:layout_marginTop="14dp"
+                android:importantForAccessibility="no" />
+
+            <LinearLayout
+                android:id="@+id/cleanupList"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:orientation="vertical" />
+        </LinearLayout>
+
+        <!-- Suggestions -->
+        <LinearLayout
+            android:id="@+id/suggestionCard"
+            style="@style/Widget.Ordo.DashboardCard"
+            android:visibility="gone">
+
+            <TextView
+                style="@style/Widget.Ordo.DashboardTitle"
+                android:drawablePadding="8dp"
+                android:text="@string/analysis_suggestions_title"
+                app:drawableStartCompat="@drawable/assistant_icon_white_24dp"
+                app:drawableTint="@color/ai_accent" />
+
+            <LinearLayout
+                android:id="@+id/suggestionList"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+        </LinearLayout>
+
+        <!-- Where the space is -->
+        <LinearLayout
+            android:id="@+id/treemapCard"
+            style="@style/Widget.Ordo.DashboardCard">
+
+            <TextView
+                style="@style/Widget.Ordo.DashboardTitle"
+                android:text="@string/analysis_treemap_title" />
+
+            <TextView
+                style="@style/Widget.Ordo.DashboardSubtitle"
+                android:text="@string/analysis_treemap_subtitle" />
+
+            <me.zhanghai.android.files.analysis.TreemapView
+                android:id="@+id/treemap"
+                android:layout_width="match_parent"
+                android:layout_height="220dp"
+                android:layout_marginTop="12dp" />
+
+            <!-- The same folders as rows: big touch targets on phones, and readable by TalkBack. -->
+            <LinearLayout
+                android:id="@+id/treemapList"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:orientation="vertical" />
+        </LinearLayout>
+
+        <!-- Growth -->
+        <LinearLayout
+            android:id="@+id/growthCard"
+            style="@style/Widget.Ordo.DashboardCard">
+
+            <TextView
+                style="@style/Widget.Ordo.DashboardTitle"
+                android:text="@string/analysis_growth_title" />
+
+            <TextView
+                android:id="@+id/growthSubtitle"
+                style="@style/Widget.Ordo.DashboardSubtitle" />
+
+            <com.github.mikephil.charting.charts.BarChart
+                android:id="@+id/growthChart"
+                android:layout_width="match_parent"
+                android:layout_height="200dp"
+                android:layout_marginTop="8dp" />
+        </LinearLayout>
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

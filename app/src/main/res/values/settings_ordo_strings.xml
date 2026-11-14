@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later -->
+<resources>
+    <string name="settings_group_general">General</string>
+    <string name="settings_group_files">Files</string>
+    <string name="settings_group_more">More</string>
+
+    <string name="settings_section_appearance">Appearance</string>
+    <string name="settings_section_appearance_summary">Accent colour, dark mode, motion, language</string>
+    <string name="settings_section_ai">AI assistant</string>
+    <string name="settings_section_ai_summary">Speed and the on-device language model</string>
+    <string name="settings_section_files">Files &amp; view</string>
+    <string name="settings_section_files_summary">Start screen, file names, archives, APKs</string>
+    <string name="settings_section_storage">Storage &amp; folders</string>
+    <string name="settings_section_storage_summary">Storage list, standard folders, bookmarks</string>
+    <string name="settings_section_trash_summary">Keep deleted files for a while</string>
+    <string name="settings_link_ftp_server_summary">Share files on your Wi-Fi</string>
+    <string name="settings_link_legal_summary">Privacy policy and licences</string>
+    <string name="settings_about_summary">Version %1$s</string>
+
+    <string name="settings_wallpaper_colors_title">Wallpaper colours</string>
+    <string name="settings_wallpaper_colors_summary">Use the colours of your wallpaper instead of Ordo\'s</string>
+    <string name="settings_accent_title">Accent colour</string>
+    <string-array name="settings_accent_entries">
+        <item>Aurora</item>
+        <item>Blue</item>
+        <item>Mint</item>
+        <item>Violet</item>
+        <item>Amber</item>
+    </string-array>
+    <string name="settings_motion_title">Motion</string>
+    <string-array name="settings_motion_entries">
+        <item>Full – all effects</item>
+        <item>Subtle – transitions only</item>
+        <item>Off</item>
+    </string-array>
+
+    <string name="settings_ai_speed_title">Speed</string>
+    <string-array name="settings_ai_speed_entries">
+        <item>Turbo – fastest, stays ready longer</item>
+        <item>Balanced</item>
+        <item>Gentle – slower, keeps the phone cooler</item>
+    </string-array>
+    <string name="settings_ai_model_title">On-device language model</string>
+    <string name="settings_ai_model_ready">Ready · %1$s on this device</string>
+    <string name="settings_ai_model_missing">Not set up yet. Tap to set it up</string>
+    <string name="settings_ai_model_downloading">Downloading … %1$d %%</string>
+    <string name="settings_ai_model_verifying">Checking the download …</string>
+    <string name="settings_ai_model_failed">Setup stopped. Tap to try again</string>
+    <string name="settings_ai_privacy_summary">Ordo understands your commands on this device. They are never sent anywhere.</string>
+</resources>

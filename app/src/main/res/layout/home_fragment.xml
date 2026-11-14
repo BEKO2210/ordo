@@ -259,4 +259,12 @@
             </com.google.android.material.card.MaterialCardView>
         </LinearLayout>
     </eightbitlab.com.blurview.BlurView>
+
+    <!-- Soft edge under the glass bar: content fades out instead of being cut; shown once the page scrolls. -->
+    <View
+        android:id="@+id/toolbarEdge"
+        android:layout_width="match_parent"
+        android:layout_height="20dp"
+        android:alpha="0"
+        android:importantForAccessibility="no" />
 </FrameLayout>

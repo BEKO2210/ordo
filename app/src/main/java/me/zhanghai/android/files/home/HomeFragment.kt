@@ -172,11 +172,28 @@ class HomeFragment : Fragment(), ShowRequestAllFilesAccessRationaleDialogFragmen
     // The content scrolls under the top bar. Android 12+ blurs it; older versions get a solid bar.
     private fun setUpGlassToolbar() {
         val context = requireContext()
-        val barColor = ColorUtils.compositeColors(
-            context.getColorByAttr(R.attr.colorAppBarSurface),
-            context.getColorByAttr(android.R.attr.colorBackground)
+        // The page colour with a breath of the Aurora accent, not the grey app bar surface.
+        val barColor = ColorUtils.blendARGB(
+            context.getColorByAttr(android.R.attr.colorBackground),
+            androidx.core.content.ContextCompat.getColor(context, R.color.ai_accent), 0.04f
         )
         binding.toolbarBlur.setUpGlass(binding.blurTarget, barColor, requireActivity())
+        val hairline = ColorUtils.setAlphaComponent(context.getColorByAttr(android.R.attr.textColorPrimary), 0x1F)
+        binding.toolbarEdge.background = android.graphics.drawable.LayerDrawable(arrayOf(
+            android.graphics.drawable.GradientDrawable(
+                android.graphics.drawable.GradientDrawable.Orientation.TOP_BOTTOM,
+                intArrayOf(ColorUtils.setAlphaComponent(barColor, 0x99), android.graphics.Color.TRANSPARENT)
+            ),
+            android.graphics.drawable.GradientDrawable().apply { setColor(hairline) }
+        )).apply { setLayerHeight(1, (resources.displayMetrics.density).toInt().coerceAtLeast(1)) }
+        binding.toolbarBlur.addOnLayoutChangeListener { bar, _, _, _, _, _, _, _, _ ->
+            binding.toolbarEdge.translationY = bar.height.toFloat()
+        }
+        // Edge and hairline appear over the first 24 dp of scrolling: flat at rest, layered in motion.
+        val edgeDistance = 24 * resources.displayMetrics.density
+        binding.scrollView.setOnScrollChangeListener { _, _, scrollY, _, _ ->
+            binding.toolbarEdge.alpha = (scrollY / edgeDistance).coerceIn(0f, 1f)
+        }
         val scrollPaddingBottom = binding.scrollView.paddingBottom
         ViewCompat.setOnApplyWindowInsetsListener(binding.root) { root, windowInsets ->
             val insets = windowInsets.getInsets(

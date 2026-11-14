@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later -->
+<resources>
+    <!-- Wallpaper colours (Material You) exist from Android 12 on. -->
+    <bool name="pref_visible_wallpaper_colors">true</bool>
+</resources>

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright (c) 2026 Ordo contributors
+  ~ SPDX-License-Identifier: GPL-3.0-or-later
+  -->
+
+<!-- Accent presets; text on each primary passes WCAG AA (4.85 to 13.2:1, checked for light and dark). -->
+<resources>
+    <color name="accent_aurora_primary">#0E7490</color>
+    <color name="accent_aurora_on_primary">#FFFFFF</color>
+    <color name="accent_aurora_container">#CFFAFE</color>
+    <color name="accent_aurora_on_container">#083344</color>
+    <color name="accent_blue_primary">#1D4ED8</color>
+    <color name="accent_blue_on_primary">#FFFFFF</color>
+    <color name="accent_blue_container">#DBEAFE</color>
+    <color name="accent_blue_on_container">#172554</color>
+    <color name="accent_mint_primary">#047857</color>
+    <color name="accent_mint_on_primary">#FFFFFF</color>
+    <color name="accent_mint_container">#D1FAE5</color>
+    <color name="accent_mint_on_container">#022C22</color>
+    <color name="accent_violet_primary">#6D28D9</color>
+    <color name="accent_violet_on_primary">#FFFFFF</color>
+    <color name="accent_violet_container">#EDE9FE</color>
+    <color name="accent_violet_on_container">#2E1065</color>
+    <color name="accent_amber_primary">#B45309</color>
+    <color name="accent_amber_on_primary">#FFFFFF</color>
+    <color name="accent_amber_container">#FEF3C7</color>
+    <color name="accent_amber_on_container">#451A03</color>
+    <!-- Primary on the inverse surface (snackbar actions): the other mode's primary. -->
+    <color name="accent_aurora_inverse">#67E8F9</color>
+    <color name="accent_aurora_on_inverse">#083344</color>
+    <color name="accent_blue_inverse">#93C5FD</color>
+    <color name="accent_blue_on_inverse">#172554</color>
+    <color name="accent_mint_inverse">#6EE7B7</color>
+    <color name="accent_mint_on_inverse">#022C22</color>
+    <color name="accent_violet_inverse">#C4B5FD</color>
+    <color name="accent_violet_on_inverse">#2E1065</color>
+    <color name="accent_amber_inverse">#FCD34D</color>
+    <color name="accent_amber_on_inverse">#451A03</color>
+</resources>

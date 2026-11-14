@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright (c) 2026 Ordo contributors
+  ~ SPDX-License-Identifier: GPL-3.0-or-later
+  -->
+
+<!-- Ordo's own Material 3 colour roles: the same on every phone, not taken from the wallpaper.
+     ordo_dark_* are the night values, also used directly by the always-dark immersive theme. -->
+<resources>
+    <color name="ordo_primary">#0E7490</color>
+    <color name="ordo_on_primary">#FFFFFF</color>
+    <color name="ordo_primary_container">#CFFAFE</color>
+    <color name="ordo_on_primary_container">#083344</color>
+    <color name="ordo_secondary">#475569</color>
+    <color name="ordo_on_secondary">#FFFFFF</color>
+    <color name="ordo_secondary_container">#E2E8F0</color>
+    <color name="ordo_on_secondary_container">#0F172A</color>
+    <color name="ordo_tertiary">#047857</color>
+    <color name="ordo_surface">#FAFBFC</color>
+    <color name="ordo_on_surface">#0F172A</color>
+    <color name="ordo_surface_variant">#EEF2F6</color>
+    <color name="ordo_on_surface_variant">#475569</color>
+    <color name="ordo_outline">#7C8BA1</color>
+    <color name="ordo_outline_variant">#E2E8F0</color>
+    <color name="ordo_surface_container_lowest">#FFFFFF</color>
+    <color name="ordo_surface_container_low">#F5F7FA</color>
+    <color name="ordo_surface_container">#EEF2F6</color>
+    <color name="ordo_surface_container_high">#E8EDF2</color>
+    <color name="ordo_surface_container_highest">#E2E8F0</color>
+    <color name="ordo_error">#DC2626</color>
+    <color name="ordo_on_tertiary">#FFFFFF</color>
+    <color name="ordo_tertiary_container">#D1FAE5</color>
+    <color name="ordo_on_tertiary_container">#064E3B</color>
+    <color name="ordo_on_error">#FFFFFF</color>
+    <color name="ordo_error_container">#FEE2E2</color>
+    <color name="ordo_on_error_container">#7F1D1D</color>
+    <color name="ordo_primary_inverse">#67E8F9</color>
+    <color name="ordo_surface_inverse">#1E293B</color>
+    <color name="ordo_on_surface_inverse">#F1F5F9</color>
+    <color name="ordo_surface_dim">#DCE2E9</color>
+    <color name="ordo_surface_bright">#FAFBFC</color>
+    <color name="ordo_on_background">#0F172A</color>
+
+    <color name="ordo_dark_primary">#67E8F9</color>
+    <color name="ordo_dark_on_primary">#083344</color>
+    <color name="ordo_dark_primary_container">#155E75</color>
+    <color name="ordo_dark_on_primary_container">#CFFAFE</color>
+    <color name="ordo_dark_secondary">#94A3B8</color>
+    <color name="ordo_dark_on_secondary">#0F172A</color>
+    <color name="ordo_dark_secondary_container">#1E293B</color>
+    <color name="ordo_dark_on_secondary_container">#E2E8F0</color>
+    <color name="ordo_dark_tertiary">#6EE7B7</color>
+    <color name="ordo_dark_surface">#0B1018</color>
+    <color name="ordo_dark_on_surface">#E6EDF5</color>
+    <color name="ordo_dark_surface_variant">#1A2230</color>
+    <color name="ordo_dark_on_surface_variant">#9AA8BA</color>
+    <color name="ordo_dark_outline">#5B6B82</color>
+    <color name="ordo_dark_outline_variant">#1E293B</color>
+    <color name="ordo_dark_surface_container_lowest">#070B11</color>
+    <color name="ordo_dark_surface_container_low">#0F151F</color>
+    <color name="ordo_dark_surface_container">#131A26</color>
+    <color name="ordo_dark_surface_container_high">#182030</color>
+    <color name="ordo_dark_surface_container_highest">#1E2738</color>
+    <color name="ordo_dark_error">#F87171</color>
+    <color name="ordo_dark_on_tertiary">#022C22</color>
+    <color name="ordo_dark_tertiary_container">#065F46</color>
+    <color name="ordo_dark_on_tertiary_container">#D1FAE5</color>
+    <color name="ordo_dark_on_error">#450A0A</color>
+    <color name="ordo_dark_error_container">#7F1D1D</color>
+    <color name="ordo_dark_on_error_container">#FEE2E2</color>
+    <color name="ordo_dark_primary_inverse">#0E7490</color>
+    <color name="ordo_dark_surface_inverse">#E6EDF5</color>
+    <color name="ordo_dark_on_surface_inverse">#0F172A</color>
+    <color name="ordo_dark_surface_dim">#0B1018</color>
+    <color name="ordo_dark_surface_bright">#252E40</color>
+    <color name="ordo_dark_on_background">#E6EDF5</color>
+</resources>

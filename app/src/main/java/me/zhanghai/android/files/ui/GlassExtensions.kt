@@ -12,8 +12,9 @@ import androidx.core.graphics.ColorUtils
 import eightbitlab.com.blurview.BlurTarget
 import eightbitlab.com.blurview.BlurView
 
-private const val GLASS_BLUR_RADIUS = 20f
-private const val GLASS_OVERLAY_ALPHA = 0xB3
+// Maximum radius and a lighter tint: clear glass rather than a grey film.
+private const val GLASS_BLUR_RADIUS = 25f
+private const val GLASS_OVERLAY_ALPHA = 0x99
 
 /** Blurs [target] behind this bar on Android 12+; older versions get the solid [color]. */
 fun BlurView.setUpGlass(target: BlurTarget, @ColorInt color: Int, activity: Activity) {

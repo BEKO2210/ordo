@@ -55,13 +55,12 @@
                 android:layout_marginStart="12dp"
                 android:textAppearance="?textAppearanceHeadline6" />
         </LinearLayout>
-        <com.google.android.material.progressindicator.LinearProgressIndicator
-            android:id="@+id/usageProgress"
+        <me.zhanghai.android.files.analysis.StackedBarView
+            android:id="@+id/usageBar"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            app:trackCornerRadius="4dp"
-            app:trackThickness="8dp" />
+            android:layout_height="10dp"
+            android:layout_marginTop="14dp"
+            android:importantForAccessibility="no" />
         <!-- Two clear actions: look inside the storage, or analyse it. Equal width, 48 dp touch height. -->
         <LinearLayout
             android:layout_width="match_parent"
@@ -78,8 +77,11 @@
                 android:minHeight="48dp"
                 android:text="@string/home_storage_open"
                 android:textAllCaps="false"
+                android:textColor="?colorPrimary"
                 app:cornerRadius="20dp"
                 app:icon="@drawable/directory_icon_white_24dp"
+                app:iconTint="?colorPrimary"
+                app:strokeColor="@color/ai_glass_stroke"
                 app:iconGravity="textStart"
                 app:iconSize="20dp" />
             <com.google.android.material.button.MaterialButton
@@ -92,8 +94,11 @@
                 android:minHeight="48dp"
                 android:text="@string/home_storage_analyze"
                 android:textAllCaps="false"
+                android:textColor="?colorPrimary"
                 app:cornerRadius="20dp"
                 app:icon="@drawable/storage_analysis_icon_white_24dp"
+                app:iconTint="?colorPrimary"
+                app:strokeColor="@color/ai_glass_stroke"
                 app:iconGravity="textStart"
                 app:iconSize="20dp" />
         </LinearLayout>

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright (c) 2026 Ordo contributors
+  ~ SPDX-License-Identifier: GPL-3.0-or-later
+  -->
+
+<resources>
+    <string name="analysis_tab_overview">Übersicht</string>
+    <string name="analysis_usage_title">Belegung</string>
+    <string name="analysis_usage_subtitle">%1$s von %2$s belegt</string>
+    <string name="analysis_usage_center_label">belegt</string>
+    <string name="analysis_kind_image">Bilder</string>
+    <string name="analysis_kind_audio">Audio</string>
+    <string name="analysis_kind_document">Dokumente</string>
+    <string name="analysis_kind_video">Videos</string>
+    <string name="analysis_kind_apps">Apps &amp; APKs</string>
+    <string name="analysis_kind_other">Andere Dateien</string>
+    <string name="analysis_kind_system">System &amp; App-Daten</string>
+    <string name="analysis_kind_free">Frei</string>
+    <string name="analysis_cleanup_title">Aufräum-Potenzial</string>
+    <string name="analysis_cleanup_headline">Bis zu %s frei machen</string>
+    <string name="analysis_cleanup_none">Nichts aufzuräumen – sehr ordentlich.</string>
+    <string name="analysis_cleanup_duplicates">Duplikate</string>
+    <string name="analysis_cleanup_large">Große Dateien</string>
+    <string name="analysis_cleanup_old">Seit 6 Monaten unbenutzt</string>
+    <string name="analysis_cleanup_apks">APK-Dateien</string>
+    <string name="analysis_cleanup_trash">Papierkorb</string>
+    <string name="analysis_view">Ansehen</string>
+    <string name="analysis_suggestions_title">Vorschläge</string>
+    <string name="analysis_suggestion_old_downloads">Downloads älter als 6 Monate</string>
+    <string name="analysis_suggestion_old_downloads_command">Lösche Dateien älter als 6 Monate in Download</string>
+    <string name="analysis_suggestion_download_apks">Installationsdateien (APK) in Download</string>
+    <string name="analysis_suggestion_download_apks_command">Lösche die APK-Dateien in Download</string>
+    <plurals name="analysis_suggestion_detail">
+        <item quantity="one">%1$d Datei · %2$s</item>
+        <item quantity="other">%1$d Dateien · %2$s</item>
+    </plurals>
+    <string name="analysis_preview">Vorschau</string>
+    <string name="analysis_treemap_title">Wo dein Speicher liegt</string>
+    <string name="analysis_treemap_subtitle">Größte Ordner – zum Öffnen antippen</string>
+    <string name="analysis_growth_title">Neu pro Monat</string>
+    <string name="analysis_growth_subtitle">Letzte 12 Monate · %s diesen Monat</string>
+    <string name="analysis_treemap_more">%d weitere Ordner</string>
+</resources>

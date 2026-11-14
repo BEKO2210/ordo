@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright (c) 2026 Ordo contributors
+  ~ SPDX-License-Identifier: GPL-3.0-or-later
+  -->
+
+<resources>
+    <string name="analysis_tab_overview">Overview</string>
+    <string name="analysis_usage_title">Storage</string>
+    <string name="analysis_usage_subtitle">%1$s of %2$s used</string>
+    <string name="analysis_usage_center_label">used</string>
+    <string name="analysis_kind_image">Pictures</string>
+    <string name="analysis_kind_audio">Audio</string>
+    <string name="analysis_kind_document">Documents</string>
+    <string name="analysis_kind_video">Videos</string>
+    <string name="analysis_kind_apps">Apps &amp; APKs</string>
+    <string name="analysis_kind_other">Other files</string>
+    <string name="analysis_kind_system">System &amp; app data</string>
+    <string name="analysis_kind_free">Free</string>
+    <string name="analysis_cleanup_title">Cleanup potential</string>
+    <string name="analysis_cleanup_headline">Up to %s to free</string>
+    <string name="analysis_cleanup_none">Nothing to clean up – nicely tidy.</string>
+    <string name="analysis_cleanup_duplicates">Duplicates</string>
+    <string name="analysis_cleanup_large">Large files</string>
+    <string name="analysis_cleanup_old">Unused for 6 months</string>
+    <string name="analysis_cleanup_apks">APK files</string>
+    <string name="analysis_cleanup_trash">Trash</string>
+    <string name="analysis_view">View</string>
+    <string name="analysis_suggestions_title">Suggestions</string>
+    <string name="analysis_suggestion_old_downloads">Downloads older than 6 months</string>
+    <string name="analysis_suggestion_old_downloads_command">Delete files older than 6 months in Download</string>
+    <string name="analysis_suggestion_download_apks">Installer files (APK) in Download</string>
+    <string name="analysis_suggestion_download_apks_command">Delete the APK files in Download</string>
+    <plurals name="analysis_suggestion_detail">
+        <item quantity="one">%1$d file · %2$s</item>
+        <item quantity="other">%1$d files · %2$s</item>
+    </plurals>
+    <string name="analysis_preview">Preview</string>
+    <string name="analysis_treemap_title">Where your space goes</string>
+    <string name="analysis_treemap_subtitle">Biggest folders – tap one to open it</string>
+    <string name="analysis_growth_title">New per month</string>
+    <string name="analysis_growth_subtitle">Last 12 months · %s this month</string>
+    <string name="analysis_treemap_more">%d more folders</string>
+</resources>

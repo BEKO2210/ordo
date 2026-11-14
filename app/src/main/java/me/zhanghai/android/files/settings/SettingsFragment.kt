@@ -11,6 +11,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
+import me.zhanghai.android.files.R
 import me.zhanghai.android.files.databinding.SettingsFragmentBinding
 
 class SettingsFragment : Fragment() {
@@ -31,5 +32,13 @@ class SettingsFragment : Fragment() {
         val activity = requireActivity() as AppCompatActivity
         activity.setSupportActionBar(binding.toolbar)
         activity.supportActionBar!!.setDisplayHomeAsUpEnabled(true)
+        when ((activity as SettingsActivity).section) {
+            SettingsActivity.SECTION_APPEARANCE -> R.string.settings_section_appearance
+            SettingsActivity.SECTION_AI -> R.string.settings_section_ai
+            SettingsActivity.SECTION_FILES -> R.string.settings_section_files
+            SettingsActivity.SECTION_STORAGE -> R.string.settings_section_storage
+            SettingsActivity.SECTION_TRASH -> R.string.settings_trash_title
+            else -> null
+        }?.let { activity.title = getString(it) }
     }
 }

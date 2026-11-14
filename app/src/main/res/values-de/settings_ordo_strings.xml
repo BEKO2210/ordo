@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later -->
+<resources>
+    <string name="settings_group_general">Allgemein</string>
+    <string name="settings_group_files">Dateien</string>
+    <string name="settings_group_more">Mehr</string>
+
+    <string name="settings_section_appearance">Aussehen</string>
+    <string name="settings_section_appearance_summary">Akzentfarbe, Dunkelmodus, Animationen, Sprache</string>
+    <string name="settings_section_ai">KI-Assistent</string>
+    <string name="settings_section_ai_summary">Tempo und Sprachmodell auf dem Gerät</string>
+    <string name="settings_section_files">Dateien &amp; Ansicht</string>
+    <string name="settings_section_files_summary">Startseite, Dateinamen, Archive, APKs</string>
+    <string name="settings_section_storage">Speicher &amp; Ordner</string>
+    <string name="settings_section_storage_summary">Speicherorte, Standardordner, Lesezeichen</string>
+    <string name="settings_section_trash_summary">Gelöschte Dateien eine Zeit lang aufbewahren</string>
+    <string name="settings_link_ftp_server_summary">Dateien im WLAN freigeben</string>
+    <string name="settings_link_legal_summary">Datenschutzerklärung und Lizenzen</string>
+    <string name="settings_about_summary">Version %1$s</string>
+
+    <string name="settings_wallpaper_colors_title">Farben vom Hintergrundbild</string>
+    <string name="settings_wallpaper_colors_summary">Die Farben deines Hintergrundbilds statt der Ordo-Farben verwenden</string>
+    <string name="settings_accent_title">Akzentfarbe</string>
+    <string-array name="settings_accent_entries">
+        <item>Aurora</item>
+        <item>Blau</item>
+        <item>Minze</item>
+        <item>Violett</item>
+        <item>Bernstein</item>
+    </string-array>
+    <string name="settings_motion_title">Animationen</string>
+    <string-array name="settings_motion_entries">
+        <item>Voll – alle Effekte</item>
+        <item>Dezent – nur Übergänge</item>
+        <item>Aus</item>
+    </string-array>
+
+    <string name="settings_ai_speed_title">Tempo</string>
+    <string-array name="settings_ai_speed_entries">
+        <item>Turbo – am schnellsten, bleibt länger bereit</item>
+        <item>Ausgewogen</item>
+        <item>Sanft – langsamer, Handy bleibt kühler</item>
+    </string-array>
+    <string name="settings_ai_model_title">Sprachmodell auf dem Gerät</string>
+    <string name="settings_ai_model_ready">Bereit · %1$s auf dem Gerät</string>
+    <string name="settings_ai_model_missing">Noch nicht eingerichtet. Zum Einrichten tippen</string>
+    <string name="settings_ai_model_downloading">Wird geladen … %1$d %%</string>
+    <string name="settings_ai_model_verifying">Download wird geprüft …</string>
+    <string name="settings_ai_model_failed">Einrichtung abgebrochen. Zum Wiederholen tippen</string>
+    <string name="settings_ai_privacy_summary">Ordo versteht deine Befehle direkt auf diesem Gerät. Sie werden nie verschickt.</string>
+</resources>

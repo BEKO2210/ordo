@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+  ~ Copyright (c) 2026 Ordo contributors
+  ~ SPDX-License-Identifier: GPL-3.0-or-later
+  -->
+
+<PreferenceScreen
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <rikka.preference.SimpleMenuPreference
+        android:key="@string/pref_key_ai_speed"
+        android:title="@string/settings_ai_speed_title"
+        android:defaultValue="@string/pref_default_value_ai_speed"
+        android:entries="@array/settings_ai_speed_entries"
+        android:entryValues="@array/pref_entry_values_ai_speed"
+        app:useSimpleSummaryProvider="true" />
+
+    <!-- Summary filled in code from the model's state; a tap opens the assistant, which sets it up or removes it. -->
+    <Preference
+        android:key="ai_model"
+        android:title="@string/settings_ai_model_title" />
+
+    <Preference
+        android:selectable="false"
+        android:summary="@string/settings_ai_privacy_summary" />
+</PreferenceScreen>

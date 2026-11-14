@@ -38,6 +38,12 @@ data class CommandPlan(
     val cleanExtensions: List<String>
         get() = extensions.map { it.trim().trimStart('.').lowercase() }.filter { it.isNotEmpty() }
 
+    fun toJson(): String = JSONObject()
+        .put("action", action).put("source", source).put("destination", destination)
+        .put("kinds", JSONArray(kinds)).put("extensions", JSONArray(extensions)).put("name_contains", nameContains)
+        .put("older_than", olderThan).put("age_unit", ageUnit).put("larger_than", largerThan)
+        .put("size_unit", sizeUnit).put("group_by", groupBy).toString()
+
     companion object {
         fun parse(json: String): CommandPlan? =
             try {

@@ -145,25 +145,23 @@ class StorageAdapter(
                 item.used.asFileSize().formatHumanReadable(context),
                 item.total.asFileSize().formatHumanReadable(context)
             )
-            binding.usageProgress.max = 1000
             val progress = if (item.total > 0) {
                 (item.used.toDouble() / item.total * 1000).toInt().coerceIn(0, 1000)
             } else {
                 0
             }
-            binding.percentText.text = NumberFormat.getPercentInstance().format(progress / 1000.0)
-            // Red once the storage is nearly full.
-            binding.usageProgress.setIndicatorColor(
-                context.getColorByAttr(
-                    if (progress >= 900) {
-                        androidx.appcompat.R.attr.colorError
-                    } else {
-                        androidx.appcompat.R.attr.colorPrimary
-                    }
-                )
-            )
-            // Fills up from empty on first show, like a gauge settling.
-            binding.usageProgress.setProgressCompat(progress, true)
+            val percent = NumberFormat.getPercentInstance()
+            // The number counts up with the bar, which waits until it is scrolled into view.
+            binding.usageBar.onProgress = { binding.percentText.text = percent.format((progress * it).toInt() / 1000.0) }
+            // TalkBack reads the real value even before the bar has counted up.
+            binding.percentText.contentDescription = percent.format(progress / 1000.0)
+            // Aurora gradient like the analysis charts; amber to red once the storage is nearly full.
+            binding.usageBar.gradient = if (progress >= 900) {
+                intArrayOf(ContextCompat.getColor(context, R.color.chart_audio), ContextCompat.getColor(context, R.color.chart_video))
+            } else {
+                intArrayOf(ContextCompat.getColor(context, R.color.ai_glow_1), ContextCompat.getColor(context, R.color.ai_glow_2))
+            }
+            binding.usageBar.setParts(listOf(ContextCompat.getColor(context, R.color.ai_accent) to item.used), item.total)
             binding.analyzeButton.setOnClickListener { onAnalyze(item) }
             binding.root.setOnClickListener { onClick(item) }
             binding.openButton.setOnClickListener { onClick(item) }

@@ -5,26 +5,95 @@
 
 package me.zhanghai.android.files.settings
 
+import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import androidx.lifecycle.lifecycleScope
+import androidx.preference.Preference
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import me.zhanghai.android.files.BuildConfig
 import me.zhanghai.android.files.R
+import me.zhanghai.android.files.about.AboutActivity
+import me.zhanghai.android.files.ai.CommandModel
+import me.zhanghai.android.files.ai.CommandSheetFragment
+import me.zhanghai.android.files.backup.BackupActivity
+import me.zhanghai.android.files.file.asFileSize
+import me.zhanghai.android.files.ftpserver.FtpServerActivity
+import me.zhanghai.android.files.legal.LegalActivity
 import me.zhanghai.android.files.theme.custom.CustomThemeHelper
 import me.zhanghai.android.files.theme.custom.ThemeColor
 import me.zhanghai.android.files.theme.night.NightMode
 import me.zhanghai.android.files.theme.night.NightModeHelper
 import me.zhanghai.android.files.ui.PreferenceFragmentCompat
+import me.zhanghai.android.files.util.createIntent
+import me.zhanghai.android.files.util.startActivitySafe
 
 class SettingsPreferenceFragment : PreferenceFragmentCompat() {
-    private lateinit var localePreference: LocalePreference
+    private var localePreference: LocalePreference? = null
+
+    private val section: String?
+        get() = (requireActivity() as SettingsActivity).section
 
     override fun onCreatePreferencesFix(savedInstanceState: Bundle?, rootKey: String?) {
-        addPreferencesFromResource(R.xml.settings)
+        addPreferencesFromResource(
+            when (section) {
+                SettingsActivity.SECTION_APPEARANCE -> R.xml.settings_appearance
+                SettingsActivity.SECTION_AI -> R.xml.settings_ai
+                SettingsActivity.SECTION_FILES -> R.xml.settings_files
+                SettingsActivity.SECTION_STORAGE -> R.xml.settings_storage
+                SettingsActivity.SECTION_TRASH -> R.xml.settings_trash
+                else -> R.xml.settings
+            }
+        )
 
-        localePreference = preferenceScreen.findPreference(getString(R.string.pref_key_locale))!!
+        localePreference = preferenceScreen.findPreference(getString(R.string.pref_key_locale))
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
-            localePreference.setApplicationLocalesPre33 = { locales ->
+            localePreference?.setApplicationLocalesPre33 = { locales ->
                 val activity = requireActivity() as SettingsActivity
                 activity.setApplicationLocalesPre33(locales)
+            }
+        }
+        if (section == null) bindOverview()
+    }
+
+    private fun bindOverview() {
+        fun open(key: String, intent: () -> Intent) {
+            preferenceScreen.findPreference<Preference>(key)!!.setOnPreferenceClickListener {
+                startActivitySafe(intent())
+                true
+            }
+        }
+        SettingsActivity.SECTIONS.forEach { section -> open("section_$section") { SettingsActivity.createIntent(section) } }
+        open("link_backup") { BackupActivity::class.createIntent() }
+        open("link_ftp_server") { FtpServerActivity::class.createIntent() }
+        open("link_legal") { LegalActivity::class.createIntent() }
+        open("link_about") { AboutActivity::class.createIntent() }
+        preferenceScreen.findPreference<Preference>("link_about")!!.summary =
+            getString(R.string.settings_about_summary, BuildConfig.VERSION_NAME)
+    }
+
+    // The model's state can change while this screen is open (a download in the sheet), so it is read on resume.
+    private fun bindAiModel() {
+        val preference = preferenceScreen.findPreference<Preference>("ai_model") ?: return
+        preference.setOnPreferenceClickListener {
+            if (childFragmentManager.findFragmentByTag(CommandSheetFragment.TAG) == null) {
+                CommandSheetFragment().show(childFragmentManager, CommandSheetFragment.TAG)
+            }
+            true
+        }
+        val context = requireContext().applicationContext
+        viewLifecycleOwner.lifecycleScope.launch {
+            val state = withContext(Dispatchers.IO) { CommandModel.state(context) }
+            preference.summary = when (state) {
+                CommandModel.State.Ready -> getString(R.string.settings_ai_model_ready,
+                    CommandModel.SIZE.asFileSize().formatHumanReadable(context))
+                is CommandModel.State.Downloading -> getString(R.string.settings_ai_model_downloading,
+                    if (state.total > 0) (state.bytes * 100 / state.total).toInt() else 0)
+                CommandModel.State.Verifying -> getString(R.string.settings_ai_model_verifying)
+                is CommandModel.State.Failed -> getString(R.string.settings_ai_model_failed)
+                CommandModel.State.Missing -> getString(R.string.settings_ai_model_missing)
             }
         }
     }
@@ -46,6 +115,16 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         Settings.MATERIAL_DESIGN_3.observe(viewLifecycleOwner, this::onMaterialDesign3Changed)
         Settings.NIGHT_MODE.observe(viewLifecycleOwner, this::onNightModeChanged)
         Settings.BLACK_NIGHT_MODE.observe(viewLifecycleOwner, this::onBlackNightModeChanged)
+        Settings.ACCENT.observe(viewLifecycleOwner, this::onAccentChanged)
+        Settings.WALLPAPER_COLORS.observe(viewLifecycleOwner, this::onWallpaperColorsChanged)
+    }
+
+    private fun onAccentChanged(accent: String) {
+        CustomThemeHelper.sync()
+    }
+
+    private fun onWallpaperColorsChanged(wallpaperColors: Boolean) {
+        CustomThemeHelper.sync()
     }
 
     private fun onThemeColorChanged(themeColor: ThemeColor) {
@@ -70,7 +149,8 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             // Refresh locale preference summary because we aren't notified for an external change
             // between system default and the locale that's the current system default.
-            localePreference.notifyChanged()
+            localePreference?.notifyChanged()
         }
+        if (section == SettingsActivity.SECTION_AI) bindAiModel()
     }
 }

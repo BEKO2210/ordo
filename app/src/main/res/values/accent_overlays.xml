@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright (c) 2026 Ordo contributors
+  ~ SPDX-License-Identifier: GPL-3.0-or-later
+  -->
+
+<resources>
+    <style name="ThemeOverlay.Ordo.Accent.Aurora" parent="">
+        <item name="colorPrimary">@color/accent_aurora_primary</item>
+        <item name="colorOnPrimary">@color/accent_aurora_on_primary</item>
+        <item name="colorPrimaryContainer">@color/accent_aurora_container</item>
+        <item name="colorOnPrimaryContainer">@color/accent_aurora_on_container</item>
+        <item name="colorAccent">@color/accent_aurora_primary</item>
+        <item name="colorPrimaryInverse">@color/accent_aurora_inverse</item>
+    </style>
+    <style name="ThemeOverlay.Ordo.Accent.Blue" parent="">
+        <item name="colorPrimary">@color/accent_blue_primary</item>
+        <item name="colorOnPrimary">@color/accent_blue_on_primary</item>
+        <item name="colorPrimaryContainer">@color/accent_blue_container</item>
+        <item name="colorOnPrimaryContainer">@color/accent_blue_on_container</item>
+        <item name="colorAccent">@color/accent_blue_primary</item>
+        <item name="colorPrimaryInverse">@color/accent_blue_inverse</item>
+    </style>
+    <style name="ThemeOverlay.Ordo.Accent.Mint" parent="">
+        <item name="colorPrimary">@color/accent_mint_primary</item>
+        <item name="colorOnPrimary">@color/accent_mint_on_primary</item>
+        <item name="colorPrimaryContainer">@color/accent_mint_container</item>
+        <item name="colorOnPrimaryContainer">@color/accent_mint_on_container</item>
+        <item name="colorAccent">@color/accent_mint_primary</item>
+        <item name="colorPrimaryInverse">@color/accent_mint_inverse</item>
+    </style>
+    <style name="ThemeOverlay.Ordo.Accent.Violet" parent="">
+        <item name="colorPrimary">@color/accent_violet_primary</item>
+        <item name="colorOnPrimary">@color/accent_violet_on_primary</item>
+        <item name="colorPrimaryContainer">@color/accent_violet_container</item>
+        <item name="colorOnPrimaryContainer">@color/accent_violet_on_container</item>
+        <item name="colorAccent">@color/accent_violet_primary</item>
+        <item name="colorPrimaryInverse">@color/accent_violet_inverse</item>
+    </style>
+    <style name="ThemeOverlay.Ordo.Accent.Amber" parent="">
+        <item name="colorPrimary">@color/accent_amber_primary</item>
+        <item name="colorOnPrimary">@color/accent_amber_on_primary</item>
+        <item name="colorPrimaryContainer">@color/accent_amber_container</item>
+        <item name="colorOnPrimaryContainer">@color/accent_amber_on_container</item>
+        <item name="colorAccent">@color/accent_amber_primary</item>
+        <item name="colorPrimaryInverse">@color/accent_amber_inverse</item>
+    </style>
+</resources>

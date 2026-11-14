@@ -112,6 +112,15 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
             execute()
         }
         binding.retryButton.setOnClickListener { if (text.isNotEmpty()) submit() else showInput() }
+        // Opened with a ready plan (e.g. an analysis suggestion): no model needed, straight to the preview.
+        val presetPlan = arguments?.getString(ARG_PLAN)?.let(CommandPlan::parse)
+        if (presetPlan != null && state == null) {
+            text = arguments?.getString(ARG_TEXT).orEmpty()
+            binding.commandEdit.setText(text)
+            binding.removeModelButton.isVisible = false
+            viewLifecycleOwner.lifecycleScope.launch { evaluate(presetPlan) }
+            return
+        }
         val restoredText = state?.getString(STATE_TEXT)
         val restoredPending = state?.getBoolean(STATE_PENDING) == true
         val context = requireContext().applicationContext
@@ -737,7 +746,7 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
 
     /** Fade and rise into place; skipped when the system turned animations off. */
     private fun View.reveal(startDelay: Long) {
-        if (!android.animation.ValueAnimator.areAnimatorsEnabled()) return
+        if (!me.zhanghai.android.files.ui.Motion.any) return
         alpha = 0f
         translationY = 16 * resources.displayMetrics.density
         animate().alpha(1f).translationY(0f).setStartDelay(startDelay).setDuration(320)
@@ -767,6 +776,16 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
 
     companion object {
         const val TAG = "CommandSheet"
+        private const val ARG_PLAN = "plan"
+        private const val ARG_TEXT = "text"
+
+        /** [text] is shown as the command and is what the delete rule reads, so it must say what [plan] does. */
+        fun withPlan(text: String, plan: CommandPlan) = CommandSheetFragment().apply {
+            arguments = Bundle().apply {
+                putString(ARG_TEXT, text)
+                putString(ARG_PLAN, plan.toJson())
+            }
+        }
         private const val FILES_SHOWN = 5
         private const val UNDO_MILLIS = 8_000
         private const val STATE_TEXT = "text"

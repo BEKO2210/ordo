@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+  ~ Copyright (c) 2018 Hai Zhang <dreaming.in.code.zh@gmail.com>
+  ~ All Rights Reserved.
+  -->
+
+<PreferenceScreen
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <SwitchPreferenceCompat
+        android:key="@string/pref_key_wallpaper_colors"
+        android:title="@string/settings_wallpaper_colors_title"
+        android:summary="@string/settings_wallpaper_colors_summary"
+        android:defaultValue="@bool/pref_default_value_wallpaper_colors"
+        android:disableDependentsState="true"
+        app:isPreferenceVisible="@bool/pref_visible_wallpaper_colors" />
+
+    <me.zhanghai.android.files.settings.AccentPreference
+        android:key="@string/pref_key_accent"
+        android:title="@string/settings_accent_title"
+        android:defaultValue="@string/pref_default_value_accent"
+        android:dependency="@string/pref_key_wallpaper_colors" />
+
+    <rikka.preference.SimpleMenuPreference
+        android:key="@string/pref_key_night_mode"
+        android:title="@string/settings_night_mode_title"
+        android:defaultValue="@string/pref_default_value_night_mode"
+        android:entries="@array/settings_night_mode_entries"
+        android:entryValues="@array/pref_entry_values_night_mode"
+        app:useSimpleSummaryProvider="true" />
+
+    <SwitchPreferenceCompat
+        android:key="@string/pref_key_black_night_mode"
+        android:title="@string/settings_black_night_mode"
+        android:defaultValue="@bool/pref_default_value_black_night_mode" />
+
+    <rikka.preference.SimpleMenuPreference
+        android:key="@string/pref_key_motion"
+        android:title="@string/settings_motion_title"
+        android:defaultValue="@string/pref_default_value_motion"
+        android:entries="@array/settings_motion_entries"
+        android:entryValues="@array/pref_entry_values_motion"
+        app:useSimpleSummaryProvider="true" />
+
+    <SwitchPreferenceCompat
+        android:key="@string/pref_key_file_list_animation"
+        android:title="@string/settings_file_list_animation_title"
+        android:defaultValue="@bool/pref_default_value_file_list_animation" />
+
+    <me.zhanghai.android.files.settings.LocalePreference
+        android:key="@string/pref_key_locale"
+        android:title="@string/settings_locale_title" />
+</PreferenceScreen>

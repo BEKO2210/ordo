@@ -263,8 +263,8 @@
             android:name="me.zhanghai.android.files.settings.SettingsActivity"
             android:exported="true"
             android:label="@string/settings_title"
-            android:launchMode="singleTop"
             android:theme="@style/Theme.MaterialFiles">
+            <!-- No singleTop: the overview opens its sections as new SettingsActivity instances on top of itself. -->
             <intent-filter>
                 <action android:name="android.intent.action.APPLICATION_PREFERENCES" />
                 <category android:name="android.intent.category.DEFAULT" />
