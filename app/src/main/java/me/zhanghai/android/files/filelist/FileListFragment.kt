@@ -28,7 +28,6 @@ import android.view.View
 import android.view.animation.DecelerateInterpolator
 import android.view.ViewGroup
 import android.widget.EditText
-import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContract
@@ -1914,7 +1913,7 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
         val overlayToolbar: Toolbar,
         val breadcrumbLayout: BreadcrumbLayout,
         val contentLayout: ViewGroup,
-        val progress: ProgressBar,
+        val progress: View,
         val errorText: TextView,
         val emptyView: View,
         val swipeRefreshLayout: SwipeRefreshLayout,

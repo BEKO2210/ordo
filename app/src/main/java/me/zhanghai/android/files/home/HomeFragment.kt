@@ -178,7 +178,9 @@ class HomeFragment : Fragment(), ShowRequestAllFilesAccessRationaleDialogFragmen
             )
             root.updatePadding(left = insets.left, right = insets.right)
             binding.toolbarBlur.updatePadding(top = insets.top)
-            val top = insets.top + binding.toolbar.layoutParams.height
+            val searchLayoutParams = binding.searchCard.layoutParams as ViewGroup.MarginLayoutParams
+            val top = insets.top + binding.toolbar.layoutParams.height + searchLayoutParams.height +
+                searchLayoutParams.topMargin + searchLayoutParams.bottomMargin
             binding.scrollView.updatePadding(top = top, bottom = scrollPaddingBottom + insets.bottom)
             binding.swipeRefreshLayout.setProgressViewOffset(
                 true, top, top + binding.swipeRefreshLayout.progressViewEndOffset

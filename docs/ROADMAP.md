@@ -43,6 +43,8 @@ Themes inkl. Schwarz.
 - [x] Impressum & Datenschutz in der App (Menü, Seitenleiste, Über) und als Webseite (`docs/`, GitHub Pages).
 - [x] Piktogramme aus einem Satz (Material Symbols Rounded, gefüllt; erzeugt von `utils/material-symbols.py`),
       App-Icon in der sicheren Zone des Launchers; abgesichert durch `IconResourcesTest`.
+- [x] Suchfeld der Startseite bleibt beim Scrollen in der Glas-Leiste stehen; alle Ladezustände nutzen eine
+      Animation (`LoadingIndicator` aus Material 3 Expressive); abgesichert durch `LayoutResourcesTest`.
 - [ ] Datenmüll: leere Ordner, Thumbnail-Caches, Restdateien in der Speicheranalyse.
 - [ ] Ungenutzte Apps (Nutzungsdaten-Erlaubnis), Erinnerung „Speicher fast voll".
 - [ ] Teilen in der Nähe (Quick Share über Android-Teilen).
