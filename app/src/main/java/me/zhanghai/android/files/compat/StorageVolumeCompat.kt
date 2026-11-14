@@ -12,6 +12,7 @@ import android.os.Build
 import android.os.Environment
 import android.os.storage.StorageVolume
 import android.provider.DocumentsContract
+import me.zhanghai.android.files.R
 import me.zhanghai.android.files.util.lazyReflectedMethod
 import java.io.File
 
@@ -41,7 +42,13 @@ val StorageVolume.directoryCompat: File?
         }
 
 @SuppressLint("NewApi")
-fun StorageVolume.getDescriptionCompat(context: Context): String = getDescription(context)
+// Ordo: the system calls the primary volume "Internal shared storage"; users know it as internal storage.
+fun StorageVolume.getDescriptionCompat(context: Context): String =
+    if (isPrimaryCompat && !isRemovableCompat) {
+        context.getString(R.string.home_storage_internal)
+    } else {
+        getDescription(context)
+    }
 
 val StorageVolume.isPrimaryCompat: Boolean
     @SuppressLint("NewApi")

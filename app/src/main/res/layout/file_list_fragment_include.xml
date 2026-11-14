@@ -33,6 +33,8 @@
 
                     <include layout="@layout/file_list_fragment_content_include" />
 
+                    <include layout="@layout/file_list_fragment_selection_bar_include" />
+
                 </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
                 <include layout="@layout/file_list_fragment_bottom_bar_include" />

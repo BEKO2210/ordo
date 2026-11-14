@@ -48,6 +48,7 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import com.google.android.material.button.MaterialButton
 import com.leinardi.android.speeddial.SpeedDialView
 import java8.nio.file.Path
 import java8.nio.file.Paths
@@ -895,6 +896,7 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
     private fun updateOverlayToolbar() {
         val files = viewModel.selectedFiles
         if (files.isEmpty()) {
+            updateSelectionBar(null)
             if (overlayActionMode.isActive) {
                 overlayActionMode.finish()
             }
@@ -916,6 +918,8 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
             overlayActionMode.title = getString(R.string.file_list_select_title_format, files.size)
             overlayActionMode.setMenuResource(R.menu.file_list_select)
             val menu = overlayActionMode.menu
+            // The selection bar hid these last time; start from visible, the rules below decide.
+            SELECTION_BAR_ACTIONS.forEach { (_, itemId) -> menu.findItem(itemId).isVisible = true }
             val isAnyFileReadOnly = files.any { it.path.fileSystem.isReadOnly }
             menu.findItem(R.id.action_cut).isVisible = !isAnyFileReadOnly
             val areAllFilesArchivePaths = files.all { it.path.isArchivePath }
@@ -945,6 +949,7 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
             val isCurrentPathReadOnly = viewModel.currentPath.fileSystem.isReadOnly
             menu.findItem(R.id.action_archive).isVisible = !isCurrentPathReadOnly
         }
+        updateSelectionBar(if (pickOptions == null) overlayActionMode.menu else null)
         if (!overlayActionMode.isActive) {
             binding.appBarLayout.setExpanded(true)
             binding.appBarLayout.addOnOffsetChangedListener(
@@ -960,6 +965,32 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
                     onOverlayActionModeFinished()
                 }
             })
+        }
+    }
+
+    // The main selection actions move from the top toolbar to a labeled bar at the bottom; the
+    // menu stays the single source of truth for which actions apply.
+    private fun updateSelectionBar(menu: Menu?) {
+        val selectionBar = requireView().findViewById<ViewGroup>(R.id.selectionBar)
+        selectionBar.isVisible = menu != null
+        binding.speedDialView.isVisible = menu == null && homeCategory == null
+        if (menu == null) {
+            return
+        }
+        for ((buttonId, itemId) in SELECTION_BAR_ACTIONS) {
+            val item = menu.findItem(itemId)
+            selectionBar.findViewById<MaterialButton>(buttonId).apply {
+                isVisible = item.isVisible
+                text = item.title
+                icon = item.icon
+                setOnClickListener { onOverlayActionModeMenuItemClicked(item) }
+            }
+            item.isVisible = false
+        }
+        selectionBar.findViewById<MaterialButton>(R.id.selectionMoreButton).apply {
+            setText(R.string.file_list_selection_more)
+            setIconResource(R.drawable.more_vertical_icon_white_24dp)
+            setOnClickListener { binding.overlayToolbar.showOverflowMenu() }
         }
     }
 
@@ -1717,6 +1748,13 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
     }
 
     companion object {
+        private val SELECTION_BAR_ACTIONS = listOf(
+            R.id.selectionMoveButton to R.id.action_cut,
+            R.id.selectionCopyButton to R.id.action_copy,
+            R.id.selectionShareButton to R.id.action_share,
+            R.id.selectionDeleteButton to R.id.action_delete
+        )
+
         private const val ACTION_VIEW_DOWNLOADS =
             "me.zhanghai.android.files.intent.action.VIEW_DOWNLOADS"
 

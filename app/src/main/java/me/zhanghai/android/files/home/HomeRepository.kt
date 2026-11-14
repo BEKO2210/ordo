@@ -20,7 +20,6 @@ import java8.nio.file.Path
 import java8.nio.file.Paths
 import me.zhanghai.android.files.R
 import me.zhanghai.android.files.compat.directoryCompat
-import me.zhanghai.android.files.compat.isPrimaryCompat
 import me.zhanghai.android.files.compat.getDescriptionCompat
 import me.zhanghai.android.files.compat.isRemovableCompat
 import me.zhanghai.android.files.compat.storageVolumesCompat
@@ -131,13 +130,8 @@ class HomeRepository(private val context: Context) {
             val directory = volume.directoryCompat ?: return@mapNotNull null
             val total = directory.totalSpace.coerceAtLeast(0)
             val free = directory.freeSpace.coerceAtLeast(0)
-            val name = if (volume.isPrimaryCompat) {
-                context.getString(R.string.home_storage_internal)
-            } else {
-                volume.getDescriptionCompat(context)
-            }
             StorageSummary(
-                name,
+                volume.getDescriptionCompat(context),
                 Paths.get(directory.path),
                 (total - free).coerceAtLeast(0), total, volume.isRemovableCompat
             )

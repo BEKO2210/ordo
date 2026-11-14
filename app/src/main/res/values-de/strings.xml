@@ -302,7 +302,7 @@
     <string name="file_list_action_add_bookmark">Lesezeichen hinzufügen</string>
     <string name="file_list_action_create_shortcut">Verknüpfung erstellen</string>
     <string name="file_list_breadcrumb_action_open_in_new_task">In neuem Fenster öffnen</string>
-    <string name="file_list_select_title_format">%1$,d</string>
+    <string name="file_list_select_title_format">%1$,d ausgewählt</string>
     <string name="file_list_create_file_name_hint">Dateiname</string>
     <string name="file_list_open_current_directory_format">\"%1$s\" auswählen</string>
     <string name="file_list_paste_move_title_format">%1$,d ausgewählt</string>
@@ -798,4 +798,5 @@
         <item quantity="one">%1$d App</item>
         <item quantity="other">%1$d Apps</item>
     </plurals>
+    <string name="file_list_selection_more">Mehr</string>
 </resources>
