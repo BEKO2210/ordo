@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 108 108" role="img" aria-labelledby="title desc">
+  <title id="title">Ordo icon variant A foreground</title>
+  <desc id="desc">A rounded white folder with an amber O.</desc>
+  <path fill="#FFFFFF" d="M34 31h15.5l7 7H76a7 7 0 0 1 7 7v24a9 9 0 0 1-9 9H34a9 9 0 0 1-9-9V40a9 9 0 0 1 9-9Z"/>
+  <path fill="#F59E0B" fill-rule="evenodd" d="M54 45a12 12 0 1 1 0 24 12 12 0 0 1 0-24Zm0 6a6 6 0 1 0 0 12 6 6 0 0 0 0-12Z"/>
+</svg>
