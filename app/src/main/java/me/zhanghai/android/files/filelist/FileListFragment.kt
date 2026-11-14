@@ -137,6 +137,7 @@ import me.zhanghai.android.files.viewer.image.ImageViewerActivity
 class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.Listener,
     ConfirmReplaceFileDialogFragment.Listener, OpenApkDialogFragment.Listener,
     ConfirmDeleteFilesDialogFragment.Listener, CreateArchiveDialogFragment.Listener,
+    BatchRenameDialogFragment.Listener,
     RenameFileDialogFragment.Listener, CreateFileDialogFragment.Listener,
     CreateDirectoryDialogFragment.Listener, NavigateToPathDialogFragment.Listener,
     NavigationFragment.Listener, ShowRequestAllFilesAccessRationaleDialogFragment.Listener,
@@ -927,7 +928,7 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
             menu.findItem(R.id.action_move_to).isVisible =
                 !isAnyFileReadOnly && !isAnyFileArchivePath
             menu.findItem(R.id.action_copy_to).isVisible = !isAnyFileArchivePath
-            menu.findItem(R.id.action_rename).isVisible = files.size == 1 && !isAnyFileReadOnly
+            menu.findItem(R.id.action_rename).isVisible = !isAnyFileReadOnly && !isAnyFileArchivePath
             menu.findItem(R.id.action_copy)
                 .setIcon(
                     if (areAllFilesArchivePaths) {
@@ -1013,9 +1014,13 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
                 true
             }
             R.id.action_rename -> {
-                val file = viewModel.selectedFiles.single()
-                viewModel.selectFiles(viewModel.selectedFiles, false)
-                showRenameFileDialog(file)
+                val files = viewModel.selectedFiles
+                if (files.size == 1) {
+                    showRenameFileDialog(files.single())
+                } else {
+                    BatchRenameDialogFragment.show(fileItemSetOf(*files.toTypedArray()), this)
+                }
+                viewModel.selectFiles(files, false)
                 true
             }
             R.id.action_copy_to -> {
@@ -1444,6 +1449,14 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
 
     override fun confirmDeleteFile(file: FileItem) {
         confirmDeleteFiles(fileItemSetOf(file))
+    }
+
+    override fun renameFiles(renames: List<Pair<FileItem, String>>) {
+        for ((file, newName) in renames) {
+            if (newName != file.name) {
+                FileJobService.rename(file.path, newName, requireContext())
+            }
+        }
     }
 
     override fun showRenameFileDialog(file: FileItem) {

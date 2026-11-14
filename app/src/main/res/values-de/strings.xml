@@ -799,4 +799,7 @@
         <item quantity="other">%1$d Apps</item>
     </plurals>
     <string name="file_list_selection_more">Mehr</string>
+    <string name="batch_rename_title_format">%1$d Elemente umbenennen</string>
+    <string name="batch_rename_pattern_hint">Neuer Name ({n} = Nummer)</string>
+    <string name="batch_rename_default_pattern">Datei_{n}</string>
 </resources>

@@ -932,4 +932,7 @@
         <item quantity="other">%1$d apps</item>
     </plurals>
     <string name="file_list_selection_more">More</string>
+    <string name="batch_rename_title_format">Rename %1$d items</string>
+    <string name="batch_rename_pattern_hint">New name ({n} = number)</string>
+    <string name="batch_rename_default_pattern">File_{n}</string>
 </resources>
