@@ -767,4 +767,7 @@
         <item quantity="one">%1$d Datei (%2$s) endgültig löschen? Das lässt sich nicht rückgängig machen.</item>
         <item quantity="other">%1$d Dateien (%2$s) endgültig löschen? Das lässt sich nicht rückgängig machen.</item>
     </plurals>
+
+    <!-- Ordo: transfer speed -->
+    <string name="file_job_transfer_speed_format">%1$s · %2$s/s · noch %3$s</string>
 </resources>

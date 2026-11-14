@@ -10,6 +10,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
+import android.text.format.DateUtils
 import android.widget.Toast
 import androidx.annotation.AnyRes
 import androidx.annotation.PluralsRes
@@ -349,7 +350,7 @@ private fun FileJob.postTransferSizeNotification(
         return
     }
     val title: String
-    val text: String
+    var text: String
     val fileCount = transferInfo.fileCount
     val target = transferInfo.target!!
     val size = transferInfo.size
@@ -369,6 +370,16 @@ private fun FileJob.postTransferSizeNotification(
         text = getString(
             R.string.file_job_transfer_size_notification_text_multiple_format, currentFileIndex,
             fileCount
+        )
+    }
+    val estimate = estimateTransfer(
+        transferredSize, size, System.currentTimeMillis() - transferInfo.startTimeMillis
+    )
+    if (estimate != null) {
+        text = getString(
+            R.string.file_job_transfer_speed_format, text,
+            estimate.bytesPerSecond.asFileSize().formatHumanReadable(service),
+            DateUtils.formatElapsedTime(estimate.remainingSeconds)
         )
     }
     val max: Int
@@ -436,6 +447,8 @@ private class TransferInfo(scanInfo: ScanInfo, val target: Path?) {
         private set
 
     private var lastNotificationTimeMillis = 0L
+
+    val startTimeMillis = System.currentTimeMillis()
 
     fun incrementTransferredFileCount() {
         ++transferredFileCount

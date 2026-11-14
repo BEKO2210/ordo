@@ -900,4 +900,7 @@
         <item quantity="one">Permanently delete %1$d file (%2$s)? This can’t be undone.</item>
         <item quantity="other">Permanently delete %1$d files (%2$s)? This can’t be undone.</item>
     </plurals>
+
+    <!-- Ordo: transfer speed -->
+    <string name="file_job_transfer_speed_format">%1$s · %2$s/s · %3$s left</string>
 </resources>
