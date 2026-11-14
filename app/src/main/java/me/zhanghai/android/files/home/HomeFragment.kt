@@ -39,6 +39,7 @@ import me.zhanghai.android.files.settings.SettingsActivity
 import me.zhanghai.android.files.trash.TrashActivity
 import me.zhanghai.android.files.util.createIntent
 import me.zhanghai.android.files.util.createManageAppAllFilesAccessPermissionIntent
+import me.zhanghai.android.files.ui.setUpGlass
 import me.zhanghai.android.files.util.getColorByAttr
 import me.zhanghai.android.files.util.getQuantityString
 import me.zhanghai.android.files.util.startActivitySafe
@@ -155,14 +156,7 @@ class HomeFragment : Fragment(), ShowRequestAllFilesAccessRationaleDialogFragmen
             context.getColorByAttr(R.attr.colorAppBarSurface),
             context.getColorByAttr(android.R.attr.colorBackground)
         )
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            binding.toolbarBlur.setupWith(binding.blurTarget)
-                .setFrameClearDrawable(requireActivity().window.decorView.background)
-                .setBlurRadius(GLASS_BLUR_RADIUS)
-                .setOverlayColor(ColorUtils.setAlphaComponent(barColor, GLASS_OVERLAY_ALPHA))
-        } else {
-            binding.toolbarBlur.setBackgroundColor(barColor)
-        }
+        binding.toolbarBlur.setUpGlass(binding.blurTarget, barColor, requireActivity())
         val scrollPaddingBottom = binding.scrollView.paddingBottom
         ViewCompat.setOnApplyWindowInsetsListener(binding.root) { root, windowInsets ->
             val insets = windowInsets.getInsets(
@@ -279,8 +273,6 @@ class HomeFragment : Fragment(), ShowRequestAllFilesAccessRationaleDialogFragmen
     }
 
     companion object {
-        private const val GLASS_BLUR_RADIUS = 20f
-        private const val GLASS_OVERLAY_ALPHA = 0xB3
 
         private const val RECENT_VIEW_GRID = "grid"
         private const val RECENT_VIEW_ROW = "row"

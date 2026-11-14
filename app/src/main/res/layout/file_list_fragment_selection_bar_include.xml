@@ -8,35 +8,47 @@
 <merge xmlns:android="http://schemas.android.com/apk/res/android">
 
     <!-- Labeled actions at thumb reach while files are selected, like Samsung My Files. -->
-    <LinearLayout
+    <eightbitlab.com.blurview.BlurView
         android:id="@+id/selectionBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
         android:background="?colorSurface"
         android:elevation="8dp"
-        android:orientation="horizontal"
-        android:paddingHorizontal="4dp"
+        android:fitsSystemWindows="true"
         android:visibility="gone">
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/selectionMoveButton"
-            style="@style/Widget.Ordo.SelectionBarButton" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingHorizontal="4dp">
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/selectionCopyButton"
-            style="@style/Widget.Ordo.SelectionBarButton" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/selectionMoveButton"
+                style="@style/Widget.Ordo.SelectionBarButton" />
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/selectionShareButton"
-            style="@style/Widget.Ordo.SelectionBarButton" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/selectionCopyButton"
+                style="@style/Widget.Ordo.SelectionBarButton" />
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/selectionDeleteButton"
-            style="@style/Widget.Ordo.SelectionBarButton" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/selectionShareButton"
+                style="@style/Widget.Ordo.SelectionBarButton" />
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/selectionMoreButton"
-            style="@style/Widget.Ordo.SelectionBarButton" />
-    </LinearLayout>
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/selectionDeleteButton"
+                style="@style/Widget.Ordo.SelectionBarButton" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/selectionMoreButton"
+                style="@style/Widget.Ordo.SelectionBarButton" />
+        </LinearLayout>
+
+        <!-- Hairline that separates the glass bar from the list. -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="?colorControlHighlight" />
+    </eightbitlab.com.blurview.BlurView>
 </merge>

@@ -49,19 +49,26 @@
             android:visibility="gone"
             app:drawableTopCompat="@drawable/file_icon_240dp" />
 
-        <androidx.swiperefreshlayout.widget.ThemedSwipeRefreshLayout
-            android:id="@+id/swipeRefreshLayout"
+        <!-- The selection bar blurs what is drawn in here. -->
+        <eightbitlab.com.blurview.BlurTarget
+            android:id="@+id/blurTarget"
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/recyclerView"
+            <androidx.swiperefreshlayout.widget.ThemedSwipeRefreshLayout
+                android:id="@+id/swipeRefreshLayout"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:paddingBottom="@dimen/list_bottom_padding_with_fab"
-                android:clipToPadding="false"
-                android:fitsSystemWindows="true"
-                tools:listitem="@layout/file_item_list" />
-        </androidx.swiperefreshlayout.widget.ThemedSwipeRefreshLayout>
+                android:layout_height="match_parent">
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/recyclerView"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:paddingBottom="@dimen/list_bottom_padding_with_fab"
+                    android:clipToPadding="false"
+                    android:fitsSystemWindows="true"
+                    tools:listitem="@layout/file_item_list" />
+            </androidx.swiperefreshlayout.widget.ThemedSwipeRefreshLayout>
+        </eightbitlab.com.blurview.BlurTarget>
     </me.zhanghai.android.files.ui.CoordinatorScrollingFrameLayout>
 </merge>

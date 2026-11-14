@@ -40,7 +40,10 @@ import androidx.core.content.pm.ShortcutInfoCompat
 import androidx.core.content.pm.ShortcutManagerCompat
 import androidx.core.graphics.drawable.IconCompat
 import androidx.core.view.GravityCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
+import androidx.core.view.updatePadding
 import androidx.core.view.updatePaddingRelative
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.Fragment
@@ -51,6 +54,7 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.google.android.material.button.MaterialButton
 import com.leinardi.android.speeddial.SpeedDialView
+import eightbitlab.com.blurview.BlurView
 import java8.nio.file.Path
 import java8.nio.file.Paths
 import kotlin.math.roundToInt
@@ -99,6 +103,7 @@ import me.zhanghai.android.files.ui.ScrollingViewOnApplyWindowInsetsListener
 import me.zhanghai.android.files.ui.SpeedDialViewOnBackPressedCallback
 import me.zhanghai.android.files.ui.ThemedFastScroller
 import me.zhanghai.android.files.ui.ToolbarActionMode
+import me.zhanghai.android.files.ui.setUpGlass
 import me.zhanghai.android.files.util.DebouncedRunnable
 import me.zhanghai.android.files.util.Failure
 import me.zhanghai.android.files.util.Loading
@@ -120,6 +125,7 @@ import me.zhanghai.android.files.util.createViewIntent
 import me.zhanghai.android.files.util.extraPath
 import me.zhanghai.android.files.util.extraPathList
 import me.zhanghai.android.files.util.fadeToVisibilityUnsafe
+import me.zhanghai.android.files.util.getColorByAttr
 import me.zhanghai.android.files.util.getDimensionDp
 import me.zhanghai.android.files.util.getQuantityString
 import me.zhanghai.android.files.util.hasSw600Dp
@@ -250,6 +256,19 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
         bottomActionMode = PersistentBarLayoutToolbarActionMode(
             binding.persistentBarLayout, binding.bottomBarLayout, binding.bottomToolbar
         )
+        val selectionBar = requireView().findViewById<BlurView>(R.id.selectionBar)
+        selectionBar.setUpGlass(
+            requireView().findViewById(R.id.blurTarget),
+            activity.getColorByAttr(com.google.android.material.R.attr.colorSurface), activity
+        )
+        // The bar reaches the screen edge; only its buttons stay clear of the system bars.
+        ViewCompat.setOnApplyWindowInsetsListener(selectionBar) { view, windowInsets ->
+            val insets = windowInsets.getInsets(
+                WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
+            )
+            view.updatePadding(left = insets.left, right = insets.right, bottom = insets.bottom)
+            windowInsets
+        }
         val contentLayoutInitialPaddingBottom = binding.contentLayout.paddingBottom
         binding.appBarLayout.addOnOffsetChangedListener { _, verticalOffset ->
             binding.contentLayout.updatePaddingRelative(
