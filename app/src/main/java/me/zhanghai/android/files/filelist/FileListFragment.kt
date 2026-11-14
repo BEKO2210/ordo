@@ -143,6 +143,12 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
     ShowRequestNotificationPermissionInSettingsRationaleDialogFragment.Listener,
     ShowRequestStoragePermissionRationaleDialogFragment.Listener,
     ShowRequestStoragePermissionInSettingsRationaleDialogFragment.Listener {
+    private var pendingTransfer: Pair<Boolean, List<Path>>? = null
+
+    private val pickTransferTargetLauncher = registerForActivityResult(
+        FileListActivity.OpenDirectoryContract(), this::onTransferTargetPicked
+    )
+
     private val requestAllFilesAccessLauncher = registerForActivityResult(
         RequestAllFilesAccessContract(), this::onRequestAllFilesAccessResult
     )
@@ -913,6 +919,10 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
             val isAnyFileReadOnly = files.any { it.path.fileSystem.isReadOnly }
             menu.findItem(R.id.action_cut).isVisible = !isAnyFileReadOnly
             val areAllFilesArchivePaths = files.all { it.path.isArchivePath }
+            val isAnyFileArchivePath = files.any { it.path.isArchivePath }
+            menu.findItem(R.id.action_move_to).isVisible =
+                !isAnyFileReadOnly && !isAnyFileArchivePath
+            menu.findItem(R.id.action_copy_to).isVisible = !isAnyFileArchivePath
             menu.findItem(R.id.action_copy)
                 .setIcon(
                     if (areAllFilesArchivePaths) {
@@ -970,6 +980,14 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
                 copyFiles(viewModel.selectedFiles)
                 true
             }
+            R.id.action_copy_to -> {
+                transferFilesTo(viewModel.selectedFiles, true)
+                true
+            }
+            R.id.action_move_to -> {
+                transferFilesTo(viewModel.selectedFiles, false)
+                true
+            }
             R.id.action_delete -> {
                 confirmDeleteFiles(viewModel.selectedFiles)
                 true
@@ -1020,6 +1038,29 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
     private fun copyFiles(files: FileItemSet) {
         viewModel.addToPasteState(true, files)
         viewModel.selectFiles(files, false)
+    }
+
+    // shortcut: the pending transfer lives only in memory; if Android kills the app while the
+    // folder picker is open, the choice is dropped and the user starts again.
+    private fun transferFilesTo(files: FileItemSet, copy: Boolean) {
+        pendingTransfer = copy to makePathListForJob(files)
+        viewModel.selectFiles(files, false)
+        pickTransferTargetLauncher.launch(viewModel.currentPath)
+    }
+
+    private fun onTransferTargetPicked(target: Path?) {
+        val (copy, paths) = pendingTransfer ?: return
+        pendingTransfer = null
+        target ?: return
+        if (copy) {
+            FileJobService.copy(paths, target, requireContext())
+        } else {
+            FileJobService.move(paths, target, requireContext())
+        }
+    }
+
+    override fun transferFileTo(file: FileItem, copy: Boolean) {
+        transferFilesTo(fileItemSetOf(file), copy)
     }
 
     private fun confirmDeleteFiles(files: FileItemSet) {

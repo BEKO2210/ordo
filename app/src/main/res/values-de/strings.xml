@@ -793,4 +793,6 @@
     <string name="file_list_paste_action_copy_here">Hierher kopieren</string>
     <string name="home_tools">Werkzeuge</string>
     <string name="home_storage_internal">Interner Speicher</string>
+    <string name="file_action_copy_to">Kopieren nach…</string>
+    <string name="file_action_move_to">Verschieben nach…</string>
 </resources>

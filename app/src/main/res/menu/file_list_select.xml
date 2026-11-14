@@ -47,6 +47,18 @@
         app:showAsAction="never" />
 
     <item
+        android:id="@+id/action_copy_to"
+        android:orderInCategory="100"
+        android:title="@string/file_action_copy_to"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_move_to"
+        android:orderInCategory="100"
+        android:title="@string/file_action_move_to"
+        app:showAsAction="never" />
+
+    <item
         android:id="@+id/action_share"
         android:orderInCategory="100"
         android:title="@string/share"
