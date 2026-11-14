@@ -54,8 +54,12 @@ class HomeRepository(private val context: Context) {
         @Suppress("DEPRECATION")
         val appCount = context.packageManager.getInstalledApplications(0)
             .count { it.flags and ApplicationInfo.FLAG_SYSTEM == 0 }
+        // Like Samsung: empty system folders such as Alarms or Ringtones only add noise.
+        val visibleQuickAccess = quickAccess.filter { item ->
+            !item.hideIfEmpty || java.io.File(item.path.toString()).list()?.isNotEmpty() == true
+        }
         return HomeState(
-            recentFiles, summaries, loadStorages(), quickAccess, false, appCount,
+            recentFiles, summaries, loadStorages(), visibleQuickAccess, false, appCount,
             trashEntries.size, trashEntries.sumOf { entry ->
                 entry.file.walkTopDown().filter { it.isFile }.sumOf { it.length() }
             }
@@ -142,7 +146,10 @@ class HomeRepository(private val context: Context) {
         @Suppress("DEPRECATION")
         val external = Environment.getExternalStorageDirectory()
         val standard = StandardDirectoriesLiveData.valueCompat.filter { it.isEnabled }.map {
-            QuickAccessItem(it.getTitle(context), Paths.get(external.resolve(it.relativePath).path), it.iconRes)
+            QuickAccessItem(
+                it.getTitle(context), Paths.get(external.resolve(it.relativePath).path), it.iconRes,
+                hideIfEmpty = true
+            )
         }
         val bookmarks = Settings.BOOKMARK_DIRECTORIES.valueCompat.map {
             QuickAccessItem(it.name, it.path, R.drawable.directory_icon_white_24dp)

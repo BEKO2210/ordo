@@ -27,7 +27,12 @@ data class StorageSummary(
     val total: Long,
     val removable: Boolean
 )
-data class QuickAccessItem(val name: String, val path: Path, val iconRes: Int)
+data class QuickAccessItem(
+    val name: String,
+    val path: Path,
+    val iconRes: Int,
+    val hideIfEmpty: Boolean = false
+)
 data class HomeState(
     val recentFiles: List<RecentFile> = emptyList(),
     val categories: List<CategorySummary> = HomeCategory.entries.map { CategorySummary(it, 0, 0) },
