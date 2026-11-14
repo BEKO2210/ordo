@@ -42,8 +42,8 @@ object CommandEngine {
     /** Null means the model answered with something that is not a plan. */
     suspend fun plan(context: Context, text: String): CommandPlan? = withContext(dispatcher) {
         val answer = ensure(context).generate(CommandPlanner.suffix(text), CommandPlanner.GRAMMAR, 200)
-            ?: throw IOException("generation cancelled or failed")
-        CommandPlan.parse(answer)
+        scheduleUnload()
+        CommandPlan.parse(answer ?: throw IOException("generation cancelled or failed"))
     }
 
     /** Safe from any thread: stops a running generation at the next token. */
@@ -51,17 +51,22 @@ object CommandEngine {
         engine?.cancel()
     }
 
-    fun release() {
-        scope.launch { close() }
+    /** Frees the model; returns once any load or answer in progress has finished and memory is free. */
+    suspend fun release() {
+        withContext(dispatcher) { close() }
     }
 
-    private fun ensure(context: Context): LlamaEngine {
+    private fun scheduleUnload() {
         unloadJob?.cancel()
         unloadJob = scope.launch {
             delay(IDLE_MILLIS)
             close()
         }
-        engine?.let { return it }
+    }
+
+    private fun ensure(context: Context): LlamaEngine {
+        unloadJob?.cancel()
+        engine?.let { return it.also { scheduleUnload() } }
         val file = CommandModel.file(context.applicationContext)
         val loaded = LlamaEngine.load(file.path, threads(), 2048)
             ?: throw IOException("model load failed")
@@ -70,6 +75,7 @@ object CommandEngine {
             throw IOException("prompt prefix failed")
         }
         engine = loaded
+        scheduleUnload()
         return loaded
     }
 

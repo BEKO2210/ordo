@@ -22,7 +22,12 @@ object CommandCheck {
             val newDestination: Boolean
         ) : Outcome
 
-        data class AskFolder(val plan: CommandPlan, val forDestination: Boolean) : Outcome
+        /** [candidates] is non-empty when the name fits several folders and the user has to pick one. */
+        data class AskFolder(
+            val plan: CommandPlan,
+            val forDestination: Boolean,
+            val candidates: List<File> = emptyList()
+        ) : Outcome
 
         data class Refused(val reason: Reason) : Outcome
     }
@@ -32,11 +37,11 @@ object CommandCheck {
     val ACTIONS = setOf("move", "copy", "delete", "organize")
 
     private val DELETE_WORDS = listOf(
-        "lösch", "losch", "entfern", "wirf", "schmeiß", "schmeiss", "papierkorb", "delete", "remove",
+        "lösch", "losch", "loesch", "entfern", "wirf", "schmeiß", "schmeiss", "papierkorb", "delete", "remove",
         "trash", "erase", "get rid"
     )
 
-    private val CAMERA_WORDS = listOf("kamera", "camera", "dcim")
+    private val CAMERA_WORDS = setOf("kamera", "camera", "dcim", "dcim/camera")
 
     private val HERE = setOf("", ".", "hier", "here", "this folder", "diesen ordner", "diesem ordner",
         "current folder")
@@ -55,13 +60,18 @@ object CommandCheck {
         if (plan.action !in ACTIONS) {
             return Outcome.Refused(Reason.UNSUPPORTED)
         }
-        val lower = text.lowercase(Locale.ROOT)
-        if (plan.action == "delete" && DELETE_WORDS.none { it in lower }) {
+        val words = intentWords(text, plan, withoutFolders = true)
+        if (plan.action == "delete" && DELETE_WORDS.none { Regex("(^|[^\\p{L}])$it").containsMatchIn(words) }) {
             return Outcome.Refused(Reason.UNSURE_DELETE)
         }
-        val source = resolve(plan.source, here, root)
-            ?: return Outcome.AskFolder(plan, forDestination = false)
-        val cameraNamed = CAMERA_WORDS.any { it in lower }
+        // The camera folder only counts as chosen when the user names it as the folder, not in a file name.
+        val cameraNamed = listOf(plan.source, plan.destination).any { normalize(it) in CAMERA_WORDS } &&
+            CAMERA_WORDS.any { it in intentWords(text, plan, withoutFolders = false) }
+        val sources = resolveAll(plan.source, here, root)
+        if (sources.size > 1) {
+            return Outcome.AskFolder(plan, forDestination = false, candidates = sources)
+        }
+        val source = sources.firstOrNull() ?: return Outcome.AskFolder(plan, forDestination = false)
         if (isProtected(source, root, cameraNamed)) {
             return Outcome.Refused(Reason.PROTECTED_FOLDER)
         }
@@ -71,7 +81,11 @@ object CommandCheck {
         if (normalize(plan.destination) in HERE && here == null) {
             return Outcome.AskFolder(plan, forDestination = true)
         }
-        val found = resolve(plan.destination, here, root)
+        val destinations = resolveAll(plan.destination, here, root)
+        if (destinations.size > 1) {
+            return Outcome.AskFolder(plan, forDestination = true, candidates = destinations)
+        }
+        val found = destinations.firstOrNull()
         val destination = found ?: File(root, plan.destination.trim().removeFolderWord())
         if (isProtected(destination, root, cameraNamed) || destination == source) {
             return Outcome.Refused(Reason.PROTECTED_FOLDER)
@@ -80,25 +94,39 @@ object CommandCheck {
     }
 
     /** An existing folder for a spoken name, or null. "." means [here]. */
-    fun resolve(name: String, here: File?, root: File): File? {
+    fun resolve(name: String, here: File?, root: File): File? = resolveAll(name, here, root).firstOrNull()
+
+    /** Every folder of that name on the shallowest level that has one; more than one means ambiguous. */
+    fun resolveAll(name: String, here: File?, root: File): List<File> {
         val key = normalize(name)
         if (key in HERE) {
-            return here
+            return listOfNotNull(here)
         }
-        ALIASES[key]?.let { alias -> File(root, alias).takeIf { it.isDirectory }?.let { return it } }
+        ALIASES[key]?.let { alias -> File(root, alias).takeIf { it.isDirectory }?.let { return listOf(it) } }
         val clean = name.trim().removeFolderWord()
         if (clean.startsWith("/")) {
-            return File(clean).canonicalFile.takeIf { it.isDirectory && it.path.startsWith(root.canonicalPath + "/") }
+            return listOfNotNull(
+                File(clean).canonicalFile.takeIf { it.isDirectory && it.path.startsWith(root.canonicalPath + "/") }
+            )
         }
         // Breadth first, three levels deep, so nested folders such as "Projekte/2026/Fertig" are found.
         var level = listOf(root)
         repeat(3) {
-            level.firstNotNullOfOrNull { dir ->
-                dir.childDirs().firstOrNull { it.name.equals(clean, ignoreCase = true) }
-            }?.let { return it }
+            val matches = level.flatMap { dir -> dir.childDirs().filter { it.name.equals(clean, ignoreCase = true) } }
+            if (matches.isNotEmpty()) return matches
             level = level.flatMap { it.childDirs() }
         }
-        return null
+        return emptyList()
+    }
+
+    /** The command without the names the model copied out of it (file name part, folders, endings). */
+    private fun intentWords(text: String, plan: CommandPlan, withoutFolders: Boolean): String {
+        var words = text.lowercase(Locale.ROOT).replace(Regex("\\S+\\.[\\p{L}\\d]{1,5}\\b"), " ")
+        val folders = if (withoutFolders) listOf(plan.source, plan.destination) else emptyList()
+        (listOf(plan.nameContains) + folders + plan.extensions)
+            .map { it.trim().lowercase(Locale.ROOT) }.filter { it.length > 1 }
+            .forEach { words = words.replace(it, " ") }
+        return words
     }
 
     fun isProtected(dir: File, root: File, cameraNamed: Boolean): Boolean {

@@ -12,7 +12,9 @@ import android.os.Bundle
 import android.os.Environment
 import android.text.format.Formatter
 import android.view.Gravity
+import android.text.InputType
 import android.view.HapticFeedbackConstants
+import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -89,9 +91,13 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
             })
         }
         binding.commandLayout.setEndIconOnClickListener { submit() }
-        binding.commandEdit.setOnEditorActionListener { _, actionId, _ ->
-            (actionId == EditorInfo.IME_ACTION_GO).also { if (it) submit() }
+        // Wraps like a multi-line field, but the keyboard sees one line and shows its "Go" key.
+        binding.commandEdit.setRawInputType(InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_CAP_SENTENCES)
+        binding.commandEdit.setOnEditorActionListener { _, actionId, event ->
+            val enter = event?.keyCode == KeyEvent.KEYCODE_ENTER && event.action == KeyEvent.ACTION_DOWN
+            (actionId == EditorInfo.IME_ACTION_GO || enter).also { if (it) submit() }
         }
+        binding.removeModelButton.setOnClickListener { confirmRemoveModel() }
         binding.cancelButton.setOnClickListener {
             CommandEngine.cancel()
             job?.cancel()
@@ -106,11 +112,30 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
             execute()
         }
         binding.retryButton.setOnClickListener { if (text.isNotEmpty()) submit() else showInput() }
-        if (CommandModel.state(requireContext()) == CommandModel.State.Ready) {
-            showInput()
-            warmUp()
-        } else {
-            showSetup()
+        val restoredText = state?.getString(STATE_TEXT)
+        val restoredPending = state?.getBoolean(STATE_PENDING) == true
+        val context = requireContext().applicationContext
+        viewLifecycleOwner.lifecycleScope.launch {
+            val modelState = withContext(Dispatchers.IO) { CommandModel.state(context) }
+            if (modelState == CommandModel.State.Ready) {
+                showInput()
+                warmUp()
+                // After a rotation, pick up where the user was instead of starting over.
+                if (!restoredText.isNullOrEmpty()) {
+                    binding.commandEdit.setText(restoredText)
+                    if (restoredPending) submit()
+                }
+            } else {
+                showSetup(modelState)
+            }
+        }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        _binding?.let {
+            outState.putString(STATE_TEXT, it.commandEdit.text.toString())
+            outState.putBoolean(STATE_PENDING, ready != null || it.loadingLayout.isVisible)
         }
     }
 
@@ -133,30 +158,46 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
     }
 
     override fun onDestroyView() {
+        // Do not keep the cores busy for an answer nobody will see.
+        if (job?.isActive == true) CommandEngine.cancel()
         super.onDestroyView()
         _binding = null
     }
 
     // ---- Setup -------------------------------------------------------------------------------
 
-    private fun showSetup() {
+    private fun showSetup(modelState: CommandModel.State) {
         val context = requireContext()
         binding.titleText.setText(R.string.ai_setup_title)
         binding.subtitleText.setText(R.string.ai_setup_subtitle)
         binding.headerOrb.isVisible = false
+        binding.removeModelButton.isVisible = false
         show(binding.setupLayout)
+        // A download that already runs (or a file waiting for its check) always gets followed,
+        // whatever the free space says now.
+        if (modelState != CommandModel.State.Missing && modelState !is CommandModel.State.Failed) {
+            followDownload()
+            return
+        }
         val check = CommandModel.check(context)
         bindCheck(binding.checkRam, check.ramOk, getString(
             R.string.ai_check_ram, gigabytes(check.ramBytes), gigabytes(CommandModel.MIN_RAM)
         ))
         bindCheck(binding.checkSpace, check.spaceOk, getString(
-            R.string.ai_check_space, gigabytes(check.freeBytes), gigabytes(CommandModel.SIZE + 500_000_000L)
+            R.string.ai_check_space, gigabytes(check.freeBytes),
+            gigabytes(CommandModel.SIZE + CommandModel.SPARE_SPACE)
         ))
         bindCheck(binding.checkDevice, check.is64Bit, getString(
             if (check.is64Bit) R.string.ai_check_device_ok else R.string.ai_check_device_bad
         ))
         listOf(binding.setupPrivacy, binding.checkRam, binding.checkSpace, binding.checkDevice)
             .forEachIndexed { i, row -> row.reveal(80L + 90L * i) }
+        if (modelState is CommandModel.State.Failed) {
+            binding.downloadText.isVisible = true
+            binding.downloadText.setText(
+                if (modelState.noSpace) R.string.ai_download_no_space else R.string.ai_download_failed
+            )
+        }
         if (!check.ok) {
             binding.setupButton.isEnabled = false
             binding.setupButton.text = getString(R.string.ai_setup_not_enough)
@@ -165,20 +206,27 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
             binding.setupButton.setTextColor(
                 MaterialColors.getColor(binding.setupButton, android.R.attr.textColorSecondary)
             )
+            binding.mobileDataButton.isVisible = false
             return
         }
         binding.setupButton.text = getString(R.string.ai_setup_download, gigabytes(CommandModel.SIZE))
-        binding.setupButton.setOnClickListener {
-            CommandModel.startDownload(context)
+        binding.setupButton.setOnClickListener { startDownload(mobileData = false) }
+        binding.mobileDataButton.isVisible = true
+        binding.mobileDataButton.setOnClickListener { startDownload(mobileData = true) }
+    }
+
+    private fun startDownload(mobileData: Boolean) {
+        val context = requireContext().applicationContext
+        if (CommandModel.startDownload(context, mobileData)) {
             followDownload()
-        }
-        if (CommandModel.state(context) != CommandModel.State.Missing) {
-            followDownload()
+        } else {
+            downloadStopped(R.string.ai_download_failed)
         }
     }
 
     private fun bindCheck(row: TextView, ok: Boolean, label: String) {
         row.text = label
+        row.contentDescription = label + ", " + getString(if (ok) R.string.ai_check_passed else R.string.ai_check_failed)
         val color = ContextCompat.getColor(requireContext(), if (ok) R.color.ai_accent else R.color.ai_delete)
         // Only the status mark is colored; the row's own icon keeps the neutral tint from the style.
         val mark = ContextCompat.getDrawable(
@@ -194,39 +242,80 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
     /** Polls DownloadManager while the sheet is open; the download itself runs on without it. */
     private fun followDownload() {
         val context = requireContext()
+        TransitionManager.beginDelayedTransition(binding.contentLayout, MaterialFadeThrough())
+        // The checks are done; from here the sphere carries the progress.
+        binding.setupPrivacy.isVisible = false
+        binding.checkList.isVisible = false
         binding.setupButton.isVisible = false
+        binding.mobileDataButton.isVisible = false
         binding.downloadProgress.isVisible = true
+        binding.downloadProgress.isIndeterminate = false
         binding.downloadText.isVisible = true
+        binding.downloadText.setText(R.string.ai_download_starting)
+        binding.phaseText.isVisible = true
+        binding.phaseText.setText(R.string.ai_phase_download)
+        binding.percentText.isVisible = true
+        binding.percentText.text = percent(0)
         binding.setupOrb.thinking = true
+        binding.setupOrb.progress = 0f
         job?.cancel()
         job = viewLifecycleOwner.lifecycleScope.launch {
+            var lastBytes = -1L
+            var lastTime = 0L
+            var rate = 0.0
             while (isActive) {
                 when (val state = withContext(Dispatchers.IO) { CommandModel.state(context) }) {
                     is CommandModel.State.Downloading -> {
-                        val permille = (state.bytes * 1000 / state.total).toInt()
-                        binding.downloadProgress.setProgressCompat(permille, true)
-                        binding.downloadText.text = if (state.paused) {
-                            getString(R.string.ai_download_paused)
-                        } else {
-                            getString(
-                                R.string.ai_download_progress, gigabytes(state.bytes), gigabytes(state.total),
-                                permille / 10
+                        val now = System.nanoTime()
+                        if (lastBytes >= 0 && state.bytes > lastBytes) {
+                            val sample = (state.bytes - lastBytes) / ((now - lastTime) / 1e9)
+                            rate = if (rate == 0.0) sample else rate * 0.8 + sample * 0.2
+                        }
+                        lastBytes = state.bytes
+                        lastTime = now
+                        val fraction = state.bytes.toFloat() / state.total
+                        binding.setupOrb.progress = fraction
+                        binding.percentText.text = percent((fraction * 100).toInt())
+                        binding.downloadProgress.setProgressCompat((fraction * 1000).toInt(), true)
+                        binding.mobileDataButton.isVisible = state.waitingForWifi
+                        binding.downloadText.text = when {
+                            state.waitingForWifi -> getString(R.string.ai_download_waiting_wifi)
+                            state.paused -> getString(R.string.ai_download_paused)
+                            rate <= 0.0 -> getString(R.string.ai_download_starting)
+                            else -> getString(
+                                R.string.ai_download_progress_rate, gigabytes(state.bytes), gigabytes(state.total),
+                                gigabytes(rate.toLong()), eta(((state.total - state.bytes) / rate).toLong())
                             )
                         }
                     }
                     CommandModel.State.Verifying -> {
+                        binding.phaseText.setText(R.string.ai_phase_verify)
+                        binding.setupOrb.progress = -1f
+                        binding.percentText.isVisible = false
                         binding.downloadProgress.isIndeterminate = true
                         binding.downloadText.setText(R.string.ai_verifying)
                         if (CommandModel.verify(context)) {
+                            binding.phaseText.setText(R.string.ai_phase_ready)
+                            binding.setupOrb.thinking = false
+                            binding.setupOrb.celebrate()
+                            binding.percentText.text = "✓"
+                            binding.percentText.isVisible = true
+                            binding.downloadProgress.isIndeterminate = false
+                            binding.downloadProgress.setProgressCompat(1000, true)
                             binding.downloadText.setText(R.string.ai_ready)
-                            delay(700)
+                            binding.root.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+                            delay(1_400)
                             onModelReady()
                         } else {
                             downloadStopped(R.string.ai_verify_failed)
                         }
                         return@launch
                     }
-                    CommandModel.State.Failed, CommandModel.State.Missing -> {
+                    is CommandModel.State.Failed -> {
+                        downloadStopped(if (state.noSpace) R.string.ai_download_no_space else R.string.ai_download_failed)
+                        return@launch
+                    }
+                    CommandModel.State.Missing -> {
                         downloadStopped(R.string.ai_download_failed)
                         return@launch
                     }
@@ -242,16 +331,50 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
 
     private fun downloadStopped(messageRes: Int) {
         binding.setupOrb.thinking = false
+        binding.setupOrb.progress = -1f
+        binding.percentText.isVisible = false
+        binding.phaseText.isVisible = false
         binding.downloadProgress.isVisible = false
         binding.downloadText.setText(messageRes)
         binding.setupButton.isVisible = true
         binding.setupButton.setText(R.string.ai_setup_retry)
+        binding.setupButton.setOnClickListener { startDownload(mobileData = false) }
+        binding.mobileDataButton.isVisible = true
+        binding.mobileDataButton.setOnClickListener { startDownload(mobileData = true) }
+    }
+
+    private fun confirmRemoveModel() {
+        com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.ai_remove_title)
+            .setMessage(getString(R.string.ai_remove_text, gigabytes(CommandModel.SIZE)))
+            .setNegativeButton(android.R.string.cancel, null)
+            .setPositiveButton(R.string.ai_remove_confirm) { _, _ ->
+                val context = requireContext().applicationContext
+                val anchor = requireActivity().findViewById<View>(android.R.id.content)
+                UNDO_SCOPE.launch {
+                    CommandModel.remove(context)
+                    withContext(Dispatchers.Main) {
+                        Snackbar.make(anchor, R.string.ai_removed, Snackbar.LENGTH_SHORT).show()
+                    }
+                }
+                dismiss()
+            }
+            .show()
+    }
+
+    private fun percent(value: Int): String = String.format(java.util.Locale.getDefault(), "%d %%", value)
+
+    private fun eta(seconds: Long): String = if (seconds >= 60) {
+        requireContext().quantity(R.plurals.ai_eta_minutes, ((seconds + 59) / 60).toInt(), ((seconds + 59) / 60).toInt())
+    } else {
+        requireContext().quantity(R.plurals.ai_eta_seconds, seconds.toInt(), seconds.toInt())
     }
 
     private fun onModelReady() {
         binding.titleText.setText(R.string.ai_title)
         binding.subtitleText.setText(R.string.ai_subtitle)
         binding.headerOrb.isVisible = true
+        binding.removeModelButton.isVisible = true
         showInput()
         warmUp()
     }
@@ -276,10 +399,12 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
             return
         }
         hideKeyboard()
+        if (job?.isActive == true) CommandEngine.cancel()
         job?.cancel()
         val context = requireContext().applicationContext
         job = viewLifecycleOwner.lifecycleScope.launch {
             show(binding.loadingLayout)
+            binding.cancelButton.isVisible = true
             binding.thinkingOrb.thinking = true
             val thinking = launch {
                 if (!CommandEngine.isLoaded) {
@@ -338,13 +463,15 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
     private fun showAsk(outcome: Outcome.AskFolder) {
         showMessage(
             if (outcome.forDestination) R.string.ai_ask_destination else R.string.ai_ask_source,
-            getString(R.string.ai_ask_text)
+            getString(if (outcome.candidates.isEmpty()) R.string.ai_ask_text else R.string.ai_ask_which)
         )
-        val folders = root.listFiles()
-            ?.filter { it.isDirectory && !it.name.startsWith(".") && it.name != "Android" }
-            ?.sortedBy { it.name.lowercase() } ?: emptyList()
+        val folders = outcome.candidates.ifEmpty {
+            root.listFiles()
+                ?.filter { it.isDirectory && !it.name.startsWith(".") && it.name != "Android" }
+                ?.sortedBy { it.name.lowercase() } ?: emptyList()
+        }
         folders.forEachIndexed { i, folder ->
-            binding.folderChips.addView(glassChip(folder.name).apply {
+            binding.folderChips.addView(glassChip(display(folder)).apply {
                 setChipIconResource(R.drawable.directory_icon_white_24dp)
                 chipIconTint = ColorStateList.valueOf(ContextCompat.getColor(context, R.color.ai_accent))
                 setOnClickListener {
@@ -490,56 +617,77 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
         val context = requireContext().applicationContext
         val anchor = requireActivity().findViewById<View>(android.R.id.content)
         val chosen = files
-        val source = outcome.source
-        val undo: () -> Unit
-        when (plan.action) {
-            "move", "copy" -> {
-                val destination = outcome.destination!!
-                destination.mkdirs()
-                // Undo only touches files this command put there, never a file that was there before.
-                val placed = chosen.map { File(destination, it.name) }.filter { !it.exists() }.map { it.nioPath() }
-                if (plan.action == "move") {
-                    FileJobService.move(chosen.map { it.nioPath() }, destination.nioPath(), context)
-                    undo = { FileJobService.move(placed, source.nioPath(), context) }
-                } else {
-                    FileJobService.copy(chosen.map { it.nioPath() }, destination.nioPath(), context)
-                    undo = { FileJobService.delete(placed, context) }
+        val kindNames = KINDS.associateWith { kindName(it) }
+        val runner = runner(context, outcome)
+        job?.cancel()
+        job = viewLifecycleOwner.lifecycleScope.launch {
+            show(binding.loadingLayout)
+            binding.cancelButton.isVisible = false
+            binding.loadingText.setText(getString(R.string.ai_running))
+            val journal = withContext(Dispatchers.IO) {
+                runner.run(plan, outcome.source, outcome.destination, chosen, kindNames)
+            }
+            scan(context, journal)
+            val done = when (plan.action) {
+                "move" -> R.plurals.ai_done_move
+                "copy" -> R.plurals.ai_done_copy
+                "delete" -> R.plurals.ai_done_delete
+                else -> R.plurals.ai_done_organize
+            }
+            var message = context.quantity(done, journal.done, journal.done)
+            if (journal.skipped > 0) {
+                message += " · " + context.quantity(R.plurals.ai_skipped, journal.skipped, journal.skipped)
+            }
+            val snackbar = Snackbar.make(anchor, message, UNDO_MILLIS)
+            if (journal.done > 0) {
+                snackbar.setAction(R.string.ai_undo) {
+                    UNDO_SCOPE.launch {
+                        val undone = runner.undo(journal)
+                        scan(context, journal)
+                        withContext(Dispatchers.Main) {
+                            Snackbar.make(anchor, context.quantity(R.plurals.ai_undone, undone, undone),
+                                Snackbar.LENGTH_SHORT).show()
+                        }
+                    }
                 }
             }
-            "delete" -> {
-                FileJobService.delete(chosen.map { it.nioPath() }, context)
-                val originals = chosen.map { it.path }.toSet()
-                undo = {
-                    FileJobService.restoreFromTrash(
-                        Trash.entries().filter { it.originalPath in originals }, context
-                    )
-                }
+            snackbar.show()
+            dismiss()
+        }
+    }
+
+    private fun runner(context: Context, outcome: Outcome.Ready) = CommandRunner(
+        // The check already refused every protected folder except a camera folder the user named,
+        // so a folder that is only allowed with the camera exception means the camera was named.
+        root, cameraNamed = CommandCheck.isProtected(outcome.source, root, false) ||
+            outcome.destination?.let { CommandCheck.isProtected(it, root, false) } == true,
+        trash = { file ->
+            // Delete only ever means trash; with the trash switched off nothing is removed.
+            if (!Trash.isEnabled) null else try {
+                CommandRunner.Trashed(file, Trash.moveToTrash(Paths.get(file.path)))
+            } catch (e: java.io.IOException) {
+                null
             }
-            else -> {
-                val kindNames = KINDS.associateWith { kindName(it) }
-                val groups = chosen.groupBy { CommandFiles.organizeFolder(it, plan.groupBy, kindNames) }
-                val placed = groups.flatMap { (folder, group) ->
-                    val target = File(source, folder).apply { mkdirs() }
-                    val fresh = group.map { File(target, it.name) }.filter { !it.exists() }.map { it.nioPath() }
-                    FileJobService.move(group.map { it.nioPath() }, target.nioPath(), context)
-                    fresh
-                }
-                undo = { FileJobService.move(placed, source.nioPath(), context) }
+        },
+        untrash = { entry ->
+            val trashed = File(entry.handle.toString())
+            val trashRoot = Trash.rootOf(entry.original.path)
+            if (trashRoot != null && trashed.renameTo(entry.original)) {
+                File(Trash.infoDir(trashRoot), trashed.name + Trash.INFO_SUFFIX).delete()
+                true
+            } else {
+                false
             }
         }
-        val done = when (plan.action) {
-            "move" -> R.plurals.ai_done_move
-            "copy" -> R.plurals.ai_done_copy
-            "delete" -> R.plurals.ai_done_delete
-            else -> R.plurals.ai_done_organize
+    )
+
+    /** Tells the media index about old and new places, so galleries and players stay right. */
+    private fun scan(context: Context, journal: CommandRunner.Journal) {
+        val paths = journal.placed.flatMap { listOf(it.from.path, it.to.path) } +
+            journal.trashed.map { it.original.path }
+        if (paths.isNotEmpty()) {
+            android.media.MediaScannerConnection.scanFile(context, paths.toTypedArray(), null, null)
         }
-        // shortcut: undo right after confirming can race the running job; fine for a few files, a job
-        // result callback is the upgrade when large moves need it.
-        Snackbar.make(anchor, context.quantity(done, chosen.size, chosen.size), UNDO_MILLIS)
-            .setAction(R.string.ai_undo) { undo() }
-            .setActionTextColor(ContextCompat.getColor(context, R.color.ai_glow_1))
-            .show()
-        dismiss()
     }
 
     // ---- Helpers -----------------------------------------------------------------------------
@@ -621,6 +769,10 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
         const val TAG = "CommandSheet"
         private const val FILES_SHOWN = 5
         private const val UNDO_MILLIS = 8_000
+        private const val STATE_TEXT = "text"
+        private const val STATE_PENDING = "pending"
         private val KINDS = CommandFiles.KINDS.keys + "other"
+        // Undo outlives the sheet: it runs after the sheet is gone, from the snackbar.
+        private val UNDO_SCOPE = kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.SupervisorJob() + Dispatchers.IO)
     }
 }

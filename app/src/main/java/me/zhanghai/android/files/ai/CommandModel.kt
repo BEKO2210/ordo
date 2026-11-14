@@ -12,6 +12,8 @@ import android.net.Uri
 import android.os.Build
 import android.os.StatFs
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import me.zhanghai.android.files.llm.LlamaEngine
 import java.io.File
@@ -28,10 +30,11 @@ object CommandModel {
     private const val PREFS = "command_model"
     private const val KEY_DOWNLOAD = "download_id"
     private const val KEY_VERIFIED = "verified"
+    private const val KEY_STAMP = "stamp"
 
-    // Measured on a Pixel 11 Pro XL: 3.3 GB peak with a 2048 token context.
-    const val MIN_RAM = 6_000_000_000L
-    private const val SPARE_SPACE = 500_000_000L
+    // 3.3 GB peak measured on a Pixel 11 Pro XL; phones sold as "6 GB" report about 5.5 GB.
+    const val MIN_RAM = 5_500_000_000L
+    const val SPARE_SPACE = 500_000_000L
 
     data class DeviceCheck(val ramBytes: Long, val freeBytes: Long, val is64Bit: Boolean) {
         val ramOk get() = ramBytes >= MIN_RAM
@@ -41,13 +44,15 @@ object CommandModel {
 
     sealed interface State {
         data object Missing : State
-        data class Downloading(val bytes: Long, val total: Long, val paused: Boolean) : State
-        data object Failed : State
+        data class Downloading(val bytes: Long, val total: Long, val paused: Boolean, val waitingForWifi: Boolean) : State
+        data class Failed(val noSpace: Boolean) : State
         data object Verifying : State
         data object Ready : State
     }
 
-    fun file(context: Context): File = File(context.getExternalFilesDir("models"), NAME)
+    // Null when shared storage is not mounted; then the download fails cleanly instead of crashing.
+    fun file(context: Context): File =
+        File(context.getExternalFilesDir("models") ?: File(context.filesDir, "models"), NAME)
 
     fun check(context: Context): DeviceCheck {
         val memory = ActivityManager.MemoryInfo()
@@ -56,7 +61,11 @@ object CommandModel {
         val alreadyThere = file(context).takeIf { it.exists() }?.length() ?: 0L
         return DeviceCheck(
             ramBytes = memory.totalMem,
-            freeBytes = StatFs(dir.path).availableBytes + alreadyThere,
+            freeBytes = try {
+                StatFs(dir.path).availableBytes + alreadyThere
+            } catch (e: IllegalArgumentException) {
+                0L
+            },
             is64Bit = Build.SUPPORTED_64_BIT_ABIS.isNotEmpty() && LlamaEngine.isSupported
         )
     }
@@ -64,8 +73,12 @@ object CommandModel {
     fun state(context: Context): State {
         val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
         val file = file(context)
-        if (prefs.getBoolean(KEY_VERIFIED, false) && file.length() == SIZE) {
-            return State.Ready
+        if (prefs.getBoolean(KEY_VERIFIED, false)) {
+            // The hash only counts for the exact file it was computed on; any change means hash again.
+            if (file.length() == SIZE && prefs.getString(KEY_STAMP, null) == stamp(file)) {
+                return State.Ready
+            }
+            prefs.edit().putBoolean(KEY_VERIFIED, false).apply()
         }
         val id = prefs.getLong(KEY_DOWNLOAD, -1)
         if (id == -1L) {
@@ -73,54 +86,91 @@ object CommandModel {
         }
         val manager = context.getSystemService(DownloadManager::class.java)
         manager.query(DownloadManager.Query().setFilterById(id))?.use { cursor ->
-            if (!cursor.moveToFirst()) {
-                return State.Missing
-            }
-            val status = cursor.getInt(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS))
-            val bytes = cursor.getLong(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR))
-            return when (status) {
-                DownloadManager.STATUS_SUCCESSFUL -> State.Verifying
-                DownloadManager.STATUS_FAILED -> State.Failed
-                else -> State.Downloading(bytes, SIZE, status == DownloadManager.STATUS_PAUSED)
+            if (cursor.moveToFirst()) {
+                val status = cursor.getInt(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS))
+                val reason = cursor.getInt(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_REASON))
+                val bytes = cursor.getLong(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR))
+                return when (status) {
+                    DownloadManager.STATUS_SUCCESSFUL -> State.Verifying
+                    DownloadManager.STATUS_FAILED ->
+                        State.Failed(reason == DownloadManager.ERROR_INSUFFICIENT_SPACE)
+                    else -> State.Downloading(
+                        bytes, SIZE, status == DownloadManager.STATUS_PAUSED,
+                        reason == DownloadManager.PAUSED_QUEUED_FOR_WIFI
+                    )
+                }
             }
         }
-        return State.Missing
+        // The download entry is gone (cleared, cancelled): a complete file is still worth a hash check.
+        return if (file.length() == SIZE) State.Verifying else State.Missing
     }
 
-    fun startDownload(context: Context) {
+    /** False when the system download service refused the job. Wi-Fi only unless [mobileData]. */
+    fun startDownload(context: Context, mobileData: Boolean): Boolean {
         val manager = context.getSystemService(DownloadManager::class.java)
         val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
         prefs.getLong(KEY_DOWNLOAD, -1).takeIf { it != -1L }?.let { manager.remove(it) }
+        prefs.edit().remove(KEY_DOWNLOAD).putBoolean(KEY_VERIFIED, false).commit()
+        if (file(context).length() == SIZE) {
+            return true // complete already; state() sends it to the hash check
+        }
         file(context).delete()
-        val request = DownloadManager.Request(Uri.parse(URL))
-            .setTitle("Ordo KI")
-            .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE)
-            .setAllowedOverRoaming(false)
-            .setDestinationInExternalFilesDir(context, "models", NAME)
-        prefs.edit().putLong(KEY_DOWNLOAD, manager.enqueue(request)).putBoolean(KEY_VERIFIED, false).apply()
+        return try {
+            val request = DownloadManager.Request(Uri.parse(URL))
+                .setTitle("Ordo KI")
+                .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+                .setAllowedOverMetered(mobileData)
+                .setAllowedOverRoaming(false)
+                .setDestinationInExternalFilesDir(context, "models", NAME)
+            // commit, not apply: if the app dies right after enqueue, the id must already be stored.
+            prefs.edit().putLong(KEY_DOWNLOAD, manager.enqueue(request)).commit()
+            true
+        } catch (e: RuntimeException) {
+            e.printStackTrace()
+            false
+        }
     }
 
     /** Hashes the downloaded file; a wrong file is deleted so the next attempt starts clean. */
-    suspend fun verify(context: Context): Boolean = withContext(Dispatchers.IO) {
+    suspend fun verify(context: Context): Boolean = verifyLock.withLock {
+        withContext(Dispatchers.IO) { verifyLocked(context) }
+    }
+
+    // One hash at a time: reopening the sheet mid-check must not start a second one on the same file.
+    private val verifyLock = Mutex()
+
+    private fun verifyLocked(context: Context): Boolean {
         val file = file(context)
-        val ok = file.length() == SIZE && sha256(file) == SHA256
         val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-        prefs.edit().remove(KEY_DOWNLOAD).putBoolean(KEY_VERIFIED, ok).apply()
+        if (prefs.getBoolean(KEY_VERIFIED, false) && prefs.getString(KEY_STAMP, null) == stamp(file)) {
+            return true
+        }
+        val ok = try {
+            file.length() == SIZE && sha256(file) == SHA256
+        } catch (e: java.io.IOException) {
+            false
+        }
+        prefs.edit().remove(KEY_DOWNLOAD).putBoolean(KEY_VERIFIED, ok).putString(KEY_STAMP, stamp(file)).apply()
         if (!ok) {
             file.delete()
         }
-        ok
+        return ok
     }
 
-    fun remove(context: Context) {
-        val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-        prefs.getLong(KEY_DOWNLOAD, -1).takeIf { it != -1L }?.let {
-            context.getSystemService(DownloadManager::class.java).remove(it)
-        }
-        prefs.edit().clear().apply()
+    /** Frees the model from memory first, then deletes it. */
+    suspend fun remove(context: Context) {
         CommandEngine.release()
-        file(context).delete()
+        withContext(Dispatchers.IO) {
+            val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            prefs.getLong(KEY_DOWNLOAD, -1).takeIf { it != -1L }?.let {
+                context.getSystemService(DownloadManager::class.java).remove(it)
+            }
+            prefs.edit().clear().commit()
+            file(context).delete()
+        }
     }
+
+    private fun stamp(file: File): String = "${file.length()}:${file.lastModified()}"
 
     private fun sha256(file: File): String {
         val digest = MessageDigest.getInstance("SHA-256")

@@ -90,11 +90,13 @@ object Trash {
         return Paths.get(File(filesDir, id).path)
     }
 
+    /** Returns where the file now lives in the trash; its file name is the entry id. */
     @Throws(IOException::class)
-    fun moveToTrash(path: Path) {
+    fun moveToTrash(path: Path): Path {
         val trashPath = prepare(path)
         try {
             path.moveTo(trashPath, LinkOption.NOFOLLOW_LINKS, StandardCopyOption.ATOMIC_MOVE)
+            return trashPath
         } catch (e: IOException) {
             File(infoDir(rootOf(path.toString())!!), trashPath.fileName.toString() + INFO_SUFFIX)
                 .delete()

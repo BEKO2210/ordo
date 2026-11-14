@@ -108,7 +108,7 @@
     <string name="ai_check_space">Freier Speicher: %1$s (nötig %2$s)</string>
     <string name="ai_check_device_ok">64-Bit-Prozessor</string>
     <string name="ai_check_device_bad">Braucht einen 64-Bit-Prozessor</string>
-    <string name="ai_setup_download">KI herunterladen (%s)</string>
+    <string name="ai_setup_download">KI über WLAN laden (%s)</string>
     <string name="ai_setup_not_enough">Auf diesem Handy läuft die Ordo-KI nicht</string>
     <string name="ai_setup_retry">Download erneut starten</string>
     <string name="ai_download_progress">%1$s von %2$s · %3$d %% · läuft im Hintergrund weiter</string>
@@ -121,4 +121,36 @@
     <string name="ai_start_failed_title">Die KI konnte nicht starten</string>
     <string name="ai_start_failed_text">Schließ andere Apps, um Speicher freizumachen, und versuch es noch einmal.</string>
     <string name="ai_retry">Erneut versuchen</string>
+    <string name="ai_phase_download">Schritt 2 von 3 · Download</string>
+    <string name="ai_phase_verify">Schritt 3 von 3 · Sicherheitsprüfung</string>
+    <string name="ai_phase_ready">Bereit</string>
+    <string name="ai_download_progress_rate">%1$s von %2$s · %3$s/s · noch %4$s</string>
+    <string name="ai_download_starting">Verbinde …</string>
+    <plurals name="ai_eta_minutes">
+        <item quantity="one">%d Min.</item>
+        <item quantity="other">%d Min.</item>
+    </plurals>
+    <plurals name="ai_eta_seconds">
+        <item quantity="one">%d Sek.</item>
+        <item quantity="other">%d Sek.</item>
+    </plurals>
+    <string name="ai_running">Ordo führt den Plan aus …</string>
+    <string name="ai_ask_which">Mehrere Ordner heißen so. Welcher ist gemeint?</string>
+    <plurals name="ai_skipped">
+        <item quantity="one">%d übersprungen</item>
+        <item quantity="other">%d übersprungen</item>
+    </plurals>
+    <plurals name="ai_undone">
+        <item quantity="one">%d Datei zurückgeholt</item>
+        <item quantity="other">%d Dateien zurückgeholt</item>
+    </plurals>
+    <string name="ai_check_passed">erfüllt</string>
+    <string name="ai_check_failed">nicht erfüllt</string>
+    <string name="ai_download_no_space">Nicht genug freier Speicher. Mach etwas Platz frei und versuch es noch einmal.</string>
+    <string name="ai_download_waiting_wifi">Wartet auf WLAN</string>
+    <string name="ai_mobile_data">Stattdessen über mobile Daten laden</string>
+    <string name="ai_remove_title">KI-Modell entfernen</string>
+    <string name="ai_remove_text">Das gibt %s frei. Du kannst es jederzeit wieder herunterladen.</string>
+    <string name="ai_remove_confirm">Entfernen</string>
+    <string name="ai_removed">KI-Modell entfernt</string>
 </resources>

@@ -24,6 +24,10 @@ object CommandFiles {
     fun collect(plan: CommandPlan, source: File, now: Long = System.currentTimeMillis()): List<File> {
         // A named ending is more exact than a kind: "MP3s" must not take every audio file.
         val extensions = plan.cleanExtensions.toSet().ifEmpty { plan.kinds.flatMap { KINDS[it] ?: emptySet() }.toSet() }
+        // A filter that was asked for but means nothing selects nothing, never everything.
+        if (extensions.isEmpty() && (plan.extensions.isNotEmpty() || plan.kinds.isNotEmpty())) {
+            return emptyList()
+        }
         val ageLimit = now - plan.olderThanDays * 86_400_000L
         return (source.listFiles() ?: return emptyList()).filter { file ->
             file.isFile && !file.name.startsWith(".") &&

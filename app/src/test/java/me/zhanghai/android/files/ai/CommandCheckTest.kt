@@ -140,5 +140,35 @@ class CommandCheckTest {
         assertEquals(listOf("mp3"), CommandPlan("move", "x", extensions = listOf(".MP3", " ")).cleanExtensions)
     }
 
+    @Test
+    fun deleteWordInFileNameDoesNotCount() {
+        assertEquals(Outcome.Refused(Reason.UNSURE_DELETE),
+            check("copy delete-me.txt to Music", CommandPlan("delete", "Download")))
+        assertEquals(Outcome.Refused(Reason.UNSURE_DELETE),
+            check("kopiere alles aus Download", CommandPlan("delete", "Download", nameContains = "löschen")))
+    }
+
+    @Test
+    fun cameraInFileNameDoesNotUnlockCamera() {
+        assertEquals(Outcome.Refused(Reason.PROTECTED_FOLDER),
+            check("lösche camera_backup.zip", CommandPlan("delete", "Kamera")))
+    }
+
+    @Test
+    fun ambiguousFolder_asksWithCandidates() {
+        File(root, "Alarms/Receipts").mkdirs()
+        File(root, "Documents/Receipts").mkdirs()
+        val outcome = check("lösche alles in Receipts", CommandPlan("delete", "Receipts"))
+        assertEquals(listOf(File(root, "Alarms/Receipts"), File(root, "Documents/Receipts")),
+            (outcome as Outcome.AskFolder).candidates)
+    }
+
+    @Test
+    fun invalidFilterSelectsNothing_hugeAgeIsCapped() {
+        val dir = File(root, "Download").apply { File(this, "a.txt").writeText("x") }
+        assertEquals(emptyList<File>(), CommandFiles.collect(CommandPlan("delete", "x", extensions = listOf(".")), dir))
+        assertEquals(36_500, CommandPlan("delete", "x", olderThan = Int.MAX_VALUE, ageUnit = "years").olderThanDays)
+    }
+
     private fun Outcome.plan(): CommandPlan = (this as Outcome.Ready).plan
 }

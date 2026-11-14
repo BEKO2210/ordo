@@ -23,16 +23,17 @@ data class CommandPlan(
     val groupBy: String = ""
 ) {
     // The model only copies numbers and units, the app does the arithmetic.
+    // Capped at 100 years, so a silly number can never wrap around into "every file".
     val olderThanDays: Int
-        get() = olderThan * when (ageUnit) {
+        get() = (olderThan.toLong() * when (ageUnit) {
             "weeks" -> 7
             "months" -> 30
             "years" -> 365
             else -> 1
-        }
+        }).coerceIn(0, 36_500).toInt()
 
     val largerThanBytes: Long
-        get() = largerThan * if (sizeUnit == "gb") 1_000_000_000L else 1_000_000L
+        get() = largerThan.toLong() * if (sizeUnit == "gb") 1_000_000_000L else 1_000_000L
 
     val cleanExtensions: List<String>
         get() = extensions.map { it.trim().trimStart('.').lowercase() }.filter { it.isNotEmpty() }

@@ -11,6 +11,7 @@
 #include <jni.h>
 
 #include <atomic>
+#include <climits>
 #include <string>
 #include <vector>
 
@@ -29,15 +30,29 @@ struct Engine {
     std::atomic<bool> cancelled{false};
 };
 
-std::string toString(JNIEnv *env, jstring value) {
-    const char *chars = env->GetStringUTFChars(value, nullptr);
-    std::string result(chars);
-    env->ReleaseStringUTFChars(value, chars);
+// Text crosses JNI as real UTF-8 bytes: JNI's own string functions use modified UTF-8, which breaks
+// on emoji and NUL characters.
+std::string toString(JNIEnv *env, jbyteArray value) {
+    jsize length = env->GetArrayLength(value);
+    std::string result(length, '\0');
+    env->GetByteArrayRegion(value, 0, length, reinterpret_cast<jbyte *>(result.data()));
     return result;
 }
 
+jbyteArray toBytes(JNIEnv *env, const std::string &text) {
+    jbyteArray array = env->NewByteArray((jsize) text.size());
+    if (array != nullptr) {
+        env->SetByteArrayRegion(array, 0, (jsize) text.size(), reinterpret_cast<const jbyte *>(text.data()));
+    }
+    return array;
+}
+
 std::vector<llama_token> tokenize(const Engine &engine, const std::string &text) {
-    int n = -llama_tokenize(engine.vocab, text.c_str(), (int32_t) text.size(), nullptr, 0, false, true);
+    int probe = llama_tokenize(engine.vocab, text.c_str(), (int32_t) text.size(), nullptr, 0, false, true);
+    if (probe >= 0 || probe == INT32_MIN) {
+        return {};
+    }
+    int n = -probe;
     std::vector<llama_token> tokens(n);
     if (llama_tokenize(engine.vocab, text.c_str(), (int32_t) text.size(), tokens.data(), n, false,
                        true) < 0) {
@@ -67,7 +82,7 @@ bool decodeAll(Engine &engine, std::vector<llama_token> &tokens) {
 extern "C" {
 
 JNIEXPORT jlong JNICALL
-Java_me_zhanghai_android_files_llm_LlamaEngine_nativeLoad(JNIEnv *env, jclass, jstring path,
+Java_me_zhanghai_android_files_llm_LlamaEngine_nativeLoad(JNIEnv *env, jclass, jbyteArray path,
                                                          jint threads, jint contextSize) {
     llama_backend_init();
     llama_model_params modelParams = llama_model_default_params();
@@ -98,7 +113,7 @@ Java_me_zhanghai_android_files_llm_LlamaEngine_nativeLoad(JNIEnv *env, jclass, j
 
 JNIEXPORT jboolean JNICALL
 Java_me_zhanghai_android_files_llm_LlamaEngine_nativePrepare(JNIEnv *env, jclass, jlong handle,
-                                                            jstring prefix) {
+                                                            jbyteArray prefix) {
     auto *engine = reinterpret_cast<Engine *>(handle);
     engine->cancelled = false;
     llama_memory_clear(llama_get_memory(engine->ctx), true);
@@ -113,9 +128,9 @@ Java_me_zhanghai_android_files_llm_LlamaEngine_nativePrepare(JNIEnv *env, jclass
     return written > 0 ? JNI_TRUE : JNI_FALSE;
 }
 
-JNIEXPORT jstring JNICALL
+JNIEXPORT jbyteArray JNICALL
 Java_me_zhanghai_android_files_llm_LlamaEngine_nativeGenerate(JNIEnv *env, jclass, jlong handle,
-                                                             jstring suffix, jstring grammar,
+                                                             jbyteArray suffix, jbyteArray grammar,
                                                              jint maxTokens) {
     auto *engine = reinterpret_cast<Engine *>(handle);
     engine->cancelled = false;
@@ -153,10 +168,15 @@ Java_me_zhanghai_android_files_llm_LlamaEngine_nativeGenerate(JNIEnv *env, jclas
         if (llama_vocab_is_eog(engine->vocab, token)) {
             break;
         }
-        char piece[256];
-        int n = llama_token_to_piece(engine->vocab, token, piece, sizeof(piece), 0, false);
+        std::vector<char> piece(64);
+        int n = llama_token_to_piece(engine->vocab, token, piece.data(), (int32_t) piece.size(), 0, false);
+        if (n < 0) {
+            // Too small: the negative value is the size it needs.
+            piece.resize(-n);
+            n = llama_token_to_piece(engine->vocab, token, piece.data(), (int32_t) piece.size(), 0, false);
+        }
         if (n > 0) {
-            output.append(piece, n);
+            output.append(piece.data(), n);
         }
         if (llama_decode(engine->ctx, llama_batch_get_one(&token, 1)) != 0) {
             ok = false;
@@ -164,7 +184,7 @@ Java_me_zhanghai_android_files_llm_LlamaEngine_nativeGenerate(JNIEnv *env, jclas
         }
     }
     llama_sampler_free(sampler);
-    return ok ? env->NewStringUTF(output.c_str()) : nullptr;
+    return ok ? toBytes(env, output) : nullptr;
 }
 
 JNIEXPORT void JNICALL
