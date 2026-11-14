@@ -8,9 +8,18 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <!-- Lines are cut out of the folder (evenOdd), since themed icons have only one color. -->
-    <path
-        android:fillColor="#FFFFFFFF"
-        android:fillType="evenOdd"
-        android:pathData="M33,33h15l7,8h21a7,7 0,0 1,7 7v21a7,7 0,0 1,-7 7H33a7,7 0,0 1,-7 -7V40a7,7 0,0 1,7 -7ZM35.5,47h10a2.5,2.5 0,0 1,0 5h-10a2.5,2.5 0,0 1,0 -5ZM35.5,56h21a2.5,2.5 0,0 1,0 5h-21a2.5,2.5 0,0 1,0 -5ZM35.5,65h33a2.5,2.5 0,0 1,0 5h-33a2.5,2.5 0,0 1,0 -5Z" />
+    <!-- Scaled around its own centre to sit inside the adaptive icon safe zone (66 dp circle). -->
+    <group
+        android:pivotX="54.5"
+        android:pivotY="54.5"
+        android:scaleX="0.76"
+        android:scaleY="0.76"
+        android:translateX="-0.5"
+        android:translateY="-0.5">
+        <!-- Lines are cut out of the folder (evenOdd), since themed icons have only one color. -->
+        <path
+            android:fillColor="#FFFFFFFF"
+            android:fillType="evenOdd"
+            android:pathData="M33,33h15l7,8h21a7,7 0,0 1,7 7v21a7,7 0,0 1,-7 7H33a7,7 0,0 1,-7 -7V40a7,7 0,0 1,7 -7ZM35.5,47h10a2.5,2.5 0,0 1,0 5h-10a2.5,2.5 0,0 1,0 -5ZM35.5,56h21a2.5,2.5 0,0 1,0 5h-21a2.5,2.5 0,0 1,0 -5ZM35.5,65h33a2.5,2.5 0,0 1,0 5h-33a2.5,2.5 0,0 1,0 -5Z" />
+    </group>
 </vector>

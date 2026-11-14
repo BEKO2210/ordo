@@ -120,7 +120,8 @@ Ordo is a fork of [Material Files](https://github.com/zhanghai/MaterialFiles) by
 backend, archive and server support are the foundation of this app. Thank you.
 
 Ordo also uses [Tink](https://github.com/tink-crypto/tink-java) for encryption and
-[BlurView](https://github.com/Dimezis/BlurView) for the glass effect.
+[BlurView](https://github.com/Dimezis/BlurView) for the glass effect. The pictograms are
+[Material Symbols](https://github.com/google/material-design-icons) by Google (Apache-2.0).
 
 ## License
 
