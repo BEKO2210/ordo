@@ -37,8 +37,9 @@ object CommandCheck {
     val ACTIONS = setOf("move", "copy", "delete", "organize")
 
     private val DELETE_WORDS = listOf(
-        "lösch", "losch", "loesch", "entfern", "wirf", "schmeiß", "schmeiss", "papierkorb", "delete", "remove",
-        "trash", "erase", "get rid"
+        // "Papierkorb"/"trash" alone is not enough: "open the trash" must never authorise a delete.
+        "lösch", "losch", "loesch", "entfern", "wirf", "schmeiß", "schmeiss", "delete", "remove", "erase",
+        "get rid"
     )
 
     private val CAMERA_WORDS = setOf("kamera", "camera", "dcim", "dcim/camera")
@@ -61,12 +62,17 @@ object CommandCheck {
             return Outcome.Refused(Reason.UNSUPPORTED)
         }
         val words = intentWords(text, plan, withoutFolders = true)
-        if (plan.action == "delete" && DELETE_WORDS.none { Regex("(^|[^\\p{L}])$it").containsMatchIn(words) }) {
+        if (plan.action == "delete" && !said(words, DELETE_WORDS)) {
             return Outcome.Refused(Reason.UNSURE_DELETE)
         }
-        // The camera folder only counts as chosen when the user names it as the folder, not in a file name.
+        // The camera folder only counts as chosen when the user names it as the folder, not in a file name
+        // and not to exclude it ("nicht die Kamera").
         val cameraNamed = listOf(plan.source, plan.destination).any { normalize(it) in CAMERA_WORDS } &&
-            CAMERA_WORDS.any { it in intentWords(text, plan, withoutFolders = false) }
+            said(intentWords(text, plan, withoutFolders = false), CAMERA_WORDS.toList())
+        // On Android a backslash is an ordinary character; a folder name with one is never what was meant.
+        if ('\\' in plan.source || '\\' in plan.destination) {
+            return Outcome.Refused(Reason.PROTECTED_FOLDER)
+        }
         val sources = resolveAll(plan.source, here, root)
         if (sources.size > 1) {
             return Outcome.AskFolder(plan, forDestination = false, candidates = sources)
@@ -86,8 +92,12 @@ object CommandCheck {
             return Outcome.AskFolder(plan, forDestination = true, candidates = destinations)
         }
         val found = destinations.firstOrNull()
-        val destination = found ?: File(root, plan.destination.trim().removeFolderWord())
-        if (isProtected(destination, root, cameraNamed) || destination == source) {
+        if (found == null && plan.destination.trim().startsWith("/")) {
+            // An absolute path outside shared storage is never turned into a new folder of that name.
+            return Outcome.Refused(Reason.PROTECTED_FOLDER)
+        }
+        val destination = (found ?: File(root, plan.destination.trim().removeFolderWord())).canonicalFile
+        if (isProtected(destination, root, cameraNamed) || destination == source.canonicalFile) {
             return Outcome.Refused(Reason.PROTECTED_FOLDER)
         }
         return Outcome.Ready(plan, source, destination, found == null)
@@ -112,12 +122,31 @@ object CommandCheck {
         // Breadth first, three levels deep, so nested folders such as "Projekte/2026/Fertig" are found.
         var level = listOf(root)
         repeat(3) {
-            val matches = level.flatMap { dir -> dir.childDirs().filter { it.name.equals(clean, ignoreCase = true) } }
+            val matches = level.flatMap { dir -> dir.childDirs().filter { sameName(it.name, clean) } }
             if (matches.isNotEmpty()) return matches
             level = level.flatMap { it.childDirs() }
         }
         return emptyList()
     }
+
+    private val NEGATIONS = setOf(
+        "nicht", "nichts", "kein", "keine", "keinen", "keiner", "ohne", "außer", "ausser",
+        "not", "no", "don't", "dont", "never", "except", "without"
+    )
+
+    /** True when one of [stems] starts a word that is not negated by one of the three words before it. */
+    private fun said(words: String, stems: List<String>): Boolean {
+        val tokens = words.split(Regex("[^\\p{L}'/]+")).filter { it.isNotEmpty() }
+        return tokens.indices.any { i ->
+            stems.any { stem -> tokens[i].startsWith(stem) || (stem.contains(' ') && words.contains(stem)) } &&
+                tokens.subList((i - 3).coerceAtLeast(0), i).none { it in NEGATIONS }
+        }
+    }
+
+    // Composed and decomposed umlauts ("é" as one or two characters) count as the same name.
+    private fun sameName(a: String, b: String): Boolean =
+        java.text.Normalizer.normalize(a, java.text.Normalizer.Form.NFC)
+            .equals(java.text.Normalizer.normalize(b, java.text.Normalizer.Form.NFC), ignoreCase = true)
 
     /** The command without the names the model copied out of it (file name part, folders, endings). */
     private fun intentWords(text: String, plan: CommandPlan, withoutFolders: Boolean): String {
@@ -139,7 +168,8 @@ object CommandCheck {
         // Shared storage ignores case, so "android/data" is the same folder as "Android/data".
         val parts = path.removePrefix(rootPath).split('/').filter { it.isNotEmpty() }
             .map { it.lowercase(Locale.ROOT) }
-        return parts.any { it.startsWith(".") } ||
+        // Backslashes and control characters are legal in Android names but never in a folder someone means.
+        return parts.any { it.startsWith(".") || '\\' in it || it.any { c -> c < ' ' } } ||
             parts.firstOrNull() == "android" ||
             (!cameraNamed && parts.take(2) == listOf("dcim", "camera"))
     }
