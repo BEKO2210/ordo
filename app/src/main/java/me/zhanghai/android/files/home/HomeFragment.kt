@@ -5,11 +5,6 @@
 
 package me.zhanghai.android.files.home
 
-import me.zhanghai.android.files.analysis.AnalysisActivity
-import me.zhanghai.android.files.file.asFileSize
-import me.zhanghai.android.files.util.getQuantityString
-import me.zhanghai.android.files.apps.AppsActivity
-import me.zhanghai.android.files.trash.TrashActivity
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
@@ -23,23 +18,33 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.LinearSnapHelper
 import me.zhanghai.android.files.R
+import me.zhanghai.android.files.analysis.AnalysisActivity
+import me.zhanghai.android.files.apps.AppsActivity
 import me.zhanghai.android.files.databinding.HomeFragmentBinding
-import me.zhanghai.android.files.file.asMimeTypeOrNull
 import me.zhanghai.android.files.file.MimeType
+import me.zhanghai.android.files.file.asFileSize
+import me.zhanghai.android.files.file.asMimeTypeOrNull
 import me.zhanghai.android.files.filelist.FileListActivity
 import me.zhanghai.android.files.filelist.OpenFileActivity
 import me.zhanghai.android.files.filelist.ShowRequestAllFilesAccessRationaleDialogFragment
 import me.zhanghai.android.files.filelist.ShowRequestStoragePermissionRationaleDialogFragment
+import me.zhanghai.android.files.settings.Settings
 import me.zhanghai.android.files.settings.SettingsActivity
+import me.zhanghai.android.files.trash.TrashActivity
 import me.zhanghai.android.files.util.createIntent
 import me.zhanghai.android.files.util.createManageAppAllFilesAccessPermissionIntent
+import me.zhanghai.android.files.util.getQuantityString
 import me.zhanghai.android.files.util.startActivitySafe
 import me.zhanghai.android.files.util.supportsExternalStorageManager
+import me.zhanghai.android.files.util.valueCompat
 import me.zhanghai.android.files.util.viewModels
 
 class HomeFragment : Fragment(), ShowRequestAllFilesAccessRationaleDialogFragment.Listener,
     ShowRequestStoragePermissionRationaleDialogFragment.Listener {
+    private lateinit var recentAdapter: RecentFileAdapter
+
     private val viewModel by viewModels { { HomeViewModel(requireActivity().application) } }
     private var _binding: HomeFragmentBinding? = null
     private val binding get() = _binding!!
@@ -57,7 +62,7 @@ class HomeFragment : Fragment(), ShowRequestAllFilesAccessRationaleDialogFragmen
     }
 
     override fun onViewCreated(view: View, state: Bundle?) {
-        val recentAdapter = RecentFileAdapter { file ->
+        recentAdapter = RecentFileAdapter { file ->
             startActivitySafe(
                 OpenFileActivity.createIntent(
                     file.path, file.mimeType?.asMimeTypeOrNull() ?: MimeType.ANY
@@ -65,9 +70,9 @@ class HomeFragment : Fragment(), ShowRequestAllFilesAccessRationaleDialogFragmen
             )
         }
         binding.recentList.apply {
-            layoutManager = GridLayoutManager(context, 3)
             adapter = recentAdapter
             isNestedScrollingEnabled = false
+            LinearSnapHelper().attachToRecyclerView(this)
         }
         val tileAdapter = TileAdapter()
         binding.categoryList.apply {
@@ -86,22 +91,81 @@ class HomeFragment : Fragment(), ShowRequestAllFilesAccessRationaleDialogFragmen
         binding.toolbar.inflateMenu(R.menu.home)
         binding.toolbar.setOnMenuItemClickListener {
             when (it.itemId) {
-                R.id.action_browse -> startActivity(Intent(requireContext(), FileListActivity::class.java))
+                R.id.action_browse ->
+                    startActivity(Intent(requireContext(), FileListActivity::class.java))
+                R.id.action_recent_grid -> Settings.HOME_RECENT_VIEW.putValue(RECENT_VIEW_GRID)
+                R.id.action_recent_row -> Settings.HOME_RECENT_VIEW.putValue(RECENT_VIEW_ROW)
+                R.id.action_recent_hidden -> Settings.HOME_RECENT_VIEW.putValue(RECENT_VIEW_HIDDEN)
+                R.id.action_show_hidden_files -> {
+                    Settings.FILE_LIST_SHOW_HIDDEN_FILES.putValue(!it.isChecked)
+                    viewModel.reload()
+                }
+                R.id.action_show_quick_access ->
+                    Settings.HOME_SHOW_QUICK_ACCESS.putValue(!it.isChecked)
                 R.id.action_settings -> startActivity(SettingsActivity::class.createIntent())
                 else -> return@setOnMenuItemClickListener false
             }
+            updateMenu()
             true
+        }
+        Settings.HOME_RECENT_VIEW.observe(viewLifecycleOwner) { view ->
+            val isRow = view == RECENT_VIEW_ROW
+            if (recentAdapter.isRow != isRow || binding.recentList.layoutManager == null) {
+                binding.recentList.layoutManager = if (isRow) {
+                    LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
+                } else {
+                    GridLayoutManager(requireContext(), RecentFileAdapter.COLUMNS)
+                }
+                recentAdapter.isRow = isRow
+                updateRecentItems()
+            }
+            val isVisible = view != RECENT_VIEW_HIDDEN
+            binding.recentTitle.isVisible = isVisible
+            binding.recentList.isVisible = isVisible
+            updateRecentEmpty()
+            updateMenu()
+        }
+        Settings.HOME_SHOW_QUICK_ACCESS.observe(viewLifecycleOwner) {
+            binding.quickAccessTitle.isVisible = it
+            binding.quickAccessList.isVisible = it
+            updateMenu()
         }
         binding.permissionButton.setOnClickListener { requestStorageAccess() }
         binding.swipeRefreshLayout.setOnRefreshListener { viewModel.reload() }
         viewModel.state.observe(viewLifecycleOwner) { homeState ->
-            recentAdapter.items = homeState.recentFiles
+            updateRecentItems()
             tileAdapter.items = createTiles(homeState)
             storageAdapter.items = homeState.storages
             quickAccessAdapter.items = homeState.quickAccess
-            binding.recentEmpty.isVisible = !homeState.isLoading && homeState.recentFiles.isEmpty()
+            updateRecentEmpty()
             binding.swipeRefreshLayout.isRefreshing = homeState.isLoading
         }
+    }
+
+    private fun updateRecentItems() {
+        val files = viewModel.state.value?.recentFiles ?: return
+        recentAdapter.items = if (recentAdapter.isRow) files else files.take(RECENT_GRID_COUNT)
+    }
+
+    private fun updateRecentEmpty() {
+        val state = viewModel.state.value ?: return
+        binding.recentEmpty.isVisible = Settings.HOME_RECENT_VIEW.valueCompat != RECENT_VIEW_HIDDEN &&
+            !state.isLoading && state.recentFiles.isEmpty()
+    }
+
+    private fun updateMenu() {
+        val menu = binding.toolbar.menu
+        menu.findItem(
+            when (Settings.HOME_RECENT_VIEW.valueCompat) {
+                RECENT_VIEW_ROW -> R.id.action_recent_row
+                RECENT_VIEW_HIDDEN -> R.id.action_recent_hidden
+                else -> R.id.action_recent_grid
+            }
+        ).isChecked = true
+        menu.findItem(R.id.action_show_hidden_files).isChecked =
+            Settings.FILE_LIST_SHOW_HIDDEN_FILES.valueCompat
+        menu.findItem(R.id.action_show_quick_access).isChecked =
+            Settings.HOME_SHOW_QUICK_ACCESS.valueCompat
     }
 
     private fun createTiles(state: HomeState): List<HomeTile> {
@@ -175,5 +239,12 @@ class HomeFragment : Fragment(), ShowRequestAllFilesAccessRationaleDialogFragmen
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    companion object {
+        private const val RECENT_VIEW_GRID = "grid"
+        private const val RECENT_VIEW_ROW = "row"
+        private const val RECENT_GRID_COUNT = 2 * RecentFileAdapter.COLUMNS
+        private const val RECENT_VIEW_HIDDEN = "hidden"
     }
 }

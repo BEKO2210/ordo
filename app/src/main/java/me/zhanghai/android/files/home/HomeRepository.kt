@@ -29,8 +29,8 @@ import me.zhanghai.android.files.util.valueCompat
 
 class HomeRepository(private val context: Context) {
     companion object {
-        // Two full rows of the three-column grid.
-        private const val RECENT_COUNT = 6
+        // Enough for the horizontal row; the grid shows the first six.
+        private const val RECENT_COUNT = 20
     }
 
     // quickAccess must be read on the main thread: its LiveData sources initialize with setValue().
@@ -73,6 +73,7 @@ class HomeRepository(private val context: Context) {
             .toList()
 
     private fun queryRows(): List<MediaRow> {
+        val showHiddenFiles = Settings.FILE_LIST_SHOW_HIDDEN_FILES.valueCompat
         val resolver = context.contentResolver
         @Suppress("DEPRECATION")
         val externalStoragePath = Environment.getExternalStorageDirectory().path
@@ -126,6 +127,8 @@ class HomeRepository(private val context: Context) {
                 emptyList()
             }
         }.distinctBy { it.data }
+            // Hidden files (".thumbnails", ".trash" …) only count when the user shows hidden files.
+            .filter { showHiddenFiles || !it.data.contains("/.") }
     }
 
     private fun loadStorages(): List<StorageSummary> {

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+  ~ Copyright (c) 2026 Ordo contributors
+  ~ SPDX-License-Identifier: GPL-3.0-or-later
+  -->
+
+<!-- Tiles fade and rise in one after another when the home screen first appears. A plain
+     layoutAnimation, since RecyclerView does not provide grid animation parameters. -->
+<layoutAnimation xmlns:android="http://schemas.android.com/apk/res/android"
+    android:animation="@anim/home_item_enter"
+    android:animationOrder="normal"
+    android:delay="10%" />

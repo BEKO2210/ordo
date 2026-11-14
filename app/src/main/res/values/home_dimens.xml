@@ -7,4 +7,6 @@
 
 <resources>
     <dimen name="home_tile_height">112dp</dimen>
+    <!-- With the 4 dp card margin this puts the cards 16 dp from the screen edge. -->
+    <dimen name="home_list_padding">12dp</dimen>
 </resources>

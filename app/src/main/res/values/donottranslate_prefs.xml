@@ -102,4 +102,10 @@
     <bool name="pref_default_value_file_list_search_content">false</bool>
     <string name="pref_key_file_list_search_regex">key_file_list_search_regex</string>
     <bool name="pref_default_value_file_list_search_regex">false</bool>
+
+    <!-- Ordo: home -->
+    <string name="pref_key_home_recent_view">key_home_recent_view</string>
+    <string name="pref_default_value_home_recent_view">row</string>
+    <string name="pref_key_home_show_quick_access">key_home_show_quick_access</string>
+    <bool name="pref_default_value_home_show_quick_access">true</bool>
 </resources>

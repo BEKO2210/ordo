@@ -56,6 +56,17 @@ object Settings {
             R.bool.pref_default_value_file_list_show_hidden_files
         )
 
+    val HOME_RECENT_VIEW: SettingLiveData<String> =
+        StringSettingLiveData(
+            R.string.pref_key_home_recent_view, R.string.pref_default_value_home_recent_view
+        )
+
+    val HOME_SHOW_QUICK_ACCESS: SettingLiveData<Boolean> =
+        BooleanSettingLiveData(
+            R.string.pref_key_home_show_quick_access,
+            R.bool.pref_default_value_home_show_quick_access
+        )
+
     val FILE_LIST_SEARCH_CONTENT: SettingLiveData<Boolean> =
         BooleanSettingLiveData(
             R.string.pref_key_file_list_search_content,

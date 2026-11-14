@@ -805,4 +805,9 @@
     <string name="pdf_viewer_title">PDF-Ansicht</string>
     <string name="pdf_viewer_page_format">Seite %1$d von %2$d</string>
     <string name="pdf_viewer_error">Diese PDF lässt sich nicht öffnen. Sie ist vielleicht beschädigt oder mit Passwort geschützt.</string>
+    <string name="home_customize_recent">Zuletzt verwendet</string>
+    <string name="home_recent_view_grid">Raster</string>
+    <string name="home_recent_view_row">Waagerecht</string>
+    <string name="home_recent_view_hidden">Ausblenden</string>
+    <string name="home_show_quick_access">Schnellzugriff anzeigen</string>
 </resources>

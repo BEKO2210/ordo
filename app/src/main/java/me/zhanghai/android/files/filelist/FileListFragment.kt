@@ -24,6 +24,7 @@ import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
+import android.view.animation.DecelerateInterpolator
 import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.ProgressBar
@@ -974,6 +975,12 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
     // menu stays the single source of truth for which actions apply.
     private fun updateSelectionBar(menu: Menu?) {
         val selectionBar = requireView().findViewById<ViewGroup>(R.id.selectionBar)
+        if (menu != null && !selectionBar.isVisible) {
+            // Slides up from the bottom edge instead of popping in.
+            selectionBar.translationY = selectionBar.resources.displayMetrics.density * 72
+            selectionBar.animate().translationY(0f).setDuration(220)
+                .setInterpolator(DecelerateInterpolator()).start()
+        }
         selectionBar.isVisible = menu != null
         binding.speedDialView.isVisible = menu == null && homeCategory == null
         if (menu == null) {

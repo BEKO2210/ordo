@@ -1,7 +1,55 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later -->
-<menu xmlns:android="http://schemas.android.com/apk/res/android"
+
+<!--
+  ~ Copyright (c) 2026 Ordo contributors
+  ~ SPDX-License-Identifier: GPL-3.0-or-later
+  -->
+
+<menu
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
-    <item android:id="@+id/action_browse" android:icon="@drawable/directory_icon_control_normal_24dp" android:title="@string/home_browse" app:showAsAction="ifRoom" />
-    <item android:id="@+id/action_settings" android:icon="@drawable/settings_icon_white_24dp" android:title="@string/settings_title" app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_browse"
+        android:icon="@drawable/directory_icon_control_normal_24dp"
+        android:title="@string/home_browse"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/action_recent_view"
+        android:title="@string/home_customize_recent"
+        app:showAsAction="never">
+        <menu>
+            <group
+                android:id="@+id/group_recent_view"
+                android:checkableBehavior="single">
+                <item
+                    android:id="@+id/action_recent_grid"
+                    android:title="@string/home_recent_view_grid" />
+                <item
+                    android:id="@+id/action_recent_row"
+                    android:title="@string/home_recent_view_row" />
+                <item
+                    android:id="@+id/action_recent_hidden"
+                    android:title="@string/home_recent_view_hidden" />
+            </group>
+        </menu>
+    </item>
+
+    <item
+        android:id="@+id/action_show_hidden_files"
+        android:checkable="true"
+        android:title="@string/file_list_action_show_hidden_files"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_show_quick_access"
+        android:checkable="true"
+        android:title="@string/home_show_quick_access"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_settings"
+        android:title="@string/settings_title"
+        app:showAsAction="never" />
 </menu>

@@ -8,6 +8,8 @@ package me.zhanghai.android.files.home
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.core.view.isInvisible
+import androidx.core.view.updateLayoutParams
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import android.content.res.ColorStateList
 import android.widget.ImageView
@@ -31,14 +33,45 @@ import me.zhanghai.android.files.util.getQuantityString
 class RecentFileAdapter(private val onClick: (RecentFile) -> Unit) :
     RecyclerView.Adapter<RecentFileAdapter.ViewHolder>() {
     var items: List<RecentFile> = emptyList()
-        set(value) { field = value; notifyDataSetChanged() }
+        set(value) {
+            field = value
+            notifyDataSetChanged()
+        }
+
+    // In the horizontal row exactly four cards fit the width, like one row of the grid.
+    var isRow = false
+        set(value) {
+            field = value
+            notifyDataSetChanged()
+        }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = ViewHolder(
         HomeRecentItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
     )
+
     override fun getItemCount() = items.size
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) = holder.bind(items[position])
-    inner class ViewHolder(private val binding: HomeRecentItemBinding) : RecyclerView.ViewHolder(binding.root) {
+
+    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+        holder.itemView.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+            width = if (isRow) {
+                // The list spans the screen; its width may still be 0 on the first layout pass.
+                val view = holder.itemView
+                val listWidth = view.resources.displayMetrics.widthPixels
+                val padding = view.resources.getDimensionPixelSize(R.dimen.home_list_padding)
+                (listWidth - 2 * padding) / COLUMNS - leftMargin - rightMargin
+            } else {
+                ViewGroup.LayoutParams.MATCH_PARENT
+            }
+        }
+        holder.bind(items[position])
+    }
+
+    companion object {
+        const val COLUMNS = 4
+    }
+
+    inner class ViewHolder(private val binding: HomeRecentItemBinding) :
+        RecyclerView.ViewHolder(binding.root) {
         fun bind(item: RecentFile) {
             val iconRes = (item.mimeType?.asMimeTypeOrNull() ?: MimeType.GENERIC).iconRes
             binding.thumbnailImage.apply {
@@ -107,9 +140,13 @@ class StorageAdapter(private val onClick: (StorageSummary) -> Unit) :
                 item.total.asFileSize().formatHumanReadable(context)
             )
             binding.usageProgress.max = 1000
-            binding.usageProgress.progress = if (item.total > 0) {
+            val progress = if (item.total > 0) {
                 (item.used.toDouble() / item.total * 1000).toInt().coerceIn(0, 1000)
-            } else 0
+            } else {
+                0
+            }
+            // Fills up from empty on first show, like a gauge settling.
+            binding.usageProgress.setProgressCompat(progress, true)
             binding.root.setOnClickListener { onClick(item) }
         }
     }
