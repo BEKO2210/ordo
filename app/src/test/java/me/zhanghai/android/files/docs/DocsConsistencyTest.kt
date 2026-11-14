@@ -21,6 +21,9 @@ class DocsConsistencyTest {
     private val repo = File(System.getProperty("user.dir")!!).let { if (File(it, "README.md").exists()) it else it.parentFile!! }
     private val readme = File(repo, "README.md").readText()
     private val aiDoc = File(repo, "docs/KI-BEFEHLE.md").readText()
+    private val readmeDe = File(repo, "README.de.md").readText()
+
+    private fun gigabytesDe(bytes: Long) = gigabytes(bytes).replace('.', ',')
 
     private fun gigabytes(bytes: Long) = String.format(Locale.ROOT, "%.1f GB", bytes / 1e9)
 
@@ -45,6 +48,24 @@ class DocsConsistencyTest {
         val words = mapOf("move" to "move", "copy" to "copy", "organize" to "tidy up", "delete" to "trash")
         CommandCheck.ACTIONS.forEach { action ->
             assertTrue("README must describe action $action", readme.contains(words.getValue(action)))
+        }
+    }
+
+    @Test
+    fun germanReadmeStatesTheSameFacts() {
+        val quant = CommandModel.FILE_NAME.substringAfter("4b-").substringBefore(".gguf").uppercase(Locale.ROOT)
+        assertTrue(readmeDe.contains("($quant)"))
+        assertTrue(readmeDe.contains("rund ${gigabytesDe(CommandModel.SIZE)}"))
+        assertTrue(readmeDe.contains("mindestens ${gigabytesDe(CommandModel.MIN_RAM)} RAM"))
+        assertTrue(readmeDe.contains("rund ${gigabytesDe(CommandModel.SIZE + CommandModel.SPARE_SPACE)} freier Speicher"))
+        assertTrue(readmeDe.contains("Version ${BuildConfig.VERSION_NAME}"))
+        listOf("verschieben", "kopieren", "aufräumen", "Papierkorb").forEach { assertTrue(it, readmeDe.contains(it)) }
+    }
+
+    @Test
+    fun readmeScreenshotsExist() {
+        Regex("src=\"(docs/[^\"]+)\"").findAll(readme + readmeDe).forEach {
+            assertTrue("missing ${it.groupValues[1]}", File(repo, it.groupValues[1]).exists())
         }
     }
 

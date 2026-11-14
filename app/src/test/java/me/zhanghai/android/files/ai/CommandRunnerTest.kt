@@ -52,6 +52,17 @@ class CommandRunnerTest {
     }
 
     @Test
+    fun undo_toleratesSecondPrecisionTimes() {
+        val a = file(download, "a.mp3")
+        val journal = runner().run(CommandPlan("move", "Download", "Music"), download, music, listOf(a), emptyMap())
+        val moved = File(music, "a.mp3")
+        // What shared storage on a phone does later: the same time, cut to whole seconds.
+        moved.setLastModified(moved.lastModified() / 1000 * 1000)
+        assertEquals(1, runner().undo(journal))
+        assertTrue(a.exists())
+    }
+
+    @Test
     fun existingTarget_isSkippedAndNeverTouchedByUndo() {
         val a = file(download, "a.mp3", "new")
         val old = file(music, "a.mp3", "old")
