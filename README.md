@@ -1,72 +1,131 @@
-# Material Files
+<p align="center">
+  <img src="docs/icon/play-store-icon.png" width="112" alt="Ordo icon">
+</p>
 
-[本文中文版](README_zh-CN.md)
+<h1 align="center">Ordo</h1>
 
-[![Android CI status](https://github.com/zhanghai/MaterialFiles/workflows/Android%20CI/badge.svg)](https://github.com/zhanghai/MaterialFiles/actions) [![GitHub release](https://img.shields.io/github/v/release/zhanghai/MaterialFiles)](https://github.com/zhanghai/MaterialFiles/releases) [![License](https://img.shields.io/github/license/zhanghai/MaterialFiles?color=blue)](LICENSE)
+<p align="center">
+  A free, open source file manager for Android.<br>
+  Everything in order, nothing leaves your phone.
+</p>
 
-An open source Material Design file manager, for Android 5.0+.
+<p align="center">
+  <a href="LICENSE"><img alt="License: GPL-3.0-or-later" src="https://img.shields.io/badge/license-GPL--3.0--or--later-blue"></a>
+  <img alt="Android 6.0+" src="https://img.shields.io/badge/Android-6.0%2B-3DDC84">
+  <img alt="No ads, no tracking" src="https://img.shields.io/badge/ads%20%26%20tracking-none-2563EB">
+  <a href="https://beko2210.github.io/ordo/privacy.html"><img alt="Privacy policy" src="https://img.shields.io/badge/privacy-policy-555"></a>
+</p>
 
-[<img alt="Get it on Google Play" src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" width="240">](https://play.google.com/store/apps/details?id=me.zhanghai.android.files) [<img alt="Get it on F-Droid" src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png" width="240">](https://f-droid.org/packages/me.zhanghai.android.files) [<img alt="Get it on GitHub" src="https://raw.githubusercontent.com/Kunzisoft/Github-badge/main/get-it-on-github.png" width="240">](https://github.com/zhanghai/MaterialFiles/releases/latest/download/app-release-universal.apk)
+<p align="center">
+  <img src="docs/screenshots/home.png" width="24%" alt="Home screen with recent files, categories, vault and backup">
+  <img src="docs/screenshots/files.png" width="24%" alt="Folder shown as a grid">
+  <img src="docs/screenshots/view-options.png" width="24%" alt="View options: list or grid in three sizes">
+  <img src="docs/screenshots/backup.png" width="24%" alt="Backup to a USB drive or another place">
+</p>
 
-[Help translation on Transifex](https://www.transifex.com/zhanghai/MaterialFiles/) ([Search Android & GNOME translations](https://translations.zhanghai.me/), [Microsoft language resources](https://learn.microsoft.com/en-us/globalization/reference/microsoft-language-resources), [MIME type translations](https://gitlab.freedesktop.org/xdg/shared-mime-info/-/tree/master/po))
+## Status
 
-## Preview
-
-<p><img src="fastlane/metadata/android/en-US/images/phoneScreenshots/1.png" width="32%" /> <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/2.png" width="32%" /> <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/3.png" width="32%" />
-<img src="fastlane/metadata/android/en-US/images/phoneScreenshots/4.png" width="32%" /> <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/5.png" width="32%" /> <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/6.png" width="32%" /></p>
+Ordo is in development (version 0.1.0). It is not on Google Play yet. Until then you can
+[build it from source](#build).
 
 ## Features
 
-- Open source: Lightweight, clean and secure.
-- Material Design: Follows Material Design guidelines, with attention into details.
-- Breadcrumbs: Navigate in the filesystem with ease.
-- Root support: View and manage files with root access.
-- Archive support: View, extract and create common compressed files.
-- NAS support: View and manage files on FTP, SFTP, SMB and WebDAV servers.
-- Themes: Customizable UI colors, plus night mode with optional true black.
-- Linux-aware: Like [Nautilus](https://apps.gnome.org/Nautilus/), knows symbolic links, file permissions and SELinux context.
-- Robust: Uses Linux system calls under the hood, not yet another [`ls` parser](https://news.ycombinator.com/item?id=7994720).
-- Well-implemented: Built upon the right things, including [Java NIO2 File API](https://docs.oracle.com/javase/8/docs/api/java/nio/file/package-summary.html) and [LiveData](https://developer.android.com/topic/libraries/architecture/livedata).
+**Find your files**
 
-## Why Material Files?
+- Home screen with recent files, categories (images, videos, audio, documents, downloads, APKs, archives) and
+  storage at a glance
+- Search by name or by text inside files, with regular expressions if you need them
+- List or grid in three sizes, for all folders or just one
+- Quick access to bookmarks and common folders
 
-Because I like Material Design, and clean Material Design.
+**Tidy up**
 
-There are already a handful of powerful file managers, but most of them just aren't Material Design. And even among the ones with Material Design, they usually have various minor design flaws (layout, alignment, padding, icon, font, etc) across the app which makes me uncomfortable, while still being minor enough so that not everybody would care to fix it. So I had to create my own.
+- Trash: deleted files can be restored for 30 days
+- Storage analysis: large files, duplicates, files you have not used for a long time, old APKs
+- App manager: see installed apps, save their APK, uninstall
 
-Because I want an open source file manager.
+**Work with files**
 
-Most of the popular and reliable file managers are just closed source, and I sometimes use them to view and modify files that require root access. But deep down inside, I just feel uneasy with giving any closed source app the root access to my device. After all, that means giving literally full access to my device, which stays with me every day and stores my own information, and what apps do with such access merely depends on their good intent.
+- Copy, move, rename, share, with speed and time remaining
+- Rename many files at once using a pattern
+- Create and extract ZIP, TAR and 7z archives
+- Built-in viewers for images, PDF and text
 
-Because I want a file manager that is implemented the right way.
+**Keep files safe**
 
-- This app implemented [Java NIO2 File API](https://docs.oracle.com/javase/8/docs/api/java/nio/file/package-summary.html) as its backend, instead of inventing a custom model for file information/operations, which often gets coupled with UI logic and grows into a mixture of everything ([example](https://github.com/TeamAmaze/AmazeFileManager/blob/master/app/src/main/java/com/amaze/filemanager/filesystem/HybridFile.java)). On the contrary, a decoupled backend allows cleaner code (which means less bugs), and easier addition of support for other file systems.
+- Vault: files are encrypted with AES-256-GCM and opened with your screen lock
+- Backup: folders and the vault as a ZIP to a USB drive or any place your phone offers, such as Google Drive, with an
+  optional password (AES-256)
 
-- This app doesn't use `java.io.File` or parse the output of `ls`, but built bindings to Linux syscalls to properly access the file system. `java.io.File` is an old API missing many features, and just can't handle things like symbolic links correctly, which is the reason why many people rather parse `ls` instead. However parsing the output `ls` is not only slow, but also [unreliable](https://news.ycombinator.com/item?id=7994720), which made [Cabinet](https://github.com/aminb/cabinet/blob/master/app/src/main/java/com/afollestad/cabinet/file/root/LsParser.java) broken on newer Android versions. By virtue of using Linux syscalls, this app is able to be fast and smooth, and handle advanced things like Linux permissions, symbolic links and even SELinux context. It can also handle file names with invalid UTF-8 encoding because paths are not naively stored as Java `String`s, which most file managers does and fails during file operation.
+**For power users**
 
-- This app built its frontend upon modern `ViewModel` and `LiveData` which enables a clear code structure and support for rotation. It also properly handles things like errors during file operation, file conflicts and foreground/background state.
+- FTP, SFTP, SMB and WebDAV servers, and a built-in FTP server
+- Root and Shizuku access, Linux permissions, symbolic links, SELinux context
+- Themes, including a true black night mode
 
-In a word, this app tries to follow the best practices on Android and do the right thing, while keeping its source code clean and maintainable.
+## Privacy
 
-Because I know people can do it right.
+Ordo collects no data. There are no ads, no trackers and no analytics. The app only connects to the network when
+you add a server yourself.
 
-[Nautilus](https://wiki.gnome.org/Apps/Files) is a beautifully-designed and user-friendly file manager on Linux desktop, and it's fully Linux-aware. [Phonograph](https://github.com/kabouzeid/Phonograph) is an open source Material Design music player app (which I've been using for years), and it has just the right Material Design and implementation.
+- [Privacy policy](https://beko2210.github.io/ordo/privacy.html) ([Deutsch](https://beko2210.github.io/ordo/datenschutz.html))
+- [Legal notice](https://beko2210.github.io/ordo/imprint.html) ([Impressum](https://beko2210.github.io/ordo/impressum.html))
 
-So, it's time for yet another Android file manager.
+The same texts are in the app under **Menu → Legal notice & privacy**.
 
-## Inclusion in custom ROMs
+### Permissions
 
-Thank you if you choose to include Material Files in your custom ROM! However since I've received several user complaints due to improper inclusion, I'd like to offer some suggestions on including this app properly for the good of end users:
+| Permission | Why Ordo needs it |
+|---|---|
+| All files access | A file manager has to read and change the files you open with it |
+| Installed apps | App manager |
+| Install and delete packages | Install APK files and uninstall apps when you ask for it |
+| Network | Only for servers you add (FTP, SFTP, SMB, WebDAV) and the FTP server |
+| Notifications, foreground service | Progress of copy, move and backup jobs |
 
-- Please don't replace the AOSP [DocumentsUI](https://android.googlesource.com/platform/packages/apps/DocumentsUI/) app with this app. This app is not designed to replace DocumentsUI and can't handle a number of functionalities in DocumentsUI - in fact, it relies on DocumentsUI to do things like granting external SD card access.
+## Build
 
-- Please make sure this app can be uninstalled or at least disabled. Some users may not want this app for a variety of reasons, and get very upset when they can't remove it.
+You need JDK 21 and the Android SDK. Gradle downloads the NDK and CMake that the native library needs.
 
-- Please avoid conflict with the Play/F-Droid version of this app. App stores cannot update apps signed with a different certificate, so you can either ship an APK that's signed by me (or F-Droid) so that users will be able to update it on Play/F-Droid, or fork this project and rename the package name when you need to sign the APK with a different certificate and potentially making other changes.
+```sh
+git clone https://github.com/BEKO2210/ordo.git
+cd ordo
+./gradlew assembleDebug
+```
+
+The APK is written to `app/build/outputs/apk/debug/`.
+
+Run the unit tests with:
+
+```sh
+./gradlew testDebugUnitTest
+```
+
+## Roadmap
+
+Planned next: tabs and a two-pane view, a media player, scheduled backups, and cloud storage. The full plan is in
+[docs/ROADMAP.md](docs/ROADMAP.md) (German).
+
+## Contributing
+
+Bug reports and pull requests are welcome. Please keep changes small, follow the code around them, and add a unit
+test for new logic. Report security problems as described in [SECURITY.md](SECURITY.md), not in a public issue.
+
+Ordo is fully translated into English and German. Other languages come from Material Files and do not cover the
+newer screens yet.
+
+## Credits
+
+Ordo is a fork of [Material Files](https://github.com/zhanghai/MaterialFiles) by Hai Zhang. Its file system
+backend, archive and server support are the foundation of this app. Thank you.
+
+Ordo also uses [Tink](https://github.com/tink-crypto/tink-java) for encryption and
+[BlurView](https://github.com/Dimezis/BlurView) for the glass effect.
 
 ## License
 
     Copyright (C) 2018 Hai Zhang
+    Copyright (C) 2026 Belkis Aslani
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by

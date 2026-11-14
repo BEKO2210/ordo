@@ -38,15 +38,19 @@ Themes inkl. Schwarz.
 - [x] Startseite: Suchfeld, Speicherkarte mit Prozent, Glas-Leiste oben; Auswahlleiste als Glas (BlurView).
 - [x] Sicherung auf USB-Stick oder anderen Ort (Drive über die Systemauswahl) als ZIP, optional AES-256,
       inkl. Tresor. Offen: automatische Sicherung nach Zeitplan, Wiederherstellen per Knopf.
+- [x] Anzeigegröße wählbar: Liste und Raster je in Klein/Mittel/Groß (Menü „Anzeigen und Sortieren"), mit 5.000
+      Audiodateien geprüft. Offen: eigene Einstellung je Kategorie.
+- [x] Impressum & Datenschutz in der App (Menü, Seitenleiste, Über) und als Webseite (`docs/`, GitHub Pages).
 - [ ] Datenmüll: leere Ordner, Thumbnail-Caches, Restdateien in der Speicheranalyse.
 - [ ] Ungenutzte Apps (Nutzungsdaten-Erlaubnis), Erinnerung „Speicher fast voll".
 - [ ] Teilen in der Nähe (Quick Share über Android-Teilen).
 - [ ] Cloud (Drive/OneDrive) – braucht eigene OAuth-Zugänge (Belkis).
 
 ## Phase 3 – Play Store
-- [ ] P3.1 Eigenes Icon, Farben, Name final; About-Seite: Ordo + Dank an MaterialFiles; Datenschutz-Link eigener Text.
-- [ ] P3.2 Datenschutzerklärung (keine Daten erhoben), Store-Texte DE/EN, Screenshots, Feature-Grafik.
+- [ ] P3.1 Name final. Erledigt: eigenes Icon, Farben, About-Seite mit Dank an MaterialFiles, README.
+- [ ] P3.2 Store-Texte DE/EN, Screenshots, Feature-Grafik. Erledigt: Datenschutzerklärung mit öffentlichem Link
+      <https://beko2210.github.io/ordo/datenschutz.html>.
 - [ ] P3.3 Begründungen für `MANAGE_EXTERNAL_STORAGE`, `QUERY_ALL_PACKAGES`, `REQUEST_INSTALL_PACKAGES`,
       Foreground-Service `specialUse` (Dateimanager = erlaubter Kernzweck).
 - [ ] P3.4 Release-Signatur, `bundleRelease`, 16-KB-Seiten-Prüfung der nativen Bibliothek, CI nur bei PR.
-- [ ] P3.5 Geschlossener Test (12 Tester, 14 Tage) – Belkis; danach Produktion. Repo öffentlich machen (GPL).
+- [ ] P3.5 Geschlossener Test (12 Tester, 14 Tage) – Belkis; danach Produktion. Repo ist öffentlich (GPL).
