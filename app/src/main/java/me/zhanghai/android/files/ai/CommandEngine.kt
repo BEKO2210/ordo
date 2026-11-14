@@ -14,6 +14,9 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import me.zhanghai.android.files.llm.LlamaEngine
+import me.zhanghai.android.files.settings.Settings
+import me.zhanghai.android.files.util.valueCompat
+import java.io.File
 import java.io.IOException
 import java.util.concurrent.Executors
 
@@ -25,10 +28,9 @@ object CommandEngine {
     private val dispatcher = Executors.newSingleThreadExecutor { Thread(it, "ordo-llm") }
         .asCoroutineDispatcher()
     private val scope = CoroutineScope(SupervisorJob() + dispatcher)
-    private const val IDLE_MILLIS = 3 * 60_000L
-
     @Volatile
     private var engine: LlamaEngine? = null
+    private var loadedThreads = 0
     private var unloadJob: Job? = null
 
     val isLoaded: Boolean
@@ -59,17 +61,23 @@ object CommandEngine {
     private fun scheduleUnload() {
         unloadJob?.cancel()
         unloadJob = scope.launch {
-            delay(IDLE_MILLIS)
+            delay(idleMinutes(Settings.AI_SPEED.valueCompat) * 60_000L)
             close()
         }
     }
 
     private fun ensure(context: Context): LlamaEngine {
         unloadJob?.cancel()
-        engine?.let { return it.also { scheduleUnload() } }
+        val threads = threadsFor(Settings.AI_SPEED.valueCompat, fastCores(), Runtime.getRuntime().availableProcessors())
+        engine?.let {
+            if (loadedThreads == threads) return it.also { scheduleUnload() }
+            // The speed setting changed: load again with the new thread count.
+            close()
+        }
         val file = CommandModel.file(context.applicationContext)
-        val loaded = LlamaEngine.load(file.path, threads(), 2048)
+        val loaded = LlamaEngine.load(file.path, threads, 2048)
             ?: throw IOException("model load failed")
+        loadedThreads = threads
         if (!loaded.prepare(CommandPlanner.PREFIX)) {
             loaded.close()
             throw IOException("prompt prefix failed")
@@ -84,6 +92,33 @@ object CommandEngine {
         engine = null
     }
 
-    // The big cores only: more threads fight the little cores and make the phone stutter.
-    private fun threads(): Int = Runtime.getRuntime().availableProcessors().let { if (it >= 8) 4 else (it / 2).coerceAtLeast(1) }
+    /** How long the model stays loaded after the last answer: turbo saves the next cold start, gentle frees memory sooner. */
+    internal fun idleMinutes(speed: String): Long = when (speed) {
+        "turbo" -> 10
+        "eco" -> 1
+        else -> 3
+    }
+
+    /**
+     * Fast cores only: threads on the little cores hold the fast ones back and make the phone stutter. Turbo takes
+     * every fast core up to 6, balanced up to 4, gentle 2. [fastCores] is 0 when unknown.
+     */
+    internal fun threadsFor(speed: String, fastCores: Int, cores: Int): Int {
+        val fast = if (fastCores in 1 until cores) fastCores else if (cores >= 8) 4 else (cores / 2).coerceAtLeast(1)
+        return when (speed) {
+            "turbo" -> fast.coerceAtMost(6)
+            "eco" -> 2.coerceAtMost(fast)
+            else -> fast.coerceAtMost(4)
+        }
+    }
+
+    /** Cores clocked above the slowest cluster; 0 when the clocks cannot be read or all are equal. */
+    private fun fastCores(): Int {
+        val clocks = (0 until Runtime.getRuntime().availableProcessors()).map {
+            runCatching { File("/sys/devices/system/cpu/cpu$it/cpufreq/cpuinfo_max_freq").readText().trim().toLong() }
+                .getOrNull() ?: return 0
+        }
+        val slowest = clocks.minOrNull() ?: return 0
+        return clocks.count { it > slowest }
+    }
 }

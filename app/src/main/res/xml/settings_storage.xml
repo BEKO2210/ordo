@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+  ~ Copyright (c) 2018 Hai Zhang <dreaming.in.code.zh@gmail.com>
+  ~ All Rights Reserved.
+  -->
+
+<PreferenceScreen
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <me.zhanghai.android.files.settings.StoragesPreference
+        android:title="@string/settings_storages_title"
+        android:summary="@string/settings_storages_summary_empty" />
+
+    <me.zhanghai.android.files.settings.StandardDirectoriesPreference
+        android:title="@string/settings_standard_directories_title"
+        android:summary="@string/settings_standard_directories_summary_empty" />
+
+    <me.zhanghai.android.files.settings.BookmarkDirectoriesPreference
+        android:title="@string/settings_bookmark_directories_title"
+        android:summary="@string/settings_bookmark_directories_summary_empty" />
+</PreferenceScreen>

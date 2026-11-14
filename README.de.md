@@ -71,7 +71,11 @@ Ordo ist in Entwicklung (Version 0.2.0) und noch nicht bei Google Play. Testvers
 
 - FTP-, SFTP-, SMB- und WebDAV-Server sowie ein eingebauter FTP-Server
 - Root- und Shizuku-Zugriff, Linux-Rechte, symbolische Links, SELinux-Kontext
-- Designs, darunter ein echter Schwarz-Nachtmodus
+
+**Nach deinem Geschmack** – unter Einstellungen › Aussehen
+
+- Ordos eigene Farben auf jedem Handy, in fünf Akzenten, oder die Farben deines Hintergrundbilds (ab Android 12)
+- Hell, dunkel und echtes Schwarz; Animationen voll, dezent oder aus
 
 ## KI-Befehle
 
@@ -124,7 +128,7 @@ Grammatik erzwungen). Ordo prüft diesen Plan selbst, bevor es ihn zeigt:
 **Einrichtung.** Die Funktion ist aus, bis du sie über den Zauberstab in der Suchleiste öffnest. Ordo prüft das
 Handy und lädt das Modell einmalig herunter (rund 2,6 GB, standardmäßig nur über WLAN) – von einer festen
 Version bei Hugging Face, geprüft per SHA-256. Danach läuft alles offline. Das Modell lässt sich im KI-Blatt
-jederzeit wieder entfernen.
+jederzeit wieder entfernen; unter Einstellungen › KI-Assistent siehst du, ob es bereit ist.
 
 | | |
 |---|---|
@@ -132,6 +136,7 @@ jederzeit wieder entfernen.
 | Treffer (eigener Prüfstand, [Details](docs/KI-BEFEHLE.md)) | 51 von 54 Befehlen, 20 von 20 unbekannten Befehlen, keine gefährlichen Fehler |
 | Voraussetzungen | 64-Bit-Handy, mindestens 5,5 GB RAM, rund 3,1 GB freier Speicher |
 | Tempo | rund 14 s pro Befehl auf einem Galaxy Tab S9 Ultra (Snapdragon 8 Gen 2), Download und Prüfung rund 2 Minuten |
+| Tempo-Einstellung | Turbo, Ausgewogen oder Sanft unter Einstellungen › KI-Assistent: wie viele schnelle Kerne es nutzt und wie lange das Modell geladen bleibt |
 
 ## Sicherheit
 

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright (c) 2026 Ordo contributors
+  ~ SPDX-License-Identifier: GPL-3.0-or-later
+  -->
+
+<resources>
+    <string name="pref_key_wallpaper_colors">key_wallpaper_colors</string>
+    <bool name="pref_default_value_wallpaper_colors">false</bool>
+    <string name="pref_key_accent">key_accent</string>
+    <string name="pref_default_value_accent">aurora</string>
+    <string-array name="pref_entry_values_accent">
+        <item>aurora</item>
+        <item>blue</item>
+        <item>mint</item>
+        <item>violet</item>
+        <item>amber</item>
+    </string-array>
+    <string name="pref_key_motion">key_motion</string>
+    <string name="pref_default_value_motion">full</string>
+    <string-array name="pref_entry_values_motion">
+        <item>full</item>
+        <item>subtle</item>
+        <item>off</item>
+    </string-array>
+    <string name="pref_key_ai_speed">key_ai_speed</string>
+    <string name="pref_default_value_ai_speed">balanced</string>
+    <string-array name="pref_entry_values_ai_speed">
+        <item>turbo</item>
+        <item>balanced</item>
+        <item>eco</item>
+    </string-array>
+    <bool name="pref_visible_wallpaper_colors">false</bool>
+</resources>

@@ -27,6 +27,7 @@ ICONS = {
     "ai_phone_icon_white_24dp": "smartphone",
     "ai_privacy_icon_white_24dp": "shield_lock",
     "ai_storage_icon_white_24dp": "hard_drive",
+    "palette_icon_white_24dp": "palette",
     "assistant_icon_white_24dp": "wand_stars",
     "send_icon_white_24dp": "arrow_upward",
     "alarm_icon_white_24dp": "alarm",

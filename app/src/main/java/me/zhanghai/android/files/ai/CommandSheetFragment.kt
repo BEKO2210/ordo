@@ -746,7 +746,7 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
 
     /** Fade and rise into place; skipped when the system turned animations off. */
     private fun View.reveal(startDelay: Long) {
-        if (!android.animation.ValueAnimator.areAnimatorsEnabled()) return
+        if (!me.zhanghai.android.files.ui.Motion.any) return
         alpha = 0f
         translationY = 16 * resources.displayMetrics.density
         animate().alpha(1f).translationY(0f).setStartDelay(startDelay).setDuration(320)

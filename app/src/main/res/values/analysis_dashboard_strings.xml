@@ -40,4 +40,5 @@
     <string name="analysis_treemap_subtitle">Biggest folders – tap one to open it</string>
     <string name="analysis_growth_title">New per month</string>
     <string name="analysis_growth_subtitle">Last 12 months · %s this month</string>
+    <string name="analysis_treemap_more">%d more folders</string>
 </resources>

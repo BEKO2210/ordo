@@ -51,6 +51,24 @@ class DocsConsistencyTest {
         }
     }
 
+    // The settings the READMEs name must be the ones the app shows: the entry names before " – " in each language.
+    @Test
+    fun readmesNameTheRealSettings() {
+        val res = File(repo, "app/src/main/res")
+        fun entries(values: String, array: String): List<String> {
+            val xml = File(res, "$values/settings_ordo_strings.xml").readText()
+            val body = Regex("<string-array name=\"$array\">(.*?)</string-array>", RegexOption.DOT_MATCHES_ALL)
+                .find(xml)!!.groupValues[1]
+            return Regex("<item>(.*?)</item>").findAll(body).map { it.groupValues[1].substringBefore(" –") }.toList()
+        }
+        for ((readmeText, values) in listOf(readme to "values", readmeDe to "values-de")) {
+            for (name in entries(values, "settings_ai_speed_entries") + entries(values, "settings_motion_entries")) {
+                assertTrue("README ($values) must name the setting \"$name\"",
+                    readmeText.contains(name, ignoreCase = true))
+            }
+        }
+    }
+
     @Test
     fun germanReadmeStatesTheSameFacts() {
         val quant = CommandModel.FILE_NAME.substringAfter("4b-").substringBefore(".gguf").uppercase(Locale.ROOT)

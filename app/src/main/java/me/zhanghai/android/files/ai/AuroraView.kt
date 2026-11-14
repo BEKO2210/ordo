@@ -73,7 +73,7 @@ class AuroraView @JvmOverloads constructor(context: Context, attrs: AttributeSet
 
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
-        if (ValueAnimator.areAnimatorsEnabled()) animator.start()
+        if (me.zhanghai.android.files.ui.Motion.full) animator.start()
     }
 
     override fun onDetachedFromWindow() {

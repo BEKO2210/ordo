@@ -20,6 +20,7 @@ import android.view.animation.PathInterpolator
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.ColorUtils
 import me.zhanghai.android.files.R
+import me.zhanghai.android.files.ui.onFirstSight
 import kotlin.math.max
 import kotlin.math.min
 
@@ -41,14 +42,19 @@ class TreemapView @JvmOverloads constructor(context: Context, attrs: AttributeSe
     }
     private val fill = Paint(Paint.ANTI_ALIAS_FLAG)
     private val title = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
-        textSize = 13 * density
+        // sp, so the labels follow the user's font size.
+        textSize = android.util.TypedValue.applyDimension(android.util.TypedValue.COMPLEX_UNIT_SP, 13f, resources.displayMetrics)
         isFakeBoldText = true
     }
-    private val detail = TextPaint(Paint.ANTI_ALIAS_FLAG).apply { textSize = 11 * density }
+    private val detail = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
+        textSize = android.util.TypedValue.applyDimension(android.util.TypedValue.COMPLEX_UNIT_SP, 11f, resources.displayMetrics)
+    }
     private var items: List<Item> = emptyList()
     private var tiles: List<Pair<Item, RectF>> = emptyList()
     private var progress = 1f
     private val tmp = RectF()
+    private var pressed = -1
+    private val pressPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.argb(46, 255, 255, 255) }
 
     init {
         isClickable = true
@@ -58,13 +64,17 @@ class TreemapView @JvmOverloads constructor(context: Context, attrs: AttributeSe
         this.items = items.filter { it.value > 0 }.sortedByDescending { it.value }
         layoutTiles()
         contentDescription = this.items.joinToString { "${it.label}: ${it.detail}" }
-        if (ValueAnimator.areAnimatorsEnabled()) {
-            ValueAnimator.ofFloat(0f, 1f).apply {
-                duration = 900
-                startDelay = 200
-                interpolator = PathInterpolator(0.2f, 0f, 0f, 1f)
-                addUpdateListener { progress = it.animatedValue as Float; invalidate() }
-            }.start()
+        if (me.zhanghai.android.files.ui.Motion.any) {
+            progress = 0f
+            invalidate()
+            onFirstSight {
+                ValueAnimator.ofFloat(0f, 1f).apply {
+                    duration = 900
+                    startDelay = 200
+                    interpolator = PathInterpolator(0.2f, 0f, 0f, 1f)
+                    addUpdateListener { progress = it.animatedValue as Float; invalidate() }
+                }.start()
+            }
         } else {
             progress = 1f
             invalidate()
@@ -134,6 +144,8 @@ class TreemapView @JvmOverloads constructor(context: Context, attrs: AttributeSe
             tmp.set(r.left + inset, r.top + inset, r.right - inset, r.bottom - inset)
             canvas.drawRoundRect(tmp, radius, radius, fill)
             drawLabels(canvas, item, tmp, color, local)
+            // Touch feedback: the tile under the finger lights up.
+            if (i == pressed) canvas.drawRoundRect(tmp, radius, radius, pressPaint)
         }
     }
 
@@ -157,9 +169,26 @@ class TreemapView @JvmOverloads constructor(context: Context, attrs: AttributeSe
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
-        if (event.action == MotionEvent.ACTION_UP) {
-            tiles.firstOrNull { it.second.contains(event.x, event.y) }?.let { onItemClick?.invoke(it.first) }
-            performClick()
+        val index = tiles.indexOfFirst { it.second.contains(event.x, event.y) }
+        when (event.action) {
+            MotionEvent.ACTION_DOWN -> {
+                pressed = index
+                invalidate()
+            }
+            MotionEvent.ACTION_UP -> {
+                val hit = index >= 0 && index == pressed
+                pressed = -1
+                invalidate()
+                if (hit) {
+                    performHapticFeedback(android.view.HapticFeedbackConstants.VIRTUAL_KEY)
+                    performClick()
+                    onItemClick?.invoke(tiles[index].first)
+                }
+            }
+            MotionEvent.ACTION_CANCEL -> {
+                pressed = -1
+                invalidate()
+            }
         }
         return true
     }

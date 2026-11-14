@@ -165,6 +165,22 @@ object Settings {
             NightMode::class.java
         )
 
+    /** Off: Ordo's own colours; on: the wallpaper's colours (Material You, Android 12+). */
+    val WALLPAPER_COLORS: SettingLiveData<Boolean> =
+        BooleanSettingLiveData(R.string.pref_key_wallpaper_colors, R.bool.pref_default_value_wallpaper_colors)
+
+    /** aurora, blue, mint, violet or amber: see accent_overlays.xml. */
+    val ACCENT: SettingLiveData<String> =
+        StringSettingLiveData(R.string.pref_key_accent, R.string.pref_default_value_accent)
+
+    /** full, subtle or off: see ui/Motion.kt. */
+    val MOTION: SettingLiveData<String> =
+        StringSettingLiveData(R.string.pref_key_motion, R.string.pref_default_value_motion)
+
+    /** turbo, balanced or eco: threads and how long the AI model stays loaded. */
+    val AI_SPEED: SettingLiveData<String> =
+        StringSettingLiveData(R.string.pref_key_ai_speed, R.string.pref_default_value_ai_speed)
+
     val BLACK_NIGHT_MODE: SettingLiveData<Boolean> =
         BooleanSettingLiveData(
             R.string.pref_key_black_night_mode, R.bool.pref_default_value_black_night_mode

@@ -115,8 +115,16 @@
             <me.zhanghai.android.files.analysis.TreemapView
                 android:id="@+id/treemap"
                 android:layout_width="match_parent"
-                android:layout_height="260dp"
+                android:layout_height="220dp"
                 android:layout_marginTop="12dp" />
+
+            <!-- The same folders as rows: big touch targets on phones, and readable by TalkBack. -->
+            <LinearLayout
+                android:id="@+id/treemapList"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:orientation="vertical" />
         </LinearLayout>
 
         <!-- Growth -->

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright (c) 2026 Ordo contributors
+  ~ SPDX-License-Identifier: GPL-3.0-or-later
+  -->
+
+<resources>
+    <color name="ordo_primary">@color/ordo_dark_primary</color>
+    <color name="ordo_on_primary">@color/ordo_dark_on_primary</color>
+    <color name="ordo_primary_container">@color/ordo_dark_primary_container</color>
+    <color name="ordo_on_primary_container">@color/ordo_dark_on_primary_container</color>
+    <color name="ordo_secondary">@color/ordo_dark_secondary</color>
+    <color name="ordo_on_secondary">@color/ordo_dark_on_secondary</color>
+    <color name="ordo_secondary_container">@color/ordo_dark_secondary_container</color>
+    <color name="ordo_on_secondary_container">@color/ordo_dark_on_secondary_container</color>
+    <color name="ordo_tertiary">@color/ordo_dark_tertiary</color>
+    <color name="ordo_surface">@color/ordo_dark_surface</color>
+    <color name="ordo_on_surface">@color/ordo_dark_on_surface</color>
+    <color name="ordo_surface_variant">@color/ordo_dark_surface_variant</color>
+    <color name="ordo_on_surface_variant">@color/ordo_dark_on_surface_variant</color>
+    <color name="ordo_outline">@color/ordo_dark_outline</color>
+    <color name="ordo_outline_variant">@color/ordo_dark_outline_variant</color>
+    <color name="ordo_surface_container_lowest">@color/ordo_dark_surface_container_lowest</color>
+    <color name="ordo_surface_container_low">@color/ordo_dark_surface_container_low</color>
+    <color name="ordo_surface_container">@color/ordo_dark_surface_container</color>
+    <color name="ordo_surface_container_high">@color/ordo_dark_surface_container_high</color>
+    <color name="ordo_surface_container_highest">@color/ordo_dark_surface_container_highest</color>
+    <color name="ordo_error">@color/ordo_dark_error</color>
+    <color name="ordo_on_tertiary">@color/ordo_dark_on_tertiary</color>
+    <color name="ordo_tertiary_container">@color/ordo_dark_tertiary_container</color>
+    <color name="ordo_on_tertiary_container">@color/ordo_dark_on_tertiary_container</color>
+    <color name="ordo_on_error">@color/ordo_dark_on_error</color>
+    <color name="ordo_error_container">@color/ordo_dark_error_container</color>
+    <color name="ordo_on_error_container">@color/ordo_dark_on_error_container</color>
+    <color name="ordo_primary_inverse">@color/ordo_dark_primary_inverse</color>
+    <color name="ordo_surface_inverse">@color/ordo_dark_surface_inverse</color>
+    <color name="ordo_on_surface_inverse">@color/ordo_dark_on_surface_inverse</color>
+    <color name="ordo_surface_dim">@color/ordo_dark_surface_dim</color>
+    <color name="ordo_surface_bright">@color/ordo_dark_surface_bright</color>
+    <color name="ordo_on_background">@color/ordo_dark_on_background</color>
+</resources>

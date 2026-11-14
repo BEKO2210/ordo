@@ -7,7 +7,41 @@
 
 <resources>
 
-    <style name="Platform.V23.Theme.MaterialFiles.Material3" parent="Theme.Material3.DynamicColors.DayNight.NoActionBar">
+    <style name="Platform.V23.Theme.MaterialFiles.Material3" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Fixed Ordo colours instead of wallpaper-based dynamic colour (ordo_m3_colors.xml). -->
+        <item name="colorPrimary">@color/ordo_primary</item>
+        <item name="colorOnPrimary">@color/ordo_on_primary</item>
+        <item name="colorPrimaryContainer">@color/ordo_primary_container</item>
+        <item name="colorOnPrimaryContainer">@color/ordo_on_primary_container</item>
+        <item name="colorSecondary">@color/ordo_secondary</item>
+        <item name="colorOnSecondary">@color/ordo_on_secondary</item>
+        <item name="colorSecondaryContainer">@color/ordo_secondary_container</item>
+        <item name="colorOnSecondaryContainer">@color/ordo_on_secondary_container</item>
+        <item name="colorTertiary">@color/ordo_tertiary</item>
+        <item name="colorSurface">@color/ordo_surface</item>
+        <item name="colorOnSurface">@color/ordo_on_surface</item>
+        <item name="colorSurfaceVariant">@color/ordo_surface_variant</item>
+        <item name="colorOnSurfaceVariant">@color/ordo_on_surface_variant</item>
+        <item name="colorOutline">@color/ordo_outline</item>
+        <item name="colorOutlineVariant">@color/ordo_outline_variant</item>
+        <item name="colorSurfaceContainerLowest">@color/ordo_surface_container_lowest</item>
+        <item name="colorSurfaceContainerLow">@color/ordo_surface_container_low</item>
+        <item name="colorSurfaceContainer">@color/ordo_surface_container</item>
+        <item name="colorSurfaceContainerHigh">@color/ordo_surface_container_high</item>
+        <item name="colorSurfaceContainerHighest">@color/ordo_surface_container_highest</item>
+        <item name="colorError">@color/ordo_error</item>
+        <item name="colorOnTertiary">@color/ordo_on_tertiary</item>
+        <item name="colorTertiaryContainer">@color/ordo_tertiary_container</item>
+        <item name="colorOnTertiaryContainer">@color/ordo_on_tertiary_container</item>
+        <item name="colorOnError">@color/ordo_on_error</item>
+        <item name="colorErrorContainer">@color/ordo_error_container</item>
+        <item name="colorOnErrorContainer">@color/ordo_on_error_container</item>
+        <item name="colorPrimaryInverse">@color/ordo_primary_inverse</item>
+        <item name="colorSurfaceInverse">@color/ordo_surface_inverse</item>
+        <item name="colorOnSurfaceInverse">@color/ordo_on_surface_inverse</item>
+        <item name="colorSurfaceDim">@color/ordo_surface_dim</item>
+        <item name="colorSurfaceBright">@color/ordo_surface_bright</item>
+        <item name="colorOnBackground">@color/ordo_on_background</item>
         <item name="colorPrimaryDark">@color/system_window_scrim_material3</item>
         <item name="android:windowLightStatusBar">?isLightTheme</item>
     </style>
@@ -60,8 +94,41 @@
     </style>
     <style name="Theme.MaterialFiles.Material3.Translucent" parent="Base.Theme.MaterialFiles.Material3.Translucent" />
 
-    <style name="Platform.V23.Theme.MaterialFiles.Material3.Immersive" parent="Theme.Material3.DynamicColors.Dark.NoActionBar">
+    <style name="Platform.V23.Theme.MaterialFiles.Material3.Immersive" parent="Theme.Material3.Dark.NoActionBar">
         <item name="android:navigationBarColor">?colorPrimaryDark</item>
+        <item name="colorPrimary">@color/ordo_dark_primary</item>
+        <item name="colorOnPrimary">@color/ordo_dark_on_primary</item>
+        <item name="colorPrimaryContainer">@color/ordo_dark_primary_container</item>
+        <item name="colorOnPrimaryContainer">@color/ordo_dark_on_primary_container</item>
+        <item name="colorSecondary">@color/ordo_dark_secondary</item>
+        <item name="colorOnSecondary">@color/ordo_dark_on_secondary</item>
+        <item name="colorSecondaryContainer">@color/ordo_dark_secondary_container</item>
+        <item name="colorOnSecondaryContainer">@color/ordo_dark_on_secondary_container</item>
+        <item name="colorTertiary">@color/ordo_dark_tertiary</item>
+        <item name="colorSurface">@color/ordo_dark_surface</item>
+        <item name="colorOnSurface">@color/ordo_dark_on_surface</item>
+        <item name="colorSurfaceVariant">@color/ordo_dark_surface_variant</item>
+        <item name="colorOnSurfaceVariant">@color/ordo_dark_on_surface_variant</item>
+        <item name="colorOutline">@color/ordo_dark_outline</item>
+        <item name="colorOutlineVariant">@color/ordo_dark_outline_variant</item>
+        <item name="colorSurfaceContainerLowest">@color/ordo_dark_surface_container_lowest</item>
+        <item name="colorSurfaceContainerLow">@color/ordo_dark_surface_container_low</item>
+        <item name="colorSurfaceContainer">@color/ordo_dark_surface_container</item>
+        <item name="colorSurfaceContainerHigh">@color/ordo_dark_surface_container_high</item>
+        <item name="colorSurfaceContainerHighest">@color/ordo_dark_surface_container_highest</item>
+        <item name="colorError">@color/ordo_dark_error</item>
+        <item name="colorOnTertiary">@color/ordo_dark_on_tertiary</item>
+        <item name="colorTertiaryContainer">@color/ordo_dark_tertiary_container</item>
+        <item name="colorOnTertiaryContainer">@color/ordo_dark_on_tertiary_container</item>
+        <item name="colorOnError">@color/ordo_dark_on_error</item>
+        <item name="colorErrorContainer">@color/ordo_dark_error_container</item>
+        <item name="colorOnErrorContainer">@color/ordo_dark_on_error_container</item>
+        <item name="colorPrimaryInverse">@color/ordo_dark_primary_inverse</item>
+        <item name="colorSurfaceInverse">@color/ordo_dark_surface_inverse</item>
+        <item name="colorOnSurfaceInverse">@color/ordo_dark_on_surface_inverse</item>
+        <item name="colorSurfaceDim">@color/ordo_dark_surface_dim</item>
+        <item name="colorSurfaceBright">@color/ordo_dark_surface_bright</item>
+        <item name="colorOnBackground">@color/ordo_dark_on_background</item>
 
         <item name="colorPrimaryDark">@color/dark_50_percent</item>
     </style>

@@ -19,8 +19,9 @@
     <!-- Make lint happy, although actually we never use this in a non-night configuration. -->
     <color name="color_primary_dark_black">@android:color/transparent</color>
 
-    <color name="color_primary_light">@color/google_blue_600</color>
-    <color name="color_primary_dark">@color/google_blue_300</color>
+    <!-- Ordo's Aurora accent (see ai_colors.xml), AA contrast on light and dark surfaces. -->
+    <color name="color_primary_light">#0E7490</color>
+    <color name="color_primary_dark">#67E8F9</color>
     <color name="color_primary">@color/color_primary_light</color>
 
     <color name="color_surface_light">@android:color/white</color>

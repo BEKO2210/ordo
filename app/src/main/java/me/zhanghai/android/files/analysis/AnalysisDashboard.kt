@@ -35,6 +35,7 @@ import com.github.mikephil.charting.utils.Fill
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.color.MaterialColors
 import me.zhanghai.android.files.R
+import me.zhanghai.android.files.ui.onFirstSight
 import me.zhanghai.android.files.databinding.AnalysisOverviewBinding
 import me.zhanghai.android.files.file.asFileSize
 import java.text.DateFormatSymbols
@@ -51,12 +52,16 @@ class AnalysisDashboard(
     private val density = context.resources.displayMetrics.density
     private val text = MaterialColors.getColor(binding.root, android.R.attr.textColorPrimary)
     private val muted = MaterialColors.getColor(binding.root, android.R.attr.textColorSecondary)
-    private val animate = ValueAnimator.areAnimatorsEnabled()
+    private val animate = me.zhanghai.android.files.ui.Motion.any
 
     private fun color(res: Int) = ContextCompat.getColor(context, res)
     private fun size(bytes: Long) = bytes.asFileSize().formatHumanReadable(context)
 
     fun bind(insights: StorageInsights, folders: List<FolderSize>, root: String) {
+        // Tablets: a centred column of comfortable width instead of cards stretched edge to edge.
+        val column = binding.overviewScroll.getChildAt(0)
+        val side = ((context.resources.displayMetrics.widthPixels - 720 * density) / 2).coerceAtLeast(16 * density).toInt()
+        column.setPadding(side, column.paddingTop, side, column.paddingBottom)
         bindUsage(insights)
         bindCleanup(insights)
         bindSuggestions(insights)
@@ -243,13 +248,36 @@ class AnalysisDashboard(
     // ---- Treemap -----------------------------------------------------------------------------
 
     private fun bindTreemap(folders: List<FolderSize>, root: String) {
-        val top = folders.sortedByDescending { it.size }.take(9)
-        val rest = folders.drop(9).sumOf { it.size }
+        // Six tiles at most, so every tile stays big enough to read and to tap on a phone.
+        val sorted = folders.sortedByDescending { it.size }.filter { it.size > 0 }
+        val top = sorted.take(5)
+        val rest = sorted.drop(5)
+        val restBytes = rest.sumOf { it.size }
+        val more = context.getString(R.string.analysis_treemap_more, rest.size)
         val items = top.map { TreemapView.Item(it.path.removePrefix("$root/"), size(it.size), it.size, it.path) } +
-            listOfNotNull(rest.takeIf { it > 0 }?.let { TreemapView.Item("…", size(it), it, null) })
+            listOfNotNull(restBytes.takeIf { it > 0 }?.let { TreemapView.Item(more, size(it), it, root) })
         binding.treemapCard.isVisible(items.isNotEmpty())
         binding.treemap.setItems(items)
         binding.treemap.onItemClick = { item -> (item.key as? String)?.let(onOpenFolder) }
+        binding.treemapList.removeAllViews()
+        val biggest = items.maxOfOrNull { it.value }?.toFloat() ?: 1f
+        items.forEachIndexed { i, item ->
+            val strength = 0.28f + 0.52f * (item.value / biggest)
+            val swatch = androidx.core.graphics.ColorUtils.blendARGB(
+                MaterialColors.getColor(binding.root, com.google.android.material.R.attr.colorSurface),
+                color(R.color.ai_accent), strength
+            )
+            binding.treemapList.addView(legendRow(swatch, item.label, item.detail, "›").apply {
+                isClickable = true
+                isFocusable = true
+                minimumHeight = (48 * density).toInt()
+                val ripple = android.util.TypedValue()
+                context.theme.resolveAttribute(android.R.attr.selectableItemBackground, ripple, true)
+                setBackgroundResource(ripple.resourceId)
+                setOnClickListener { (item.key as? String)?.let(onOpenFolder) }
+                rise(200L + 40L * i)
+            })
+        }
     }
 
     // ---- Growth ------------------------------------------------------------------------------
@@ -303,7 +331,8 @@ class AnalysisDashboard(
             data = BarData(set).apply { barWidth = 0.55f }
             contentDescription = months.zip(labels).joinToString { (m, l) -> "$l ${size(m.second)}" }
         }
-        if (animate) chart.animateY(1000, Easing.EaseOutCubic) else chart.invalidate()
+        chart.invalidate()
+        if (animate) chart.onFirstSight { chart.animateY(1000, Easing.EaseOutCubic) }
         binding.growthSubtitle.text = context.getString(R.string.analysis_growth_subtitle, size(months.last().second))
     }
 

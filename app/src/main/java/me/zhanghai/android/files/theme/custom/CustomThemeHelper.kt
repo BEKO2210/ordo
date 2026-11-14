@@ -5,6 +5,8 @@
 
 package me.zhanghai.android.files.theme.custom
 
+import com.google.android.material.color.DynamicColors
+
 import android.app.Activity
 import android.app.Application
 import android.content.Context
@@ -22,6 +24,8 @@ import me.zhanghai.android.files.util.valueCompat
 
 object CustomThemeHelper {
     private val activityBaseThemes = mutableMapOf<Activity, Int>()
+    // Accent and wallpaper colours are overlays, not theme names: remember what each activity got.
+    private val activityOverlays = mutableMapOf<Activity, String>()
 
     fun initialize(application: Application) {
         application.registerActivityLifecycleCallbacks(object : SimpleActivityLifecycleCallbacks {
@@ -33,6 +37,7 @@ object CustomThemeHelper {
 
             override fun onActivityDestroyed(activity: Activity) {
                 activityBaseThemes.remove(activity)
+                activityOverlays.remove(activity)
             }
         })
     }
@@ -42,16 +47,37 @@ object CustomThemeHelper {
         activityBaseThemes[activity] = baseThemeRes
         val customThemeRes = getCustomThemeRes(baseThemeRes, activity)
         activity.setThemeCompat(customThemeRes)
+        applyOverlays(activity)
+    }
+
+    private fun overlaySignature(): String =
+        "${Settings.ACCENT.valueCompat}/${Settings.WALLPAPER_COLORS.valueCompat}"
+
+    private fun applyOverlays(activity: Activity) {
+        activityOverlays[activity] = overlaySignature()
+        if (Settings.WALLPAPER_COLORS.valueCompat && DynamicColors.isDynamicColorAvailable()) {
+            DynamicColors.applyToActivityIfAvailable(activity)
+            return
+        }
+        val accent = when (Settings.ACCENT.valueCompat) {
+            "blue" -> R.style.ThemeOverlay_Ordo_Accent_Blue
+            "mint" -> R.style.ThemeOverlay_Ordo_Accent_Mint
+            "violet" -> R.style.ThemeOverlay_Ordo_Accent_Violet
+            "amber" -> R.style.ThemeOverlay_Ordo_Accent_Amber
+            else -> R.style.ThemeOverlay_Ordo_Accent_Aurora
+        }
+        activity.theme.applyStyle(accent, true)
     }
 
     fun sync() {
         for ((activity, baseThemeRes) in activityBaseThemes) {
             val currentThemeRes = activity.themeResIdCompat
             val customThemeRes = getCustomThemeRes(baseThemeRes, activity)
-            if (currentThemeRes != customThemeRes) {
-                // Ignore ".Black" theme changes when not in night mode.
+            if (currentThemeRes != customThemeRes || activityOverlays[activity] != overlaySignature()) {
+                // Ignore ".Black" theme changes when not in night mode, unless the accent changed as well.
                 if (!NightModeHelper.isInNightMode(activity as AppCompatActivity)
-                    && isBlackThemeChange(currentThemeRes, customThemeRes, activity)) {
+                    && isBlackThemeChange(currentThemeRes, customThemeRes, activity)
+                    && activityOverlays[activity] == overlaySignature()) {
                     continue
                 }
                 if (activity is OnThemeChangedListener) {

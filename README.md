@@ -71,7 +71,11 @@ Ordo is in development (version 0.2.0). It is not on Google Play yet. Test build
 
 - FTP, SFTP, SMB and WebDAV servers, and a built-in FTP server
 - Root and Shizuku access, Linux permissions, symbolic links, SELinux context
-- Themes, including a true black night mode
+
+**Make it yours** – in Settings › Appearance
+
+- Ordo's own colours on every phone, in five accents, or your wallpaper's colours (Android 12 and later)
+- Light, dark and true black; motion full, subtle or off
 
 ## AI commands
 
@@ -122,7 +126,8 @@ then checks the plan itself before showing it:
 
 **Setup.** The feature is off until you open it with the wand in the search bar. Ordo checks the phone, then
 downloads the model once (about 2.6 GB, Wi-Fi by default) from a pinned revision on Hugging Face and verifies its
-SHA-256 hash. After that it works offline. The model can be removed in the AI sheet at any time.
+SHA-256 hash. After that it works offline. The model can be removed in the AI sheet at any time; Settings › AI
+assistant shows whether it is ready.
 
 | | |
 |---|---|
@@ -130,6 +135,7 @@ SHA-256 hash. After that it works offline. The model can be removed in the AI sh
 | Accuracy (own benchmark, [details](docs/KI-BEFEHLE.md)) | 51 of 54 commands, 20 of 20 unseen commands, no dangerous errors |
 | Requirements | 64-bit phone, at least 5.5 GB RAM, about 3.1 GB free space |
 | Speed | about 14 s per command on a Galaxy Tab S9 Ultra (Snapdragon 8 Gen 2), download and check about 2 minutes |
+| Speed setting | Turbo, Balanced or Gentle in Settings › AI assistant: how many fast cores it uses and how long the model stays loaded |
 
 ## Security
 

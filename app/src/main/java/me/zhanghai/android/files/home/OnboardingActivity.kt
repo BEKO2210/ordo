@@ -167,7 +167,7 @@ class OnboardingActivity : AppActivity() {
     // The example command types itself, the sphere thinks, then it starts over.
     private suspend fun typeExample() {
         val example = getString(R.string.onboarding_ai_example)
-        val animate = ValueAnimator.areAnimatorsEnabled()
+        val animate = me.zhanghai.android.files.ui.Motion.any
         while (currentCoroutineContext().isActive) {
             binding.aiOrb.thinking = false
             if (!animate) {
@@ -220,7 +220,7 @@ class OnboardingActivity : AppActivity() {
     }
 
     private fun animateShift(target: Float) {
-        if (!ValueAnimator.areAnimatorsEnabled()) {
+        if (!me.zhanghai.android.files.ui.Motion.any) {
             binding.aurora.shift = target
             return
         }
@@ -232,7 +232,7 @@ class OnboardingActivity : AppActivity() {
     }
 
     private fun View.pop() {
-        if (!ValueAnimator.areAnimatorsEnabled()) return
+        if (!me.zhanghai.android.files.ui.Motion.any) return
         scaleX = 0.6f
         scaleY = 0.6f
         alpha = 0f
@@ -241,7 +241,7 @@ class OnboardingActivity : AppActivity() {
     }
 
     private fun View.rise(startDelay: Long) {
-        if (!ValueAnimator.areAnimatorsEnabled()) return
+        if (!me.zhanghai.android.files.ui.Motion.any) return
         alpha = 0f
         translationY = 24 * resources.displayMetrics.density
         animate().alpha(1f).translationY(0f).setStartDelay(startDelay).setDuration(380)
