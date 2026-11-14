@@ -40,7 +40,11 @@ object Trash {
     const val INFO_SUFFIX = ".info"
     private const val KEY_PATH = "path"
     private const val KEY_DELETED_AT = "deletedAt"
-    private val ROOT_REGEX = Regex("^(/storage/emulated/\\d+|/storage/(?!emulated/|self/)[^/]+)/.+")
+    private val PROTECTED_DIRECTORIES =
+        listOf(DIRECTORY_NAME, "Android/data", "Android/obb", "Android/media")
+    private val ROOT_REGEX = Regex(
+        "^(/storage/emulated/\\d+|/storage/(?!emulated/|self/)[^/]+)/.+", RegexOption.DOT_MATCHES_ALL
+    )
 
     val isEnabled: Boolean
         get() = Settings.TRASH_ENABLED.valueCompat
@@ -49,8 +53,15 @@ object Trash {
     fun rootOf(path: String): String? {
         val root = ROOT_REGEX.matchEntire(path)?.groupValues?.get(1) ?: return null
         val relative = path.substring(root.length + 1)
-        return if (relative == DIRECTORY_NAME || relative.startsWith("$DIRECTORY_NAME/")) null else root
+        // App-private folders stay out of the shared trash, so their data never becomes visible.
+        val excluded = PROTECTED_DIRECTORIES.any { relative == it || relative.startsWith("$it/") }
+        return if (excluded) null else root
     }
+
+    // Info files live on shared storage, so other apps could forge them; restore only to safe paths.
+    fun isValidOriginalPath(path: String, root: String): Boolean =
+        path.split('/').drop(1).none { it.isEmpty() || it == "." || it == ".." } &&
+            rootOf(path) == root
 
     fun canTrash(path: Path): Boolean = path.isLinuxPath && rootOf(path.toString()) != null
 
@@ -95,7 +106,8 @@ object Trash {
         }
 
     fun parseInfo(id: String, root: String, properties: Properties): TrashEntry? {
-        val path = properties.getProperty(KEY_PATH) ?: return null
+        val path = properties.getProperty(KEY_PATH)?.takeIf { isValidOriginalPath(it, root) }
+            ?: return null
         val deletedAt = properties.getProperty(KEY_DELETED_AT)?.toLongOrNull() ?: return null
         return TrashEntry(id, root, path, deletedAt)
     }

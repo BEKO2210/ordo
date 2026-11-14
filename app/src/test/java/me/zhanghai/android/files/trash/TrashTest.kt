@@ -27,6 +27,22 @@ class TrashTest {
         assertNull(Trash.rootOf("/storage/self/primary/a"))
         assertNull(Trash.rootOf("/data/local/tmp/a"))
         assertNull(Trash.rootOf("/system/app"))
+        assertNull(Trash.rootOf("/storage/emulated/0/Android/data/com.example/a"))
+        assertNull(Trash.rootOf("/storage/emulated/0/Android/obb/com.example"))
+        assertNull(Trash.rootOf("/storage/1A2B-3C4D/Android/media/x"))
+        assertEquals("/storage/emulated/0", Trash.rootOf("/storage/emulated/0/Android/datax"))
+    }
+
+    @Test
+    fun parseInfo_rejectsForgedPaths() {
+        val root = "/storage/emulated/0"
+        for (path in listOf(
+            "/storage/emulated/0/../../data/system/x", "/storage/emulated/0/a/./b",
+            "/storage/emulated/0//a", "/data/local/tmp/x", "/storage/1A2B-3C4D/a",
+            "/storage/emulated/0/Android/data/com.example/x", "relative/a"
+        )) {
+            assertNull(path, Trash.parseInfo("1", root, Trash.formatInfo(path, 1L)))
+        }
     }
 
     @Test
