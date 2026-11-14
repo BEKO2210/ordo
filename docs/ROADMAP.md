@@ -23,11 +23,21 @@ Themes inkl. Schwarz.
 
 ## Phase 2 – Mehr als Samsung
 - [ ] P2.1 Tabs + Zwei-Spalten-Ansicht (Tablet/Querformat) mit Kopieren/Verschieben zwischen den Spalten.
-- [ ] P2.2 Inhaltssuche (Text in Dateien, Regex), Filter nach Typ/Größe/Datum.
+- [x] P2.2 Inhaltssuche (Text in Dateien, Regex), Filter nach Typ/Größe/Datum.
 - [ ] P2.3 Tresor: AES-256-GCM-Verschlüsselung von Dateien, Entsperren per Fingerabdruck/PIN; optional App-Sperre.
-- [ ] P2.4 App-Manager: installierte Apps, APK sichern, Split-APK/XAPK installieren, Deinstallieren, App-Infos.
-- [ ] P2.5 Ordnergrößen in der Liste (abschaltbar), Kopiertempo + Restzeit in der Fortschrittsanzeige.
+- [x] P2.4 App-Manager: installierte Apps, APK sichern, Split-APK/XAPK installieren, Deinstallieren, App-Infos.
+- [x] P2.5 Kopiertempo + Restzeit (Ordnergrößen stehen in der Speicheranalyse).
 - [ ] P2.6 Medien: eingebauter Audio-/Video-Player und PDF-Ansicht (Plattform-APIs, keine großen Bibliotheken).
+
+## Phase 2b – aus dem Wettbewerbsvergleich (docs/WETTBEWERB.md)
+- [x] Beschriftete Auswahlleiste unten, „Kopieren/Verschieben nach…", Umbenennen in der Auswahl.
+- [ ] Leere Systemordner im Schnellzugriff ausblenden.
+- [ ] Mehrere Dateien umbenennen (Muster mit Nummer).
+- [ ] PDF-Ansicht eingebaut (PdfRenderer).
+- [ ] Datenmüll: leere Ordner, Thumbnail-Caches, Restdateien in der Speicheranalyse.
+- [ ] Ungenutzte Apps (Nutzungsdaten-Erlaubnis), Erinnerung „Speicher fast voll".
+- [ ] Teilen in der Nähe (Quick Share über Android-Teilen).
+- [ ] Cloud (Drive/OneDrive) – braucht eigene OAuth-Zugänge (Belkis).
 
 ## Phase 3 – Play Store
 - [ ] P3.1 Eigenes Icon, Farben, Name final; About-Seite: Ordo + Dank an MaterialFiles; Datenschutz-Link eigener Text.
