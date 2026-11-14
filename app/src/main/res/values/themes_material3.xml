@@ -42,6 +42,9 @@
         <item name="colorSurfaceDim">@color/ordo_surface_dim</item>
         <item name="colorSurfaceBright">@color/ordo_surface_bright</item>
         <item name="colorOnBackground">@color/ordo_on_background</item>
+        <item name="colorControlHighlight">@color/ordo_control_highlight</item>
+        <item name="android:colorControlHighlight">@color/ordo_control_highlight</item>
+        <item name="elevationOverlayColor">@color/ordo_elevation_overlay</item>
         <item name="colorPrimaryDark">@color/system_window_scrim_material3</item>
         <item name="android:windowLightStatusBar">?isLightTheme</item>
     </style>

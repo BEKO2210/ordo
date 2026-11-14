@@ -47,14 +47,10 @@ class AboutFragment : Fragment() {
         binding.privacyPolicyLayout.setOnClickListener {
             startActivitySafe(LegalActivity::class.createIntent())
         }
-        binding.authorNameLayout.setOnClickListener {
-            startActivitySafe(UPSTREAM_URI.createViewIntent())
-        }
     }
 
     companion object {
         private val GITHUB_URI = Uri.parse("https://github.com/BEKO2210/ordo")
         private val DEVELOPER_URI = Uri.parse("https://github.com/BEKO2210")
-        private val UPSTREAM_URI = Uri.parse("https://github.com/zhanghai/MaterialFiles")
     }
 }

@@ -53,7 +53,9 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="12dp"
-                android:textAppearance="?textAppearanceHeadline6" />
+                android:textAppearance="?textAppearanceHeadline6"
+                android:textColor="?colorPrimary"
+                android:textStyle="bold" />
         </LinearLayout>
         <me.zhanghai.android.files.analysis.StackedBarView
             android:id="@+id/usageBar"
@@ -86,7 +88,7 @@
                 app:iconSize="20dp" />
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/analyzeButton"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                style="@style/Widget.Material3.Button.TonalButton"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="6dp"
@@ -94,11 +96,11 @@
                 android:minHeight="48dp"
                 android:text="@string/home_storage_analyze"
                 android:textAllCaps="false"
-                android:textColor="?colorPrimary"
+                android:textColor="?colorOnPrimaryContainer"
+                app:backgroundTint="?colorPrimaryContainer"
                 app:cornerRadius="20dp"
                 app:icon="@drawable/storage_analysis_icon_white_24dp"
-                app:iconTint="?colorPrimary"
-                app:strokeColor="@color/ai_glass_stroke"
+                app:iconTint="?colorOnPrimaryContainer"
                 app:iconGravity="textStart"
                 app:iconSize="20dp" />
         </LinearLayout>

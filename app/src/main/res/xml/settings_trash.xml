@@ -15,7 +15,7 @@
         android:summary="@string/settings_trash_enabled_summary"
         android:defaultValue="@bool/pref_default_value_trash_enabled" />
 
-    <rikka.preference.SimpleMenuPreference
+    <ListPreference
         android:key="@string/pref_key_trash_retention_days"
         android:title="@string/settings_trash_retention_title"
         android:defaultValue="@string/pref_default_value_trash_retention_days"

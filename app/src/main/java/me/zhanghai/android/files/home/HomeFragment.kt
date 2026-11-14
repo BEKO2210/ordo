@@ -13,6 +13,7 @@ import android.os.Environment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.children
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.graphics.ColorUtils
 import androidx.core.view.ViewCompat
@@ -158,7 +159,10 @@ class HomeFragment : Fragment(), ShowRequestAllFilesAccessRationaleDialogFragmen
             updateMenu()
         }
         binding.permissionButton.setOnClickListener { requestStorageAccess() }
-        binding.swipeRefreshLayout.setOnRefreshListener { viewModel.reload() }
+        binding.swipeRefreshLayout.setOnRefreshListener {
+            replayBars = true
+            viewModel.reload()
+        }
         viewModel.state.observe(viewLifecycleOwner) { homeState ->
             updateRecentItems()
             tileAdapter.items = createTiles(homeState)
@@ -166,8 +170,19 @@ class HomeFragment : Fragment(), ShowRequestAllFilesAccessRationaleDialogFragmen
             quickAccessAdapter.items = homeState.quickAccess
             updateRecentEmpty()
             binding.swipeRefreshLayout.isRefreshing = homeState.isLoading
+            // After a pull to refresh the storage bars grow in again, also when the numbers did not change.
+            if (replayBars && !homeState.isLoading) {
+                replayBars = false
+                binding.storageList.post {
+                    binding.storageList.children.forEach {
+                        it.findViewById<me.zhanghai.android.files.analysis.StackedBarView>(R.id.usageBar)?.replay()
+                    }
+                }
+            }
         }
     }
+
+    private var replayBars = false
 
     // The content scrolls under the top bar. Android 12+ blurs it; older versions get a solid bar.
     private fun setUpGlassToolbar() {

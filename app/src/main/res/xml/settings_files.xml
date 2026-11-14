@@ -19,7 +19,7 @@
         android:title="@string/settings_default_directory_title"
         app:useSimpleSummaryProvider="true" />
 
-    <rikka.preference.SimpleMenuPreference
+    <ListPreference
         android:key="@string/pref_key_file_name_ellipsize"
         android:title="@string/settings_file_name_ellipsize_title"
         android:defaultValue="@string/pref_default_value_file_name_ellipsize"
@@ -27,7 +27,7 @@
         android:entryValues="@array/pref_entry_values_file_name_ellipsize"
         app:useSimpleSummaryProvider="true" />
 
-    <rikka.preference.SimpleMenuPreference
+    <ListPreference
         android:key="@string/pref_key_open_apk_default_action"
         android:title="@string/settings_open_apk_default_action_title"
         android:defaultValue="@string/pref_default_value_open_apk_default_action"

@@ -87,6 +87,15 @@ class StackedBarView @JvmOverloads constructor(context: Context, attrs: Attribut
         }
     }
 
+    /** Grows the bar in again with the same numbers, e.g. after pull to refresh. */
+    fun replay() {
+        val parts = parts
+        val max = max
+        this.parts = emptyList()
+        this.max = 0
+        setParts(parts, max)
+    }
+
     private fun setProgress(value: Float) {
         progress = value
         onProgress?.invoke(value)

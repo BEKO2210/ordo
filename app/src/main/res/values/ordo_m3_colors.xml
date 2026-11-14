@@ -74,4 +74,8 @@
     <color name="ordo_dark_surface_dim">#0B1018</color>
     <color name="ordo_dark_surface_bright">#252E40</color>
     <color name="ordo_dark_on_background">#E6EDF5</color>
+
+    <!-- Elevated surfaces (menus, dialogs) lift in neutral slate, not in the accent's hue. -->
+    <color name="ordo_elevation_overlay">#475569</color>
+    <color name="ordo_dark_elevation_overlay">#CBD5E1</color>
 </resources>
