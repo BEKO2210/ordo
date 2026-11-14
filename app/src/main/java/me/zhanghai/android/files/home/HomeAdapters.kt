@@ -166,6 +166,7 @@ class StorageAdapter(
             binding.usageProgress.setProgressCompat(progress, true)
             binding.analyzeButton.setOnClickListener { onAnalyze(item) }
             binding.root.setOnClickListener { onClick(item) }
+            binding.openButton.setOnClickListener { onClick(item) }
         }
     }
 }

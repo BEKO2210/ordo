@@ -64,8 +64,8 @@ Weitere Kandidaten auf pop-os gemessen (Prüfstand 54 / Holdout 20 / gefährlich
 
 | Modell | Größe | Prüfstand | Holdout | gefährlich |
 |---|---|---|---|---|
-| **Qwen3.5-4B Q4_K_M** (gewählt) | 2,74 GB | **51/54** | **20/20** | 0 |
-| Qwen3.5-4B Q4_0 | 2,58 GB | 51/54 | 19/20 | 0 |
+| Qwen3.5-4B Q4_K_M | 2,74 GB | 51/54 | 20/20 | 0 |
+| **Qwen3.5-4B Q4_0** (gewählt, siehe unten) | 2,58 GB | **51/54** | **19/20** | 0 |
 | Granite-4.2-3B Q4_K_M | 2,24 GB | 42/54 | 17/20 | 0 |
 | Qwen3.5-2B Q4_0 | 1,21 GB | 35/54 | 15/20 | 1 |
 
@@ -89,6 +89,26 @@ Einbau in der App (`llm/`, `app/.../ai/`):
 - Geprüft: Native-Brücke im Emulator (Instrumentierungs-Test `LlamaEngineTest`, 0,8B), voller Ablauf mit dem
   echten 4B im Emulator (Englisch hell, Deutsch dunkel, Ablehnung, Vorschau). Nicht geprüft: Download auf
   einem echten Handy, Tempo des 4B auf dem Pixel.
+
+## Messungen auf echten Geräten und Wahl von Q4_0 (14.11.2026 nachts)
+
+Tab S9 Ultra (Snapdragon 8 Gen 2, 12 GB), App-Build mit KleidiAI, 4 Threads:
+
+| | Einlesen | Ausgabe |
+|---|---|---|
+| Q4_K_M | 10,8 t/s | 6,9 t/s |
+| **Q4_0** | **32,2 t/s** | **10,5 t/s** |
+| Q4_0, Build mit allen CPU-Varianten (`GGML_CPU_ALL_VARIANTS`) | 44,0 t/s | 11,8 t/s |
+
+- Echter Ablauf in der App (Q4_K_M): Download 2,7 GB + Prüfung 170 s, erster Befehl 50 s (Laden + Anweisung),
+  danach ~18 s pro Befehl, RAM 4,3 GB (PSS der App).
+- Deshalb gilt jetzt **Q4_0**: fast gleiche Treffer, deutlich schneller (KleidiAI hat für Q4_0 eigene Kernel).
+  Alte Modelldateien löscht die App selbst.
+- Gemma-4-E4B (QAT Q4_0, 5,15 GB): 50/54, Holdout 16/20 – schlechter und doppelt so groß. Für die Tensor-TPU gibt
+  es fertige Dateien nur für Gemma-4-E2B, das bei uns durchfiel.
+- Nächste Tempo-Schritte: kürzeres Antwortformat (die ~70 Ausgabe-Token sind der größte Anteil) und der
+  Varianten-Build (+12 % Ausgabe).
+- Geplant: Modellwahl je Gerät (RAM und CPU-Merkmale), ohne dass Nutzer einen Modellnamen sehen.
 
 ## Offen
 

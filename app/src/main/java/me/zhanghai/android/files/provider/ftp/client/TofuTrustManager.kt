@@ -56,6 +56,13 @@ object TofuTrustManager : X509ExtendedTrustManager(), HostnameVerifier {
         // Pinned per host, not per port: FTPS data connections use a new port every time.
         val known = load()
         val stored = host?.let { known.getProperty(it) }
+        // A pinned self-signed certificate always wins: a CA certificate for some other name must not replace it.
+        if (stored != null && stored != CA) {
+            if (chain.isEmpty() || fingerprint(chain[0]) != stored) {
+                throw CertificateException("Certificate of $host changed – possible man-in-the-middle")
+            }
+            return
+        }
         if (isPublic(chain, authType)) {
             // Remember that this host had a real certificate, so it can never be swapped for a self-signed one.
             if (host != null && stored == null) {
@@ -89,15 +96,21 @@ object TofuTrustManager : X509ExtendedTrustManager(), HostnameVerifier {
     private const val CA = "CA"
 
     /**
-     * Host names are checked whenever the host showed a CA certificate (remembered in check(), which
-     * runs first during the handshake); a pinned self-signed certificate stands for its host.
+     * The host name check is skipped only for the exact self-signed certificate pinned for this host;
+     * everything else (CA certificates included) gets the platform's host name verification.
      */
-    override fun verify(hostname: String, session: SSLSession): Boolean =
-        if (load().getProperty(hostname) == CA) {
-            HttpsURLConnection.getDefaultHostnameVerifier().verify(hostname, session)
-        } else {
-            load().getProperty(hostname) != null
+    override fun verify(hostname: String, session: SSLSession): Boolean {
+        val stored = load().getProperty(hostname)
+        if (stored != null && stored != CA) {
+            val leaf = try {
+                session.peerCertificates.firstOrNull() as? X509Certificate
+            } catch (e: Exception) {
+                null
+            }
+            return leaf != null && fingerprint(leaf) == stored
         }
+        return HttpsURLConnection.getDefaultHostnameVerifier().verify(hostname, session)
+    }
 
     private fun isPublic(chain: Array<X509Certificate>, authType: String): Boolean =
         try {

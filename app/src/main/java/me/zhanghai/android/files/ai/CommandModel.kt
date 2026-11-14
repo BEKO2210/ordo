@@ -28,7 +28,7 @@ object CommandModel {
         "e87f176479d0855a907a41277aca2f8ee7a09523/Qwen3.5-4B-Q4_0.gguf"
     const val SIZE = 2_583_221_408L
     private const val SHA256 = "298fcb5fe7a77ccc79745ae24751560c5ac56874caff4bb39b1f2055bd72b8bb"
-    private const val NAME = "qwen3.5-4b-q4_0.gguf"
+    const val FILE_NAME = "qwen3.5-4b-q4_0.gguf"
     private const val PREFS = "command_model"
     private const val KEY_DOWNLOAD = "download_id"
     private const val KEY_VERIFIED = "verified"
@@ -54,7 +54,7 @@ object CommandModel {
 
     // Null when shared storage is not mounted; then the download fails cleanly instead of crashing.
     fun file(context: Context): File =
-        File(context.getExternalFilesDir("models") ?: File(context.filesDir, "models"), NAME)
+        File(context.getExternalFilesDir("models") ?: File(context.filesDir, "models"), FILE_NAME)
 
     fun check(context: Context): DeviceCheck {
         val memory = ActivityManager.MemoryInfo()
@@ -76,7 +76,7 @@ object CommandModel {
         val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
         val file = file(context)
         // A model of an earlier app version would only take up gigabytes.
-        file.parentFile?.listFiles { other -> other.name.endsWith(".gguf") && other.name != NAME }
+        file.parentFile?.listFiles { other -> other.name.endsWith(".gguf") && other.name != FILE_NAME }
             ?.forEach { it.delete() }
         if (prefs.getBoolean(KEY_VERIFIED, false)) {
             // The hash only counts for the exact file it was computed on; any change means hash again.
@@ -126,7 +126,7 @@ object CommandModel {
                 .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
                 .setAllowedOverMetered(mobileData)
                 .setAllowedOverRoaming(false)
-                .setDestinationInExternalFilesDir(context, "models", NAME)
+                .setDestinationInExternalFilesDir(context, "models", FILE_NAME)
             // commit, not apply: if the app dies right after enqueue, the id must already be stored.
             prefs.edit().putLong(KEY_DOWNLOAD, manager.enqueue(request)).commit()
             true

@@ -62,16 +62,40 @@
             android:layout_marginTop="12dp"
             app:trackCornerRadius="4dp"
             app:trackThickness="8dp" />
-        <!-- Negative margins cancel the button's own inset and padding, so its label sits on the 16 dp card padding. -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/analyzeButton"
-            style="@style/Widget.MaterialComponents.Button.TextButton"
-            android:layout_width="wrap_content"
+        <!-- Two clear actions: look inside the storage, or analyse it. Equal width, 48 dp touch height. -->
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="end"
-            android:layout_marginTop="2dp"
-            android:layout_marginEnd="-8dp"
-            android:layout_marginBottom="-14dp"
-            android:text="@string/navigation_analysis" />
+            android:layout_marginTop="12dp"
+            android:orientation="horizontal">
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/openButton"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="6dp"
+                android:layout_weight="1"
+                android:minHeight="48dp"
+                android:text="@string/home_storage_open"
+                android:textAllCaps="false"
+                app:cornerRadius="20dp"
+                app:icon="@drawable/directory_icon_white_24dp"
+                app:iconGravity="textStart"
+                app:iconSize="20dp" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/analyzeButton"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:layout_weight="1"
+                android:minHeight="48dp"
+                android:text="@string/home_storage_analyze"
+                android:textAllCaps="false"
+                app:cornerRadius="20dp"
+                app:icon="@drawable/storage_analysis_icon_white_24dp"
+                app:iconGravity="textStart"
+                app:iconSize="20dp" />
+        </LinearLayout>
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>
