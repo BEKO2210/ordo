@@ -38,4 +38,5 @@
     <color name="ordo_surface_dim">@color/ordo_dark_surface_dim</color>
     <color name="ordo_surface_bright">@color/ordo_dark_surface_bright</color>
     <color name="ordo_on_background">@color/ordo_dark_on_background</color>
+    <color name="ordo_elevation_overlay">@color/ordo_dark_elevation_overlay</color>
 </resources>

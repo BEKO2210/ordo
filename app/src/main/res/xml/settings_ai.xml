@@ -9,7 +9,7 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <rikka.preference.SimpleMenuPreference
+    <ListPreference
         android:key="@string/pref_key_ai_speed"
         android:title="@string/settings_ai_speed_title"
         android:defaultValue="@string/pref_default_value_ai_speed"
