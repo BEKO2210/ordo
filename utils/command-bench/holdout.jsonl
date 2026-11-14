@@ -1,0 +1,20 @@
+{"text": "Verschiebe alle PNGs aus Screenshots nach Bilder", "gold": {"action": "move", "source": "screenshots", "destination": "pictures", "extensions": ["png"]}}
+{"text": "Kopiere die Videos von Kamera in den Ordner Familie", "gold": {"action": "copy", "source": "kamera", "destination": "familie", "kinds": ["video"]}}
+{"text": "Lösche alle Dateien in Bluetooth, die älter als 3 Monate sind", "gold": {"action": "delete", "source": "bluetooth", "older_than_days": 90}}
+{"text": "lösch alle mp4 dateien im ordner telegram die größer als 2 gb sind", "gold": {"action": "delete", "source": "telegram", "extensions": ["mp4"], "larger_than_mb": 2000}}
+{"text": "Räum den Ordner Dokumente auf", "gold": {"action": "organize", "source": "documents", "group_by": "type"}}
+{"text": "Sortiere diesen Ordner nach Monat", "gold": {"action": "organize", "source": ".", "group_by": "month"}}
+{"text": "Verschiebe alle Dateien mit Vertrag im Namen von Download nach Verträge", "gold": {"action": "move", "source": "download", "destination": "verträge", "name_contains": "vertrag"}}
+{"text": "Wie viel Speicher ist noch frei?", "gold": {"action": "none"}}
+{"text": "Teile das Video mit Tom", "gold": {"action": "none"}}
+{"text": "kopiere alle docx dateien aus dokumente nach uni", "gold": {"action": "copy", "source": "documents", "destination": "uni", "extensions": ["docx"]}}
+{"text": "Lösche alle Archive im Download-Ordner", "gold": {"action": "delete", "source": "download", "kinds": ["archive"]}}
+{"text": "schieb alle bilder die älter als 2 jahre sind von dcim nach alte fotos", "gold": {"action": "move", "source": "dcim", "destination": "alte fotos", "kinds": ["image"], "older_than_days": 730}}
+{"text": "Move all JPGs from Camera to Holiday", "gold": [{"action": "move", "source": "camera", "destination": "holiday", "extensions": ["jpg"]}, {"action": "move", "source": "camera", "destination": "holiday", "extensions": ["jpg", "jpeg"]}]}
+{"text": "Delete all videos in Telegram older than 2 weeks", "gold": {"action": "delete", "source": "telegram", "kinds": ["video"], "older_than_days": 14}}
+{"text": "copy the documents from Download to Work", "gold": {"action": "copy", "source": "download", "destination": "work", "kinds": ["document"]}}
+{"text": "Sort the Music folder by type", "gold": {"action": "organize", "source": "music", "group_by": "type"}}
+{"text": "remove every file larger than 3 GB from Movies", "gold": {"action": "delete", "source": "movies", "larger_than_mb": 3000}}
+{"text": "Open the camera", "gold": {"action": "none"}}
+{"text": "Move all files with invoice in the name from here to Taxes", "gold": {"action": "move", "source": ".", "destination": "taxes", "name_contains": "invoice"}}
+{"text": "delete the zip files in this folder", "gold": {"action": "delete", "source": ".", "extensions": ["zip"]}}

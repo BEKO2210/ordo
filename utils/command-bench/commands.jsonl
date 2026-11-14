@@ -1,0 +1,54 @@
+{"text": "Verschiebe alle MP3s von Download nach Musik", "gold": {"action": "move", "source": "download", "destination": "music", "extensions": ["mp3"]}}
+{"text": "verschieb die mp3 dateien aus dem download ordner in den musik ordner", "gold": {"action": "move", "source": "download", "destination": "music", "extensions": ["mp3"]}}
+{"text": "Alle Fotos aus WhatsApp Images in den Ordner Urlaub 2024 verschieben", "gold": {"action": "move", "source": "whatsapp images", "destination": "urlaub 2024", "kinds": ["image"]}}
+{"text": "Pack alle PDFs von hier in Dokumente", "gold": {"action": "move", "source": ".", "destination": "documents", "extensions": ["pdf"]}}
+{"text": "schieb die videos aus dcim nach filme", "gold": {"action": "move", "source": "dcim", "destination": "movies", "kinds": ["video"]}}
+{"text": "Verschiebe alle Dateien, die größer als 500 MB sind, aus Download in den Ordner Groß", "gold": {"action": "move", "source": "download", "destination": "groß", "larger_than_mb": 500}}
+{"text": "Bitte alle Bilder aus dem Screenshots-Ordner in den Ordner Archiv verschieben", "gold": {"action": "move", "source": "screenshots", "destination": "archiv", "kinds": ["image"]}}
+{"text": "kannst du mir die zip dateien von downloads in den ordner gepackt schieben", "gold": {"action": "move", "source": "download", "destination": "gepackt", "extensions": ["zip"]}}
+{"text": "Alle APKs aus Download in den Ordner Apps verschieben", "gold": {"action": "move", "source": "download", "destination": "apps", "extensions": ["apk"]}}
+{"text": "verschiebe alles was älter als ein jahr ist von download nach alt", "gold": {"action": "move", "source": "download", "destination": "alt", "older_than_days": 365}}
+{"text": "Kopiere alle Bilder von DCIM nach Sicherung", "gold": {"action": "copy", "source": "dcim", "destination": "sicherung", "kinds": ["image"]}}
+{"text": "kopier mir die dokumente aus download in den ordner arbeit", "gold": {"action": "copy", "source": "download", "destination": "arbeit", "kinds": ["document"]}}
+{"text": "Mach eine Kopie von allen Videos in Movies im Ordner Backup", "gold": {"action": "copy", "source": "movies", "destination": "backup", "kinds": ["video"]}}
+{"text": "Kopiere alle Dateien mit Rechnung im Namen aus Dokumente nach Steuer 2026", "gold": {"action": "copy", "source": "documents", "destination": "steuer 2026", "name_contains": "rechnung"}}
+{"text": "Kopiere die MP3s und WAVs aus Aufnahmen nach Musik", "gold": {"action": "copy", "source": "aufnahmen", "destination": "music", "extensions": ["mp3", "wav"]}}
+{"text": "Lösche alle APK-Dateien im Download-Ordner", "gold": {"action": "delete", "source": "download", "extensions": ["apk"]}}
+{"text": "lösch die videos in whatsapp video die älter als 30 tage sind", "gold": {"action": "delete", "source": "whatsapp video", "kinds": ["video"], "older_than_days": 30}}
+{"text": "Alles in Download löschen", "gold": {"action": "delete", "source": "download"}}
+{"text": "Lösche alle Dateien hier, die größer als 1 GB sind", "gold": {"action": "delete", "source": ".", "larger_than_mb": 1000}}
+{"text": "wirf alle screenshots weg die älter als 6 monate sind", "gold": [{"action": "delete", "source": "screenshots", "older_than_days": 180}, {"action": "delete", "source": "screenshots", "kinds": ["image"], "older_than_days": 180}]}
+{"text": "Lösche alle Fotos mit IMG_2023 im Namen aus DCIM", "gold": {"action": "delete", "source": "dcim", "kinds": ["image"], "name_contains": "img_2023"}}
+{"text": "entferne alle zip und rar dateien aus dem download ordner", "gold": {"action": "delete", "source": "download", "extensions": ["zip", "rar"]}}
+{"text": "Räum den Download-Ordner auf", "gold": {"action": "organize", "source": "download", "group_by": "type"}}
+{"text": "Sortiere die Fotos in DCIM nach Monat", "gold": {"action": "organize", "source": "dcim", "kinds": ["image"], "group_by": "month"}}
+{"text": "bring mal ordnung in diesen ordner", "gold": {"action": "organize", "source": ".", "group_by": "type"}}
+{"text": "Ordne die Dateien in Dokumente nach Dateityp", "gold": {"action": "organize", "source": "documents", "group_by": "type"}}
+{"text": "räume hier auf und sortiere nach datum", "gold": {"action": "organize", "source": ".", "group_by": "month"}}
+{"text": "Wie wird das Wetter morgen?", "gold": {"action": "none"}}
+{"text": "Benenne die Datei bericht.pdf in final.pdf um", "gold": {"action": "none"}}
+{"text": "Schick die Fotos an Mama", "gold": {"action": "none"}}
+{"text": "Hallo", "gold": {"action": "none"}}
+{"text": "Formatiere die SD-Karte", "gold": {"action": "none"}}
+{"text": "verschiebe alle em pe dreis von download nach musik", "gold": {"action": "move", "source": "download", "destination": "music", "extensions": ["mp3"]}}
+{"text": "alle pdf dateien die älter sind als zwei jahre aus dokumente löschen", "gold": {"action": "delete", "source": "documents", "extensions": ["pdf"], "older_than_days": 730}}
+{"text": "Verschiebe die Musik von hier in den Ordner Musik", "gold": {"action": "move", "source": ".", "destination": "music", "kinds": ["audio"]}}
+{"text": "Move all MP3s from Download to Music", "gold": {"action": "move", "source": "download", "destination": "music", "extensions": ["mp3"]}}
+{"text": "move every photo in DCIM to a folder called Vacation", "gold": {"action": "move", "source": "dcim", "destination": "vacation", "kinds": ["image"]}}
+{"text": "Put all the PDFs from this folder into Documents", "gold": {"action": "move", "source": ".", "destination": "documents", "extensions": ["pdf"]}}
+{"text": "Copy all videos from Movies to Backup", "gold": {"action": "copy", "source": "movies", "destination": "backup", "kinds": ["video"]}}
+{"text": "copy files bigger than 200 MB from Download to External", "gold": {"action": "copy", "source": "download", "destination": "external", "larger_than_mb": 200}}
+{"text": "Delete all APK files in Download", "gold": {"action": "delete", "source": "download", "extensions": ["apk"]}}
+{"text": "delete everything in Download older than 90 days", "gold": {"action": "delete", "source": "download", "older_than_days": 90}}
+{"text": "Remove all videos larger than 1 GB from WhatsApp Video", "gold": {"action": "delete", "source": "whatsapp video", "kinds": ["video"], "larger_than_mb": 1000}}
+{"text": "Trash all screenshots", "gold": [{"action": "delete", "source": "screenshots"}, {"action": "delete", "source": "screenshots", "kinds": ["image"]}]}
+{"text": "Clean up my Download folder", "gold": {"action": "organize", "source": "download", "group_by": "type"}}
+{"text": "Organize the pictures in DCIM by month", "gold": {"action": "organize", "source": "dcim", "kinds": ["image"], "group_by": "month"}}
+{"text": "tidy up this folder", "gold": {"action": "organize", "source": ".", "group_by": "type"}}
+{"text": "What's the capital of France?", "gold": {"action": "none"}}
+{"text": "Rename report.pdf to final.pdf", "gold": {"action": "none"}}
+{"text": "Move the docx and xlsx files from Download to Documents", "gold": {"action": "move", "source": "download", "destination": "documents", "extensions": ["docx", "xlsx"]}}
+{"text": "copy all songs from here to Music", "gold": {"action": "copy", "source": ".", "destination": "music", "kinds": ["audio"]}}
+{"text": "delete all files with copy in the name from Documents", "gold": {"action": "delete", "source": "documents", "name_contains": "copy"}}
+{"text": "move everything older than a year from Documents to Archive", "gold": {"action": "move", "source": "documents", "destination": "archive", "older_than_days": 365}}
+{"text": "Uninstall WhatsApp", "gold": {"action": "none"}}
