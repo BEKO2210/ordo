@@ -35,6 +35,7 @@ import me.zhanghai.android.files.filelist.FileListActivity
 import me.zhanghai.android.files.filelist.OpenFileActivity
 import me.zhanghai.android.files.filelist.ShowRequestAllFilesAccessRationaleDialogFragment
 import me.zhanghai.android.files.filelist.ShowRequestStoragePermissionRationaleDialogFragment
+import me.zhanghai.android.files.legal.LegalActivity
 import me.zhanghai.android.files.settings.Settings
 import me.zhanghai.android.files.settings.SettingsActivity
 import me.zhanghai.android.files.trash.TrashActivity
@@ -122,6 +123,7 @@ class HomeFragment : Fragment(), ShowRequestAllFilesAccessRationaleDialogFragmen
                 R.id.action_show_quick_access ->
                     Settings.HOME_SHOW_QUICK_ACCESS.putValue(!it.isChecked)
                 R.id.action_settings -> startActivity(SettingsActivity::class.createIntent())
+                R.id.action_legal -> startActivity(LegalActivity::class.createIntent())
                 else -> return@setOnMenuItemClickListener false
             }
             updateMenu()

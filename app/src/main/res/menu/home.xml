@@ -52,4 +52,9 @@
         android:id="@+id/action_settings"
         android:title="@string/settings_title"
         app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_legal"
+        android:title="@string/legal_title"
+        app:showAsAction="never" />
 </menu>

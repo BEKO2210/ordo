@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+  ~ Copyright (c) 2026 Ordo contributors
+  ~ SPDX-License-Identifier: GPL-3.0-or-later
+  -->
+
+<!-- Quelle auch für die Webseite: nach Änderungen utils/legal-pages.py ausführen. -->
+<resources>
+    <string name="legal_title">Impressum &amp; Datenschutz</string>
+    <string name="legal_imprint_title">Impressum</string>
+    <string name="legal_privacy_title">Datenschutzerklärung</string>
+
+    <string-array name="legal_imprint_titles">
+        <item>Angaben gemäß § 5 DDG</item>
+        <item>Kontakt</item>
+        <item>Verantwortlich für den Inhalt</item>
+        <item>Open Source und Haftung</item>
+        <item>Streitbeilegung</item>
+    </string-array>
+    <string-array name="legal_imprint_texts">
+        <item>Belkis Aslani\nVogelsangstraße 32\n71691 Freiberg am Neckar\nDeutschland</item>
+        <item>E-Mail: nullmesh@protonmail.com\nTelefon: +49 176 81462526</item>
+        <item>Belkis Aslani, Anschrift wie oben.</item>
+        <item>Ordo ist kostenlos und quelloffen. Die App steht unter der GNU General Public License, Version 3 oder später. Sie wird ohne Gewährleistung bereitgestellt, soweit das Gesetz das zulässt.\n\nQuelltext: https://github.com/BEKO2210/ordo\n\nOrdo baut auf „Material Files“ von Hai Zhang auf.</item>
+        <item>Ich nehme nicht an Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle teil und bin dazu nicht verpflichtet.</item>
+    </string-array>
+
+    <string-array name="legal_privacy_titles">
+        <item>Kurz gesagt</item>
+        <item>Verantwortlicher</item>
+        <item>Berechtigungen</item>
+        <item>Daten auf deinem Gerät</item>
+        <item>Tresor</item>
+        <item>Sicherung</item>
+        <item>Eigene Server</item>
+        <item>Google Play</item>
+        <item>Webseite</item>
+        <item>Kontakt per E-Mail</item>
+        <item>Deine Rechte</item>
+        <item>Stand</item>
+    </string-array>
+    <string-array name="legal_privacy_texts">
+        <item>Ordo sammelt keine Daten über dich. Die App enthält keine Werbung, kein Tracking und keine Analyse. Deine Dateien bleiben auf deinem Gerät. Ordo baut von sich aus keine Verbindung ins Internet auf.</item>
+        <item>Belkis Aslani\nVogelsangstraße 32\n71691 Freiberg am Neckar\nDeutschland\nE-Mail: nullmesh@protonmail.com</item>
+        <item>Ordo fragt nur nach dem, was ein Dateimanager braucht:\n\n• Zugriff auf alle Dateien: Dateien anzeigen, kopieren, verschieben, umbenennen und löschen.\n• Installierte Apps sehen: die App-Übersicht anzeigen und Dateien mit der passenden App öffnen.\n• Apps installieren und entfernen: nur wenn du es in Ordo selbst auslöst.\n• Internet und WLAN-Status: nur für Server, die du selbst einrichtest, und für den eingebauten FTP-Server.\n• Benachrichtigungen und Hintergrunddienst: lange Vorgänge laufen weiter und zeigen ihren Fortschritt.\n• Fingerabdruck oder Bildschirmsperre: Die Prüfung übernimmt Android. Ordo erfährt nur, ob sie geklappt hat.\n• Verknüpfungen: nur wenn du eine auf dem Startbildschirm anlegst.</item>
+        <item>Ordo speichert nur auf deinem Gerät: deine Einstellungen, Lesezeichen und die Zugangsdaten zu Servern, die du einrichtest. Gelöschte Dateien liegen im Ordner „.OrdoTrash“ auf demselben Speicher, in der Regel 30 Tage.\n\nOrdo überträgt nichts davon an mich oder an Dritte. Ist die Android-Sicherung eingeschaltet, sichert Android die Einstellungen von Ordo in deinem Google-Konto. Der Tresor ist davon ausgenommen.\n\nWenn du Ordo deinstallierst, löscht Android die App-Daten auf dem Gerät.</item>
+        <item>Dateien im Tresor verschlüsselt Ordo mit AES-256 und legt sie im geschützten Speicher der App ab. Der Schlüssel liegt im Schlüsselspeicher deines Geräts und verlässt es nicht.\n\nWichtig: Wenn du Ordo deinstallierst oder die App-Daten löschst, sind die Dateien im Tresor verloren. Hole sie vorher zurück oder sichere sie.</item>
+        <item>Eine Sicherung ist eine ZIP-Datei an dem Ort, den du auswählst, zum Beispiel auf einem USB-Stick. Auf Wunsch verschlüsselt Ordo sie mit deinem Passwort (AES-256). Das Passwort speichert Ordo nicht.\n\nWählst du einen Cloud-Speicher wie Google Drive, überträgt die App dieses Anbieters die Datei. Dafür gilt die Datenschutzerklärung des Anbieters.</item>
+        <item>Richtest du einen Server ein (FTP, SFTP, SMB oder WebDAV), verbindet sich Ordo direkt mit ihm. Der Betreiber des Servers sieht dabei deine IP-Adresse und die übertragenen Dateien. Andere Stellen sind nicht beteiligt.\n\nDer eingebaute FTP-Server läuft nur, solange du ihn einschaltest.</item>
+        <item>Lädst du Ordo über Google Play, verarbeitet Google dabei Daten nach eigenen Regeln: https://policies.google.com/privacy\n\nIch erhalte von Google nur zusammengefasste Zahlen, zum Beispiel Installationen und Absturzberichte, falls du das in Android erlaubt hast. Daraus erkenne ich keine einzelne Person.</item>
+        <item>Die Webseite zu Ordo liegt bei GitHub Pages (GitHub, Inc., 88 Colin P. Kelly Jr. Street, San Francisco, CA 94107, USA). Beim Aufruf verarbeitet GitHub technische Daten wie deine IP-Adresse, um die Seite auszuliefern und abzusichern. Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO. GitHub verarbeitet Daten auch in den USA und stützt sich dabei auf das EU-US Data Privacy Framework und Standardvertragsklauseln.\n\nDie Seite setzt keine Cookies und lädt nichts von anderen Anbietern.\n\nMehr dazu: https://docs.github.com/de/site-policy/privacy-policies/github-general-privacy-statement</item>
+        <item>Schreibst du mir eine E-Mail, verarbeite ich deine Adresse und deine Nachricht, um zu antworten (Art. 6 Abs. 1 lit. f DSGVO). Ich lösche sie, sobald dein Anliegen erledigt ist. Mein E-Mail-Anbieter ist die Proton AG in der Schweiz.</item>
+        <item>Du hast das Recht auf Auskunft (Art. 15 DSGVO), Berichtigung (Art. 16), Löschung (Art. 17), Einschränkung der Verarbeitung (Art. 18), Datenübertragbarkeit (Art. 20) und Widerspruch (Art. 21). Schreib mir dazu eine E-Mail.\n\nDu kannst dich außerdem bei einer Aufsichtsbehörde beschweren (Art. 77 DSGVO). Für mich zuständig ist der Landesbeauftragte für den Datenschutz und die Informationsfreiheit Baden-Württemberg: https://www.baden-wuerttemberg.datenschutz.de\n\nDa Ordo keine Daten an mich überträgt, habe ich aus der App keine Daten über dich.</item>
+        <item>14. November 2026. Ändert sich die App, passe ich diesen Text an.</item>
+    </string-array>
+</resources>

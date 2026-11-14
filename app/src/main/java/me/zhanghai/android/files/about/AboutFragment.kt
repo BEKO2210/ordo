@@ -14,7 +14,9 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import me.zhanghai.android.files.databinding.AboutFragmentBinding
+import me.zhanghai.android.files.legal.LegalActivity
 import me.zhanghai.android.files.ui.LicensesDialogFragment
+import me.zhanghai.android.files.util.createIntent
 import me.zhanghai.android.files.util.createViewIntent
 import me.zhanghai.android.files.util.startActivitySafe
 
@@ -40,7 +42,7 @@ class AboutFragment : Fragment() {
         binding.licensesLayout.setOnClickListener { LicensesDialogFragment.show(this) }
         binding.privacyPolicyLayout.isVisible = true
         binding.privacyPolicyLayout.setOnClickListener {
-            startActivitySafe(PRIVACY_POLICY_URI.createViewIntent())
+            startActivitySafe(LegalActivity::class.createIntent())
         }
         binding.authorNameLayout.setOnClickListener {
             startActivitySafe(AUTHOR_RESUME_URI.createViewIntent())
@@ -55,8 +57,6 @@ class AboutFragment : Fragment() {
 
     companion object {
         private val GITHUB_URI = Uri.parse("https://github.com/BEKO2210/ordo")
-        private val PRIVACY_POLICY_URI =
-            Uri.parse("https://github.com/BEKO2210/ordo/blob/main/PRIVACY.md")
         private val AUTHOR_RESUME_URI = Uri.parse("https://resume.zhanghai.me/")
         private val AUTHOR_GITHUB_URI = Uri.parse("https://github.com/zhanghai")
         private val AUTHOR_TWITTER_URI = Uri.parse("https://twitter.com/zhanghai95")

@@ -2,8 +2,8 @@
 
 ## Supported Versions
 
-Only the latest version of this app is currently being supported with security updates.
+Only the latest version of Ordo receives security updates.
 
 ## Reporting a Vulnerability
 
-Please email dreaming.in.code.zh@gmail.com to report a vulnerability.
+Please email nullmesh@protonmail.com instead of opening a public issue. You will get a reply within a few days.

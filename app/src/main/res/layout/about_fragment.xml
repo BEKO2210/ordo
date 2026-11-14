@@ -199,7 +199,7 @@
                                 android:layout_width="@dimen/icon_size"
                                 android:layout_height="@dimen/icon_size"
                                 android:scaleType="centerCrop"
-                                android:src="@drawable/lock_icon_white_24dp"
+                                android:src="@drawable/legal_icon_white_24dp"
                                 app:tint="?colorControlNormal" />
 
                             <TextView
@@ -208,7 +208,7 @@
                                 android:layout_marginStart="@dimen/content_start_from_screen_edge_margin_minus_24dp"
                                 android:ellipsize="end"
                                 android:maxLines="1"
-                                android:text="@string/about_privacy_policy_title"
+                                android:text="@string/legal_title"
                                 android:textAppearance="?textAppearanceListItem" />
                         </me.zhanghai.android.foregroundcompat.ForegroundLinearLayout>
                     </LinearLayout>

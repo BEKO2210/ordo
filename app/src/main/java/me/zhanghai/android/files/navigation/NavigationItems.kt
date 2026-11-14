@@ -26,6 +26,7 @@ import me.zhanghai.android.files.compat.pathCompat
 import me.zhanghai.android.files.file.JavaFile
 import me.zhanghai.android.files.file.asFileSize
 import me.zhanghai.android.files.ftpserver.FtpServerActivity
+import me.zhanghai.android.files.legal.LegalActivity
 import me.zhanghai.android.files.settings.Settings
 import me.zhanghai.android.files.settings.SettingsActivity
 import me.zhanghai.android.files.settings.StandardDirectoryListActivity
@@ -359,7 +360,7 @@ private class BookmarkDirectoryItem(
 }
 
 private val menuItems: List<NavigationItem>
-    @Size(8)
+    @Size(9)
     get() = listOf(
         IntentMenuItem(
             R.drawable.apps_icon_white_24dp, R.string.navigation_apps,
@@ -392,6 +393,10 @@ private val menuItems: List<NavigationItem>
         IntentMenuItem(
             R.drawable.about_icon_white_24dp, R.string.navigation_about,
             AboutActivity::class.createIntent()
+        ),
+        IntentMenuItem(
+            R.drawable.legal_icon_white_24dp, R.string.legal_title,
+            LegalActivity::class.createIntent()
         )
     )
 
