@@ -802,4 +802,7 @@
     <string name="batch_rename_title_format">%1$d Elemente umbenennen</string>
     <string name="batch_rename_pattern_hint">Neuer Name ({n} = Nummer)</string>
     <string name="batch_rename_default_pattern">Datei_{n}</string>
+    <string name="pdf_viewer_title">PDF-Ansicht</string>
+    <string name="pdf_viewer_page_format">Seite %1$d von %2$d</string>
+    <string name="pdf_viewer_error">Diese PDF lässt sich nicht öffnen. Sie ist vielleicht beschädigt oder mit Passwort geschützt.</string>
 </resources>

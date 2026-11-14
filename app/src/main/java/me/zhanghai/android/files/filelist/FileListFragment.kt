@@ -133,6 +133,7 @@ import me.zhanghai.android.files.util.valueCompat
 import me.zhanghai.android.files.util.viewModels
 import me.zhanghai.android.files.util.withChooser
 import me.zhanghai.android.files.viewer.image.ImageViewerActivity
+import me.zhanghai.android.files.viewer.pdf.PdfViewerActivity
 
 class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.Listener,
     ConfirmReplaceFileDialogFragment.Listener, OpenApkDialogFragment.Listener,
@@ -1395,6 +1396,10 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
                 .apply {
                     extraPath = path
                     maybeAddImageViewerActivityExtras(this, path, mimeType)
+                    // PDFs open in Ordo's own viewer; "Open with" still offers every other app.
+                    if (!withChooser && mimeType.value == "application/pdf") {
+                        setClass(requireContext(), PdfViewerActivity::class.java)
+                    }
                 }
                 .let {
                     if (withChooser) {

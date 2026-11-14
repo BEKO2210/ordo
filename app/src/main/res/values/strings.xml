@@ -935,4 +935,7 @@
     <string name="batch_rename_title_format">Rename %1$d items</string>
     <string name="batch_rename_pattern_hint">New name ({n} = number)</string>
     <string name="batch_rename_default_pattern">File_{n}</string>
+    <string name="pdf_viewer_title">PDF viewer</string>
+    <string name="pdf_viewer_page_format">Page %1$d of %2$d</string>
+    <string name="pdf_viewer_error">This PDF can’t be opened. It may be damaged or password-protected.</string>
 </resources>
