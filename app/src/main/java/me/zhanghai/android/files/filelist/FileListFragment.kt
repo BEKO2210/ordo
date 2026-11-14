@@ -166,8 +166,13 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
     private val args by args<Args>()
     private val argsPath by lazy { args.intent.extraPath }
 
+    // Only internal launches (no action) may open a category; the activity is exported.
     private val homeCategory by lazy {
-        args.intent.getStringExtra(FileListActivity.EXTRA_HOME_CATEGORY)?.let(HomeCategory::valueOf)
+        if (args.intent.action != null) {
+            return@lazy null
+        }
+        args.intent.getStringExtra(FileListActivity.EXTRA_HOME_CATEGORY)
+            ?.let { name -> HomeCategory.entries.firstOrNull { it.name == name } }
     }
 
     private val viewModel by viewModels { { FileListViewModel(homeCategory) } }
@@ -795,10 +800,8 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
     }
 
     private fun onPickOptionsChanged(pickOptions: PickOptions?) {
-        val title = if (homeCategory != null) {
-            getString(homeCategory!!.titleRes)
-        } else if (pickOptions == null) {
-            getString(R.string.file_list_title)
+        val title = if (pickOptions == null) {
+            getString(homeCategory?.titleRes ?: R.string.file_list_title)
         } else {
             val count = if (pickOptions.allowMultiple) Int.MAX_VALUE else 1
             when (pickOptions.mode) {
