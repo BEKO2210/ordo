@@ -100,6 +100,61 @@
                     android:layout_height="wrap_content"
                     android:paddingHorizontal="@dimen/home_list_padding" />
 
+                <!-- 4dp on top of the tiles' own 4dp margin keeps the 8dp grid gap. -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/vaultCard"
+                    style="@style/Widget.Ordo.HomeCard"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="16dp"
+                    android:layout_marginTop="4dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?selectableItemBackground"
+                    android:stateListAnimator="@animator/home_press_scale">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:padding="12dp">
+
+                        <ImageView
+                            android:id="@+id/vaultIcon"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:background="@drawable/home_icon_circle"
+                            android:contentDescription="@null"
+                            android:padding="9dp" />
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="12dp"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:ellipsize="end"
+                                android:maxLines="1"
+                                android:text="@string/navigation_vault"
+                                android:textAppearance="?textAppearanceSubtitle2" />
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:ellipsize="end"
+                                android:maxLines="1"
+                                android:text="@string/home_vault_summary"
+                                android:textAppearance="?textAppearanceCaption"
+                                android:textColor="?android:textColorSecondary" />
+                        </LinearLayout>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
                 <TextView style="@style/HomeSectionTitle" android:text="@string/home_storage" />
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/storageList"

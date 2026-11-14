@@ -16,6 +16,7 @@
     <color name="home_analysis">#0891B2</color>
     <color name="home_trash">#DC2626</color>
     <color name="home_apps">#4F46E5</color>
+    <color name="home_vault">#0F766E</color>
     <!-- Translucent so the cards work on every theme color and on true black. -->
     <color name="home_card">#0D000000</color>
 </resources>

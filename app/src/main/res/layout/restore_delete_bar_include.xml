@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+  ~ Copyright (c) 2026 Ordo contributors
+  ~ SPDX-License-Identifier: GPL-3.0-or-later
+  -->
+
+<!-- Labeled actions at thumb reach while entries are selected; icons alone were ambiguous. -->
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/restoreDeleteBar"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_gravity="bottom"
+    android:background="?colorSurface"
+    android:elevation="8dp"
+    android:fitsSystemWindows="true"
+    android:orientation="vertical"
+    android:visibility="gone">
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="?colorControlHighlight" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingHorizontal="4dp">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/restoreButton"
+            style="@style/Widget.Ordo.SelectionBarButton"
+            android:text="@string/trash_restore_action"
+            app:icon="@drawable/restore_icon_white_24dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/deletePermanentlyButton"
+            style="@style/Widget.Ordo.SelectionBarButton"
+            android:text="@string/trash_delete_permanently_action"
+            android:textColor="?colorError"
+            app:icon="@drawable/delete_icon_white_24dp"
+            app:iconTint="?colorError" />
+    </LinearLayout>
+</LinearLayout>

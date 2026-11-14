@@ -830,6 +830,35 @@
     <string name="shortcut_downloads_title" translatable="false">@string/navigation_standard_directory_downloads</string>
     <string name="shortcut_ftp_server_title" translatable="false">@string/ftp_server_title</string>
 
+    <!-- Ordo: vault -->
+    <string name="navigation_vault">Vault</string>
+    <string name="vault_title">Vault</string>
+    <string name="vault_locked_title">Vault is locked</string>
+    <string name="vault_locked_message">Unlock it with your fingerprint or screen lock to see your files.</string>
+    <string name="vault_unlock_action">Unlock vault</string>
+    <string name="vault_lock_action">Lock vault</string>
+    <string name="vault_prompt_title">Unlock vault</string>
+    <string name="vault_no_screen_lock_title">Set up a screen lock first</string>
+    <string name="vault_no_screen_lock_message">The vault protects your files with your screen lock. Set up a PIN, pattern or fingerprint to use it.</string>
+    <string name="vault_open_settings_action">Open security settings</string>
+    <string name="vault_empty">No files in the vault yet.\nSelect files and tap “Move to vault” to protect them.</string>
+    <string name="vault_notice">Files in the vault exist only on this device. Restore them before you uninstall Ordo or clear its data, or they are lost.</string>
+    <string name="vault_item_description_format">Added %1$s · %2$s\nFrom %3$s</string>
+    <string name="vault_move_action">Move to vault</string>
+    <string name="vault_move_title">Move to vault?</string>
+    <string name="vault_move_confirm_action">Move</string>
+    <plurals name="vault_move_message_format">
+        <item quantity="one">%1$d file will be encrypted and removed from its folder. It then exists only in the vault on this device. Restore it before you uninstall Ordo.</item>
+        <item quantity="other">%1$d files will be encrypted and removed from their folders. They then exist only in the vault on this device. Restore them before you uninstall Ordo.</item>
+    </plurals>
+    <string name="vault_error_message">Couldn’t open the vault. Restart your device and try again.</string>
+    <string name="vault_open_error">Couldn’t decrypt this file. Try again.</string>
+    <string name="file_job_vault_move_notification_title">Moving to vault</string>
+    <string name="file_job_vault_restore_notification_title">Restoring from vault</string>
+    <string name="file_job_vault_error_title">Error while moving to vault</string>
+    <string name="file_job_vault_error_message_format">There was an error with “%1$s”.\n%2$s</string>
+    <string name="home_vault_summary">Protected by your screen lock</string>
+
     <!-- Ordo: trash -->
     <string name="navigation_trash">Trash</string>
     <string name="trash_title">Trash</string>

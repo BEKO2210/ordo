@@ -6,6 +6,7 @@
 package me.zhanghai.android.files.trash
 
 import android.os.Bundle
+import android.os.Environment
 import android.text.format.DateUtils
 import android.view.LayoutInflater
 import android.view.Menu
@@ -26,6 +27,8 @@ import me.zhanghai.android.files.databinding.TrashFragmentBinding
 import me.zhanghai.android.files.databinding.CheckableFileItemBinding
 import me.zhanghai.android.files.file.asFileSize
 import me.zhanghai.android.files.filejob.FileJobService
+import me.zhanghai.android.files.ui.setUpRestoreDeleteBar
+import me.zhanghai.android.files.ui.showRestoreDeleteBar
 import me.zhanghai.android.files.util.getQuantityString
 
 class TrashFragment : Fragment() {
@@ -60,6 +63,13 @@ class TrashFragment : Fragment() {
         binding.recyclerView.layoutManager = LinearLayoutManager(activity)
         binding.recyclerView.adapter = adapter
         binding.swipeRefreshLayout.setOnRefreshListener { viewModel.reload() }
+        view.findViewById<View>(R.id.restoreDeleteBar).setUpRestoreDeleteBar(
+            onRestore = {
+                FileJobService.restoreFromTrash(selectedEntries(), requireContext())
+                clearSelectionAndReloadLater()
+            },
+            onDelete = { confirmDelete(selectedEntries(), R.plurals.trash_delete_message_format) }
+        )
         viewModel.isLoading.observe(viewLifecycleOwner) {
             binding.swipeRefreshLayout.isRefreshing = it
         }
@@ -83,9 +93,6 @@ class TrashFragment : Fragment() {
 
     @Deprecated("Deprecated in Java")
     override fun onPrepareOptionsMenu(menu: Menu) {
-        val hasSelection = viewModel.selectedIds.isNotEmpty()
-        menu.findItem(R.id.action_restore).isVisible = hasSelection
-        menu.findItem(R.id.action_delete).isVisible = hasSelection
         val hasItems = adapter.items.isNotEmpty()
         menu.findItem(R.id.action_select_all).isVisible = hasItems
         menu.findItem(R.id.action_empty).isVisible = hasItems
@@ -96,15 +103,6 @@ class TrashFragment : Fragment() {
         when (item.itemId) {
             android.R.id.home -> {
                 requireActivity().finish()
-                true
-            }
-            R.id.action_restore -> {
-                FileJobService.restoreFromTrash(selectedEntries(), requireContext())
-                clearSelectionAndReloadLater()
-                true
-            }
-            R.id.action_delete -> {
-                confirmDelete(selectedEntries(), R.plurals.trash_delete_message_format)
                 true
             }
             R.id.action_select_all -> {
@@ -155,6 +153,8 @@ class TrashFragment : Fragment() {
         } else {
             getString(R.string.trash_title)
         }
+        requireView().findViewById<View>(R.id.restoreDeleteBar)
+            .showRestoreDeleteBar(count > 0, binding.recyclerView)
         requireActivity().invalidateOptionsMenu()
     }
 
@@ -183,12 +183,14 @@ class TrashFragment : Fragment() {
             )
             holder.binding.nameText.text = entry.name
             val deletedAt = DateUtils.formatDateTime(
-                context, entry.deletedAt, DateUtils.FORMAT_SHOW_DATE or DateUtils.FORMAT_SHOW_TIME
+                context, entry.deletedAt, DateUtils.FORMAT_SHOW_DATE or DateUtils.FORMAT_NUMERIC_DATE
             )
             holder.binding.descriptionText.text = getString(
                 R.string.trash_item_description_format, deletedAt,
                 item.size.asFileSize().formatHumanReadable(context),
+                // "Download/Urlaub" reads better than the full "/storage/emulated/0/…" path.
                 entry.originalPath.substringBeforeLast('/')
+                    .removePrefix(Environment.getExternalStorageDirectory().path + "/")
             )
             holder.binding.checkBox.isChecked = entry.id in viewModel.selectedIds
             holder.binding.root.setOnClickListener {

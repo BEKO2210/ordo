@@ -16,5 +16,6 @@
     <color name="home_analysis">#67E8F9</color>
     <color name="home_trash">#FCA5A5</color>
     <color name="home_apps">#A5B4FC</color>
+    <color name="home_vault">#5EEAD4</color>
     <color name="home_card">#14FFFFFF</color>
 </resources>

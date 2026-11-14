@@ -38,6 +38,7 @@ import me.zhanghai.android.files.util.isMounted
 import me.zhanghai.android.files.util.putArgs
 import me.zhanghai.android.files.util.supportsExternalStorageManager
 import me.zhanghai.android.files.util.valueCompat
+import me.zhanghai.android.files.vault.VaultActivity
 
 val navigationItems: List<NavigationItem?>
     get() =
@@ -357,7 +358,7 @@ private class BookmarkDirectoryItem(
 }
 
 private val menuItems: List<NavigationItem>
-    @Size(6)
+    @Size(7)
     get() = listOf(
         IntentMenuItem(
             R.drawable.apps_icon_white_24dp, R.string.navigation_apps,
@@ -370,6 +371,10 @@ private val menuItems: List<NavigationItem>
         IntentMenuItem(
             R.drawable.delete_icon_white_24dp, R.string.navigation_trash,
             TrashActivity::class.createIntent()
+        ),
+        IntentMenuItem(
+            R.drawable.lock_icon_white_24dp, R.string.navigation_vault,
+            VaultActivity::class.createIntent()
         ),
         IntentMenuItem(
             R.drawable.shared_directory_icon_white_24dp, R.string.navigation_ftp_server,

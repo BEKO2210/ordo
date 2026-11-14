@@ -697,6 +697,35 @@
     <string name="about_author_github_title">Auf GitHub folgen</string>
     <string name="about_author_twitter_title">Auf Twitter folgen</string>
 
+    <!-- Ordo: vault -->
+    <string name="navigation_vault">Tresor</string>
+    <string name="vault_title">Tresor</string>
+    <string name="vault_locked_title">Tresor ist gesperrt</string>
+    <string name="vault_locked_message">Entsperre ihn mit Fingerabdruck oder Bildschirmsperre, um deine Dateien zu sehen.</string>
+    <string name="vault_unlock_action">Tresor entsperren</string>
+    <string name="vault_lock_action">Tresor sperren</string>
+    <string name="vault_prompt_title">Tresor entsperren</string>
+    <string name="vault_no_screen_lock_title">Richte zuerst eine Bildschirmsperre ein</string>
+    <string name="vault_no_screen_lock_message">Der Tresor schützt deine Dateien mit deiner Bildschirmsperre. Richte dafür eine PIN, ein Muster oder einen Fingerabdruck ein.</string>
+    <string name="vault_open_settings_action">Sicherheitseinstellungen öffnen</string>
+    <string name="vault_empty">Noch keine Dateien im Tresor.\nWähle Dateien aus und tippe auf „In den Tresor“.</string>
+    <string name="vault_notice">Dateien im Tresor liegen nur auf diesem Gerät. Stelle sie wieder her, bevor du Ordo deinstallierst oder die App-Daten löschst – sonst sind sie verloren.</string>
+    <string name="vault_item_description_format">Hinzugefügt %1$s · %2$s\nAus %3$s</string>
+    <string name="vault_move_action">In den Tresor</string>
+    <string name="vault_move_title">In den Tresor verschieben?</string>
+    <string name="vault_move_confirm_action">Verschieben</string>
+    <plurals name="vault_move_message_format">
+        <item quantity="one">%1$d Datei wird verschlüsselt und aus ihrem Ordner entfernt. Sie liegt dann nur noch im Tresor auf diesem Gerät. Stelle sie wieder her, bevor du Ordo deinstallierst.</item>
+        <item quantity="other">%1$d Dateien werden verschlüsselt und aus ihren Ordnern entfernt. Sie liegen dann nur noch im Tresor auf diesem Gerät. Stelle sie wieder her, bevor du Ordo deinstallierst.</item>
+    </plurals>
+    <string name="vault_error_message">Der Tresor ließ sich nicht öffnen. Starte dein Gerät neu und versuche es noch einmal.</string>
+    <string name="vault_open_error">Die Datei ließ sich nicht entschlüsseln. Versuche es noch einmal.</string>
+    <string name="file_job_vault_move_notification_title">Verschiebe in den Tresor</string>
+    <string name="file_job_vault_restore_notification_title">Stelle aus dem Tresor wieder her</string>
+    <string name="file_job_vault_error_title">Fehler beim Verschieben in den Tresor</string>
+    <string name="file_job_vault_error_message_format">Bei „%1$s“ ist ein Fehler aufgetreten.\n%2$s</string>
+    <string name="home_vault_summary">Mit deiner Bildschirmsperre geschützt</string>
+
     <!-- Ordo: trash -->
     <string name="navigation_trash">Papierkorb</string>
     <string name="trash_title">Papierkorb</string>

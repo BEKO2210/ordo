@@ -24,7 +24,8 @@ Themes inkl. Schwarz.
 ## Phase 2 – Mehr als Samsung
 - [ ] P2.1 Tabs + Zwei-Spalten-Ansicht (Tablet/Querformat) mit Kopieren/Verschieben zwischen den Spalten.
 - [x] P2.2 Inhaltssuche (Text in Dateien, Regex), Filter nach Typ/Größe/Datum.
-- [ ] P2.3 Tresor: AES-256-GCM-Verschlüsselung von Dateien, Entsperren per Fingerabdruck/PIN; optional App-Sperre.
+- [x] P2.3 Tresor: AES-256-GCM-Verschlüsselung von Dateien (Tink), Entsperren per Fingerabdruck/Bildschirmsperre.
+      Offen: App-Sperre, Schlüssel an Entsperrung binden (braucht erst Sicherung/Export).
 - [x] P2.4 App-Manager: installierte Apps, APK sichern, Split-APK/XAPK installieren, Deinstallieren, App-Infos.
 - [x] P2.5 Kopiertempo + Restzeit (Ordnergrößen stehen in der Speicheranalyse).
 - [ ] P2.6 Medien: eingebauter Audio-/Video-Player und PDF-Ansicht (Plattform-APIs, keine großen Bibliotheken).

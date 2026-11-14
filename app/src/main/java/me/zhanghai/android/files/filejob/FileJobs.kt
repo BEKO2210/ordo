@@ -19,6 +19,8 @@ import java.io.ByteArrayInputStream
 import java.io.File
 import java.io.IOException
 import java.io.InterruptedIOException
+import java.nio.channels.Channels
+import java8.nio.channels.FileChannel
 import java8.nio.file.CopyOption
 import java8.nio.file.DirectoryIteratorException
 import java8.nio.file.FileAlreadyExistsException
@@ -76,6 +78,7 @@ import me.zhanghai.android.files.provider.common.isDirectory
 import me.zhanghai.android.files.provider.common.moveTo
 import me.zhanghai.android.files.provider.common.newByteChannel
 import me.zhanghai.android.files.provider.common.newDirectoryStream
+import me.zhanghai.android.files.provider.common.newInputStream
 import me.zhanghai.android.files.provider.common.newOutputStream
 import me.zhanghai.android.files.provider.common.readAttributes
 import me.zhanghai.android.files.provider.common.resolveForeign
@@ -99,6 +102,9 @@ import me.zhanghai.android.files.util.putArgs
 import me.zhanghai.android.files.util.showToast
 import me.zhanghai.android.files.util.toEnumSet
 import me.zhanghai.android.files.util.withChooser
+import me.zhanghai.android.files.vault.Vault
+import me.zhanghai.android.files.vault.VaultEntry
+import me.zhanghai.android.files.vault.copyInterruptiblyTo
 
 fun FileJob.getString(@StringRes stringRes: Int): String {
     return service.getString(stringRes)
@@ -2430,6 +2436,121 @@ class RestoreTrashJob(private val entries: List<TrashEntry>) : FileJob() {
                     getString(R.string.file_job_restore_trash_error_title),
                     getString(
                         R.string.file_job_delete_error_message_format, entry.name, e.toString()
+                    ),
+                    null,
+                    false,
+                    getString(R.string.retry),
+                    getString(R.string.skip),
+                    getString(android.R.string.cancel)
+                )
+                when (result.action) {
+                    FileJobErrorAction.POSITIVE -> continue
+                    FileJobErrorAction.NEGATIVE, FileJobErrorAction.CANCELED -> return
+                    FileJobErrorAction.NEUTRAL -> throw InterruptedIOException()
+                    else -> throw AssertionError(result.action)
+                }
+            }
+        }
+    }
+}
+
+class MoveToVaultJob(private val paths: List<Path>) : FileJob() {
+    @Throws(IOException::class)
+    override fun run() {
+        for ((index, path) in paths.withIndex()) {
+            postNotification(
+                getString(R.string.file_job_vault_move_notification_title), getFileName(path), null,
+                null, paths.size, index, false, true
+            )
+            moveToVault(path)
+            throwIfInterrupted()
+        }
+    }
+
+    @Throws(IOException::class)
+    private fun moveToVault(path: Path) {
+        while (true) {
+            try {
+                val entry = path.newInputStream().use { Vault.store.add(path.toString(), it) }
+                try {
+                    path.delete()
+                } catch (e: IOException) {
+                    // The original stays, so the copy must go or the file would exist twice.
+                    Vault.store.delete(entry)
+                    throw e
+                }
+                return
+            } catch (e: InterruptedIOException) {
+                throw e
+            } catch (e: IOException) {
+                e.printStackTrace()
+                val result = showErrorDialog(
+                    getString(R.string.file_job_vault_error_title),
+                    getString(
+                        R.string.file_job_vault_error_message_format, getFileName(path),
+                        e.toString()
+                    ),
+                    null,
+                    false,
+                    getString(R.string.retry),
+                    getString(R.string.skip),
+                    getString(android.R.string.cancel)
+                )
+                when (result.action) {
+                    FileJobErrorAction.POSITIVE -> continue
+                    FileJobErrorAction.NEGATIVE, FileJobErrorAction.CANCELED -> return
+                    FileJobErrorAction.NEUTRAL -> throw InterruptedIOException()
+                    else -> throw AssertionError(result.action)
+                }
+            }
+        }
+    }
+}
+
+class RestoreVaultJob(private val entries: List<VaultEntry>) : FileJob() {
+    @Throws(IOException::class)
+    override fun run() {
+        for ((index, entry) in entries.withIndex()) {
+            postNotification(
+                getString(R.string.file_job_vault_restore_notification_title), entry.name, null,
+                null, entries.size, index, false, true
+            )
+            restore(entry)
+            throwIfInterrupted()
+        }
+    }
+
+    @Throws(IOException::class)
+    private fun restore(entry: VaultEntry) {
+        while (true) {
+            try {
+                val target = Paths.get(Trash.restoreTarget(entry.originalPath) { File(it).exists() })
+                target.parent?.createDirectories()
+                Vault.store.open(entry).use { input ->
+                    val channel = target.newByteChannel(
+                        StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE
+                    )
+                    try {
+                        channel.use {
+                            input.copyInterruptiblyTo(Channels.newOutputStream(it))
+                            // The vault copy is deleted next, so the restored file must be on disk.
+                            (it as? FileChannel)?.force(true)
+                        }
+                    } catch (e: IOException) {
+                        target.deleteIfExists()
+                        throw e
+                    }
+                }
+                Vault.store.delete(entry)
+                return
+            } catch (e: InterruptedIOException) {
+                throw e
+            } catch (e: IOException) {
+                e.printStackTrace()
+                val result = showErrorDialog(
+                    getString(R.string.file_job_restore_trash_error_title),
+                    getString(
+                        R.string.file_job_vault_error_message_format, entry.name, e.toString()
                     ),
                     null,
                     false,

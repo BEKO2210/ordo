@@ -65,6 +65,12 @@
         app:showAsAction="never" />
 
     <item
+        android:id="@+id/action_move_to_vault"
+        android:orderInCategory="100"
+        android:title="@string/vault_move_action"
+        app:showAsAction="never" />
+
+    <item
         android:id="@+id/action_share"
         android:icon="@drawable/share_icon_control_normal_24dp"
         android:orderInCategory="100"

@@ -45,6 +45,7 @@ import me.zhanghai.android.files.util.getQuantityString
 import me.zhanghai.android.files.util.startActivitySafe
 import me.zhanghai.android.files.util.supportsExternalStorageManager
 import me.zhanghai.android.files.util.valueCompat
+import me.zhanghai.android.files.vault.VaultActivity
 import me.zhanghai.android.files.util.viewModels
 
 class HomeFragment : Fragment(), ShowRequestAllFilesAccessRationaleDialogFragment.Listener,
@@ -85,6 +86,10 @@ class HomeFragment : Fragment(), ShowRequestAllFilesAccessRationaleDialogFragmen
             layoutManager = GridLayoutManager(context, 3)
             adapter = tileAdapter
             isNestedScrollingEnabled = false
+        }
+        binding.vaultIcon.setTintedCircleIcon(R.drawable.lock_icon_white_24dp, R.color.home_vault)
+        binding.vaultCard.setOnClickListener {
+            startActivity(Intent(requireContext(), VaultActivity::class.java))
         }
         val storageAdapter = StorageAdapter(
             { startActivity(Intent(requireContext(), AnalysisActivity::class.java)) }

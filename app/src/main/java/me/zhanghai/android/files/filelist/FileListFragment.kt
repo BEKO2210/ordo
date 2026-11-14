@@ -53,6 +53,7 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.google.android.material.button.MaterialButton
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.leinardi.android.speeddial.SpeedDialView
 import eightbitlab.com.blurview.BlurView
 import java8.nio.file.Path
@@ -954,6 +955,9 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
             menu.findItem(R.id.action_move_to).isVisible =
                 !isAnyFileReadOnly && !isAnyFileArchivePath
             menu.findItem(R.id.action_copy_to).isVisible = !isAnyFileArchivePath
+            // Only plain local files: a symbolic link would leave its target unprotected.
+            menu.findItem(R.id.action_move_to_vault).isVisible = !isAnyFileReadOnly &&
+                files.all { it.path.isLinuxPath && it.attributesNoFollowLinks.isRegularFile }
             menu.findItem(R.id.action_rename).isVisible = !isAnyFileReadOnly && !isAnyFileArchivePath
             menu.findItem(R.id.action_copy)
                 .setIcon(
@@ -1063,6 +1067,10 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
                 transferFilesTo(viewModel.selectedFiles, false)
                 true
             }
+            R.id.action_move_to_vault -> {
+                confirmMoveToVault(viewModel.selectedFiles)
+                true
+            }
             R.id.action_delete -> {
                 confirmDeleteFiles(viewModel.selectedFiles)
                 true
@@ -1145,6 +1153,22 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
     override fun deleteFiles(files: FileItemSet, permanently: Boolean) {
         FileJobService.delete(makePathListForJob(files), requireContext(), permanently)
         viewModel.selectFiles(files, false)
+    }
+
+    private fun confirmMoveToVault(files: FileItemSet) {
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.vault_move_title)
+            .setMessage(
+                requireContext().getQuantityString(
+                    R.plurals.vault_move_message_format, files.size, files.size
+                )
+            )
+            .setPositiveButton(R.string.vault_move_confirm_action) { _, _ ->
+                FileJobService.moveToVault(makePathListForJob(files), requireContext())
+                viewModel.selectFiles(files, false)
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
     }
 
     private fun extractFiles(files: FileItemSet) {

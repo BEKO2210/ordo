@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+  ~ Copyright (c) 2026 Ordo contributors
+  ~ SPDX-License-Identifier: GPL-3.0-or-later
+  -->
+
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true">
+
+    <me.zhanghai.android.files.ui.CoordinatorAppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?colorAppBarSurface"
+        android:theme="?actionBarTheme"
+        app:liftOnScroll="true"
+        app:liftOnScrollTargetViewId="@id/recyclerView">
+
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?actionBarSize"
+            app:popupTheme="?actionBarPopupTheme" />
+    </me.zhanghai.android.files.ui.CoordinatorAppBarLayout>
+
+    <me.zhanghai.android.files.ui.CoordinatorScrollingFrameLayout
+        android:id="@+id/contentLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+            android:id="@+id/swipeRefreshLayout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone">
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:clipToPadding="false"
+                android:paddingTop="@dimen/list_vertical_padding"
+                android:paddingBottom="@dimen/list_vertical_padding"
+                android:scrollbars="vertical" />
+        </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+        <TextView
+            android:id="@+id/emptyView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:padding="@dimen/screen_edge_margin"
+            android:drawablePadding="16dp"
+            android:gravity="center"
+            android:text="@string/vault_empty"
+            android:textAppearance="?textAppearanceListItem"
+            android:visibility="gone"
+            app:drawableTopCompat="@drawable/lock_icon_white_24dp"
+            app:drawableTint="?colorControlNormal" />
+
+        <!-- Scrolls so the button stays reachable in landscape and with large fonts. -->
+        <ScrollView
+            android:id="@+id/lockedView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:fillViewport="true">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:padding="32dp">
+
+                <ImageView
+                    android:id="@+id/lockedIcon"
+                    android:layout_width="96dp"
+                    android:layout_height="96dp"
+                    android:background="@drawable/home_icon_circle"
+                    android:importantForAccessibility="no"
+                    android:padding="28dp" />
+
+                <TextView
+                    android:id="@+id/lockedTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="24dp"
+                    android:gravity="center"
+                    android:text="@string/vault_locked_title"
+                    android:textAppearance="?textAppearanceHeadline6" />
+
+                <TextView
+                    android:id="@+id/lockedMessage"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:gravity="center"
+                    android:maxWidth="320dp"
+                    android:text="@string/vault_locked_message"
+                    android:textAppearance="?textAppearanceBody2"
+                    android:textColor="?android:textColorSecondary" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/unlockButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="24dp"
+                    android:minHeight="48dp"
+                    android:text="@string/vault_unlock_action" />
+            </LinearLayout>
+        </ScrollView>
+    </me.zhanghai.android.files.ui.CoordinatorScrollingFrameLayout>
+    <include layout="@layout/restore_delete_bar_include" />
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

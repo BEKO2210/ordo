@@ -86,6 +86,10 @@ internal class LinuxPath : ByteStringListPath<LinuxPath>, RootablePath {
 
     override fun isRootRequired(isAttributeAccess: Boolean): Boolean {
         val file = toFile()
+        // Ordo: the app always reaches its own data, e.g. files opened from the vault.
+        if (file.startsWith(application.dataDir)) {
+            return false
+        }
         return StorageVolumeListLiveData.valueCompat.none {
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R && !it.isPrimaryCompat) {
                 return@none false

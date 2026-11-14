@@ -60,4 +60,5 @@
             app:drawableTopCompat="@drawable/delete_icon_white_24dp"
             app:drawableTint="?colorControlNormal" />
     </me.zhanghai.android.files.ui.CoordinatorScrollingFrameLayout>
+    <include layout="@layout/restore_delete_bar_include" />
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
