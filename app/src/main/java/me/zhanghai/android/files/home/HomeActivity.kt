@@ -23,6 +23,9 @@ class HomeActivity : AppActivity() {
         }
         if (savedInstanceState == null) {
             supportFragmentManager.commit { add(android.R.id.content, HomeFragment()) }
+            if (!OnboardingActivity.isDone(this)) {
+                startActivity(Intent(this, OnboardingActivity::class.java))
+            }
         }
     }
 }

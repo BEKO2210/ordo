@@ -117,4 +117,44 @@
         <item name="android:textAppearance">?textAppearanceBody2</item>
         <item name="drawableTint">?android:textColorSecondary</item>
     </style>
+
+    <style name="Widget.Ordo.OnboardingPage" parent="">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:gravity">center</item>
+        <item name="android:orientation">vertical</item>
+    </style>
+
+    <style name="Widget.Ordo.OnboardingTitle" parent="">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">32dp</item>
+        <item name="android:accessibilityHeading">true</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textAppearance">?textAppearanceHeadline5</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="Widget.Ordo.OnboardingText" parent="">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">12dp</item>
+        <item name="android:gravity">center</item>
+        <item name="android:lineSpacingMultiplier">1.2</item>
+        <item name="android:textAppearance">?textAppearanceBody1</item>
+        <item name="android:textColor">?android:textColorSecondary</item>
+    </style>
+
+    <style name="Widget.Ordo.OnboardingFeature" parent="">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">16dp</item>
+        <item name="android:background">@drawable/ai_glass_card</item>
+        <item name="android:drawablePadding">16dp</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:minHeight">72dp</item>
+        <item name="android:padding">16dp</item>
+        <item name="android:textAppearance">?textAppearanceBody1</item>
+        <item name="drawableTint">@color/ai_accent</item>
+    </style>
 </resources>

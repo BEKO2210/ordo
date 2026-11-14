@@ -23,7 +23,6 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.LinearSnapHelper
-import me.zhanghai.android.files.BuildConfig
 import me.zhanghai.android.files.R
 import me.zhanghai.android.files.ai.CommandSheetFragment
 import me.zhanghai.android.files.analysis.AnalysisActivity
@@ -108,8 +107,8 @@ class HomeFragment : Fragment(), ShowRequestAllFilesAccessRationaleDialogFragmen
         val quickAccessAdapter = QuickAccessAdapter { startActivity(FileListActivity.createViewIntent(it.path)) }
         binding.quickAccessList.apply { layoutManager = LinearLayoutManager(context); adapter = quickAccessAdapter; isNestedScrollingEnabled = false }
         binding.searchCard.setOnClickListener { startActivity(FileListActivity.createSearchIntent()) }
-        // Test builds only until step 3 (switch in the app, device check, model download) exists.
-        binding.assistantButton.isVisible = BuildConfig.DEBUG
+        // Opt-in by design: nothing is downloaded or loaded until the user starts the setup in the sheet.
+        binding.assistantButton.isVisible = true
         binding.assistantButton.setOnClickListener {
             CommandSheetFragment().show(childFragmentManager, CommandSheetFragment.TAG)
         }

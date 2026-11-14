@@ -13,8 +13,11 @@ import me.zhanghai.android.files.app.application
 import me.zhanghai.android.files.file.MimeType
 import me.zhanghai.android.files.file.asMimeTypeOrNull
 import me.zhanghai.android.files.file.fileProviderUri
-import me.zhanghai.android.files.filejob.FileJobService
 import me.zhanghai.android.files.provider.archive.isArchivePath
+import me.zhanghai.android.files.provider.linux.isLinuxPath
+import me.zhanghai.android.files.trash.Trash
+import java.io.File
+import java.io.IOException
 import me.zhanghai.android.files.util.createViewIntent
 import me.zhanghai.android.files.util.extraPath
 import me.zhanghai.android.files.util.startActivitySafe
@@ -26,21 +29,30 @@ class OpenFileActivity : AppActivity() {
         val intent = intent
         val path = intent.extraPath
         val mimeType = intent.type?.asMimeTypeOrNull()
-        if (path != null && mimeType != null) {
+        if (path != null && mimeType != null && isSharedFile(path)) {
             openFile(path, mimeType)
         }
         finish()
     }
 
-    private fun openFile(path: Path, mimeType: MimeType) {
-        if (path.isArchivePath) {
-            FileJobService.open(path, mimeType, false, this)
-        } else {
-            val intent = path.fileProviderUri.createViewIntent(mimeType)
-                .addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
-                .apply { extraPath = path }
-            startActivitySafe(intent)
+    // This activity is exported for home-screen shortcuts, so any app can call it: only files on shared
+    // storage (never Ordo's own data, Android/data or the trash), and the viewer only gets to read.
+    private fun isSharedFile(path: Path): Boolean {
+        if (path.isArchivePath || !path.isLinuxPath) {
+            return false
         }
+        val canonical = try {
+            File(path.toString()).canonicalPath
+        } catch (e: IOException) {
+            return false
+        }
+        return Trash.rootOf(canonical) != null
+    }
+
+    private fun openFile(path: Path, mimeType: MimeType) {
+        val intent = path.fileProviderUri.createViewIntent(mimeType)
+            .apply { extraPath = path }
+        startActivitySafe(intent)
     }
 
     companion object {

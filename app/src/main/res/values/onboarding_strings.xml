@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright (c) 2026 Ordo contributors
+  ~ SPDX-License-Identifier: GPL-3.0-or-later
+  -->
+
+<resources>
+    <string name="onboarding_skip">Skip</string>
+    <string name="onboarding_next">Next</string>
+    <string name="onboarding_start">Let’s go</string>
+    <string name="onboarding_allow">Allow access</string>
+    <string name="onboarding_page">Page %1$d of %2$d</string>
+    <string name="onboarding_welcome_title">Welcome to Ordo</string>
+    <string name="onboarding_welcome_text">Your files, neatly in order. Fast, safe and free – no ads, no tracking.</string>
+    <string name="onboarding_safety_title">Safe from the start</string>
+    <string name="onboarding_feature_trash">Deleted files wait in the trash for 30 days – nothing is lost by accident.</string>
+    <string name="onboarding_feature_vault">The vault locks private files with AES-256 and your screen lock.</string>
+    <string name="onboarding_feature_privacy">No ads, no tracking, no account. Your data stays on your phone.</string>
+    <string name="onboarding_ai_title">AI that never leaves your phone</string>
+    <string name="onboarding_ai_example">Move all MP3s from Download to Music</string>
+    <string name="onboarding_ai_text">Say what you want in your own words. Ordo shows the plan first and only acts when you confirm. Set it up any time with the wand in the search bar.</string>
+    <string name="onboarding_access_title">Access to your files</string>
+    <string name="onboarding_access_text">To sort, move and protect your files, Ordo needs access to them. Android asks you once.</string>
+    <string name="onboarding_access_done">Access granted. You’re all set.</string>
+</resources>

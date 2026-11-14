@@ -803,6 +803,9 @@ class CopyFileJob(private val sources: List<Path>, private val targetDirectory: 
                 attributes: BasicFileAttributes
             ): FileVisitResult {
                 val directoryInTarget = target.resolveForeign(source.relativize(directory))
+                if (isExtract && directoryInTarget.escapes(target)) {
+                    return FileVisitResult.SKIP_SUBTREE
+                }
                 val copied = copy(
                     directory, directoryInTarget, isExtract, transferInfo, actionAllInfo
                 )
@@ -813,6 +816,9 @@ class CopyFileJob(private val sources: List<Path>, private val targetDirectory: 
             @Throws(IOException::class)
             override fun visitFile(file: Path, attributes: BasicFileAttributes): FileVisitResult {
                 val fileInTarget = target.resolveForeign(source.relativize(file))
+                if (isExtract && fileInTarget.escapes(target)) {
+                    return FileVisitResult.CONTINUE
+                }
                 copy(file, fileInTarget, isExtract, transferInfo, actionAllInfo)
                 throwIfInterrupted()
                 return FileVisitResult.CONTINUE
@@ -824,6 +830,30 @@ class CopyFileJob(private val sources: List<Path>, private val targetDirectory: 
                 return super.visitFileFailed(file, exception)
             }
         })
+    }
+
+    /**
+     * Extracting must stay inside [root]: neither ".." nor a symlink unpacked from the same archive may
+     * send a later entry somewhere else ("zip slip"). Such entries are skipped.
+     */
+    private fun Path.escapes(root: Path): Boolean {
+        if (this == root) {
+            return false
+        }
+        if (!normalize().startsWith(root.normalize())) {
+            return true
+        }
+        if (!isLinuxPath || !root.isLinuxPath) {
+            return false
+        }
+        val rootFile = java.io.File(root.toString())
+        val rootReal = if (rootFile.exists()) {
+            rootFile.canonicalPath
+        } else {
+            java.io.File(rootFile.parentFile!!.canonicalPath, rootFile.name).path
+        }
+        val parentReal = java.io.File(parent.toString()).canonicalPath
+        return parentReal != rootReal && !parentReal.startsWith("$rootReal/")
     }
 
     private fun getTargetPathForDuplicate(source: Path): Path {
