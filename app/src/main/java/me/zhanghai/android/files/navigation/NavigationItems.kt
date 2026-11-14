@@ -17,6 +17,7 @@ import java8.nio.file.Path
 import java8.nio.file.Paths
 import me.zhanghai.android.files.R
 import me.zhanghai.android.files.analysis.AnalysisActivity
+import me.zhanghai.android.files.apps.AppsActivity
 import me.zhanghai.android.files.about.AboutActivity
 import me.zhanghai.android.files.compat.getDescriptionCompat
 import me.zhanghai.android.files.compat.isPrimaryCompat
@@ -356,8 +357,12 @@ private class BookmarkDirectoryItem(
 }
 
 private val menuItems: List<NavigationItem>
-    @Size(5)
+    @Size(6)
     get() = listOf(
+        IntentMenuItem(
+            R.drawable.apps_icon_white_24dp, R.string.navigation_apps,
+            AppsActivity::class.createIntent()
+        ),
         IntentMenuItem(
             R.drawable.storage_analysis_icon_white_24dp, R.string.navigation_analysis,
             AnalysisActivity::class.createIntent()

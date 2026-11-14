@@ -774,4 +774,17 @@
     <!-- Ordo: search -->
     <string name="file_list_action_search_content">Im Dateiinhalt suchen</string>
     <string name="file_list_action_search_regex">Regulärer Ausdruck</string>
+
+    <!-- Ordo: apps -->
+    <string name="navigation_apps">Apps</string>
+    <string name="apps_title">Apps</string>
+    <string name="apps_empty">Keine Apps gefunden</string>
+    <string name="apps_show_system">Systemapps anzeigen</string>
+    <string name="apps_item_description_format">%1$s\n%2$s</string>
+    <string name="apps_open">Öffnen</string>
+    <string name="apps_info">App-Info</string>
+    <string name="apps_backup">APK sichern</string>
+    <string name="apps_uninstall">Deinstallieren</string>
+    <string name="apps_backup_done_format">Gespeichert unter %1$s</string>
+    <string name="apps_backup_failed">Die APK ließ sich nicht sichern</string>
 </resources>
