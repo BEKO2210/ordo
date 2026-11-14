@@ -66,7 +66,7 @@ class CommandRunner(
         var undone = 0
         for (entry in journal.placed.asReversed()) {
             val to = entry.to
-            if (!to.isFile || to.length() != entry.length || to.lastModified() != entry.modified) continue
+            if (!to.isFile || to.length() != entry.length || !sameTime(to.lastModified(), entry.modified)) continue
             val ok = if (journal.action == "copy") {
                 trash(to) != null
             } else {
@@ -79,6 +79,9 @@ class CommandRunner(
         }
         return undone
     }
+
+    // Shared storage (FUSE) reports milliseconds right after a write and whole seconds later on.
+    private fun sameTime(a: Long, b: Long): Boolean = kotlin.math.abs(a - b) < 2_000
 
     private fun place(file: File, dir: File, copy: Boolean): Placed? {
         if (!dir.isDirectory && !dir.mkdirs() || !isSafeDir(dir)) return null
