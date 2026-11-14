@@ -233,6 +233,11 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
         if (savedInstanceState == null) {
             navigationFragment = NavigationFragment()
             childFragmentManager.commit { add(R.id.navigationFragment, navigationFragment) }
+            // Launched from the home screen's search field: start with the search open.
+            if (args.intent.action == null &&
+                args.intent.getBooleanExtra(FileListActivity.EXTRA_SEARCH, false)) {
+                viewModel.isSearchViewExpanded = true
+            }
         } else {
             navigationFragment = childFragmentManager.findFragmentById(R.id.navigationFragment)
                 as NavigationFragment

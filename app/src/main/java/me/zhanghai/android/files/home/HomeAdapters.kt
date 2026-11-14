@@ -28,7 +28,9 @@ import me.zhanghai.android.files.databinding.HomeRecentItemBinding
 import me.zhanghai.android.files.databinding.HomeStorageItemBinding
 import me.zhanghai.android.files.databinding.HomeQuickAccessItemBinding
 import me.zhanghai.android.files.file.asFileSize
+import me.zhanghai.android.files.util.getColorByAttr
 import me.zhanghai.android.files.util.getQuantityString
+import java.text.NumberFormat
 
 class RecentFileAdapter(private val onClick: (RecentFile) -> Unit) :
     RecyclerView.Adapter<RecentFileAdapter.ViewHolder>() {
@@ -118,7 +120,10 @@ class TileAdapter : RecyclerView.Adapter<TileAdapter.ViewHolder>() {
     }
 }
 
-class StorageAdapter(private val onClick: (StorageSummary) -> Unit) :
+class StorageAdapter(
+    private val onAnalyze: () -> Unit,
+    private val onClick: (StorageSummary) -> Unit
+) :
     RecyclerView.Adapter<StorageAdapter.ViewHolder>() {
     var items: List<StorageSummary> = emptyList()
         set(value) { field = value; notifyDataSetChanged() }
@@ -130,8 +135,9 @@ class StorageAdapter(private val onClick: (StorageSummary) -> Unit) :
     inner class ViewHolder(private val binding: HomeStorageItemBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(item: StorageSummary) {
             val context = binding.root.context
-            binding.iconImage.setImageResource(
-                if (item.removable) R.drawable.sd_card_icon_white_24dp else R.drawable.device_icon_white_24dp
+            binding.iconImage.setTintedCircleIcon(
+                if (item.removable) R.drawable.sd_card_icon_white_24dp else R.drawable.device_icon_white_24dp,
+                R.color.home_analysis
             )
             binding.nameText.text = item.name
             binding.descriptionText.text = context.getString(
@@ -145,8 +151,21 @@ class StorageAdapter(private val onClick: (StorageSummary) -> Unit) :
             } else {
                 0
             }
+            binding.percentText.text = NumberFormat.getPercentInstance().format(progress / 1000.0)
+            // Red once the storage is nearly full.
+            binding.usageProgress.setIndicatorColor(
+                context.getColorByAttr(
+                    if (progress >= 900) {
+                        androidx.appcompat.R.attr.colorError
+                    } else {
+                        androidx.appcompat.R.attr.colorPrimary
+                    }
+                )
+            )
             // Fills up from empty on first show, like a gauge settling.
             binding.usageProgress.setProgressCompat(progress, true)
+            binding.analyzeButton.isVisible = !item.removable
+            binding.analyzeButton.setOnClickListener { onAnalyze() }
             binding.root.setOnClickListener { onClick(item) }
         }
     }

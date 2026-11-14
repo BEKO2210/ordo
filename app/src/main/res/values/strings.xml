@@ -942,5 +942,6 @@
     <string name="home_recent_view_grid">Grid</string>
     <string name="home_recent_view_row">Horizontal</string>
     <string name="home_recent_view_hidden">Hide</string>
+    <string name="home_search_hint">Search files</string>
     <string name="home_show_quick_access">Show quick access</string>
 </resources>

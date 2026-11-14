@@ -809,5 +809,6 @@
     <string name="home_recent_view_grid">Raster</string>
     <string name="home_recent_view_row">Waagerecht</string>
     <string name="home_recent_view_hidden">Ausblenden</string>
+    <string name="home_search_hint">Dateien suchen</string>
     <string name="home_show_quick_access">Schnellzugriff anzeigen</string>
 </resources>

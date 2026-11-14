@@ -54,6 +54,11 @@ class FileListActivity : AppActivity() {
             FileListActivity::class.createIntent()
                 .putExtra(EXTRA_HOME_CATEGORY, category.name)
 
+        fun createSearchIntent(): Intent =
+            FileListActivity::class.createIntent().putExtra(EXTRA_SEARCH, true)
+
+        const val EXTRA_SEARCH = "me.zhanghai.android.files.extra.SEARCH"
+
         const val EXTRA_HOME_CATEGORY = "me.zhanghai.android.files.extra.HOME_CATEGORY"
     }
 

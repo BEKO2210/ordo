@@ -98,6 +98,7 @@ dependencies {
         exclude group: 'org.ogce', module: 'xpp3'
     }
     implementation 'com.github.chrisbanes:PhotoView:2.3.0'
+    implementation 'com.github.Dimezis:BlurView:version-4.0.0'
     implementation 'com.github.topjohnwu.libsu:service:5.2.2'
 }
 

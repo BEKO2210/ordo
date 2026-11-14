@@ -57,7 +57,15 @@
         <item name="strokeWidth">@dimen/mtrl_btn_stroke_size</item>
     </style>
 
-    <style name="HomeSectionTitle" parent="TextAppearance.MaterialComponents.Headline6">
+    <!-- Filled, borderless card of the home screen. -->
+    <style name="Widget.Ordo.HomeCard" parent="Widget.MaterialFiles.CardView">
+        <item name="cardBackgroundColor">@color/home_card</item>
+        <item name="cardCornerRadius">16dp</item>
+        <item name="strokeWidth">0dp</item>
+    </style>
+
+    <style name="HomeSectionTitle" parent="TextAppearance.MaterialComponents.Subtitle1">
+        <item name="android:fontFamily">sans-serif-medium</item>
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:paddingStart">16dp</item>

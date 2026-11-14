@@ -14,7 +14,11 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.graphics.ColorUtils
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
+import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -35,6 +39,7 @@ import me.zhanghai.android.files.settings.SettingsActivity
 import me.zhanghai.android.files.trash.TrashActivity
 import me.zhanghai.android.files.util.createIntent
 import me.zhanghai.android.files.util.createManageAppAllFilesAccessPermissionIntent
+import me.zhanghai.android.files.util.getColorByAttr
 import me.zhanghai.android.files.util.getQuantityString
 import me.zhanghai.android.files.util.startActivitySafe
 import me.zhanghai.android.files.util.supportsExternalStorageManager
@@ -80,13 +85,14 @@ class HomeFragment : Fragment(), ShowRequestAllFilesAccessRationaleDialogFragmen
             adapter = tileAdapter
             isNestedScrollingEnabled = false
         }
-        val storageAdapter = StorageAdapter { startActivity(FileListActivity.createViewIntent(it.path)) }
+        val storageAdapter = StorageAdapter(
+            { startActivity(Intent(requireContext(), AnalysisActivity::class.java)) }
+        ) { startActivity(FileListActivity.createViewIntent(it.path)) }
         binding.storageList.apply { layoutManager = LinearLayoutManager(context); adapter = storageAdapter; isNestedScrollingEnabled = false }
         val quickAccessAdapter = QuickAccessAdapter { startActivity(FileListActivity.createViewIntent(it.path)) }
         binding.quickAccessList.apply { layoutManager = LinearLayoutManager(context); adapter = quickAccessAdapter; isNestedScrollingEnabled = false }
-        binding.analyzeButton.setOnClickListener {
-            startActivity(Intent(requireContext(), AnalysisActivity::class.java))
-        }
+        binding.searchCard.setOnClickListener { startActivity(FileListActivity.createSearchIntent()) }
+        setUpGlassToolbar()
         binding.toolbar.setTitle(R.string.app_name)
         binding.toolbar.inflateMenu(R.menu.home)
         binding.toolbar.setOnMenuItemClickListener {
@@ -139,6 +145,37 @@ class HomeFragment : Fragment(), ShowRequestAllFilesAccessRationaleDialogFragmen
             quickAccessAdapter.items = homeState.quickAccess
             updateRecentEmpty()
             binding.swipeRefreshLayout.isRefreshing = homeState.isLoading
+        }
+    }
+
+    // The content scrolls under the top bar. Android 12+ blurs it; older versions get a solid bar.
+    private fun setUpGlassToolbar() {
+        val context = requireContext()
+        val barColor = ColorUtils.compositeColors(
+            context.getColorByAttr(R.attr.colorAppBarSurface),
+            context.getColorByAttr(android.R.attr.colorBackground)
+        )
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            binding.toolbarBlur.setupWith(binding.blurTarget)
+                .setFrameClearDrawable(requireActivity().window.decorView.background)
+                .setBlurRadius(GLASS_BLUR_RADIUS)
+                .setOverlayColor(ColorUtils.setAlphaComponent(barColor, GLASS_OVERLAY_ALPHA))
+        } else {
+            binding.toolbarBlur.setBackgroundColor(barColor)
+        }
+        val scrollPaddingBottom = binding.scrollView.paddingBottom
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { root, windowInsets ->
+            val insets = windowInsets.getInsets(
+                WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
+            )
+            root.updatePadding(left = insets.left, right = insets.right)
+            binding.toolbarBlur.updatePadding(top = insets.top)
+            val top = insets.top + binding.toolbar.layoutParams.height
+            binding.scrollView.updatePadding(top = top, bottom = scrollPaddingBottom + insets.bottom)
+            binding.swipeRefreshLayout.setProgressViewOffset(
+                true, top, top + binding.swipeRefreshLayout.progressViewEndOffset
+            )
+            windowInsets
         }
     }
 
@@ -242,6 +279,9 @@ class HomeFragment : Fragment(), ShowRequestAllFilesAccessRationaleDialogFragmen
     }
 
     companion object {
+        private const val GLASS_BLUR_RADIUS = 20f
+        private const val GLASS_OVERLAY_ALPHA = 0xB3
+
         private const val RECENT_VIEW_GRID = "grid"
         private const val RECENT_VIEW_ROW = "row"
         private const val RECENT_GRID_COUNT = 2 * RecentFileAdapter.COLUMNS
