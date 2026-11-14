@@ -68,6 +68,22 @@
     </item>
 
     <item
+        android:id="@+id/action_search_content"
+        android:checkable="true"
+        android:orderInCategory="100"
+        android:title="@string/file_list_action_search_content"
+        android:visible="false"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_search_regex"
+        android:checkable="true"
+        android:orderInCategory="100"
+        android:title="@string/file_list_action_search_regex"
+        android:visible="false"
+        app:showAsAction="never" />
+
+    <item
         android:id="@+id/action_new_task"
         android:orderInCategory="100"
         android:title="@string/file_list_action_new_task"

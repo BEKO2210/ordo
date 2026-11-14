@@ -55,6 +55,14 @@ class FileListViewModel(private val homeCategory: HomeCategory? = null) : ViewMo
         _searchStateLiveData.value = SearchState(true, query)
     }
 
+    // Search options changed: run the current search again.
+    fun refreshSearch() {
+        val searchState = _searchStateLiveData.valueCompat
+        if (searchState.isSearching) {
+            _searchStateLiveData.value = SearchState(true, searchState.query)
+        }
+    }
+
     fun stopSearching() {
         val searchState = _searchStateLiveData.valueCompat
         if (!searchState.isSearching) {

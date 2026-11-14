@@ -10,6 +10,7 @@ import java8.nio.file.Path
 import me.zhanghai.android.files.file.FileItem
 import me.zhanghai.android.files.file.loadFileItem
 import me.zhanghai.android.files.provider.common.search
+import me.zhanghai.android.files.settings.Settings
 import me.zhanghai.android.files.util.CloseableLiveData
 import me.zhanghai.android.files.util.Failure
 import me.zhanghai.android.files.util.Loading
@@ -36,7 +37,9 @@ class SearchFileListLiveData(
         future = (AsyncTask.THREAD_POOL_EXECUTOR as ExecutorService).submit<Unit> {
             val fileList = mutableListOf<FileItem>()
             try {
-                path.search(query, INTERVAL_MILLIS) { paths: List<Path> ->
+                val searchContent = Settings.FILE_LIST_SEARCH_CONTENT.valueCompat
+                val useRegex = Settings.FILE_LIST_SEARCH_REGEX.valueCompat
+                val listener = { paths: List<Path> ->
                     for (path in paths) {
                         val fileItem = try {
                             path.loadFileItem()
@@ -48,6 +51,12 @@ class SearchFileListLiveData(
                         fileList.add(fileItem)
                     }
                     postValue(Loading(fileList.toList()))
+                }
+                if (searchContent || useRegex) {
+                    ContentSearch(query, useRegex, searchContent)
+                        .search(path, INTERVAL_MILLIS, listener)
+                } else {
+                    path.search(query, INTERVAL_MILLIS, listener)
                 }
                 postValue(Success(fileList))
             } catch (e: Exception) {

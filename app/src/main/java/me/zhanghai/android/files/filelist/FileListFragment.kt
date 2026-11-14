@@ -530,6 +530,18 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
                 selectAllFiles()
                 true
             }
+            R.id.action_search_content -> {
+                Settings.FILE_LIST_SEARCH_CONTENT.putValue(!item.isChecked)
+                viewModel.refreshSearch()
+                updateViewSortMenuItems()
+                true
+            }
+            R.id.action_search_regex -> {
+                Settings.FILE_LIST_SEARCH_REGEX.putValue(!item.isChecked)
+                viewModel.refreshSearch()
+                updateViewSortMenuItems()
+                true
+            }
             R.id.action_show_hidden_files -> {
                 setShowHiddenFiles(!menuBinding.showHiddenFilesItem.isChecked)
                 true
@@ -697,6 +709,14 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
         }
         val searchViewExpanded = viewModel.isSearchViewExpanded
         menuBinding.viewSortItem.isVisible = !searchViewExpanded
+        menuBinding.menu.findItem(R.id.action_search_content).apply {
+            isVisible = searchViewExpanded
+            isChecked = Settings.FILE_LIST_SEARCH_CONTENT.valueCompat
+        }
+        menuBinding.menu.findItem(R.id.action_search_regex).apply {
+            isVisible = searchViewExpanded
+            isChecked = Settings.FILE_LIST_SEARCH_REGEX.valueCompat
+        }
         if (searchViewExpanded) {
             return
         }

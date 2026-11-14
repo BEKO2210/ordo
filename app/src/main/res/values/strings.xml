@@ -903,4 +903,8 @@
 
     <!-- Ordo: transfer speed -->
     <string name="file_job_transfer_speed_format">%1$s · %2$s/s · %3$s left</string>
+
+    <!-- Ordo: search -->
+    <string name="file_list_action_search_content">Search in file contents</string>
+    <string name="file_list_action_search_regex">Regular expression</string>
 </resources>

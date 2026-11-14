@@ -56,6 +56,17 @@ object Settings {
             R.bool.pref_default_value_file_list_show_hidden_files
         )
 
+    val FILE_LIST_SEARCH_CONTENT: SettingLiveData<Boolean> =
+        BooleanSettingLiveData(
+            R.string.pref_key_file_list_search_content,
+            R.bool.pref_default_value_file_list_search_content
+        )
+
+    val FILE_LIST_SEARCH_REGEX: SettingLiveData<Boolean> =
+        BooleanSettingLiveData(
+            R.string.pref_key_file_list_search_regex, R.bool.pref_default_value_file_list_search_regex
+        )
+
     val FILE_LIST_VIEW_TYPE: SettingLiveData<FileViewType> =
         EnumSettingLiveData(
             R.string.pref_key_file_list_view_type, R.string.pref_default_value_file_list_view_type,

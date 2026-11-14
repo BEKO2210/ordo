@@ -770,4 +770,8 @@
 
     <!-- Ordo: transfer speed -->
     <string name="file_job_transfer_speed_format">%1$s · %2$s/s · noch %3$s</string>
+
+    <!-- Ordo: search -->
+    <string name="file_list_action_search_content">Im Dateiinhalt suchen</string>
+    <string name="file_list_action_search_regex">Regulärer Ausdruck</string>
 </resources>

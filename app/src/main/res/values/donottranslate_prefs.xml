@@ -96,4 +96,10 @@
         <item>90</item>
         <item>0</item>
     </string-array>
+
+    <!-- Ordo: search -->
+    <string name="pref_key_file_list_search_content">key_file_list_search_content</string>
+    <bool name="pref_default_value_file_list_search_content">false</bool>
+    <string name="pref_key_file_list_search_regex">key_file_list_search_regex</string>
+    <bool name="pref_default_value_file_list_search_regex">false</bool>
 </resources>
