@@ -230,16 +230,32 @@
                 android:focusable="true"
                 android:foreground="?selectableItemBackground"
                 app:cardCornerRadius="24dp">
-                <TextView
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:drawablePadding="12dp"
                     android:gravity="center_vertical"
-                    android:paddingHorizontal="16dp"
-                    android:text="@string/home_search_hint"
-                    android:textAppearance="?textAppearanceBody1"
-                    android:textColor="?android:textColorSecondary"
-                    app:drawableStartCompat="@drawable/search_icon_control_normal_24dp" />
+                    android:orientation="horizontal">
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:drawablePadding="12dp"
+                        android:gravity="center_vertical"
+                        android:paddingStart="16dp"
+                        android:text="@string/home_search_hint"
+                        android:textAppearance="?textAppearanceBody1"
+                        android:textColor="?android:textColorSecondary"
+                        app:drawableStartCompat="@drawable/search_icon_control_normal_24dp" />
+                    <ImageButton
+                        android:id="@+id/assistantButton"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:background="?selectableItemBackgroundBorderless"
+                        android:contentDescription="@string/ai_open"
+                        android:src="@drawable/assistant_icon_white_24dp"
+                        android:visibility="gone"
+                        app:tint="@color/home_assistant" />
+                </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
         </LinearLayout>
     </eightbitlab.com.blurview.BlurView>

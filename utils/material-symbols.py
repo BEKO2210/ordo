@@ -21,6 +21,8 @@ RES = Path(__file__).resolve().parent.parent / "app/src/main/res"
 ICONS = {
     "about_icon_white_24dp": "help",
     "add_icon_white_24dp": "add",
+    "assistant_icon_white_24dp": "wand_stars",
+    "send_icon_white_24dp": "arrow_upward",
     "alarm_icon_white_24dp": "alarm",
     "android_icon_white_24dp": "android",
     "apps_icon_white_24dp": "apps",

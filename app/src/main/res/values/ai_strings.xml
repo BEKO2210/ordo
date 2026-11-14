@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright (c) 2026 Ordo contributors
+  ~ SPDX-License-Identifier: GPL-3.0-or-later
+  -->
+
+<resources>
+    <string name="ai_open">Give Ordo a command</string>
+    <string name="ai_title">What should Ordo do?</string>
+    <string name="ai_subtitle">Type or dictate a command. Ordo shows you everything before anything changes.</string>
+    <string name="ai_hint">e.g. Move my MP3s from Download to Music</string>
+    <string name="ai_send">Send</string>
+    <string-array name="ai_examples">
+        <item>Move all MP3s from Download to Music</item>
+        <item>Delete videos older than 30 days in Download</item>
+        <item>Tidy up Download by type</item>
+        <item>Copy the PDFs from Download to Documents</item>
+    </string-array>
+    <string-array name="ai_thinking">
+        <item>Reading your command…</item>
+        <item>Planning the steps…</item>
+        <item>Almost done…</item>
+    </string-array>
+    <string name="ai_finding_files">Finding files…</string>
+
+    <string name="ai_action_move">Move</string>
+    <string name="ai_action_copy">Copy</string>
+    <string name="ai_action_delete">Move to trash</string>
+    <string name="ai_action_organize">Tidy up</string>
+    <string name="ai_route_from_to">From %1$s to %2$s</string>
+    <string name="ai_route_from">From %1$s</string>
+    <string name="ai_route_by_type">Sort %1$s into folders by type</string>
+    <string name="ai_route_by_month">Sort %1$s into folders by month</string>
+    <string name="ai_internal_storage">Internal storage</string>
+    <plurals name="ai_summary">
+        <item quantity="one">%1$d file · %2$s</item>
+        <item quantity="other">%1$d files · %2$s</item>
+    </plurals>
+    <plurals name="ai_more_files">
+        <item quantity="one">and %d more</item>
+        <item quantity="other">and %d more</item>
+    </plurals>
+    <string name="ai_note_trash">Goes to the trash and can be restored for %d days.</string>
+    <string name="ai_note_new_folder">The folder “%s” will be created.</string>
+    <string name="ai_edit">Change</string>
+    <string name="ai_confirm_format">%1$s (%2$d)</string>
+
+    <string name="ai_filter_extension" translatable="false">.%s</string>
+    <string name="ai_filter_name">Name contains “%s”</string>
+    <plurals name="ai_filter_older_days">
+        <item quantity="one">Older than %d day</item>
+        <item quantity="other">Older than %d days</item>
+    </plurals>
+    <plurals name="ai_filter_older_weeks">
+        <item quantity="one">Older than %d week</item>
+        <item quantity="other">Older than %d weeks</item>
+    </plurals>
+    <plurals name="ai_filter_older_months">
+        <item quantity="one">Older than %d month</item>
+        <item quantity="other">Older than %d months</item>
+    </plurals>
+    <plurals name="ai_filter_older_years">
+        <item quantity="one">Older than %d year</item>
+        <item quantity="other">Older than %d years</item>
+    </plurals>
+    <string name="ai_filter_larger">Larger than %1$d %2$s</string>
+    <string name="ai_kind_audio">Audio</string>
+    <string name="ai_kind_video">Videos</string>
+    <string name="ai_kind_image">Pictures</string>
+    <string name="ai_kind_document">Documents</string>
+    <string name="ai_kind_archive">Archives</string>
+    <string name="ai_kind_other">Other</string>
+
+    <string name="ai_ask_source">Which folder do you mean?</string>
+    <string name="ai_ask_destination">Where should the files go?</string>
+    <string name="ai_ask_text">Pick a folder or add it to your command.</string>
+    <string name="ai_refused_unsupported_title">Ordo can’t do that yet</string>
+    <string name="ai_refused_unsupported_text">Ordo can move, copy, tidy up and put files in the trash.</string>
+    <string name="ai_refused_delete_title">Better to ask first</string>
+    <string name="ai_refused_delete_text">Do you want to delete files? Then please say so, e.g. “Delete …”.</string>
+    <string name="ai_refused_protected_title">This folder is protected</string>
+    <string name="ai_refused_protected_text">System folders, hidden folders and your camera photos stay untouched. Name the camera if you mean it.</string>
+    <string name="ai_refused_trash_off_title">The trash is turned off</string>
+    <string name="ai_refused_trash_off_text">Ordo only deletes into the trash. Turn it on in the settings first.</string>
+    <string name="ai_no_files_title">No matching files</string>
+    <string name="ai_no_files_text">Nothing in %s matches your command.</string>
+    <string name="ai_error_title">Ordo can’t be reached right now</string>
+    <string name="ai_error_text">Check the connection and try again.</string>
+
+    <plurals name="ai_done_move">
+        <item quantity="one">%d file moved</item>
+        <item quantity="other">%d files moved</item>
+    </plurals>
+    <plurals name="ai_done_copy">
+        <item quantity="one">%d file copied</item>
+        <item quantity="other">%d files copied</item>
+    </plurals>
+    <plurals name="ai_done_delete">
+        <item quantity="one">%d file moved to the trash</item>
+        <item quantity="other">%d files moved to the trash</item>
+    </plurals>
+    <plurals name="ai_done_organize">
+        <item quantity="one">%d file sorted</item>
+        <item quantity="other">%d files sorted</item>
+    </plurals>
+    <string name="ai_undo">Undo</string>
+</resources>

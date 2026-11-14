@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright (c) 2026 Ordo contributors
+  ~ SPDX-License-Identifier: GPL-3.0-or-later
+  -->
+
+<resources>
+    <string name="ai_open">Ordo einen Befehl geben</string>
+    <string name="ai_title">Was soll Ordo tun?</string>
+    <string name="ai_subtitle">Schreib oder diktiere einen Befehl. Ordo zeigt dir alles, bevor sich etwas ändert.</string>
+    <string name="ai_hint">z. B. Verschiebe meine MP3s aus Download nach Musik</string>
+    <string name="ai_send">Senden</string>
+    <string-array name="ai_examples">
+        <item>Verschiebe alle MP3s aus Download nach Musik</item>
+        <item>Lösche Videos älter als 30 Tage in Download</item>
+        <item>Räum Download nach Art auf</item>
+        <item>Kopiere die PDFs aus Download nach Dokumente</item>
+    </string-array>
+    <string-array name="ai_thinking">
+        <item>Ordo liest deinen Befehl …</item>
+        <item>Ordo plant die Schritte …</item>
+        <item>Gleich geschafft …</item>
+    </string-array>
+    <string name="ai_finding_files">Suche passende Dateien …</string>
+
+    <string name="ai_action_move">Verschieben</string>
+    <string name="ai_action_copy">Kopieren</string>
+    <string name="ai_action_delete">In den Papierkorb</string>
+    <string name="ai_action_organize">Aufräumen</string>
+    <string name="ai_route_from_to">Aus %1$s nach %2$s</string>
+    <string name="ai_route_from">Aus %1$s</string>
+    <string name="ai_route_by_type">%1$s nach Art in Ordner sortieren</string>
+    <string name="ai_route_by_month">%1$s nach Monat in Ordner sortieren</string>
+    <string name="ai_internal_storage">Interner Speicher</string>
+    <plurals name="ai_summary">
+        <item quantity="one">%1$d Datei · %2$s</item>
+        <item quantity="other">%1$d Dateien · %2$s</item>
+    </plurals>
+    <plurals name="ai_more_files">
+        <item quantity="one">und %d weitere</item>
+        <item quantity="other">und %d weitere</item>
+    </plurals>
+    <string name="ai_note_trash">Landet im Papierkorb und lässt sich %d Tage lang wiederherstellen.</string>
+    <string name="ai_note_new_folder">Der Ordner „%s“ wird neu angelegt.</string>
+    <string name="ai_edit">Ändern</string>
+    <string name="ai_confirm_format">%1$s (%2$d)</string>
+
+    <string name="ai_filter_name">Name enthält „%s“</string>
+    <plurals name="ai_filter_older_days">
+        <item quantity="one">Älter als %d Tag</item>
+        <item quantity="other">Älter als %d Tage</item>
+    </plurals>
+    <plurals name="ai_filter_older_weeks">
+        <item quantity="one">Älter als %d Woche</item>
+        <item quantity="other">Älter als %d Wochen</item>
+    </plurals>
+    <plurals name="ai_filter_older_months">
+        <item quantity="one">Älter als %d Monat</item>
+        <item quantity="other">Älter als %d Monate</item>
+    </plurals>
+    <plurals name="ai_filter_older_years">
+        <item quantity="one">Älter als %d Jahr</item>
+        <item quantity="other">Älter als %d Jahre</item>
+    </plurals>
+    <string name="ai_filter_larger">Größer als %1$d %2$s</string>
+    <string name="ai_kind_audio">Audio</string>
+    <string name="ai_kind_video">Videos</string>
+    <string name="ai_kind_image">Bilder</string>
+    <string name="ai_kind_document">Dokumente</string>
+    <string name="ai_kind_archive">Archive</string>
+    <string name="ai_kind_other">Sonstiges</string>
+
+    <string name="ai_ask_source">Welchen Ordner meinst du?</string>
+    <string name="ai_ask_destination">Wohin sollen die Dateien?</string>
+    <string name="ai_ask_text">Tipp einen Ordner an oder ergänze ihn im Befehl.</string>
+    <string name="ai_refused_unsupported_title">Das kann Ordo noch nicht</string>
+    <string name="ai_refused_unsupported_text">Ordo kann Dateien verschieben, kopieren, aufräumen und in den Papierkorb legen.</string>
+    <string name="ai_refused_delete_title">Lieber einmal nachgefragt</string>
+    <string name="ai_refused_delete_text">Möchtest du Dateien löschen? Dann sag es bitte genau, z. B. „Lösche …“.</string>
+    <string name="ai_refused_protected_title">Dieser Ordner ist geschützt</string>
+    <string name="ai_refused_protected_text">Systemordner, versteckte Ordner und deine Kamerafotos bleiben unberührt. Nenne die Kamera ausdrücklich, wenn du sie meinst.</string>
+    <string name="ai_refused_trash_off_title">Der Papierkorb ist ausgeschaltet</string>
+    <string name="ai_refused_trash_off_text">Ordo löscht nur in den Papierkorb. Schalte ihn zuerst in den Einstellungen ein.</string>
+    <string name="ai_no_files_title">Keine passenden Dateien</string>
+    <string name="ai_no_files_text">In %s passt keine Datei zu deinem Befehl.</string>
+    <string name="ai_error_title">Ordo ist gerade nicht erreichbar</string>
+    <string name="ai_error_text">Prüf die Verbindung und versuch es noch einmal.</string>
+
+    <plurals name="ai_done_move">
+        <item quantity="one">%d Datei verschoben</item>
+        <item quantity="other">%d Dateien verschoben</item>
+    </plurals>
+    <plurals name="ai_done_copy">
+        <item quantity="one">%d Datei kopiert</item>
+        <item quantity="other">%d Dateien kopiert</item>
+    </plurals>
+    <plurals name="ai_done_delete">
+        <item quantity="one">%d Datei im Papierkorb</item>
+        <item quantity="other">%d Dateien im Papierkorb</item>
+    </plurals>
+    <plurals name="ai_done_organize">
+        <item quantity="one">%d Datei einsortiert</item>
+        <item quantity="other">%d Dateien einsortiert</item>
+    </plurals>
+    <string name="ai_undo">Rückgängig</string>
+</resources>

@@ -18,5 +18,6 @@
     <color name="home_apps">#A5B4FC</color>
     <color name="home_vault">#5EEAD4</color>
     <color name="home_backup">#F9A8D4</color>
+    <color name="home_assistant">#D8B4FE</color>
     <color name="home_card">#14FFFFFF</color>
 </resources>
