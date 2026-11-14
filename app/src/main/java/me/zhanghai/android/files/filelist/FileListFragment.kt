@@ -1135,7 +1135,11 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
             val isCurrentPathReadOnly = viewModel.currentPath.fileSystem.isReadOnly
             bottomActionMode.menu.findItem(R.id.action_paste)
                 .setTitle(
-                    if (areAllFilesArchivePaths) R.string.file_list_paste_action_extract_here else R.string.paste
+                    when {
+                        areAllFilesArchivePaths -> R.string.file_list_paste_action_extract_here
+                        pasteState.copy -> R.string.file_list_paste_action_copy_here
+                        else -> R.string.file_list_paste_action_move_here
+                    }
                 )
                 .isEnabled = !isCurrentPathReadOnly
         }

@@ -111,7 +111,8 @@ class AppsViewModel(application: Application) : AndroidViewModel(application) {
 
         fun backupFileName(label: String, versionName: String?): String {
             val name = if (versionName.isNullOrBlank()) label else "$label $versionName"
-            return name.replace(Regex("[\\\\/:*?\"<>|\\p{Cntrl}]"), "_").trim().ifEmpty { "app" }
+            return name.replace(Regex("[\\\\/:*?\"<>|\\p{Cntrl}]"), "_").trim().trimStart('.')
+                .ifEmpty { "app" }
         }
     }
 }
