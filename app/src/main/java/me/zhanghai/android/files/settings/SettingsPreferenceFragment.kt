@@ -8,8 +8,11 @@ package me.zhanghai.android.files.settings
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.view.View
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.Preference
+import androidx.recyclerview.widget.RecyclerView
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -100,6 +103,18 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
+
+        // Every tappable row gets Ordo's rounded, accent-tinted touch feedback instead of a full-width flash.
+        listView.addOnChildAttachStateChangeListener(object : RecyclerView.OnChildAttachStateChangeListener {
+            override fun onChildViewAttachedToWindow(view: View) {
+                if (view.isClickable && view.getTag(R.id.ordo_row_ripple) == null) {
+                    view.background = ContextCompat.getDrawable(view.context, R.drawable.ordo_row_ripple)
+                    view.setTag(R.id.ordo_row_ripple, true)
+                }
+            }
+
+            override fun onChildViewDetachedFromWindow(view: View) {}
+        })
 
         val viewLifecycleOwner = viewLifecycleOwner
         // The following may end up passing the same lambda instance to the observer because it has

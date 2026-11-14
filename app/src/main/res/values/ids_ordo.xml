@@ -2,4 +2,5 @@
 <!-- Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later -->
 <resources>
     <item name="on_first_sight" type="id" />
+    <item name="ordo_row_ripple" type="id" />
 </resources>
