@@ -12,6 +12,7 @@ import androidx.fragment.app.Fragment
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.parcelize.Parcelize
 import me.zhanghai.android.files.R
+import me.zhanghai.android.files.trash.Trash
 import me.zhanghai.android.files.util.ParcelableArgs
 import me.zhanghai.android.files.util.args
 import me.zhanghai.android.files.util.getQuantityString
@@ -26,7 +27,25 @@ class ConfirmDeleteFilesDialogFragment : AppCompatDialogFragment() {
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val files = args.files
-        val message = if (files.size == 1) {
+        val toTrash = Trash.isEnabled && files.all { Trash.canTrash(it.path) }
+        if (toTrash) {
+            val message = if (files.size == 1) {
+                getString(R.string.trash_move_message_one_format, files.single().name)
+            } else {
+                getQuantityString(R.plurals.trash_move_message_multiple_format, files.size, files.size)
+            }
+            return MaterialAlertDialogBuilder(requireContext(), theme)
+                .setMessage(message)
+                .setPositiveButton(R.string.trash_move_action) { _, _ ->
+                    listener.deleteFiles(files, false)
+                }
+                .setNegativeButton(android.R.string.cancel, null)
+                .setNeutralButton(R.string.trash_delete_permanently_action) { _, _ ->
+                    listener.deleteFiles(files, true)
+                }
+                .create()
+        }
+        var message = if (files.size == 1) {
             val file = files.single()
             val messageRes = if (file.attributesNoFollowLinks.isDirectory) {
                 R.string.file_delete_message_directory_format
@@ -44,9 +63,12 @@ class ConfirmDeleteFilesDialogFragment : AppCompatDialogFragment() {
             }
             getQuantityString(messageRes, files.size, files.size)
         }
+        if (Trash.isEnabled) {
+            message += "\n\n" + getString(R.string.trash_not_supported_message)
+        }
         return MaterialAlertDialogBuilder(requireContext(), theme)
             .setMessage(message)
-            .setPositiveButton(android.R.string.ok) { _, _ -> listener.deleteFiles(files) }
+            .setPositiveButton(android.R.string.ok) { _, _ -> listener.deleteFiles(files, true) }
             .setNegativeButton(android.R.string.cancel, null)
             .create()
     }
@@ -61,6 +83,6 @@ class ConfirmDeleteFilesDialogFragment : AppCompatDialogFragment() {
     class Args(val files: FileItemSet) : ParcelableArgs
 
     interface Listener {
-        fun deleteFiles(files: FileItemSet)
+        fun deleteFiles(files: FileItemSet, permanently: Boolean)
     }
 }

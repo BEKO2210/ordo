@@ -24,6 +24,7 @@ import me.zhanghai.android.files.storage.WebDavServerAuthenticator
 import me.zhanghai.android.files.theme.custom.CustomThemeHelper
 import me.zhanghai.android.files.theme.night.NightModeHelper
 import java.util.Properties
+import me.zhanghai.android.files.trash.Trash
 import me.zhanghai.android.files.provider.ftp.client.Client as FtpClient
 import me.zhanghai.android.files.provider.sftp.client.Client as SftpClient
 import me.zhanghai.android.files.provider.smb.client.Client as SmbClient
@@ -38,7 +39,8 @@ val appInitializers = listOf(
     ::initializeLiveDataObjects,
     ::initializeCustomTheme,
     ::initializeNightMode,
-    ::createNotificationChannels
+    ::createNotificationChannels,
+    ::purgeExpiredTrash
 )
 
 private fun disableHiddenApiChecks() {
@@ -93,4 +95,8 @@ private fun createNotificationChannels() {
             ).map { it.create(application) }
         )
     }
+}
+
+private fun purgeExpiredTrash() {
+    Thread({ Trash.purgeExpired() }, "TrashPurge").start()
 }

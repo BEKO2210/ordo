@@ -86,6 +86,8 @@ import me.zhanghai.android.files.provider.common.setSeLinuxContext
 import me.zhanghai.android.files.provider.common.toByteString
 import me.zhanghai.android.files.provider.common.toModeString
 import me.zhanghai.android.files.provider.linux.isLinuxPath
+import me.zhanghai.android.files.trash.Trash
+import me.zhanghai.android.files.trash.TrashEntry
 import me.zhanghai.android.files.util.asFileName
 import me.zhanghai.android.files.util.createInstallPackageIntent
 import me.zhanghai.android.files.util.createIntent
@@ -940,15 +942,71 @@ private fun FileJob.create(path: Path, createDirectory: Boolean) {
     } while (retry)
 }
 
-class DeleteFileJob(private val paths: List<Path>) : FileJob() {
+class DeleteFileJob(
+    private val paths: List<Path>,
+    private val permanently: Boolean = false
+) : FileJob() {
     @Throws(IOException::class)
     override fun run() {
-        val scanInfo = scan(paths, R.plurals.file_job_delete_scan_notification_title_format)
-        val transferInfo = TransferInfo(scanInfo, null)
+        val (trashPaths, deletePaths) = if (!permanently && Trash.isEnabled) {
+            paths.partition { Trash.canTrash(it) }
+        } else {
+            emptyList<Path>() to paths
+        }
         val actionAllInfo = ActionAllInfo()
-        for (path in paths) {
+        for (path in trashPaths) {
+            moveToTrash(path, actionAllInfo)
+            throwIfInterrupted()
+        }
+        if (deletePaths.isEmpty()) {
+            return
+        }
+        val scanInfo = scan(deletePaths, R.plurals.file_job_delete_scan_notification_title_format)
+        val transferInfo = TransferInfo(scanInfo, null)
+        for (path in deletePaths) {
             deleteRecursively(path, transferInfo, actionAllInfo)
             throwIfInterrupted()
+        }
+    }
+
+    @Throws(IOException::class)
+    private fun moveToTrash(path: Path, actionAllInfo: ActionAllInfo) {
+        while (true) {
+            try {
+                Trash.moveToTrash(path)
+                return
+            } catch (e: InterruptedIOException) {
+                throw e
+            } catch (e: IOException) {
+                e.printStackTrace()
+                if (actionAllInfo.skipDeleteError) {
+                    return
+                }
+                val result = showErrorDialog(
+                    getString(R.string.file_job_trash_error_title),
+                    getString(
+                        R.string.file_job_delete_error_message_format, getFileName(path),
+                        e.toString()
+                    ),
+                    getReadOnlyFileStore(path, e),
+                    true,
+                    getString(R.string.retry),
+                    getString(R.string.skip),
+                    getString(android.R.string.cancel)
+                )
+                when (result.action) {
+                    FileJobErrorAction.POSITIVE -> continue
+                    FileJobErrorAction.NEGATIVE -> {
+                        if (result.isAll) {
+                            actionAllInfo.skipDeleteError = true
+                        }
+                        return
+                    }
+                    FileJobErrorAction.CANCELED -> return
+                    FileJobErrorAction.NEUTRAL -> throw InterruptedIOException()
+                    else -> throw AssertionError(result.action)
+                }
+            }
         }
     }
 
@@ -2331,4 +2389,48 @@ private fun FileJob.postWriteNotification(transferInfo: TransferInfo) {
     val max = size.toInt()
     val progress = transferredSize.toInt()
     postNotification(title, text, null, null, max, progress, false, true)
+}
+
+class RestoreTrashJob(private val entries: List<TrashEntry>) : FileJob() {
+    @Throws(IOException::class)
+    override fun run() {
+        for (entry in entries) {
+            restore(entry)
+            throwIfInterrupted()
+        }
+    }
+
+    @Throws(IOException::class)
+    private fun restore(entry: TrashEntry) {
+        while (true) {
+            try {
+                val target = Paths.get(Trash.restoreTarget(entry.originalPath) { File(it).exists() })
+                target.parent?.createDirectories()
+                moveAtomically(Paths.get(entry.file.path), target)
+                entry.infoFile.delete()
+                return
+            } catch (e: InterruptedIOException) {
+                throw e
+            } catch (e: IOException) {
+                e.printStackTrace()
+                val result = showErrorDialog(
+                    getString(R.string.file_job_restore_trash_error_title),
+                    getString(
+                        R.string.file_job_delete_error_message_format, entry.name, e.toString()
+                    ),
+                    null,
+                    false,
+                    getString(R.string.retry),
+                    getString(R.string.skip),
+                    getString(android.R.string.cancel)
+                )
+                when (result.action) {
+                    FileJobErrorAction.POSITIVE -> continue
+                    FileJobErrorAction.NEGATIVE, FileJobErrorAction.CANCELED -> return
+                    FileJobErrorAction.NEUTRAL -> throw InterruptedIOException()
+                    else -> throw AssertionError(result.action)
+                }
+            }
+        }
+    }
 }

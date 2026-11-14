@@ -673,4 +673,41 @@
     <string name="about_author_name_title">Hai Zhang</string>
     <string name="about_author_github_title">Auf GitHub folgen</string>
     <string name="about_author_twitter_title">Auf Twitter folgen</string>
+
+    <!-- Ordo: trash -->
+    <string name="navigation_trash">Papierkorb</string>
+    <string name="trash_title">Papierkorb</string>
+    <string name="trash_empty">Der Papierkorb ist leer</string>
+    <string name="trash_selected_format">%1$d ausgewählt</string>
+    <string name="trash_item_description_format">Gelöscht %1$s · %2$s\nAus %3$s</string>
+    <string name="trash_restore_action">Wiederherstellen</string>
+    <string name="trash_move_action">In den Papierkorb</string>
+    <string name="trash_delete_permanently_action">Endgültig löschen</string>
+    <string name="trash_empty_action">Papierkorb leeren</string>
+    <string name="trash_move_message_one_format">„%1$s“ in den Papierkorb verschieben?</string>
+    <plurals name="trash_move_message_multiple_format">
+        <item quantity="one">%1$d Element in den Papierkorb verschieben?</item>
+        <item quantity="other">%1$d Elemente in den Papierkorb verschieben?</item>
+    </plurals>
+    <plurals name="trash_delete_message_format">
+        <item quantity="one">%1$d Element endgültig löschen? Das lässt sich nicht rückgängig machen.</item>
+        <item quantity="other">%1$d Elemente endgültig löschen? Das lässt sich nicht rückgängig machen.</item>
+    </plurals>
+    <plurals name="trash_empty_message_format">
+        <item quantity="one">%1$d Element im Papierkorb endgültig löschen? Das lässt sich nicht rückgängig machen.</item>
+        <item quantity="other">Alle %1$d Elemente im Papierkorb endgültig löschen? Das lässt sich nicht rückgängig machen.</item>
+    </plurals>
+    <string name="trash_not_supported_message">Diese Dateien können nicht in den Papierkorb und werden endgültig gelöscht.</string>
+    <string name="file_job_trash_error_title">Fehler beim Verschieben in den Papierkorb</string>
+    <string name="file_job_restore_trash_error_title">Fehler beim Wiederherstellen</string>
+    <string name="settings_trash_title">Papierkorb</string>
+    <string name="settings_trash_enabled_title">Gelöschte Dateien in den Papierkorb</string>
+    <string name="settings_trash_enabled_summary">Dateien im internen Speicher und auf SD-Karten lassen sich wiederherstellen</string>
+    <string name="settings_trash_retention_title">Papierkorb automatisch leeren</string>
+    <string-array name="settings_trash_retention_entries">
+        <item>Nach 7 Tagen</item>
+        <item>Nach 30 Tagen</item>
+        <item>Nach 90 Tagen</item>
+        <item>Nie</item>
+    </string-array>
 </resources>

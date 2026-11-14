@@ -82,4 +82,16 @@
     <bool name="pref_visible_show_pdf_thumbnail_pre_28">true</bool>
     <string name="pref_key_read_remote_files_for_thumbnail">key_read_remote_files_for_thumbnail</string>
     <bool name="pref_default_value_read_remote_files_for_thumbnail">true</bool>
+
+    <!-- Ordo: trash -->
+    <string name="pref_key_trash_enabled">key_trash_enabled</string>
+    <bool name="pref_default_value_trash_enabled">true</bool>
+    <string name="pref_key_trash_retention_days">key_trash_retention_days</string>
+    <string name="pref_default_value_trash_retention_days">30</string>
+    <string-array name="pref_entry_values_trash_retention_days">
+        <item>7</item>
+        <item>30</item>
+        <item>90</item>
+        <item>0</item>
+    </string-array>
 </resources>

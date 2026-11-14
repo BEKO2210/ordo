@@ -108,4 +108,22 @@
             android:title="@string/settings_read_remote_files_for_thumbnail_title"
             android:defaultValue="@bool/pref_default_value_read_remote_files_for_thumbnail" />
     </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/settings_trash_title">
+
+        <SwitchPreferenceCompat
+            android:key="@string/pref_key_trash_enabled"
+            android:title="@string/settings_trash_enabled_title"
+            android:summary="@string/settings_trash_enabled_summary"
+            android:defaultValue="@bool/pref_default_value_trash_enabled" />
+
+        <rikka.preference.SimpleMenuPreference
+            android:key="@string/pref_key_trash_retention_days"
+            android:title="@string/settings_trash_retention_title"
+            android:defaultValue="@string/pref_default_value_trash_retention_days"
+            android:dependency="@string/pref_key_trash_enabled"
+            android:entries="@array/settings_trash_retention_entries"
+            android:entryValues="@array/pref_entry_values_trash_retention_days"
+            app:useSimpleSummaryProvider="true" />
+    </PreferenceCategory>
 </PreferenceScreen>

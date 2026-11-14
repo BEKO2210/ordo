@@ -63,6 +63,17 @@ object Settings {
             FileSortOptions(FileSortOptions.By.NAME, FileSortOptions.Order.ASCENDING, true)
         )
 
+    val TRASH_ENABLED: SettingLiveData<Boolean> =
+        BooleanSettingLiveData(
+            R.string.pref_key_trash_enabled, R.bool.pref_default_value_trash_enabled
+        )
+
+    val TRASH_RETENTION_DAYS: SettingLiveData<String> =
+        StringSettingLiveData(
+            R.string.pref_key_trash_retention_days,
+            R.string.pref_default_value_trash_retention_days
+        )
+
     val CREATE_ARCHIVE_TYPE: SettingLiveData<Int> =
         ResourceIdSettingLiveData(R.string.pref_key_create_archive_type, R.id.zipRadio)
 

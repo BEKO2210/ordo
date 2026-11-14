@@ -987,8 +987,8 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
         ConfirmDeleteFilesDialogFragment.show(files, this)
     }
 
-    override fun deleteFiles(files: FileItemSet) {
-        FileJobService.delete(makePathListForJob(files), requireContext())
+    override fun deleteFiles(files: FileItemSet, permanently: Boolean) {
+        FileJobService.delete(makePathListForJob(files), requireContext(), permanently)
         viewModel.selectFiles(files, false)
     }
 

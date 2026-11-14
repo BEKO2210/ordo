@@ -30,6 +30,7 @@ import me.zhanghai.android.files.storage.AddStorageDialogActivity
 import me.zhanghai.android.files.storage.FileSystemRoot
 import me.zhanghai.android.files.storage.Storage
 import me.zhanghai.android.files.storage.StorageVolumeListLiveData
+import me.zhanghai.android.files.trash.TrashActivity
 import me.zhanghai.android.files.util.createIntent
 import me.zhanghai.android.files.util.isMounted
 import me.zhanghai.android.files.util.putArgs
@@ -354,8 +355,12 @@ private class BookmarkDirectoryItem(
 }
 
 private val menuItems: List<NavigationItem>
-    @Size(3)
+    @Size(4)
     get() = listOf(
+        IntentMenuItem(
+            R.drawable.delete_icon_white_24dp, R.string.navigation_trash,
+            TrashActivity::class.createIntent()
+        ),
         IntentMenuItem(
             R.drawable.shared_directory_icon_white_24dp, R.string.navigation_ftp_server,
             FtpServerActivity::class.createIntent()

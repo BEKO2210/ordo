@@ -28,6 +28,7 @@ import me.zhanghai.android.files.databinding.ImageViewerFragmentBinding
 import me.zhanghai.android.files.file.fileProviderUri
 import me.zhanghai.android.files.provider.common.delete
 import me.zhanghai.android.files.ui.DepthPageTransformer
+import me.zhanghai.android.files.trash.Trash
 import me.zhanghai.android.files.util.ParcelableArgs
 import me.zhanghai.android.files.util.ParcelableListParceler
 import me.zhanghai.android.files.util.ParcelableState
@@ -162,7 +163,11 @@ class ImageViewerFragment : Fragment(), ConfirmDeleteDialogFragment.Listener {
 
     override fun delete(path: Path) {
         try {
-            path.delete()
+            if (Trash.isEnabled && Trash.canTrash(path)) {
+                Trash.moveToTrash(path)
+            } else {
+                path.delete()
+            }
         } catch (e: IOException) {
             e.printStackTrace()
             showToast(e.toString())

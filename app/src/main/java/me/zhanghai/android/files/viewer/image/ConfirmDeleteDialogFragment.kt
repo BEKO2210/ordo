@@ -14,6 +14,7 @@ import java8.nio.file.Path
 import kotlinx.parcelize.Parcelize
 import kotlinx.parcelize.WriteWith
 import me.zhanghai.android.files.R
+import me.zhanghai.android.files.trash.Trash
 import me.zhanghai.android.files.util.ParcelableArgs
 import me.zhanghai.android.files.util.ParcelableParceler
 import me.zhanghai.android.files.util.args
@@ -28,7 +29,15 @@ class ConfirmDeleteDialogFragment : AppCompatDialogFragment() {
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         return MaterialAlertDialogBuilder(requireContext(), theme)
-            .setMessage(getString(R.string.image_viewer_delete_message_format, args.path.fileName))
+            .setMessage(
+                getString(
+                    if (Trash.isEnabled && Trash.canTrash(args.path)) {
+                        R.string.trash_move_message_one_format
+                    } else {
+                        R.string.image_viewer_delete_message_format
+                    }, args.path.fileName
+                )
+            )
             .setPositiveButton(android.R.string.ok) { _, _ -> listener.delete(args.path) }
             .setNegativeButton(android.R.string.cancel, null)
             .create()
