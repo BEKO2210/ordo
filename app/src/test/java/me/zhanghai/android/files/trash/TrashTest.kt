@@ -30,6 +30,8 @@ class TrashTest {
         assertNull(Trash.rootOf("/storage/emulated/0/Android/data/com.example/a"))
         assertNull(Trash.rootOf("/storage/emulated/0/Android/obb/com.example"))
         assertNull(Trash.rootOf("/storage/1A2B-3C4D/Android/media/x"))
+        assertNull(Trash.rootOf("/storage/emulated/0/android/DATA/com.example/a"))
+        assertNull(Trash.rootOf("/storage/emulated/0/.ordotrash/files/1"))
         assertEquals("/storage/emulated/0", Trash.rootOf("/storage/emulated/0/Android/datax"))
     }
 

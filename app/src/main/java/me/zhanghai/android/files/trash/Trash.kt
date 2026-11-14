@@ -54,7 +54,10 @@ object Trash {
         val root = ROOT_REGEX.matchEntire(path)?.groupValues?.get(1) ?: return null
         val relative = path.substring(root.length + 1)
         // App-private folders stay out of the shared trash, so their data never becomes visible.
-        val excluded = PROTECTED_DIRECTORIES.any { relative == it || relative.startsWith("$it/") }
+        // Shared storage is case-insensitive, so "android/DATA" must match too.
+        val excluded = PROTECTED_DIRECTORIES.any {
+            relative.equals(it, true) || relative.startsWith("$it/", true)
+        }
         return if (excluded) null else root
     }
 
