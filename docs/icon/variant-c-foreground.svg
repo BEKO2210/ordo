@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 108 108" role="img" aria-labelledby="title desc">
+  <title id="title">Ordo icon variant C foreground</title>
+  <desc id="desc">A classic white folder with three ascending amber sorting lines.</desc>
+  <path fill="#FFFFFF" d="M33 33h15l7 8h21a7 7 0 0 1 7 7v21a7 7 0 0 1-7 7H33a7 7 0 0 1-7-7V40a7 7 0 0 1 7-7Z"/>
+  <path fill="#F59E0B" d="M35.5 47h10a2.5 2.5 0 0 1 0 5h-10a2.5 2.5 0 0 1 0-5Zm0 9h21a2.5 2.5 0 0 1 0 5h-21a2.5 2.5 0 0 1 0-5Zm0 9h33a2.5 2.5 0 0 1 0 5h-33a2.5 2.5 0 0 1 0-5Z"/>
+</svg>
