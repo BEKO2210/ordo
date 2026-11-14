@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright (c) 2026 Ordo contributors
+  ~ SPDX-License-Identifier: GPL-3.0-or-later
+  -->
+
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/rootLayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?android:colorBackground">
+
+    <me.zhanghai.android.files.ai.AuroraView
+        android:id="@+id/aurora"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <LinearLayout
+        android:id="@+id/contentLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:paddingHorizontal="28dp">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/skipButton"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:layout_marginTop="8dp"
+            android:minHeight="48dp"
+            android:text="@string/onboarding_skip"
+            android:textAllCaps="false"
+            android:textColor="?android:textColorSecondary" />
+
+        <FrameLayout
+            android:id="@+id/pageContainer"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1">
+
+            <!-- 1: welcome -->
+            <LinearLayout
+                android:id="@+id/pageWelcome"
+                style="@style/Widget.Ordo.OnboardingPage">
+
+                <FrameLayout
+                    android:layout_width="168dp"
+                    android:layout_height="168dp">
+
+                    <me.zhanghai.android.files.ai.AiOrbView
+                        android:id="@+id/welcomeOrb"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent" />
+
+                    <ImageView
+                        android:id="@+id/welcomeLogo"
+                        android:layout_width="96dp"
+                        android:layout_height="96dp"
+                        android:layout_gravity="center"
+                        android:importantForAccessibility="no"
+                        android:src="@mipmap/launcher_icon" />
+                </FrameLayout>
+
+                <TextView
+                    style="@style/Widget.Ordo.OnboardingTitle"
+                    android:text="@string/onboarding_welcome_title" />
+
+                <TextView
+                    style="@style/Widget.Ordo.OnboardingText"
+                    android:text="@string/onboarding_welcome_text" />
+            </LinearLayout>
+
+            <!-- 2: safety -->
+            <LinearLayout
+                android:id="@+id/pageSafety"
+                style="@style/Widget.Ordo.OnboardingPage"
+                android:visibility="gone">
+
+                <TextView
+                    style="@style/Widget.Ordo.OnboardingTitle"
+                    android:layout_marginTop="0dp"
+                    android:text="@string/onboarding_safety_title" />
+
+                <TextView
+                    android:id="@+id/featureTrash"
+                    style="@style/Widget.Ordo.OnboardingFeature"
+                    android:text="@string/onboarding_feature_trash"
+                    app:drawableStartCompat="@drawable/delete_icon_white_24dp" />
+
+                <TextView
+                    android:id="@+id/featureVault"
+                    style="@style/Widget.Ordo.OnboardingFeature"
+                    android:text="@string/onboarding_feature_vault"
+                    app:drawableStartCompat="@drawable/lock_icon_white_24dp" />
+
+                <TextView
+                    android:id="@+id/featurePrivacy"
+                    style="@style/Widget.Ordo.OnboardingFeature"
+                    android:text="@string/onboarding_feature_privacy"
+                    app:drawableStartCompat="@drawable/ai_privacy_icon_white_24dp" />
+            </LinearLayout>
+
+            <!-- 3: AI -->
+            <LinearLayout
+                android:id="@+id/pageAi"
+                style="@style/Widget.Ordo.OnboardingPage"
+                android:visibility="gone">
+
+                <me.zhanghai.android.files.ai.AiOrbView
+                    android:id="@+id/aiOrb"
+                    android:layout_width="156dp"
+                    android:layout_height="156dp" />
+
+                <TextView
+                    style="@style/Widget.Ordo.OnboardingTitle"
+                    android:text="@string/onboarding_ai_title" />
+
+                <TextView
+                    android:id="@+id/aiTyping"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:background="@drawable/ai_glass_card"
+                    android:importantForAccessibility="no"
+                    android:minHeight="56dp"
+                    android:padding="16dp"
+                    android:textAppearance="?textAppearanceBody1" />
+
+                <TextView
+                    style="@style/Widget.Ordo.OnboardingText"
+                    android:text="@string/onboarding_ai_text" />
+            </LinearLayout>
+
+            <!-- 4: access -->
+            <LinearLayout
+                android:id="@+id/pageAccess"
+                style="@style/Widget.Ordo.OnboardingPage"
+                android:visibility="gone">
+
+                <ImageView
+                    android:id="@+id/accessIcon"
+                    android:layout_width="96dp"
+                    android:layout_height="96dp"
+                    android:background="@drawable/home_icon_circle"
+                    android:importantForAccessibility="no"
+                    android:padding="24dp"
+                    android:src="@drawable/ai_storage_icon_white_24dp" />
+
+                <TextView
+                    style="@style/Widget.Ordo.OnboardingTitle"
+                    android:text="@string/onboarding_access_title" />
+
+                <TextView
+                    android:id="@+id/accessText"
+                    style="@style/Widget.Ordo.OnboardingText"
+                    android:text="@string/onboarding_access_text" />
+            </LinearLayout>
+        </FrameLayout>
+
+        <LinearLayout
+            android:id="@+id/dots"
+            android:layout_width="wrap_content"
+            android:layout_height="24dp"
+            android:layout_gravity="center_horizontal"
+            android:gravity="center"
+            android:importantForAccessibility="no"
+            android:orientation="horizontal" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/nextButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:layout_marginBottom="24dp"
+            android:backgroundTint="@color/ai_accent"
+            android:minHeight="56dp"
+            android:textAllCaps="false"
+            android:textColor="@color/ai_on_accent"
+            android:textSize="16sp"
+            app:cornerRadius="28dp" />
+    </LinearLayout>
+</FrameLayout>

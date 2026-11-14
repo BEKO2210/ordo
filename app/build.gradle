@@ -64,6 +64,13 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.release
         }
+        // Test builds for real phones: everything a release does (R8, not debuggable, FLAG_SECURE in the
+        // vault), but signed with the debug key so it installs over earlier test builds.
+        beta {
+            initWith release
+            signingConfig signingConfigs.debug
+            matchingFallbacks = ['release']
+        }
     }
     packagingOptions {
         jniLibs {

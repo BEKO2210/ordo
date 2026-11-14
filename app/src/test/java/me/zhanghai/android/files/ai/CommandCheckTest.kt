@@ -170,5 +170,13 @@ class CommandCheckTest {
         assertEquals(36_500, CommandPlan("delete", "x", olderThan = Int.MAX_VALUE, ageUnit = "years").olderThanDays)
     }
 
+    @Test
+    fun negationAfterTheWord_alsoRefuses() {
+        assertEquals(Outcome.Refused(Reason.UNSURE_DELETE),
+            check("lösche die Dateien in Download nicht", CommandPlan("delete", "Download")))
+        assertEquals(Outcome.Refused(Reason.PROTECTED_FOLDER),
+            check("lösche alles in Download, die Kamera nicht", CommandPlan("delete", "Kamera")))
+    }
+
     private fun Outcome.plan(): CommandPlan = (this as Outcome.Ready).plan
 }

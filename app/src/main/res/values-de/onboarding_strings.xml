@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright (c) 2026 Ordo contributors
+  ~ SPDX-License-Identifier: GPL-3.0-or-later
+  -->
+
+<resources>
+    <string name="onboarding_skip">Überspringen</string>
+    <string name="onboarding_next">Weiter</string>
+    <string name="onboarding_start">Los geht’s</string>
+    <string name="onboarding_allow">Zugriff erlauben</string>
+    <string name="onboarding_page">Seite %1$d von %2$d</string>
+    <string name="onboarding_welcome_title">Willkommen bei Ordo</string>
+    <string name="onboarding_welcome_text">Deine Dateien, endlich in Ordnung. Schnell, sicher und kostenlos – ohne Werbung, ohne Tracking.</string>
+    <string name="onboarding_safety_title">Sicher von Anfang an</string>
+    <string name="onboarding_feature_trash">Gelöschte Dateien warten 30 Tage im Papierkorb – nichts geht aus Versehen verloren.</string>
+    <string name="onboarding_feature_vault">Der Tresor schützt private Dateien mit AES-256 und deiner Bildschirmsperre.</string>
+    <string name="onboarding_feature_privacy">Keine Werbung, kein Tracking, kein Konto. Deine Daten bleiben auf deinem Handy.</string>
+    <string name="onboarding_ai_title">KI, die dein Handy nie verlässt</string>
+    <string name="onboarding_ai_example">Verschiebe alle MP3s aus Download nach Musik</string>
+    <string name="onboarding_ai_text">Sag in deinen Worten, was du willst. Ordo zeigt dir erst den Plan und handelt nur, wenn du bestätigst. Einrichten jederzeit über den Zauberstab in der Suchleiste.</string>
+    <string name="onboarding_access_title">Zugriff auf deine Dateien</string>
+    <string name="onboarding_access_text">Damit Ordo deine Dateien sortieren, verschieben und schützen kann, braucht es Zugriff darauf. Android fragt dich einmal.</string>
+    <string name="onboarding_access_done">Zugriff erteilt. Alles bereit.</string>
+</resources>

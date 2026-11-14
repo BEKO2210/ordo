@@ -59,6 +59,11 @@ class AiOrbView @JvmOverloads constructor(
         strokeCap = Paint.Cap.ROUND
     }
     private val arcBounds = android.graphics.RectF()
+    private val swirlPaint = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val swirlMatrix = Matrix()
+    private val ripplePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE }
+    private val particlePaint = Paint(Paint.ANTI_ALIAS_FLAG)
+    private var thinkAmount = 0f
     private var shownProgress = 0f
     private var pulse = 0f
 
@@ -115,6 +120,13 @@ class AiOrbView @JvmOverloads constructor(
             w / 2f, h / 2f, intArrayOf(colors[0], colors[1], colors[2], Color.TRANSPARENT, colors[0]), null
         )
         rimPaint.strokeWidth = r * 0.06f
+        // A turning colour swirl inside the glass gives the sphere its liquid look.
+        swirlPaint.shader = SweepGradient(
+            w / 2f, h / 2f,
+            intArrayOf(Color.TRANSPARENT, colors[0] and 0x00FFFFFF or 0x70000000, Color.TRANSPARENT,
+                colors[2] and 0x00FFFFFF or 0x60000000, Color.TRANSPARENT), null
+        )
+        ripplePaint.strokeWidth = r * 0.03f
         trackPaint.strokeWidth = r * 0.07f
         trackPaint.color = colors[1] and 0x00FFFFFF or 0x33000000
         progressPaint.strokeWidth = r * 0.07f
@@ -147,6 +159,7 @@ class AiOrbView @JvmOverloads constructor(
         val dt = if (lastFrame == 0L) 0f else ((now - lastFrame) / 1e9f).coerceAtMost(0.05f)
         lastFrame = now
         speed += (targetSpeed - speed) * min(1f, dt * 3f)
+        thinkAmount += ((if (thinking) 1f else 0f) - thinkAmount) * min(1f, dt * 3f)
         time += dt * speed
         if (progress >= 0f) shownProgress += (progress - shownProgress) * min(1f, dt * 4f)
         pulse = (pulse - dt * 1.6f).coerceAtLeast(0f)
@@ -177,6 +190,9 @@ class AiOrbView @JvmOverloads constructor(
             blobPaint.shader = shader
             canvas.drawCircle(x, y, r * 0.62f, blobPaint)
         }
+        swirlMatrix.setRotate(-time * 70f, cx, cy)
+        swirlPaint.shader.setLocalMatrix(swirlMatrix)
+        canvas.drawCircle(cx, cy, inner, swirlPaint)
         canvas.drawCircle(cx - inner * 0.25f, cy - inner * 0.3f, inner * 0.6f, corePaint)
         if (pulse > 0f) {
             canvas.drawColor((255 * pulse * 0.5f).toInt() shl 24 or 0x00FFFFFF, android.graphics.PorterDuff.Mode.SRC_ATOP)
@@ -195,5 +211,35 @@ class AiOrbView @JvmOverloads constructor(
         rimMatrix.setRotate(time * 90f, cx, cy)
         rimPaint.shader.setLocalMatrix(rimMatrix)
         canvas.drawCircle(cx, cy, inner, rimPaint)
+        drawRipples(canvas, cx, cy, r)
+        drawParticles(canvas, cx, cy, r)
+    }
+
+    // While thinking, rings leave the sphere like sound waves and fade out at the edge of the view.
+    private fun drawRipples(canvas: Canvas, cx: Float, cy: Float, r: Float) {
+        if (thinkAmount < 0.02f) return
+        for (i in 0 until 3) {
+            val phase = ((time * 0.55f + i / 3f) % 1f)
+            val radius = r * (0.84f + 0.14f * phase)
+            val alpha = (180 * (1f - phase) * thinkAmount).toInt()
+            ripplePaint.color = colors[i] and 0x00FFFFFF or (alpha shl 24)
+            canvas.drawCircle(cx, cy, radius, ripplePaint)
+        }
+    }
+
+    // Small lights on tilted orbits around the sphere; faster and brighter while thinking.
+    private fun drawParticles(canvas: Canvas, cx: Float, cy: Float, r: Float) {
+        val count = 9
+        for (i in 0 until count) {
+            val angle = time * (0.8f + 0.9f * thinkAmount) * (if (i % 2 == 0) 1f else -0.7f) + i * 2.399f
+            val orbit = r * (0.88f + 0.06f * ((i * 37) % 10) / 10f)
+            val tilt = 0.45f + 0.5f * ((i * 53) % 10) / 10f
+            val x = cx + cos(angle) * orbit
+            val y = cy + sin(angle) * orbit * tilt
+            val glow = 0.5f + 0.5f * sin(time * 3f + i)
+            val alpha = ((90 + 140 * thinkAmount) * glow).toInt().coerceIn(0, 255)
+            particlePaint.color = colors[i % 3] and 0x00FFFFFF or (alpha shl 24)
+            canvas.drawCircle(x, y, r * (0.022f + 0.012f * glow), particlePaint)
+        }
     }
 }
