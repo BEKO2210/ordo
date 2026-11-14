@@ -35,7 +35,31 @@ Alle drei Apache-2.0. Antwortzeiten gelten nur für die PC-GPU, nicht für Handy
 - Häufige Restfehler: zusätzliche Endungen bei „Bilder“/„Songs“, Quelle und Ziel vertauscht. Die Vorschau
   zeigt deshalb immer Ordner, Anzahl und Größe vor der Bestätigung.
 
+## Messung auf dem Gerät (Schritt 1b, 14.11.2026)
+
+Pixel 11 Pro XL (Tensor G6, 12 GB RAM, Android 17). Qwen3.5-2B Q4_K_M (1,18 GiB), nur CPU.
+Weg: llama.cpp (MIT, Commit `3549c27`) mit NDK 30 nach `docs/android.md` übersetzt, KleidiAI an
+(Apache-2.0, wie in `examples/llama.android`). Beide Lizenzen passen zu GPL-3.0.
+Skript: `utils/command-bench/device-run.sh` (llama-server auf dem Gerät, `adb forward`, Holdout-Lauf).
+
+| Messung | Wert |
+|---|---|
+| llama-bench, 4 Threads, kühl | Prompt 99,5 t/s, Ausgabe 20,6 t/s |
+| llama-bench, 8 Threads | Prompt 72 t/s, langsamer, also 4 Threads nehmen |
+| Holdout auf dem Gerät (20 Befehle) | 15/20 (wie auf der pop-GPU), 0 gefährliche Fehler |
+| Zeit pro Befehl, Median | 11 s; ab dem 2. Befehl ~7 s (System-Prompt im Cache) |
+| Erster Befehl | 10–32 s; der System-Prompt hat 774 Token, die Spitze von 79 s fiel mit kaltem Laden zusammen |
+| Ausgabe im Dauerlauf | ~8 t/s; Akku bei 40 °C, das Gerät drosselt. Mit und ohne JSON-Schema gleich schnell |
+| RAM-Spitze (VmHWM, Kontext 2048) | 3,3 GB, danach 2,5 GB |
+
+Folgen:
+- Brauchbar, aber spürbar langsam: Ladeanzeige mit Abbruch, keine Antwort im Sekundentakt versprechen.
+- System-Prompt kürzen (774 Token): Das senkt die erste Antwort am stärksten. Danach Treffer neu messen.
+- Modell und Prompt-Cache beim Öffnen der Eingabe vorladen, nach Leerlauf entladen (3,3 GB).
+- Systemcheck (Schritt 3): mindestens 8 GB RAM und ~4 GB frei; 4 Threads.
+
 ## Offen
 
-- Tempo und Speicher auf echten Geräten (Pixel 11 Pro XL, S21) mit llama.cpp für Android.
+- Älteres Gerät (S21/Exynos 2100) nicht gemessen: Gerät ist gerade nicht verfügbar.
+- Gekürzten System-Prompt messen (Treffer + Zeit).
 - Ordnernamen gegen echte Ordner auflösen (Download/Downloads, Musik/Music).
