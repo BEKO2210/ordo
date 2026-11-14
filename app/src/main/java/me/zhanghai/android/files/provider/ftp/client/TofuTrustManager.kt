@@ -39,36 +39,46 @@ object TofuTrustManager : X509ExtendedTrustManager(), HostnameVerifier {
         get() = File(application.noBackupFilesDir, "ftps_known_certificates.properties")
 
     override fun checkServerTrusted(chain: Array<X509Certificate>, authType: String, socket: Socket?) {
-        check(chain, authType, socket?.inetAddress?.hostName, socket?.port)
+        // hostString: the name or address as connected, never a reverse DNS lookup.
+        check(chain, authType, (socket?.remoteSocketAddress as? java.net.InetSocketAddress)?.hostString)
     }
 
     override fun checkServerTrusted(chain: Array<X509Certificate>, authType: String, engine: SSLEngine?) {
-        check(chain, authType, engine?.peerHost, engine?.peerPort)
+        check(chain, authType, engine?.peerHost)
     }
 
     override fun checkServerTrusted(chain: Array<X509Certificate>, authType: String) {
-        check(chain, authType, null, null)
+        check(chain, authType, null)
     }
 
     @Synchronized
-    private fun check(chain: Array<X509Certificate>, authType: String, host: String?, port: Int?) {
+    private fun check(chain: Array<X509Certificate>, authType: String, host: String?) {
+        // Pinned per host, not per port: FTPS data connections use a new port every time.
+        val known = load()
+        val stored = host?.let { known.getProperty(it) }
         if (isPublic(chain, authType)) {
+            // Remember that this host had a real certificate, so it can never be swapped for a self-signed one.
+            if (host != null && stored == null) {
+                known.setProperty(host, CA)
+                save(known)
+            }
             return
         }
         if (host == null || chain.isEmpty()) {
             throw CertificateException("Untrusted certificate and no host to remember it for")
         }
-        val id = "$host:$port"
         val fingerprint = fingerprint(chain[0])
-        val known = load()
-        val stored = known.getProperty(id)
         if (stored != null) {
             if (stored != fingerprint) {
-                throw CertificateException("Certificate of $id changed – possible man-in-the-middle")
+                throw CertificateException("Certificate of $host changed – possible man-in-the-middle")
             }
             return
         }
-        known.setProperty(id, fingerprint)
+        known.setProperty(host, fingerprint)
+        save(known)
+    }
+
+    private fun save(known: Properties) {
         try {
             file.outputStream().use { known.store(it, null) }
         } catch (e: IOException) {
@@ -76,19 +86,18 @@ object TofuTrustManager : X509ExtendedTrustManager(), HostnameVerifier {
         }
     }
 
-    /** Host names are checked for CA certificates; a remembered self-signed one stands for its host. */
-    override fun verify(hostname: String, session: SSLSession): Boolean {
-        val chain = try {
-            session.peerCertificates.filterIsInstance<X509Certificate>().toTypedArray()
-        } catch (e: Exception) {
-            return false
-        }
-        return if (isPublic(chain, "RSA") || isPublic(chain, "ECDHE_ECDSA")) {
+    private const val CA = "CA"
+
+    /**
+     * Host names are checked whenever the host showed a CA certificate (remembered in check(), which
+     * runs first during the handshake); a pinned self-signed certificate stands for its host.
+     */
+    override fun verify(hostname: String, session: SSLSession): Boolean =
+        if (load().getProperty(hostname) == CA) {
             HttpsURLConnection.getDefaultHostnameVerifier().verify(hostname, session)
         } else {
-            true
+            load().getProperty(hostname) != null
         }
-    }
 
     private fun isPublic(chain: Array<X509Certificate>, authType: String): Boolean =
         try {

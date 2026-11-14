@@ -134,14 +134,19 @@ object CommandCheck {
         "not", "no", "don't", "dont", "never", "except", "without"
     )
 
-    /** True when one of [stems] starts a word that is not negated by one of the three words before it. */
-    private fun said(words: String, stems: List<String>): Boolean {
-        val tokens = words.split(Regex("[^\\p{L}'/]+")).filter { it.isNotEmpty() }
-        return tokens.indices.any { i ->
-            stems.any { stem -> tokens[i].startsWith(stem) || (stem.contains(' ') && words.contains(stem)) } &&
-                tokens.subList((i - 3).coerceAtLeast(0), i).none { it in NEGATIONS }
+    /**
+     * True when one of [stems] starts a word with no negation among the three words before or five after it,
+     * within the same clause ("nicht löschen", "lösche die Dateien nicht"; but "lösche X, nicht Y" is fine).
+     */
+    private fun said(words: String, stems: List<String>): Boolean =
+        words.split(',', ';', '.', '!', '?').any { clause ->
+            val tokens = clause.split(Regex("[^\\p{L}'/]+")).filter { it.isNotEmpty() }
+            tokens.indices.any { i ->
+                stems.any { stem -> tokens[i].startsWith(stem) || (stem.contains(' ') && clause.contains(stem)) } &&
+                    tokens.subList((i - 3).coerceAtLeast(0), (i + 6).coerceAtMost(tokens.size))
+                        .none { it in NEGATIONS }
+            }
         }
-    }
 
     // Composed and decomposed umlauts ("é" as one or two characters) count as the same name.
     private fun sameName(a: String, b: String): Boolean =

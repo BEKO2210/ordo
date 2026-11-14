@@ -819,6 +819,10 @@ class CopyFileJob(private val sources: List<Path>, private val targetDirectory: 
                 if (isExtract && fileInTarget.escapes(target)) {
                     return FileVisitResult.CONTINUE
                 }
+                // On network targets a link's effect cannot be checked, so links from archives are not created.
+                if (isExtract && attributes.isSymbolicLink && !target.isLinuxPath) {
+                    return FileVisitResult.CONTINUE
+                }
                 copy(file, fileInTarget, isExtract, transferInfo, actionAllInfo)
                 throwIfInterrupted()
                 return FileVisitResult.CONTINUE

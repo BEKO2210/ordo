@@ -8,6 +8,7 @@ package me.zhanghai.android.files.analysis
 import android.os.Environment
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import java.io.File
@@ -31,14 +32,16 @@ sealed class AnalysisState {
     class Done(val result: AnalysisResult) : AnalysisState()
 }
 
-class AnalysisViewModel : ViewModel() {
+// The root comes from the intent: internal storage by default, or an SD card / USB drive.
+class AnalysisViewModel(handle: SavedStateHandle) : ViewModel() {
     private val _state = MutableLiveData<AnalysisState>()
     val state: LiveData<AnalysisState> = _state
 
     val selectedPaths = mutableSetOf<String>()
 
     @Suppress("DEPRECATION")
-    var root: File = Environment.getExternalStorageDirectory()
+    var root: File = handle.get<String>(AnalysisActivity.EXTRA_ROOT)?.let(::File)
+        ?: Environment.getExternalStorageDirectory()
         private set
 
     private var job: Job? = null

@@ -101,7 +101,7 @@ class HomeFragment : Fragment(), ShowRequestAllFilesAccessRationaleDialogFragmen
             startActivity(Intent(requireContext(), BackupActivity::class.java))
         }
         val storageAdapter = StorageAdapter(
-            { startActivity(Intent(requireContext(), AnalysisActivity::class.java)) }
+            { startActivity(AnalysisActivity.createIntent(requireContext(), it.path.toString())) }
         ) { startActivity(FileListActivity.createViewIntent(it.path)) }
         binding.storageList.apply { layoutManager = LinearLayoutManager(context); adapter = storageAdapter; isNestedScrollingEnabled = false }
         val quickAccessAdapter = QuickAccessAdapter { startActivity(FileListActivity.createViewIntent(it.path)) }

@@ -21,12 +21,14 @@ import java.security.MessageDigest
 
 /** The on-device model: device check, download through DownloadManager, hash check. */
 object CommandModel {
-    // Qwen3.5-4B (Apache-2.0), Q4_K_M by unsloth, pinned to one revision and checked by hash.
+    // Qwen3.5-4B (Apache-2.0), Q4_0 by unsloth, pinned to one revision and checked by hash. Q4_0, not
+    // Q4_K_M: Arm's KleidiAI kernels speed it up 3x reading and 1.5x writing (Tab S9 Ultra) at the
+    // same accuracy (docs/KI-BEFEHLE.md).
     private const val URL = "https://huggingface.co/unsloth/Qwen3.5-4B-GGUF/resolve/" +
-        "e87f176479d0855a907a41277aca2f8ee7a09523/Qwen3.5-4B-Q4_K_M.gguf"
-    const val SIZE = 2_740_937_888L
-    private const val SHA256 = "00fe7986ff5f6b463e62455821146049db6f9313603938a70800d1fb69ef11a4"
-    private const val NAME = "qwen3.5-4b-q4_k_m.gguf"
+        "e87f176479d0855a907a41277aca2f8ee7a09523/Qwen3.5-4B-Q4_0.gguf"
+    const val SIZE = 2_583_221_408L
+    private const val SHA256 = "298fcb5fe7a77ccc79745ae24751560c5ac56874caff4bb39b1f2055bd72b8bb"
+    private const val NAME = "qwen3.5-4b-q4_0.gguf"
     private const val PREFS = "command_model"
     private const val KEY_DOWNLOAD = "download_id"
     private const val KEY_VERIFIED = "verified"
@@ -73,6 +75,9 @@ object CommandModel {
     fun state(context: Context): State {
         val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
         val file = file(context)
+        // A model of an earlier app version would only take up gigabytes.
+        file.parentFile?.listFiles { other -> other.name.endsWith(".gguf") && other.name != NAME }
+            ?.forEach { it.delete() }
         if (prefs.getBoolean(KEY_VERIFIED, false)) {
             // The hash only counts for the exact file it was computed on; any change means hash again.
             if (file.length() == SIZE && prefs.getString(KEY_STAMP, null) == stamp(file)) {

@@ -121,7 +121,7 @@ class TileAdapter : RecyclerView.Adapter<TileAdapter.ViewHolder>() {
 }
 
 class StorageAdapter(
-    private val onAnalyze: () -> Unit,
+    private val onAnalyze: (StorageSummary) -> Unit,
     private val onClick: (StorageSummary) -> Unit
 ) :
     RecyclerView.Adapter<StorageAdapter.ViewHolder>() {
@@ -164,8 +164,7 @@ class StorageAdapter(
             )
             // Fills up from empty on first show, like a gauge settling.
             binding.usageProgress.setProgressCompat(progress, true)
-            binding.analyzeButton.isVisible = !item.removable
-            binding.analyzeButton.setOnClickListener { onAnalyze() }
+            binding.analyzeButton.setOnClickListener { onAnalyze(item) }
             binding.root.setOnClickListener { onClick(item) }
         }
     }

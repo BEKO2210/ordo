@@ -30,6 +30,7 @@ import androidx.transition.ChangeBounds
 import androidx.transition.TransitionManager
 import com.google.android.material.transition.MaterialSharedAxis
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -59,6 +60,13 @@ class OnboardingActivity : AppActivity() {
         binding = OnboardingActivityBinding.inflate(layoutInflater)
         setContentView(binding.root)
         pages = listOf(binding.pageWelcome, binding.pageSafety, binding.pageAi, binding.pageAccess)
+        // On tablets a full-width column looks stretched; keep it at a phone-like reading width.
+        val maxWidth = (520 * resources.displayMetrics.density).toInt()
+        if (resources.displayMetrics.widthPixels > maxWidth) {
+            binding.contentLayout.layoutParams = android.widget.FrameLayout.LayoutParams(
+                maxWidth, android.view.ViewGroup.LayoutParams.MATCH_PARENT, android.view.Gravity.CENTER_HORIZONTAL
+            )
+        }
         ViewCompat.setOnApplyWindowInsetsListener(binding.contentLayout) { view, insets ->
             val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             view.updatePadding(top = bars.top, bottom = bars.bottom)
@@ -160,7 +168,7 @@ class OnboardingActivity : AppActivity() {
     private suspend fun typeExample() {
         val example = getString(R.string.onboarding_ai_example)
         val animate = ValueAnimator.areAnimatorsEnabled()
-        while (lifecycleScope.coroutineContext.isActive) {
+        while (currentCoroutineContext().isActive) {
             binding.aiOrb.thinking = false
             if (!animate) {
                 binding.aiTyping.text = example
