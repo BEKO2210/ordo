@@ -812,8 +812,8 @@
     <string name="home_category_apks">APKs</string>
     <string name="home_category_archives">Archives</string>
     <plurals name="home_category_summary">
-        <item quantity="one">%1$d file · %2$s</item>
-        <item quantity="other">%1$d files · %2$s</item>
+        <item quantity="one">%1$d · %2$s</item>
+        <item quantity="other">%1$d · %2$s</item>
     </plurals>
     <string name="home_storage_summary">%1$s used of %2$s</string>
 
@@ -924,8 +924,11 @@
     <!-- Ordo: paste bar -->
     <string name="file_list_paste_action_move_here">Move here</string>
     <string name="file_list_paste_action_copy_here">Copy here</string>
-    <string name="home_tools">Tools</string>
     <string name="home_storage_internal">Internal storage</string>
     <string name="file_action_copy_to">Copy to…</string>
     <string name="file_action_move_to">Move to…</string>
+    <plurals name="home_apps_summary">
+        <item quantity="one">%1$d app</item>
+        <item quantity="other">%1$d apps</item>
+    </plurals>
 </resources>

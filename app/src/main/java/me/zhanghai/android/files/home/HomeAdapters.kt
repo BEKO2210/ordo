@@ -7,6 +7,7 @@ package me.zhanghai.android.files.home
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.core.view.isInvisible
 import androidx.recyclerview.widget.RecyclerView
 import android.content.res.ColorStateList
 import android.widget.ImageView
@@ -57,25 +58,29 @@ class RecentFileAdapter(private val onClick: (RecentFile) -> Unit) :
     }
 }
 
-class CategoryAdapter(private val onClick: (HomeCategory) -> Unit) :
-    RecyclerView.Adapter<CategoryAdapter.ViewHolder>() {
-    var items: List<CategorySummary> = emptyList()
-        set(value) { field = value; notifyDataSetChanged() }
+class TileAdapter : RecyclerView.Adapter<TileAdapter.ViewHolder>() {
+    var items: List<HomeTile> = emptyList()
+        set(value) {
+            field = value
+            notifyDataSetChanged()
+        }
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = ViewHolder(
         HomeCategoryItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
     )
+
     override fun getItemCount() = items.size
+
     override fun onBindViewHolder(holder: ViewHolder, position: Int) = holder.bind(items[position])
-    inner class ViewHolder(private val binding: HomeCategoryItemBinding) : RecyclerView.ViewHolder(binding.root) {
-        fun bind(item: CategorySummary) {
-            val context = binding.root.context
-            binding.iconImage.setTintedCircleIcon(item.category.iconRes, item.category.colorRes)
-            binding.nameText.setText(item.category.titleRes)
-            binding.descriptionText.text = context.getQuantityString(
-                R.plurals.home_category_summary, item.count.toInt(), item.count,
-                item.size.asFileSize().formatHumanReadable(context)
-            )
-            binding.root.setOnClickListener { onClick(item.category) }
+
+    inner class ViewHolder(private val binding: HomeCategoryItemBinding) :
+        RecyclerView.ViewHolder(binding.root) {
+        fun bind(item: HomeTile) {
+            binding.iconImage.setTintedCircleIcon(item.iconRes, item.colorRes)
+            binding.nameText.setText(item.titleRes)
+            binding.descriptionText.text = item.summary
+            binding.descriptionText.isInvisible = item.summary == null
+            binding.root.setOnClickListener { item.onClick() }
         }
     }
 }

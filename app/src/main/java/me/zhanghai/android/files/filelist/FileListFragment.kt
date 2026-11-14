@@ -923,6 +923,7 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
             menu.findItem(R.id.action_move_to).isVisible =
                 !isAnyFileReadOnly && !isAnyFileArchivePath
             menu.findItem(R.id.action_copy_to).isVisible = !isAnyFileArchivePath
+            menu.findItem(R.id.action_rename).isVisible = files.size == 1 && !isAnyFileReadOnly
             menu.findItem(R.id.action_copy)
                 .setIcon(
                     if (areAllFilesArchivePaths) {
@@ -978,6 +979,12 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
             }
             R.id.action_copy -> {
                 copyFiles(viewModel.selectedFiles)
+                true
+            }
+            R.id.action_rename -> {
+                val file = viewModel.selectedFiles.single()
+                viewModel.selectFiles(viewModel.selectedFiles, false)
+                showRenameFileDialog(file)
                 true
             }
             R.id.action_copy_to -> {

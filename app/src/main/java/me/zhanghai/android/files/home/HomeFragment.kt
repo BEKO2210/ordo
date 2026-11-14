@@ -5,13 +5,10 @@
 
 package me.zhanghai.android.files.home
 
-import android.app.Activity
-import androidx.annotation.ColorRes
-import androidx.annotation.DrawableRes
-import androidx.annotation.StringRes
 import me.zhanghai.android.files.analysis.AnalysisActivity
+import me.zhanghai.android.files.file.asFileSize
+import me.zhanghai.android.files.util.getQuantityString
 import me.zhanghai.android.files.apps.AppsActivity
-import me.zhanghai.android.files.databinding.HomeToolItemBinding
 import me.zhanghai.android.files.trash.TrashActivity
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -68,34 +65,23 @@ class HomeFragment : Fragment(), ShowRequestAllFilesAccessRationaleDialogFragmen
             )
         }
         binding.recentList.apply {
-            layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
+            layoutManager = GridLayoutManager(context, 3)
             adapter = recentAdapter
+            isNestedScrollingEnabled = false
         }
-        val categoryAdapter = CategoryAdapter { startActivity(FileListActivity.createCategoryIntent(it)) }
+        val tileAdapter = TileAdapter()
         binding.categoryList.apply {
-            layoutManager = GridLayoutManager(context, 2)
-            adapter = categoryAdapter
+            layoutManager = GridLayoutManager(context, 3)
+            adapter = tileAdapter
             isNestedScrollingEnabled = false
         }
         val storageAdapter = StorageAdapter { startActivity(FileListActivity.createViewIntent(it.path)) }
         binding.storageList.apply { layoutManager = LinearLayoutManager(context); adapter = storageAdapter; isNestedScrollingEnabled = false }
         val quickAccessAdapter = QuickAccessAdapter { startActivity(FileListActivity.createViewIntent(it.path)) }
         binding.quickAccessList.apply { layoutManager = LinearLayoutManager(context); adapter = quickAccessAdapter; isNestedScrollingEnabled = false }
-        bindTool(
-            binding.toolAnalysis, R.drawable.storage_analysis_icon_white_24dp,
-            R.string.navigation_analysis, R.color.home_analysis,
-            AnalysisActivity::class.java
-        )
-        bindTool(
-            binding.toolTrash, R.drawable.delete_icon_white_24dp,
-            R.string.navigation_trash, R.color.home_trash,
-            TrashActivity::class.java
-        )
-        bindTool(
-            binding.toolApps, R.drawable.apps_icon_white_24dp,
-            R.string.navigation_apps, R.color.home_apps,
-            AppsActivity::class.java
-        )
+        binding.analyzeButton.setOnClickListener {
+            startActivity(Intent(requireContext(), AnalysisActivity::class.java))
+        }
         binding.toolbar.setTitle(R.string.app_name)
         binding.toolbar.inflateMenu(R.menu.home)
         binding.toolbar.setOnMenuItemClickListener {
@@ -110,7 +96,7 @@ class HomeFragment : Fragment(), ShowRequestAllFilesAccessRationaleDialogFragmen
         binding.swipeRefreshLayout.setOnRefreshListener { viewModel.reload() }
         viewModel.state.observe(viewLifecycleOwner) { homeState ->
             recentAdapter.items = homeState.recentFiles
-            categoryAdapter.items = homeState.categories
+            tileAdapter.items = createTiles(homeState)
             storageAdapter.items = homeState.storages
             quickAccessAdapter.items = homeState.quickAccess
             binding.recentEmpty.isVisible = !homeState.isLoading && homeState.recentFiles.isEmpty()
@@ -118,16 +104,34 @@ class HomeFragment : Fragment(), ShowRequestAllFilesAccessRationaleDialogFragmen
         }
     }
 
-    private fun bindTool(
-        tool: HomeToolItemBinding,
-        @DrawableRes iconRes: Int,
-        @StringRes titleRes: Int,
-        @ColorRes colorRes: Int,
-        activityClass: Class<out Activity>
-    ) {
-        tool.iconImage.setTintedCircleIcon(iconRes, colorRes)
-        tool.nameText.setText(titleRes)
-        tool.root.setOnClickListener { startActivity(Intent(requireContext(), activityClass)) }
+    private fun createTiles(state: HomeState): List<HomeTile> {
+        val context = requireContext()
+        val categoryTiles = state.categories.map { summary ->
+            HomeTile(
+                summary.category.iconRes, summary.category.titleRes, summary.category.colorRes,
+                context.getQuantityString(
+                    R.plurals.home_category_summary, summary.count.toInt(), summary.count,
+                    summary.size.asFileSize().formatHumanReadable(context)
+                )
+            ) { startActivity(FileListActivity.createCategoryIntent(summary.category)) }
+        }
+        return categoryTiles + listOf(
+            HomeTile(
+                R.drawable.apps_icon_white_24dp, R.string.navigation_apps, R.color.home_apps,
+                state.appCount?.let {
+                    context.getQuantityString(R.plurals.home_apps_summary, it, it)
+                }
+            ) { startActivity(Intent(context, AppsActivity::class.java)) },
+            HomeTile(
+                R.drawable.delete_icon_white_24dp, R.string.navigation_trash, R.color.home_trash,
+                state.trashCount?.let {
+                    context.getQuantityString(
+                        R.plurals.home_category_summary, it, it,
+                        state.trashSize.asFileSize().formatHumanReadable(context)
+                    )
+                }
+            ) { startActivity(Intent(context, TrashActivity::class.java)) }
+        )
     }
 
     override fun onResume() {

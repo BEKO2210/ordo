@@ -70,9 +70,8 @@
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/recentList"
                     android:layout_width="match_parent"
-                    android:layout_height="136dp"
-                    android:clipToPadding="false"
-                    android:paddingHorizontal="12dp" />
+                    android:layout_height="wrap_content"
+                    android:paddingHorizontal="8dp" />
 
                 <TextView style="@style/HomeSectionTitle" android:text="@string/home_categories" />
                 <androidx.recyclerview.widget.RecyclerView
@@ -81,25 +80,21 @@
                     android:layout_height="wrap_content"
                     android:paddingHorizontal="8dp" />
 
-                <TextView style="@style/HomeSectionTitle" android:text="@string/home_tools" />
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:paddingHorizontal="8dp">
-
-                    <include android:id="@+id/toolAnalysis" layout="@layout/home_tool_item" />
-
-                    <include android:id="@+id/toolTrash" layout="@layout/home_tool_item" />
-
-                    <include android:id="@+id/toolApps" layout="@layout/home_tool_item" />
-                </LinearLayout>
-
                 <TextView style="@style/HomeSectionTitle" android:text="@string/home_storage" />
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/storageList"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/analyzeButton"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginTop="4dp"
+                    android:text="@string/navigation_analysis"
+                    app:icon="@drawable/storage_analysis_icon_white_24dp" />
 
                 <TextView style="@style/HomeSectionTitle" android:text="@string/home_quick_access" />
                 <androidx.recyclerview.widget.RecyclerView

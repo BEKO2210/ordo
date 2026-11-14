@@ -11,6 +11,8 @@ import me.zhanghai.android.files.provider.common.readAttributes
 
 import android.content.ContentUris
 import android.content.Context
+import android.content.pm.ApplicationInfo
+import me.zhanghai.android.files.trash.Trash
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
@@ -27,11 +29,16 @@ import me.zhanghai.android.files.settings.Settings
 import me.zhanghai.android.files.util.valueCompat
 
 class HomeRepository(private val context: Context) {
+    companion object {
+        // Two full rows of the three-column grid.
+        private const val RECENT_COUNT = 6
+    }
+
     // quickAccess must be read on the main thread: its LiveData sources initialize with setValue().
     fun load(quickAccess: List<QuickAccessItem>): HomeState {
         val rows = queryRows()
         val recentFiles = rows.asSequence().filter { java.io.File(it.data).isFile }
-            .sortedByDescending { it.modified }.take(20).map {
+            .sortedByDescending { it.modified }.take(RECENT_COUNT).map {
             val path = Paths.get(it.data)
             val attributes = try {
                 path.readAttributes(BasicFileAttributes::class.java)
@@ -44,7 +51,16 @@ class HomeRepository(private val context: Context) {
             val matching = rows.filter { category in it.categories }
             CategorySummary(category, matching.size.toLong(), matching.sumOf { it.size })
         }
-        return HomeState(recentFiles, summaries, loadStorages(), quickAccess, false)
+        val trashEntries = Trash.entries()
+        @Suppress("DEPRECATION")
+        val appCount = context.packageManager.getInstalledApplications(0)
+            .count { it.flags and ApplicationInfo.FLAG_SYSTEM == 0 }
+        return HomeState(
+            recentFiles, summaries, loadStorages(), quickAccess, false, appCount,
+            trashEntries.size, trashEntries.sumOf { entry ->
+                entry.file.walkTopDown().filter { it.isFile }.sumOf { it.length() }
+            }
+        )
     }
 
     fun loadCategoryPaths(category: HomeCategory, query: String = ""): List<Path> =

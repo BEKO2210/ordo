@@ -6,6 +6,9 @@
 package me.zhanghai.android.files.home
 
 import android.net.Uri
+import androidx.annotation.ColorRes
+import androidx.annotation.DrawableRes
+import androidx.annotation.StringRes
 import java8.nio.file.Path
 import java8.nio.file.attribute.BasicFileAttributes
 
@@ -30,5 +33,17 @@ data class HomeState(
     val categories: List<CategorySummary> = HomeCategory.entries.map { CategorySummary(it, 0, 0) },
     val storages: List<StorageSummary> = emptyList(),
     val quickAccess: List<QuickAccessItem> = emptyList(),
-    val isLoading: Boolean = true
+    val isLoading: Boolean = true,
+    val appCount: Int? = null,
+    val trashCount: Int? = null,
+    val trashSize: Long = 0
+)
+
+// One tile of the home grid: a category or a tool, all the same size.
+class HomeTile(
+    @DrawableRes val iconRes: Int,
+    @StringRes val titleRes: Int,
+    @ColorRes val colorRes: Int,
+    val summary: String?,
+    val onClick: () -> Unit
 )
