@@ -24,7 +24,9 @@ class AnalysisResult(
     val duplicates: List<DuplicateGroup>,
     val old: List<ScannedFile>,
     val apks: List<ScannedFile>,
-    val folders: List<FolderSize>
+    val folders: List<FolderSize>,
+    val files: List<ScannedFile> = emptyList(),
+    val insights: StorageInsights? = null
 )
 
 sealed class AnalysisState {
@@ -61,15 +63,31 @@ class AnalysisViewModel(handle: SavedStateHandle) : ViewModel() {
                     _state.postValue(AnalysisState.Scanning(it, false))
                 }
                 _state.postValue(AnalysisState.Scanning(files.size, true))
-                AnalysisResult(
+                withInsights(AnalysisResult(
                     root.path, StorageAnalysis.largeFiles(files),
                     StorageAnalysis.duplicates(files, isCancelled = { !isActive }),
                     StorageAnalysis.oldFiles(files, System.currentTimeMillis()),
-                    StorageAnalysis.apkFiles(files), StorageAnalysis.folderSizes(root.path, files)
-                )
+                    StorageAnalysis.apkFiles(files), StorageAnalysis.folderSizes(root.path, files), files
+                ))
             }
             _state.value = AnalysisState.Done(result)
         }
+    }
+
+    private fun withInsights(result: AnalysisResult): AnalysisResult {
+        val stat = try {
+            android.os.StatFs(result.root)
+        } catch (e: IllegalArgumentException) {
+            null
+        }
+        val trashBytes = me.zhanghai.android.files.trash.Trash.entries()
+            .filter { it.root == result.root }.sumOf { it.file.length() }
+        val insights = StorageInsights.compute(
+            result.root, result.files, result, stat?.totalBytes ?: 0L, stat?.availableBytes ?: 0L, trashBytes,
+            System.currentTimeMillis()
+        )
+        return AnalysisResult(result.root, result.large, result.duplicates, result.old, result.apks, result.folders,
+            result.files, insights)
     }
 
     // Deleted files leave every list at once, so sizes and duplicate groups stay correct.
@@ -79,7 +97,7 @@ class AnalysisViewModel(handle: SavedStateHandle) : ViewModel() {
         val deletedFiles = (result.large + result.old + result.apks + result.duplicates.flatMap { it.files })
             .filter { it.path in paths }.distinctBy { it.path }
         _state.value = AnalysisState.Done(
-            AnalysisResult(
+            withInsights(AnalysisResult(
                 result.root, result.large.keep(),
                 result.duplicates.map { DuplicateGroup(it.files.keep()) }.filter { it.files.size > 1 },
                 result.old.keep(), result.apks.keep(),
@@ -89,8 +107,9 @@ class AnalysisViewModel(handle: SavedStateHandle) : ViewModel() {
                         folder.size - deletedFiles.filter { it.path.startsWith(folder.path + "/") }
                             .sumOf { it.size }
                     )
-                }.sortedByDescending { it.size }
-            )
+                }.sortedByDescending { it.size },
+                result.files.keep()
+            ))
         )
         selectedPaths.removeAll(paths)
     }

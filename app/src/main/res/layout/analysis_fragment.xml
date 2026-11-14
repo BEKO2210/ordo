@@ -54,6 +54,11 @@
                 android:paddingBottom="@dimen/list_vertical_padding"
                 android:scrollbars="vertical" />
 
+            <include
+                android:id="@+id/overview"
+                layout="@layout/analysis_overview"
+                android:visibility="gone" />
+
             <LinearLayout
                 android:id="@+id/progressLayout"
                 android:layout_width="match_parent"

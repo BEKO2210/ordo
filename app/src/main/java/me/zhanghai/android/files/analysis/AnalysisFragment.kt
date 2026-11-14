@@ -43,6 +43,7 @@ import me.zhanghai.android.files.util.getQuantityString
 
 class AnalysisFragment : Fragment() {
     private enum class Tab(val titleRes: Int) {
+        OVERVIEW(R.string.analysis_tab_overview),
         LARGE(R.string.analysis_tab_large),
         DUPLICATES(R.string.analysis_tab_duplicates),
         OLD(R.string.analysis_tab_old),
@@ -64,7 +65,8 @@ class AnalysisFragment : Fragment() {
 
     private var result: AnalysisResult? = null
 
-    private var tab = Tab.LARGE
+    private var tab = Tab.OVERVIEW
+    private var boundResult: AnalysisResult? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -131,22 +133,63 @@ class AnalysisFragment : Fragment() {
         updateRows()
     }
 
+    private fun dashboard() = AnalysisDashboard(
+        binding.overview,
+        onViewCleanup = { type ->
+            when (type) {
+                "trash" -> startActivity(android.content.Intent(requireContext(), me.zhanghai.android.files.trash.TrashActivity::class.java))
+                else -> binding.tabLayout.getTabAt(
+                    Tab.entries.indexOf(
+                        when (type) {
+                            "duplicates" -> Tab.DUPLICATES
+                            "large" -> Tab.LARGE
+                            "old" -> Tab.OLD
+                            else -> Tab.APKS
+                        }
+                    )
+                )!!.select()
+            }
+        },
+        onOpenFolder = { path -> startActivity(FileListActivity.createViewIntent(java8.nio.file.Paths.get(path))) },
+        onPreview = { suggestion ->
+            val textRes = if (suggestion.id == "old_downloads") R.string.analysis_suggestion_old_downloads_command
+            else R.string.analysis_suggestion_download_apks_command
+            val plan = me.zhanghai.android.files.ai.CommandPlan(
+                "delete", "${boundResult?.root ?: viewModel.root.path}/${suggestion.folder}",
+                extensions = suggestion.extensions,
+                olderThan = suggestion.olderThanDays
+            )
+            me.zhanghai.android.files.ai.CommandSheetFragment.withPlan(getString(textRes), plan)
+                .show(childFragmentManager, me.zhanghai.android.files.ai.CommandSheetFragment.TAG)
+        }
+    )
+
     private fun updateTabTitles(result: AnalysisResult) {
         val counts = listOf(
-            result.large.size, result.duplicates.size, result.old.size, result.apks.size,
+            -1, result.large.size, result.duplicates.size, result.old.size, result.apks.size,
             result.folders.size
         )
         for ((index, tab) in Tab.entries.withIndex()) {
-            binding.tabLayout.getTabAt(index)!!.text =
+            binding.tabLayout.getTabAt(index)!!.text = if (counts[index] < 0) {
+                getString(tab.titleRes)
+            } else {
                 getString(R.string.analysis_tab_title_format, getString(tab.titleRes), counts[index])
+            }
         }
     }
 
     private fun updateRows() {
         val result = result
         val context = requireContext()
+        val overview = tab == Tab.OVERVIEW
+        binding.overview.root.isVisible = overview && result != null
+        binding.recyclerView.isVisible = !overview
+        if (overview && result != null && result !== boundResult && result.insights != null) {
+            boundResult = result
+            dashboard().bind(result.insights, result.folders, result.root)
+        }
         adapter.rows = when {
-            result == null -> emptyList()
+            result == null || overview -> emptyList()
             tab == Tab.LARGE -> result.large.map { Row.FileRow(it) }
             tab == Tab.OLD -> result.old.map { Row.FileRow(it) }
             tab == Tab.APKS -> result.apks.map { Row.FileRow(it) }
@@ -162,7 +205,7 @@ class AnalysisFragment : Fragment() {
                 ) + group.files.map { Row.FileRow(it) }
             }
         }
-        binding.emptyText.isVisible = result != null && adapter.rows.isEmpty()
+        binding.emptyText.isVisible = result != null && !overview && adapter.rows.isEmpty()
         updateSelection()
     }
 
@@ -193,7 +236,7 @@ class AnalysisFragment : Fragment() {
         menu.findItem(R.id.action_select_all_but_newest).isVisible =
             isDone && tab == Tab.DUPLICATES
         menu.findItem(R.id.action_select_all).isVisible =
-            isDone && tab != Tab.DUPLICATES && tab != Tab.FOLDERS
+            isDone && tab != Tab.DUPLICATES && tab != Tab.FOLDERS && tab != Tab.OVERVIEW
     }
 
     @Deprecated("Deprecated in Java")

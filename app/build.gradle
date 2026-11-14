@@ -106,6 +106,8 @@ dependencies {
     }
     implementation 'com.github.chrisbanes:PhotoView:2.3.0'
     implementation 'com.github.Dimezis:BlurView:version-4.0.0'
+    // Charts for the storage analysis (Apache-2.0)
+    implementation 'com.github.PhilJay.MPAndroidChart:MPChartLib:v4.0.1'
     implementation 'com.github.topjohnwu.libsu:service:5.2.2'
 }
 
