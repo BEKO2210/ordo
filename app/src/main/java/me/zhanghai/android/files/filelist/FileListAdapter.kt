@@ -6,6 +6,7 @@
 package me.zhanghai.android.files.filelist
 
 import android.text.TextUtils
+import android.util.TypedValue
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
@@ -13,6 +14,8 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.widget.PopupMenu
 import androidx.core.view.isVisible
+import androidx.core.view.updateLayoutParams
+import androidx.core.view.updatePaddingRelative
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import coil.dispose
@@ -35,8 +38,10 @@ import me.zhanghai.android.files.provider.archive.isArchivePath
 import me.zhanghai.android.files.provider.common.isEncrypted
 import me.zhanghai.android.files.settings.Settings
 import me.zhanghai.android.files.ui.AnimatedListAdapter
+import me.zhanghai.android.files.ui.AspectRatioFrameLayout
 import me.zhanghai.android.files.ui.CheckableForegroundLinearLayout
 import me.zhanghai.android.files.ui.CheckableItemBackground
+import me.zhanghai.android.files.util.dpToDimensionPixelSize
 import me.zhanghai.android.files.util.isMaterial3Theme
 import me.zhanghai.android.files.util.layoutInflater
 import me.zhanghai.android.files.util.valueCompat
@@ -174,19 +179,21 @@ class FileListAdapter(
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val viewType = FileViewType.entries[viewType]
         val inflater = parent.context.layoutInflater
-        val holder = when (viewType) {
-            FileViewType.LIST -> ViewHolder(FileItemListBinding.inflate(inflater, parent, false))
-            FileViewType.GRID -> ViewHolder(FileItemGridBinding.inflate(inflater, parent, false))
+        val holder = if (viewType.isGrid) {
+            ViewHolder(FileItemGridBinding.inflate(inflater, parent, false))
+        } else {
+            ViewHolder(FileItemListBinding.inflate(inflater, parent, false))
         }
+        holder.applyItemSize(viewType)
         return holder.apply {
             itemLayout.apply {
                 val context = context
                 val isMaterial3Theme = context.isMaterial3Theme
-                if (viewType == FileViewType.GRID && isMaterial3Theme) {
+                if (viewType.isGrid && isMaterial3Theme) {
                     foregroundCompat =
                         context.getDrawableCompat(R.drawable.file_item_grid_foreground_material3)
                 }
-                background = if (viewType == FileViewType.GRID && isMaterial3Theme) {
+                background = if (viewType.isGrid && isMaterial3Theme) {
                     CheckableItemBackground.create(4f, 12f, context)
                 } else {
                     CheckableItemBackground.create(0f, 0f, context)
@@ -203,6 +210,56 @@ class FileListAdapter(
             popupMenu = PopupMenu(menuButton.context, menuButton)
                 .apply { inflate(R.menu.file_item) }
             menuButton.setOnClickListener { popupMenu.show() }
+        }
+    }
+
+    private fun ViewHolder.applyItemSize(viewType: FileViewType) {
+        val context = itemView.context
+        val size = viewType.size
+        if (!viewType.isGrid) {
+            itemLayout.updateLayoutParams {
+                height = context.dpToDimensionPixelSize(size.listItemHeightDp)
+            }
+            // The icon layout has 4dp of padding around the thumbnail.
+            val iconLayoutSize = context.dpToDimensionPixelSize(size.listThumbnailSizeDp + 8)
+            iconLayout.updateLayoutParams {
+                width = iconLayoutSize
+                height = iconLayoutSize
+            }
+            val thumbnailSize = context.dpToDimensionPixelSize(size.listThumbnailSizeDp)
+            thumbnailImage.updateLayoutParams {
+                width = thumbnailSize
+                height = thumbnailSize
+            }
+            val iconSize = context.dpToDimensionPixelSize(size.listIconSizeDp)
+            iconImage.updateLayoutParams {
+                width = iconSize
+                height = iconSize
+            }
+        } else if (size.isCompactGrid) {
+            // Narrow tiles have no room for the icon and the menu button next to the name; a long
+            // press still selects the file.
+            iconLayout.isVisible = false
+            menuButton.isVisible = false
+            val margin = context.dpToDimensionPixelSize(8)
+            // The horizontal spacing comes from the item decoration in FileListFragment.
+            (thumbnailImage.parent as AspectRatioFrameLayout).apply {
+                ratio = 1f
+                updateLayoutParams<ViewGroup.MarginLayoutParams> {
+                    marginStart = 0
+                    marginEnd = 0
+                    topMargin = margin
+                }
+            }
+            (nameText.parent as View).updateLayoutParams<ViewGroup.MarginLayoutParams> {
+                height = context.dpToDimensionPixelSize(44)
+                bottomMargin = margin / 2
+            }
+            nameText.updatePaddingRelative(start = margin / 4, end = margin / 4)
+            if (size == FileItemSize.SMALL) {
+                // Keeps typical file names from breaking in the middle of the extension.
+                nameText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12f)
+            }
         }
     }
 

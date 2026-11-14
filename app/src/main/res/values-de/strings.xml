@@ -286,6 +286,9 @@
     <string name="file_list_action_view_sort">Anzeigen und Sortieren</string>
     <string name="file_list_action_view_list">Liste</string>
     <string name="file_list_action_view_grid">Raster</string>
+    <string name="file_list_action_size_small">Klein</string>
+    <string name="file_list_action_size_medium">Mittel</string>
+    <string name="file_list_action_size_large">Groß</string>
     <string name="file_list_action_sort_by_name">Name</string>
     <string name="file_list_action_sort_by_type">Typ</string>
     <string name="file_list_action_sort_by_size">Größe</string>

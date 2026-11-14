@@ -23,6 +23,7 @@ import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
+import android.graphics.Rect
 import android.view.View
 import android.view.animation.DecelerateInterpolator
 import android.view.ViewGroup
@@ -123,6 +124,7 @@ import me.zhanghai.android.files.util.createIntent
 import me.zhanghai.android.files.util.createManageAppAllFilesAccessPermissionIntent
 import me.zhanghai.android.files.util.createSendStreamIntent
 import me.zhanghai.android.files.util.createViewIntent
+import me.zhanghai.android.files.util.dpToDimensionPixelSize
 import me.zhanghai.android.files.util.extraPath
 import me.zhanghai.android.files.util.extraPathList
 import me.zhanghai.android.files.util.fadeToVisibilityUnsafe
@@ -293,6 +295,31 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
         binding.recyclerView.layoutManager = layoutManager
         adapter = FileListAdapter(this)
         binding.recyclerView.adapter = adapter
+        binding.recyclerView.addItemDecoration(
+            object : RecyclerView.ItemDecoration() {
+                override fun getItemOffsets(
+                    outRect: Rect,
+                    view: View,
+                    parent: RecyclerView,
+                    state: RecyclerView.State
+                ) {
+                    val viewType = viewModel.viewType
+                    if (!(viewType.isGrid && viewType.size.isCompactGrid)) {
+                        return
+                    }
+                    val (start, end) = FileItemSize.gridItemOffsets(
+                        (view.layoutParams as GridLayoutManager.LayoutParams).spanIndex,
+                        layoutManager.spanCount,
+                        parent.context.dpToDimensionPixelSize(12)
+                    )
+                    if (parent.layoutDirection == View.LAYOUT_DIRECTION_RTL) {
+                        outRect.set(end, 0, start, 0)
+                    } else {
+                        outRect.set(start, 0, end, 0)
+                    }
+                }
+            }
+        )
         val fastScroller = ThemedFastScroller.create(binding.recyclerView)
         binding.recyclerView.setOnApplyWindowInsetsListener(
             ScrollingViewOnApplyWindowInsetsListener(binding.recyclerView, fastScroller)
@@ -504,11 +531,23 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
                 true
             }
             R.id.action_view_list -> {
-                viewModel.viewType = FileViewType.LIST
+                viewModel.viewType = viewModel.viewType.with(isGrid = false)
                 true
             }
             R.id.action_view_grid -> {
-                viewModel.viewType = FileViewType.GRID
+                viewModel.viewType = viewModel.viewType.with(isGrid = true)
+                true
+            }
+            R.id.action_size_small -> {
+                viewModel.viewType = viewModel.viewType.with(size = FileItemSize.SMALL)
+                true
+            }
+            R.id.action_size_medium -> {
+                viewModel.viewType = viewModel.viewType.with(size = FileItemSize.MEDIUM)
+                true
+            }
+            R.id.action_size_large -> {
+                viewModel.viewType = viewModel.viewType.with(size = FileItemSize.LARGE)
                 true
             }
             R.id.action_sort_by_name -> {
@@ -715,18 +754,19 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
     }
 
     private fun updateSpanCount() {
-        layoutManager.spanCount = when (viewModel.viewType) {
-            FileViewType.LIST -> 1
-            FileViewType.GRID -> {
-                var widthDp = resources.configuration.screenWidthDp
-                val persistentDrawerLayout = binding.persistentDrawerLayout
-                if (persistentDrawerLayout != null &&
-                    persistentDrawerLayout.isDrawerOpen(GravityCompat.START)) {
-                    widthDp -= getDimensionDp(R.dimen.navigation_max_width).roundToInt()
-                }
-                (widthDp / 180).coerceAtLeast(2)
+        val viewType = viewModel.viewType
+        layoutManager.spanCount = if (!viewType.isGrid) {
+            1
+        } else {
+            var widthDp = resources.configuration.screenWidthDp
+            val persistentDrawerLayout = binding.persistentDrawerLayout
+            if (persistentDrawerLayout != null &&
+                persistentDrawerLayout.isDrawerOpen(GravityCompat.START)) {
+                widthDp -= getDimensionDp(R.dimen.navigation_max_width).roundToInt()
             }
+            viewType.size.gridSpanCount(widthDp)
         }
+        binding.recyclerView.invalidateItemDecorations()
     }
 
     private fun onSortOptionsChanged(sortOptions: FileSortOptions) {
@@ -756,11 +796,15 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
             return
         }
         val viewType = viewModel.viewType
-        val checkedViewTypeItem = when (viewType) {
-            FileViewType.LIST -> menuBinding.viewListItem
-            FileViewType.GRID -> menuBinding.viewGridItem
-        }
+        val checkedViewTypeItem =
+            if (viewType.isGrid) menuBinding.viewGridItem else menuBinding.viewListItem
         checkedViewTypeItem.isChecked = true
+        val checkedSizeItemId = when (viewType.size) {
+            FileItemSize.SMALL -> R.id.action_size_small
+            FileItemSize.MEDIUM -> R.id.action_size_medium
+            FileItemSize.LARGE -> R.id.action_size_large
+        }
+        menuBinding.menu.findItem(checkedSizeItemId).isChecked = true
         val sortOptions = viewModel.sortOptions
         val checkedSortByItem = when (sortOptions.by) {
             By.NAME -> menuBinding.sortByNameItem
