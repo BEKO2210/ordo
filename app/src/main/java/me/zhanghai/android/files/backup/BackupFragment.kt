@@ -92,6 +92,7 @@ class BackupFragment : Fragment() {
     private var items = emptyList<BackupItem>()
 
     private var usbVolume: StorageVolume? = null
+    private var sdVolume: StorageVolume? = null
     private var hasUsb = false
     private var usbPulse: ObjectAnimator? = null
 
@@ -167,9 +168,12 @@ class BackupFragment : Fragment() {
         )
         binding.encryptIcon.setTintedCircleIcon(R.drawable.lock_icon_white_24dp, R.color.home_vault)
         binding.usbRow.reportCheckedState(binding.usbRadio)
-        binding.usbRow.setOnClickListener { selectTarget(true) }
+        binding.usbRow.setOnClickListener { selectTarget(Target.USB) }
+        binding.sdIcon.setTintedCircleIcon(R.drawable.sd_card_icon_white_24dp, R.color.home_backup)
+        binding.sdRow.reportCheckedState(binding.sdRadio)
+        binding.sdRow.setOnClickListener { selectTarget(Target.SD) }
         binding.otherRow.reportCheckedState(binding.otherRadio)
-        binding.otherRow.setOnClickListener { selectTarget(false) }
+        binding.otherRow.setOnClickListener { selectTarget(Target.OTHER) }
 
         layoutInflater.inflate(
             if (activity.isMaterial3Theme) {
@@ -276,28 +280,51 @@ class BackupFragment : Fragment() {
         }
     }
 
-    private fun selectTarget(isUsb: Boolean) {
-        binding.usbRadio.isChecked = isUsb
-        binding.otherRadio.isChecked = !isUsb
+    private enum class Target { USB, SD, OTHER }
+
+    private fun selectTarget(target: Target) {
+        binding.usbRadio.isChecked = target == Target.USB
+        binding.sdRadio.isChecked = target == Target.SD
+        binding.otherRadio.isChecked = target == Target.OTHER
         showError(null)
         updateUsb()
     }
 
+    private fun updateSd() {
+        val context = requireContext()
+        val volume = sdVolume
+        binding.sdRow.isVisible = volume != null
+        if (volume == null) {
+            // The card went away while it was chosen: back to the first choice.
+            if (binding.sdRadio.isChecked) selectTarget(Target.USB)
+            return
+        }
+        binding.sdTitle.text = volume.getDescriptionCompat(context)
+        val freeSpace = volume.directoryCompat?.freeSpace ?: 0
+        binding.sdSummary.text = getString(
+            R.string.backup_target_sd_summary_format, freeSpace.asFileSize().formatHumanReadable(context)
+        )
+    }
+
     private fun updateUsb() {
         val context = requireContext()
-        val volume = context.getSystemService<StorageManager>()!!.storageVolumesCompat.firstOrNull {
+        val removable = context.getSystemService<StorageManager>()!!.storageVolumesCompat.filter {
             it.isRemovableCompat && !it.isPrimaryCompat &&
                 it.stateCompat == Environment.MEDIA_MOUNTED
         }
-        usbVolume = volume
-        val hadUsb = hasUsb
         // A drive Android cannot read yet (or at all) still shows up as a USB device.
-        hasUsb = volume != null ||
-            context.getSystemService<UsbManager>()?.deviceList?.values.orEmpty().any { device ->
-                (0 until device.interfaceCount).any {
-                    device.getInterface(it).interfaceClass == UsbConstants.USB_CLASS_MASS_STORAGE
-                }
+        val massStorage = context.getSystemService<UsbManager>()?.deviceList?.values.orEmpty().any { device ->
+            (0 until device.interfaceCount).any {
+                device.getInterface(it).interfaceClass == UsbConstants.USB_CLASS_MASS_STORAGE
             }
+        }
+        val split = splitRemovable(removable.map { it.getDescriptionCompat(context) }, massStorage)
+        val volume = split.usb?.let { removable[it] }
+        usbVolume = volume
+        sdVolume = split.sd?.let { removable[it] }
+        updateSd()
+        val hadUsb = hasUsb
+        hasUsb = volume != null || massStorage
         if (hasUsb && !hadUsb) {
             showError(null)
         }
@@ -460,8 +487,8 @@ class BackupFragment : Fragment() {
                 Intent.EXTRA_TITLE,
                 getString(R.string.backup_file_name_format, LocalDate.now().toString()) + ".zip"
             )
-        val volume = usbVolume
-        if (binding.usbRadio.isChecked && volume != null &&
+        val volume = if (binding.sdRadio.isChecked) sdVolume else usbVolume
+        if ((binding.usbRadio.isChecked || binding.sdRadio.isChecked) && volume != null &&
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             // Opens the picker right on the drive.
             @Suppress("DEPRECATION")
@@ -595,6 +622,21 @@ class BackupFragment : Fragment() {
         private const val SKIPPED_NAMES_MAX = 5
 
         private const val USB_POLL_INTERVAL_MILLIS = 1500L
+
+        class RemovableSplit(val usb: Int?, val sd: Int?)
+
+        /**
+         * Which mounted removable volume is the USB drive and which the SD card, by the label Android gives them
+         * ("SanDisk USB drive", "SD-Karte"). An unlabelled one counts as USB only while a USB drive is plugged in.
+         */
+        internal fun splitRemovable(descriptions: List<String>, massStorage: Boolean): RemovableSplit {
+            var usb = descriptions.indexOfFirst { it.contains("USB", ignoreCase = true) }.takeIf { it >= 0 }
+            val sdLabel = Regex("\\bSD\\b", RegexOption.IGNORE_CASE)
+            var sd = descriptions.indices.firstOrNull { it != usb && sdLabel.containsMatchIn(descriptions[it]) }
+            if (usb == null && massStorage) usb = descriptions.indices.firstOrNull { it != sd }
+            if (sd == null) sd = descriptions.indices.firstOrNull { it != usb }
+            return RemovableSplit(usb, sd)
+        }
 
         private fun loadBackupItems(
             context: Context,

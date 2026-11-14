@@ -738,6 +738,8 @@
     <string name="backup_target_usb_waiting">Schließe einen USB-Stick an. Er erscheint hier von selbst.</string>
     <string name="backup_target_usb_connected_format">Angeschlossen · %1$s frei</string>
     <string name="backup_target_usb_connected">Angeschlossen. Du wählst ihn im nächsten Schritt aus.</string>
+    <string name="backup_target_sd">SD-Karte</string>
+    <string name="backup_target_sd_summary_format">Im Gerät · %1$s frei. Ein USB-Stick ist sicherer, weil er getrennt vom Handy liegt.</string>
     <string name="backup_target_other">Google Drive oder anderer Ort</string>
     <string name="backup_target_other_summary">Den Ort wählst du im nächsten Schritt</string>
     <string name="backup_target_usb_missing_error">Noch kein USB-Stick erkannt. Schließe ihn an oder wähle den anderen Ort.</string>

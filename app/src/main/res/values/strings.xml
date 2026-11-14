@@ -871,6 +871,8 @@
     <string name="backup_target_usb_waiting">Plug in a USB drive. It shows up here by itself.</string>
     <string name="backup_target_usb_connected_format">Connected · %1$s free</string>
     <string name="backup_target_usb_connected">Connected. You pick it in the next step.</string>
+    <string name="backup_target_sd">SD card</string>
+    <string name="backup_target_sd_summary_format">In this device · %1$s free. A USB drive is safer: it is kept apart from the phone.</string>
     <string name="backup_target_other">Google Drive or another place</string>
     <string name="backup_target_other_summary">You choose the place in the next step</string>
     <string name="backup_target_usb_missing_error">No USB drive found yet. Plug it in or choose the other place.</string>

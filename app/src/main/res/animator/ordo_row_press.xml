@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- Rows give a little under the finger and settle back with a soft overshoot. -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_pressed="true">
+        <set>
+            <objectAnimator android:duration="140" android:interpolator="@android:interpolator/fast_out_slow_in"
+                android:propertyName="scaleX" android:valueTo="0.985" />
+            <objectAnimator android:duration="140" android:interpolator="@android:interpolator/fast_out_slow_in"
+                android:propertyName="scaleY" android:valueTo="0.985" />
+        </set>
+    </item>
+    <item>
+        <set>
+            <objectAnimator android:duration="260" android:interpolator="@android:interpolator/overshoot"
+                android:propertyName="scaleX" android:valueTo="1" />
+            <objectAnimator android:duration="260" android:interpolator="@android:interpolator/overshoot"
+                android:propertyName="scaleY" android:valueTo="1" />
+        </set>
+    </item>
+</selector>
