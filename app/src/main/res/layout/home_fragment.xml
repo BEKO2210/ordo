@@ -81,6 +81,20 @@
                     android:layout_height="wrap_content"
                     android:paddingHorizontal="8dp" />
 
+                <TextView style="@style/HomeSectionTitle" android:text="@string/home_tools" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="8dp">
+
+                    <include android:id="@+id/toolAnalysis" layout="@layout/home_tool_item" />
+
+                    <include android:id="@+id/toolTrash" layout="@layout/home_tool_item" />
+
+                    <include android:id="@+id/toolApps" layout="@layout/home_tool_item" />
+                </LinearLayout>
+
                 <TextView style="@style/HomeSectionTitle" android:text="@string/home_storage" />
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/storageList"

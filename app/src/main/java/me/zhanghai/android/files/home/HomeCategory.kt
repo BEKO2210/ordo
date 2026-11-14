@@ -5,19 +5,24 @@
 
 package me.zhanghai.android.files.home
 
+import androidx.annotation.ColorRes
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import me.zhanghai.android.files.R
 import java.util.Locale
 
-enum class HomeCategory(@StringRes val titleRes: Int, @DrawableRes val iconRes: Int) {
-    IMAGES(R.string.home_category_images, R.drawable.image_icon_white_24dp),
-    VIDEOS(R.string.home_category_videos, R.drawable.video_icon_white_24dp),
-    AUDIO(R.string.home_category_audio, R.drawable.audio_icon_white_24dp),
-    DOCUMENTS(R.string.home_category_documents, R.drawable.document_icon_white_24dp),
-    DOWNLOADS(R.string.home_category_downloads, R.drawable.download_icon_white_24dp),
-    APKS(R.string.home_category_apks, R.drawable.file_apk_icon),
-    ARCHIVES(R.string.home_category_archives, R.drawable.file_archive_icon);
+enum class HomeCategory(
+    @StringRes val titleRes: Int,
+    @DrawableRes val iconRes: Int,
+    @ColorRes val colorRes: Int
+) {
+    IMAGES(R.string.home_category_images, R.drawable.image_icon_white_24dp, R.color.home_images),
+    VIDEOS(R.string.home_category_videos, R.drawable.video_icon_white_24dp, R.color.home_videos),
+    AUDIO(R.string.home_category_audio, R.drawable.audio_icon_white_24dp, R.color.home_audio),
+    DOCUMENTS(R.string.home_category_documents, R.drawable.document_icon_white_24dp, R.color.home_documents),
+    DOWNLOADS(R.string.home_category_downloads, R.drawable.download_icon_white_24dp, R.color.home_downloads),
+    APKS(R.string.home_category_apks, R.drawable.android_icon_white_24dp, R.color.home_apks),
+    ARCHIVES(R.string.home_category_archives, R.drawable.archive_icon_white_24dp, R.color.home_archives);
 
     companion object {
         private val documentExtensions = setOf(

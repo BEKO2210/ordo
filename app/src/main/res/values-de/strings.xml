@@ -791,4 +791,6 @@
     <!-- Ordo: paste bar -->
     <string name="file_list_paste_action_move_here">Hierher verschieben</string>
     <string name="file_list_paste_action_copy_here">Hierher kopieren</string>
+    <string name="home_tools">Werkzeuge</string>
+    <string name="home_storage_internal">Interner Speicher</string>
 </resources>

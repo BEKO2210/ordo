@@ -5,6 +5,14 @@
 
 package me.zhanghai.android.files.home
 
+import android.app.Activity
+import androidx.annotation.ColorRes
+import androidx.annotation.DrawableRes
+import androidx.annotation.StringRes
+import me.zhanghai.android.files.analysis.AnalysisActivity
+import me.zhanghai.android.files.apps.AppsActivity
+import me.zhanghai.android.files.databinding.HomeToolItemBinding
+import me.zhanghai.android.files.trash.TrashActivity
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
@@ -73,7 +81,22 @@ class HomeFragment : Fragment(), ShowRequestAllFilesAccessRationaleDialogFragmen
         binding.storageList.apply { layoutManager = LinearLayoutManager(context); adapter = storageAdapter; isNestedScrollingEnabled = false }
         val quickAccessAdapter = QuickAccessAdapter { startActivity(FileListActivity.createViewIntent(it.path)) }
         binding.quickAccessList.apply { layoutManager = LinearLayoutManager(context); adapter = quickAccessAdapter; isNestedScrollingEnabled = false }
-        binding.toolbar.setTitle(R.string.home_title)
+        bindTool(
+            binding.toolAnalysis, R.drawable.storage_analysis_icon_white_24dp,
+            R.string.navigation_analysis, R.color.home_analysis,
+            AnalysisActivity::class.java
+        )
+        bindTool(
+            binding.toolTrash, R.drawable.delete_icon_white_24dp,
+            R.string.navigation_trash, R.color.home_trash,
+            TrashActivity::class.java
+        )
+        bindTool(
+            binding.toolApps, R.drawable.apps_icon_white_24dp,
+            R.string.navigation_apps, R.color.home_apps,
+            AppsActivity::class.java
+        )
+        binding.toolbar.setTitle(R.string.app_name)
         binding.toolbar.inflateMenu(R.menu.home)
         binding.toolbar.setOnMenuItemClickListener {
             when (it.itemId) {
@@ -93,6 +116,18 @@ class HomeFragment : Fragment(), ShowRequestAllFilesAccessRationaleDialogFragmen
             binding.recentEmpty.isVisible = !homeState.isLoading && homeState.recentFiles.isEmpty()
             binding.swipeRefreshLayout.isRefreshing = homeState.isLoading
         }
+    }
+
+    private fun bindTool(
+        tool: HomeToolItemBinding,
+        @DrawableRes iconRes: Int,
+        @StringRes titleRes: Int,
+        @ColorRes colorRes: Int,
+        activityClass: Class<out Activity>
+    ) {
+        tool.iconImage.setTintedCircleIcon(iconRes, colorRes)
+        tool.nameText.setText(titleRes)
+        tool.root.setOnClickListener { startActivity(Intent(requireContext(), activityClass)) }
     }
 
     override fun onResume() {

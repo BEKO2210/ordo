@@ -8,7 +8,12 @@ package me.zhanghai.android.files.home
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import android.content.res.ColorStateList
 import android.widget.ImageView
+import androidx.annotation.ColorRes
+import androidx.annotation.DrawableRes
+import androidx.core.content.ContextCompat
+import androidx.core.graphics.ColorUtils
 import coil.dispose
 import coil.load
 import me.zhanghai.android.files.file.MimeType
@@ -64,7 +69,7 @@ class CategoryAdapter(private val onClick: (HomeCategory) -> Unit) :
     inner class ViewHolder(private val binding: HomeCategoryItemBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(item: CategorySummary) {
             val context = binding.root.context
-            binding.iconImage.setImageResource(item.category.iconRes)
+            binding.iconImage.setTintedCircleIcon(item.category.iconRes, item.category.colorRes)
             binding.nameText.setText(item.category.titleRes)
             binding.descriptionText.text = context.getQuantityString(
                 R.plurals.home_category_summary, item.count.toInt(), item.count,
@@ -121,4 +126,12 @@ class QuickAccessAdapter(private val onClick: (QuickAccessItem) -> Unit) :
             binding.root.setOnClickListener { onClick(item) }
         }
     }
+}
+
+// Icon in its category color on a 15 % tinted circle, the tonal look of Material 3.
+fun ImageView.setTintedCircleIcon(@DrawableRes iconRes: Int, @ColorRes colorRes: Int) {
+    val color = ContextCompat.getColor(context, colorRes)
+    setImageResource(iconRes)
+    imageTintList = ColorStateList.valueOf(color)
+    backgroundTintList = ColorStateList.valueOf(ColorUtils.setAlphaComponent(color, 0x26))
 }

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+  ~ Copyright (c) 2026 Ordo contributors
+  ~ SPDX-License-Identifier: GPL-3.0-or-later
+  -->
+
+<resources>
+    <color name="home_images">#7C3AED</color>
+    <color name="home_videos">#DC2626</color>
+    <color name="home_audio">#D97706</color>
+    <color name="home_documents">#2563EB</color>
+    <color name="home_downloads">#059669</color>
+    <color name="home_apks">#16A34A</color>
+    <color name="home_archives">#B45309</color>
+    <color name="home_analysis">#0891B2</color>
+    <color name="home_trash">#DC2626</color>
+    <color name="home_apps">#4F46E5</color>
+</resources>
