@@ -71,14 +71,14 @@
                     android:id="@+id/recentList"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:paddingHorizontal="8dp" />
+                    android:paddingHorizontal="12dp" />
 
                 <TextView style="@style/HomeSectionTitle" android:text="@string/home_categories" />
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/categoryList"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:paddingHorizontal="8dp" />
+                    android:paddingHorizontal="12dp" />
 
                 <TextView style="@style/HomeSectionTitle" android:text="@string/home_storage" />
                 <androidx.recyclerview.widget.RecyclerView
