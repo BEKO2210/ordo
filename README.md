@@ -22,8 +22,14 @@
 <p align="center">
   <img src="docs/screenshots/en/home.png" width="24%" alt="Home screen with recent files, categories, vault and backup">
   <img src="docs/screenshots/en/ai.png" width="24%" alt="AI command with preview: move 9 photos">
-  <img src="docs/screenshots/en/storage.png" width="24%" alt="Storage cards with Open and Analyse buttons">
+  <img src="docs/screenshots/en/analysis.png" width="24%" alt="Storage analysis: usage donut by file type">
+  <img src="docs/screenshots/en/cleanup.png" width="24%" alt="Cleanup potential and suggestions with a preview button, dark mode">
+</p>
+<p align="center">
+  <img src="docs/screenshots/en/storage.png" width="24%" alt="Storage cards with animated usage bars and Open and Analyse buttons">
   <img src="docs/screenshots/en/audio.png" width="24%" alt="Music with cover art in dark mode">
+  <img src="docs/screenshots/en/settings.png" width="24%" alt="Settings sorted into categories with coloured icons">
+  <img src="docs/screenshots/en/appearance.png" width="24%" alt="Appearance settings: five accent colours, night mode, motion, dark mode">
 </p>
 
 ## Status
@@ -44,8 +50,9 @@ Ordo is in development (version 0.2.0). It is not on Google Play yet. Test build
 **Tidy up**
 
 - Trash: deleted files can be restored for 30 days
-- Storage analysis for internal storage, SD cards and USB drives: large files, duplicates, files you have not used
-  for a long time, old APKs
+- Storage analysis for internal storage, SD cards and USB drives: an overview with usage by file type, cleanup
+  potential, suggestions you can preview, the biggest folders as tiles and new data per month; plus lists of large
+  files, duplicates, files you have not used for a long time and old APKs
 - App manager: see installed apps, save their APK, uninstall
 
 **Work with files**

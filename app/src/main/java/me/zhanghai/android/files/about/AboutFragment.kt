@@ -13,6 +13,7 @@ import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
+import me.zhanghai.android.files.R
 import me.zhanghai.android.files.databinding.AboutFragmentBinding
 import me.zhanghai.android.files.legal.LegalActivity
 import me.zhanghai.android.files.ui.LicensesDialogFragment
@@ -38,6 +39,8 @@ class AboutFragment : Fragment() {
         val activity = requireActivity() as AppCompatActivity
         activity.setSupportActionBar(binding.toolbar)
         activity.supportActionBar!!.setDisplayHomeAsUpEnabled(true)
+        binding.byDeveloperText.text = getString(R.string.about_by_developer, getString(R.string.about_developer_name))
+        binding.developerLayout.setOnClickListener { startActivitySafe(DEVELOPER_URI.createViewIntent()) }
         binding.gitHubLayout.setOnClickListener { startActivitySafe(GITHUB_URI.createViewIntent()) }
         binding.licensesLayout.setOnClickListener { LicensesDialogFragment.show(this) }
         binding.privacyPolicyLayout.isVisible = true
@@ -45,20 +48,13 @@ class AboutFragment : Fragment() {
             startActivitySafe(LegalActivity::class.createIntent())
         }
         binding.authorNameLayout.setOnClickListener {
-            startActivitySafe(AUTHOR_RESUME_URI.createViewIntent())
-        }
-        binding.authorGitHubLayout.setOnClickListener {
-            startActivitySafe(AUTHOR_GITHUB_URI.createViewIntent())
-        }
-        binding.authorTwitterLayout.setOnClickListener {
-            startActivitySafe(AUTHOR_TWITTER_URI.createViewIntent())
+            startActivitySafe(UPSTREAM_URI.createViewIntent())
         }
     }
 
     companion object {
         private val GITHUB_URI = Uri.parse("https://github.com/BEKO2210/ordo")
-        private val AUTHOR_RESUME_URI = Uri.parse("https://resume.zhanghai.me/")
-        private val AUTHOR_GITHUB_URI = Uri.parse("https://github.com/zhanghai")
-        private val AUTHOR_TWITTER_URI = Uri.parse("https://twitter.com/zhanghai95")
+        private val DEVELOPER_URI = Uri.parse("https://github.com/BEKO2210")
+        private val UPSTREAM_URI = Uri.parse("https://github.com/zhanghai/MaterialFiles")
     }
 }

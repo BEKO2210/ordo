@@ -32,6 +32,18 @@ class StackedBarView @JvmOverloads constructor(context: Context, attrs: Attribut
     // Only one grow or sweep runs at a time: a rebind while animating must not leave two animators on this bar.
     private var animator: ValueAnimator? = null
     private var shine = -1f
+    private val visibleRect = android.graphics.Rect()
+
+    // While on screen, the light passes over the bar again every few seconds: the bar looks alive, not frozen.
+    private val nextSweep = Runnable {
+        if (windowVisibility == VISIBLE && isShown && getGlobalVisibleRect(visibleRect)) sweep() else scheduleSweep()
+    }
+
+    private fun scheduleSweep() {
+        removeCallbacks(nextSweep)
+        if (gradient != null && me.zhanghai.android.files.ui.Motion.full) postDelayed(nextSweep, SWEEP_PAUSE_MILLIS)
+    }
+
     private val shinePaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val glowPaint = Paint(Paint.ANTI_ALIAS_FLAG)
 
@@ -55,6 +67,7 @@ class StackedBarView @JvmOverloads constructor(context: Context, attrs: Attribut
         this.parts = filtered
         this.max = newMax
         animator?.cancel()
+        removeCallbacks(nextSweep)
         shine = -1f
         if (me.zhanghai.android.files.ui.Motion.any) {
             setProgress(0f)
@@ -86,7 +99,11 @@ class StackedBarView @JvmOverloads constructor(context: Context, attrs: Attribut
             duration = 1200
             interpolator = PathInterpolator(0.4f, 0f, 0.2f, 1f)
             addUpdateListener { shine = it.animatedValue as Float; invalidate() }
-            doOnEnd { shine = -1f; invalidate() }
+            doOnEnd {
+                shine = -1f
+                invalidate()
+                scheduleSweep()
+            }
         }
         animator?.start()
     }
@@ -98,6 +115,7 @@ class StackedBarView @JvmOverloads constructor(context: Context, attrs: Attribut
 
     override fun onDetachedFromWindow() {
         super.onDetachedFromWindow()
+        removeCallbacks(nextSweep)
         // Leave the bar filled rather than half drawn when its view comes back.
         if (animator?.isRunning == true) {
             animator?.cancel()
@@ -166,5 +184,9 @@ class StackedBarView @JvmOverloads constructor(context: Context, attrs: Attribut
                 android.graphics.Shader.TileMode.CLAMP)
             canvas.drawCircle(filled - h / 2, h / 2, h * 1.6f, glowPaint)
         }
+    }
+
+    private companion object {
+        const val SWEEP_PAUSE_MILLIS = 4_500L
     }
 }
