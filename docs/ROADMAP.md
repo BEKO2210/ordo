@@ -31,9 +31,10 @@ Themes inkl. Schwarz.
 
 ## Phase 2b – aus dem Wettbewerbsvergleich (docs/WETTBEWERB.md)
 - [x] Beschriftete Auswahlleiste unten, „Kopieren/Verschieben nach…", Umbenennen in der Auswahl.
-- [ ] Leere Systemordner im Schnellzugriff ausblenden.
-- [ ] Mehrere Dateien umbenennen (Muster mit Nummer).
-- [ ] PDF-Ansicht eingebaut (PdfRenderer).
+- [x] Leere Systemordner im Schnellzugriff ausblenden.
+- [x] Mehrere Dateien umbenennen (Muster mit Nummer).
+- [x] PDF-Ansicht eingebaut (PdfRenderer).
+- [x] Startseite: Suchfeld, Speicherkarte mit Prozent, Glas-Leiste oben; Auswahlleiste als Glas (BlurView).
 - [ ] Datenmüll: leere Ordner, Thumbnail-Caches, Restdateien in der Speicheranalyse.
 - [ ] Ungenutzte Apps (Nutzungsdaten-Erlaubnis), Erinnerung „Speicher fast voll".
 - [ ] Teilen in der Nähe (Quick Share über Android-Teilen).
