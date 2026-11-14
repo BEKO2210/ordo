@@ -14,11 +14,11 @@ versteckte Dateien, Homescreen-Verknüpfungen, Bildbetrachter, Texteditor, APK-I
 Themes inkl. Schwarz.
 
 ## Phase 1 – Samsung-Gleichstand
-- [ ] P1.1 Startseite: Kategorien (Bilder, Videos, Audio, Dokumente, Downloads, APKs, Archive) über MediaStore mit
+- [x] P1.1 Startseite: Kategorien (Bilder, Videos, Audio, Dokumente, Downloads, APKs, Archive) über MediaStore mit
       Anzahl und Größe, „Zuletzt verwendet", Speicher-Übersicht je Laufwerk, Schnellzugriff auf Lesezeichen.
-- [ ] P1.2 Papierkorb: Löschen verschiebt in `.Trash` des Laufwerks (eigene Metadaten), Wiederherstellen,
+- [x] P1.2 Papierkorb: Löschen verschiebt in `.Trash` des Laufwerks (eigene Metadaten), Wiederherstellen,
       endgültig löschen, automatisch leeren nach 30 Tagen, Einstellung zum Abschalten.
-- [ ] P1.3 Speicheranalyse: große Dateien, Duplikate (Größe → Hash), lange ungenutzte Dateien, alte APKs;
+- [x] P1.3 Speicheranalyse: große Dateien, Duplikate (Größe → Hash), lange ungenutzte Dateien, alte APKs;
       Auswahl und Löschen in den Papierkorb.
 
 ## Phase 2 – Mehr als Samsung
