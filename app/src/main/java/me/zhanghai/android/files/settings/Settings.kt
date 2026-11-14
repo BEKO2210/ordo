@@ -39,6 +39,11 @@ object Settings {
             Paths.get(Environment.getExternalStorageDirectory().absolutePath)
         )
 
+    val SHOW_HOME_ON_START: SettingLiveData<Boolean> =
+        BooleanSettingLiveData(
+            R.string.pref_key_show_home_on_start, R.bool.pref_default_value_show_home_on_start
+        )
+
     val FILE_LIST_PERSISTENT_DRAWER_OPEN: SettingLiveData<Boolean> =
         BooleanSettingLiveData(
             R.string.pref_key_file_list_persistent_drawer_open,

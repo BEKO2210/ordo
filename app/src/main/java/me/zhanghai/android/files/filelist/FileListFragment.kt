@@ -72,6 +72,7 @@ import me.zhanghai.android.files.file.fileProviderUri
 import me.zhanghai.android.files.file.isApk
 import me.zhanghai.android.files.file.isImage
 import me.zhanghai.android.files.filejob.FileJobService
+import me.zhanghai.android.files.home.HomeCategory
 import me.zhanghai.android.files.filelist.FileSortOptions.By
 import me.zhanghai.android.files.filelist.FileSortOptions.Order
 import me.zhanghai.android.files.fileproperties.FilePropertiesDialogFragment
@@ -165,7 +166,11 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
     private val args by args<Args>()
     private val argsPath by lazy { args.intent.extraPath }
 
-    private val viewModel by viewModels { { FileListViewModel() } }
+    private val homeCategory by lazy {
+        args.intent.getStringExtra(FileListActivity.EXTRA_HOME_CATEGORY)?.let(HomeCategory::valueOf)
+    }
+
+    private val viewModel by viewModels { { FileListViewModel(homeCategory) } }
 
     private lateinit var binding: Binding
 
@@ -219,7 +224,7 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
         }
         navigationFragment.listener = this
         val activity = requireActivity() as AppCompatActivity
-        activity.setTitle(R.string.file_list_title)
+        activity.title = getString(homeCategory?.titleRes ?: R.string.file_list_title)
         activity.setSupportActionBar(binding.toolbar)
         overlayActionMode = OverlayToolbarActionMode(binding.overlayToolbar, binding.toolbar)
         bottomActionMode = PersistentBarLayoutToolbarActionMode(
@@ -234,6 +239,10 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
         }
         binding.appBarLayout.syncBackgroundColorTo(binding.overlayToolbar)
         binding.breadcrumbLayout.setListener(this)
+        if (homeCategory != null) {
+            binding.breadcrumbLayout.isVisible = false
+            binding.speedDialView.isVisible = false
+        }
         if (!(activity.hasSw600Dp && activity.isOrientationLandscape)) {
             binding.swipeRefreshLayout.setProgressViewEndTarget(
                 true, binding.swipeRefreshLayout.progressViewEndOffset
@@ -765,6 +774,11 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
     }
 
     override fun navigateTo(path: Path) {
+        if (homeCategory != null) {
+            startActivity(FileListActivity.createViewIntent(path))
+            requireActivity().finish()
+            return
+        }
         collapseSearchView()
         val state = layoutManager.onSaveInstanceState()
         viewModel.navigateTo(state!!, path)
@@ -781,7 +795,9 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
     }
 
     private fun onPickOptionsChanged(pickOptions: PickOptions?) {
-        val title = if (pickOptions == null) {
+        val title = if (homeCategory != null) {
+            getString(homeCategory!!.titleRes)
+        } else if (pickOptions == null) {
             getString(R.string.file_list_title)
         } else {
             val count = if (pickOptions.allowMultiple) Int.MAX_VALUE else 1
@@ -1446,6 +1462,11 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
         get() = viewModel.currentPath
 
     override fun navigateToRoot(path: Path) {
+        if (homeCategory != null) {
+            startActivity(FileListActivity.createViewIntent(path))
+            requireActivity().finish()
+            return
+        }
         collapseSearchView()
         viewModel.resetTo(path)
     }

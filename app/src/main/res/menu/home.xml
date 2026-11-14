@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later -->
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item android:id="@+id/action_browse" android:icon="@drawable/directory_icon_control_normal_24dp" android:title="@string/home_browse" app:showAsAction="ifRoom" />
+    <item android:id="@+id/action_settings" android:icon="@drawable/settings_icon_white_24dp" android:title="@string/settings_title" app:showAsAction="never" />
+</menu>

@@ -13,6 +13,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.map
 import java8.nio.file.Path
 import me.zhanghai.android.files.file.FileItem
+import me.zhanghai.android.files.home.CategoryFileListLiveData
+import me.zhanghai.android.files.home.HomeCategory
 import me.zhanghai.android.files.filelist.FileSortOptions.By
 import me.zhanghai.android.files.filelist.FileSortOptions.Order
 import me.zhanghai.android.files.provider.archive.archiveRefresh
@@ -23,7 +25,7 @@ import me.zhanghai.android.files.util.valueCompat
 import java.io.Closeable
 
 // TODO: Use SavedStateHandle to save state.
-class FileListViewModel : ViewModel() {
+class FileListViewModel(private val homeCategory: HomeCategory? = null) : ViewModel() {
     private val trailLiveData = TrailLiveData()
     val hasTrail: Boolean
         get() = trailLiveData.value != null
@@ -62,7 +64,7 @@ class FileListViewModel : ViewModel() {
     }
 
     private val _fileListLiveData =
-        FileListSwitchMapLiveData(currentPathLiveData, _searchStateLiveData)
+        FileListSwitchMapLiveData(currentPathLiveData, _searchStateLiveData, homeCategory)
     val fileListLiveData: LiveData<Stateful<List<FileItem>>>
         get() = _fileListLiveData
     val fileListStateful: Stateful<List<FileItem>>
@@ -243,7 +245,8 @@ class FileListViewModel : ViewModel() {
 
     private class FileListSwitchMapLiveData(
         private val pathLiveData: LiveData<Path>,
-        private val searchStateLiveData: LiveData<SearchState>
+        private val searchStateLiveData: LiveData<SearchState>,
+        private val homeCategory: HomeCategory?
     ) : MediatorLiveData<Stateful<List<FileItem>>>(), Closeable {
         private var liveData: CloseableLiveData<Stateful<List<FileItem>>>? = null
 
@@ -259,7 +262,9 @@ class FileListViewModel : ViewModel() {
             }
             val path = pathLiveData.valueCompat
             val searchState = searchStateLiveData.valueCompat
-            val liveData = if (searchState.isSearching) {
+            val liveData = if (homeCategory != null) {
+                CategoryFileListLiveData(homeCategory, searchState.query)
+            } else if (searchState.isSearching) {
                 SearchFileListLiveData(path, searchState.query)
             } else {
                 FileListLiveData(path)
@@ -272,6 +277,7 @@ class FileListViewModel : ViewModel() {
             when (val liveData = liveData) {
                 is FileListLiveData -> liveData.loadValue()
                 is SearchFileListLiveData -> liveData.loadValue()
+                is CategoryFileListLiveData -> liveData.loadValue()
             }
         }
 

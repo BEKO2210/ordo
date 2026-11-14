@@ -762,6 +762,7 @@
         <item>Marquee</item>
     </string-array>
     <string name="settings_behavior_title">Behavior</string>
+    <string name="settings_show_home_on_start_title">Show home screen at startup</string>
     <string name="settings_default_directory_title">Default folder</string>
     <string name="settings_storages_title" translatable="false">@string/storage_list_title</string>
     <string name="settings_storages_summary_empty" translatable="false">@string/storage_list_empty</string>
@@ -793,6 +794,28 @@
     <string name="settings_show_pdf_thumbnail_pre_28_title">Show thumbnail for PDF documents</string>
     <string name="settings_show_pdf_thumbnail_pre_28_summary">Might make the app unstable on older versions of Android</string>
     <string name="settings_read_remote_files_for_thumbnail_title">Read remote files for thumbnail</string>
+
+    <string name="home_title">Home</string>
+    <string name="home_browse">Browse files</string>
+    <string name="home_recent">Recent files</string>
+    <string name="home_recent_empty">No recent files</string>
+    <string name="home_categories">Categories</string>
+    <string name="home_storage">Storage</string>
+    <string name="home_quick_access">Quick access</string>
+    <string name="home_permission_message">Allow storage access to show your files, categories, and storage usage.</string>
+    <string name="home_permission_action">Allow access</string>
+    <string name="home_category_images">Images</string>
+    <string name="home_category_videos">Videos</string>
+    <string name="home_category_audio">Audio</string>
+    <string name="home_category_documents">Documents</string>
+    <string name="home_category_downloads">Downloads</string>
+    <string name="home_category_apks">APKs</string>
+    <string name="home_category_archives">Archives</string>
+    <plurals name="home_category_summary">
+        <item quantity="one">%1$d file · %2$s</item>
+        <item quantity="other">%1$d files · %2$s</item>
+    </plurals>
+    <string name="home_storage_summary">%1$s used of %2$s</string>
 
     <string name="about_title">About</string>
     <string name="about_version_title">Version</string>
