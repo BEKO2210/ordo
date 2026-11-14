@@ -153,6 +153,8 @@ class StorageAdapter(
             val percent = NumberFormat.getPercentInstance()
             // The number counts up with the bar, which waits until it is scrolled into view.
             binding.usageBar.onProgress = { binding.percentText.text = percent.format((progress * it).toInt() / 1000.0) }
+            // TalkBack reads the real value even before the bar has counted up.
+            binding.percentText.contentDescription = percent.format(progress / 1000.0)
             // Aurora gradient like the analysis charts; amber to red once the storage is nearly full.
             binding.usageBar.gradient = if (progress >= 900) {
                 intArrayOf(ContextCompat.getColor(context, R.color.chart_audio), ContextCompat.getColor(context, R.color.chart_video))

@@ -52,6 +52,7 @@ class TreemapView @JvmOverloads constructor(context: Context, attrs: AttributeSe
     private var items: List<Item> = emptyList()
     private var tiles: List<Pair<Item, RectF>> = emptyList()
     private var progress = 1f
+    private var animator: ValueAnimator? = null
     private val tmp = RectF()
     private var pressed = -1
     private val pressPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.argb(46, 255, 255, 255) }
@@ -64,16 +65,18 @@ class TreemapView @JvmOverloads constructor(context: Context, attrs: AttributeSe
         this.items = items.filter { it.value > 0 }.sortedByDescending { it.value }
         layoutTiles()
         contentDescription = this.items.joinToString { "${it.label}: ${it.detail}" }
+        animator?.cancel()
         if (me.zhanghai.android.files.ui.Motion.any) {
             progress = 0f
             invalidate()
             onFirstSight {
-                ValueAnimator.ofFloat(0f, 1f).apply {
+                animator = ValueAnimator.ofFloat(0f, 1f).apply {
                     duration = 900
                     startDelay = 200
                     interpolator = PathInterpolator(0.2f, 0f, 0f, 1f)
                     addUpdateListener { progress = it.animatedValue as Float; invalidate() }
-                }.start()
+                }
+                animator?.start()
             }
         } else {
             progress = 1f
@@ -82,6 +85,14 @@ class TreemapView @JvmOverloads constructor(context: Context, attrs: AttributeSe
     }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) = layoutTiles()
+
+    override fun onDetachedFromWindow() {
+        super.onDetachedFromWindow()
+        if (animator?.isRunning == true) {
+            animator?.cancel()
+            progress = 1f
+        }
+    }
 
     private fun layoutTiles() {
         if (width == 0 || items.isEmpty()) {

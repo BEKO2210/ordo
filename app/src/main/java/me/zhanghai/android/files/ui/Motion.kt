@@ -7,6 +7,7 @@ package me.zhanghai.android.files.ui
 
 import android.animation.ValueAnimator
 import android.graphics.Rect
+import android.os.Build
 import android.view.View
 import android.view.ViewTreeObserver
 import me.zhanghai.android.files.R
@@ -20,7 +21,9 @@ import me.zhanghai.android.files.util.valueCompat
 object Motion {
     /** Transitions, reveals, counting numbers. */
     val any: Boolean
-        get() = ValueAnimator.areAnimatorsEnabled() && Settings.MOTION.valueCompat != "off"
+        // areAnimatorsEnabled() exists from Android 8; before that the system switch is not readable here.
+        get() = (Build.VERSION.SDK_INT < Build.VERSION_CODES.O || ValueAnimator.areAnimatorsEnabled()) &&
+            Settings.MOTION.valueCompat != "off"
 
     /** Decoration on top: particles, ripples, light sweeps, the moving aurora backdrop. */
     val full: Boolean
@@ -52,8 +55,11 @@ private class FirstSight(private val view: View, private val action: () -> Unit)
     }
 
     override fun onViewDetachedFromWindow(v: View) {
-        v.viewTreeObserver.removeOnScrollChangedListener(this)
-        v.viewTreeObserver.removeOnGlobalLayoutListener(this)
+        val observer = v.viewTreeObserver
+        // A dead observer throws on removal; its listeners went with it.
+        if (!observer.isAlive) return
+        observer.removeOnScrollChangedListener(this)
+        observer.removeOnGlobalLayoutListener(this)
     }
 
     override fun onScrollChanged() = check()

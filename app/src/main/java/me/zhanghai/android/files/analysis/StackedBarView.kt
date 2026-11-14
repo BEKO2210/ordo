@@ -91,6 +91,11 @@ class StackedBarView @JvmOverloads constructor(context: Context, attrs: Attribut
         animator?.start()
     }
 
+    // The gradient spans the bar's width, so a new width needs a new gradient.
+    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
+        paint.shader = null
+    }
+
     override fun onDetachedFromWindow() {
         super.onDetachedFromWindow()
         // Leave the bar filled rather than half drawn when its view comes back.
