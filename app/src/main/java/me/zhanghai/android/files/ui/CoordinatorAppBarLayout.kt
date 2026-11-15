@@ -7,13 +7,16 @@ package me.zhanghai.android.files.ui
 
 import android.content.Context
 import android.content.res.ColorStateList
+import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.Paint
 import android.graphics.Rect
 import android.os.Build
 import android.util.AttributeSet
 import android.view.View
 import androidx.annotation.AttrRes
 import androidx.core.graphics.ColorUtils
+import com.google.android.material.color.MaterialColors
 import com.google.android.material.shape.MaterialShapeDrawable
 import me.zhanghai.android.files.util.activity
 
@@ -46,11 +49,25 @@ class CoordinatorAppBarLayout : FitsSystemWindowsAppBarLayout {
 
         addLiftOnScrollListener { _, backgroundColor ->
             onBackgroundColorChanged(backgroundColor)
+            invalidate()
         }
 
         addOnOffsetChangedListener { _, offset ->
             this.offset = offset
             updateFirstChildClipBounds()
+        }
+    }
+
+    // Ordo: the bar keeps the page colour when content scrolls under it; a hairline marks the edge instead of a tint.
+    private val hairlinePaint = Paint().apply {
+        color = MaterialColors.getColor(this@CoordinatorAppBarLayout, com.google.android.material.R.attr.colorOutlineVariant)
+    }
+    private val hairlineHeight = resources.displayMetrics.density.coerceAtLeast(1f)
+
+    override fun dispatchDraw(canvas: Canvas) {
+        super.dispatchDraw(canvas)
+        if (isLifted) {
+            canvas.drawRect(0f, height - hairlineHeight, width.toFloat(), height.toFloat(), hairlinePaint)
         }
     }
 
