@@ -60,6 +60,7 @@ import me.zhanghai.android.files.ui.setUpGlass
 import me.zhanghai.android.files.util.getColorByAttr
 import me.zhanghai.android.files.util.getQuantityString
 import me.zhanghai.android.files.util.startActivitySafe
+import me.zhanghai.android.files.storage.StorageVolumeListLiveData
 import me.zhanghai.android.files.util.supportsExternalStorageManager
 import me.zhanghai.android.files.util.valueCompat
 import me.zhanghai.android.files.vault.VaultActivity
@@ -192,6 +193,11 @@ class HomeFragment : Fragment(), ShowRequestAllFilesAccessRationaleDialogFragmen
         binding.swipeRefreshLayout.setOnRefreshListener {
             replayBars = true
             viewModel.reload()
+        }
+        // USB/SD attach or detach while Home is visible; the first emission is the current state (onResume loads).
+        var seenVolumes = false
+        StorageVolumeListLiveData.observe(viewLifecycleOwner) {
+            if (seenVolumes && hasStorageAccess()) viewModel.reload() else seenVolumes = true
         }
         viewModel.state.observe(viewLifecycleOwner) { homeState ->
             updateRecentItems()
