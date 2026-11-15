@@ -10,8 +10,18 @@ import java.io.File
 private const val RESTORE_NAME_MAX_LENGTH = 4096
 private const val RESTORE_CONFLICT_MAX_ATTEMPTS = 10_000
 
-/** The backup format identifies vault files only through these localized folder names. */
-val BACKUP_VAULT_FOLDER_NAMES = setOf("Vault", "Tresor")
+/**
+ * Vault files sit in this folder, and every backup opens with it as an empty folder entry. A user folder of the same
+ * name is never written into a backup, so a user folder can never be taken for the vault.
+ */
+const val BACKUP_VAULT_FOLDER = ".ordo-vault"
+
+/** Backups of Ordo 0.7.0 and 0.7.1 named the vault folder in the app's language, as a user folder can be named. */
+val LEGACY_BACKUP_VAULT_FOLDER_NAMES = setOf("Vault", "Tresor")
+
+/** A backup that does not open with this entry is an older one, whose vault folder has a legacy name. */
+fun isBackupFormatMarker(name: String, isDirectory: Boolean): Boolean =
+    isDirectory && name.removeSuffix("/") == BACKUP_VAULT_FOLDER
 
 data class RestoreEntryPath(val relativePath: String, val isVault: Boolean)
 
@@ -19,7 +29,7 @@ data class RestoreEntryPath(val relativePath: String, val isVault: Boolean)
  * Maps one archive entry to shared storage without accepting alternate path syntax. Keeping this
  * function free of Android classes makes the complete zip-slip policy directly unit-testable.
  */
-fun restoreEntryPath(name: String): RestoreEntryPath {
+fun restoreEntryPath(name: String, isLegacyBackup: Boolean = false): RestoreEntryPath {
     require(name.isNotEmpty()) { "The backup contains an empty file name." }
     require(name.length <= RESTORE_NAME_MAX_LENGTH) { "A file name in the backup is too long." }
     require(!name.startsWith('/') && !WINDOWS_ABSOLUTE_PATH.containsMatchIn(name)) {
@@ -33,12 +43,19 @@ fun restoreEntryPath(name: String): RestoreEntryPath {
     require(segments.none { it.isEmpty() || it == "." || it == ".." }) {
         "The backup contains a path that leaves its folder."
     }
-    val isProtectedAndroidPath = segments.size >= 2 &&
-        segments[0].equals("Android", ignoreCase = true) &&
-        (segments[1].equals("data", ignoreCase = true) ||
-            segments[1].equals("obb", ignoreCase = true))
-    require(!isProtectedAndroidPath) { "The backup contains a protected Android folder." }
-    return RestoreEntryPath(name, segments.first() in BACKUP_VAULT_FOLDER_NAMES)
+    require(!isProtectedAndroidPath(name)) { "The backup contains a protected Android folder." }
+    val folder = segments.first()
+    return RestoreEntryPath(
+        name,
+        folder == BACKUP_VAULT_FOLDER || isLegacyBackup && folder in LEGACY_BACKUP_VAULT_FOLDER_NAMES
+    )
+}
+
+/** Android/data and Android/obb belong to apps: a restore never writes there, so a backup leaves them out. */
+fun isProtectedAndroidPath(path: String): Boolean {
+    val segments = path.split('/')
+    return segments.size >= 2 && segments[0].equals("Android", ignoreCase = true) &&
+        (segments[1].equals("data", ignoreCase = true) || segments[1].equals("obb", ignoreCase = true))
 }
 
 /** Canonical verification is repeated on-device after parent folders have been created. */
