@@ -13,7 +13,7 @@
 
 <p align="center">
   <a href="LICENSE"><img alt="License: GPL-3.0-or-later" src="https://img.shields.io/badge/license-GPL--3.0--or--later-blue"></a>
-  <img alt="Android 6.0+" src="https://img.shields.io/badge/Android-6.0%2B-3DDC84">
+  <img alt="Android 7.0+" src="https://img.shields.io/badge/Android-7.0%2B-3DDC84">
   <img alt="No ads, no tracking" src="https://img.shields.io/badge/ads%20%26%20tracking-none-2563EB">
   <img alt="On-device AI" src="https://img.shields.io/badge/AI-on--device-0E7490">
   <a href="https://beko2210.github.io/ordo/privacy.html"><img alt="Privacy policy" src="https://img.shields.io/badge/privacy-policy-555"></a>
