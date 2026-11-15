@@ -22,12 +22,15 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.core.view.doOnPreDraw
+import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import coil.dispose
 import coil.load
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dev.chrisbanes.insetter.applySystemWindowInsetsToPadding
+import kotlinx.coroutines.launch
 import java8.nio.file.Paths
 import java8.nio.file.attribute.BasicFileAttributes
 import java8.nio.file.attribute.FileTime
@@ -50,6 +53,7 @@ import me.zhanghai.android.files.filejob.FileJobService
 import me.zhanghai.android.files.filelist.FileListActivity
 import me.zhanghai.android.files.filelist.OpenFileActivity
 import me.zhanghai.android.files.trash.Trash
+import me.zhanghai.android.files.ui.Motion
 import me.zhanghai.android.files.util.getQuantityString
 import me.zhanghai.android.files.util.startActivitySafe
 
@@ -78,15 +82,23 @@ class AnalysisFragment : Fragment() {
     // Back first clears a selection, then goes down one page, so the user lands where they were.
     private val back = object : OnBackPressedCallback(false) {
         override fun handleOnBackPressed() {
-            if (viewModel.selectedPaths.isNotEmpty()) {
-                viewModel.selectedPaths.clear()
-                adapter.notifyDataSetChanged()
-                updateSelection()
-            } else {
-                closePage()
+            when {
+                viewModel.selectedPaths.isNotEmpty() -> {
+                    viewModel.selectedPaths.clear()
+                    adapter.notifyDataSetChanged()
+                    updateSelection()
+                }
+                page != null -> closePage()
+                // On the overview a lifted slice or a marked tile comes down before the analysis is left.
+                else -> dashboard?.clearPick()
             }
         }
     }
+
+    private var dashboard: AnalysisDashboard? = null
+
+    // Waits out the scan picture's shortest time, so a scan of a split second does not flash by.
+    private var reveal: kotlinx.coroutines.Job? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -111,13 +123,20 @@ class AnalysisFragment : Fragment() {
         activity.setSupportActionBar(binding.toolbar)
         activity.supportActionBar!!.setDisplayHomeAsUpEnabled(true)
         activity.setTitle(R.string.analysis_title)
-        binding.recyclerView.layoutManager = LinearLayoutManager(activity)
-        binding.recyclerView.adapter = adapter
-        // Tablets: the lists keep the overview's comfortable column instead of rows stretched edge to edge.
+        // Wide screens use their width: rows side by side, so name and size are not a screen apart.
         val metrics = resources.displayMetrics
-        val side = ((metrics.widthPixels - 720 * metrics.density) / 2).coerceAtLeast(0f).toInt()
-        binding.recyclerView.setPaddingRelative(side, binding.recyclerView.paddingTop, side,
-            binding.recyclerView.paddingBottom)
+        val columns = (metrics.widthPixels / metrics.density / ROW_MIN_WIDTH_DP).toInt().coerceIn(1, 3)
+        binding.recyclerView.layoutManager = GridLayoutManager(activity, columns).apply {
+            spanSizeLookup = object : GridLayoutManager.SpanSizeLookup() {
+                // The heading of a group of duplicates runs across all columns.
+                override fun getSpanSize(position: Int) = if (adapter.rows[position] is Row.Header) columns else 1
+            }
+        }
+        binding.recyclerView.adapter = adapter
+        binding.scanView.setKindColors(StorageInsights.KINDS.map {
+            ContextCompat.getColor(activity, AnalysisDashboard.kindColor(it))
+        }.toIntArray())
+        dashboard = dashboard()
         activity.onBackPressedDispatcher.addCallback(viewLifecycleOwner, back)
         binding.actionBar.applySystemWindowInsetsToPadding(bottom = true)
         binding.deleteButton.setOnClickListener { confirmDelete() }
@@ -127,28 +146,61 @@ class AnalysisFragment : Fragment() {
     private fun onStateChanged(state: AnalysisState) {
         when (state) {
             is AnalysisState.Scanning -> {
-                result = null
-                // A new scan (another storage, or again) starts at the top of its overview.
-                binding.overview.overviewScroll.scrollTo(0, 0)
-                binding.progressLayout.isVisible = true
-                binding.progressText.text = if (state.isHashing) {
-                    getString(R.string.analysis_progress_duplicates)
-                } else {
-                    requireContext().getQuantityString(
-                        R.plurals.analysis_progress_scanning, state.fileCount, state.fileCount
-                    )
+                reveal?.cancel()
+                val fresh = state.progress.files == 0 && state.progress.compared < 0
+                if (result != null || !binding.scanView.isVisible || fresh) {
+                    // A new scan (another storage, or again) starts at the top of its overview.
+                    binding.overview.overviewScroll.scrollTo(0, 0)
+                    binding.scanView.reset()
+                    binding.scanView.isVisible = true
                 }
+                result = null
+                binding.scanView.update(state.progress)
+                updateRows()
             }
             is AnalysisState.Done -> {
-                result = state.result
-                binding.progressLayout.isVisible = false
+                // Straight to the result when the scan was not on screen (after a rotation) or motion is off.
+                val wait = if (binding.scanView.isVisible && page == null) binding.scanView.remaining else -1
+                if (wait <= 0) return showResult(state.result, fromScan = wait == 0L && Motion.any)
+                reveal?.cancel()
+                reveal = viewLifecycleOwner.lifecycleScope.launch {
+                    kotlinx.coroutines.delay(wait)
+                    showResult(state.result, fromScan = true)
+                }
             }
         }
-        updateRows()
+    }
+
+    private fun showResult(result: AnalysisResult, fromScan: Boolean) {
+        this.result = result
+        val insights = result.insights
+        if (!fromScan || insights == null || insights.own <= 0) {
+            binding.scanView.isVisible = false
+            return updateRows()
+        }
+        // The scan's ring becomes the ring of "your files": it flies to where that one is and stays as it.
+        val ring = binding.overview.filesChart
+        updateRows(fromScan = true)
+        binding.overview.root.doOnPreDraw {
+            val place = android.graphics.Rect()
+            ring.getDrawingRect(place)
+            binding.overview.overviewScroll.offsetDescendantRectToMyCoords(ring, place)
+            val (sweeps, colors) = dashboard!!.ringSlots()
+            val land = {
+                ring.land()
+                binding.scanView.isVisible = false
+            }
+            // Off screen (a small window) there is nowhere to fly to: the picture just makes room.
+            if (place.top < 0 || place.bottom > binding.scanView.height || !ring.isShown) land()
+            else binding.scanView.finishInto(place.left + ring.ringCenterX, place.top + ring.ringCenterY,
+                ring.ringRadius, ring.ringStroke, sweeps, colors, land)
+        }
     }
 
     private fun dashboard() = AnalysisDashboard(
         binding.overview,
+        viewModel.chart,
+        onChartChanged = { updateSelection() },
         onOpen = ::openPage,
         onShow = { target ->
             val activity = if (target == "trash") me.zhanghai.android.files.trash.TrashActivity::class.java
@@ -183,14 +235,14 @@ class AnalysisFragment : Fragment() {
         }
     }
 
-    private fun updateRows() {
+    private fun updateRows(fromScan: Boolean = false) {
         val result = result
         val page = page
         binding.overview.root.isVisible = page == null && result != null
         binding.recyclerView.isVisible = page != null
         if (page == null && result != null && result !== boundResult && result.insights != null) {
             boundResult = result
-            dashboard().bind(result.insights, result.folders, result.root)
+            dashboard!!.bind(result.insights, result.folders, result.root, fromScan)
         }
         adapter.rows = if (result == null || page == null) emptyList() else rows(result, page)
         updateTitle(result, page)
@@ -245,9 +297,13 @@ class AnalysisFragment : Fragment() {
         bar.title = when (page) {
             null -> getString(R.string.analysis_title)
             is AnalysisPage.Kind -> AnalysisDashboard.kindLabel(context, page.kind)
-            is AnalysisPage.Folder -> AnalysisDashboard.folderLabel(context, page.path.substringAfterLast('/'))
+            // The storage itself, from the map's tile of loose files: all of it, by folder.
+            is AnalysisPage.Folder -> if (page.path == result?.root) getString(R.string.analysis_treemap_title)
+            else AnalysisDashboard.folderLabel(context, page.path.substringAfterLast('/'))
             is AnalysisPage.Cleanup -> getString(AnalysisDashboard.cleanupLabel(page.type))
         }
+        // A type's page wears the type's icon and colour, the same as its slice and its row on the overview.
+        binding.toolbar.logo = (page as? AnalysisPage.Kind)?.let { AnalysisDashboard.kindBadge(context, it.kind) }
         bar.subtitle = when {
             result == null || page == null -> null
             // A top folder: its size and what is in it ("195 MB · 1 folder"); deeper: where it is ("DCIM › Camera · 195 MB").
@@ -278,7 +334,7 @@ class AnalysisFragment : Fragment() {
 
     private fun updateSelection() {
         val files = selectedFiles()
-        back.isEnabled = page != null || files.isNotEmpty()
+        back.isEnabled = page != null || files.isNotEmpty() || (result != null && viewModel.chart.isSet)
         binding.actionBar.isVisible = files.isNotEmpty()
         binding.selectionText.text = getString(
             R.string.analysis_selection_format, files.size,
@@ -508,6 +564,11 @@ class AnalysisFragment : Fragment() {
         override fun isOther() = false
         override fun size() = file.size
         override fun fileKey(): Any? = null
+    }
+
+    private companion object {
+        /** A row needs about this much to show name, date, folder and size without a gap in the middle. */
+        const val ROW_MIN_WIDTH_DP = 440
     }
 
     private class HeaderHolder(val binding: AnalysisHeaderItemBinding) :

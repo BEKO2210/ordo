@@ -34,7 +34,7 @@
 
 ## Status
 
-Ordo is in development (version 0.5.0). It is not on Google Play yet. Test builds are published as
+Ordo is in development (version 0.6.0). It is not on Google Play yet. Test builds are published as
 [pre-releases](https://github.com/BEKO2210/ordo/releases); you can also [build it from source](#build).
 What comes next is in the [living roadmap](docs/ROADMAP-LIVE.md): every goal has a check command and closes itself.
 
@@ -53,10 +53,13 @@ What comes next is in the [living roadmap](docs/ROADMAP-LIVE.md): every goal has
 **Tidy up**
 
 - Trash: deleted files can be restored for 30 days
-- Storage analysis for internal storage, SD cards and USB drives: an overview of your files, system and free space,
-  your files by type, what is safe to free, suggestions you can preview, the biggest folders as ranked bars and new
-  data per month. Each type, folder and list (large files, duplicates, files you have not used for a long time, old
-  APKs) opens as its own page, largest first and with thumbnails; folders open level by level
+- Storage analysis for internal storage, SD cards and USB drives. While it scans, a ring fills with the file types
+  it finds and the numbers count up; at the end the ring becomes the chart of the overview. The overview shows your
+  files, system and free space, your files by type as a ring you can tap, what is safe to free, suggestions you can
+  preview, a map of the folders that hold the space (a folder that dominates is opened up into its subfolders) above
+  the ranked list, and new data per month with bars you can tap. Each type, folder and list (large files,
+  duplicates, files you have not used for a long time, old APKs) opens as its own page, largest first and with
+  thumbnails; folders open level by level. Tablets use the full width: two columns of cards, rows side by side
 - App manager: see installed apps, save their APK, uninstall
 
 **Work with files**

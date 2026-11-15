@@ -4,16 +4,28 @@
   ~ SPDX-License-Identifier: GPL-3.0-or-later
   -->
 
-<!-- Storage chart colours. Cleanup bar: duplicates (image), APKs (apps), trash (document) passed the dataviz palette
-     validator (lightness band, chroma, colour-blind separation, normal-vision floor, 3:1 contrast) on this theme's
-     card. System is the de-emphasis grey next to the accent: under 3:1 in light, so its legend row names it. Audio and
-     video are the home bar's "nearly full" gradient. -->
+<!-- Storage chart colours. Audio and video are the home bar's "nearly full" gradient (amber to red), a status and
+     never a category. System is the de-emphasis grey next to the accent: under 3:1 in light, so its legend row
+     names it. -->
 <resources>
-    <color name="chart_image">#7C3AED</color>
     <color name="chart_audio">#D97706</color>
-    <color name="chart_document">#2563EB</color>
     <color name="chart_video">#DC2626</color>
-    <color name="chart_apps">#0D9488</color>
     <color name="chart_system">#94A3B8</color>
     <color name="chart_track">#1A0F172A</color>
+    <!-- File types in the ring of "your files", its legend rows and the scan view: Ordo's aurora family and warm
+         accents, no red, pink or violet (red means "nearly full"). In a ring any two types can end up next to each
+         other, since a type can be missing or merged. So the four hues passed the dataviz validator for ALL pairs,
+         on the light card, the dark card and the black one: lightness band, chroma, colour-blind separation 8.6,
+         normal vision 16.3, at least 3:1 against the card. Installers and "other" are the two neutrals; they keep
+         at least the same distances to the hues and to each other by their lightness. -->
+    <color name="chart_kind_image">#2563EB</color>
+    <color name="chart_kind_audio">#B45309</color>
+    <color name="chart_kind_document">#65A30D</color>
+    <color name="chart_kind_video">#0891B2</color>
+    <color name="chart_kind_apps">#1E293B</color>
+    <color name="chart_kind_other">#475569</color>
+    <!-- The cleanup bar: three of the same validated hues. -->
+    <color name="chart_cleanup_duplicates">#0891B2</color>
+    <color name="chart_cleanup_apks">#65A30D</color>
+    <color name="chart_cleanup_trash">#B45309</color>
 </resources>

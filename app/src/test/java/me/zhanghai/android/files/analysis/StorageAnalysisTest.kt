@@ -83,6 +83,32 @@ class StorageAnalysisTest {
     }
 
     @Test
+    fun scan_lastProgressHasTheRealTotalsByKind() {
+        val dir = Files.createTempDirectory("scan").toFile()
+        File(dir, "DCIM").mkdirs()
+        File(dir, "DCIM/a.jpg").writeBytes(ByteArray(300))
+        File(dir, "DCIM/b.mp4").writeBytes(ByteArray(500))
+        File(dir, "notes.xyz").writeBytes(ByteArray(20))
+        var last: ScanProgress? = null
+        val files = StorageAnalysis.scan(dir, { false }) { last = it }
+        assertEquals(3, last!!.files)
+        assertEquals(820L, last!!.bytes)
+        assertEquals(files.sumOf { it.size }, last!!.kinds.sum())
+        assertEquals(300L, last!!.kinds[StorageInsights.KINDS.indexOf("image")])
+        assertEquals(500L, last!!.kinds[StorageInsights.KINDS.indexOf("video")])
+        assertEquals(20L, last!!.kinds[StorageInsights.KINDS.indexOf("other")])
+        dir.deleteRecursively()
+    }
+
+    @Test
+    fun duplicates_progressRunsFromZeroTowardsOne() {
+        val files = listOf(f("/r/a", 10), f("/r/b", 10), f("/r/c", 20), f("/r/d", 20), f("/r/e", 30))
+        val seen = mutableListOf<Float>()
+        StorageAnalysis.duplicates(files, { it.path }, { it.path }, onProgress = { seen += it })
+        assertEquals(listOf(0f, 0.5f), seen)
+    }
+
+    @Test
     fun hiddenFilesAreNeverCandidates() {
         val files = listOf(
             f("/r/.thumbnails/a", 100, 1), f("/r/Music/.thumbnails/a", 100, 1),

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- The label above a tapped month of the growth chart. -->
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/markerText"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:background="@drawable/analysis_marker_background"
+    android:paddingHorizontal="12dp"
+    android:paddingVertical="6dp"
+    android:textAppearance="?textAppearanceCaption"
+    android:textColor="?android:colorBackground"
+    android:textStyle="bold" />

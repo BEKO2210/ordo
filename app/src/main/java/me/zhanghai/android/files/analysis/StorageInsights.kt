@@ -25,7 +25,11 @@ class StorageInsights(
     val cleanupTotal: Long,
     /** New bytes per month for the last 12 months, oldest first, with "yyyy-MM" keys. */
     val months: List<Pair<String, Long>>,
-    val suggestions: List<Suggestion>
+    val suggestions: List<Suggestion>,
+    /** How many files the scan read. */
+    val fileCount: Int = 0,
+    /** The folders that hold the space, for the map (see [AnalysisChart.tiles]). */
+    val tiles: List<AnalysisChart.Tile> = emptyList()
 ) {
     val used: Long get() = total - free
 
@@ -94,7 +98,7 @@ class StorageInsights(
             val distinct = (duplicates + result.apks).distinctBy { it.path }.sumOf { it.size }
 
             return StorageInsights(usage, total, free, cleanup, distinct + trashBytes, months(files, now),
-                suggestions(root, files, now))
+                suggestions(root, files, now), files.size, AnalysisChart.tiles(root, files))
         }
 
         private fun months(files: List<ScannedFile>, now: Long): List<Pair<String, Long>> {

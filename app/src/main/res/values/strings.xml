@@ -962,11 +962,6 @@
     <string name="navigation_analysis">Analyze storage</string>
     <string name="analysis_title">Analyze storage</string>
     <string name="analysis_tab_folders">Folders</string>
-    <plurals name="analysis_progress_scanning">
-        <item quantity="one">Scanning… %1$d file found</item>
-        <item quantity="other">Scanning… %1$d files found</item>
-    </plurals>
-    <string name="analysis_progress_duplicates">Looking for duplicates…</string>
     <string name="analysis_empty">Nothing found here</string>
     <plurals name="analysis_duplicate_header_format">
         <item quantity="one">%1$d copy · %2$s can be freed</item>

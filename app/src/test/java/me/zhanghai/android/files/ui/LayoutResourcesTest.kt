@@ -76,6 +76,7 @@ class LayoutResourcesTest {
                 }
             }
         }
-        assertEquals(11, loadingIndicators)
+        // The storage scan is not among them: it has its own picture, ScanProgressView, which ends as a chart.
+        assertEquals(10, loadingIndicators)
     }
 }

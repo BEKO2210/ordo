@@ -34,7 +34,7 @@
 
 ## Stand
 
-Ordo ist in Entwicklung (Version 0.5.0) und noch nicht bei Google Play. Testversionen erscheinen als
+Ordo ist in Entwicklung (Version 0.6.0) und noch nicht bei Google Play. Testversionen erscheinen als
 [Pre-Releases](https://github.com/BEKO2210/ordo/releases); du kannst Ordo auch [selbst bauen](#bauen).
 Was als Nächstes kommt, steht in der [lebenden Roadmap](docs/ROADMAP-LIVE.md): Jedes Ziel hat einen Prüfbefehl und schließt sich selbst.
 
@@ -53,11 +53,14 @@ Was als Nächstes kommt, steht in der [lebenden Roadmap](docs/ROADMAP-LIVE.md): 
 **Aufräumen**
 
 - Papierkorb: Gelöschtes lässt sich 30 Tage lang wiederherstellen
-- Speicheranalyse für internen Speicher, SD-Karte und USB-Stick: Übersicht mit deinen Dateien, System und freiem
-  Platz, deinen Dateien nach Art, dem, was sich sicher frei machen lässt, Vorschlägen mit Vorschau, den größten
-  Ordnern als Balken und neuen Daten pro Monat. Jede Art, jeder Ordner und jede Liste (große Dateien, Duplikate,
-  lange nicht genutzte Dateien, alte APKs) öffnet sich als eigene Seite, größte zuerst und mit Vorschaubildern;
-  Ordner Ebene für Ebene
+- Speicheranalyse für internen Speicher, SD-Karte und USB-Stick. Während sie läuft, füllt sich ein Ring mit den
+  gefundenen Dateiarten und die Zahlen zählen hoch; am Ende wird der Ring zum Diagramm der Übersicht. Die Übersicht
+  zeigt deine Dateien, System und freien Platz, deine Dateien nach Art als antippbaren Ring, was sich sicher frei
+  machen lässt, Vorschläge mit Vorschau, eine Karte der Ordner, in denen der Speicher liegt (ein Ordner, der alles
+  dominiert, wird in seine Unterordner aufgeteilt), über der Rangliste und neue Daten pro Monat mit antippbaren
+  Balken. Jede Art, jeder Ordner und jede Liste (große Dateien, Duplikate, lange nicht genutzte Dateien, alte APKs)
+  öffnet sich als eigene Seite, größte zuerst und mit Vorschaubildern; Ordner Ebene für Ebene. Tablets nutzen die
+  ganze Breite: zwei Spalten mit Karten, Zeilen nebeneinander
 - App-Verwaltung: installierte Apps ansehen, APK sichern, deinstallieren
 
 **Mit Dateien arbeiten**
