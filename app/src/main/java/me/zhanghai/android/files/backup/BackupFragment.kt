@@ -94,6 +94,7 @@ class BackupFragment : Fragment() {
     private lateinit var biometricPrompt: BiometricPrompt
 
     private var items = emptyList<BackupItem>()
+    private var cancelledRestoreJobId = -1
 
     private var usbVolume: StorageVolume? = null
     private var sdVolume: StorageVolume? = null
@@ -611,6 +612,7 @@ class BackupFragment : Fragment() {
         binding.percentText.isVisible = false
         binding.statusIcon.isVisible = true
         binding.cancelButton.isVisible = false
+        binding.cancelButton.isEnabled = true
         binding.statusButton.isVisible = false
         binding.statusMessage.text = null
         binding.statusDetail.text = null
@@ -750,9 +752,13 @@ class BackupFragment : Fragment() {
                 binding.statusDetail.setText(R.string.restore_running_notice)
                 binding.cancelButton.isVisible = true
                 binding.cancelButton.setText(R.string.restore_cancel_action)
+                // Progress keeps coming until the cancelled job has stopped: the button stays off meanwhile.
+                binding.cancelButton.isEnabled = status.jobId != cancelledRestoreJobId
                 binding.cancelButton.setOnClickListener {
+                    // The job posts Idle itself once it has stopped writing; until then no second restore can start.
+                    cancelledRestoreJobId = status.jobId
+                    it.isEnabled = false
                     FileJobService.cancelJob(status.jobId)
-                    BackupStatusLiveData.value = BackupStatus.Idle
                 }
             }
             is BackupStatus.RestoreDone -> {
