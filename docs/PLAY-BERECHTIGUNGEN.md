@@ -23,6 +23,7 @@ Zeichenlimits der Formularfelder: **nicht geprüft**.
 | `ACCESS_NETWORK_STATE` | — |
 | `ACCESS_WIFI_STATE` | — |
 | `FOREGROUND_SERVICE` | `tools:ignore="ForegroundServicesPolicy"` |
+| `FOREGROUND_SERVICE_DATA_SYNC` | — |
 | `FOREGROUND_SERVICE_SPECIAL_USE` | — |
 | `INTERNET` | — |
 | `MANAGE_EXTERNAL_STORAGE` | `tools:ignore="AllFilesAccessPolicy,ScopedStorage"` |
@@ -42,14 +43,14 @@ Nicht im Manifest: Standort (`ACCESS_FINE_LOCATION`, `ACCESS_COARSE_LOCATION`, `
 
 | Komponente | `foregroundServiceType` | exportiert |
 | --- | --- | --- |
-| `me.zhanghai.android.files.filejob.FileJobService` | `specialUse` | Attribut fehlt, kein `intent-filter` |
+| `me.zhanghai.android.files.filejob.FileJobService` | `dataSync` | Attribut fehlt, kein `intent-filter` |
 | `me.zhanghai.android.files.ftpserver.FtpServerService` | `specialUse` | Attribut fehlt, kein `intent-filter` |
 | `me.zhanghai.android.files.ftpserver.FtpServerTileService` | keines | `true`, dazu `android.permission.BIND_QUICK_SETTINGS_TILE` |
 | `androidx.appcompat.app.AppLocalesMetadataHolderService` | keines | `false` |
 
-Beide `specialUse`-Dienste haben `android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE` gesetzt (Texte unten bei den Diensten). `USE_FULL_SCREEN_INTENT` kommt nicht vor.
+`FtpServerService` hat als `specialUse`-Dienst `android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE` gesetzt (Text unten beim Dienst). `USE_FULL_SCREEN_INTENT` kommt nicht vor.
 
-`startForeground` wird ohne Typ-Argument aufgerufen: `ForegroundNotificationManager.kt` (`service.startForeground(id, notification)`) und `FtpServerNotification.kt` (`service.startForeground(NotificationIds.FTP_SERVER, notification)`). Ob das System dabei den Manifest-Typ verwendet, ist zur Laufzeit **nicht geprüft**.
+`startForeground` wird ohne Typ-Argument aufgerufen: `ForegroundNotificationManager.kt` (`service.startForeground(id, notification)`) und `FtpServerNotification.kt` (`service.startForeground(NotificationIds.FTP_SERVER, notification)`). Dann gilt der Typ aus dem Manifest: `Service.startForeground(int, Notification)` übergibt `FOREGROUND_SERVICE_TYPE_MANIFEST` (Quelltext `android/app/Service.java`, SDK-Quellen android-36.1). Auf einem Gerät **nicht geprüft**.
 
 ### Exportierte Komponenten (`android:exported="true"`)
 
@@ -147,24 +148,24 @@ Ordo is a file manager. When the user opens an APK in the file list, Ordo hands 
 
 **(d)** Ablehnungsrisiko: mittel. Wenn Google die Installation nicht als Teil des Dateimanagers akzeptiert, die Berechtigung und `createInstallPackageIntent` entfernen. APKs lassen sich dann nicht mehr aus Ordo heraus installieren. `LinuxPath` erlaubt `Android/obb` fremder Apps dann nicht mehr über diese App-Op. Nur das eigene OBB-Verzeichnis bliebe über den Pfadvergleich übrig.
 
-## 7. Vordergrunddienste, Typ `specialUse`
+## 7. Vordergrunddienste, Typen `dataSync` und `specialUse`
 
 **(a)** Gelesen am 15. November 2026:
 
 - [Understanding foreground service and full-screen intent requirements](https://support.google.com/googleplay/android-developer/answer/13392821). Ab Android 14 Typ und passende Berechtigung deklarieren. Apps mit Target ab Android 14 tragen die Typen auf der Seite App content ein: Beschreibung, Auswirkung wenn das System die Aufgabe verschiebt oder unterbricht, Video, das die Nutzeraktion zeigt. `TYPE_SPECIAL_USE` nur in begrenzten Fällen, wenn kein definierter Typ passt. Alle Typen werden geprüft. In der Tabelle der Seite stehen unter anderem `TYPE_DATA_SYNC` für vom Nutzer gestartetes Sichern, Hoch- und Herunterladen und lokales Importieren/Exportieren. `specialUse` steht in dieser Tabelle nicht. `USE_FULL_SCREEN_INTENT` nutzt Ordo nicht.
-- [Foreground service types](https://developer.android.com/develop/background-work/services/fgs/service-types). `specialUse` braucht `FOREGROUND_SERVICE_SPECIAL_USE` und `PROPERTY_SPECIAL_USE_FGS_SUBTYPE`. Diesen Text prüft die Play Console. Dieselbe Pflicht, die Typen in der Play Console zu deklarieren, steht dort für Target ab Android 14.
+- [Foreground service types](https://developer.android.com/develop/background-work/services/fgs/service-types). `dataSync` beschreibt Datenübertragung, darunter Sichern und Wiederherstellen, Import und Export, „Local file processing“ und Übertragen über ein Netzwerk. `specialUse` gilt nur für Fälle, die kein anderer Typ abdeckt. `specialUse` braucht `FOREGROUND_SERVICE_SPECIAL_USE` und `PROPERTY_SPECIAL_USE_FGS_SUBTYPE`. Diesen Text prüft die Play Console. Dieselbe Pflicht, die Typen in der Play Console zu deklarieren, steht dort für Target ab Android 14.
 - [Foreground service timeouts](https://developer.android.com/develop/background-work/services/fgs/timeout). Für Apps mit Target ab Android 15 (API 35) dürfen `dataSync` und `mediaProcessing` zusammen 6 Stunden in 24 Stunden laufen, solange die App im Hintergrund ist. Danach `onTimeout`. Kommt die App in den Vordergrund, läuft der Zähler neu. `specialUse` nennt diese Seite nicht als von diesem Limit betroffen.
 
-Ordo deklariert nur den Typ `specialUse`, plus die Berechtigungen `FOREGROUND_SERVICE` und `FOREGROUND_SERVICE_SPECIAL_USE`. Ein anderer Vordergrundtyp kommt im Manifest nicht vor. Der Kachel-Dienst ist ein Quick-Settings-Tile ohne `foregroundServiceType`.
+Ordo deklariert `dataSync` für `FileJobService` und `specialUse` für `FtpServerService`, dazu `FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_DATA_SYNC` und `FOREGROUND_SERVICE_SPECIAL_USE`. `DocsConsistencyTest` prüft, dass jeder Typ seine Berechtigung hat und hier richtig steht. Der Kachel-Dienst ist ein Quick-Settings-Tile ohne `foregroundServiceType`.
 
 ### `FileJobService`
 
-**(b)** `filejob/FileJobService.kt` hält laufende Dateiaufträge und zeigt sie über `ForegroundNotificationManager` an. Der Subtype-Text im Manifest nennt lokale und Netzwerk-Speicher und sagt, große Aufträge könnten das Sechs-Stunden-Limit von `dataSync` überschreiten. Welche Aufträge es konkret gibt, ist in `FileJobs.kt` umgesetzt (Kopieren, Verschieben, Archiv, APK-Installationsjob). Eine Messung, dass ein Auftrag länger als sechs Stunden läuft, liegt in diesem Worktree nicht.
+**(b)** `filejob/FileJobService.kt` hält laufende Dateiaufträge und zeigt sie über `ForegroundNotificationManager` an. Aufträge in `FileJobs.kt`: Kopieren, Verschieben, Löschen, Archiv packen und entpacken, Sichern und Wiederherstellen, Tresor, Papierkorb, APK installieren. Alle startet der Nutzer in der App; einen Start aus `BOOT_COMPLETED` oder einem Zeitplan gibt es nicht. Typ `dataSync`. Ab Android 15 ruft das System nach 6 Stunden im Hintergrund `onTimeout(int, int)`; der Dienst zeigt dann die Benachrichtigung „Auftrag abgebrochen“ und ruft `stopSelf()`, `onDestroy` bricht die laufenden Aufträge ab. Eine abgebrochene Sicherung oder Wiederherstellung zeigt in Ordo „Sicherung nicht abgeschlossen“ bzw. „Wiederherstellung abgebrochen“ mit demselben Hinweis, nicht den Startbildschirm.
 
-**(c)** Paste-Text, Beschreibung:
+**(c)** Anwendungsfall im Formular: `TYPE_DATA_SYNC`, „Local processing: Other“. Paste-Text, Beschreibung:
 
 ```
-FileJobService runs a file operation the user started in Ordo (copy, move, delete, or archive extract/compress), including to a network folder the user added. A notification stays visible until the operation finishes or is cancelled. dataSync is limited to 6 hours in 24 hours while the app is in the background for apps targeting Android 15 or higher. These operations can outlast that limit, so the service declares specialUse.
+FileJobService runs a file operation the user started in Ordo: copy, move, delete, archive, backup or restore, also to or from a network folder the user added. A notification shows the progress until the operation finishes or the user cancels it.
 ```
 
 Auswirkung, wenn das System verschiebt oder unterbricht:
@@ -189,7 +190,9 @@ Auswirkung:
 If the system defers or stops the service, other devices cannot reach the files until the user starts the FTP server again.
 ```
 
-**(d)** für beide: Ablehnungsrisiko hoch. Die Play-Seite nennt `specialUse` nur für Fälle, die kein definierter Typ abdeckt, und `dataSync` ausdrücklich für Kopieren, Sichern und netzweites Übertragen. Wenn Google ablehnt, beide Dienste auf `dataSync` umstellen, `FOREGROUND_SERVICE_DATA_SYNC` statt `FOREGROUND_SERVICE_SPECIAL_USE` deklarieren und das Sechs-Stunden-Limit einhalten (`onTimeout` und `stopSelf`, siehe Timeout-Seite). Der FTP-Server liefe dann nicht unbegrenzt im Hintergrund. Alternative auf derselben Play-Seite für reinen Netztransfer: User-Initiated Data Transfer. Ob der die hiesigen lokalen Aufträge ersetzt, ist **nicht geprüft**.
+specialUse: Entscheidung 15.11.2026: `FileJobService` nutzt `dataSync`, weil Android und Play Kopieren, Sichern, Import/Export und Netzübertragung genau diesem Typ zuordnen und `specialUse` nur gilt, wenn kein Typ passt; die 6 Stunden zählen nur im Hintergrund und starten neu, sobald Ordo im Vordergrund ist. `FtpServerService` bleibt `specialUse`: der Server wartet, bis der Nutzer ihn beendet, auch ohne Übertragung, und `dataSync` würde ihn nach 6 Stunden im Hintergrund beenden. Begründung für die Play Console ist der Paste-Text zu `FtpServerService` oben; im Manifest steht dazu `PROPERTY_SPECIAL_USE_FGS_SUBTYPE`.
+
+**(d)** `FileJobService`: Ablehnungsrisiko gering, der Anwendungsfall steht in der Play-Tabelle unter `TYPE_DATA_SYNC`. Folge: ein Auftrag, der ab Android 15 länger als 6 Stunden am Tag im Hintergrund läuft, bricht ab; Ordo meldet das per Benachrichtigung, der Nutzer startet ihn neu. `FtpServerService`: Ablehnungsrisiko hoch, denn Play nennt `specialUse` nur für Fälle, die kein definierter Typ abdeckt. Wenn Google ablehnt, auf `dataSync` umstellen (wie `FileJobService`); der FTP-Server liefe dann höchstens 6 Stunden am Tag im Hintergrund.
 
 Das Formular verlangt ein Video pro Typ. Die Aufnahme macht Belkis. Inhalt laut Play-Seite: die Nutzeraktion, die den Dienst startet. Für die Dateiaufträge ein Kopieren oder Verschieben starten und die Benachrichtigung zeigen. Für den FTP-Server den Server starten, die Benachrichtigung mit Adresse und Stop zeigen.
 
@@ -199,7 +202,7 @@ Das Formular verlangt ein Video pro Typ. Die Aufnahme macht Belkis. Inhalt laut 
 
 **(b)** Manifest. `filelist/FileListFragment.kt` (`ensureNotificationPermission`) fragt die Berechtigung ab API 33 ab, mit Begründungsdialog `ShowRequestNotificationPermissionRationaleDialogFragment`. Genutzt wird sie für die Benachrichtigungen von `FileJobService` und `FtpServerService`. Der Modell-Download setzt zusätzlich `DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED` (`ai/CommandModel.kt`). Das ist die System-Download-Benachrichtigung.
 
-**(c)** Kein Play-Paste-Text. Die Vordergrund-Benachrichtigungen gehören in die `specialUse`-Deklaration aus Abschnitt 7.
+**(c)** Kein Play-Paste-Text. Die Vordergrund-Benachrichtigungen gehören in die Deklarationen aus Abschnitt 7.
 
 **(d)** Wenn die Berechtigung fehlt oder der Nutzer sie verweigert, zeigt Android die Benachrichtigungen nicht. Die Dienste bleiben im Manifest an eine sichtbare Benachrichtigung gebunden. Die Berechtigung zu entfernen verschlechtert die Sichtbarkeit der laufenden Aufträge. Eine Play-Ablehnung nur wegen dieser Berechtigung ist in den gelesenen Seiten nicht beschrieben.
 
@@ -286,11 +289,11 @@ Das ist keine Freigabe durch Google.
 1. App-Inhalt: Datenschutzerklärung verlinken. Kandidat aus `docs/ROADMAP.md`: `https://beko2210.github.io/ordo/datenschutz.html`. Vorher den Seiteninhalt mit `legal.xml` abgleichen. Die Seite wurde hier nicht geöffnet.
 2. Data safety ausfüllen, auch bei „nichts erhoben“. Abschnitt 12. Die IP-Frage zum Hugging-Face-Download selbst gegen die FAQ auf [10787469](https://support.google.com/googleplay/android-developer/answer/10787469) entscheiden. Keine Konten ankreuzen. Kein Haken bei „alles verschlüsselt auf dem Transportweg“, solange Cleartext erlaubt ist und irgendein Transfer als erhoben gilt.
 3. Berechtigungsformular: `MANAGE_EXTERNAL_STORAGE`, `QUERY_ALL_PACKAGES`, `REQUEST_INSTALL_PACKAGES`. Texte aus den Abschnitten 4 bis 6. Store-Beschreibung muss den Dateimanager als Kernfunktion nennen (All-files-Seite und Package-Visibility-Seite).
-4. App-Inhalt, Vordergrunddienste: Typ `specialUse` für `FileJobService` und `FtpServerService`. Texte aus Abschnitt 7. Zwei Videos aufnehmen: Dateiauftrag starten, FTP-Server starten. Kein Full-Screen-Intent.
+4. App-Inhalt, Vordergrunddienste: `dataSync` für `FileJobService`, `specialUse` für `FtpServerService`. Texte aus Abschnitt 7. Zwei Videos aufnehmen: Dateiauftrag starten, FTP-Server starten. Kein Full-Screen-Intent.
 5. Nichts eintragen für Standort, Fotos, Videos, USB, SMS, Full-Screen-Intent. Local Network erst, wenn `targetSdk` auf 37 geht.
 6. Hochgeladenes AAB: `targetSdk` 36 prüfen. Das steht so im Gradle. Ob das Bundle, das in der Console liegt, dieses Gradle ist, ist **nicht geprüft**.
 7. Vor dem 1. Februar 2027 das Release-AAB auf 16-KB-ELF der eigenen und der vorgefertigten `.so` prüfen (`libarchive`, `libselinux`, llama.cpp). Hier nicht gebaut.
 8. Nach dem ersten Bundle das zusammengeführte Manifest in der Console oder per `processReleaseManifest` gegen Abschnitt 1 halten. Bibliotheks-Berechtigungen sind hier **nicht geprüft**.
 9. Geschlossener Test steht in `docs/ROADMAP.md` (P3.5) als 12 Tester und 14 Tage. Diese Zahlen wurden nicht an einer Play-Seite gegengeprüft.
 
-Nicht gelesen oder nicht ausgeführt: zusammengeführtes Manifest, gebaute `.so`, die Live-Seite der Datenschutzerklärung, der Antworttext der IP-FAQ, ein Laufzeitcheck von `startForeground` ohne Typ-Argument, die Plattformpflicht für lokales Netz auf API 36. Risiko: `specialUse` kann abgelehnt werden, dann bleibt `dataSync` mit Sechs-Stunden-Limit. Vorgefertigte native Bibliotheken können an 16 KB scheitern, obwohl das NDK r30 ist.
+Nicht gelesen oder nicht ausgeführt: zusammengeführtes Manifest, gebaute `.so`, die Live-Seite der Datenschutzerklärung, der Antworttext der IP-FAQ, ein Laufzeitcheck von `startForeground` ohne Typ-Argument und von `onTimeout`, die Plattformpflicht für lokales Netz auf API 36. Risiko: `specialUse` für den FTP-Server kann abgelehnt werden, dann bleibt `dataSync` mit Sechs-Stunden-Limit. Vorgefertigte native Bibliotheken können an 16 KB scheitern, obwohl das NDK r30 ist.

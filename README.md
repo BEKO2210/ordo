@@ -184,7 +184,7 @@ The same texts are in the app under **Menu → Legal notice & privacy**.
 | Installed apps | App manager |
 | Install and delete packages | Install APK files and uninstall apps when you ask for it |
 | Network | Only for servers you add (FTP, SFTP, SMB, WebDAV), the FTP server and the one-time AI model download |
-| Notifications, foreground service | Progress of copy, move and backup jobs |
+| Notifications, foreground service | Progress of copy, move and backup jobs. From Android 15, Android stops a job after 6 hours a day in the background and Ordo shows a notification; opening Ordo resets the clock |
 
 ## Build
 
