@@ -107,6 +107,19 @@ class RestoreTest {
     }
 
     @Test
+    fun restoringTwiceAddsNoSecondCopy() {
+        val states = mapOf(
+            "Documents/report.txt" to RestoreDestinationState.ExistingFile(18),
+            "Documents/report (restored).txt" to RestoreDestinationState.ExistingFile(5)
+        )
+
+        assertEquals(
+            RestoreDestination.Skip,
+            chooseRestoreDestination("Documents/report.txt", 5) { states[it] ?: RestoreDestinationState.Missing }
+        )
+    }
+
+    @Test
     fun occupiedSuffixIsNumberedAndNeverReused() {
         val states = mapOf(
             "Documents/report.txt" to RestoreDestinationState.ExistingFile(1),

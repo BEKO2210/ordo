@@ -64,8 +64,8 @@ sealed class RestoreDestination {
 }
 
 /**
- * Existing files are never overwritten or deleted. The exact original path is skipped only when
- * its size matches; otherwise a free " (restored)" name is chosen before the extension.
+ * Existing files are never overwritten or deleted. The original path, or a " (restored)" name from an earlier
+ * restore, is skipped when its size matches; otherwise a free " (restored)" name is chosen before the extension.
  */
 fun chooseRestoreDestination(
     relativePath: String,
@@ -85,8 +85,11 @@ fun chooseRestoreDestination(
     var number = 1
     while (number <= RESTORE_CONFLICT_MAX_ATTEMPTS) {
         val candidate = restoredName(relativePath, number)
-        if (stateFor(candidate) is RestoreDestinationState.Missing) {
-            return RestoreDestination.Write(candidate)
+        when (val state = stateFor(candidate)) {
+            RestoreDestinationState.Missing -> return RestoreDestination.Write(candidate)
+            // An earlier restore already put this file here: restoring twice adds no second copy.
+            is RestoreDestinationState.ExistingFile -> if (state.size == expectedSize) return RestoreDestination.Skip
+            RestoreDestinationState.ExistingOther -> {}
         }
         ++number
     }

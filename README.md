@@ -34,7 +34,7 @@
 
 ## Status
 
-Ordo is in development (version 0.6.0). It is not on Google Play yet. Test builds are published as
+Ordo is in development (version 0.7.0). It is not on Google Play yet. Test builds are published as
 [pre-releases](https://github.com/BEKO2210/ordo/releases); you can also [build it from source](#build).
 What comes next is in the [living roadmap](docs/ROADMAP-LIVE.md): every goal has a check command and closes itself.
 
@@ -73,7 +73,7 @@ What comes next is in the [living roadmap](docs/ROADMAP-LIVE.md): every goal has
 
 - Vault: files are encrypted with AES-256-GCM and opened with your screen lock
 - Backup: folders and the vault as a ZIP to a USB drive or any place your phone offers, such as Google Drive, with an
-  optional password (AES-256), plus safe restore of normal files without replacing existing files
+  optional password (AES-256), plus safe restore of normal files without replacing existing files; folders you added can be removed from the list again
 
 **Ask in your own words** – see [AI commands](#ai-commands)
 

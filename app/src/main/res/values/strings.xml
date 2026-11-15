@@ -883,6 +883,9 @@
         <item quantity="other">%1$d files, only with a password</item>
     </plurals>
     <string name="backup_add_folder">Add folder</string>
+    <string name="backup_remove_folder_format">Remove %1$s from the list</string>
+    <string name="backup_folder_removed">Folder removed. Its files stay as they are.</string>
+    <string name="backup_folder_removed_undo">Undo</string>
     <string name="backup_add_folder_error">This folder can’t be backed up. Choose a folder on your device.</string>
     <string name="backup_content_empty_error">Choose at least one folder.</string>
     <string name="backup_protection_title">Protection</string>

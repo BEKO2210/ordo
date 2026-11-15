@@ -10,7 +10,8 @@ e2e/run.sh --write <adb serial>    # plus tests that create and delete their own
 
 `E2E_FAST=1 e2e/run.sh <adb serial>` remembers every tap position per device, screen size and screen in
 `~/.cache/ordo-e2e/` and taps it straight away next time; checks still read the real screen. Delete the cache file
-after a layout change. On a Pixel 11 Pro the read-only run went from 618 s to 491 s, all 110 checks passing;
+after a layout change. A control that moves on its screen (e.g. below a message of varying length) is tapped
+with `E2E_FAST=0 ui tap ...`, so it is always looked up. On a Pixel 11 Pro the read-only run went from 618 s to 491 s, all 110 checks passing;
 `ui visible ID` (0.2 s instead of a 2.4 s screen read) then cut `drawer.sh` from 282 s to 220 s. Galaxy S21 Ultra,
 0.6.0: all seven read-only tests, 136 checks, pass in 558 s.
 
@@ -23,6 +24,7 @@ after a layout change. On a Pixel 11 Pro the read-only run went from 618 s to 49
 | `home-header.sh` | the home screen's top bar: search, assistant and every entry under "more" work, back returns home | 0.5.0 |
 | `drawer.sh` | every entry of the side menu opens its screen and back returns home with the menu closed; a menu dragged all the way open closes on back instead of leaving the app | 0.5.0, drag fixed in 0.5.0 |
 | `analysis.sh` | the scan ends in the overview; ring, folder map and rows open their pages; back goes one step at a time; rotation keeps the page | 0.6.0 |
+| `backup-restore.sh` (`--write`, SD card) | an encrypted backup to the SD card restores byte for byte; a wrong password writes nothing; a changed file is never replaced and its backed up version comes back beside it; restoring twice adds no second copy | fixed in 0.7.0 |
 | `stress-delete.sh` (`--write`) | 3000 files to the trash: no crash, bounded memory, the list follows | fixed in 0.3.1 / 0.3.3 |
 
 Rules for every test:

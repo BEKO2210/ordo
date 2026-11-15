@@ -49,6 +49,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.transition.TransitionManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.transition.MaterialFadeThrough
 import java.io.File
 import java.io.IOException
@@ -401,6 +402,11 @@ class BackupFragment : Fragment() {
             itemBinding.summaryText.isVisible = item.summary != null
             itemBinding.checkBox.isChecked = item.key !in excluded
             itemBinding.root.reportCheckedState(itemBinding.checkBox)
+            itemBinding.removeButton.isVisible = item.removable
+            if (item.removable) {
+                itemBinding.removeButton.contentDescription = getString(R.string.backup_remove_folder_format, item.title)
+                itemBinding.removeButton.setOnClickListener { removeFolder(item.key) }
+            }
             itemBinding.root.setOnClickListener {
                 itemBinding.checkBox.toggle()
                 setItemChecked(item.key, itemBinding.checkBox.isChecked)
@@ -419,6 +425,22 @@ class BackupFragment : Fragment() {
             addFolderLauncher.launch(Paths.get(Environment.getExternalStorageDirectory().path))
         }
         updateProtection()
+    }
+
+    // A folder the user added comes off the list; its files stay where they are. Undo puts it back as it was.
+    private fun removeFolder(path: String) {
+        val wasExcluded = path in Settings.BACKUP_EXCLUDED.valueCompat
+        Settings.BACKUP_EXTRA_FOLDERS.putValue(Settings.BACKUP_EXTRA_FOLDERS.valueCompat - path)
+        Settings.BACKUP_EXCLUDED.putValue(Settings.BACKUP_EXCLUDED.valueCompat - path)
+        loadItems()
+        Snackbar.make(binding.root, R.string.backup_folder_removed, Snackbar.LENGTH_LONG)
+            .setAnchorView(binding.startBar)   // above "back up now", not behind it
+            .setAction(R.string.backup_folder_removed_undo) {
+                Settings.BACKUP_EXTRA_FOLDERS.putValue(Settings.BACKUP_EXTRA_FOLDERS.valueCompat + path)
+                if (wasExcluded) Settings.BACKUP_EXCLUDED.putValue(Settings.BACKUP_EXCLUDED.valueCompat + path)
+                loadItems()
+            }
+            .show()
     }
 
     private fun checkedKeys(): List<String> {
@@ -941,7 +963,8 @@ class BackupFragment : Fragment() {
                         path, R.drawable.directory_icon_white_24dp, R.color.home_archives,
                         File(path).name,
                         // The path only says something new for a folder inside another one.
-                        backupEntryName(path, storage.path).takeIf { it.contains('/') }
+                        backupEntryName(path, storage.path).takeIf { it.contains('/') },
+                        removable = true
                     )
                 }
             }
@@ -956,7 +979,9 @@ private class BackupItem(
     val iconRes: Int,
     val colorRes: Int,
     val title: String,
-    val summary: String?
+    val summary: String?,
+    /** Added by the user, so it can be taken off the list again. */
+    val removable: Boolean = false
 )
 
 /** The row is the control; its box, radio button or switch only shows the state. */

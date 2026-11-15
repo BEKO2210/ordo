@@ -2690,9 +2690,7 @@ class RestorePreviewJob(
 
     @Throws(IOException::class)
     private fun inspectArchive(): RestoreArchiveInfo {
-        val input = service.contentResolver.openInputStream(source)
-            ?: throw IOException("Cannot open $source")
-        input.use {
+        openRestoreChannel(source).use {
             ReadArchive(it, listOfNotNull(password)).use { archive ->
                 var fileCount = 0
                 var size = 0L
@@ -2768,9 +2766,7 @@ class RestoreBackupJob(
     override fun run() {
         try {
             postProgress(0, null)
-            val input = service.contentResolver.openInputStream(source)
-                ?: throw IOException("Cannot open $source")
-            input.use {
+            openRestoreChannel(source).use {
                 ReadArchive(it, listOfNotNull(password)).use { archive ->
                     while (true) {
                         throwIfInterrupted()
@@ -2957,6 +2953,17 @@ private fun Exception.isArchivePasswordError(): Boolean =
     this is ArchiveException && (
         message == "Incorrect passphrase" || message == "Passphrase required for this entry"
     )
+
+/**
+ * Ordo's backups store each size after the entry's data (streamed ZIP), so a ZIP read as a stream reports size 0
+ * and every entry looks cut short. Read with seeking: libarchive then takes the sizes from the central directory.
+ */
+@Throws(IOException::class)
+private fun FileJob.openRestoreChannel(source: Uri): FileChannel {
+    val descriptor = service.contentResolver.openFileDescriptor(source, "r")
+        ?: throw IOException("Cannot open $source")
+    return FileChannel::class.open(descriptor, "r")
+}
 
 @Throws(IOException::class)
 private fun FileJob.readAndVerifyEntry(archive: ReadArchive, expectedSize: Long) {

@@ -750,6 +750,9 @@
         <item quantity="other">%1$d Dateien, nur mit Passwort</item>
     </plurals>
     <string name="backup_add_folder">Ordner hinzufügen</string>
+    <string name="backup_remove_folder_format">%1$s aus der Liste entfernen</string>
+    <string name="backup_folder_removed">Ordner entfernt. Seine Dateien bleiben erhalten.</string>
+    <string name="backup_folder_removed_undo">Rückgängig</string>
     <string name="backup_add_folder_error">Dieser Ordner lässt sich nicht sichern. Wähle einen Ordner auf deinem Gerät.</string>
     <string name="backup_content_empty_error">Wähle mindestens einen Ordner aus.</string>
     <string name="backup_protection_title">Schutz</string>
