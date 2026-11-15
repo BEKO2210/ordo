@@ -153,4 +153,19 @@
     <string name="ai_remove_text">Das gibt %s frei. Du kannst es jederzeit wieder herunterladen.</string>
     <string name="ai_remove_confirm">Entfernen</string>
     <string name="ai_removed">KI-Modell entfernt</string>
+    <string name="ai_paywall_title">Ordos KI freischalten</string>
+    <string name="ai_paywall_subtitle">Sag Ordo in deinen eigenen Worten, was mit deinen Dateien passieren soll. Einmal bezahlen, für immer behalten.</string>
+    <string name="ai_paywall_benefit_commands">Verschieben, kopieren, aufräumen und ausmisten mit einem Satz</string>
+    <string name="ai_paywall_benefit_private">Läuft komplett auf deinem Handy. Deine Dateien verlassen es nie.</string>
+    <string name="ai_paywall_benefit_once">Einmal bezahlen. Kein Abo, keine Werbung.</string>
+    <string name="ai_paywall_benefit_free">Alles andere in Ordo bleibt kostenlos</string>
+    <string name="ai_paywall_download">Nach dem Freischalten lädt Ordo die KI einmalig herunter (%s).</string>
+    <string name="ai_paywall_buy">Freischalten – einmalig %s</string>
+    <string name="ai_paywall_checking">Google Play wird geprüft …</string>
+    <string name="ai_paywall_restore">Kauf wiederherstellen</string>
+    <string name="ai_paywall_not_now">Jetzt nicht</string>
+    <string name="ai_paywall_pending">Deine Zahlung wird noch bearbeitet. Die KI ist freigeschaltet, sobald Google Play sie bestätigt.</string>
+    <string name="ai_paywall_unavailable">Google Play ist gerade nicht erreichbar. Die KI lässt sich nur über Google Play freischalten. Alles andere in Ordo funktioniert wie gewohnt.</string>
+    <string name="ai_paywall_unsupported">Auf diesem Handy läuft die KI nicht: Sie braucht einen 64-Bit-Prozessor und mindestens %s Arbeitsspeicher. Alles andere in Ordo funktioniert wie gewohnt.</string>
+    <string name="ai_paywall_not_found">Für dieses Google-Konto wurde kein Kauf gefunden.</string>
 </resources>

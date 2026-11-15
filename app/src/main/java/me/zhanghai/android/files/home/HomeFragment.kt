@@ -34,7 +34,7 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.LinearSnapHelper
 import java8.nio.file.Path
 import me.zhanghai.android.files.R
-import me.zhanghai.android.files.ai.CommandSheetFragment
+import me.zhanghai.android.files.ai.showAiSheet
 import me.zhanghai.android.files.analysis.AnalysisActivity
 import me.zhanghai.android.files.apps.AppsActivity
 import me.zhanghai.android.files.backup.BackupActivity
@@ -127,9 +127,7 @@ class HomeFragment : Fragment(), ShowRequestAllFilesAccessRationaleDialogFragmen
         binding.searchCard.setOnClickListener { startActivity(FileListActivity.createSearchIntent()) }
         // Opt-in by design: nothing is downloaded or loaded until the user starts the setup in the sheet.
         binding.assistantButton.isVisible = true
-        binding.assistantButton.setOnClickListener {
-            CommandSheetFragment().show(childFragmentManager, CommandSheetFragment.TAG)
-        }
+        binding.assistantButton.setOnClickListener { childFragmentManager.showAiSheet() }
         setUpGlassToolbar()
         // The same side menu as in the file list; its storages and folders open there.
         val navigationFragment = childFragmentManager.findFragmentById(R.id.navigationFragment)

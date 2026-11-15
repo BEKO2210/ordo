@@ -6,6 +6,7 @@
 package me.zhanghai.android.files.docs
 
 import me.zhanghai.android.files.BuildConfig
+import me.zhanghai.android.files.ai.AiUnlock
 import me.zhanghai.android.files.ai.CommandCheck
 import me.zhanghai.android.files.ai.CommandModel
 import org.junit.Assert.assertTrue
@@ -78,6 +79,14 @@ class DocsConsistencyTest {
         assertTrue(readmeDe.contains("rund ${gigabytesDe(CommandModel.SIZE + CommandModel.SPARE_SPACE)} freier Speicher"))
         assertTrue(readmeDe.contains("Version ${BuildConfig.VERSION_NAME}"))
         listOf("verschieben", "kopieren", "aufräumen", "Papierkorb").forEach { assertTrue(it, readmeDe.contains(it)) }
+    }
+
+    // Only the AI costs money; the Play Console product must be the one the code asks for.
+    @Test
+    fun docsStateTheAiPriceAndProduct() {
+        assertTrue(readme.contains("one-time unlock for 0.99 EUR"))
+        assertTrue(readmeDe.contains("einmalig für 0,99 € frei"))
+        assertTrue(File(repo, "docs/PLAY-BERECHTIGUNGEN.md").readText().contains("`${AiUnlock.PRODUCT_ID}`"))
     }
 
     @Test

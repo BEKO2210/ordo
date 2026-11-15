@@ -20,7 +20,7 @@ import me.zhanghai.android.files.BuildConfig
 import me.zhanghai.android.files.R
 import me.zhanghai.android.files.about.AboutActivity
 import me.zhanghai.android.files.ai.CommandModel
-import me.zhanghai.android.files.ai.CommandSheetFragment
+import me.zhanghai.android.files.ai.showAiSheet
 import me.zhanghai.android.files.backup.BackupActivity
 import me.zhanghai.android.files.file.asFileSize
 import me.zhanghai.android.files.ftpserver.FtpServerActivity
@@ -81,9 +81,7 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
     private fun bindAiModel() {
         val preference = preferenceScreen.findPreference<Preference>("ai_model") ?: return
         preference.setOnPreferenceClickListener {
-            if (childFragmentManager.findFragmentByTag(CommandSheetFragment.TAG) == null) {
-                CommandSheetFragment().show(childFragmentManager, CommandSheetFragment.TAG)
-            }
+            childFragmentManager.showAiSheet()
             true
         }
         val context = requireContext().applicationContext

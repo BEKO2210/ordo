@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright (c) 2026 Ordo contributors
+  ~ SPDX-License-Identifier: GPL-3.0-or-later
+  -->
+
+<androidx.core.widget.NestedScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingHorizontal="24dp"
+        android:paddingBottom="24dp">
+
+        <com.google.android.material.bottomsheet.BottomSheetDragHandleView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <me.zhanghai.android.files.ai.AiOrbView
+            android:id="@+id/orb"
+            android:layout_width="96dp"
+            android:layout_height="96dp"
+            android:layout_gravity="center_horizontal" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:accessibilityHeading="true"
+            android:gravity="center"
+            android:text="@string/ai_paywall_title"
+            android:textAppearance="?textAppearanceHeadline6" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:gravity="center"
+            android:text="@string/ai_paywall_subtitle"
+            android:textAppearance="?textAppearanceBody2"
+            android:textColor="?android:textColorSecondary" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/ai_glass_card"
+            android:orientation="vertical"
+            android:padding="12dp">
+
+            <TextView
+                style="@style/Widget.Ordo.AiCheckRow"
+                android:text="@string/ai_paywall_benefit_commands"
+                app:drawableStartCompat="@drawable/assistant_icon_white_24dp"
+                app:drawableTint="@color/ai_accent" />
+
+            <TextView
+                style="@style/Widget.Ordo.AiCheckRow"
+                android:text="@string/ai_paywall_benefit_private"
+                app:drawableStartCompat="@drawable/ai_privacy_icon_white_24dp"
+                app:drawableTint="@color/ai_accent" />
+
+            <TextView
+                style="@style/Widget.Ordo.AiCheckRow"
+                android:text="@string/ai_paywall_benefit_once"
+                app:drawableStartCompat="@drawable/ai_check_icon_white_24dp"
+                app:drawableTint="@color/ai_accent" />
+
+            <TextView
+                style="@style/Widget.Ordo.AiCheckRow"
+                android:text="@string/ai_paywall_benefit_free"
+                app:drawableStartCompat="@drawable/ai_check_icon_white_24dp"
+                app:drawableTint="@color/ai_accent" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/downloadText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:gravity="center"
+            android:textAppearance="?textAppearanceCaption"
+            android:textColor="?android:textColorSecondary" />
+
+        <TextView
+            android:id="@+id/statusText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:accessibilityLiveRegion="polite"
+            android:gravity="center"
+            android:textAppearance="?textAppearanceBody2"
+            android:visibility="gone" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/buyButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:backgroundTint="@color/ai_accent"
+            android:minHeight="56dp"
+            android:textAllCaps="false"
+            android:textColor="@color/ai_on_accent"
+            android:textSize="16sp"
+            app:cornerRadius="28dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/restoreButton"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="48dp"
+            android:text="@string/ai_paywall_restore"
+            android:textAllCaps="false"
+            android:textColor="@color/ai_accent" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/notNowButton"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="48dp"
+            android:text="@string/ai_paywall_not_now"
+            android:textAllCaps="false"
+            android:textColor="?android:textColorSecondary" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/debugUnlockButton"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="48dp"
+            android:text="@string/ai_paywall_debug_unlock"
+            android:textAllCaps="false"
+            android:visibility="gone" />
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

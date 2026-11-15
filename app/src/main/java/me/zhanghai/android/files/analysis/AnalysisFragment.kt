@@ -35,6 +35,7 @@ import java8.nio.file.Paths
 import java8.nio.file.attribute.BasicFileAttributes
 import java8.nio.file.attribute.FileTime
 import me.zhanghai.android.files.R
+import me.zhanghai.android.files.ai.showAiSheet
 import me.zhanghai.android.files.compat.directoryCompat
 import me.zhanghai.android.files.compat.getDescriptionCompat
 import me.zhanghai.android.files.compat.storageVolumesCompat
@@ -219,8 +220,7 @@ class AnalysisFragment : Fragment() {
                 extensions = suggestion.extensions,
                 olderThan = suggestion.olderThanDays
             )
-            me.zhanghai.android.files.ai.CommandSheetFragment.withPlan(getString(textRes), plan)
-                .show(childFragmentManager, me.zhanghai.android.files.ai.CommandSheetFragment.TAG)
+            childFragmentManager.showAiSheet(me.zhanghai.android.files.ai.CommandSheetFragment.withPlan(getString(textRes), plan))
         }
     )
 

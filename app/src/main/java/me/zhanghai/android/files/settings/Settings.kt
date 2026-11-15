@@ -181,6 +181,14 @@ object Settings {
     val AI_SPEED: SettingLiveData<String> =
         StringSettingLiveData(R.string.pref_key_ai_speed, R.string.pref_default_value_ai_speed)
 
+    /** Last state Google Play confirmed for the AI purchase, so the AI also works offline. */
+    val AI_UNLOCKED: SettingLiveData<Boolean> =
+        BooleanSettingLiveData(R.string.pref_key_ai_unlocked, R.bool.pref_default_value_ai_unlocked)
+
+    /** Debug builds only (see AiUnlock.isUnlocked): unlocks the AI without a purchase for testing. */
+    val AI_DEBUG_UNLOCK: SettingLiveData<Boolean> =
+        BooleanSettingLiveData(R.string.pref_key_ai_debug_unlock, R.bool.pref_default_value_ai_debug_unlock)
+
     val BLACK_NIGHT_MODE: SettingLiveData<Boolean> =
         BooleanSettingLiveData(
             R.string.pref_key_black_night_mode, R.bool.pref_default_value_black_night_mode

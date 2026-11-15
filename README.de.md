@@ -8,6 +8,7 @@
 
 <p align="center">
   Ein kostenloser Open-Source-Dateimanager für Android – mit einer KI, die komplett auf deinem Handy läuft.<br>
+  Der Dateimanager bleibt kostenlos; nur die KI schaltest du einmalig für 0,99 € frei, ohne Abo und ohne Werbung.<br>
   Alles in Ordnung, nichts verlässt dein Gerät.
 </p>
 
@@ -140,6 +141,12 @@ Grammatik erzwungen). Ordo prüft diesen Plan selbst, bevor es ihn zeigt:
 - Rückgängig macht genau das rückgängig, was der Befehl getan hat, und lässt Dateien in Ruhe, die sich seitdem
   geändert haben.
 
+**Preis.** KI-Befehle, auch die Vorschau hinter den Vorschlägen der Speicheranalyse, sind ein einmaliger Kauf über Google Play
+(0,99 €, angezeigt in deiner Landeswährung; kein Abo). Alles andere in Ordo ist kostenlos und fragt nie nach Geld.
+Der Zauberstab zeigt zuerst, was die KI kann und was sie kostet; das Modell wird erst nach dem Kauf geladen. Nach
+einer Neuinstallation mit demselben Google-Konto ist der Kauf von selbst wieder da (oder über *Kauf
+wiederherstellen*). Ohne Google Play lässt sich die KI nicht freischalten; der Rest der App funktioniert genauso.
+
 **Einrichtung.** Die Funktion ist aus, bis du sie über den Zauberstab in der Suchleiste öffnest. Ordo prüft das
 Handy und lädt das Modell einmalig herunter (rund 2,6 GB, standardmäßig nur über WLAN) – von einer festen
 Version bei Hugging Face, geprüft per SHA-256. Danach läuft alles offline. Das Modell lässt sich im KI-Blatt
@@ -169,7 +176,8 @@ Sicherheitslücken bitte wie in [SECURITY.md](SECURITY.md) beschrieben melden.
 
 Ordo sammelt keine Daten. Keine Werbung, keine Tracker, keine Analyse. Die App verbindet sich nur mit dem Netz,
 wenn du selbst einen Server einrichtest, und einmalig für den Download des KI-Modells, wenn du KI-Befehle
-einrichtest.
+einrichtest. Kaufst du die KI-Freischaltung, wickelt Google Play die Zahlung ab; Ordo fragt bei Google Play nur
+nach, ob du sie gekauft hast, und speichert auf dem Handy einen einzigen Vermerk „freigeschaltet“.
 
 - [Datenschutzerklärung](https://beko2210.github.io/ordo/datenschutz.html) ([English](https://beko2210.github.io/ordo/privacy.html))
 - [Impressum](https://beko2210.github.io/ordo/impressum.html) ([Legal notice](https://beko2210.github.io/ordo/imprint.html))
@@ -185,6 +193,7 @@ Dieselben Texte stehen in der App unter **Menü → Impressum & Datenschutz**.
 | Pakete installieren und löschen | APK-Dateien installieren und Apps deinstallieren, wenn du es willst |
 | Netzwerk | Nur für Server, die du hinzufügst (FTP, SFTP, SMB, WebDAV), den FTP-Server und den einmaligen Download des KI-Modells |
 | Benachrichtigungen, Vordergrunddienst | Fortschritt beim Kopieren, Verschieben und Sichern |
+| Google-Play-Abrechnung | Nur für die einmalige KI-Freischaltung |
 
 ## Bauen
 

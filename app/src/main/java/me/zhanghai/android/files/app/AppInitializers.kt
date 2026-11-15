@@ -8,7 +8,11 @@ package me.zhanghai.android.files.app
 import android.os.AsyncTask
 import android.os.Build
 import android.webkit.WebView
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.ProcessLifecycleOwner
 import jcifs.context.SingletonContext
+import me.zhanghai.android.files.ai.AiUnlock
 import me.zhanghai.android.files.BuildConfig
 import me.zhanghai.android.files.coil.initializeCoil
 import me.zhanghai.android.files.filejob.fileJobNotificationTemplate
@@ -42,7 +46,8 @@ val appInitializers = listOf(
     ::initializeNightMode,
     ::createNotificationChannels,
     ::purgeExpiredTrash,
-    ::cleanUpVault
+    ::cleanUpVault,
+    ::initializeAiUnlock
 )
 
 private fun disableHiddenApiChecks() {
@@ -101,6 +106,14 @@ private fun createNotificationChannels() {
 
 private fun purgeExpiredTrash() {
     Thread({ Trash.purgeExpired() }, "TrashPurge").start()
+}
+
+// Checks the AI purchase with Google Play every time Ordo comes to the foreground: restores it after a reinstall,
+// picks up a pending payment that went through, and locks again after a refund.
+private fun initializeAiUnlock() {
+    ProcessLifecycleOwner.get().lifecycle.addObserver(LifecycleEventObserver { _, event ->
+        if (event == Lifecycle.Event.ON_START) AiUnlock.instance.refreshLater()
+    })
 }
 
 private fun cleanUpVault() {

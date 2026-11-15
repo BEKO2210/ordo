@@ -8,6 +8,7 @@
 
 <p align="center">
   A free, open source file manager for Android – with an AI that runs entirely on your phone.<br>
+  The file manager is free for good; only the AI is a one-time unlock for 0.99 EUR, with no subscription and no ads.<br>
   Everything in order, nothing leaves your device.
 </p>
 
@@ -138,6 +139,12 @@ then checks the plan itself before showing it:
 - Every file is checked again right before it is touched; existing files are never overwritten.
 - Undo reverses exactly what the command did and leaves files alone that changed since.
 
+**Price.** AI commands, including the preview behind the storage analysis suggestions, are a one-time purchase through Google Play
+(0.99 EUR, shown in your local currency; no subscription). Everything else in Ordo is free and never asks for money.
+The wand shows what the AI does and the price first; the model is only downloaded after the purchase. A purchase
+comes back by itself after a reinstall on the same Google account (or with *Restore purchase*). Builds without
+Google Play cannot unlock the AI; the rest of the app works the same.
+
 **Setup.** The feature is off until you open it with the wand in the search bar. Ordo checks the phone, then
 downloads the model once (about 2.6 GB, Wi-Fi by default) from a pinned revision on Hugging Face and verifies its
 SHA-256 hash. After that it works offline. The model can be removed in the AI sheet at any time; Settings › AI
@@ -166,7 +173,9 @@ Report vulnerabilities as described in [SECURITY.md](SECURITY.md).
 ## Privacy
 
 Ordo collects no data. There are no ads, no trackers and no analytics. The app only connects to the network when
-you add a server yourself, and once to download the AI model if you set up AI commands.
+you add a server yourself, and once to download the AI model if you set up AI commands. If you buy the AI unlock,
+Google Play handles the payment; Ordo only asks Google Play whether you bought it and keeps a single “unlocked”
+flag on the phone.
 
 - [Privacy policy](https://beko2210.github.io/ordo/privacy.html) ([Deutsch](https://beko2210.github.io/ordo/datenschutz.html))
 - [Legal notice](https://beko2210.github.io/ordo/imprint.html) ([Impressum](https://beko2210.github.io/ordo/impressum.html))
@@ -182,6 +191,7 @@ The same texts are in the app under **Menu → Legal notice & privacy**.
 | Install and delete packages | Install APK files and uninstall apps when you ask for it |
 | Network | Only for servers you add (FTP, SFTP, SMB, WebDAV), the FTP server and the one-time AI model download |
 | Notifications, foreground service | Progress of copy, move and backup jobs |
+| Google Play billing | Only for the one-time AI unlock |
 
 ## Build
 

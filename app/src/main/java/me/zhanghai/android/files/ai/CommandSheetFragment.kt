@@ -225,6 +225,8 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
     }
 
     private fun startDownload(mobileData: Boolean) {
+        // The sheet only opens when unlocked (showAiSheet); this keeps a locked app from ever fetching the model.
+        if (!AiUnlock.isUnlocked) return
         val context = requireContext().applicationContext
         if (CommandModel.startDownload(context, mobileData)) {
             followDownload()

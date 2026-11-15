@@ -125,6 +125,8 @@ dependencies {
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$kotlinx_coroutines_version"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinx_coroutines_version"
 
+    // One-time purchase that unlocks the on-device AI; everything else stays free.
+    implementation 'com.android.billingclient:billing-ktx:9.1.0'
     implementation 'androidx.activity:activity-ktx:1.13.0'
     implementation 'androidx.appcompat:appcompat:1.8.0'
     implementation 'androidx.biometric:biometric:1.1.0'
