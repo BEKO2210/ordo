@@ -1,5 +1,8 @@
 # Ordo – Roadmap
 
+> Der laufende Stand steht in der [lebenden Roadmap](ROADMAP-LIVE.md): Ziele mit Prüfbefehl, erzeugt von
+> `utils/roadmap.sh`. Dieses Dokument bleibt als Plan und Vorgeschichte.
+
 Ziel: kostenloser Dateimanager im Play Store, alles von Samsung „Eigene Dateien" plus mehr. Open Source (GPL-3.0),
 keine Werbung, kein Tracking. Basis: MaterialFiles (Kotlin, Views/ViewBinding, LiveData, NIO2-Provider).
 
