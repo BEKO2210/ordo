@@ -10,8 +10,9 @@ e2e/run.sh --write <adb serial>    # plus tests that create and delete their own
 
 `E2E_FAST=1 e2e/run.sh <adb serial>` remembers every tap position per device, screen size and screen in
 `~/.cache/ordo-e2e/` and taps it straight away next time; checks still read the real screen. Delete the cache file
-after a layout change. A control that moves on its screen (e.g. below a message of varying length) is tapped
-with `E2E_FAST=0 ui tap ...`, so it is always looked up. On a Pixel 11 Pro the read-only run went from 618 s to 491 s, all 110 checks passing;
+after a layout change. Targets inside a scrolling view are never remembered (their spot moves with the
+scroll position). A control that moves on a fixed screen (e.g. below a message of varying length) is tapped with
+`E2E_FAST=0 ui tap ...`, so it is always looked up. On a Pixel 11 Pro the read-only run went from 618 s to 491 s, all 110 checks passing;
 `ui visible ID` (0.2 s instead of a 2.4 s screen read) then cut `drawer.sh` from 282 s to 220 s. Galaxy S21 Ultra,
 0.6.0: all seven read-only tests, 136 checks, pass in 558 s.
 
