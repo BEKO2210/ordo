@@ -109,6 +109,7 @@
     <string name="ai_check_space">Free space: %1$s (needs %2$s)</string>
     <string name="ai_check_device_ok">64-bit processor</string>
     <string name="ai_check_device_bad">Needs a 64-bit processor</string>
+    <string name="ai_check_device_old">Needs a newer processor</string>
     <string name="ai_setup_download">Download AI over Wi-Fi (%s)</string>
     <string name="ai_setup_not_enough">This phone can’t run Ordo AI</string>
     <string name="ai_setup_retry">Try download again</string>

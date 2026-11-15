@@ -149,7 +149,7 @@ jederzeit wieder entfernen; unter Einstellungen › KI-Assistent siehst du, ob e
 |---|---|
 | Modell | Qwen3.5-4B, 4 Bit (Q4_0), Apache-2.0 |
 | Treffer (eigener Prüfstand, [Details](docs/KI-BEFEHLE.md)) | 51 von 54 Befehlen, 20 von 20 unbekannten Befehlen, keine gefährlichen Fehler |
-| Voraussetzungen | 64-Bit-Handy, mindestens 5,5 GB RAM, rund 3,1 GB freier Speicher |
+| Voraussetzungen | 64-Bit-Handy mit neuerem Arm-Chip (Dot-Product, Armv8.2), mindestens 10,0 GB RAM (Handys mit 12 GB), rund 3,1 GB freier Speicher |
 | Tempo | rund 14 s pro Befehl auf einem Galaxy Tab S9 Ultra (Snapdragon 8 Gen 2), Download und Prüfung rund 2 Minuten |
 | Tempo-Einstellung | Turbo, Ausgewogen oder Sanft unter Einstellungen › KI-Assistent: wie viele schnelle Kerne es nutzt und wie lange das Modell geladen bleibt |
 

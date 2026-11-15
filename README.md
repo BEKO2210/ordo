@@ -147,7 +147,7 @@ assistant shows whether it is ready.
 |---|---|
 | Model | Qwen3.5-4B, 4-bit (Q4_0), Apache-2.0 |
 | Accuracy (own benchmark, [details](docs/KI-BEFEHLE.md)) | 51 of 54 commands, 20 of 20 unseen commands, no dangerous errors |
-| Requirements | 64-bit phone, at least 5.5 GB RAM, about 3.1 GB free space |
+| Requirements | 64-bit phone with a recent Arm chip (dot product, Armv8.2), at least 10.0 GB RAM (phones sold with 12 GB), about 3.1 GB free space |
 | Speed | about 14 s per command on a Galaxy Tab S9 Ultra (Snapdragon 8 Gen 2), download and check about 2 minutes |
 | Speed setting | Turbo, Balanced or Gentle in Settings › AI assistant: how many fast cores it uses and how long the model stays loaded |
 

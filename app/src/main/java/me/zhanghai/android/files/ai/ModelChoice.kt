@@ -17,9 +17,14 @@ enum class ModelChoice {
     companion object {
         /**
          * [ramBytes] is ActivityManager.MemoryInfo.totalMem; [is64Bit] means the native library runs on this CPU
-         * (shipped for arm64-v8a and x86_64 only).
+         * (shipped for arm64-v8a and x86_64 only); [dotProd] means an Arm CPU with dot-product instructions, the
+         * only kind the 4B was measured on (KleidiAI's Q4_0 kernels need them).
          */
-        fun pick(ramBytes: Long, is64Bit: Boolean): ModelChoice =
-            if (is64Bit && ramBytes >= CommandModel.MIN_RAM) QWEN_4B else TOO_WEAK
+        fun pick(ramBytes: Long, is64Bit: Boolean, dotProd: Boolean): ModelChoice =
+            if (is64Bit && dotProd && ramBytes >= CommandModel.MIN_RAM) QWEN_4B else TOO_WEAK
+
+        /** True when the Features line of /proc/cpuinfo lists `asimddp` (Armv8.2 dot product). */
+        fun hasDotProd(cpuinfo: String): Boolean =
+            Regex("""^Features\s*:.*\basimddp\b""", RegexOption.MULTILINE).containsMatchIn(cpuinfo)
     }
 }

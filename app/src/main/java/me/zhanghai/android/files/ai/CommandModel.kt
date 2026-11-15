@@ -35,14 +35,15 @@ object CommandModel {
     private const val KEY_STAMP = "stamp"
     private const val KEY_DOWNLOAD_FOR = "download_for"
 
-    // 3.3 GB peak measured on a Pixel 11 Pro XL; phones sold as "6 GB" report about 5.5 GB.
-    const val MIN_RAM = 5_500_000_000L
+    // The 4B was only measured on 12 GB devices (Tab S9 Ultra: 4.3 GB app PSS with Q4_K_M). totalMem of 12 GB devices lies
+    // above 10 GB, of "8 GB" phones below, so smaller phones stay off until one is measured (docs/KI-BEFEHLE.md).
+    const val MIN_RAM = 10_000_000_000L
     const val SPARE_SPACE = 500_000_000L
 
-    data class DeviceCheck(val ramBytes: Long, val freeBytes: Long, val is64Bit: Boolean) {
+    data class DeviceCheck(val ramBytes: Long, val freeBytes: Long, val is64Bit: Boolean, val dotProd: Boolean) {
         val ramOk get() = ramBytes >= MIN_RAM
         val spaceOk get() = freeBytes >= SIZE + SPARE_SPACE
-        val ok get() = ModelChoice.pick(ramBytes, is64Bit) != ModelChoice.TOO_WEAK && spaceOk
+        val ok get() = ModelChoice.pick(ramBytes, is64Bit, dotProd) != ModelChoice.TOO_WEAK && spaceOk
     }
 
     sealed interface State {
@@ -69,7 +70,12 @@ object CommandModel {
             } catch (e: IllegalArgumentException) {
                 0L
             },
-            is64Bit = Build.SUPPORTED_64_BIT_ABIS.isNotEmpty() && LlamaEngine.isSupported
+            is64Bit = Build.SUPPORTED_64_BIT_ABIS.isNotEmpty() && LlamaEngine.isSupported,
+            dotProd = try {
+                ModelChoice.hasDotProd(File("/proc/cpuinfo").readText())
+            } catch (e: Exception) {
+                false
+            }
         )
     }
 

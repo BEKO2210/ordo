@@ -108,6 +108,7 @@
     <string name="ai_check_space">Freier Speicher: %1$s (nötig %2$s)</string>
     <string name="ai_check_device_ok">64-Bit-Prozessor</string>
     <string name="ai_check_device_bad">Braucht einen 64-Bit-Prozessor</string>
+    <string name="ai_check_device_old">Braucht einen neueren Prozessor</string>
     <string name="ai_setup_download">KI über WLAN laden (%s)</string>
     <string name="ai_setup_not_enough">Auf diesem Gerät läuft die Ordo-KI nicht</string>
     <string name="ai_setup_retry">Download erneut starten</string>

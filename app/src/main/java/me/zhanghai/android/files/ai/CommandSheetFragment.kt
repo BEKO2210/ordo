@@ -196,9 +196,11 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
             R.string.ai_check_space, gigabytes(check.freeBytes),
             gigabytes(CommandModel.SIZE + CommandModel.SPARE_SPACE)
         ))
-        bindCheck(binding.checkDevice, check.is64Bit, getString(
-            if (check.is64Bit) R.string.ai_check_device_ok else R.string.ai_check_device_bad
-        ))
+        bindCheck(binding.checkDevice, check.is64Bit && check.dotProd, getString(when {
+            !check.is64Bit -> R.string.ai_check_device_bad
+            !check.dotProd -> R.string.ai_check_device_old
+            else -> R.string.ai_check_device_ok
+        }))
         listOf(binding.setupPrivacy, binding.checkRam, binding.checkSpace, binding.checkDevice)
             .forEachIndexed { i, row -> row.reveal(80L + 90L * i) }
         if (modelState is CommandModel.State.Failed) {
