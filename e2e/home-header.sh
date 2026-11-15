@@ -32,7 +32,8 @@ ui tap "Zuletzt verwendet|Recent files" title >/dev/null; sleep 1
 check "recent files: grid" ui has "Raster|Grid" title
 check "recent files: horizontal" ui has "Waagerecht|Horizontal" title
 check "recent files: hide" ui has "Ausblenden|Hide" title
-for _ in 1 2; do ui has moreButton && break; back; done   # the submenu, then the menu
+# Close the submenu and the menu. On a phone the popup does not cover the more button, so check the entries.
+for _ in 1 2 3; do ui has "Raster|Grid|Versteckte Dateien anzeigen|Show hidden files" title || break; back; done
 quick() { ui has quickAccessTitle && echo shown || echo hidden; }
 before=$(quick)
 more; ui tap "Schnellzugriff anzeigen|Show quick access" title >/dev/null; sleep 1.5
