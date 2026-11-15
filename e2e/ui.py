@@ -142,12 +142,17 @@ def visible(name):
     return False
 
 
-command = sys.argv[2]
-if command in ("tap", "longtap"):
+def forget_screen():
     try:
         os.remove(DUMP)
     except OSError:
         pass
+
+
+command = sys.argv[2]
+if command in ("tap", "longtap"):
+    # The read before a tap must not pass for the screen after it: forget it now and again once tapped.
+    forget_screen()
 if command == "tap" and os.environ.get("E2E_FAST") == "1":
     target = "\t".join(sys.argv[3:5]).replace("\t", "@")
     key = screen_key()
@@ -158,14 +163,17 @@ if command == "tap" and os.environ.get("E2E_FAST") == "1":
         if not in_scroller(point):
             cache_store(key, target, point)
     sh("input", "tap", str(point[0]), str(point[1]))
+    forget_screen()
     time.sleep(0.5)
 elif command == "tap":
     x, y = need(sys.argv[3], *sys.argv[4:5])
     sh("input", "tap", str(x), str(y))
+    forget_screen()
     time.sleep(1.2)
 elif command == "longtap":
     x, y = need(sys.argv[3])
     sh("input", "swipe", str(x), str(y), str(x), str(y), "900")
+    forget_screen()
     time.sleep(1.2)
 elif command == "visible":
     sys.exit(0 if visible(sys.argv[3]) else 1)
