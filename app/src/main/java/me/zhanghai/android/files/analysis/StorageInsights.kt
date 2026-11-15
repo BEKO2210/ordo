@@ -29,7 +29,9 @@ class StorageInsights(
     /** How many files the scan read. */
     val fileCount: Int = 0,
     /** The folders that hold the space, for the map (see [AnalysisChart.tiles]). */
-    val tiles: List<AnalysisChart.Tile> = emptyList()
+    val tiles: List<AnalysisChart.Tile> = emptyList(),
+    /** How many empty folders the scan found; they free no space, so the card counts them instead. */
+    val emptyFolders: Int = 0
 ) {
     val used: Long get() = total - free
 
@@ -44,9 +46,13 @@ class StorageInsights(
         // Fixed order, never by size: colour follows the kind (validated palette, see chart_colors.xml).
         val KINDS = listOf("image", "audio", "document", "video", "apps", "other")
         const val KIND_SYSTEM = "system"
-        /** Safe to free: copies (one stays), installers and the trash. Large and old files need a look first. */
-        val SAFE = listOf("duplicates", "apks", "trash")
-        val CLEANUP = SAFE + listOf("large", "old")
+        /**
+         * Safe to free: copies (one stays), installers, thumbnail caches and the trash. Large and old files and empty
+         * folders need a look first.
+         */
+        val SAFE = listOf("duplicates", "apks", "thumbnails", "trash")
+        const val EMPTY_FOLDERS = "empty_folders"
+        val CLEANUP = SAFE + listOf("large", "old", EMPTY_FOLDERS)
 
         /**
          * [part] of [whole] as a percentage that never lies by rounding: "<0.1 %", "0.7 %", "57 %", ">99 %".
@@ -89,16 +95,17 @@ class StorageInsights(
             val usage = KINDS.map { it to (byKind[it] ?: 0L) } + (KIND_SYSTEM to system)
 
             val duplicates = StorageAnalysis.allButNewest(result.duplicates)
+            val thumbnails = StorageAnalysis.thumbnailFiles(root, files)
             val groups = mapOf("duplicates" to duplicates, "large" to result.large, "old" to result.old,
-                "apks" to result.apks)
+                "apks" to result.apks, "thumbnails" to thumbnails, EMPTY_FOLDERS to result.emptyFolders)
             val cleanup = CLEANUP.map { type ->
                 type to if (type == "trash") trashBytes else groups.getValue(type).sumOf { it.size }
             }
             // Only what is safe to free counts, and a duplicate APK only once.
-            val distinct = (duplicates + result.apks).distinctBy { it.path }.sumOf { it.size }
+            val distinct = (duplicates + result.apks + thumbnails).distinctBy { it.path }.sumOf { it.size }
 
             return StorageInsights(usage, total, free, cleanup, distinct + trashBytes, months(files, now),
-                suggestions(root, files, now), files.size, AnalysisChart.tiles(root, files))
+                suggestions(root, files, now), files.size, AnalysisChart.tiles(root, files), result.emptyFolders.size)
         }
 
         private fun months(files: List<ScannedFile>, now: Long): List<Pair<String, Long>> {

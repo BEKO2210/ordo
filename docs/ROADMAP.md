@@ -21,8 +21,8 @@ Themes inkl. Schwarz.
       Anzahl und Größe, „Zuletzt verwendet", Speicher-Übersicht je Laufwerk, Schnellzugriff auf Lesezeichen.
 - [x] P1.2 Papierkorb: Löschen verschiebt in `.Trash` des Laufwerks (eigene Metadaten), Wiederherstellen,
       endgültig löschen, automatisch leeren nach 30 Tagen, Einstellung zum Abschalten.
-- [x] P1.3 Speicheranalyse: große Dateien, Duplikate (Größe → Hash), lange ungenutzte Dateien, alte APKs;
-      Auswahl und Löschen in den Papierkorb.
+- [x] P1.3 Speicheranalyse: große Dateien, Duplikate (Größe → Hash), lange ungenutzte Dateien, alte APKs,
+      Vorschaubilder-Cache (`.thumbnails`), leere Ordner; Auswahl und Löschen in den Papierkorb.
 
 ## Phase 2 – Mehr als Samsung
 - [ ] P2.1 Tabs + Zwei-Spalten-Ansicht (Tablet/Querformat) mit Kopieren/Verschieben zwischen den Spalten.

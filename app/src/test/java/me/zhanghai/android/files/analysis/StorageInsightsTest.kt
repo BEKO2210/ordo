@@ -15,10 +15,12 @@ class StorageInsightsTest {
     private val now = Calendar.getInstance().apply { set(2026, Calendar.NOVEMBER, 15, 12, 0) }.timeInMillis
     private fun file(path: String, size: Long, ageDays: Int = 1) = ScannedFile(path, size, now - ageDays * day)
 
-    private fun insights(files: List<ScannedFile>, total: Long = 10_000, free: Long = 4_000, trash: Long = 0): StorageInsights {
+    private fun insights(files: List<ScannedFile>, total: Long = 10_000, free: Long = 4_000, trash: Long = 0,
+                         emptyFolders: List<ScannedFile> = emptyList()): StorageInsights {
         val result = AnalysisResult(
             "/r", StorageAnalysis.largeFiles(files, 500), StorageAnalysis.duplicates(files) { false },
-            StorageAnalysis.oldFiles(files, now), StorageAnalysis.apkFiles(files), emptyList(), files
+            StorageAnalysis.oldFiles(files, now), StorageAnalysis.apkFiles(files), emptyList(), files,
+            emptyFolders = emptyFolders
         )
         return StorageInsights.compute("/r", files, result, total, free, trash, now)
     }
@@ -39,10 +41,23 @@ class StorageInsightsTest {
         // The old APK is in the APK list and the old list; it counts once, as an installer.
         val i = insights(listOf(file("/r/big.mp4", 2_000, ageDays = 400), file("/r/small.txt", 10),
             file("/r/a.apk", 300, ageDays = 400)), trash = 50)
-        assertEquals(listOf("duplicates", "apks", "trash", "large", "old"), i.cleanup.map { it.first })
+        assertEquals(listOf("duplicates", "apks", "thumbnails", "trash", "large", "old", "empty_folders"),
+            i.cleanup.map { it.first })
         assertEquals(2_000L, i.cleanup.toMap()["large"])
         assertEquals(2_300L, i.cleanup.toMap()["old"])
         assertEquals(300L + 50L, i.cleanupTotal)
+    }
+
+    @Test
+    fun thumbnailCachesAreSafeAndEmptyFoldersCounted() {
+        val i = insights(listOf(file("/r/DCIM/.thumbnails/a.jpg", 40), file("/r/DCIM/.thumbnails/.thumbdata3", 400),
+            file("/r/Android/data/app/.thumbnails/b.jpg", 70), file("/r/DCIM/Camera/c.jpg", 900)),
+            emptyFolders = listOf(ScannedFile("/r/Old/Empty", 0, now), ScannedFile("/r/Leaf", 0, now)))
+        assertEquals(440L, i.cleanup.toMap()["thumbnails"])
+        assertEquals(440L, i.cleanupTotal)
+        // Empty folders free nothing: counted, never added to what is safe to free.
+        assertEquals(0L, i.cleanup.toMap()["empty_folders"])
+        assertEquals(2, i.emptyFolders)
     }
 
     @Test

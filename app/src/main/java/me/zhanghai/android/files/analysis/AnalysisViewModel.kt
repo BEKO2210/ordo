@@ -26,12 +26,14 @@ class AnalysisResult(
     val apks: List<ScannedFile>,
     val folders: List<FolderSize>,
     val files: List<ScannedFile> = emptyList(),
-    val insights: StorageInsights? = null
+    val insights: StorageInsights? = null,
+    /** Empty folders worth a look, with size 0 (see [StorageAnalysis.isJunkFolder]). */
+    val emptyFolders: List<ScannedFile> = emptyList()
 )
 
 /** A page opened on top of the overview. Back goes down one page, so the user lands where they were. */
 sealed class AnalysisPage {
-    /** A list from the cleanup card: "large", "duplicates", "old", "apks", or "folders" for all top folders. */
+    /** A list from the cleanup card ([StorageInsights.CLEANUP], except "trash"), or "folders" for all top folders. */
     data class Cleanup(val type: String) : AnalysisPage()
 
     /** The user's files of one kind (see [StorageInsights.KINDS]), largest first. */
@@ -93,7 +95,8 @@ class AnalysisViewModel(handle: SavedStateHandle) : ViewModel() {
         job = viewModelScope.launch {
             val result = withContext(Dispatchers.IO) {
                 var last: ScanProgress? = null
-                val files = StorageAnalysis.scan(root, { !isActive }) {
+                val emptyFolders = mutableListOf<ScannedFile>()
+                val files = StorageAnalysis.scan(root, { !isActive }, emptyFolders) {
                     last = it
                     _state.postValue(AnalysisState.Scanning(it))
                 }
@@ -105,7 +108,8 @@ class AnalysisViewModel(handle: SavedStateHandle) : ViewModel() {
                             ScanProgress(walked.files, walked.bytes, walked.kinds, "", it)))
                     },
                     StorageAnalysis.oldFiles(files, System.currentTimeMillis()),
-                    StorageAnalysis.apkFiles(files), StorageAnalysis.folderSizes(root.path, files), files
+                    StorageAnalysis.apkFiles(files), StorageAnalysis.folderSizes(root.path, files), files,
+                    emptyFolders = emptyFolders
                 ))
             }
             _state.value = AnalysisState.Done(result)
@@ -125,7 +129,7 @@ class AnalysisViewModel(handle: SavedStateHandle) : ViewModel() {
             System.currentTimeMillis()
         )
         return AnalysisResult(result.root, result.large, result.duplicates, result.old, result.apks, result.folders,
-            result.files, insights)
+            result.files, insights, result.emptyFolders)
     }
 
     // Deleted files leave every list at once, so sizes and duplicate groups stay correct.
@@ -145,7 +149,7 @@ class AnalysisViewModel(handle: SavedStateHandle) : ViewModel() {
                             .sumOf { it.size }
                     )
                 }.sortedByDescending { it.size },
-                result.files.keep()
+                result.files.keep(), emptyFolders = result.emptyFolders.keep()
             ))
         )
         selectedPaths.removeAll(paths)

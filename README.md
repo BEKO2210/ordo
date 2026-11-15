@@ -58,8 +58,11 @@ What comes next is in the [living roadmap](docs/ROADMAP-LIVE.md): every goal has
   files, system and free space, your files by type as a ring you can tap, what is safe to free, suggestions you can
   preview, a map of the folders that hold the space (a folder that dominates is opened up into its subfolders) above
   the ranked list, and new data per month with bars you can tap. Each type, folder and list (large files,
-  duplicates, files you have not used for a long time, old APKs) opens as its own page, largest first and with
-  thumbnails; folders open level by level. Tablets use the full width: two columns of cards, rows side by side
+  duplicates, files you have not used for a long time, old APKs, thumbnail caches, empty folders) opens as its own
+  page, largest first and with thumbnails; folders open level by level. Thumbnail caches (`.thumbnails` folders)
+  count as safe to free. Empty folders are worth a look; hidden ones, those in `Android` and standard folders such
+  as Music are never listed. Nothing is deleted without your tap, and deleting goes to the trash. Tablets use the
+  full width: two columns of cards, rows side by side
 - App manager: see installed apps, save their APK, uninstall
 
 **Work with files**

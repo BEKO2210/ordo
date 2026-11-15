@@ -24,6 +24,9 @@
     <string name="analysis_cleanup_old">Unused for 6 months</string>
     <string name="analysis_cleanup_apks">Installer files (APK)</string>
     <string name="analysis_cleanup_trash">Trash</string>
+    <string name="analysis_cleanup_thumbnails">Thumbnail cache</string>
+    <string name="analysis_cleanup_thumbnails_hint">Your gallery makes them again when needed</string>
+    <string name="analysis_cleanup_empty_folders">Empty folders</string>
     <string name="analysis_view">View</string>
     <string name="analysis_suggestions_title">Suggestions</string>
     <string name="analysis_suggestion_old_downloads">Downloads older than 6 months</string>
@@ -44,7 +47,7 @@
         <item quantity="other">%d more folders</item>
     </plurals>
     <string name="analysis_kind_mine">Your files</string>
-    <string name="analysis_cleanup_safe_none">No copies, installers or trash to clear</string>
+    <string name="analysis_cleanup_safe_none">No copies, installers, thumbnails or trash to clear</string>
     <string name="analysis_cleanup_review">Worth a look</string>
     <string name="analysis_folder_apps">App files (%s)</string>
     <string name="analysis_folder_hidden">%s (hidden)</string>
@@ -77,5 +80,13 @@
     <plurals name="analysis_chart_small_types">
         <item quantity="one">%d smaller type</item>
         <item quantity="other">%d smaller types</item>
+    </plurals>
+    <plurals name="analysis_trash_folders_message_format">
+        <item quantity="one">Move %1$d empty folder to trash?</item>
+        <item quantity="other">Move %1$d empty folders to trash?</item>
+    </plurals>
+    <plurals name="analysis_delete_folders_message_format">
+        <item quantity="one">Permanently delete %1$d empty folder? This can’t be undone.</item>
+        <item quantity="other">Permanently delete %1$d empty folders? This can’t be undone.</item>
     </plurals>
 </resources>
