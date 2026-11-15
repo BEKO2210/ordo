@@ -60,9 +60,7 @@ class HomeRepository(private val context: Context) {
         }
         return HomeState(
             recentFiles, summaries, loadStorages(), visibleQuickAccess, false, appCount,
-            trashEntries.size, trashEntries.sumOf { entry ->
-                entry.file.walkTopDown().filter { it.isFile }.sumOf { it.length() }
-            }
+            trashEntries.size, trashEntries.sumOf { it.size }
         )
     }
 
