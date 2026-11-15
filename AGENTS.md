@@ -10,3 +10,6 @@
   passes, not when someone ticks a box. Add new goals there. After every release run `utils/roadmap.sh` and commit
   the regenerated file; the run opens the cells for the version after it, before 1.0.0 and after it alike.
 - Every release gets its own version number (`versionName` and `versionCode` in `app/build.gradle`, both READMEs).
+- Device tests live in `e2e/` (see `e2e/README.md`). Run `e2e/run.sh <serial>` on a test device before every
+  release. Every walk-through written to check a change, and every bug found on a device, stays there as a test in
+  the same pull request, so it is checked again with every later release.
