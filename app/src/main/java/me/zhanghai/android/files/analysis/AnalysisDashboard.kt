@@ -355,7 +355,7 @@ class AnalysisDashboard(
         val all = AnalysisChart.slices(kinds)
         val small = all.firstOrNull { it.key == AnalysisChart.OTHERS }
         if (small == null) chart.drilled = false
-        parts = if (chart.drilled) AnalysisChart.slices(kinds.filter { it.first in small!!.members }) else all
+        parts = if (chart.drilled) AnalysisChart.slices(kinds.filter { it.first in small!!.members }, minShare = 0.0) else all
         if (parts.none { it.key == chart.kind }) chart.kind = null
         binding.filesChart.setSlices(parts.map { part ->
             DonutView.Slice(part.key, part.value,
@@ -391,6 +391,7 @@ class AnalysisDashboard(
         }
         for ((kind, row) in kindRows) {
             row.animate().cancel()
+            row.translationY = 0f   // the cancel may stop a rise halfway
             val alpha = if (bright == null || kind in bright) 1f else 0.4f
             if (animate && row.isShown) row.animate().alpha(alpha).setStartDelay(0).setDuration(160).start() else row.alpha = alpha
         }

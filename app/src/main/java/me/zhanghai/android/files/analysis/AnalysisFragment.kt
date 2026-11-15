@@ -90,7 +90,11 @@ class AnalysisFragment : Fragment() {
                 }
                 page != null -> closePage()
                 // On the overview a lifted slice or a marked tile comes down before the analysis is left.
-                else -> dashboard?.clearPick()
+                // Nothing to clear after all (the pick went with a rebind): back leaves as usual.
+                else -> if (dashboard?.clearPick() != true) {
+                    isEnabled = false
+                    requireActivity().onBackPressedDispatcher.onBackPressed()
+                }
             }
         }
     }

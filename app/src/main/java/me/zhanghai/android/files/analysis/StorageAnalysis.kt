@@ -64,8 +64,8 @@ object StorageAnalysis {
                     report(it)
                 }
             }
-        // The last numbers are the real ones, whatever the clock said.
-        onProgress(ScanProgress(files.size, bytes, kinds.clone(), ""))
+        // The last numbers are the real ones, whatever the clock said; a cancelled scan reports nothing more.
+        if (!isCancelled()) onProgress(ScanProgress(files.size, bytes, kinds.clone(), ""))
         return files
     }
 
@@ -108,12 +108,18 @@ object StorageAnalysis {
         val candidates = files.filter { !it.isHidden && it.size > 0 }
             .groupBy { it.size }.values.filter { it.size > 1 }
         var done = 0
-        return candidates
+        var reported = 0L
+        val groups = candidates
             .flatMap { sameSize ->
                 if (isCancelled()) {
                     return@flatMap emptyList()
                 }
-                onProgress(done++.toFloat() / candidates.size)
+                val now = System.nanoTime()
+                if (now - reported >= PROGRESS_INTERVAL_NANOS) {
+                    reported = now
+                    onProgress(done.toFloat() / candidates.size)
+                }
+                done++
                 sameSize.groupByNotNull(partialHash).values.filter { it.size > 1 }
                     .flatMap { candidates ->
                         if (candidates.first().size <= PARTIAL_HASH_SIZE) {
@@ -125,6 +131,8 @@ object StorageAnalysis {
             }
             .map { group -> DuplicateGroup(group.sortedByDescending { it.lastModified }) }
             .sortedByDescending { it.wastedSize }
+        if (!isCancelled()) onProgress(1f)
+        return groups
     }
 
     fun allButNewest(groups: List<DuplicateGroup>): List<ScannedFile> =

@@ -126,6 +126,8 @@ class DonutView @JvmOverloads constructor(context: Context, attrs: AttributeSet?
     private var colors: Array<IntArray> = emptyArray()
     private var center = Center("", "")
     private var selected = -1
+    // True while the selected slice is up or rising; false from the moment it starts coming down.
+    private var up = false
     private var pressed = -1
     private var reveal = 1f
     private var centerShown = 1f
@@ -155,6 +157,7 @@ class DonutView @JvmOverloads constructor(context: Context, attrs: AttributeSet?
         sweeps = AnalysisChart.extents(slices.map { it.value }, 360f, AnalysisChart.MIN_SLICE_SWEEP)
         colors = Array(slices.size) { slices[it].colors }
         selected = -1
+        up = false
         lift = 0f
         revealAnimator?.cancel()
         if (entrance && Motion.any) {
@@ -208,6 +211,7 @@ class DonutView @JvmOverloads constructor(context: Context, attrs: AttributeSet?
     fun select(key: String?) {
         val index = slices.indexOfFirst { it.key == key }
         if (index == selected) return
+        up = index >= 0
         // Coming down, the slice that was up stays the lifted one until it has landed.
         if (index >= 0) selected = index
         liftAnimator?.cancel()
@@ -325,7 +329,7 @@ class DonutView @JvmOverloads constructor(context: Context, attrs: AttributeSet?
                     index >= 0 && index == wasPressed -> tap(index)
                     index == -2 -> {
                         performClick()
-                        if (selected >= 0 && lift > 0f) onOpen?.invoke(slices[selected]) else onCenterClick?.invoke()
+                        if (selected >= 0 && up) onOpen?.invoke(slices[selected]) else onCenterClick?.invoke()
                     }
                     index == -1 && selected >= 0 -> {
                         select(null)
@@ -344,7 +348,7 @@ class DonutView @JvmOverloads constructor(context: Context, attrs: AttributeSet?
     private fun tap(index: Int) {
         performClick()
         performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
-        if (index == selected && lift > 0f) {
+        if (index == selected && up) {
             onOpen?.invoke(slices[index])
         } else {
             select(slices[index].key)

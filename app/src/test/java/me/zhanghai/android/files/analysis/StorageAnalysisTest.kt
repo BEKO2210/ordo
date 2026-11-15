@@ -101,11 +101,13 @@ class StorageAnalysisTest {
     }
 
     @Test
-    fun duplicates_progressRunsFromZeroTowardsOne() {
+    fun duplicates_progressRunsFromZeroToOne() {
         val files = listOf(f("/r/a", 10), f("/r/b", 10), f("/r/c", 20), f("/r/d", 20), f("/r/e", 30))
         val seen = mutableListOf<Float>()
         StorageAnalysis.duplicates(files, { it.path }, { it.path }, onProgress = { seen += it })
-        assertEquals(listOf(0f, 0.5f), seen)
+        // Throttled to the scan's clock in between, but the arc always ends full.
+        assertEquals(0f, seen.first())
+        assertEquals(1f, seen.last())
     }
 
     @Test
