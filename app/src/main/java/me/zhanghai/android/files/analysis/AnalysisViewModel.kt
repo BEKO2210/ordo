@@ -29,6 +29,18 @@ class AnalysisResult(
     val insights: StorageInsights? = null
 )
 
+/** A page opened on top of the overview. Back goes down one page, so the user lands where they were. */
+sealed class AnalysisPage {
+    /** A list from the cleanup card: "large", "duplicates", "old", "apks", or "folders" for all top folders. */
+    data class Cleanup(val type: String) : AnalysisPage()
+
+    /** The user's files of one kind (see [StorageInsights.KINDS]), largest first. */
+    data class Kind(val kind: String) : AnalysisPage()
+
+    /** A folder's subfolders and files, largest first. */
+    data class Folder(val path: String) : AnalysisPage()
+}
+
 sealed class AnalysisState {
     class Scanning(val fileCount: Int, val isHashing: Boolean) : AnalysisState()
     class Done(val result: AnalysisResult) : AnalysisState()
@@ -40,6 +52,10 @@ class AnalysisViewModel(handle: SavedStateHandle) : ViewModel() {
     val state: LiveData<AnalysisState> = _state
 
     val selectedPaths = mutableSetOf<String>()
+
+    /** Pages on top of the overview, and the scroll position of each page below the top one. Both survive rotation. */
+    val pages = mutableListOf<AnalysisPage>()
+    val scrollStates = mutableListOf<android.os.Parcelable?>()
 
     @Suppress("DEPRECATION")
     var root: File = handle.get<String>(AnalysisActivity.EXTRA_ROOT)?.let(::File)
@@ -56,6 +72,8 @@ class AnalysisViewModel(handle: SavedStateHandle) : ViewModel() {
         this.root = root
         job?.cancel()
         selectedPaths.clear()
+        pages.clear()
+        scrollStates.clear()
         _state.value = AnalysisState.Scanning(0, false)
         job = viewModelScope.launch {
             val result = withContext(Dispatchers.IO) {
@@ -94,8 +112,7 @@ class AnalysisViewModel(handle: SavedStateHandle) : ViewModel() {
     fun removeDeleted(paths: Set<String>) {
         val result = (_state.value as? AnalysisState.Done)?.result ?: return
         fun List<ScannedFile>.keep() = filter { it.path !in paths }
-        val deletedFiles = (result.large + result.old + result.apks + result.duplicates.flatMap { it.files })
-            .filter { it.path in paths }.distinctBy { it.path }
+        val deletedFiles = result.files.filter { it.path in paths }
         _state.value = AnalysisState.Done(
             withInsights(AnalysisResult(
                 result.root, result.large.keep(),

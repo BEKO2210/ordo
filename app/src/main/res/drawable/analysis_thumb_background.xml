@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- Rounded tile behind a thumbnail or file icon in the analysis lists; also clips the thumbnail. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="@color/chart_track" />
+    <corners android:radius="8dp" />
+</shape>

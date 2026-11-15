@@ -36,6 +36,14 @@ class StorageAnalysisTest {
     }
 
     @Test
+    fun children_subfoldersAndOwnFiles() {
+        val files = listOf(f("/r/A/x", 1), f("/r/A/B/y", 2), f("/r/A/B/C/z", 4), f("/r/AB/w", 8), f("/r/top", 16))
+        val (folders, own) = StorageAnalysis.children("/r/A", files)
+        assertEquals(listOf("/r/A/B" to 6L), folders.map { it.path to it.size })
+        assertEquals(listOf("/r/A/x"), own.map { it.path })
+    }
+
+    @Test
     fun folderSizes_topLevel() {
         val files = listOf(f("/r/A/x", 1), f("/r/A/B/y", 2), f("/r/C/z", 10), f("/r/rootfile", 5))
         val sizes = StorageAnalysis.folderSizes("/r", files)

@@ -5,25 +5,24 @@
   -->
 
 <resources>
-    <string name="analysis_tab_overview">Overview</string>
     <string name="analysis_usage_title">Storage</string>
-    <string name="analysis_usage_subtitle">%1$s of %2$s used</string>
+    <string name="analysis_usage_subtitle">%1$s of %2$s</string>
     <string name="analysis_usage_center_label">used</string>
     <string name="analysis_kind_image">Pictures</string>
     <string name="analysis_kind_audio">Audio</string>
     <string name="analysis_kind_document">Documents</string>
     <string name="analysis_kind_video">Videos</string>
-    <string name="analysis_kind_apps">Apps &amp; APKs</string>
+    <string name="analysis_kind_apps">APK files</string>
     <string name="analysis_kind_other">Other files</string>
     <string name="analysis_kind_system">System &amp; app data</string>
     <string name="analysis_kind_free">Free</string>
     <string name="analysis_cleanup_title">Cleanup potential</string>
-    <string name="analysis_cleanup_headline">Up to %s to free</string>
+    <string name="analysis_cleanup_headline">%s safe to free</string>
     <string name="analysis_cleanup_none">Nothing to clean up – nicely tidy.</string>
     <string name="analysis_cleanup_duplicates">Duplicates</string>
     <string name="analysis_cleanup_large">Large files</string>
     <string name="analysis_cleanup_old">Unused for 6 months</string>
-    <string name="analysis_cleanup_apks">APK files</string>
+    <string name="analysis_cleanup_apks">Installer files (APK)</string>
     <string name="analysis_cleanup_trash">Trash</string>
     <string name="analysis_view">View</string>
     <string name="analysis_suggestions_title">Suggestions</string>
@@ -39,6 +38,29 @@
     <string name="analysis_treemap_title">Where your space goes</string>
     <string name="analysis_treemap_subtitle">Biggest folders – tap one to open it</string>
     <string name="analysis_growth_title">New per month</string>
-    <string name="analysis_growth_subtitle">Last 12 months · %s this month</string>
-    <string name="analysis_treemap_more">%d more folders</string>
+    <string name="analysis_growth_subtitle">Average %1$s a month · %2$s this month</string>
+    <plurals name="analysis_treemap_more">
+        <item quantity="one">%d more folder</item>
+        <item quantity="other">%d more folders</item>
+    </plurals>
+    <string name="analysis_kind_mine">Your files</string>
+    <string name="analysis_files_subtitle">%s · tap a type to see its files</string>
+    <string name="analysis_cleanup_safe_none">No copies, installers or trash to clear</string>
+    <string name="analysis_cleanup_review">Worth a look</string>
+    <string name="analysis_folder_apps">App files (%s)</string>
+    <string name="analysis_folder_hidden">%s (hidden)</string>
+    <string name="analysis_usage_mine_hint">Photos, videos, music, downloads: everything you keep yourself</string>
+    <string name="analysis_usage_system_hint">Android itself, your apps and their data</string>
+    <string name="analysis_usage_free_hint">Room for new photos, apps and updates</string>
+    <string name="analysis_open_folder">Open in file list</string>
+    <string name="analysis_share_of_files">%s of your files</string>
+    <string name="analysis_share_of_folder">%1$s of %2$s</string>
+    <plurals name="analysis_folder_count">
+        <item quantity="one">%d folder</item>
+        <item quantity="other">%d folders</item>
+    </plurals>
+    <plurals name="analysis_file_count">
+        <item quantity="one">%d file</item>
+        <item quantity="other">%d files</item>
+    </plurals>
 </resources>

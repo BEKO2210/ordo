@@ -68,6 +68,12 @@ object StorageAnalysis {
             .map { (name, files) -> FolderSize("$root/$name", files.sumOf { it.size }) }
             .sortedByDescending { it.size }
 
+    /** What lies directly in [folder]: its subfolders with their total size, and its own files. */
+    fun children(folder: String, files: List<ScannedFile>): Pair<List<FolderSize>, List<ScannedFile>> {
+        val inside = files.filter { it.path.startsWith("$folder/") }
+        return folderSizes(folder, inside) to inside.filter { '/' !in it.path.substring(folder.length + 1) }
+    }
+
     // Size first, then a hash of the first 64 KiB, then a full hash, so only real candidates are read.
     fun duplicates(
         files: List<ScannedFile>,

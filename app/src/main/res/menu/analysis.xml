@@ -10,6 +10,12 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
+        android:id="@+id/action_open_folder"
+        android:icon="@drawable/directory_icon_control_normal_24dp"
+        android:title="@string/analysis_open_folder"
+        app:showAsAction="ifRoom" />
+
+    <item
         android:id="@+id/action_select_all_but_newest"
         android:title="@string/analysis_select_all_but_newest"
         app:showAsAction="never" />

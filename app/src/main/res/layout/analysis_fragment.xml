@@ -26,12 +26,6 @@
             android:layout_height="?actionBarSize"
             app:popupTheme="?actionBarPopupTheme" />
 
-        <com.google.android.material.tabs.TabLayout
-            android:id="@+id/tabLayout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@android:color/transparent"
-            app:tabMode="scrollable" />
     </me.zhanghai.android.files.ui.CoordinatorAppBarLayout>
 
     <LinearLayout

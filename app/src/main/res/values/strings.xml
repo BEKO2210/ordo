@@ -962,12 +962,7 @@
     <!-- Ordo: storage analysis -->
     <string name="navigation_analysis">Analyze storage</string>
     <string name="analysis_title">Analyze storage</string>
-    <string name="analysis_tab_large">Large files</string>
-    <string name="analysis_tab_duplicates">Duplicates</string>
-    <string name="analysis_tab_old">Unused</string>
-    <string name="analysis_tab_apks">APK files</string>
     <string name="analysis_tab_folders">Folders</string>
-    <string name="analysis_tab_title_format">%1$s (%2$d)</string>
     <plurals name="analysis_progress_scanning">
         <item quantity="one">Scanning… %1$d file found</item>
         <item quantity="other">Scanning… %1$d files found</item>

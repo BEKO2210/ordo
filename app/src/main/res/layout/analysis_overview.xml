@@ -20,7 +20,7 @@
         android:paddingHorizontal="16dp"
         android:paddingTop="8dp">
 
-        <!-- Usage -->
+        <!-- Usage: your files, system and free in one bar -->
         <LinearLayout
             android:id="@+id/usageCard"
             style="@style/Widget.Ordo.DashboardCard">
@@ -30,17 +30,46 @@
                 android:text="@string/analysis_usage_title" />
 
             <TextView
+                android:id="@+id/usageHero"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:textAppearance="?textAppearanceHeadline3" />
+
+            <TextView
                 android:id="@+id/usageSubtitle"
                 style="@style/Widget.Ordo.DashboardSubtitle" />
 
-            <com.github.mikephil.charting.charts.PieChart
-                android:id="@+id/usageChart"
+            <me.zhanghai.android.files.analysis.StackedBarView
+                android:id="@+id/usageBar"
                 android:layout_width="match_parent"
-                android:layout_height="232dp"
-                android:layout_marginTop="8dp" />
+                android:layout_height="16dp"
+                android:layout_marginTop="16dp"
+                android:importantForAccessibility="no" />
 
             <LinearLayout
                 android:id="@+id/usageLegend"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:orientation="vertical" />
+        </LinearLayout>
+
+        <!-- Your files by type -->
+        <LinearLayout
+            android:id="@+id/filesCard"
+            style="@style/Widget.Ordo.DashboardCard">
+
+            <TextView
+                style="@style/Widget.Ordo.DashboardTitle"
+                android:text="@string/analysis_kind_mine" />
+
+            <TextView
+                android:id="@+id/filesSubtitle"
+                style="@style/Widget.Ordo.DashboardSubtitle" />
+
+            <LinearLayout
+                android:id="@+id/filesList"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
@@ -67,7 +96,7 @@
             <me.zhanghai.android.files.analysis.StackedBarView
                 android:id="@+id/cleanupBar"
                 android:layout_width="match_parent"
-                android:layout_height="14dp"
+                android:layout_height="10dp"
                 android:layout_marginTop="14dp"
                 android:importantForAccessibility="no" />
 
@@ -99,9 +128,9 @@
                 android:orientation="vertical" />
         </LinearLayout>
 
-        <!-- Where the space is -->
+        <!-- Biggest folders as ranked bars -->
         <LinearLayout
-            android:id="@+id/treemapCard"
+            android:id="@+id/folderCard"
             style="@style/Widget.Ordo.DashboardCard">
 
             <TextView
@@ -112,15 +141,8 @@
                 style="@style/Widget.Ordo.DashboardSubtitle"
                 android:text="@string/analysis_treemap_subtitle" />
 
-            <me.zhanghai.android.files.analysis.TreemapView
-                android:id="@+id/treemap"
-                android:layout_width="match_parent"
-                android:layout_height="220dp"
-                android:layout_marginTop="12dp" />
-
-            <!-- The same folders as rows: big touch targets on phones, and readable by TalkBack. -->
             <LinearLayout
-                android:id="@+id/treemapList"
+                android:id="@+id/folderList"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"

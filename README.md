@@ -22,7 +22,7 @@
 <p align="center">
   <img src="docs/screenshots/en/home.png" width="24%" alt="Home screen with recent files, categories, vault and backup">
   <img src="docs/screenshots/en/ai.png" width="24%" alt="AI command with preview: move 9 photos">
-  <img src="docs/screenshots/en/analysis.png" width="24%" alt="Storage analysis: usage donut by file type">
+  <img src="docs/screenshots/en/analysis.png" width="24%" alt="Storage analysis: your files, system and free space in one bar, then your files by type">
   <img src="docs/screenshots/en/cleanup.png" width="24%" alt="Cleanup potential and suggestions with a preview button, dark mode">
 </p>
 <p align="center">
@@ -34,7 +34,7 @@
 
 ## Status
 
-Ordo is in development (version 0.3.4). It is not on Google Play yet. Test builds are published as
+Ordo is in development (version 0.4.0). It is not on Google Play yet. Test builds are published as
 [pre-releases](https://github.com/BEKO2210/ordo/releases); you can also [build it from source](#build).
 What comes next is in the [living roadmap](docs/ROADMAP-LIVE.md): every goal has a check command and closes itself.
 
@@ -51,9 +51,10 @@ What comes next is in the [living roadmap](docs/ROADMAP-LIVE.md): every goal has
 **Tidy up**
 
 - Trash: deleted files can be restored for 30 days
-- Storage analysis for internal storage, SD cards and USB drives: an overview with usage by file type, cleanup
-  potential, suggestions you can preview, the biggest folders as tiles and new data per month; plus lists of large
-  files, duplicates, files you have not used for a long time and old APKs
+- Storage analysis for internal storage, SD cards and USB drives: an overview of your files, system and free space,
+  your files by type, what is safe to free, suggestions you can preview, the biggest folders as ranked bars and new
+  data per month. Each type, folder and list (large files, duplicates, files you have not used for a long time, old
+  APKs) opens as its own page, largest first and with thumbnails; folders open level by level
 - App manager: see installed apps, save their APK, uninstall
 
 **Work with files**

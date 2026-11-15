@@ -4,15 +4,16 @@
   ~ SPDX-License-Identifier: GPL-3.0-or-later
   -->
 
-<!-- Storage chart colours. Order and values passed the dataviz palette validator (lightness band, chroma,
-     colour-blind separation, normal-vision floor, contrast) for this theme's surface. Grey is "other". -->
+<!-- Storage chart colours. Cleanup bar: duplicates (image), APKs (apps), trash (document) passed the dataviz palette
+     validator (lightness band, chroma, colour-blind separation, normal-vision floor, 3:1 contrast) on this theme's
+     card. System is the de-emphasis grey next to the accent: under 3:1 in light, so its legend row names it. Audio and
+     video are the home bar's "nearly full" gradient. -->
 <resources>
     <color name="chart_image">#8B5CF6</color>
     <color name="chart_audio">#D97706</color>
     <color name="chart_document">#3B82F6</color>
     <color name="chart_video">#EF4444</color>
     <color name="chart_apps">#0D9488</color>
-    <color name="chart_other">#64748B</color>
-    <color name="chart_system">#334155</color>
+    <color name="chart_system">#64748B</color>
     <color name="chart_track">#1FFFFFFF</color>
 </resources>
