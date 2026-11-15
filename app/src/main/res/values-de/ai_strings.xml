@@ -167,5 +167,6 @@
     <string name="ai_paywall_pending">Deine Zahlung wird noch bearbeitet. Die KI ist freigeschaltet, sobald Google Play sie bestätigt.</string>
     <string name="ai_paywall_unavailable">Google Play ist gerade nicht erreichbar. Die KI lässt sich nur über Google Play freischalten. Alles andere in Ordo funktioniert wie gewohnt.</string>
     <string name="ai_paywall_unsupported">Auf diesem Handy läuft die KI nicht: Sie braucht einen 64-Bit-Prozessor und mindestens %s Arbeitsspeicher. Alles andere in Ordo funktioniert wie gewohnt.</string>
+    <string name="ai_paywall_remove_model">Heruntergeladenes KI-Modell entfernen (%s)</string>
     <string name="ai_paywall_not_found">Für dieses Google-Konto wurde kein Kauf gefunden.</string>
 </resources>

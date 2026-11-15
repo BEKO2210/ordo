@@ -19,7 +19,10 @@ import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import me.zhanghai.android.files.BuildConfig
 import me.zhanghai.android.files.R
 import me.zhanghai.android.files.databinding.AiPaywallSheetBinding
@@ -67,6 +70,16 @@ class AiPaywallSheet : BottomSheetDialogFragment() {
                 Settings.AI_DEBUG_UNLOCK.putValue(true)
                 openAi()
             }
+        }
+        viewLifecycleOwner.lifecycleScope.launch {
+            val appContext = context.applicationContext
+            val hasModel = withContext(Dispatchers.IO) { CommandModel.state(appContext) != CommandModel.State.Missing }
+            if (!hasModel) return@launch
+            val size = Formatter.formatShortFileSize(context,
+                CommandModel.file(appContext).length().takeIf { it > 0 } ?: CommandModel.SIZE)
+            binding.removeModelButton.text = getString(R.string.ai_paywall_remove_model, size)
+            binding.removeModelButton.isVisible = true
+            binding.removeModelButton.setOnClickListener { confirmRemoveModel(size) }
         }
         // Only phones that can run the model may buy it: free space can be made, RAM and a 64-bit CPU cannot.
         val check = CommandModel.check(context)
@@ -122,6 +135,22 @@ class AiPaywallSheet : BottomSheetDialogFragment() {
         binding.buyButton.text = if (state is AiUnlockState.Offer) {
             getString(R.string.ai_paywall_buy, state.price)
         } else getString(R.string.ai_paywall_checking)
+    }
+
+    private fun confirmRemoveModel(size: String) {
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.ai_remove_title)
+            .setMessage(getString(R.string.ai_remove_text, size))
+            .setNegativeButton(android.R.string.cancel, null)
+            .setPositiveButton(R.string.ai_remove_confirm) { _, _ ->
+                val context = requireContext().applicationContext
+                binding.removeModelButton.isEnabled = false
+                viewLifecycleOwner.lifecycleScope.launch {
+                    CommandModel.remove(context)
+                    binding.removeModelButton.setText(R.string.ai_removed)
+                }
+            }
+            .show()
     }
 
     private fun openAi() {

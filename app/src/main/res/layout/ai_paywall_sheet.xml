@@ -129,6 +129,17 @@
             android:textAllCaps="false"
             android:textColor="?android:textColorSecondary" />
 
+        <!-- A model downloaded before the AI cost money can always be removed, without buying. -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/removeModelButton"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="48dp"
+            android:textAllCaps="false"
+            android:textColor="?android:textColorSecondary"
+            android:visibility="gone" />
+
         <com.google.android.material.button.MaterialButton
             android:id="@+id/debugUnlockButton"
             style="@style/Widget.MaterialComponents.Button.TextButton"

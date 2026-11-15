@@ -150,7 +150,8 @@ wiederherstellen*). Ohne Google Play lässt sich die KI nicht freischalten; der 
 **Einrichtung.** Die Funktion ist aus, bis du sie über den Zauberstab in der Suchleiste öffnest. Ordo prüft das
 Handy und lädt das Modell einmalig herunter (rund 2,6 GB, standardmäßig nur über WLAN) – von einer festen
 Version bei Hugging Face, geprüft per SHA-256. Danach läuft alles offline. Das Modell lässt sich im KI-Blatt
-jederzeit wieder entfernen; unter Einstellungen › KI-Assistent siehst du, ob es bereit ist.
+jederzeit wieder entfernen, auch ohne Freischaltung über das Kaufblatt; unter Einstellungen › KI-Assistent siehst du,
+ob es bereit ist.
 
 | | |
 |---|---|

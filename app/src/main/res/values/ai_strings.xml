@@ -170,5 +170,6 @@
     <string name="ai_paywall_unavailable">Google Play isn’t available right now. The AI can only be unlocked through Google Play. Everything else in Ordo works as usual.</string>
     <string name="ai_paywall_unsupported">This phone can’t run the AI: it needs a 64-bit processor and at least %s of memory. Everything else in Ordo works as usual.</string>
     <string name="ai_paywall_not_found">No purchase found for this Google account.</string>
+    <string name="ai_paywall_remove_model">Remove downloaded AI model (%s)</string>
     <string name="ai_paywall_debug_unlock" translatable="false">Unlock for testing (debug build only)</string>
 </resources>
