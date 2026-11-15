@@ -92,4 +92,20 @@ class DocsConsistencyTest {
         assertTrue(readme.contains("version ${BuildConfig.VERSION_NAME}"))
         assertTrue(readme.contains("Android-6.0%2B"))
     }
+
+    // Each foreground service type needs its own permission (API 34+ throws without it), and the Play
+    // declaration doc must name the type the manifest really declares.
+    @Test
+    fun foregroundServiceTypesHavePermissionAndPlayDoc() {
+        val manifest = File(repo, "app/src/main/AndroidManifest.xml").readText()
+        val playDoc = File(repo, "docs/PLAY-BERECHTIGUNGEN.md").readText()
+        val services = Regex("""\.(\w+Service)"\s+android:foregroundServiceType="(\w+)"""").findAll(manifest).toList()
+        assertTrue("no foreground service found in the manifest", services.isNotEmpty())
+        services.forEach {
+            val (service, type) = it.destructured
+            val permission = "FOREGROUND_SERVICE_" + type.replace(Regex("([a-z])([A-Z])"), "$1_$2").uppercase(Locale.ROOT)
+            assertTrue("manifest must declare $permission", manifest.contains("android.permission.$permission\""))
+            assertTrue("PLAY-BERECHTIGUNGEN.md must list $service as $type", playDoc.contains("$service` | `$type`"))
+        }
+    }
 }

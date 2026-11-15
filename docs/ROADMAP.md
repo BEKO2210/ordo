@@ -61,6 +61,6 @@ Themes inkl. Schwarz.
 - [ ] P3.2 Store-Texte DE/EN, Screenshots, Feature-Grafik. Erledigt: Datenschutzerklärung mit öffentlichem Link
       <https://beko2210.github.io/ordo/datenschutz.html>.
 - [ ] P3.3 Begründungen für `MANAGE_EXTERNAL_STORAGE`, `QUERY_ALL_PACKAGES`, `REQUEST_INSTALL_PACKAGES`,
-      Foreground-Service `specialUse` (Dateimanager = erlaubter Kernzweck).
+      Vordergrunddienste: Dateiaufträge `dataSync`, FTP-Server `specialUse` (docs/PLAY-BERECHTIGUNGEN.md).
 - [ ] P3.4 Release-Signatur, `bundleRelease`, 16-KB-Seiten-Prüfung der nativen Bibliothek, CI nur bei PR.
 - [ ] P3.5 Geschlossener Test (12 Tester, 14 Tage) – Belkis; danach Produktion. Repo ist öffentlich (GPL).

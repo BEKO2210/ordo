@@ -187,7 +187,7 @@ Dieselben Texte stehen in der App unter **Menü → Impressum & Datenschutz**.
 | Installierte Apps | App-Verwaltung |
 | Pakete installieren und löschen | APK-Dateien installieren und Apps deinstallieren, wenn du es willst |
 | Netzwerk | Nur für Server, die du hinzufügst (FTP, SFTP, SMB, WebDAV), den FTP-Server und den einmaligen Download des KI-Modells |
-| Benachrichtigungen, Vordergrunddienst | Fortschritt beim Kopieren, Verschieben und Sichern |
+| Benachrichtigungen, Vordergrunddienst | Fortschritt beim Kopieren, Verschieben und Sichern. Ab Android 15 stoppt Android einen Auftrag nach 6 Stunden pro Tag im Hintergrund; Ordo öffnen setzt die Zeit zurück |
 
 ## Bauen
 

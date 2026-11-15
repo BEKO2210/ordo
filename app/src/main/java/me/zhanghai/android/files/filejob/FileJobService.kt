@@ -53,6 +53,13 @@ class FileJobService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int = START_STICKY
 
+    // API 35+: dataSync may run 6 h per 24 h in the background; the service must stop within seconds or
+    // the app crashes. onDestroy cancels the running jobs.
+    // shortcut: the jobs end without a message, add a notification if users hit this.
+    override fun onTimeout(startId: Int, fgsType: Int) {
+        stopSelf()
+    }
+
     private val jobCount: Int
         get() = synchronized(runningJobs) { runningJobs.size }
 
