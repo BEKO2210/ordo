@@ -20,9 +20,9 @@ fun homeRecentColumns(widthDp: Int): Int = when {
 }
 
 fun homeQuickAccessColumns(widthDp: Int): Int = when {
-    widthDp < TABLET_MIN_WIDTH_DP -> 1
-    widthDp < WIDE_MIN_WIDTH_DP -> 2
-    else -> 3
+    widthDp < TABLET_MIN_WIDTH_DP -> 3
+    widthDp < WIDE_MIN_WIDTH_DP -> 5
+    else -> 8
 }
 
 fun homeStorageColumns(widthDp: Int, storageCount: Int): Int =

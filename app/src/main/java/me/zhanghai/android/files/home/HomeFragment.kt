@@ -284,7 +284,6 @@ class HomeFragment : Fragment(), ShowRequestAllFilesAccessRationaleDialogFragmen
     // manager rebuilds all item views, which would restart the storage bars and flicker.
     private fun applyHomeLayout() {
         val widthDp = homeWidthDp()
-        val listPadding = resources.getDimensionPixelSize(R.dimen.home_list_padding)
         binding.categoryList.setColumns(homeCategoryColumns(widthDp))
         val recentColumns = homeRecentColumns(widthDp)
         if (recentAdapter.columns != recentColumns) {
@@ -295,15 +294,7 @@ class HomeFragment : Fragment(), ShowRequestAllFilesAccessRationaleDialogFragmen
             }
         }
         binding.storageList.setColumns(homeStorageColumns(widthDp, storageAdapter.itemCount))
-        val quickColumns = homeQuickAccessColumns(widthDp)
-        quickAccessAdapter.multiColumn = quickColumns > 1
-        val quickPadding = if (quickColumns > 1) listPadding else 0
-        if (binding.quickAccessList.paddingLeft != quickPadding) {
-            binding.quickAccessList.setPadding(
-                quickPadding, binding.quickAccessList.paddingTop, quickPadding, binding.quickAccessList.paddingBottom
-            )
-        }
-        binding.quickAccessList.setColumns(quickColumns)
+        binding.quickAccessList.setColumns(homeQuickAccessColumns(widthDp))
     }
 
     private fun RecyclerView.setColumns(columns: Int) {

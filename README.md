@@ -48,7 +48,7 @@ What comes next is in the [living roadmap](docs/ROADMAP-LIVE.md): every goal has
 - The same side menu on the home screen and in the file list: storage, folders, bookmarks and all tools
 - Search by name or by text inside files, with regular expressions if you need them
 - List or grid in three sizes, for all folders or just one
-- Quick access to bookmarks and common folders
+- Quick access to bookmarks and common folders as tiles
 
 **Tidy up**
 
