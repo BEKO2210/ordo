@@ -1,4 +1,4 @@
-Ordo keeps your files in order. Find what you need, see what fills your storage, protect private files and back up what matters. Ordo is open source, with no ads and no tracking. Everything is free; only the optional AI commands are a one-time in-app purchase.
+Ordo keeps your files in order. Find what you need, see what fills your storage, protect private files and back up what matters. Ordo is completely free: no ads, no tracking, no in-app purchases. It is open source (GNU GPL 3.0, based on Material Files), and its AI commands run on your phone, without the cloud.
 
 Find your files
 • Home screen with recent files, categories and your storage at a glance
@@ -7,8 +7,8 @@ Find your files
 
 Free up space
 • Storage analysis for internal storage, SD cards and USB drives
-• See your files by type, the folders that take the most space, large files, duplicates, files you have not used for a long time and old APKs
-• Cleanup suggestions, with a preview through the AI commands
+• See your files by type, the folders that take the most space, large files, duplicates, files you have not used for a long time, old APKs, empty folders and thumbnail caches
+• Cleanup suggestions with a preview through the AI commands, so you decide what goes
 • Trash: deleted files can be restored for 30 days
 • App manager: see installed apps, save their APK, uninstall
 
@@ -30,8 +30,8 @@ Type or dictate a sentence like “Move all MP3s from Download to Music”. Ordo
 • The AI runs entirely on your phone. Your commands and file names never leave the device.
 • Deleting always means the trash. System folders are protected. If a folder is unclear, Ordo asks instead of guessing.
 • Setup downloads the language model once (about 2.6 GB, over Wi-Fi by default). After that it works offline.
-• Needs a 64-bit phone with at least 5.5 GB of RAM and about 3.1 GB of free space
-• AI commands are a one-time in-app purchase, not a subscription
+• Needs a 64-bit phone with a recent Arm chip (Armv8.2 dot product), at least 10 GB of RAM (phones sold with 12 GB) and about 3.1 GB of free space
+• AI commands are free, like the rest of Ordo
 
 For power users
 • FTP, SFTP, SMB and WebDAV servers, plus a built-in FTP server

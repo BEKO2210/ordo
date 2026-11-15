@@ -1,6 +1,6 @@
 # Play Console: Datensicherheit und Altersfreigabe
 
-Stand: 15. November 2026, Code von Ordo 0.7.0 (`feat/restore`). Antworten zum Abtippen in die Play Console, jede
+Stand: 15. November 2026, Code von Ordo 0.7.1 (`main`). Antworten zum Abtippen in die Play Console, jede
 mit Beleg im Code. Hintergrund zu den Berechtigungen steht in [PLAY-BERECHTIGUNGEN.md](PLAY-BERECHTIGUNGEN.md).
 
 Regeln von Google, gelesen am 15. November 2026 in
@@ -11,7 +11,6 @@ Regeln von Google, gelesen am 15. November 2026 in
   und erwartet.
 - Lädt der Nutzer Daten in sein eigenes Konto (Beispiel Drive, Dropbox) und die App liest sie dabei nicht selbst
   aus, ist das keine Erhebung durch die App.
-- Zahlungsdaten, die Google Plays Abrechnungssystem direkt beim Nutzer erhebt, gibt die App nicht an.
 - IP-Adressen gibt man an, je nachdem, wofür die App sie nutzt (Beispiel: Standort bestimmen).
 - Auch eine App, die nichts erhebt, füllt das Formular aus und verlinkt eine Datenschutzerklärung.
 
@@ -64,18 +63,10 @@ Nicht anzugeben, hier nur zur Kontrolle:
 Nichts davon geht in Cloud-Backups oder den Geräteumzug: `res/xml/data_extraction_rules.xml` (ab Android 12) und
 `res/xml/backup_rules.xml` (bis Android 11) schließen Einstellungen, App-Dateien, Datenbanken und den externen App-Speicher aus.
 
-## 4. In-App-Kauf der KI-Befehle (0,99 €, einmalig)
+## 4. Keine Käufe
 
-Der Kauf ist auf `feat/restore` noch nicht im Code; er entsteht auf `feat/ai-purchase`. Annahme für diese
-Antworten: Google Play Billing, Kauf auf dem Gerät geprüft, kein eigener Server.
-
-- Zahlungsdaten erhebt Google Play selbst: nicht angeben (Regel oben).
-- „Kaufverlauf“ (Finanzdaten): nicht angeben, solange Ordo den Kauf nur auf dem Gerät abfragt und nichts an einen
-  eigenen Server schickt.
-- **Ändert sich das** (Kaufprüfung über einen eigenen Server): „Kaufverlauf“ ankreuzen, Zweck „App-Funktionen“,
-  erforderlich, nicht geteilt. Dann folgen die Fragen zur Verschlüsselung und zur Löschung.
-- Die Datenschutzerklärung (`res/values*/legal.xml`) nennt Google Play bisher nur als Download-Quelle. Den Kauf
-  muss sie nennen, bevor er erscheint.
+Ordo ist ganz kostenlos: kein In-App-Kauf, kein Abo, keine Werbung. Im Code steht keine Abrechnungs-Bibliothek und
+keine Berechtigung `com.android.vending.BILLING`. Zahlungs- und Kaufdaten gibt es darum nicht anzugeben.
 
 ## 5. Altersfreigabe (IARC-Fragebogen)
 
@@ -92,10 +83,10 @@ allgemeine für Dienstprogramme und andere Apps (kein Spiel, keine soziale App).
 | Glücksspiel, echt oder simuliert | Nein | – |
 | Nutzer können miteinander kommunizieren oder Inhalte austauschen | Nein | Kein Chat, keine Konten, keine Profile. Server und FTP-Server verbinden nur Geräte, die der Nutzer selbst wählt |
 | Standort wird geteilt | Nein | Keine Standort-Berechtigung im Manifest |
-| Digitale Käufe | **Ja**, sobald der Kauf erscheint | KI-Befehle, einmaliger In-App-Kauf |
+| Digitale Käufe | Nein | Ordo ist ganz kostenlos, ohne In-App-Kauf |
 | Uneingeschränkter Internetzugang (Browser) | Nein | Kein Browser; die einzige WebView zeigt lokales HTML |
 
-Erwartet: niedrigste Stufe (zum Beispiel USK 0, PEGI 3) mit dem Hinweis „In-App-Käufe“. Das vergibt erst IARC.
+Erwartet: niedrigste Stufe (zum Beispiel USK 0, PEGI 3). Das vergibt erst IARC.
 
 ## 6. Weitere Angaben unter „App-Inhalte“
 
@@ -104,5 +95,4 @@ Erwartet: niedrigste Stufe (zum Beispiel USK 0, PEGI 3) mit dem Hinweis „In-Ap
 - Berechtigungen und Vordergrunddienste: Texte in [PLAY-BERECHTIGUNGEN.md](PLAY-BERECHTIGUNGEN.md).
 
 Diese Antworten sind aus dem Code abgeleitet, nicht von Google freigegeben. Vor dem Einreichen gegen den Code des
-Release-Stands halten; besonders, sobald der Kauf auf `feat/restore` liegt. Der Store-Eintrag in
-`fastlane/metadata/android/` nennt den Kauf schon: erst hochladen, wenn `feat/ai-purchase` gemergt ist.
+Release-Stands halten.

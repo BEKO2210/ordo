@@ -1,4 +1,4 @@
-Ordo bringt Ordnung in deine Dateien. Finde schnell, was du suchst, sieh, was deinen Speicher füllt, schütze Privates und sichere, was dir wichtig ist. Ordo ist Open Source, ohne Werbung und ohne Tracking. Alles ist kostenlos – nur die optionalen KI-Befehle sind ein einmaliger In-App-Kauf.
+Ordo bringt Ordnung in deine Dateien. Finde schnell, was du suchst, sieh, was deinen Speicher füllt, schütze Privates und sichere, was dir wichtig ist. Ordo ist komplett kostenlos: ohne Werbung, ohne Tracking, ohne In-App-Käufe. Ordo ist Open Source (GNU GPL 3.0, auf Basis von Material Files), und die KI-Befehle laufen auf deinem Handy, ohne Cloud.
 
 Dateien finden
 • Startseite mit zuletzt verwendeten Dateien, Kategorien und Speicher auf einen Blick
@@ -7,8 +7,8 @@ Dateien finden
 
 Platz schaffen
 • Speicheranalyse für internen Speicher, SD-Karte und USB-Stick
-• Deine Dateien nach Art, die Ordner mit dem meisten Platz, große Dateien, Duplikate, lange nicht genutzte Dateien und alte APKs
-• Aufräum-Vorschläge, mit Vorschau über die KI-Befehle
+• Deine Dateien nach Art, die Ordner mit dem meisten Platz, große Dateien, Duplikate, lange nicht genutzte Dateien, alte APKs, leere Ordner und Vorschaubilder-Cache
+• Aufräum-Vorschläge mit Vorschau über die KI-Befehle, damit du entscheidest, was gehen soll
 • Papierkorb: Gelöschtes lässt sich 30 Tage lang wiederherstellen
 • App-Verwaltung: installierte Apps ansehen, APK sichern, deinstallieren
 
@@ -30,8 +30,8 @@ Tippe oder diktiere einen Satz wie „Verschiebe alle MP3s aus Download nach Mus
 • Die KI läuft komplett auf deinem Handy. Deine Befehle und Dateinamen verlassen es nicht.
 • Löschen heißt immer Papierkorb. Systemordner sind geschützt. Ist ein Ordner unklar, fragt Ordo nach, statt zu raten.
 • Beim Einrichten lädt Ordo das Sprachmodell einmalig herunter (rund 2,6 GB, standardmäßig nur über WLAN). Danach arbeitet die KI offline.
-• Braucht ein 64-Bit-Handy mit mindestens 5,5 GB RAM und rund 3,1 GB freiem Speicher
-• Die KI-Befehle sind ein einmaliger In-App-Kauf für 0,99 €, kein Abo
+• Braucht ein 64-Bit-Handy mit aktuellem Arm-Chip (Dot-Product, Armv8.2), mindestens 10 GB RAM (Handys mit 12 GB) und rund 3,1 GB freiem Speicher
+• Die KI-Befehle sind kostenlos wie der Rest von Ordo
 
 Für Profis
 • FTP-, SFTP-, SMB- und WebDAV-Server sowie ein eingebauter FTP-Server

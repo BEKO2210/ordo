@@ -1,1 +1,1 @@
-File manager with storage analysis, vault and backup. No ads, no tracking.
+Free, open-source file manager. On-device AI, no ads, no tracking.
