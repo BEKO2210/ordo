@@ -34,7 +34,7 @@
 
 ## Stand
 
-Ordo ist in Entwicklung (Version 0.6.0) und noch nicht bei Google Play. Testversionen erscheinen als
+Ordo ist in Entwicklung (Version 0.7.0) und noch nicht bei Google Play. Testversionen erscheinen als
 [Pre-Releases](https://github.com/BEKO2210/ordo/releases); du kannst Ordo auch [selbst bauen](#bauen).
 Was als Nächstes kommt, steht in der [lebenden Roadmap](docs/ROADMAP-LIVE.md): Jedes Ziel hat einen Prüfbefehl und schließt sich selbst.
 
@@ -74,7 +74,7 @@ Was als Nächstes kommt, steht in der [lebenden Roadmap](docs/ROADMAP-LIVE.md): 
 
 - Tresor: Dateien werden mit AES-256-GCM verschlüsselt und mit deiner Bildschirmsperre geöffnet
 - Sicherung: Ordner und Tresor als ZIP auf einen USB-Stick oder an jeden Ort, den dein Handy anbietet, etwa Google
-  Drive – auf Wunsch mit Passwort (AES-256)
+  Drive – auf Wunsch mit Passwort (AES-256), dazu sichere Wiederherstellung normaler Dateien ohne vorhandene zu ersetzen; selbst hinzugefügte Ordner lassen sich wieder aus der Liste nehmen
 
 **In deinen eigenen Worten** – siehe [KI-Befehle](#ki-befehle)
 

@@ -47,6 +47,58 @@
                 <TextView
                     style="@style/HomeSectionTitle"
                     android:paddingTop="16dp"
+                    android:text="@string/restore_section_title" />
+
+                <com.google.android.material.card.MaterialCardView
+                    style="@style/Widget.Ordo.HomeCard"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="16dp">
+
+                    <LinearLayout
+                        android:id="@+id/restoreRow"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="?selectableItemBackground"
+                        android:gravity="center_vertical"
+                        android:minHeight="64dp"
+                        android:orientation="horizontal"
+                        android:paddingHorizontal="12dp"
+                        android:paddingVertical="8dp">
+
+                        <ImageView
+                            android:id="@+id/restoreIcon"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:background="@drawable/home_icon_circle"
+                            android:importantForAccessibility="no"
+                            android:padding="9dp" />
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="12dp"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="@string/restore_choose_title"
+                                android:textAppearance="?textAppearanceSubtitle2" />
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="@string/restore_choose_summary"
+                                android:textAppearance="?textAppearanceCaption"
+                                android:textColor="?android:textColorSecondary" />
+                        </LinearLayout>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <TextView
+                    style="@style/HomeSectionTitle"
                     android:text="@string/backup_target_title" />
 
                 <com.google.android.material.card.MaterialCardView

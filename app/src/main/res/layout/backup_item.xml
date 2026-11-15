@@ -50,6 +50,15 @@
             android:textColor="?android:textColorSecondary" />
     </LinearLayout>
 
+    <!-- Only on folders the user added: takes the folder off the list again. -->
+    <ImageButton
+        android:id="@+id/removeButton"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:background="?selectableItemBackgroundBorderless"
+        android:src="@drawable/close_icon_control_normal_24dp"
+        android:visibility="gone" />
+
     <!-- The rows share this id, so the state comes from the settings instead of the view. -->
     <CheckBox
         android:id="@+id/checkBox"

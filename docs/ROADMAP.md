@@ -40,7 +40,7 @@ Themes inkl. Schwarz.
 - [x] PDF-Ansicht eingebaut (PdfRenderer).
 - [x] Startseite: Suchfeld, Speicherkarte mit Prozent, Glas-Leiste oben; Auswahlleiste als Glas (BlurView).
 - [x] Sicherung auf USB-Stick oder anderen Ort (Drive über die Systemauswahl) als ZIP, optional AES-256,
-      inkl. Tresor. Offen: automatische Sicherung nach Zeitplan, Wiederherstellen per Knopf.
+      inkl. Tresor; normale Dateien per Knopf sicher wiederherstellen. Offen: automatische Sicherung nach Zeitplan.
 - [x] Anzeigegröße wählbar: Liste und Raster je in Klein/Mittel/Groß (Menü „Anzeigen und Sortieren"), mit 5.000
       Audiodateien geprüft. Offen: eigene Einstellung je Kategorie.
 - [x] Impressum & Datenschutz in der App (Menü, Seitenleiste, Über) und als Webseite (`docs/`, GitHub Pages).

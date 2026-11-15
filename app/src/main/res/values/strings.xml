@@ -883,6 +883,9 @@
         <item quantity="other">%1$d files, only with a password</item>
     </plurals>
     <string name="backup_add_folder">Add folder</string>
+    <string name="backup_remove_folder_format">Remove %1$s from the list</string>
+    <string name="backup_folder_removed">Folder removed. Its files stay as they are.</string>
+    <string name="backup_folder_removed_undo">Undo</string>
     <string name="backup_add_folder_error">This folder can’t be backed up. Choose a folder on your device.</string>
     <string name="backup_content_empty_error">Choose at least one folder.</string>
     <string name="backup_protection_title">Protection</string>
@@ -912,7 +915,7 @@
         <item quantity="one">%1$d file couldn’t be read and is missing:\n%2$s</item>
         <item quantity="other">%1$d files couldn’t be read and are missing:\n%2$s</item>
     </plurals>
-    <string name="backup_done_restore_hint">To get files back, open the backup in Ordo and copy them out.</string>
+    <string name="backup_done_restore_hint">You can restore this backup from this screen whenever you need it.</string>
     <string name="backup_done_action">Done</string>
     <string name="backup_failed_title">Backup not finished</string>
     <string name="backup_failed_empty">There are no files in the chosen folders.</string>
@@ -920,6 +923,49 @@
     <string name="backup_failed_message">Check that the USB drive is still plugged in and has enough space. Then try again.</string>
     <string name="backup_failed_space_format">There isn’t enough space. The backup needs %1$s, but only %2$s is free. Choose fewer folders or another place.</string>
     <string name="backup_retry_action">Try again</string>
+
+    <!-- Ordo: restore backup -->
+    <string name="restore_section_title">Restore a backup</string>
+    <string name="restore_choose_title">Choose backup ZIP</string>
+    <string name="restore_choose_summary">Ordo checks it and shows what will happen before writing any file</string>
+    <string name="restore_checking_title">Checking backup …</string>
+    <string name="restore_checking_message">Every file is being checked before anything is written.</string>
+    <string name="restore_password_title">Password needed</string>
+    <string name="restore_password_message">This backup is encrypted. Enter its password so Ordo can check it.</string>
+    <string name="restore_password_action">Check backup</string>
+    <string name="restore_password_empty_error">Enter the backup password.</string>
+    <string name="restore_preview_title">Ready to restore</string>
+    <plurals name="restore_preview_files_format">
+        <item quantity="one">%1$d file · %2$s</item>
+        <item quantity="other">%1$d files · %2$s</item>
+    </plurals>
+    <string name="restore_preview_destination_format">Files go back to their original folders under %1$s.</string>
+    <string name="restore_conflict_rule">Existing files are never replaced. A file at the same path with the same size is skipped. If its size differs, the restored file gets “(restored)” before its extension.</string>
+    <plurals name="restore_vault_not_supported_format">
+        <item quantity="one">The backup also contains %1$d vault file. It will not be restored because this backup does not contain enough information to rebuild the vault safely.</item>
+        <item quantity="other">The backup also contains %1$d vault files. They will not be restored because this backup does not contain enough information to rebuild the vault safely.</item>
+    </plurals>
+    <string name="restore_confirm_action">Restore now</string>
+    <string name="restore_choose_another_action">Choose another</string>
+    <string name="restore_cancel_action">Cancel restore</string>
+    <string name="restore_running_title">Restoring …</string>
+    <string name="restore_running_notice">Restore keeps running when you leave Ordo. Existing files are not replaced.</string>
+    <string name="restore_notification_title">Restore in progress</string>
+    <string name="restore_done_title">Restore finished</string>
+    <string name="restore_done_with_problems_title">Restore finished with problems</string>
+    <string name="restore_counts_format">%1$d restored · %2$d skipped · %3$d failed</string>
+    <string name="restore_done_detail">Skipped files already existed at the same path with the same size.</string>
+    <string name="restore_done_failed_detail">Some files could not be written. Check free space and try the restore again.</string>
+    <string name="restore_failed_title">Restore stopped</string>
+    <string name="restore_retry_password_action">Enter password again</string>
+    <string name="restore_error_wrong_password">That password did not open the backup. Restore stopped and no more files were written.</string>
+    <string name="restore_error_corrupt_archive">The backup is damaged or incomplete. Restore stopped and no more files were written.</string>
+    <string name="restore_error_unsafe_archive">This backup contains a file that could be unsafe, so Ordo did not restore it.</string>
+    <string name="restore_error_read_archive">Ordo couldn’t read this backup. Make sure it is still available and try again.</string>
+    <string name="restore_error_write">A file could not be restored. Restore stopped; completed files stay in place and existing files were not replaced. Check free space and try again.</string>
+    <string name="restore_error_changed_archive">The backup changed after Ordo checked it. Restore stopped and no more files were written.</string>
+    <string name="restore_error_empty">This backup contains no files to restore.</string>
+    <string name="restore_error_vault_only">This backup contains only vault files. They cannot be restored safely because the backup does not contain enough information to rebuild the vault.</string>
 
     <!-- Ordo: trash -->
     <string name="navigation_trash">Trash</string>

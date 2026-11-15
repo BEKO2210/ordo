@@ -68,9 +68,13 @@ CACHE = os.path.join(os.path.expanduser("~"), ".cache", "ordo-e2e", re.sub(r"[^A
 
 
 def screen_key():
-    size = sh("wm", "size").strip().split()[-1]
-    top = re.search(r"topResumedActivity=\S+ \S+ (\S+)", sh("dumpsys activity activities 2>/dev/null | grep -m1 topResumedActivity"))
-    return size + " " + (top.group(1) if top else "?")
+    # Size, rotation and front screen in one round trip: a remembered spot is only valid for the same layout.
+    out = sh("wm size; dumpsys window 2>/dev/null | grep -m1 -o 'mCurrentRotation=[^ ]*'; "
+             "dumpsys activity activities 2>/dev/null | grep -m1 topResumedActivity")
+    size = re.search(r"(\d+x\d+)\s*$", out.split("\n")[0] if out else "")
+    rotation = re.search(r"mCurrentRotation=(\S+)", out)
+    top = re.search(r"topResumedActivity=\S+ \S+ (\S+)", out)
+    return " ".join(m.group(1) if m else "?" for m in (size, rotation, top))
 
 
 def cache_load():
@@ -99,6 +103,13 @@ def find(target, inside=None, fresh=False):
         if text in wanted or desc in wanted or name in wanted:
             return (x1 + x2) // 2, (y1 + y2) // 2
     return None
+
+
+def in_scroller(point):
+    """True when the point lies inside a scrollable view of the last screen read: such a spot moves with scrolling."""
+    with open(DUMP) as f:
+        boxes = re.findall(r'<node [^>]*scrollable="true"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"', f.read())
+    return any(int(x1) <= point[0] <= int(x2) and int(y1) <= point[1] <= int(y2) for x1, y1, x2, y2 in boxes)
 
 
 def need(target, inside=None):
@@ -131,28 +142,38 @@ def visible(name):
     return False
 
 
-command = sys.argv[2]
-if command in ("tap", "longtap"):
+def forget_screen():
     try:
         os.remove(DUMP)
     except OSError:
         pass
+
+
+command = sys.argv[2]
+if command in ("tap", "longtap"):
+    # The read before a tap must not pass for the screen after it: forget it now and again once tapped.
+    forget_screen()
 if command == "tap" and os.environ.get("E2E_FAST") == "1":
     target = "\t".join(sys.argv[3:5]).replace("\t", "@")
     key = screen_key()
     point = cache_load().get((key, target))
     if point is None:
         point = need(sys.argv[3], *sys.argv[4:5])
-        cache_store(key, target, point)
+        # Only fixed spots are remembered: a target in a list or a scrolling page is looked up every time.
+        if not in_scroller(point):
+            cache_store(key, target, point)
     sh("input", "tap", str(point[0]), str(point[1]))
+    forget_screen()
     time.sleep(0.5)
 elif command == "tap":
     x, y = need(sys.argv[3], *sys.argv[4:5])
     sh("input", "tap", str(x), str(y))
+    forget_screen()
     time.sleep(1.2)
 elif command == "longtap":
     x, y = need(sys.argv[3])
     sh("input", "swipe", str(x), str(y), str(x), str(y), "900")
+    forget_screen()
     time.sleep(1.2)
 elif command == "visible":
     sys.exit(0 if visible(sys.argv[3]) else 1)

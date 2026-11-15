@@ -21,10 +21,12 @@ import androidx.annotation.PluralsRes
 import androidx.annotation.StringRes
 import java.io.ByteArrayInputStream
 import java.io.File
+import java.io.FileOutputStream
 import java.io.IOException
 import java.io.InputStream
 import java.io.InterruptedIOException
 import java.nio.channels.Channels
+import java.nio.charset.StandardCharsets
 import java8.nio.channels.FileChannel
 import java8.nio.file.CopyOption
 import java8.nio.file.DirectoryIteratorException
@@ -48,7 +50,12 @@ import me.zhanghai.android.files.app.BackgroundActivityStarter
 import me.zhanghai.android.files.app.mainExecutor
 import me.zhanghai.android.files.backup.BackupStatus
 import me.zhanghai.android.files.backup.BackupStatusLiveData
+import me.zhanghai.android.files.backup.RestoreDestination
+import me.zhanghai.android.files.backup.RestoreDestinationState
 import me.zhanghai.android.files.backup.backupEntryName
+import me.zhanghai.android.files.backup.chooseRestoreDestination
+import me.zhanghai.android.files.backup.resolveRestoreFile
+import me.zhanghai.android.files.backup.restoreEntryPath
 import me.zhanghai.android.files.backup.uniqueEntryName
 import me.zhanghai.android.files.backup.withoutNestedFolders
 import me.zhanghai.android.files.compat.mainExecutorCompat
@@ -61,12 +68,14 @@ import me.zhanghai.android.files.filelist.OpenFileAsDialogActivity
 import me.zhanghai.android.files.filelist.OpenFileAsDialogFragment
 import me.zhanghai.android.files.provider.archive.archiveFile
 import me.zhanghai.android.files.provider.archive.archiver.ArchiveWriter
+import me.zhanghai.android.files.provider.archive.archiver.ReadArchive
 import me.zhanghai.android.files.provider.archive.createArchiveRootPath
 import me.zhanghai.android.files.provider.archive.isArchivePath
 import me.zhanghai.android.files.provider.common.ByteString
 import me.zhanghai.android.files.provider.common.ByteStringBuilder
 import me.zhanghai.android.files.provider.common.InvalidFileNameException
 import me.zhanghai.android.files.provider.common.PosixFileModeBit
+import me.zhanghai.android.files.provider.common.PosixFileType
 import me.zhanghai.android.files.provider.common.PosixFileStore
 import me.zhanghai.android.files.provider.common.PosixGroup
 import me.zhanghai.android.files.provider.common.PosixPrincipal
@@ -118,6 +127,7 @@ import me.zhanghai.android.files.vault.Vault
 import me.zhanghai.android.files.vault.VaultEntry
 import me.zhanghai.android.files.vault.copyInterruptiblyTo
 import me.zhanghai.android.libarchive.Archive
+import me.zhanghai.android.libarchive.ArchiveException
 
 fun FileJob.getString(@StringRes stringRes: Int): String {
     return service.getString(stringRes)
@@ -254,6 +264,10 @@ private fun FileJob.throwIfInterrupted() {
         throw InterruptedIOException()
     }
 }
+
+private fun Exception.isInterruptedFileJob(): Boolean =
+    this is InterruptedIOException || this is ArchiveException && code == OsConstants.EINTR ||
+        Thread.interrupted()
 
 @Throws(IOException::class)
 private fun FileJob.scan(sources: List<Path?>, @PluralsRes notificationTitleRes: Int): ScanInfo {
@@ -2615,6 +2629,468 @@ class RestoreVaultJob(private val entries: List<VaultEntry>) : FileJob() {
         }
     }
 }
+
+/** Checks every byte before confirmation, so an invalid archive cannot leave restored files. */
+class RestorePreviewJob(
+    private val source: Uri,
+    private val password: String?
+) : FileJob() {
+    @Throws(IOException::class)
+    override fun run() {
+        try {
+            postNotification(
+                getString(R.string.restore_checking_title), null, null, null, 0, 0, true, true
+            )
+            val result = inspectArchive()
+            throwIfInterrupted()
+            BackupStatusLiveData.postValue(
+                if (result.needsPassword) {
+                    BackupStatus.RestoreNeedsPassword(source)
+                } else {
+                    BackupStatus.RestorePreview(
+                        source, password, result.fileCount, result.size, result.vaultFileCount
+                    )
+                }
+            )
+        } catch (e: Exception) {
+            if (e.isInterruptedFileJob()) {
+                postIdleIfCurrent()
+                return
+            }
+            e.printStackTrace()
+            val passwordError = e.isArchivePasswordError()
+            if (password == null && passwordError) {
+                BackupStatusLiveData.postValue(BackupStatus.RestoreNeedsPassword(source))
+            } else {
+                BackupStatusLiveData.postValue(
+                    BackupStatus.RestoreFailed(
+                        source,
+                        passwordError,
+                        getString(
+                            when {
+                                passwordError -> R.string.restore_error_wrong_password
+                                e is EmptyRestoreArchiveException && e.vaultFileCount > 0 ->
+                                    R.string.restore_error_vault_only
+                                e is EmptyRestoreArchiveException -> R.string.restore_error_empty
+                                e is UnsafeRestoreArchiveException || e is IllegalArgumentException ||
+                                    e is ArithmeticException -> R.string.restore_error_unsafe_archive
+                                e is ArchiveException && e.cause is IOException ->
+                                    R.string.restore_error_read_archive
+                                e is ArchiveException || e is CorruptRestoreArchiveException ->
+                                    R.string.restore_error_corrupt_archive
+                                else -> R.string.restore_error_read_archive
+                            }
+                        ),
+                        vaultSkipped = (e as? EmptyRestoreArchiveException)?.vaultFileCount ?: 0
+                    )
+                )
+            }
+        }
+    }
+
+    @Throws(IOException::class)
+    private fun inspectArchive(): RestoreArchiveInfo {
+        openRestoreChannel(source).use {
+            ReadArchive(it, listOfNotNull(password)).use { archive ->
+                var fileCount = 0
+                var size = 0L
+                var vaultFileCount = 0
+                var sawEntry = false
+                while (true) {
+                    throwIfInterrupted()
+                    val entry = archive.readEntry(StandardCharsets.UTF_8) ?: break
+                    sawEntry = true
+                    val entryPath = checkedRestoreEntryPath(entry)
+                    if (password == null && entry.isEncrypted) {
+                        return RestoreArchiveInfo(0, 0, 0, true)
+                    }
+                    if (entry.type == PosixFileType.DIRECTORY) {
+                        continue
+                    }
+                    if (entry.type != PosixFileType.REGULAR_FILE || entry.size < 0) {
+                        throw UnsafeRestoreArchiveException()
+                    }
+                    if (entryPath.isVault) {
+                        vaultFileCount = incrementRestoreCount(vaultFileCount)
+                    } else {
+                        fileCount = incrementRestoreCount(fileCount)
+                        size = addRestoreSize(size, entry.size)
+                    }
+                    readAndVerifyEntry(archive, entry.size)
+                }
+                if (!sawEntry || fileCount == 0) {
+                    throw EmptyRestoreArchiveException(vaultFileCount)
+                }
+                return RestoreArchiveInfo(fileCount, size, vaultFileCount, false)
+            }
+        }
+    }
+
+    private fun checkedRestoreEntryPath(entry: ReadArchive.Entry) =
+        try {
+            val name = if (entry.type == PosixFileType.DIRECTORY) {
+                entry.name.removeSuffix("/")
+            } else {
+                entry.name
+            }
+            restoreEntryPath(name)
+        } catch (e: IllegalArgumentException) {
+            throw UnsafeRestoreArchiveException(e)
+        }
+
+    private fun postIdleIfCurrent() {
+        val currentJobId = (BackupStatusLiveData.value as? BackupStatus.RestoreChecking)?.jobId
+        if (currentJobId == null || currentJobId == id) {
+            BackupStatusLiveData.postValue(BackupStatus.Idle)
+        }
+    }
+}
+
+/** Restores only normal files from an archive that [RestorePreviewJob] already validated. */
+class RestoreBackupJob(
+    private val source: Uri,
+    private val password: String?,
+    private val expectedFileCount: Int,
+    private val expectedSize: Long,
+    private val vaultFileCount: Int
+) : FileJob() {
+    private var restored = 0
+    private var skipped = 0
+    private var failed = 0
+    private var processedSize = 0L
+    private var normalFileCount = 0
+    private var seenVaultFileCount = 0
+    private var lastProgressMillis = 0L
+
+    @Throws(IOException::class)
+    override fun run() {
+        try {
+            postProgress(0, null)
+            openRestoreChannel(source).use {
+                ReadArchive(it, listOfNotNull(password)).use { archive ->
+                    while (true) {
+                        throwIfInterrupted()
+                        val entry = archive.readEntry(StandardCharsets.UTF_8) ?: break
+                        val entryPath = try {
+                            val name = if (entry.type == PosixFileType.DIRECTORY) {
+                                entry.name.removeSuffix("/")
+                            } else {
+                                entry.name
+                            }
+                            restoreEntryPath(name)
+                        } catch (e: IllegalArgumentException) {
+                            throw UnsafeRestoreArchiveException(e)
+                        }
+                        if (entry.type == PosixFileType.DIRECTORY) {
+                            continue
+                        }
+                        if (entry.type != PosixFileType.REGULAR_FILE || entry.size < 0) {
+                            throw UnsafeRestoreArchiveException()
+                        }
+                        if (entryPath.isVault) {
+                            seenVaultFileCount = incrementRestoreCount(seenVaultFileCount)
+                            readAndVerifyEntry(archive, entry.size)
+                            continue
+                        }
+                        normalFileCount = incrementRestoreCount(normalFileCount)
+                        if (normalFileCount > expectedFileCount) {
+                            throw ChangedRestoreArchiveException()
+                        }
+                        restoreEntry(archive, entry, entryPath.relativePath)
+                    }
+                }
+            }
+            if (normalFileCount != expectedFileCount || processedSize != expectedSize ||
+                seenVaultFileCount != vaultFileCount) {
+                throw ChangedRestoreArchiveException()
+            }
+            throwIfInterrupted()
+            BackupStatusLiveData.postValue(
+                BackupStatus.RestoreDone(restored, skipped, failed, vaultFileCount)
+            )
+            showToast(R.string.restore_done_title)
+        } catch (e: Exception) {
+            if (e.isInterruptedFileJob()) {
+                val currentJobId =
+                    (BackupStatusLiveData.value as? BackupStatus.RestoreRunning)?.jobId
+                if (currentJobId == null || currentJobId == id) {
+                    BackupStatusLiveData.postValue(BackupStatus.Idle)
+                }
+                return
+            }
+            e.printStackTrace()
+            BackupStatusLiveData.postValue(
+                BackupStatus.RestoreFailed(
+                    source,
+                    e.isArchivePasswordError(),
+                    getString(
+                        when {
+                            e.isArchivePasswordError() -> R.string.restore_error_wrong_password
+                            e is UnsafeRestoreArchiveException || e is IllegalArgumentException ||
+                                e is ArithmeticException -> R.string.restore_error_unsafe_archive
+                            e is ChangedRestoreArchiveException ->
+                                R.string.restore_error_changed_archive
+                            e is ArchiveException && e.cause is IOException ->
+                                R.string.restore_error_read_archive
+                            e is ArchiveException || e is CorruptRestoreArchiveException ->
+                                R.string.restore_error_corrupt_archive
+                            else -> R.string.restore_error_write
+                        }
+                    ),
+                    restored, skipped, failed, vaultFileCount
+                )
+            )
+        }
+    }
+
+    @Throws(IOException::class)
+    private fun restoreEntry(
+        archive: ReadArchive,
+        entry: ReadArchive.Entry,
+        relativePath: String
+    ) {
+        val storageRoot = Environment.getExternalStorageDirectory()
+        val destination = chooseRestoreDestination(relativePath, entry.size) {
+            restoreDestinationState(storageRoot, it)
+        }
+        var sink: RestoreEntrySink? = null
+        var entryFailed = false
+        when (destination) {
+            RestoreDestination.Skip -> ++skipped
+            is RestoreDestination.Write -> {
+                try {
+                    sink = RestoreEntrySink.create(storageRoot, destination.relativePath)
+                } catch (e: InterruptedIOException) {
+                    throw e
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    ++failed
+                    entryFailed = true
+                }
+            }
+        }
+        try {
+            val input = archive.newDataInputStream()
+            val buffer = ByteArray(RESTORE_BUFFER_SIZE)
+            var entrySize = 0L
+            while (true) {
+                throwIfInterrupted()
+                val length = input.read(buffer)
+                if (length < 0) {
+                    break
+                }
+                entrySize = addRestoreSize(entrySize, length.toLong())
+                if (sink != null) {
+                    try {
+                        sink.output.write(buffer, 0, length)
+                    } catch (e: IOException) {
+                        e.printStackTrace()
+                        sink.abort()
+                        sink = null
+                        if (!entryFailed) {
+                            ++failed
+                            entryFailed = true
+                        }
+                    }
+                }
+                processedSize = addRestoreSize(processedSize, length.toLong())
+                postProgressIfNeeded(relativePath.substringAfterLast('/'))
+            }
+            if (entrySize != entry.size) {
+                throw CorruptRestoreArchiveException()
+            }
+            if (sink != null) {
+                try {
+                    sink.finish(entry.lastModifiedTime?.toMillis())
+                    ++restored
+                } catch (e: IOException) {
+                    e.printStackTrace()
+                    if (!entryFailed) {
+                        ++failed
+                    }
+                }
+            }
+        } finally {
+            sink?.abort()
+        }
+    }
+
+    private fun postProgressIfNeeded(fileName: String) {
+        val currentTimeMillis = System.currentTimeMillis()
+        if (currentTimeMillis >= lastProgressMillis + NOTIFICATION_INTERVAL_MILLIS) {
+            lastProgressMillis = currentTimeMillis
+            val progress = if (expectedSize == 0L) {
+                100
+            } else {
+                (processedSize.toDouble() * 100 / expectedSize).toInt().coerceIn(0, 100)
+            }
+            postProgress(progress, fileName)
+        }
+    }
+
+    private fun postProgress(progress: Int, fileName: String?) {
+        BackupStatusLiveData.postValue(BackupStatus.RestoreRunning(id, progress, fileName))
+        postNotification(
+            getString(R.string.restore_notification_title), fileName, null, null, 100, progress,
+            false, true
+        )
+    }
+}
+
+private data class RestoreArchiveInfo(
+    val fileCount: Int,
+    val size: Long,
+    val vaultFileCount: Int,
+    val needsPassword: Boolean
+)
+
+private class UnsafeRestoreArchiveException(cause: Throwable? = null) : IOException(cause)
+private class CorruptRestoreArchiveException : IOException()
+private class ChangedRestoreArchiveException : IOException()
+private class EmptyRestoreArchiveException(val vaultFileCount: Int) : IOException()
+
+private fun Exception.isArchivePasswordError(): Boolean =
+    this is ArchiveException && (
+        message == "Incorrect passphrase" || message == "Passphrase required for this entry"
+    )
+
+/**
+ * Ordo's backups store each size after the entry's data (streamed ZIP), so a ZIP read as a stream reports size 0
+ * and every entry looks cut short. Read with seeking: libarchive then takes the sizes from the central directory.
+ */
+@Throws(IOException::class)
+private fun FileJob.openRestoreChannel(source: Uri): FileChannel {
+    val descriptor = service.contentResolver.openFileDescriptor(source, "r")
+        ?: throw IOException("Cannot open $source")
+    return FileChannel::class.open(descriptor, "r")
+}
+
+@Throws(IOException::class)
+private fun FileJob.readAndVerifyEntry(archive: ReadArchive, expectedSize: Long) {
+    var size = 0L
+    val input = archive.newDataInputStream()
+    val buffer = ByteArray(RESTORE_BUFFER_SIZE)
+    while (true) {
+        throwIfInterrupted()
+        val length = input.read(buffer)
+        if (length < 0) {
+            break
+        }
+        size = addRestoreSize(size, length.toLong())
+    }
+    if (size != expectedSize) {
+        throw CorruptRestoreArchiveException()
+    }
+}
+
+private fun restoreDestinationState(root: File, relativePath: String): RestoreDestinationState {
+    val canonicalRoot = root.canonicalFile
+    resolveRestoreFile(canonicalRoot, relativePath)
+    // Inspect the lexical final component so even a dangling symlink counts as existing.
+    val path = Paths.get(File(canonicalRoot, relativePath).path)
+    return when {
+        !Files.exists(path, LinkOption.NOFOLLOW_LINKS) -> RestoreDestinationState.Missing
+        Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS) ->
+            RestoreDestinationState.ExistingFile(Files.size(path))
+        else -> RestoreDestinationState.ExistingOther
+    }
+}
+
+private class RestoreEntrySink private constructor(
+    val output: FileOutputStream,
+    private val temporary: File,
+    private val target: File,
+    private val storageRoot: File,
+    private val relativePath: String
+) {
+    private var finished = false
+
+    @Throws(IOException::class)
+    fun finish(lastModifiedMillis: Long?) {
+        output.flush()
+        output.fd.sync()
+        output.close()
+        val verifiedTarget = resolveRestoreFile(storageRoot, relativePath)
+        if (verifiedTarget != target || !isCanonicallyInsideStorage(temporary, storageRoot)) {
+            throw IOException("Restore path changed while writing")
+        }
+        val targetPath = Paths.get(target.path)
+        if (Files.exists(targetPath, LinkOption.NOFOLLOW_LINKS)) {
+            throw FileAlreadyExistsException(target.path)
+        }
+        Files.move(Paths.get(temporary.path), targetPath)
+        finished = true
+        if (lastModifiedMillis != null) {
+            target.setLastModified(lastModifiedMillis)
+        }
+    }
+
+    fun abort() {
+        if (finished) {
+            return
+        }
+        try {
+            output.close()
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
+        // This is an Ordo-created partial file, never an existing user file.
+        if (!temporary.delete() && temporary.exists()) {
+            IOException("Could not remove partial restore file $temporary").printStackTrace()
+        }
+    }
+
+    companion object {
+        @Throws(IOException::class)
+        fun create(storageRoot: File, relativePath: String): RestoreEntrySink {
+            var target = resolveRestoreFile(storageRoot, relativePath)
+            val parent = target.parentFile ?: throw IOException("Missing parent for $target")
+            if (!parent.isDirectory && !parent.mkdirs()) {
+                throw IOException("Cannot create $parent")
+            }
+            // Existing symlinks in the parent chain are resolved only now that all parents exist.
+            target = resolveRestoreFile(storageRoot, relativePath)
+            if (restoreDestinationState(storageRoot, relativePath) !is
+                RestoreDestinationState.Missing) {
+                throw FileAlreadyExistsException(target.path)
+            }
+            val temporary = File.createTempFile(".ordo-restore-", ".part", target.parentFile)
+            if (!isCanonicallyInsideStorage(temporary, storageRoot)) {
+                temporary.delete()
+                throw IOException("Temporary file left shared storage")
+            }
+            return try {
+                RestoreEntrySink(
+                    FileOutputStream(temporary), temporary, target, storageRoot, relativePath
+                )
+            } catch (e: IOException) {
+                temporary.delete()
+                throw e
+            }
+        }
+    }
+}
+
+private fun isCanonicallyInsideStorage(file: File, storageRoot: File): Boolean {
+    val canonicalRoot = storageRoot.canonicalFile
+    return file.canonicalFile.path.startsWith("${canonicalRoot.path}${File.separator}")
+}
+
+private fun incrementRestoreCount(count: Int): Int {
+    if (count == Int.MAX_VALUE) {
+        throw ArithmeticException("Too many files in backup")
+    }
+    return count + 1
+}
+
+private fun addRestoreSize(size: Long, addedSize: Long): Long {
+    if (addedSize < 0 || size > Long.MAX_VALUE - addedSize) {
+        throw ArithmeticException("Backup size is too large")
+    }
+    return size + addedSize
+}
+
+private const val RESTORE_BUFFER_SIZE = 64 * 1024
 
 /**
  * Ordo: writes the chosen folders and the vault into one ZIP at [target], a document the user
