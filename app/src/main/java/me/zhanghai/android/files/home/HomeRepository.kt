@@ -31,6 +31,12 @@ class HomeRepository(private val context: Context) {
     companion object {
         // Enough for the horizontal row; the grid shows the first six.
         private const val RECENT_COUNT = 20
+
+        // Folder of a file relative to the storage root it lies on (primary or SD card/USB).
+        fun relativeDir(data: String, roots: List<String>): String {
+            val root = roots.firstOrNull { data.startsWith("$it/") }
+            return (if (root != null) data.removePrefix("$root/") else data).substringBeforeLast('/', "")
+        }
     }
 
     // quickAccess must be read on the main thread: its LiveData sources initialize with setValue().
@@ -77,6 +83,10 @@ class HomeRepository(private val context: Context) {
         val resolver = context.contentResolver
         @Suppress("DEPRECATION")
         val externalStoragePath = Environment.getExternalStorageDirectory().path
+        val storageManager = context.getSystemService(Context.STORAGE_SERVICE) as android.os.storage.StorageManager
+        val roots = (listOf(externalStoragePath) +
+            storageManager.storageVolumesCompat.mapNotNull { it.directoryCompat?.path })
+            .distinct().sortedByDescending { it.length }
         val volumes = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             MediaStore.getExternalVolumeNames(context).ifEmpty { setOf(MediaStore.VOLUME_EXTERNAL) }
         } else {
@@ -110,7 +120,7 @@ class HomeRepository(private val context: Context) {
                             val name = cursor.getString(nameIndex) ?: data.substringAfterLast('/')
                             val mime = cursor.getString(mimeIndex)
                             val relative = if (relativeIndex >= 0) cursor.getString(relativeIndex) else {
-                                data.removePrefix("$externalStoragePath/").substringBeforeLast('/', "")
+                                relativeDir(data, roots)
                             }
                             add(
                                 MediaRow(

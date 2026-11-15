@@ -48,6 +48,19 @@ class TrashTest {
     }
 
     @Test
+    fun readInfo_skipsCorruptEscape() {
+        val file = java.io.File.createTempFile("trash", ".info")
+        try {
+            file.writeText("path=\\uZZZZ\n")
+            assertNull(Trash.readInfo(file))
+            file.writeText("path=/a\ndeletedAt=1\n")
+            assertEquals("/a", Trash.readInfo(file)?.getProperty("path"))
+        } finally {
+            file.delete()
+        }
+    }
+
+    @Test
     fun rootOf_similarNameIsTrashable() {
         assertEquals("/storage/emulated/0", Trash.rootOf("/storage/emulated/0/.OrdoTrashX/a"))
     }
