@@ -56,6 +56,8 @@ import me.zhanghai.android.files.backup.RestoreDestination
 import me.zhanghai.android.files.backup.RestoreDestinationState
 import me.zhanghai.android.files.backup.backupEntryName
 import me.zhanghai.android.files.backup.chooseRestoreDestination
+import me.zhanghai.android.files.backup.isProtectedAndroidPath
+import me.zhanghai.android.files.backup.isRestorableBackupEntry
 import me.zhanghai.android.files.backup.resolveRestoreFile
 import me.zhanghai.android.files.backup.restoreEntryPath
 import me.zhanghai.android.files.backup.uniqueEntryName
@@ -3242,15 +3244,30 @@ class BackupJob(
         val sources = mutableListOf<BackupSource>()
         for (folder in withoutNestedFolders(folders.map { it.toString() })) {
             Files.walkFileTree(Paths.get(folder), object : SimpleFileVisitor<Path>() {
+                override fun preVisitDirectory(
+                    directory: Path,
+                    attributes: BasicFileAttributes
+                ): FileVisitResult =
+                    // App data the restore must not write back; on Android 6 to 10 it is readable.
+                    if (isProtectedAndroidPath(backupEntryName(directory.toString(), storageRoot))) {
+                        FileVisitResult.SKIP_SUBTREE
+                    } else {
+                        FileVisitResult.CONTINUE
+                    }
+
                 override fun visitFile(
                     file: Path,
                     attributes: BasicFileAttributes
                 ): FileVisitResult {
                     throwIfInterrupted()
                     if (attributes.isRegularFile) {
-                        val name = uniqueEntryName(
-                            backupEntryName(file.toString(), storageRoot), usedNames
-                        )
+                        val entryName = backupEntryName(file.toString(), storageRoot)
+                        // One entry the restore refuses would make the whole backup unrestorable.
+                        if (!isRestorableBackupEntry(entryName)) {
+                            skipped += entryName
+                            return FileVisitResult.CONTINUE
+                        }
+                        val name = uniqueEntryName(entryName, usedNames)
                         sources += BackupSource(
                             name, attributes.size(), attributes.lastModifiedTime()
                         ) { file.newInputStream() }
@@ -3271,9 +3288,12 @@ class BackupJob(
         if (includeVault) {
             val vaultFolder = getString(R.string.backup_vault_folder)
             for (entry in Vault.store.entries()) {
-                val name = uniqueEntryName(
-                    "$vaultFolder/${backupEntryName(entry.originalPath, storageRoot)}", usedNames
-                )
+                val entryName = "$vaultFolder/${backupEntryName(entry.originalPath, storageRoot)}"
+                if (!isRestorableBackupEntry(entryName)) {
+                    skipped += entryName
+                    continue
+                }
+                val name = uniqueEntryName(entryName, usedNames)
                 sources += BackupSource(name, entry.size, FileTime.fromMillis(entry.addedAt)) {
                     Vault.store.open(entry)
                 }

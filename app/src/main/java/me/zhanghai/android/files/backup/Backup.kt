@@ -72,6 +72,15 @@ object BackupStatusLiveData : MutableLiveData<BackupStatus>(BackupStatus.Idle)
 fun backupEntryName(path: String, storageRoot: String): String =
     path.removePrefix("$storageRoot/").removePrefix("/")
 
+/** Only names the restore accepts go into a backup, so every backup Ordo writes can be restored. */
+fun isRestorableBackupEntry(name: String): Boolean =
+    try {
+        restoreEntryPath(name)
+        true
+    } catch (e: IllegalArgumentException) {
+        false
+    }
+
 /** Keeps two entries from overwriting each other when the backup is unpacked. */
 fun uniqueEntryName(name: String, usedNames: MutableSet<String>): String {
     var uniqueName = name

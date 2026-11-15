@@ -33,12 +33,15 @@ fun restoreEntryPath(name: String): RestoreEntryPath {
     require(segments.none { it.isEmpty() || it == "." || it == ".." }) {
         "The backup contains a path that leaves its folder."
     }
-    val isProtectedAndroidPath = segments.size >= 2 &&
-        segments[0].equals("Android", ignoreCase = true) &&
-        (segments[1].equals("data", ignoreCase = true) ||
-            segments[1].equals("obb", ignoreCase = true))
-    require(!isProtectedAndroidPath) { "The backup contains a protected Android folder." }
+    require(!isProtectedAndroidPath(name)) { "The backup contains a protected Android folder." }
     return RestoreEntryPath(name, segments.first() in BACKUP_VAULT_FOLDER_NAMES)
+}
+
+/** Android/data and Android/obb belong to apps: a restore never writes there, so a backup leaves them out. */
+fun isProtectedAndroidPath(path: String): Boolean {
+    val segments = path.split('/')
+    return segments.size >= 2 && segments[0].equals("Android", ignoreCase = true) &&
+        (segments[1].equals("data", ignoreCase = true) || segments[1].equals("obb", ignoreCase = true))
 }
 
 /** Canonical verification is repeated on-device after parent folders have been created. */

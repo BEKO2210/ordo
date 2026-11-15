@@ -12,6 +12,7 @@ import java.io.InputStream
 import java.io.InterruptedIOException
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -91,5 +92,24 @@ class BackupTest {
         assertThrows(InterruptedIOException::class.java) {
             BackupSourceStream(cancelled, 10, "a").readBytes()
         }
+    }
+
+    @Test
+    fun appDataFoldersAreLeftOut() {
+        assertTrue(isProtectedAndroidPath("Android/data"))
+        assertTrue(isProtectedAndroidPath("Android/obb/com.game/main.obb"))
+        assertTrue(isProtectedAndroidPath("android/DATA/com.beko2210.ordo/cache/x.pdf"))
+        assertFalse(isProtectedAndroidPath("Android"))
+        assertFalse(isProtectedAndroidPath("Android/media/com.whatsapp/a.jpg"))
+        assertFalse(isProtectedAndroidPath("DCIM/Android/data/a.jpg"))
+    }
+
+    @Test
+    fun onlyNamesTheRestoreAcceptsGoIntoTheBackup() {
+        assertTrue(isRestorableBackupEntry(backupEntryName("$root/DCIM/a.jpg", root)))
+        assertFalse(isRestorableBackupEntry(backupEntryName("$root/Android/data/com.x/f", root)))
+        assertFalse(isRestorableBackupEntry("Download/a\\b.txt"))
+        assertFalse(isRestorableBackupEntry("Download/a\u0001.txt"))
+        assertFalse(isRestorableBackupEntry("Download/" + "x".repeat(5000)))
     }
 }

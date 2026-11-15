@@ -779,8 +779,8 @@
         <item quantity="other">%1$d Dateien gesichert (%2$s)</item>
     </plurals>
     <plurals name="backup_done_skipped_format">
-        <item quantity="one">%1$d Datei ließ sich nicht lesen und fehlt:\n%2$s</item>
-        <item quantity="other">%1$d Dateien ließen sich nicht lesen und fehlen:\n%2$s</item>
+        <item quantity="one">%1$d Datei ließ sich nicht sichern und fehlt:\n%2$s</item>
+        <item quantity="other">%1$d Dateien ließen sich nicht sichern und fehlen:\n%2$s</item>
     </plurals>
     <string name="backup_done_restore_hint">Du kannst diese Sicherung bei Bedarf auf diesem Bildschirm wiederherstellen.</string>
     <string name="backup_done_action">Fertig</string>

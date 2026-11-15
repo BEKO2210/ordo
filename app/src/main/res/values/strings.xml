@@ -912,8 +912,8 @@
         <item quantity="other">%1$d files backed up (%2$s)</item>
     </plurals>
     <plurals name="backup_done_skipped_format">
-        <item quantity="one">%1$d file couldn’t be read and is missing:\n%2$s</item>
-        <item quantity="other">%1$d files couldn’t be read and are missing:\n%2$s</item>
+        <item quantity="one">%1$d file couldn’t be backed up and is missing:\n%2$s</item>
+        <item quantity="other">%1$d files couldn’t be backed up and are missing:\n%2$s</item>
     </plurals>
     <string name="backup_done_restore_hint">You can restore this backup from this screen whenever you need it.</string>
     <string name="backup_done_action">Done</string>
