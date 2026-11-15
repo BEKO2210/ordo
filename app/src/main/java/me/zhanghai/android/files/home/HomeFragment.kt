@@ -7,6 +7,7 @@ package me.zhanghai.android.files.home
 
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
@@ -23,6 +24,7 @@ import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.LinearSnapHelper
 import me.zhanghai.android.files.R
 import me.zhanghai.android.files.ai.CommandSheetFragment
@@ -55,6 +57,9 @@ import me.zhanghai.android.files.util.viewModels
 class HomeFragment : Fragment(), ShowRequestAllFilesAccessRationaleDialogFragment.Listener,
     ShowRequestStoragePermissionRationaleDialogFragment.Listener {
     private lateinit var recentAdapter: RecentFileAdapter
+    private lateinit var tileAdapter: TileAdapter
+    private lateinit var storageAdapter: StorageAdapter
+    private lateinit var quickAccessAdapter: QuickAccessAdapter
 
     private val viewModel by viewModels { { HomeViewModel(requireActivity().application) } }
     private var _binding: HomeFragmentBinding? = null
@@ -85,9 +90,8 @@ class HomeFragment : Fragment(), ShowRequestAllFilesAccessRationaleDialogFragmen
             isNestedScrollingEnabled = false
             LinearSnapHelper().attachToRecyclerView(this)
         }
-        val tileAdapter = TileAdapter()
+        tileAdapter = TileAdapter()
         binding.categoryList.apply {
-            layoutManager = GridLayoutManager(context, 3)
             adapter = tileAdapter
             isNestedScrollingEnabled = false
         }
@@ -101,12 +105,13 @@ class HomeFragment : Fragment(), ShowRequestAllFilesAccessRationaleDialogFragmen
         binding.backupCard.setOnClickListener {
             startActivity(Intent(requireContext(), BackupActivity::class.java))
         }
-        val storageAdapter = StorageAdapter(
+        storageAdapter = StorageAdapter(
             { startActivity(AnalysisActivity.createIntent(requireContext(), it.path.toString())) }
         ) { startActivity(FileListActivity.createViewIntent(it.path)) }
-        binding.storageList.apply { layoutManager = LinearLayoutManager(context); adapter = storageAdapter; isNestedScrollingEnabled = false }
-        val quickAccessAdapter = QuickAccessAdapter { startActivity(FileListActivity.createViewIntent(it.path)) }
-        binding.quickAccessList.apply { layoutManager = LinearLayoutManager(context); adapter = quickAccessAdapter; isNestedScrollingEnabled = false }
+        binding.storageList.apply { adapter = storageAdapter; isNestedScrollingEnabled = false }
+        quickAccessAdapter = QuickAccessAdapter { startActivity(FileListActivity.createViewIntent(it.path)) }
+        binding.quickAccessList.apply { adapter = quickAccessAdapter; isNestedScrollingEnabled = false }
+        applyHomeLayout()
         binding.searchCard.setOnClickListener { startActivity(FileListActivity.createSearchIntent()) }
         // Opt-in by design: nothing is downloaded or loaded until the user starts the setup in the sheet.
         binding.assistantButton.isVisible = true
@@ -139,10 +144,12 @@ class HomeFragment : Fragment(), ShowRequestAllFilesAccessRationaleDialogFragmen
         Settings.HOME_RECENT_VIEW.observe(viewLifecycleOwner) { view ->
             val isRow = view == RECENT_VIEW_ROW
             if (recentAdapter.isRow != isRow || binding.recentList.layoutManager == null) {
+                val recentColumns = homeRecentColumns(homeWidthDp())
+                recentAdapter.columns = recentColumns
                 binding.recentList.layoutManager = if (isRow) {
                     LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
                 } else {
-                    GridLayoutManager(requireContext(), RecentFileAdapter.COLUMNS)
+                    GridLayoutManager(requireContext(), recentColumns)
                 }
                 recentAdapter.isRow = isRow
                 updateRecentItems()
@@ -168,6 +175,7 @@ class HomeFragment : Fragment(), ShowRequestAllFilesAccessRationaleDialogFragmen
             tileAdapter.items = createTiles(homeState)
             storageAdapter.items = homeState.storages
             quickAccessAdapter.items = homeState.quickAccess
+            applyHomeLayout()
             updateRecentEmpty()
             binding.swipeRefreshLayout.isRefreshing = homeState.isLoading
             // After a pull to refresh the storage bars grow in again, also when the numbers did not change.
@@ -224,9 +232,54 @@ class HomeFragment : Fragment(), ShowRequestAllFilesAccessRationaleDialogFragmen
         }
     }
 
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        if (_binding != null) applyHomeLayout()
+    }
+
+    private fun homeWidthDp(): Int =
+        (resources.displayMetrics.widthPixels / resources.displayMetrics.density).toInt()
+
+    // Runs on every state update, so it only touches a list whose column count really changed: a new layout
+    // manager rebuilds all item views, which would restart the storage bars and flicker.
+    private fun applyHomeLayout() {
+        val widthDp = homeWidthDp()
+        val listPadding = resources.getDimensionPixelSize(R.dimen.home_list_padding)
+        binding.categoryList.setColumns(homeCategoryColumns(widthDp))
+        val recentColumns = homeRecentColumns(widthDp)
+        if (recentAdapter.columns != recentColumns) {
+            recentAdapter.columns = recentColumns
+            if (!recentAdapter.isRow) {
+                binding.recentList.layoutManager = GridLayoutManager(requireContext(), recentColumns)
+                updateRecentItems()
+            }
+        }
+        binding.storageList.setColumns(homeStorageColumns(widthDp, storageAdapter.itemCount))
+        val quickColumns = homeQuickAccessColumns(widthDp)
+        quickAccessAdapter.multiColumn = quickColumns > 1
+        val quickPadding = if (quickColumns > 1) listPadding else 0
+        if (binding.quickAccessList.paddingLeft != quickPadding) {
+            binding.quickAccessList.setPadding(
+                quickPadding, binding.quickAccessList.paddingTop, quickPadding, binding.quickAccessList.paddingBottom
+            )
+        }
+        binding.quickAccessList.setColumns(quickColumns)
+    }
+
+    private fun RecyclerView.setColumns(columns: Int) {
+        val manager = layoutManager
+        val current = (manager as? GridLayoutManager)?.spanCount ?: if (manager != null) 1 else 0
+        if (current == columns) return
+        layoutManager = if (columns == 1) LinearLayoutManager(context) else GridLayoutManager(context, columns)
+    }
+
     private fun updateRecentItems() {
         val files = viewModel.state.value?.recentFiles ?: return
-        recentAdapter.items = if (recentAdapter.isRow) files else files.take(RECENT_GRID_COUNT)
+        recentAdapter.items = if (recentAdapter.isRow) {
+            files
+        } else {
+            files.take(2 * recentAdapter.columns)
+        }
     }
 
     private fun updateRecentEmpty() {
@@ -252,13 +305,17 @@ class HomeFragment : Fragment(), ShowRequestAllFilesAccessRationaleDialogFragmen
 
     private fun createTiles(state: HomeState): List<HomeTile> {
         val context = requireContext()
+        val compact = homeCategoryCompact(homeWidthDp())
+        fun summary(count: Int, size: Long): String {
+            val sizeText = size.asFileSize().formatHumanReadable(context)
+            return if (compact) sizeText else {
+                context.getQuantityString(R.plurals.home_category_summary, count, count, sizeText)
+            }
+        }
         val categoryTiles = state.categories.map { summary ->
             HomeTile(
                 summary.category.iconRes, summary.category.titleRes, summary.category.colorRes,
-                context.getQuantityString(
-                    R.plurals.home_category_summary, summary.count.toInt(), summary.count,
-                    summary.size.asFileSize().formatHumanReadable(context)
-                )
+                summary(summary.count.toInt(), summary.size)
             ) { startActivity(FileListActivity.createCategoryIntent(summary.category)) }
         }
         return categoryTiles + listOf(
@@ -270,12 +327,7 @@ class HomeFragment : Fragment(), ShowRequestAllFilesAccessRationaleDialogFragmen
             ) { startActivity(Intent(context, AppsActivity::class.java)) },
             HomeTile(
                 R.drawable.delete_icon_white_24dp, R.string.navigation_trash, R.color.home_trash,
-                state.trashCount?.let {
-                    context.getQuantityString(
-                        R.plurals.home_category_summary, it, it,
-                        state.trashSize.asFileSize().formatHumanReadable(context)
-                    )
-                }
+                state.trashCount?.let { summary(it, state.trashSize) }
             ) { startActivity(Intent(context, TrashActivity::class.java)) }
         )
     }
@@ -327,7 +379,6 @@ class HomeFragment : Fragment(), ShowRequestAllFilesAccessRationaleDialogFragmen
 
         private const val RECENT_VIEW_GRID = "grid"
         private const val RECENT_VIEW_ROW = "row"
-        private const val RECENT_GRID_COUNT = 2 * RecentFileAdapter.COLUMNS
         private const val RECENT_VIEW_HIDDEN = "hidden"
     }
 }

@@ -40,9 +40,16 @@ class RecentFileAdapter(private val onClick: (RecentFile) -> Unit) :
             notifyDataSetChanged()
         }
 
-    // In the horizontal row exactly four cards fit the width, like one row of the grid.
+    // In the horizontal row one page of cards fits the width, like one row of the grid.
     var isRow = false
         set(value) {
+            field = value
+            notifyDataSetChanged()
+        }
+
+    var columns = COLUMNS
+        set(value) {
+            if (field == value) return
             field = value
             notifyDataSetChanged()
         }
@@ -60,7 +67,7 @@ class RecentFileAdapter(private val onClick: (RecentFile) -> Unit) :
                 val view = holder.itemView
                 val listWidth = view.resources.displayMetrics.widthPixels
                 val padding = view.resources.getDimensionPixelSize(R.dimen.home_list_padding)
-                (listWidth - 2 * padding) / COLUMNS - leftMargin - rightMargin
+                (listWidth - 2 * padding) / columns - leftMargin - rightMargin
             } else {
                 ViewGroup.LayoutParams.MATCH_PARENT
             }
@@ -173,13 +180,38 @@ class QuickAccessAdapter(private val onClick: (QuickAccessItem) -> Unit) :
     RecyclerView.Adapter<QuickAccessAdapter.ViewHolder>() {
     var items: List<QuickAccessItem> = emptyList()
         set(value) { field = value; notifyDataSetChanged() }
+
+    var multiColumn = false
+        set(value) {
+            if (field == value) return
+            field = value
+            notifyDataSetChanged()
+        }
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = ViewHolder(
         HomeQuickAccessItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
     )
     override fun getItemCount() = items.size
     override fun onBindViewHolder(holder: ViewHolder, position: Int) = holder.bind(items[position])
+
     inner class ViewHolder(private val binding: HomeQuickAccessItemBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(item: QuickAccessItem) {
+            val d = binding.root.resources.displayMetrics.density
+            val inset = (12 * d).toInt()
+            val edge = (16 * d).toInt()
+            val gap = (4 * d).toInt()
+            binding.root.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+                if (multiColumn) {
+                    setMargins(gap, gap, gap, gap)
+                } else {
+                    setMargins(0, 0, 0, 0)
+                }
+            }
+            binding.root.setPadding(
+                if (multiColumn) inset else edge,
+                binding.root.paddingTop,
+                if (multiColumn) inset else edge,
+                binding.root.paddingBottom
+            )
             binding.iconImage.setImageResource(item.iconRes)
             binding.nameText.text = item.name
             binding.root.setOnClickListener { onClick(item) }
