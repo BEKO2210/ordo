@@ -87,6 +87,14 @@ class StackedBarView @JvmOverloads constructor(context: Context, attrs: Attribut
         }
     }
 
+    /** Empties the bar and waits: the next [replay] grows it in. Used while its screen is still covered. */
+    fun hold() {
+        animator?.cancel()
+        removeCallbacks(nextSweep)
+        shine = -1f
+        if (me.zhanghai.android.files.ui.Motion.any) setProgress(0f)
+    }
+
     /** Grows the bar in again with the same numbers, e.g. after pull to refresh. */
     fun replay() {
         val parts = parts

@@ -189,6 +189,13 @@ class HomeFragment : Fragment(), ShowRequestAllFilesAccessRationaleDialogFragmen
     private var replayBars = false
     private var resumedBefore = false
 
+    private fun holdStorageBars() {
+        val binding = _binding ?: return
+        binding.storageList.children.forEach {
+            it.findViewById<me.zhanghai.android.files.analysis.StackedBarView>(R.id.usageBar)?.hold()
+        }
+    }
+
     private fun replayStorageBars() {
         val binding = _binding ?: return
         binding.storageList.children.forEach {
@@ -340,9 +347,13 @@ class HomeFragment : Fragment(), ShowRequestAllFilesAccessRationaleDialogFragmen
         super.onResume()
         binding.permissionCard.isVisible = !hasStorageAccess()
         // Coming back to the home screen (from another screen or from outside the app) grows the storage bars in
-        // again. Right here, before the first frame, so the full bars never flash; not on the first start, where
-        // they animate with the first load anyway.
-        if (resumedBefore) replayStorageBars()
+        // again. They are emptied right here, before the first frame, and start together once the reload below
+        // is done and the screen is visible. Starting them here would run the animation behind the old screen: a
+        // bar whose numbers did not change (the SD card) would already be full when the home screen appears.
+        if (resumedBefore && hasStorageAccess()) {
+            holdStorageBars()
+            replayBars = true
+        }
         resumedBefore = true
         if (hasStorageAccess()) viewModel.reload()
     }
@@ -376,11 +387,6 @@ class HomeFragment : Fragment(), ShowRequestAllFilesAccessRationaleDialogFragmen
 
     private fun onStorageAccessResult() {
         binding.permissionCard.isVisible = !hasStorageAccess()
-        // Coming back to the home screen (from another screen or from outside the app) grows the storage bars in
-        // again. Right here, before the first frame, so the full bars never flash; not on the first start, where
-        // they animate with the first load anyway.
-        if (resumedBefore) replayStorageBars()
-        resumedBefore = true
         if (hasStorageAccess()) viewModel.reload()
     }
 
