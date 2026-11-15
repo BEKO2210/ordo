@@ -5,6 +5,7 @@
 
 package me.zhanghai.android.files.fileproperties
 
+import android.location.Geocoder
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -14,18 +15,29 @@ import android.widget.TextView
 import androidx.annotation.StringRes
 import androidx.core.view.forEach
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import androidx.viewbinding.ViewBinding
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
+import me.zhanghai.android.files.R
+import me.zhanghai.android.files.databinding.FilePropertiesAddressItemBinding
 import me.zhanghai.android.files.databinding.FilePropertiesTabFragmentBinding
 import me.zhanghai.android.files.databinding.FilePropertiesTabItemBinding
 import me.zhanghai.android.files.util.Failure
 import me.zhanghai.android.files.util.Loading
 import me.zhanghai.android.files.util.Stateful
+import me.zhanghai.android.files.util.awaitGetFromLocation
 import me.zhanghai.android.files.util.fadeToVisibilityUnsafe
+import me.zhanghai.android.files.util.isGeocoderPresent
 import me.zhanghai.android.files.util.layoutInflater
 import me.zhanghai.android.files.util.showToast
+import me.zhanghai.android.files.util.userFriendlyString
 
 abstract class FilePropertiesTabFragment : Fragment() {
     protected lateinit var binding: FilePropertiesTabFragmentBinding
+
+    protected var addressJob: Job? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -43,6 +55,46 @@ abstract class FilePropertiesTabFragment : Fragment() {
     }
 
     abstract fun refresh()
+
+    // The address lookup sends the coordinates to the system geocoder (usually Google), so only a tap starts it.
+    protected fun ViewBuilder.addAddressItem(latitude: Double, longitude: Double) {
+        val itemBinding = FilePropertiesAddressItemBinding.inflate(
+            linearLayout.context.layoutInflater, linearLayout, false
+        )
+        itemBinding.root.tag = itemBinding
+        addView(itemBinding)
+        itemBinding.button.setOnClickListener {
+            itemBinding.button.isEnabled = false
+            itemBinding.button.setText(R.string.file_properties_media_address_loading)
+            val geocoder = if (isGeocoderPresent) Geocoder(requireContext()) else null
+            addressJob = viewLifecycleOwner.lifecycleScope.launch {
+                val address = try {
+                    geocoder?.awaitGetFromLocation(latitude, longitude, 1)?.firstOrNull()
+                        ?.userFriendlyString
+                } catch (e: Exception) {
+                    null
+                }
+                if (isActive) {
+                    if (address != null) {
+                        itemBinding.button.visibility = View.GONE
+                        itemBinding.hint.visibility = View.GONE
+                        itemBinding.result.text = address
+                    } else {
+                        itemBinding.button.isEnabled = geocoder != null
+                        itemBinding.button.setText(R.string.file_properties_media_address_show)
+                        itemBinding.result.setText(
+                            if (geocoder != null) {
+                                R.string.file_properties_media_address_failed
+                            } else {
+                                R.string.file_properties_media_address_unavailable
+                            }
+                        )
+                    }
+                    itemBinding.result.visibility = View.VISIBLE
+                }
+            }
+        }
+    }
 
     protected inline fun <T> bindView(stateful: Stateful<T>, block: ViewBuilder.(T) -> Unit) {
         val value = stateful.value

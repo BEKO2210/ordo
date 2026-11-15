@@ -22,7 +22,7 @@ Status: **ok** = nichts zu tun. **Play Console** = Belkis trägt etwas ein. **Ä
 | 7 | `REQUEST_DELETE_PACKAGES`, `INSTALL_SHORTCUT`, `POST_NOTIFICATIONS`, `WAKE_LOCK`, Netz | **ok**: kein Formular |
 | 8 | Unverschlüsselter Verkehr (`usesCleartextTraffic`) | **ok**: nötig für FTP und HTTP-WebDAV zu eigenen Servern |
 | 9 | Datensicherheit (Data safety) | **Play Console**: „keine Daten erhoben“, Abschnitt F |
-| 10 | Datenschutzerklärung stimmt mit dem Code überein | **Änderung**: Adresssuche für Foto-Orte fehlt, Abschnitt G |
+| 10 | Datenschutzerklärung stimmt mit dem Code überein | **ok**: Adresssuche nur auf Tipp, im Text genannt, Abschnitt G |
 | 11 | Konten und Kontolöschung | **ok**: Ordo hat keine Konten |
 | 12 | App-Zugriff für Prüfer (Login-Daten) | **Play Console**: „ohne Einschränkung nutzbar“ |
 | 13 | Familien-Richtlinie | **Play Console**: Zielgruppe 18+, dann gilt sie nicht |
@@ -149,27 +149,14 @@ Englischer Kurztext, falls die Konsole eine Erklärung erlaubt:
 Ordo has no server, no account, no ads and no analytics. Files, the app list and settings are processed only on the device. Transfers happen only when the user copies files to their own server or shares them with another app.
 ```
 
-## G. Datenschutzerklärung: eine Lücke
+## G. Datenschutzerklärung: ok
 
-Öffnet der Nutzer die Eigenschaften eines Fotos oder Videos mit GPS-Daten, fragt Ordo den Android-Geocoder nach der
-Adresse (`fileproperties/image/FilePropertiesImageTabFragment.kt`, Zeile 92 bis 101, gleiche Stelle im Video-Tab).
-Auf den meisten Geräten schickt Android die Koordinaten dafür an Google. Die Datenschutzerklärung sagt aber: „Ordo baut
-von sich aus keine Verbindung ins Internet auf.“
-
-Für das Data-safety-Formular ändert das nach unserer Lesart nichts: Ordo erhebt die Koordinaten nicht selbst, das
-erledigt ein Android-Dienst. Die Erklärung sollte es aber nennen. Nicht hier geändert, weil der Rechtstext Belkis'
-Entscheidung ist.
-
-Vorschlag, neuer Absatz unter „Daten auf deinem Gerät“ in `app/src/main/res/values-de/legal.xml`:
-```
-Öffnest du die Eigenschaften eines Fotos oder Videos mit Ortsangabe, fragt Ordo Android nach der passenden Adresse. Dafür sendet Android die Koordinaten meist an Google. Ordo selbst speichert und sendet sie nicht.
-```
-Englisch in `app/src/main/res/values/legal.xml`:
-```
-When you open the properties of a photo or video that contains a location, Ordo asks Android for the matching address. Android usually sends the coordinates to Google for this. Ordo itself does not store or send them.
-```
-Danach `utils/legal-pages.py` laufen lassen (sonst schlägt `LegalTextsTest` fehl). Alternative ohne Textänderung: die
-Adresssuche entfernen und nur die Koordinaten zeigen.
+Die Eigenschaften eines Fotos oder Videos mit GPS-Daten zeigen zuerst nur die Koordinaten. Erst der Tipp auf „Adresse
+anzeigen“ fragt den Android-Geocoder (`fileproperties/FilePropertiesTabFragment.kt`, `addAddressItem`; genutzt von
+`image/FilePropertiesImageTabFragment.kt` und `video/FilePropertiesVideoTabFragment.kt`). Auf den meisten Geräten
+schickt Android die Koordinaten dafür an Google. Ordo erhebt sie nicht selbst. Die Datenschutzerklärung
+(`app/src/main/res/values*/legal.xml`, Webseiten per `utils/legal-pages.py`) nennt das in der Kurzfassung und unter
+„Daten auf deinem Gerät“: Ordo sucht eine Adresse nur auf Tipp und sendet die Koordinaten nicht selbst.
 
 ## Konten, App-Zugriff, Zielgruppe, Werbung
 
@@ -200,4 +187,5 @@ Formulare A und B. Die Texte und Bilder von Material Files sind entfernt. Datens
 - Ob Google `specialUse` für den FTP-Server annimmt. Das entscheidet die Prüfung.
 - Das zusammengeführte Manifest des Release-Bundles (geprüft wurde der Beta-Build mit gleichem Quellstand).
 - Welche Daten der Android-Geocoder genau an Google sendet.
+- Die Adressabfrage auf einem Gerät: nur Build und Unit-Tests, kein Gerätelauf.
 - Die Antwort-Schalter der Data-safety-Seite nach „Nein“. Geprüft ist nur die Regel.
