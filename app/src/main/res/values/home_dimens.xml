@@ -6,7 +6,8 @@
   -->
 
 <resources>
-    <dimen name="home_tile_height">112dp</dimen>
+    <!-- Low enough that the storage bars show on the first screen of a phone. -->
+    <dimen name="home_tile_height">86dp</dimen>
     <!-- With the 4 dp card margin this puts the cards 16 dp from the screen edge. -->
     <dimen name="home_list_padding">12dp</dimen>
 </resources>
