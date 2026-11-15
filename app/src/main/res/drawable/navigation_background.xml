@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- The side menu in the page tone (black in the black night mode); a hairline marks its edge. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="?android:colorBackground" />
+        </shape>
+    </item>
+    <item
+        android:width="1dp"
+        android:gravity="end">
+        <shape android:shape="rectangle">
+            <solid android:color="@color/ordo_hairline" />
+        </shape>
+    </item>
+</layer-list>

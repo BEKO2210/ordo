@@ -34,7 +34,7 @@
 
 ## Stand
 
-Ordo ist in Entwicklung (Version 0.4.3) und noch nicht bei Google Play. Testversionen erscheinen als
+Ordo ist in Entwicklung (Version 0.5.0) und noch nicht bei Google Play. Testversionen erscheinen als
 [Pre-Releases](https://github.com/BEKO2210/ordo/releases); du kannst Ordo auch [selbst bauen](#bauen).
 Was als Nächstes kommt, steht in der [lebenden Roadmap](docs/ROADMAP-LIVE.md): Jedes Ziel hat einen Prüfbefehl und schließt sich selbst.
 
@@ -44,6 +44,8 @@ Was als Nächstes kommt, steht in der [lebenden Roadmap](docs/ROADMAP-LIVE.md): 
 
 - Startseite mit zuletzt verwendeten Dateien, Kategorien (Bilder, Videos, Audio, Dokumente, Downloads, APKs,
   Archive) und Speicher auf einen Blick
+- Eine schlanke Glas-Leiste oben: Seitenmenü, Suche, KI-Befehl und Optionen in einer Zeile
+- Dasselbe Seitenmenü auf der Startseite und in der Dateiliste: Speicher, Ordner, Lesezeichen und alle Werkzeuge
 - Suche nach Namen oder nach Text in Dateien, auf Wunsch mit regulären Ausdrücken
 - Liste oder Raster in drei Größen, für alle Ordner oder nur einen
 - Schnellzugriff auf Lesezeichen und häufige Ordner

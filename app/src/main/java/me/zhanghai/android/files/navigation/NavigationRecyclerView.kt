@@ -15,11 +15,11 @@ import androidx.core.graphics.withSave
 import androidx.core.view.updatePadding
 import androidx.recyclerview.widget.RecyclerView
 import me.zhanghai.android.files.R
+import me.zhanghai.android.files.compat.getDrawableCompat
 import me.zhanghai.android.files.util.activity
 import me.zhanghai.android.files.util.displayWidth
 import me.zhanghai.android.files.util.getDimensionPixelSize
 import me.zhanghai.android.files.util.getDimensionPixelSizeByAttr
-import me.zhanghai.android.files.util.getDrawableByAttr
 import me.zhanghai.android.files.util.isLayoutDirectionRtl
 
 class NavigationRecyclerView : RecyclerView {
@@ -29,7 +29,8 @@ class NavigationRecyclerView : RecyclerView {
     private val actionBarSize =
         context.getDimensionPixelSizeByAttr(androidx.appcompat.R.attr.actionBarSize)
     private val maxWidth = context.getDimensionPixelSize(R.dimen.navigation_max_width)
-    private var scrim = context.getDrawableByAttr(android.R.attr.statusBarColor)
+    // The list scrolls under the status bar; the strip there keeps the surface of the side menu.
+    private var scrim = context.getDrawableCompat(R.drawable.navigation_background)
 
     private var insetStart = 0
     private var insetTop = 0

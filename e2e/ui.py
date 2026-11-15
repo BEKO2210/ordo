@@ -2,15 +2,17 @@
 # Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later
 """Tiny adb UI driver for Ordo's device tests. No dependencies beyond adb.
 
-    ui.py SERIAL tap TARGET        tap a node; TARGET is a visible text, a content description or a resource id
+    ui.py SERIAL tap TARGET [ID]   tap a node; TARGET is a visible text, a content description or a resource id
     ui.py SERIAL longtap TARGET
-    ui.py SERIAL has TARGET        exit 0 if a node matches
+    ui.py SERIAL has TARGET [ID]   exit 0 if a node matches
     ui.py SERIAL wait TARGET [S]   wait up to S seconds (default 10) for a node
     ui.py SERIAL bounds TARGET     print "x1 y1 x2 y2" for every matching node
     ui.py SERIAL texts             print "text|resource-id|content-desc" per node
     ui.py SERIAL shot FILE         screenshot as PNG
 
 TARGET may list alternatives with "|" (e.g. "Aussehen|Appearance"), so one test runs in German and English.
+With ID only nodes with that resource id count: for a text that stands on the screen twice, as an entry of the
+side menu and on the page behind it.
 """
 import html
 import os
@@ -35,16 +37,19 @@ def nodes():
             for t, rid, d, x1, y1, x2, y2 in NODE.findall(xml)]
 
 
-def find(target):
+def find(target, inside=None):
     wanted = target.split("|")
     for text, rid, desc, x1, y1, x2, y2 in nodes():
-        if text in wanted or desc in wanted or rid.split("/")[-1] in wanted:
+        name = rid.split("/")[-1]
+        if inside and name != inside:
+            continue
+        if text in wanted or desc in wanted or name in wanted:
             return (x1 + x2) // 2, (y1 + y2) // 2
     return None
 
 
-def need(target):
-    point = find(target)
+def need(target, inside=None):
+    point = find(target, inside)
     if point is None:
         sys.exit(f"not found: {target}")
     return point
@@ -52,7 +57,7 @@ def need(target):
 
 command = sys.argv[2]
 if command == "tap":
-    x, y = need(sys.argv[3])
+    x, y = need(sys.argv[3], *sys.argv[4:5])
     sh("input", "tap", str(x), str(y))
     time.sleep(1.2)
 elif command == "longtap":
@@ -60,7 +65,7 @@ elif command == "longtap":
     sh("input", "swipe", str(x), str(y), str(x), str(y), "900")
     time.sleep(1.2)
 elif command == "has":
-    sys.exit(0 if find(sys.argv[3]) else 1)
+    sys.exit(0 if find(sys.argv[3], *sys.argv[4:5]) else 1)
 elif command == "wait":
     deadline = time.time() + float(sys.argv[4] if len(sys.argv) > 4 else 10)
     while time.time() < deadline:
