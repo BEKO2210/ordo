@@ -97,6 +97,9 @@ object StorageAnalysis {
         return STANDARD_FOLDERS.none { it.equals(relative, true) }
     }
 
+    /** Whether the folder at [path] is empty right now; a missing or unreadable folder is not. */
+    fun isStillEmpty(path: String): Boolean = File(path).list()?.isEmpty() == true
+
     /** Thumbnail caches in ".thumbnails" folders (DCIM/.thumbnails and the like): the gallery makes them again. */
     fun thumbnailFiles(root: String, files: List<ScannedFile>): List<ScannedFile> =
         files.filter {

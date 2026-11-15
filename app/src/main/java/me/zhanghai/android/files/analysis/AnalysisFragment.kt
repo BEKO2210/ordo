@@ -415,7 +415,13 @@ class AnalysisFragment : Fragment() {
     }
 
     private fun confirmDelete() {
-        val files = selectedFiles()
+        val emptyFolders = result?.emptyFolders.orEmpty()
+        // A folder found empty at scan time may have filled since; never delete what is now inside.
+        val (files, filled) = selectedFiles()
+            .partition { it !in emptyFolders || StorageAnalysis.isStillEmpty(it.path) }
+        if (filled.isNotEmpty()) {
+            viewModel.removeDeleted(filled.map { it.path }.toSet())
+        }
         if (files.isEmpty()) {
             return
         }
@@ -424,7 +430,7 @@ class AnalysisFragment : Fragment() {
         val paths = files.map { Paths.get(it.path) }
         val toTrash = Trash.isEnabled && paths.all { Trash.canTrash(it) }
         // Empty folders have no size to tell; the message names them as folders.
-        val folders = result?.emptyFolders.orEmpty().let { empty -> files.all { it in empty } }
+        val folders = files.all { it in emptyFolders }
         MaterialAlertDialogBuilder(context)
             .setMessage(
                 context.getQuantityString(

@@ -160,6 +160,16 @@ class StorageAnalysisTest {
     }
 
     @Test
+    fun isStillEmpty_folderFilledSinceTheScanIsNot() {
+        val dir = Files.createTempDirectory("filled").toFile()
+        assertTrue(StorageAnalysis.isStillEmpty(dir.path))
+        File(dir, ".nomedia").writeBytes(ByteArray(0))
+        assertFalse(StorageAnalysis.isStillEmpty(dir.path))
+        dir.deleteRecursively()
+        assertFalse(StorageAnalysis.isStillEmpty(dir.path))
+    }
+
+    @Test
     fun isJunkFolder_keepsSystemHiddenAndAppFolders() {
         assertTrue(StorageAnalysis.isJunkFolder("Old/Empty"))
         assertTrue(StorageAnalysis.isJunkFolder("Music/Old album"))
