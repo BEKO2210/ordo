@@ -58,7 +58,7 @@
         const to = parseFloat(n.dataset.count), t0 = performance.now();
         const step = now => {
           const p = Math.min(1, (now - t0) / 1300), k = 1 - Math.pow(1 - p, 3);
-          n.textContent = fmt(to * k, 1) + ' GB';
+          n.textContent = fmt(to * k, 0) + ' MB';
           if (p < 1) requestAnimationFrame(step);
         };
         requestAnimationFrame(step);

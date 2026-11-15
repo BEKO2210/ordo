@@ -30,6 +30,9 @@
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+<symbol id="i-menu" viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></symbol>
+<symbol id="i-phone" viewBox="0 0 24 24"><path d="M17 1H7a2 2 0 0 0-2 2v18a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2zm0 18H7V5h10v14z"/></symbol>
+<symbol id="i-pie" viewBox="0 0 24 24"><path d="M11 2v20c-5.07-.5-9-4.79-9-10s3.93-9.5 9-10zm2.03 0v8.99H22c-.47-4.74-4.24-8.52-8.97-8.99zm0 11.01V22c4.74-.47 8.5-4.25 8.97-8.99h-8.97z"/></symbol>
 <symbol id="i-search" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></symbol>
 <symbol id="i-wand" viewBox="0 0 24 24"><path d="M7.5 5.6 10 7 8.6 4.5 10 2 7.5 3.4 5 2l1.4 2.5L5 7zm12 9.8L17 14l1.4 2.5L17 19l2.5-1.4L22 19l-1.4-2.5L22 14zM22 2l-2.5 1.4L17 2l1.4 2.5L17 7l2.5-1.4L22 7l-1.4-2.5zm-7.63 5.29a1 1 0 0 0-1.41 0L1.29 18.96a1 1 0 0 0 0 1.41l2.34 2.34c.39.39 1.02.39 1.41 0L16.7 11.05a1 1 0 0 0 0-1.41l-2.33-2.35zm-1.03 5.49-2.12-2.12 2.44-2.44 2.12 2.12-2.44 2.44z"/></symbol>
 <symbol id="i-folder" viewBox="0 0 24 24"><path d="M10 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></symbol>
@@ -88,35 +91,34 @@
     </div>
 
     <div class="stage">
-      <div class="phone" role="img" aria-label="Ordo's home screen building itself: search, recent files, categories, vault, backup and the storage cards">
+      <div class="phone" role="img" aria-label="Ordo's home screen building itself: search bar, recent files, categories, vault, backup and the storage card at 67 % used">
         <div class="screen" data-scene="home" aria-hidden="true">
           <div class="sb b" style="--t:0ms"><span>12:00</span><span><i></i><i></i></span></div>
-          <div class="top b" style="--t:20ms"><b>Ordo</b><svg class="ico"><use href="#i-folder"/></svg><svg class="ico"><use href="#i-more"/></svg></div>
-          <div class="search b" style="--t:50ms"><svg class="ico"><use href="#i-search"/></svg><span>Search files</span><svg class="ico wand"><use href="#i-wand"/></svg></div>
-          <div class="lbl b" style="--t:90ms">Recent</div>
+          <div class="gbar b" style="--t:30ms"><svg class="ico"><use href="#i-menu"/></svg><span>Search files</span><svg class="ico wand"><use href="#i-wand"/></svg><svg class="ico"><use href="#i-more"/></svg></div>
+          <div class="lbl b" style="--t:90ms">Recent files</div>
           <div class="recents">
-            <div class="b" style="--t:110ms"><span class="thumb c-doc"><svg class="ico"><use href="#i-doc"/></svg></span><span>Lease.pdf</span></div>
-            <div class="b" style="--t:130ms"><span class="thumb c-aud"><svg class="ico"><use href="#i-music"/></svg></span><span>Summer.mp3</span></div>
-            <div class="b" style="--t:150ms"><span class="thumb c-img"><svg class="ico"><use href="#i-image"/></svg></span><span>Harbour_041.jpg</span></div>
+          <div class="b" style="--t:110ms"><span class="thumb c-img"><svg class="ico"><use href="#i-image"/></svg></span><span>Cliffs.jpg</span></div>
+          <div class="b" style="--t:130ms"><span class="thumb c-img"><svg class="ico"><use href="#i-image"/></svg></span><span>Pizza.jpg</span></div>
+          <div class="b" style="--t:150ms"><span class="thumb c-aud"><svg class="ico"><use href="#i-music"/></svg></span><span>Night_drive.mp3</span></div>
           </div>
           <div class="lbl b" style="--t:160ms">Categories</div>
           <div class="tiles">
-            <div class="tile b" style="--t:180ms"><span class="dot c-img"><svg class="ico"><use href="#i-image"/></svg></span>Images</div>
-            <div class="tile b" style="--t:198ms"><span class="dot c-vid"><svg class="ico"><use href="#i-movie"/></svg></span>Videos</div>
-            <div class="tile b" style="--t:216ms"><span class="dot c-aud"><svg class="ico"><use href="#i-music"/></svg></span>Audio</div>
-            <div class="tile b" style="--t:234ms"><span class="dot c-doc"><svg class="ico"><use href="#i-doc"/></svg></span>Documents</div>
-            <div class="tile b" style="--t:252ms"><span class="dot c-dl"><svg class="ico"><use href="#i-download"/></svg></span>Downloads</div>
-            <div class="tile b" style="--t:270ms"><span class="dot c-apk"><svg class="ico"><use href="#i-android"/></svg></span>APKs</div>
-            <div class="tile b" style="--t:288ms"><span class="dot c-arc"><svg class="ico"><use href="#i-zip"/></svg></span>Archives</div>
-            <div class="tile b" style="--t:306ms"><span class="dot c-app"><svg class="ico"><use href="#i-apps"/></svg></span>Apps</div>
-            <div class="tile b" style="--t:324ms"><span class="dot c-del"><svg class="ico"><use href="#i-delete"/></svg></span>Trash</div>
+          <div class="tile b" style="--t:180ms"><span class="dot c-img"><svg class="ico"><use href="#i-image"/></svg></span>Images<small class="num">17 · 3.39 MB</small></div>
+          <div class="tile b" style="--t:198ms"><span class="dot c-vid"><svg class="ico"><use href="#i-movie"/></svg></span>Videos<small class="num">3 · 22.32 MB</small></div>
+          <div class="tile b" style="--t:216ms"><span class="dot c-aud"><svg class="ico"><use href="#i-music"/></svg></span>Audio<small class="num">6 · 46.14 MB</small></div>
+          <div class="tile b" style="--t:234ms"><span class="dot c-doc"><svg class="ico"><use href="#i-doc"/></svg></span>Documents<small class="num">11 · 626 kB</small></div>
+          <div class="tile b" style="--t:252ms"><span class="dot c-dl"><svg class="ico"><use href="#i-download"/></svg></span>Downloads<small class="num">7 · 70.24 MB</small></div>
+          <div class="tile b" style="--t:270ms"><span class="dot c-apk"><svg class="ico"><use href="#i-android"/></svg></span>APKs<small class="num">0 · 0 B</small></div>
+          <div class="tile b" style="--t:288ms"><span class="dot c-arc"><svg class="ico"><use href="#i-zip"/></svg></span>Archives<small class="num">1 · 48.00 MB</small></div>
+          <div class="tile b" style="--t:306ms"><span class="dot c-app"><svg class="ico"><use href="#i-apps"/></svg></span>Apps<small class="num">5 apps</small></div>
+          <div class="tile b" style="--t:324ms"><span class="dot c-del"><svg class="ico"><use href="#i-delete"/></svg></span>Trash<small class="num">0 · 0 B</small></div>
           </div>
-          <div class="rows">
-            <div class="row b" style="--t:342ms"><span class="dot c-vault"><svg class="ico"><use href="#i-lock"/></svg></span><span>Vault<small>Protected by your screen lock</small></span></div>
-            <div class="row b" style="--t:360ms"><span class="dot c-bak"><svg class="ico"><use href="#i-cloud"/></svg></span><span>Backup<small>Back up to a USB stick or the cloud</small></span></div>
+          <div class="pair">
+          <div class="row b" style="--t:342ms"><span class="dot c-vault"><svg class="ico"><use href="#i-lock"/></svg></span><span>Vault<small>Encrypted</small></span></div>
+          <div class="row b" style="--t:356ms"><span class="dot c-bak"><svg class="ico"><use href="#i-cloud"/></svg></span><span>Backup<small>USB or cloud</small></span></div>
           </div>
-          <div class="storage b" style="--t:330ms"><header>Internal storage<span class="num">69 of 128 GB</span></header><div class="meter"><i style="width:54%"></i></div></div>
-          <div class="storage b" style="--t:350ms"><header>SD card<span class="num">21 of 64 GB</span></header><div class="meter"><i style="width:33%"></i></div></div>
+          <div class="lbl b" style="--t:300ms">Storage</div>
+          <div class="storage b" style="--t:330ms"><header><span class="dot c-doc"><svg class="ico"><use href="#i-phone"/></svg></span><span>Internal storage<small>4.16 GB of 6.23 GB used</small></span><b class="num">67 %</b></header><div class="meter"><i style="width:67%"></i></div><div class="sbtn"><span><svg class="ico"><use href="#i-folder"/></svg>Open</span><span class="on"><svg class="ico"><use href="#i-pie"/></svg>Analyse</span></div></div>
         </div>
       </div>
       <div class="ruler" data-ruler>
@@ -144,45 +146,47 @@
       </ul>
     </div>
     <div class="stage">
-      <div class="phone" role="img" aria-label="Storage analysis with a ring by file type, the split into your files, system and free, and lists to clean up">
+      <div class="phone" role="img" aria-label="Storage analysis: 69 % used, your files as a ring by type, plus cleanup suggestions">
         <div class="screen" data-scene="ana" aria-hidden="true">
           <div class="sb"><span>12:00</span><span><i></i><i></i></span></div>
           <div class="ana">
-            <h3>Storage analysis</h3>
-            <p class="sub">Internal storage</p>
-            <div class="ring">
-              <svg viewBox="0 0 100 100">
-                <circle cx="50" cy="50" r="40" stroke="#1a2230"/>
-                <circle class="seg" cx="50" cy="50" r="40" stroke="#a78bfa" style="--len:83.4;--off:0;--t:0ms"/>
-                <circle class="seg" cx="50" cy="50" r="40" stroke="#f87171" style="--len:53.3;--off:-85.4;--t:120ms"/>
-                <circle class="seg" cx="50" cy="50" r="40" stroke="#818cf8" style="--len:43.2;--off:-140.7;--t:240ms"/>
-                <circle class="seg" cx="50" cy="50" r="40" stroke="#94a3b8" style="--len:25.6;--off:-185.9;--t:360ms"/>
-                <circle class="seg" cx="50" cy="50" r="40" stroke="#fbbf24" style="--len:20.6;--off:-213.5;--t:480ms"/>
-                <circle class="seg" cx="50" cy="50" r="40" stroke="#60a5fa" style="--len:13.1;--off:-236.1;--t:600ms"/>
-              </svg>
-              <div class="total"><b class="num" data-count="41.8">41.8 GB</b><span>your files</span></div>
+            <h3>Analyze storage</h3>
+            <div class="card">
+              <p class="sub">Storage</p>
+              <p class="big"><b class="num">69 %</b> used</p>
+              <p class="sub num">4.31 GB of 6.23 GB</p>
+              <div class="split"><i style="flex:2;background:#67e8f9"></i><i style="flex:67;background:#5b6b82"></i><i style="flex:31;background:#1a2230"></i></div>
+              <div class="splitkey"><span>Your files</span><span>System</span><span>Free</span></div>
             </div>
-            <div class="legend">
-              <span style="--c:#a78bfa">Images<em class="num">14.2 GB</em></span>
-              <span style="--c:#f87171">Videos<em class="num">9.2 GB</em></span>
-              <span style="--c:#818cf8">Apps<em class="num">7.5 GB</em></span>
-              <span style="--c:#94a3b8">Other<em class="num">4.6 GB</em></span>
-              <span style="--c:#fbbf24">Audio<em class="num">3.8 GB</em></span>
-              <span style="--c:#60a5fa">Documents<em class="num">2.5 GB</em></span>
+            <div class="card">
+              <p class="sub">Your files</p>
+              <div class="ring">
+                <svg viewBox="0 0 100 100">
+                  <circle cx="50" cy="50" r="40" stroke="#1a2230"/>
+                <circle class="seg" cx="50" cy="50" r="40" stroke="#a3b1c6" style="--len:144.3;--off:0;--t:0ms"/>
+                <circle class="seg" cx="50" cy="50" r="40" stroke="#f59e0b" style="--len:48.8;--off:-145.8;--t:120ms"/>
+                <circle class="seg" cx="50" cy="50" r="40" stroke="#22b8cf" style="--len:46.2;--off:-196.1;--t:240ms"/>
+                <circle class="seg" cx="50" cy="50" r="40" stroke="#3b82f6" style="--len:5.8;--off:-243.8;--t:360ms"/>
+                <circle class="seg" cx="50" cy="50" r="40" stroke="#84cc16" style="--len:1.0;--off:-250.8;--t:480ms"/>
+                </svg>
+                <div class="total"><span>44 files</span><b class="num" data-count="120">120 MB</b></div>
+              </div>
+              <div class="legend">
+              <span style="--c:#a3b1c6">Other files<em class="num">70.00 MB</em></span>
+              <span style="--c:#f59e0b">Audio<em class="num">24.14 MB</em></span>
+              <span style="--c:#22b8cf">Videos<em class="num">22.32 MB</em></span>
+              <span style="--c:#3b82f6">Images<em class="num">3.39 MB</em></span>
+              <span style="--c:#84cc16">Documents<em class="num">626 kB</em></span>
+              </div>
             </div>
-            <div class="split"><i style="flex:33;background:#67e8f9"></i><i style="flex:21;background:#5b6b82"></i><i style="flex:46;background:#1a2230"></i></div>
-            <div class="splitkey"><span>Your files</span><span>System</span><span>Free 59 GB</span></div>
             <div class="rows">
-              <div class="row"><span>Large files</span><span class="num">6.1 GB</span></div>
-              <div class="row"><span>Duplicates</span><span class="num">1.2 GB</span></div>
-              <div class="row"><span>Old APKs</span><span class="num">0.8 GB</span></div>
-              <div class="row"><span>Not opened in a while</span><span class="num">2.4 GB</span></div>
-              <div class="row"><span>Thumbnail cache</span><span class="num">310 MB</span></div>
+              <div class="row"><span>Unused for 6 months</span><span class="num">78.64 MB</span></div>
+              <div class="row"><span>Downloads older than 6 months</span><span class="num">70.09 MB</span></div>
             </div>
           </div>
         </div>
       </div>
-      <p class="note">Redrawn, with sample values.</p>
+      <p class="note">Redrawn from a capture on the test device.</p>
     </div>
   </div>
 </section>
@@ -219,8 +223,7 @@
         <div class="screen ai ai-screen" data-scene="ai" data-s="idle" aria-hidden="true">
           <div class="behind">
             <div class="sb"><span>12:00</span><span><i></i><i></i></span></div>
-            <div class="top"><b>Ordo</b><svg class="ico"><use href="#i-folder"/></svg><svg class="ico"><use href="#i-more"/></svg></div>
-            <div class="search"><svg class="ico"><use href="#i-search"/></svg><span>Search files</span><svg class="ico wand"><use href="#i-wand"/></svg></div>
+            <div class="gbar"><svg class="ico"><use href="#i-menu"/></svg><span>Search files</span><svg class="ico wand"><use href="#i-wand"/></svg><svg class="ico"><use href="#i-more"/></svg></div>
             <div class="tiles">
               <div class="tile"><span class="dot c-img"><svg class="ico"><use href="#i-image"/></svg></span>Images</div>
               <div class="tile"><span class="dot c-vid"><svg class="ico"><use href="#i-movie"/></svg></span>Videos</div>
@@ -314,11 +317,12 @@
       <div class="shot"><video data-lazy muted loop playsinline preload="none" poster="../media/ai-command-poster.webp" aria-label="An AI command is typed, Ordo shows the plan, moves 9 photos and offers undo"><source src="../media/ai-command.webm" type="video/webm"><source src="../media/ai-command.mp4" type="video/mp4"></video></div>
       <figcaption>An AI command, sped up 4× (German UI)</figcaption>
     </figure>
-    <figure><div class="shot"><img src="../screenshots/en/home.png" alt="Home screen with recent files, categories, vault and backup" loading="lazy" width="540" height="1200"></div><figcaption>Home screen</figcaption></figure>
-    <figure><div class="shot"><img src="../screenshots/en/analysis.png" alt="Storage analysis: your files, system and free space, then your files by type" loading="lazy" width="540" height="1200"></div><figcaption>Storage analysis</figcaption></figure>
-    <figure><div class="shot"><img src="../screenshots/en/ai.png" alt="AI command with a preview: move 9 photos" loading="lazy" width="540" height="1200"></div><figcaption>The plan before it acts</figcaption></figure>
-    <figure><div class="shot"><img src="../screenshots/en/cleanup.png" alt="Cleanup potential and suggestions with a preview button" loading="lazy" width="540" height="1200"></div><figcaption>Cleanup</figcaption></figure>
-    <figure><div class="shot"><img src="../screenshots/en/appearance.png" alt="Appearance: five accent colours, night mode, animations" loading="lazy" width="540" height="1200"></div><figcaption>Appearance</figcaption></figure>
+    <figure><div class="shot"><img src="../media/shots/en-home.webp" alt="Home screen: search bar, recent images, categories with count and size, vault, backup and the storage card" loading="lazy" width="540" height="1200"></div><figcaption>Home screen</figcaption></figure>
+    <figure><div class="shot"><img src="../media/shots/en-ai.webp" alt="AI command “Delete files older than 6 months in Download”: Ordo shows four files to move to the trash" loading="lazy" width="540" height="1200"></div><figcaption>The plan before it acts</figcaption></figure>
+    <figure><div class="shot"><img src="../media/shots/en-analysis.webp" alt="Storage analysis: 68% used, your files as a ring by type" loading="lazy" width="540" height="1200"></div><figcaption>Storage analysis</figcaption></figure>
+    <figure><div class="shot"><img src="../media/shots/en-files.webp" alt="Images folder as a grid with thumbnails" loading="lazy" width="540" height="1200"></div><figcaption>Images as a grid</figcaption></figure>
+    <figure><div class="shot"><img src="../media/shots/en-backup.webp" alt="Backup: where to back up, USB stick or Google Drive, and what to back up, from the vault to music" loading="lazy" width="540" height="1200"></div><figcaption>Backup</figcaption></figure>
+    <figure class="wide"><div class="shot"><img src="../media/shots/en-tablet-analysis.webp" alt="Storage analysis on a tablet in two columns" loading="lazy" width="1040" height="650"></div><figcaption>On a tablet: the full width</figcaption></figure>
   </div>
 </section>
 
