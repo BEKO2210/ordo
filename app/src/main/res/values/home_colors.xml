@@ -10,14 +10,14 @@
     <color name="home_videos">#DC2626</color>
     <color name="home_audio">#D97706</color>
     <color name="home_documents">#2563EB</color>
-    <color name="home_downloads">#059669</color>
+    <color name="home_downloads">#65A30D</color>
     <color name="home_apks">#16A34A</color>
     <color name="home_archives">#B45309</color>
     <color name="home_analysis">#0891B2</color>
-    <color name="home_trash">#DC2626</color>
+    <color name="home_trash">#71717A</color>
     <color name="home_apps">#4F46E5</color>
     <color name="home_vault">#0F766E</color>
-    <color name="home_backup">#BE185D</color>
+    <color name="home_backup">#0284C7</color>
     <color name="home_assistant">#0E7490</color>
     <!-- Translucent so the cards work on every theme color and on true black. -->
     <color name="home_card">#0D000000</color>
