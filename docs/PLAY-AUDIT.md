@@ -28,8 +28,8 @@ Status: **ok** = nichts zu tun. **Play Console** = Belkis trägt etwas ein. **Ä
 | 13 | Familien-Richtlinie | **Play Console**: Zielgruppe 18+, dann gilt sie nicht |
 | 14 | Werbung | **Play Console**: „Keine Werbung“ |
 | 15 | Download von Code (KI-Modell) | **ok**: das Modell sind Daten, kein Code |
-| 16 | 16-KB-Speicherseiten (Pflicht ab 01.02.2027) | **offen**: ein anderer Agent prüft das im Worktree `ordo-wf-pages16k` |
-| 17 | KI-Kauf für 0,99 € (Branch `feat/ai-purchase`) | **Änderung** nach dem Merge, Abschnitt H |
+| 16 | 16-KB-Speicherseiten (Pflicht ab 01.02.2027) | **ok**: `-Wl,-z,max-page-size=16384` in `llm/src/main/cpp/CMakeLists.txt`, Prüfung mit `utils/check-16k.sh` |
+| 17 | Käufe und Bezahlinhalte | **ok**: Ordo ist ganz kostenlos, ohne In-App-Kauf und ohne Werbung |
 | 18 | Store-Eintrag nennt den Dateimanager als Kernfunktion | **Änderung**: Store-Texte im Repo sind noch die von Material Files, Abschnitt I |
 
 ## 1. Ziel-API
@@ -159,7 +159,7 @@ von sich aus keine Verbindung ins Internet auf.“
 
 Für das Data-safety-Formular ändert das nach unserer Lesart nichts: Ordo erhebt die Koordinaten nicht selbst, das
 erledigt ein Android-Dienst. Die Erklärung sollte es aber nennen. Nicht hier geändert, weil der Rechtstext Belkis'
-Entscheidung ist und `legal.xml` parallel auf `feat/ai-purchase` angepasst wird.
+Entscheidung ist.
 
 Vorschlag, neuer Absatz unter „Daten auf deinem Gerät“ in `app/src/main/res/values-de/legal.xml`:
 ```
@@ -188,19 +188,6 @@ Adresssuche entfernen und nur die Koordinaten zeigen.
 Das Modell (Qwen3.5-4B, 2 583 221 408 Bytes) ist eine Datendatei, festgelegt auf eine Revision und per SHA-256 geprüft
 (`ai/CommandModel.kt`). Ordo lädt keinen ausführbaren Code nach. Root und Shizuku sind optional. Sie wirken nur, wenn der Nutzer sie auf dem
 Gerät eingerichtet und Ordo dort freigegeben hat (Einstellung „Root“, Standard „automatisch“).
-
-## H. Nach dem Merge von `feat/ai-purchase`
-
-Nicht auf diesem Branch, darum nicht geprüft. Danach erledigen:
-
-- Im zusammengeführten Manifest kommt `com.android.vending.BILLING` hinzu. Kein Formular.
-- Datensicherheit: Zahlungsdaten, die Google Play erhebt, muss Ordo nicht angeben (Google, gelesen am 15.11.2026).
-  Prüft Ordo den Kauf nur auf dem Gerät, bleibt die Antwort „Nein“. Sendet Ordo Kaufdaten an einen eigenen Server, muss
-  „Kaufverlauf“ angegeben werden.
-- `legal.xml`: das Impressum sagt „Ordo ist kostenlos“. Das muss zum Kauf passen. Die Datenschutzerklärung braucht einen
-  Satz zum Kauf über Google Play.
-- Play Console: In-App-Produkt anlegen. Dafür braucht es ein Händlerkonto.
-- Diese Prüfung mit dem Skill `play-policy-insights` wiederholen.
 
 ## I. Store-Texte
 
