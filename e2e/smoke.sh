@@ -4,7 +4,8 @@
 . "$(dirname "$0")/lib.sh" "$@"
 launch
 check "home shows categories" ui has "Audio"
-check "home shows a storage card" ui has analyzeButton
+# On a cold start with a big storage the card can take ~5 s on a tablet: wait for it instead of racing it.
+check "home shows a storage card" ui wait analyzeButton 12
 a shell am start -n "$PKG/me.zhanghai.android.files.settings.SettingsActivity" >/dev/null; sleep 3; guard
 for section in "Aussehen|Appearance" "KI-Assistent|AI assistant" "Dateien & Ansicht|Files & view" \
     "Speicher & Ordner|Storage & folders" "Papierkorb|Trash"; do
