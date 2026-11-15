@@ -5,6 +5,7 @@
     ui.py SERIAL tap TARGET [ID]   tap a node; TARGET is a visible text, a content description or a resource id
     ui.py SERIAL longtap TARGET
     ui.py SERIAL has TARGET [ID]   exit 0 if a node matches
+    ui.py SERIAL visible ID        exit 0 if that view of the front activity's window is shown (fast; no popups/dialogs)
     ui.py SERIAL wait TARGET [S]   wait up to S seconds (default 10) for a node
     ui.py SERIAL bounds TARGET     print "x1 y1 x2 y2" for every matching node
     ui.py SERIAL texts             print "text|resource-id|content-desc" per node
@@ -101,6 +102,29 @@ def need(target, inside=None):
     return point
 
 
+def visible(name):
+    """True when the view with that resource id and all its parents are VISIBLE in the front activity's own window.
+
+    Reads `dumpsys activity <front activity>`: ~0.2 s against 2.4 s for a uiautomator dump, but it sees neither popups
+    nor dialogs, so use it only for views of the activity's window, such as the side menu. (`dumpsys activity top`
+    is no shortcut: it dumps every app and stops short when another one hangs.)"""
+    top = re.search(r"topResumedActivity=\S+ \S+ (\S+)", sh("dumpsys activity activities 2>/dev/null | grep -m1 topResumedActivity"))
+    if not top:
+        return False
+    chain = []  # (indent, visible) of the open ancestors
+    for line in sh("dumpsys", "activity", top.group(1)).split("View Hierarchy:")[-1].splitlines():
+        m = re.match(r"( *)\S+\{[0-9a-f]+ ([VIG])", line)
+        if not m:
+            continue
+        indent = len(m.group(1))
+        while chain and chain[-1][0] >= indent:
+            chain.pop()
+        chain.append((indent, m.group(2) == "V"))
+        if re.search(r" \S+:id/" + re.escape(name) + r"[ }]", line):
+            return all(v for _, v in chain)
+    return False
+
+
 command = sys.argv[2]
 if command in ("tap", "longtap"):
     try:
@@ -124,6 +148,8 @@ elif command == "longtap":
     x, y = need(sys.argv[3])
     sh("input", "swipe", str(x), str(y), str(x), str(y), "900")
     time.sleep(1.2)
+elif command == "visible":
+    sys.exit(0 if visible(sys.argv[3]) else 1)
 elif command == "has":
     sys.exit(0 if find(sys.argv[3], *sys.argv[4:5]) else 1)
 elif command == "wait":
