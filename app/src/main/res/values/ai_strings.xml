@@ -64,6 +64,12 @@
         <item quantity="other">Older than %d years</item>
     </plurals>
     <string name="ai_filter_larger">Larger than %1$d %2$s</string>
+    <string name="ai_filter_duplicates">Only extra copies (the original stays)</string>
+    <plurals name="ai_large_delete_title">
+        <item quantity="one">Really move %d file to the trash?</item>
+        <item quantity="other">Really move %d files to the trash?</item>
+    </plurals>
+    <string name="ai_large_delete_text">From %1$s, %2$s in total. That is a large delete, so make sure this is what you meant.</string>
     <string name="ai_kind_audio">Audio</string>
     <string name="ai_kind_video">Videos</string>
     <string name="ai_kind_image">Pictures</string>

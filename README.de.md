@@ -140,6 +140,9 @@ Grammatik erzwungen). Ordo prüft diesen Plan selbst, bevor es ihn zeigt:
 - Systemordner, versteckte Ordner, `Android/data` und der Kamera-Ordner sind tabu, außer du nennst den
   Kamera-Ordner ausdrücklich. Pfade werden nach Auflösen von `..` und Links verglichen.
 - Unbekannte oder mehrdeutige Ordner führen zu einer Rückfrage, nie zu einer Vermutung.
+- „Lösche die doppelten Dateien“ wählt nur die überzähligen Kopien (gleicher Inhalt); die älteste bleibt jeweils.
+- Einen ganzen Hauptordner wie Download oder mehr als 50 Dateien zu löschen, braucht eine zweite Bestätigung mit
+  Anzahl und Größe.
 - Jede Datei wird direkt vor der Aktion noch einmal geprüft; vorhandene Dateien werden nie überschrieben.
 - Rückgängig macht genau das rückgängig, was der Befehl getan hat, und lässt Dateien in Ruhe, die sich seitdem
   geändert haben.

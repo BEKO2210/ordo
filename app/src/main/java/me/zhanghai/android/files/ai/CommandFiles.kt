@@ -5,6 +5,8 @@
 
 package me.zhanghai.android.files.ai
 
+import me.zhanghai.android.files.analysis.ScannedFile
+import me.zhanghai.android.files.analysis.StorageAnalysis
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -29,13 +31,26 @@ object CommandFiles {
             return emptyList()
         }
         val ageLimit = now - plan.olderThanDays * 86_400_000L
-        return (source.listFiles() ?: return emptyList()).filter { file ->
+        val files = (source.listFiles() ?: return emptyList()).filter { file ->
             file.isFile && !file.name.startsWith(".") &&
                 (extensions.isEmpty() || file.extension.lowercase(Locale.ROOT) in extensions) &&
                 (plan.nameContains.isBlank() || file.name.contains(plan.nameContains.trim(), true)) &&
                 (plan.olderThanDays == 0 || file.lastModified() < ageLimit) &&
                 (plan.largerThanBytes == 0L || file.length() > plan.largerThanBytes)
         }.sortedBy { it.name.lowercase(Locale.ROOT) }
+        return if (plan.duplicates) extraCopies(files) else files
+    }
+
+    /**
+     * Files with the same content as another file in [files], all but the original of each group: the oldest,
+     * on a tie the shortest name ("Rechnung.pdf" stays, "Rechnung (1).pdf" goes).
+     */
+    fun extraCopies(files: List<File>): List<File> {
+        val scanned = files.map { ScannedFile(it.path, it.length(), it.lastModified()) }
+        val extra = StorageAnalysis.duplicates(scanned).flatMap { group ->
+            group.files.sortedWith(compareBy({ it.lastModified }, { it.name.length })).drop(1)
+        }.map { it.path }.toSet()
+        return files.filter { it.path in extra }
     }
 
     /** Subfolder name for "organize": the kind ([kindNames] holds the shown names) or the month. */

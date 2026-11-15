@@ -20,7 +20,9 @@ data class CommandPlan(
     val ageUnit: String = "days",
     val largerThan: Int = 0,
     val sizeUnit: String = "mb",
-    val groupBy: String = ""
+    val groupBy: String = "",
+    /** Set by [CommandCheck] when the sentence asks for duplicates, never by the model. */
+    val duplicates: Boolean = false
 ) {
     // The model only copies numbers and units, the app does the arithmetic.
     // Capped at 100 years, so a silly number can never wrap around into "every file".

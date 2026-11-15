@@ -63,6 +63,12 @@
         <item quantity="other">Älter als %d Jahre</item>
     </plurals>
     <string name="ai_filter_larger">Größer als %1$d %2$s</string>
+    <string name="ai_filter_duplicates">Nur Kopien (das Original bleibt)</string>
+    <plurals name="ai_large_delete_title">
+        <item quantity="one">Wirklich %d Datei in den Papierkorb?</item>
+        <item quantity="other">Wirklich %d Dateien in den Papierkorb?</item>
+    </plurals>
+    <string name="ai_large_delete_text">Aus %1$s, zusammen %2$s. Das ist eine große Löschung – prüf bitte, ob das so gemeint ist.</string>
     <string name="ai_kind_audio">Audio</string>
     <string name="ai_kind_video">Videos</string>
     <string name="ai_kind_image">Bilder</string>
