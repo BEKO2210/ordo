@@ -11,6 +11,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -19,12 +20,15 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     private val _state = MutableLiveData(HomeState())
     val state: LiveData<HomeState> = _state
 
+    private var loadJob: Job? = null
+
     init { reload() }
 
     fun reload() {
         _state.value = _state.value?.copy(isLoading = true)
         val quickAccess = repository.loadQuickAccess()
-        viewModelScope.launch {
+        loadJob?.cancel()
+        loadJob = viewModelScope.launch {
             _state.value = withContext(Dispatchers.IO) { repository.load(quickAccess) }
         }
     }
