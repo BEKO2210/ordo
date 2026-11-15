@@ -44,7 +44,7 @@ What comes next is in the [living roadmap](docs/ROADMAP-LIVE.md): every goal has
 
 - Home screen with recent files, categories (images, videos, audio, documents, downloads, APKs, archives) and
   storage at a glance
-- One slim glass bar on top: side menu, search, AI command and options in a single row
+- One slim glass bar: side menu, search, AI command and options in a single row, at the top or at the bottom
 - The same side menu on the home screen and in the file list: storage, folders, bookmarks and all tools
 - Search by name or by text inside files, with regular expressions if you need them
 - List or grid in three sizes, for all folders or just one
@@ -93,6 +93,7 @@ What comes next is in the [living roadmap](docs/ROADMAP-LIVE.md): every goal has
 
 - Ordo's own colours on every phone, in five accents, or your wallpaper's colours (Android 12 and later)
 - Light, dark and true black; motion full, subtle or off
+- The home search bar at the top or at the bottom, within thumb reach
 
 ## AI commands
 

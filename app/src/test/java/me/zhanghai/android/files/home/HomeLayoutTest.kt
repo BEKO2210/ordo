@@ -60,4 +60,22 @@ class HomeLayoutTest {
         // Phones keep three wide tiles with count and size.
         assertEquals(false, homeCategoryCompact(411))
     }
+
+    @Test
+    fun glassAtTheTopFollowsTheScrolledDistance() {
+        assertEquals(0f, homeHeaderGlassAmount(false, 0, 1000, 60f))
+        assertEquals(0.5f, homeHeaderGlassAmount(false, 30, 1000, 60f))
+        assertEquals(1f, homeHeaderGlassAmount(false, 400, 1000, 60f))
+    }
+
+    @Test
+    fun glassAtTheBottomFollowsThePageLeftBelow() {
+        // Page not scrolled: content lies under the bar, so it is glass from the start.
+        assertEquals(1f, homeHeaderGlassAmount(true, 0, 1000, 60f))
+        assertEquals(0.5f, homeHeaderGlassAmount(true, 970, 1000, 60f))
+        // Scrolled to the end: the last row sits above the bar, the bar is flat.
+        assertEquals(0f, homeHeaderGlassAmount(true, 1000, 1000, 60f))
+        // A page shorter than the screen never reaches under the bar.
+        assertEquals(0f, homeHeaderGlassAmount(true, 0, -200, 60f))
+    }
 }

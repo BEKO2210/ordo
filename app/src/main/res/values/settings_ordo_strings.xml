@@ -6,7 +6,7 @@
     <string name="settings_group_more">More</string>
 
     <string name="settings_section_appearance">Appearance</string>
-    <string name="settings_section_appearance_summary">Accent colour, dark mode, motion, language</string>
+    <string name="settings_section_appearance_summary">Accent colour, dark mode, search bar, motion, language</string>
     <string name="settings_section_ai">AI assistant</string>
     <string name="settings_section_ai_summary">Speed and the on-device language model</string>
     <string name="settings_section_files">Files &amp; view</string>
@@ -27,6 +27,11 @@
         <item>Mint</item>
         <item>Violet</item>
         <item>Amber</item>
+    </string-array>
+    <string name="settings_home_header_position_title">Home search bar</string>
+    <string-array name="settings_home_header_position_entries">
+        <item>Top</item>
+        <item>Bottom – within thumb reach</item>
     </string-array>
     <string name="settings_motion_title">Motion</string>
     <string-array name="settings_motion_entries">

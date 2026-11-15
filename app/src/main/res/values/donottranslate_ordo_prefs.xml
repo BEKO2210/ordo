@@ -23,6 +23,12 @@
         <item>subtle</item>
         <item>off</item>
     </string-array>
+    <string name="pref_key_home_header_position">key_home_header_position</string>
+    <string name="pref_default_value_home_header_position">top</string>
+    <string-array name="pref_entry_values_home_header_position">
+        <item>top</item>
+        <item>bottom</item>
+    </string-array>
     <string name="pref_key_ai_speed">key_ai_speed</string>
     <string name="pref_default_value_ai_speed">balanced</string>
     <string-array name="pref_entry_values_ai_speed">
