@@ -116,6 +116,8 @@ import me.zhanghai.android.files.provider.common.setOwner
 import me.zhanghai.android.files.provider.common.setSeLinuxContext
 import me.zhanghai.android.files.provider.common.toByteString
 import me.zhanghai.android.files.provider.common.toModeString
+import me.zhanghai.android.files.provider.content.resolver.Resolver
+import me.zhanghai.android.files.provider.content.resolver.ResolverException
 import me.zhanghai.android.files.provider.linux.isLinuxPath
 import me.zhanghai.android.files.trash.Trash
 import me.zhanghai.android.files.trash.TrashEntry
@@ -3122,6 +3124,7 @@ class BackupJob(
     private val password: String?
 ) : FileJob() {
     private val skipped = mutableListOf<String>()
+    private var isTargetCut = false
 
     @Throws(IOException::class)
     override fun run() {
@@ -3137,16 +3140,25 @@ class BackupJob(
             val totalSize = sources.sumOf { it.size }.coerceAtLeast(1)
             var fileCount = 0
             var lastProgressMillis = 0L
-            // Truncating, because the system picker can hand out a file that already exists.
-            val pfd = service.contentResolver.openFileDescriptor(target, "wt")
+            // The system picker can hand out an older backup: it is cut only once the new one
+            // surely fits. Providers without "rw", like cloud apps, cut it at once, as before.
+            val existingPfd = try {
+                service.contentResolver.openFileDescriptor(target, "rw")
+            } catch (e: Exception) {
+                null
+            }
+            val mode = if (existingPfd != null) "rw" else "wt"
+            val pfd = existingPfd ?: service.contentResolver.openFileDescriptor(target, "wt")
                 ?: throw IOException("Cannot open $target")
+            isTargetCut = existingPfd == null
             val fileDescriptor = pfd.fileDescriptor
-            val channel = FileChannel::class.open(pfd, "wt")
+            val channel = FileChannel::class.open(pfd, mode)
             channel.use {
+                val existingSize = if (isTargetCut) 0L else Os.fstat(fileDescriptor).st_size
                 // Minutes of copying should not end with a full drive. Cloud providers hand out a
                 // pipe, which reports no blocks.
                 val stat = Os.fstatvfs(fileDescriptor)
-                val freeSize = stat.f_bavail * stat.f_frsize
+                val freeSize = stat.f_bavail * stat.f_frsize + existingSize
                 if (stat.f_blocks > 0 && freeSize < totalSize) {
                     deleteTarget()
                     BackupStatusLiveData.postValue(
@@ -3160,6 +3172,14 @@ class BackupJob(
                         )
                     )
                     return
+                }
+                if (!isTargetCut) {
+                    try {
+                        Os.ftruncate(fileDescriptor, 0)
+                    } catch (e: ErrnoException) {
+                        throw IOException(e)
+                    }
+                    isTargetCut = true
                 }
                 ArchiveWriter(channel, Archive.FORMAT_ZIP, Archive.FILTER_NONE, password).use {
                     writer ->
@@ -3319,8 +3339,20 @@ class BackupJob(
         )
     }
 
-    // A half-written backup looks like a real one, so it must not stay on the drive.
+    // A half-written backup looks like a real one, so it must not stay on the drive. A file the
+    // picker handed out that still holds data, such as an older backup, is not ours to delete.
     private fun deleteTarget() {
+        if (!isTargetCut) {
+            val size = try {
+                Resolver.getSize(target)
+            } catch (e: ResolverException) {
+                e.printStackTrace()
+                null
+            }
+            if (size != 0L) {
+                return
+            }
+        }
         try {
             DocumentsContract.deleteDocument(service.contentResolver, target)
         } catch (e: Exception) {
