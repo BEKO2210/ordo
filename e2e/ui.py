@@ -6,6 +6,7 @@
     ui.py SERIAL longtap TARGET
     ui.py SERIAL has TARGET        exit 0 if a node matches
     ui.py SERIAL wait TARGET [S]   wait up to S seconds (default 10) for a node
+    ui.py SERIAL bounds TARGET     print "x1 y1 x2 y2" for every matching node
     ui.py SERIAL texts             print "text|resource-id|content-desc" per node
     ui.py SERIAL shot FILE         screenshot as PNG
 
@@ -67,6 +68,11 @@ elif command == "wait":
             sys.exit(0)
         time.sleep(0.5)
     sys.exit(f"timed out waiting for: {sys.argv[3]}")
+elif command == "bounds":
+    wanted = sys.argv[3].split("|")
+    for text, rid, desc, x1, y1, x2, y2 in nodes():
+        if text in wanted or desc in wanted or rid.split("/")[-1] in wanted:
+            print(x1, y1, x2, y2)
 elif command == "texts":
     print("\n".join(f"{t}|{rid.split('/')[-1]}|{d}" for t, rid, d, *_ in nodes() if t or d))
 elif command == "shot":
