@@ -139,6 +139,9 @@ then checks the plan itself before showing it:
 - System folders, hidden folders, `Android/data` and the camera folder are off limits unless the user names the
   camera folder explicitly. Paths are compared after resolving `..` and links.
 - Unknown or ambiguous folders lead to a question, never to a guess.
+- “Delete the duplicates” only ever selects the extra copies (same content); the oldest copy of each stays.
+- Deleting a whole top-level folder such as Download, or more than 50 files, needs a second tap that shows the
+  number of files and their size.
 - Every file is checked again right before it is touched; existing files are never overwritten.
 - Undo reverses exactly what the command did and leaves files alone that changed since.
 

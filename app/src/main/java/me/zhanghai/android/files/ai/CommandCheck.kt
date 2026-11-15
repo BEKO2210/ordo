@@ -42,6 +42,12 @@ object CommandCheck {
         "get rid"
     )
 
+    // "doppelt heruntergeladen", "Duplikate", "duplicates": the selection is narrowed to extra copies only.
+    private val DUPLICATE_WORDS = listOf("doppel", "duplikat", "duplicat", "dupe", "mehrfach")
+
+    /** A delete of more files than this needs a second confirmation. */
+    const val MANY_FILES = 50
+
     private val CAMERA_WORDS = setOf("kamera", "camera", "dcim", "dcim/camera")
 
     private val HERE = setOf("", ".", "hier", "here", "this folder", "diesen ordner", "diesem ordner",
@@ -57,11 +63,13 @@ object CommandCheck {
         "kamera" to "DCIM/Camera", "camera" to "DCIM/Camera", "dcim" to "DCIM"
     )
 
-    fun check(text: String, plan: CommandPlan, here: File?, root: File): Outcome {
-        if (plan.action !in ACTIONS) {
+    fun check(text: String, model: CommandPlan, here: File?, root: File): Outcome {
+        if (model.action !in ACTIONS) {
             return Outcome.Refused(Reason.UNSUPPORTED)
         }
-        val words = intentWords(text, plan, withoutFolders = true)
+        val words = intentWords(text, model, withoutFolders = true)
+        // The plan schema has no field for duplicates, so the model answers with the whole folder; the app narrows it.
+        val plan = model.copy(duplicates = said(words, DUPLICATE_WORDS))
         if (plan.action == "delete" && !said(words, DELETE_WORDS)) {
             return Outcome.Refused(Reason.UNSURE_DELETE)
         }
@@ -101,6 +109,19 @@ object CommandCheck {
             return Outcome.Refused(Reason.PROTECTED_FOLDER)
         }
         return Outcome.Ready(plan, source, destination, found == null)
+    }
+
+    /**
+     * True for a delete that sweeps a whole top-level folder (or the storage itself) without a filter, or more
+     * than [MANY_FILES] files: the user confirms it a second time with count and size.
+     */
+    fun needsSecondConfirm(plan: CommandPlan, source: File, root: File, count: Int): Boolean {
+        if (plan.action != "delete") return false
+        val unfiltered = plan.extensions.isEmpty() && plan.kinds.isEmpty() && plan.nameContains.isBlank() &&
+            plan.olderThanDays == 0 && plan.largerThanBytes == 0L && !plan.duplicates
+        val dir = source.canonicalFile
+        val top = dir == root.canonicalFile || dir.parentFile == root.canonicalFile
+        return count > MANY_FILES || unfiltered && top
     }
 
     /** An existing folder for a spoken name, or null. "." means [here]. */

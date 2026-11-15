@@ -109,7 +109,12 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) HapticFeedbackConstants.CONFIRM
                 else HapticFeedbackConstants.VIRTUAL_KEY
             )
-            execute()
+            val outcome = ready
+            if (outcome != null && CommandCheck.needsSecondConfirm(outcome.plan, outcome.source, root, files.size)) {
+                confirmLargeDelete(outcome)
+            } else {
+                execute()
+            }
         }
         binding.retryButton.setOnClickListener { if (text.isNotEmpty()) submit() else showInput() }
         // Opened with a ready plan (e.g. an analysis suggestion): no model needed, straight to the preview.
@@ -606,6 +611,9 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
         if (plan.nameContains.isNotBlank()) {
             chip(getString(R.string.ai_filter_name, plan.nameContains.trim()), plan.copy(nameContains = ""))
         }
+        if (plan.duplicates) {
+            chip(getString(R.string.ai_filter_duplicates), plan.copy(duplicates = false))
+        }
         if (plan.olderThan > 0) {
             val plurals = when (plan.ageUnit) {
                 "weeks" -> R.plurals.ai_filter_older_weeks
@@ -620,6 +628,18 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
                 plan.copy(largerThan = 0))
         }
         binding.filterChips.isVisible = binding.filterChips.childCount > 0
+    }
+
+    /** A whole top-level folder or many files: a second, explicit confirmation with count and size. */
+    private fun confirmLargeDelete(outcome: Outcome.Ready) {
+        val context = requireContext()
+        com.google.android.material.dialog.MaterialAlertDialogBuilder(context)
+            .setTitle(context.quantity(R.plurals.ai_large_delete_title, files.size, files.size))
+            .setMessage(getString(R.string.ai_large_delete_text, display(outcome.source),
+                files.sumOf { it.length() }.asFileSize().formatHumanReadable(context)))
+            .setNegativeButton(android.R.string.cancel, null)
+            .setPositiveButton(R.string.ai_action_delete) { _, _ -> execute() }
+            .show()
     }
 
     private fun execute() {

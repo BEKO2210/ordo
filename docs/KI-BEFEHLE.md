@@ -86,6 +86,11 @@ Einbau in der App (`llm/`, `app/.../ai/`):
 - Prüfregeln (`CommandCheck`, Unit-Tests): Löschen nur mit Lösch-Wort, nur in den Papierkorb; geschützt sind
   System-, versteckte und Kamera-Ordner (kanonischer Pfad, ohne Groß-/Kleinschreibung); unbekannter Ordner =
   Rückfrage; Rückgängig fasst nur Dateien an, die der Befehl angelegt hat.
+- Duplikate (15.11.2026): Das 4B plante bei „Lösche die doppelten Dateien im Download“ den **ganzen** Ordner
+  (258 statt 16 Dateien, `ordo-memory-lab`, pop-os), weil das Plan-Schema kein Feld dafür hat. Jetzt erkennt
+  `CommandCheck` Duplikat-Wörter (doppel, Duplikat, duplicate, dupe, mehrfach) im Satz und `CommandFiles` nimmt nur
+  die überzähligen Kopien (gleicher Inhalt wie in der Analyse, die älteste bleibt). Unabhängig davon braucht Löschen
+  eines ganzen Hauptordners ohne Filter oder von mehr als 50 Dateien eine zweite Bestätigung mit Anzahl und Größe.
 - Geprüft: Native-Brücke im Emulator (Instrumentierungs-Test `LlamaEngineTest`, 0,8B), voller Ablauf mit dem
   echten 4B im Emulator (Englisch hell, Deutsch dunkel, Ablehnung, Vorschau). Nicht geprüft: Download auf
   einem echten Handy, Tempo des 4B auf dem Pixel.
