@@ -7,6 +7,10 @@ package me.zhanghai.android.files.backup
 
 import android.net.Uri
 import androidx.lifecycle.MutableLiveData
+import java.io.EOFException
+import java.io.IOException
+import java.io.InputStream
+import java.io.InterruptedIOException
 
 sealed class BackupStatus {
     object Idle : BackupStatus()
@@ -85,3 +89,47 @@ fun uniqueEntryName(name: String, usedNames: MutableSet<String>): String {
 /** A folder inside another selected folder would be written twice. */
 fun withoutNestedFolders(folders: List<String>): List<String> =
     folders.distinct().filter { folder -> folders.none { folder.startsWith("$it/") } }
+
+/** A file that failed while it was read into the backup. Its entry is already started, so the backup stops. */
+class BackupSourceException(val fileName: String, cause: IOException) : IOException(cause)
+
+/**
+ * Marks read failures, so an unreadable file can be told apart from a failing target. Stops at the size announced
+ * in the archive, which also keeps a backup saved into a folder it backs up from reading itself forever. A file that
+ * ends before that size fails too, as its entry would be cut short.
+ */
+class BackupSourceStream(
+    private val inputStream: InputStream,
+    private var remainingSize: Long,
+    private val fileName: String
+) : InputStream() {
+    @Throws(IOException::class)
+    override fun read(): Int {
+        val buffer = ByteArray(1)
+        return if (read(buffer, 0, 1) == -1) -1 else buffer[0].toInt() and 0xFF
+    }
+
+    @Throws(IOException::class)
+    override fun read(buffer: ByteArray, offset: Int, length: Int): Int {
+        if (remainingSize <= 0) {
+            return -1
+        }
+        val size = try {
+            inputStream.read(buffer, offset, minOf(length.toLong(), remainingSize).toInt())
+        } catch (e: InterruptedIOException) {
+            throw e
+        } catch (e: IOException) {
+            throw BackupSourceException(fileName, e)
+        }
+        if (size < 0) {
+            throw BackupSourceException(fileName, EOFException("$remainingSize bytes missing"))
+        }
+        remainingSize -= size
+        return size
+    }
+
+    @Throws(IOException::class)
+    override fun close() {
+        inputStream.close()
+    }
+}

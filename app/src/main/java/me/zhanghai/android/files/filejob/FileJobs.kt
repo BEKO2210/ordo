@@ -48,6 +48,8 @@ import kotlinx.coroutines.runBlocking
 import me.zhanghai.android.files.R
 import me.zhanghai.android.files.app.BackgroundActivityStarter
 import me.zhanghai.android.files.app.mainExecutor
+import me.zhanghai.android.files.backup.BackupSourceException
+import me.zhanghai.android.files.backup.BackupSourceStream
 import me.zhanghai.android.files.backup.BackupStatus
 import me.zhanghai.android.files.backup.BackupStatusLiveData
 import me.zhanghai.android.files.backup.RestoreDestination
@@ -3103,8 +3105,8 @@ private const val RESTORE_BUFFER_SIZE = 64 * 1024
 
 /**
  * Ordo: writes the chosen folders and the vault into one ZIP at [target], a document the user
- * picked on a USB drive or in a cloud app. Files that cannot be read are skipped and reported
- * instead of failing the whole backup.
+ * picked on a USB drive or in a cloud app. Files that cannot be opened are skipped and reported
+ * instead of failing the whole backup; a file that fails while it is read stops the backup.
  */
 class BackupJob(
     private val folders: List<Path>,
@@ -3166,29 +3168,25 @@ class BackupJob(
                             writtenSize += source.size
                             continue
                         }
-                        try {
-                            BackupSourceStream(inputStream, source.size).use {
-                                writer.write(
-                                    it, source.name, source.size, source.lastModifiedTime,
-                                    PROGRESS_INTERVAL_MILLIS
-                                ) { size ->
-                                    writtenSize += size
-                                    val currentTimeMillis = System.currentTimeMillis()
-                                    if (currentTimeMillis >=
-                                        lastProgressMillis + NOTIFICATION_INTERVAL_MILLIS) {
-                                        lastProgressMillis = currentTimeMillis
-                                        postProgress(
-                                            (writtenSize * 100 / totalSize).toInt().coerceAtMost(100),
-                                            source.name.substringAfterLast('/')
-                                        )
-                                    }
+                        // A read error here stops the backup: the entry is started and cannot be taken back.
+                        BackupSourceStream(inputStream, source.size, source.name).use {
+                            writer.write(
+                                it, source.name, source.size, source.lastModifiedTime,
+                                PROGRESS_INTERVAL_MILLIS
+                            ) { size ->
+                                writtenSize += size
+                                val currentTimeMillis = System.currentTimeMillis()
+                                if (currentTimeMillis >=
+                                    lastProgressMillis + NOTIFICATION_INTERVAL_MILLIS) {
+                                    lastProgressMillis = currentTimeMillis
+                                    postProgress(
+                                        (writtenSize * 100 / totalSize).toInt().coerceAtMost(100),
+                                        source.name.substringAfterLast('/')
+                                    )
                                 }
                             }
-                            ++fileCount
-                        } catch (e: BackupSourceException) {
-                            e.printStackTrace()
-                            skipped += source.name
                         }
+                        ++fileCount
                     }
                 }
                 // People unplug the drive right after "done", so the data must be on it by then.
@@ -3227,7 +3225,12 @@ class BackupJob(
             }
             e.printStackTrace()
             BackupStatusLiveData.postValue(
-                BackupStatus.Failed(e.toString(), writtenSize >= FAT32_FILE_SIZE_HINT)
+                BackupStatus.Failed(
+                    e.toString(), writtenSize >= FAT32_FILE_SIZE_HINT,
+                    (e as? BackupSourceException)?.let {
+                        getString(R.string.backup_failed_read_format, it.fileName)
+                    }
+                )
             )
         }
     }
@@ -3302,47 +3305,6 @@ class BackupJob(
         val lastModifiedTime: FileTime,
         val open: () -> InputStream
     )
-
-    private class BackupSourceException(cause: IOException) : IOException(cause)
-
-    /**
-     * Marks read failures, so an unreadable file can be told apart from a failing target. Stops at
-     * the size announced in the archive, which also keeps a backup saved into a folder it backs up
-     * from reading itself forever.
-     */
-    private class BackupSourceStream(
-        private val inputStream: InputStream,
-        private var remainingSize: Long
-    ) : InputStream() {
-        @Throws(IOException::class)
-        override fun read(): Int {
-            val buffer = ByteArray(1)
-            return if (read(buffer, 0, 1) == -1) -1 else buffer[0].toInt() and 0xFF
-        }
-
-        @Throws(IOException::class)
-        override fun read(buffer: ByteArray, offset: Int, length: Int): Int {
-            if (remainingSize <= 0) {
-                return -1
-            }
-            val size = try {
-                inputStream.read(buffer, offset, minOf(length.toLong(), remainingSize).toInt())
-            } catch (e: InterruptedIOException) {
-                throw e
-            } catch (e: IOException) {
-                throw BackupSourceException(e)
-            }
-            if (size > 0) {
-                remainingSize -= size
-            }
-            return size
-        }
-
-        @Throws(IOException::class)
-        override fun close() {
-            inputStream.close()
-        }
-    }
 
     companion object {
         // FAT32 drives cannot hold a file of 4 GB or more.
