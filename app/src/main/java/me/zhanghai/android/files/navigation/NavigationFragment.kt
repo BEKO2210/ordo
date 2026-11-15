@@ -12,9 +12,13 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.LifecycleOwner
+import androidx.recyclerview.widget.ConcatAdapter
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import java8.nio.file.Path
+import me.zhanghai.android.files.R
 import me.zhanghai.android.files.databinding.NavigationFragmentBinding
+import me.zhanghai.android.files.util.layoutInflater
 import me.zhanghai.android.files.util.startActivitySafe
 
 class NavigationFragment : Fragment(), NavigationItem.Listener {
@@ -42,7 +46,12 @@ class NavigationFragment : Fragment(), NavigationItem.Listener {
         val context = requireContext()
         binding.recyclerView.layoutManager = LinearLayoutManager(context)
         adapter = NavigationListAdapter(this, context)
-        binding.recyclerView.adapter = adapter
+        binding.recyclerView.adapter = ConcatAdapter(
+            ConcatAdapter.Config.Builder()
+                .setStableIdMode(ConcatAdapter.Config.StableIdMode.ISOLATED_STABLE_IDS)
+                .build(),
+            HeaderAdapter(), adapter
+        )
 
         val viewLifecycleOwner = viewLifecycleOwner
         NavigationItemListLiveData.observe(viewLifecycleOwner) { onNavigationItemsChanged(it) }
@@ -57,7 +66,7 @@ class NavigationFragment : Fragment(), NavigationItem.Listener {
         adapter.notifyCheckedChanged()
     }
 
-    override val currentPath: Path
+    override val currentPath: Path?
         get() = listener.currentPath
 
     override fun navigateTo(path: Path) {
@@ -76,8 +85,27 @@ class NavigationFragment : Fragment(), NavigationItem.Listener {
         listener.closeNavigationDrawer()
     }
 
+    // App icon and name on top of the list; scrolls away with it.
+    private class HeaderAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+        init {
+            setHasStableIds(true)
+        }
+
+        override fun getItemCount(): Int = 1
+
+        override fun getItemId(position: Int): Long = 0
+
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder =
+            object : RecyclerView.ViewHolder(
+                parent.context.layoutInflater.inflate(R.layout.navigation_header, parent, false)
+            ) {}
+
+        override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {}
+    }
+
     interface Listener {
-        val currentPath: Path
+        // Null when the host shows no folder, as the home screen does.
+        val currentPath: Path?
         fun navigateTo(path: Path)
         fun navigateToRoot(path: Path)
         fun navigateToDefaultRoot()

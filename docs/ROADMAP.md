@@ -48,6 +48,9 @@ Themes inkl. Schwarz.
       App-Icon in der sicheren Zone des Launchers; abgesichert durch `IconResourcesTest`.
 - [x] Suchfeld der Startseite bleibt beim Scrollen in der Glas-Leiste stehen; alle Ladezustände nutzen eine
       Animation (`LoadingIndicator` aus Material 3 Expressive); abgesichert durch `LayoutResourcesTest`.
+- [x] Startseite mit einer schlanken Glas-Leiste (Seitenmenü, Suche, KI-Befehl, Mehr in einer Zeile, 64 dp hoch);
+      das Seitenmenü der Dateiliste auch auf der Startseite, neu gestaltet (Seitenton, Akzent-Pille,
+      Haarlinien, Kopf mit App-Icon); abgesichert durch `LayoutResourcesTest`.
 - [ ] Datenmüll: leere Ordner, Thumbnail-Caches, Restdateien in der Speicheranalyse.
 - [ ] Ungenutzte Apps (Nutzungsdaten-Erlaubnis), Erinnerung „Speicher fast voll".
 - [ ] Teilen in der Nähe (Quick Share über Android-Teilen).

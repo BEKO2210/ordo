@@ -11,21 +11,28 @@ import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
+import android.view.Gravity
 import android.view.LayoutInflater
+import android.view.Menu
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.children
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.widget.PopupMenu
 import androidx.core.graphics.ColorUtils
+import androidx.core.view.GravityCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.commit
+import androidx.lifecycle.LifecycleOwner
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.LinearSnapHelper
+import java8.nio.file.Path
 import me.zhanghai.android.files.R
 import me.zhanghai.android.files.ai.CommandSheetFragment
 import me.zhanghai.android.files.analysis.AnalysisActivity
@@ -40,11 +47,15 @@ import me.zhanghai.android.files.filelist.OpenFileActivity
 import me.zhanghai.android.files.filelist.ShowRequestAllFilesAccessRationaleDialogFragment
 import me.zhanghai.android.files.filelist.ShowRequestStoragePermissionRationaleDialogFragment
 import me.zhanghai.android.files.legal.LegalActivity
+import me.zhanghai.android.files.navigation.NavigationFragment
 import me.zhanghai.android.files.settings.Settings
 import me.zhanghai.android.files.settings.SettingsActivity
 import me.zhanghai.android.files.trash.TrashActivity
+import me.zhanghai.android.files.ui.DrawerLayoutOnBackPressedCallback
+import me.zhanghai.android.files.util.addOnBackPressedCallback
 import me.zhanghai.android.files.util.createIntent
 import me.zhanghai.android.files.util.createManageAppAllFilesAccessPermissionIntent
+import me.zhanghai.android.files.ui.setGlassAmount
 import me.zhanghai.android.files.ui.setUpGlass
 import me.zhanghai.android.files.util.getColorByAttr
 import me.zhanghai.android.files.util.getQuantityString
@@ -55,7 +66,7 @@ import me.zhanghai.android.files.vault.VaultActivity
 import me.zhanghai.android.files.util.viewModels
 
 class HomeFragment : Fragment(), ShowRequestAllFilesAccessRationaleDialogFragment.Listener,
-    ShowRequestStoragePermissionRationaleDialogFragment.Listener {
+    ShowRequestStoragePermissionRationaleDialogFragment.Listener, NavigationFragment.Listener {
     private lateinit var recentAdapter: RecentFileAdapter
     private lateinit var tileAdapter: TileAdapter
     private lateinit var storageAdapter: StorageAdapter
@@ -64,6 +75,7 @@ class HomeFragment : Fragment(), ShowRequestAllFilesAccessRationaleDialogFragmen
     private val viewModel by viewModels { { HomeViewModel(requireActivity().application) } }
     private var _binding: HomeFragmentBinding? = null
     private val binding get() = _binding!!
+    private lateinit var menu: Menu
 
     private val allFilesAccessLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -119,12 +131,23 @@ class HomeFragment : Fragment(), ShowRequestAllFilesAccessRationaleDialogFragmen
             CommandSheetFragment().show(childFragmentManager, CommandSheetFragment.TAG)
         }
         setUpGlassToolbar()
-        binding.toolbar.setTitle(R.string.app_name)
-        binding.toolbar.inflateMenu(R.menu.home)
-        binding.toolbar.setOnMenuItemClickListener {
+        // The same side menu as in the file list; its storages and folders open there.
+        val navigationFragment = childFragmentManager.findFragmentById(R.id.navigationFragment)
+            as NavigationFragment? ?: NavigationFragment().also {
+                childFragmentManager.commit { add(R.id.navigationFragment, it) }
+            }
+        navigationFragment.listener = this
+        addOnBackPressedCallback(DrawerLayoutOnBackPressedCallback(binding.drawerLayout))
+        binding.menuButton.setOnClickListener { binding.drawerLayout.openDrawer(GravityCompat.START) }
+        val popupMenu = PopupMenu(
+            requireContext(), binding.moreButton, Gravity.END,
+            androidx.appcompat.R.attr.actionOverflowMenuStyle, 0
+        )
+        popupMenu.inflate(R.menu.home)
+        menu = popupMenu.menu
+        binding.moreButton.setOnClickListener { popupMenu.show() }
+        popupMenu.setOnMenuItemClickListener {
             when (it.itemId) {
-                R.id.action_browse ->
-                    startActivity(Intent(requireContext(), FileListActivity::class.java))
                 R.id.action_recent_grid -> Settings.HOME_RECENT_VIEW.putValue(RECENT_VIEW_GRID)
                 R.id.action_recent_row -> Settings.HOME_RECENT_VIEW.putValue(RECENT_VIEW_ROW)
                 R.id.action_recent_hidden -> Settings.HOME_RECENT_VIEW.putValue(RECENT_VIEW_HIDDEN)
@@ -213,32 +236,38 @@ class HomeFragment : Fragment(), ShowRequestAllFilesAccessRationaleDialogFragmen
         binding.toolbarEdge.background = android.graphics.drawable.LayerDrawable(arrayOf(
             android.graphics.drawable.GradientDrawable(
                 android.graphics.drawable.GradientDrawable.Orientation.TOP_BOTTOM,
-                intArrayOf(ColorUtils.setAlphaComponent(barColor, 0x99), android.graphics.Color.TRANSPARENT)
+                // Almost the page colour right under the bar: content dissolves before it reaches the search field.
+                intArrayOf(
+                    ColorUtils.setAlphaComponent(barColor, 0xE6), ColorUtils.setAlphaComponent(barColor, 0x80),
+                    android.graphics.Color.TRANSPARENT
+                )
             ),
             android.graphics.drawable.GradientDrawable().apply { setColor(hairline) }
         )).apply { setLayerHeight(1, (resources.displayMetrics.density).toInt().coerceAtLeast(1)) }
         binding.toolbarBlur.addOnLayoutChangeListener { bar, _, _, _, _, _, _, _, _ ->
             binding.toolbarEdge.translationY = bar.height.toFloat()
         }
-        // Edge and hairline appear over the first 24 dp of scrolling: flat at rest, layered in motion.
+        // Glass, edge and hairline appear over the first 24 dp of scrolling: flat at rest, layered in motion.
         val edgeDistance = 24 * resources.displayMetrics.density
+        binding.toolbarBlur.setGlassAmount(barColor, 0f)
         binding.scrollView.setOnScrollChangeListener { _, _, scrollY, _, _ ->
-            binding.toolbarEdge.alpha = (scrollY / edgeDistance).coerceIn(0f, 1f)
+            val amount = (scrollY / edgeDistance).coerceIn(0f, 1f)
+            binding.toolbarEdge.alpha = amount
+            binding.toolbarBlur.setGlassAmount(barColor, amount)
         }
         val scrollPaddingBottom = binding.scrollView.paddingBottom
-        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { root, windowInsets ->
+        val refreshDistance = binding.swipeRefreshLayout.progressViewEndOffset
+        ViewCompat.setOnApplyWindowInsetsListener(binding.content) { root, windowInsets ->
             val insets = windowInsets.getInsets(
                 WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
             )
             root.updatePadding(left = insets.left, right = insets.right)
             binding.toolbarBlur.updatePadding(top = insets.top)
             val searchLayoutParams = binding.searchCard.layoutParams as ViewGroup.MarginLayoutParams
-            val top = insets.top + binding.toolbar.layoutParams.height + searchLayoutParams.height +
-                searchLayoutParams.topMargin + searchLayoutParams.bottomMargin
+            val top = insets.top + searchLayoutParams.height + searchLayoutParams.topMargin +
+                searchLayoutParams.bottomMargin
             binding.scrollView.updatePadding(top = top, bottom = scrollPaddingBottom + insets.bottom)
-            binding.swipeRefreshLayout.setProgressViewOffset(
-                true, top, top + binding.swipeRefreshLayout.progressViewEndOffset
-            )
+            binding.swipeRefreshLayout.setProgressViewOffset(true, top, top + refreshDistance)
             windowInsets
         }
     }
@@ -300,7 +329,6 @@ class HomeFragment : Fragment(), ShowRequestAllFilesAccessRationaleDialogFragmen
     }
 
     private fun updateMenu() {
-        val menu = binding.toolbar.menu
         menu.findItem(
             when (Settings.HOME_RECENT_VIEW.valueCompat) {
                 RECENT_VIEW_ROW -> R.id.action_recent_row
@@ -383,6 +411,26 @@ class HomeFragment : Fragment(), ShowRequestAllFilesAccessRationaleDialogFragmen
         if (shouldRequest) {
             storagePermissionLauncher.launch(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
         }
+    }
+
+    // Nothing in the side menu is the current place: the home screen is not a folder.
+    override val currentPath: Path?
+        get() = null
+
+    override fun navigateTo(path: Path) {
+        startActivity(FileListActivity.createViewIntent(path))
+    }
+
+    override fun navigateToRoot(path: Path) {
+        navigateTo(path)
+    }
+
+    override fun navigateToDefaultRoot() {}
+
+    override fun observeCurrentPath(owner: LifecycleOwner, observer: (Path) -> Unit) {}
+
+    override fun closeNavigationDrawer() {
+        binding.drawerLayout.closeDrawer(GravityCompat.START)
     }
 
     private fun onStorageAccessResult() {

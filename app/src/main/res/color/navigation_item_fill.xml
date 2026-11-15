@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- The current place in the side menu: a light wash of the accent colour. -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:alpha="0.14" android:color="?colorPrimary" android:state_checked="true" />
+    <item android:color="@android:color/transparent" />
+</selector>

@@ -31,7 +31,7 @@ abstract class NavigationItem {
     open fun onLongClick(listener: Listener): Boolean = false
 
     interface Listener {
-        val currentPath: Path
+        val currentPath: Path?
         fun navigateTo(path: Path)
         fun navigateToRoot(path: Path)
         fun launchIntent(intent: Intent)

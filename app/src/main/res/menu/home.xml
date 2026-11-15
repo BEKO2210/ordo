@@ -10,12 +10,6 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
-        android:id="@+id/action_browse"
-        android:icon="@drawable/directory_icon_control_normal_24dp"
-        android:title="@string/home_browse"
-        app:showAsAction="ifRoom" />
-
-    <item
         android:id="@+id/action_recent_view"
         android:title="@string/home_customize_recent"
         app:showAsAction="never">

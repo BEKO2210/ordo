@@ -29,6 +29,33 @@ class LayoutResourcesTest {
         assertTrue("search field scrolls away", ancestors.none { "ScrollView" in it })
     }
 
+    // One row: side menu, search, assistant, more. Every icon has a TalkBack label and a 48 dp touch target.
+    @Test
+    fun homeTopBarIconsAreLabelledAndLargeEnough() {
+        val buttons = elements(File("src/main/res/layout/home_fragment.xml")).filter { it.tagName == "ImageButton" }
+        assertEquals(
+            listOf("@+id/menuButton", "@+id/assistantButton", "@+id/moreButton"),
+            buttons.map { it.getAttribute("android:id") }
+        )
+        for (button in buttons) {
+            val id = button.getAttribute("android:id")
+            assertTrue("$id has no label", button.getAttribute("android:contentDescription").startsWith("@string/"))
+            assertEquals(id, "48dp", button.getAttribute("android:layout_width"))
+            assertEquals(id, "48dp", button.getAttribute("android:layout_height"))
+        }
+    }
+
+    @Test
+    fun homeHasTheSideMenuOfTheFileList() {
+        val root = elements(File("src/main/res/layout/home_fragment.xml")).first()
+        assertEquals("androidx.drawerlayout.widget.DrawerLayout", root.tagName)
+        val fileList = elements(File("src/main/res/layout/file_list_fragment_include.xml"))
+        for (layout in listOf(elements(File("src/main/res/layout/home_fragment.xml")), fileList)) {
+            val drawer = layout.single { it.getAttribute("android:id") == "@+id/navigationFragment" }
+            assertEquals("start", drawer.getAttribute("android:layout_gravity"))
+        }
+    }
+
     @Test
     fun waitingUsesOneLoadingAnimation() {
         assertTrue("layouts not found", layouts.size > 50)

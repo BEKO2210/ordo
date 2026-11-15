@@ -669,7 +669,6 @@
     <string name="settings_read_remote_files_for_thumbnail_title">Remote-Dateien für Miniaturansichten lesen</string>
 
     <string name="home_title">Startseite</string>
-    <string name="home_browse">Dateien durchsuchen</string>
     <string name="home_recent">Zuletzt verwendet</string>
     <string name="home_recent_empty">Keine zuletzt verwendeten Dateien</string>
     <string name="home_categories">Kategorien</string>

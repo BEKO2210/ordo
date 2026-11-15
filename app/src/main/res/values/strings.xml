@@ -799,7 +799,6 @@
     <string name="settings_read_remote_files_for_thumbnail_title">Read remote files for thumbnail</string>
 
     <string name="home_title">Home</string>
-    <string name="home_browse">Browse files</string>
     <string name="home_recent">Recent files</string>
     <string name="home_recent_empty">No recent files</string>
     <string name="home_categories">Categories</string>

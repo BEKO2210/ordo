@@ -14,6 +14,8 @@ e2e/run.sh --write <adb serial>    # plus tests that create and delete their own
 | `category-search.sh` | searching inside a category does not crash | fixed in 0.3.3 |
 | `back-navigation.sh` | back from a storage or the analysis returns to home in one step | fixed in 0.3.2 |
 | `bars-replay.sh` | every storage bar, measured on its own in a screen recording, is still empty when home comes back and then grows in | fixed in 0.4.2 / 0.4.3 |
+| `home-header.sh` | the home screen's top bar: search, assistant and every entry under "more" work, back returns home | 0.5.0 |
+| `drawer.sh` | every entry of the side menu opens its screen and back returns home with the menu closed; a menu dragged all the way open closes on back instead of leaving the app | 0.5.0, drag fixed in 0.5.0 |
 | `stress-delete.sh` (`--write`) | 3000 files to the trash: no crash, bounded memory, the list follows | fixed in 0.3.1 / 0.3.3 |
 
 Rules for every test:

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- With the list's 8 dp top padding as high as the home screen's top bar and centred on its search field; the icon
+     sits on the axis of the item icons, the name on that of their titles. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="56dp"
+    android:clipToPadding="false"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingStart="@dimen/navigation_item_horizontal_padding_material3"
+    android:paddingEnd="@dimen/navigation_item_horizontal_padding_material3"
+    android:paddingBottom="8dp">
+
+    <ImageView
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_marginHorizontal="-4dp"
+        android:importantForAccessibility="no"
+        android:src="@mipmap/launcher_icon" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/navigation_item_icon_padding_material3"
+        android:text="@string/app_name"
+        android:textAppearance="@style/TextAppearance.Ordo.HomeTitle" />
+</LinearLayout>
