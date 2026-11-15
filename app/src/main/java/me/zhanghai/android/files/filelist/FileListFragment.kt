@@ -711,7 +711,9 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
         val isSearching = viewModel.searchState.isSearching
         when {
             stateful is Failure -> binding.toolbar.setSubtitle(R.string.error)
-            stateful is Loading && !isSearching -> binding.toolbar.setSubtitle(R.string.loading)
+            // A search inside a category starts loading without a list yet (files == null).
+            stateful is Loading && (!isSearching || files == null) ->
+                binding.toolbar.setSubtitle(R.string.loading)
             else -> binding.toolbar.subtitle = getSubtitle(files!!)
         }
         val hasFiles = !files.isNullOrEmpty()

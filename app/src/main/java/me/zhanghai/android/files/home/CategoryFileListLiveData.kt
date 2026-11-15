@@ -8,6 +8,7 @@ package me.zhanghai.android.files.home
 import android.database.ContentObserver
 import android.os.Handler
 import android.os.Looper
+import android.os.SystemClock
 import android.provider.MediaStore
 import me.zhanghai.android.files.app.application
 import me.zhanghai.android.files.file.FileItem
@@ -28,14 +29,22 @@ class CategoryFileListLiveData(
 ) : CloseableLiveData<Stateful<List<FileItem>>>() {
     private var future: Future<Unit>? = null
     private val handler = Handler(Looper.getMainLooper())
-    private val reload = Runnable { loadValue() }
+    private var pendingSince = 0L
+    private val reload = Runnable {
+        pendingSince = 0
+        loadValue()
+    }
 
-    // A delete of thousands of files changes MediaStore thousands of times: wait for a quiet moment and reload once,
-    // instead of starting a full reload per change (that ran them in parallel until memory ran out).
+    // A delete of thousands of files changes MediaStore thousands of times. Reload once things are quiet for a
+    // moment instead of once per change (that ran reloads in parallel until memory ran out), but after
+    // MAX_WAIT_MILLIS at the latest: MediaStore keeps changing long after the files are gone, and the list must
+    // not show deleted files all that time.
     private val observer = object : ContentObserver(handler) {
         override fun onChange(selfChange: Boolean) {
+            val now = SystemClock.uptimeMillis()
+            if (pendingSince == 0L) pendingSince = now
             handler.removeCallbacks(reload)
-            handler.postDelayed(reload, RELOAD_DELAY_MILLIS)
+            handler.postDelayed(reload, if (now - pendingSince >= MAX_WAIT_MILLIS) 0 else RELOAD_DELAY_MILLIS)
         }
     }
 
@@ -72,6 +81,7 @@ class CategoryFileListLiveData(
 
     private companion object {
         const val RELOAD_DELAY_MILLIS = 800L
+        const val MAX_WAIT_MILLIS = 2_000L
 
         // One load at a time for all category lists.
         val executor: ExecutorService = Executors.newSingleThreadExecutor()
