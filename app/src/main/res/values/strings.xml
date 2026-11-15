@@ -900,7 +900,6 @@
     <string name="backup_start_action">Back up now</string>
     <string name="backup_file_name_format">Ordo-Backup-%1$s</string>
     <string name="backup_vault_prompt_title">Unlock vault for the backup</string>
-    <string name="backup_vault_folder">Vault</string>
     <string name="backup_notification_title">Backup in progress</string>
     <string name="backup_running_title">Backing up …</string>
     <string name="backup_counting">Counting files …</string>

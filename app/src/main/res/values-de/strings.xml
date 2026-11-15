@@ -767,7 +767,6 @@
     <string name="backup_start_action">Jetzt sichern</string>
     <string name="backup_file_name_format">Ordo-Sicherung-%1$s</string>
     <string name="backup_vault_prompt_title">Tresor für die Sicherung entsperren</string>
-    <string name="backup_vault_folder">Tresor</string>
     <string name="backup_notification_title">Sicherung läuft</string>
     <string name="backup_running_title">Sicherung läuft …</string>
     <string name="backup_counting">Dateien werden gezählt …</string>

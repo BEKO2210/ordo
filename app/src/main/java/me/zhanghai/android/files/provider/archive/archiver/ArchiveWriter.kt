@@ -90,6 +90,15 @@ class ArchiveWriter @Throws(IOException::class) constructor(
         inputStream.copyTo(archive.newDataOutputStream(), intervalMillis, listener)
     }
 
+    // Ordo: an empty folder entry, such as the marker that opens every backup.
+    @Throws(IOException::class)
+    fun writeDirectory(name: String, lastModifiedTime: FileTime) {
+        archive.Entry(
+            name, lastModifiedTime, null, null, PosixFileType.DIRECTORY, 0, null, null,
+            PosixFileMode.DIRECTORY_DEFAULT, null
+        ).use { archive.writeEntry(it) }
+    }
+
     @Throws(IOException::class)
     override fun close() {
         archive.close()

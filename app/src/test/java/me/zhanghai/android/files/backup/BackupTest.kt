@@ -112,4 +112,16 @@ class BackupTest {
         assertFalse(isRestorableBackupEntry("Download/a\u0001.txt"))
         assertFalse(isRestorableBackupEntry("Download/" + "x".repeat(5000)))
     }
+
+    @Test
+    fun onlyVaultFilesGoIntoTheVaultFolder() {
+        val vaultEntry = "$BACKUP_VAULT_FOLDER/${backupEntryName("$root/DCIM/a.jpg", root)}"
+        assertTrue(isRestorableBackupEntry(vaultEntry, isVault = true))
+        assertFalse(isRestorableBackupEntry(vaultEntry))
+        // A user folder of that name stays out of the backup and is reported as missing.
+        assertFalse(isRestorableBackupEntry(backupEntryName("$root/.ordo-vault/a.txt", root)))
+        // A user folder named like the old vault folder is a normal folder now.
+        assertTrue(isRestorableBackupEntry(backupEntryName("$root/Tresor/a.txt", root)))
+        assertFalse(isRestorableBackupEntry("Tresor/a.txt", isVault = true))
+    }
 }

@@ -27,8 +27,26 @@ class RestoreTest {
 
     @Test
     fun recognizesBothVaultFolderNamesFromExistingBackups() {
-        assertTrue(restoreEntryPath("Vault/photo.jpg").isVault)
-        assertTrue(restoreEntryPath("Tresor/photo.jpg").isVault)
+        assertTrue(restoreEntryPath("Vault/photo.jpg", isLegacyBackup = true).isVault)
+        assertTrue(restoreEntryPath("Tresor/photo.jpg", isLegacyBackup = true).isVault)
+    }
+
+    @Test
+    fun userFolderNamedLikeTheVaultIsRestoredFromNewerBackups() {
+        assertFalse(restoreEntryPath("Vault/notes.md").isVault)
+        assertFalse(restoreEntryPath("Tresor/scan.pdf").isVault)
+        assertTrue(restoreEntryPath(".ordo-vault/DCIM/photo.jpg").isVault)
+        assertTrue(restoreEntryPath(".ordo-vault/DCIM/photo.jpg", isLegacyBackup = true).isVault)
+        assertFalse(restoreEntryPath(".Ordo-Vault/a.txt").isVault)
+    }
+
+    @Test
+    fun formatMarkerIsTheVaultFolderEntry() {
+        assertTrue(isBackupFormatMarker(".ordo-vault/", isDirectory = true))
+        assertTrue(isBackupFormatMarker(".ordo-vault", isDirectory = true))
+        assertFalse(isBackupFormatMarker(".ordo-vault", isDirectory = false))
+        assertFalse(isBackupFormatMarker("Tresor/", isDirectory = true))
+        assertFalse(isBackupFormatMarker("DCIM/a.jpg", isDirectory = false))
     }
 
     @Test

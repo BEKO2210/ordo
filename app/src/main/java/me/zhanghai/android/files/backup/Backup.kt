@@ -72,11 +72,13 @@ object BackupStatusLiveData : MutableLiveData<BackupStatus>(BackupStatus.Idle)
 fun backupEntryName(path: String, storageRoot: String): String =
     path.removePrefix("$storageRoot/").removePrefix("/")
 
-/** Only names the restore accepts go into a backup, so every backup Ordo writes can be restored. */
-fun isRestorableBackupEntry(name: String): Boolean =
+/**
+ * Only names the restore accepts go into a backup, so every backup Ordo writes can be restored, and only vault files
+ * go into the vault folder.
+ */
+fun isRestorableBackupEntry(name: String, isVault: Boolean = false): Boolean =
     try {
-        restoreEntryPath(name)
-        true
+        restoreEntryPath(name).isVault == isVault
     } catch (e: IllegalArgumentException) {
         false
     }

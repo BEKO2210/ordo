@@ -48,6 +48,7 @@ import kotlinx.coroutines.runBlocking
 import me.zhanghai.android.files.R
 import me.zhanghai.android.files.app.BackgroundActivityStarter
 import me.zhanghai.android.files.app.mainExecutor
+import me.zhanghai.android.files.backup.BACKUP_VAULT_FOLDER
 import me.zhanghai.android.files.backup.BackupSourceException
 import me.zhanghai.android.files.backup.BackupSourceStream
 import me.zhanghai.android.files.backup.BackupStatus
@@ -56,6 +57,7 @@ import me.zhanghai.android.files.backup.RestoreDestination
 import me.zhanghai.android.files.backup.RestoreDestinationState
 import me.zhanghai.android.files.backup.backupEntryName
 import me.zhanghai.android.files.backup.chooseRestoreDestination
+import me.zhanghai.android.files.backup.isBackupFormatMarker
 import me.zhanghai.android.files.backup.isProtectedAndroidPath
 import me.zhanghai.android.files.backup.isRestorableBackupEntry
 import me.zhanghai.android.files.backup.resolveRestoreFile
@@ -2700,11 +2702,16 @@ class RestorePreviewJob(
                 var size = 0L
                 var vaultFileCount = 0
                 var sawEntry = false
+                var isLegacyBackup = true
                 while (true) {
                     throwIfInterrupted()
                     val entry = archive.readEntry(StandardCharsets.UTF_8) ?: break
+                    if (!sawEntry) {
+                        isLegacyBackup =
+                            !isBackupFormatMarker(entry.name, entry.type == PosixFileType.DIRECTORY)
+                    }
                     sawEntry = true
-                    val entryPath = checkedRestoreEntryPath(entry)
+                    val entryPath = checkedRestoreEntryPath(entry, isLegacyBackup)
                     if (password == null && entry.isEncrypted) {
                         return RestoreArchiveInfo(0, 0, 0, true)
                     }
@@ -2729,18 +2736,6 @@ class RestorePreviewJob(
             }
         }
     }
-
-    private fun checkedRestoreEntryPath(entry: ReadArchive.Entry) =
-        try {
-            val name = if (entry.type == PosixFileType.DIRECTORY) {
-                entry.name.removeSuffix("/")
-            } else {
-                entry.name
-            }
-            restoreEntryPath(name)
-        } catch (e: IllegalArgumentException) {
-            throw UnsafeRestoreArchiveException(e)
-        }
 
     private fun postIdleIfCurrent() {
         val currentJobId = (BackupStatusLiveData.value as? BackupStatus.RestoreChecking)?.jobId
@@ -2772,19 +2767,17 @@ class RestoreBackupJob(
             postProgress(0, null)
             openRestoreChannel(source).use {
                 ReadArchive(it, listOfNotNull(password)).use { archive ->
+                    var isFirstEntry = true
+                    var isLegacyBackup = true
                     while (true) {
                         throwIfInterrupted()
                         val entry = archive.readEntry(StandardCharsets.UTF_8) ?: break
-                        val entryPath = try {
-                            val name = if (entry.type == PosixFileType.DIRECTORY) {
-                                entry.name.removeSuffix("/")
-                            } else {
-                                entry.name
-                            }
-                            restoreEntryPath(name)
-                        } catch (e: IllegalArgumentException) {
-                            throw UnsafeRestoreArchiveException(e)
+                        if (isFirstEntry) {
+                            isFirstEntry = false
+                            isLegacyBackup =
+                                !isBackupFormatMarker(entry.name, entry.type == PosixFileType.DIRECTORY)
                         }
+                        val entryPath = checkedRestoreEntryPath(entry, isLegacyBackup)
                         if (entry.type == PosixFileType.DIRECTORY) {
                             continue
                         }
@@ -2949,6 +2942,18 @@ class RestoreBackupJob(
         )
     }
 }
+
+private fun checkedRestoreEntryPath(entry: ReadArchive.Entry, isLegacyBackup: Boolean) =
+    try {
+        val name = if (entry.type == PosixFileType.DIRECTORY) {
+            entry.name.removeSuffix("/")
+        } else {
+            entry.name
+        }
+        restoreEntryPath(name, isLegacyBackup)
+    } catch (e: IllegalArgumentException) {
+        throw UnsafeRestoreArchiveException(e)
+    }
 
 private data class RestoreArchiveInfo(
     val fileCount: Int,
@@ -3158,6 +3163,10 @@ class BackupJob(
                 }
                 ArchiveWriter(channel, Archive.FORMAT_ZIP, Archive.FILTER_NONE, password).use {
                     writer ->
+                    // Comes first, so the restore knows how vault files are named before it reads one.
+                    writer.writeDirectory(
+                        BACKUP_VAULT_FOLDER, FileTime.fromMillis(System.currentTimeMillis())
+                    )
                     for (source in sources) {
                         throwIfInterrupted()
                         val inputStream = try {
@@ -3286,10 +3295,10 @@ class BackupJob(
             })
         }
         if (includeVault) {
-            val vaultFolder = getString(R.string.backup_vault_folder)
             for (entry in Vault.store.entries()) {
-                val entryName = "$vaultFolder/${backupEntryName(entry.originalPath, storageRoot)}"
-                if (!isRestorableBackupEntry(entryName)) {
+                val entryName =
+                    "$BACKUP_VAULT_FOLDER/${backupEntryName(entry.originalPath, storageRoot)}"
+                if (!isRestorableBackupEntry(entryName, isVault = true)) {
                     skipped += entryName
                     continue
                 }
