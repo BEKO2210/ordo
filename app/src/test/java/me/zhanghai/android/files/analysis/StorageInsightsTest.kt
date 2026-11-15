@@ -8,6 +8,7 @@ package me.zhanghai.android.files.analysis
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import java.util.Calendar
+import java.util.Locale
 
 class StorageInsightsTest {
     private val day = 86_400_000L
@@ -29,15 +30,43 @@ class StorageInsightsTest {
         assertEquals(listOf("image" to 1_000L, "audio" to 500L, "document" to 200L, "video" to 2_000L,
             "apps" to 300L, "other" to 100L, "system" to 1_900L), i.usage)
         assertEquals(6_000L, i.used)
+        assertEquals(4_100L, i.own)
     }
 
     @Test
-    fun cleanupCountsEachFileOnce() {
-        // big.mp4 is large AND old: it appears in two lists but counts once in the headline.
-        val i = insights(listOf(file("/r/big.mp4", 2_000, ageDays = 400), file("/r/small.txt", 10)), trash = 50)
+    fun cleanupHeadlineCountsOnlySafeTypesOnce() {
+        // big.mp4 is large AND old: worth a look, but not counted as safe to free.
+        // The old APK is in the APK list and the old list; it counts once, as an installer.
+        val i = insights(listOf(file("/r/big.mp4", 2_000, ageDays = 400), file("/r/small.txt", 10),
+            file("/r/a.apk", 300, ageDays = 400)), trash = 50)
+        assertEquals(listOf("duplicates", "apks", "trash", "large", "old"), i.cleanup.map { it.first })
         assertEquals(2_000L, i.cleanup.toMap()["large"])
-        assertEquals(2_000L, i.cleanup.toMap()["old"])
-        assertEquals(2_050L, i.cleanupTotal)
+        assertEquals(2_300L, i.cleanup.toMap()["old"])
+        assertEquals(300L + 50L, i.cleanupTotal)
+    }
+
+    @Test
+    fun shareNeverRoundsSmallPartsAway() {
+        fun de(part: Long, whole: Long) = StorageInsights.share(part, whole, Locale.GERMANY).replace('\u00A0', ' ').replace('\u202F', ' ')
+        fun en(part: Long, whole: Long) = StorageInsights.share(part, whole, Locale.US)
+        // The owner's phone: 1.76 GB pictures of 241 GB showed "1 %".
+        assertEquals("0,7 %", de(1_760, 241_000))
+        assertEquals("0.7%", en(1_760, 241_000))
+        assertEquals("<0,1 %", de(1, 10_000))
+        assertEquals("9,9 %", de(994, 10_000))
+        assertEquals("10 %", de(996, 10_000))
+        assertEquals("57 %", de(57, 100))
+        assertEquals(">99 %", de(9_996, 10_000))
+        assertEquals("100 %", de(5, 5))
+        assertEquals("0 %", de(0, 100))
+        assertEquals("0 %", de(5, 0))
+    }
+
+    @Test
+    fun folderKindNamesAppAndHiddenFolders() {
+        assertEquals("apps", StorageInsights.folderKind("Android"))
+        assertEquals("hidden", StorageInsights.folderKind(".trash-storage"))
+        assertEquals(null, StorageInsights.folderKind("DCIM"))
     }
 
     @Test

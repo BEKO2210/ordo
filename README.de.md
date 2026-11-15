@@ -22,7 +22,7 @@
 <p align="center">
   <img src="docs/screenshots/de/home.png" width="24%" alt="Startseite mit zuletzt verwendeten Dateien, Kategorien, Tresor und Sicherung">
   <img src="docs/screenshots/de/ai.png" width="24%" alt="KI-Befehl mit Vorschau: 9 Fotos verschieben">
-  <img src="docs/screenshots/de/analysis.png" width="24%" alt="Speicheranalyse: Belegung nach Dateityp als Ring">
+  <img src="docs/screenshots/de/analysis.png" width="24%" alt="Speicheranalyse: deine Dateien, System und freier Platz in einem Balken, dann deine Dateien nach Art">
   <img src="docs/screenshots/de/cleanup.png" width="24%" alt="Aufräum-Potenzial und Vorschläge mit Vorschau-Knopf, Dunkelmodus">
 </p>
 <p align="center">
@@ -34,7 +34,7 @@
 
 ## Stand
 
-Ordo ist in Entwicklung (Version 0.3.4) und noch nicht bei Google Play. Testversionen erscheinen als
+Ordo ist in Entwicklung (Version 0.4.0) und noch nicht bei Google Play. Testversionen erscheinen als
 [Pre-Releases](https://github.com/BEKO2210/ordo/releases); du kannst Ordo auch [selbst bauen](#bauen).
 Was als Nächstes kommt, steht in der [lebenden Roadmap](docs/ROADMAP-LIVE.md): Jedes Ziel hat einen Prüfbefehl und schließt sich selbst.
 
@@ -51,9 +51,11 @@ Was als Nächstes kommt, steht in der [lebenden Roadmap](docs/ROADMAP-LIVE.md): 
 **Aufräumen**
 
 - Papierkorb: Gelöschtes lässt sich 30 Tage lang wiederherstellen
-- Speicheranalyse für internen Speicher, SD-Karte und USB-Stick: Übersicht mit Belegung nach Dateityp,
-  Aufräum-Potenzial, Vorschlägen mit Vorschau, den größten Ordnern als Kacheln und neuen Daten pro Monat; dazu Listen
-  mit großen Dateien, Duplikaten, lange nicht genutzten Dateien und alten APKs
+- Speicheranalyse für internen Speicher, SD-Karte und USB-Stick: Übersicht mit deinen Dateien, System und freiem
+  Platz, deinen Dateien nach Art, dem, was sich sicher frei machen lässt, Vorschlägen mit Vorschau, den größten
+  Ordnern als Balken und neuen Daten pro Monat. Jede Art, jeder Ordner und jede Liste (große Dateien, Duplikate,
+  lange nicht genutzte Dateien, alte APKs) öffnet sich als eigene Seite, größte zuerst und mit Vorschaubildern;
+  Ordner Ebene für Ebene
 - App-Verwaltung: installierte Apps ansehen, APK sichern, deinstallieren
 
 **Mit Dateien arbeiten**

@@ -6,6 +6,7 @@
 package me.zhanghai.android.files.analysis
 
 import me.zhanghai.android.files.ai.CommandFiles
+import java.text.NumberFormat
 import java.util.Calendar
 import java.util.Locale
 
@@ -18,14 +19,18 @@ class StorageInsights(
     val usage: List<Pair<String, Long>>,
     val total: Long,
     val free: Long,
-    /** Reclaimable bytes per cleanup type, each counted once even when a file is large and old. */
+    /** Bytes per cleanup type; [SAFE] types first. A file can be in several lists. */
     val cleanup: List<Pair<String, Long>>,
+    /** What the [SAFE] types free together, each file counted once. Large and old files are only worth a look. */
     val cleanupTotal: Long,
     /** New bytes per month for the last 12 months, oldest first, with "yyyy-MM" keys. */
     val months: List<Pair<String, Long>>,
     val suggestions: List<Suggestion>
 ) {
     val used: Long get() = total - free
+
+    /** The user's own files: everything the scan could read. */
+    val own: Long get() = usage.filter { it.first != KIND_SYSTEM }.sumOf { it.second }
 
     /** A ready-made cleanup the user can preview; [folder] is relative to the storage root. */
     data class Suggestion(val id: String, val folder: String, val olderThanDays: Int, val extensions: List<String>,
@@ -35,7 +40,33 @@ class StorageInsights(
         // Fixed order, never by size: colour follows the kind (validated palette, see chart_colors.xml).
         val KINDS = listOf("image", "audio", "document", "video", "apps", "other")
         const val KIND_SYSTEM = "system"
-        val CLEANUP = listOf("duplicates", "large", "old", "apks", "trash")
+        /** Safe to free: copies (one stays), installers and the trash. Large and old files need a look first. */
+        val SAFE = listOf("duplicates", "apks", "trash")
+        val CLEANUP = SAFE + listOf("large", "old")
+
+        /**
+         * [part] of [whole] as a percentage that never lies by rounding: "<0.1 %", "0.7 %", "57 %", ">99 %".
+         * Small shares keep one decimal, so 0.7 % is not shown as 1 %.
+         */
+        fun share(part: Long, whole: Long, locale: Locale = Locale.getDefault()): String {
+            val format = NumberFormat.getPercentInstance(locale)
+            if (part <= 0 || whole <= 0) return format.format(0)
+            if (part >= whole) return format.format(1)
+            val ratio = part.toDouble() / whole
+            return when {
+                ratio < 0.001 -> "<" + format.apply { maximumFractionDigits = 1 }.format(0.001)
+                ratio < 0.0995 -> format.apply { minimumFractionDigits = 1; maximumFractionDigits = 1 }.format(ratio)
+                ratio >= 0.995 -> ">" + format.format(0.99)
+                else -> format.format(ratio)
+            }
+        }
+
+        /** Top-level folders whose name says little to most people: "Android" holds app files, dot folders are hidden. */
+        fun folderKind(name: String): String? = when {
+            name == "Android" -> "apps"
+            name.startsWith(".") -> "hidden"
+            else -> null
+        }
 
         fun kindOf(path: String): String {
             val extension = path.substringAfterLast('.', "").lowercase(Locale.ROOT)
@@ -59,8 +90,8 @@ class StorageInsights(
             val cleanup = CLEANUP.map { type ->
                 type to if (type == "trash") trashBytes else groups.getValue(type).sumOf { it.size }
             }
-            // A file can be large, old and a duplicate at once; the headline counts it once.
-            val distinct = groups.values.flatten().distinctBy { it.path }.sumOf { it.size }
+            // Only what is safe to free counts, and a duplicate APK only once.
+            val distinct = (duplicates + result.apks).distinctBy { it.path }.sumOf { it.size }
 
             return StorageInsights(usage, total, free, cleanup, distinct + trashBytes, months(files, now),
                 suggestions(root, files, now))
