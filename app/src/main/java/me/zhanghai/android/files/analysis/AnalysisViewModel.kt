@@ -41,8 +41,19 @@ sealed class AnalysisPage {
     data class Folder(val path: String) : AnalysisPage()
 }
 
+/** What is picked in the overview's charts: a file type, the opened-up small types, a tile of the folder map. */
+class ChartState(var kind: String? = null, var drilled: Boolean = false, var tile: String? = null) {
+    val isSet: Boolean get() = kind != null || drilled || tile != null
+
+    fun clear() {
+        kind = null
+        drilled = false
+        tile = null
+    }
+}
+
 sealed class AnalysisState {
-    class Scanning(val fileCount: Int, val isHashing: Boolean) : AnalysisState()
+    class Scanning(val progress: ScanProgress) : AnalysisState()
     class Done(val result: AnalysisResult) : AnalysisState()
 }
 
@@ -56,6 +67,9 @@ class AnalysisViewModel(handle: SavedStateHandle) : ViewModel() {
     /** Pages on top of the overview, and the scroll position of each page below the top one. Both survive rotation. */
     val pages = mutableListOf<AnalysisPage>()
     val scrollStates = mutableListOf<android.os.Parcelable?>()
+
+    /** Survives rotation like the pages, so a lifted slice is still lifted afterwards. */
+    val chart = ChartState()
 
     @Suppress("DEPRECATION")
     var root: File = handle.get<String>(AnalysisActivity.EXTRA_ROOT)?.let(::File)
@@ -74,16 +88,22 @@ class AnalysisViewModel(handle: SavedStateHandle) : ViewModel() {
         selectedPaths.clear()
         pages.clear()
         scrollStates.clear()
-        _state.value = AnalysisState.Scanning(0, false)
+        chart.clear()
+        _state.value = AnalysisState.Scanning(ScanProgress(0, 0, LongArray(StorageInsights.KINDS.size), ""))
         job = viewModelScope.launch {
             val result = withContext(Dispatchers.IO) {
+                var last: ScanProgress? = null
                 val files = StorageAnalysis.scan(root, { !isActive }) {
-                    _state.postValue(AnalysisState.Scanning(it, false))
+                    last = it
+                    _state.postValue(AnalysisState.Scanning(it))
                 }
-                _state.postValue(AnalysisState.Scanning(files.size, true))
+                val walked = last!!
                 withInsights(AnalysisResult(
                     root.path, StorageAnalysis.largeFiles(files),
-                    StorageAnalysis.duplicates(files, isCancelled = { !isActive }),
+                    StorageAnalysis.duplicates(files, isCancelled = { !isActive }) {
+                        _state.postValue(AnalysisState.Scanning(
+                            ScanProgress(walked.files, walked.bytes, walked.kinds, "", it)))
+                    },
                     StorageAnalysis.oldFiles(files, System.currentTimeMillis()),
                     StorageAnalysis.apkFiles(files), StorageAnalysis.folderSizes(root.path, files), files
                 ))

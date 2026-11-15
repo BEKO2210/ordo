@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- Inverse pill: the marker reads on the chart in light and dark. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="?android:textColorPrimary" />
+    <corners android:radius="14dp" />
+</shape>

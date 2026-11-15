@@ -13,12 +13,22 @@
     android:clipToPadding="false"
     android:paddingBottom="24dp">
 
+    <!-- One column of cards on a phone. On a wide screen the dashboard moves half of them into the second column. -->
     <LinearLayout
+        android:id="@+id/overviewColumns"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
+        android:baselineAligned="false"
+        android:orientation="horizontal"
         android:paddingHorizontal="16dp"
         android:paddingTop="8dp">
+
+    <LinearLayout
+        android:id="@+id/columnA"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical">
 
         <!-- Usage: your files, system and free in one bar -->
         <LinearLayout
@@ -65,15 +75,30 @@
                 android:text="@string/analysis_kind_mine" />
 
             <TextView
-                android:id="@+id/filesSubtitle"
-                style="@style/Widget.Ordo.DashboardSubtitle" />
+                style="@style/Widget.Ordo.DashboardSubtitle"
+                android:text="@string/analysis_files_subtitle" />
 
+            <!-- The ring above its rows; next to them where the card is wide enough. -->
             <LinearLayout
-                android:id="@+id/filesList"
+                android:id="@+id/filesBody"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:orientation="vertical" />
+                android:gravity="center_vertical"
+                android:orientation="vertical">
+
+                <me.zhanghai.android.files.analysis.DonutView
+                    android:id="@+id/filesChart"
+                    android:layout_width="match_parent"
+                    android:layout_height="232dp"
+                    android:layout_marginTop="8dp" />
+
+                <LinearLayout
+                    android:id="@+id/filesList"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:orientation="vertical" />
+            </LinearLayout>
         </LinearLayout>
 
         <!-- Cleanup -->
@@ -141,12 +166,42 @@
                 style="@style/Widget.Ordo.DashboardSubtitle"
                 android:text="@string/analysis_treemap_subtitle" />
 
+            <!-- The map above the rows; next to them where the card is wide enough. -->
             <LinearLayout
-                android:id="@+id/folderList"
+                android:id="@+id/folderBody"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:orientation="vertical" />
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:id="@+id/folderMapBlock"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <me.zhanghai.android.files.analysis.TreemapView
+                        android:id="@+id/folderMap"
+                        android:layout_width="match_parent"
+                        android:layout_height="220dp"
+                        android:layout_marginTop="12dp" />
+
+                    <!-- What the marked tile is, as a row that opens it. -->
+                    <LinearLayout
+                        android:id="@+id/folderPick"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:minHeight="48dp"
+                        android:orientation="vertical" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/folderList"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:orientation="vertical" />
+            </LinearLayout>
         </LinearLayout>
 
         <!-- Growth -->
@@ -168,5 +223,15 @@
                 android:layout_height="200dp"
                 android:layout_marginTop="8dp" />
         </LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/columnB"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:visibility="gone" />
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>

@@ -31,8 +31,8 @@
     <string name="analysis_suggestion_download_apks">Installer files (APK) in Download</string>
     <string name="analysis_suggestion_download_apks_command">Delete the APK files in Download</string>
     <plurals name="analysis_suggestion_detail">
-        <item quantity="one">%1$d file · %2$s</item>
-        <item quantity="other">%1$d files · %2$s</item>
+        <item quantity="one">%1$,d file · %2$s</item>
+        <item quantity="other">%1$,d files · %2$s</item>
     </plurals>
     <string name="analysis_preview">Preview</string>
     <string name="analysis_treemap_title">Where your space goes</string>
@@ -44,7 +44,6 @@
         <item quantity="other">%d more folders</item>
     </plurals>
     <string name="analysis_kind_mine">Your files</string>
-    <string name="analysis_files_subtitle">%s · tap a type to see its files</string>
     <string name="analysis_cleanup_safe_none">No copies, installers or trash to clear</string>
     <string name="analysis_cleanup_review">Worth a look</string>
     <string name="analysis_folder_apps">App files (%s)</string>
@@ -56,11 +55,27 @@
     <string name="analysis_share_of_files">%s of your files</string>
     <string name="analysis_share_of_folder">%1$s of %2$s</string>
     <plurals name="analysis_folder_count">
-        <item quantity="one">%d folder</item>
-        <item quantity="other">%d folders</item>
+        <item quantity="one">%,d folder</item>
+        <item quantity="other">%,d folders</item>
     </plurals>
     <plurals name="analysis_file_count">
-        <item quantity="one">%d file</item>
-        <item quantity="other">%d files</item>
+        <item quantity="one">%,d file</item>
+        <item quantity="other">%,d files</item>
+    </plurals>
+    <string name="analysis_files_subtitle">Tap the ring for details, a row for its files</string>
+    <string name="analysis_scan_walking">Reading your storage</string>
+    <string name="analysis_scan_comparing">Looking for duplicates</string>
+    <string name="analysis_chart_show_each">Show each</string>
+    <string name="analysis_chart_all_types">All types</string>
+    <string name="analysis_tile_loose">Loose files</string>
+    <string name="analysis_tile_direct">Files in %s</string>
+    <string name="analysis_map_hint">Tap a tile for details</string>
+    <plurals name="analysis_scan_files">
+        <item quantity="one">file</item>
+        <item quantity="other">files</item>
+    </plurals>
+    <plurals name="analysis_chart_small_types">
+        <item quantity="one">%d smaller type</item>
+        <item quantity="other">%d smaller types</item>
     </plurals>
 </resources>

@@ -25,12 +25,16 @@ import androidx.annotation.DrawableRes
 import androidx.core.content.ContextCompat
 import androidx.core.widget.TextViewCompat
 import com.github.mikephil.charting.animation.Easing
+import com.github.mikephil.charting.components.MarkerView
 import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.data.BarData
 import com.github.mikephil.charting.data.BarDataSet
 import com.github.mikephil.charting.data.BarEntry
+import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
+import com.github.mikephil.charting.highlight.Highlight
 import com.github.mikephil.charting.utils.Fill
+import com.github.mikephil.charting.utils.MPPointF
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.color.MaterialColors
 import me.zhanghai.android.files.R
@@ -45,6 +49,10 @@ import java.util.Locale
 /** Draws [StorageInsights]: fixed layout, real numbers only, motion that settles quickly. */
 class AnalysisDashboard(
     private val binding: AnalysisOverviewBinding,
+    /** What is picked in the charts; kept by the caller, so it survives a rotation. */
+    private val chart: ChartState,
+    /** The picks in [chart] changed, e.g. so "back" can drop them first. */
+    private val onChartChanged: () -> Unit,
     /** A page inside the analysis: a cleanup list, a file kind or a folder. */
     private val onOpen: (AnalysisPage) -> Unit,
     /** Another screen: "trash" or "system" (the app list). */
@@ -61,34 +69,92 @@ class AnalysisDashboard(
     private fun size(bytes: Long) = bytes.asFileSize().formatHumanReadable(context)
     private fun dp(value: Int) = (value * density).toInt()
 
-    fun bind(insights: StorageInsights, folders: List<FolderSize>, root: String) {
-        // Tablets: a centred column of comfortable width instead of cards stretched edge to edge.
-        val column = binding.overviewScroll.getChildAt(0)
-        val side = ((context.resources.displayMetrics.widthPixels - 720 * density) / 2).coerceAtLeast(16 * density).toInt()
-        column.setPadding(side, column.paddingTop, side, column.paddingBottom)
-        bindUsage(insights)
-        bindFiles(insights)
-        bindCleanup(insights)
-        bindSuggestions(insights)
-        bindFolders(folders, root, insights.own)
-        bindGrowth(insights)
-        listOf(binding.usageCard, binding.filesCard, binding.cleanupCard, binding.suggestionCard, binding.folderCard,
-            binding.growthCard)
-            .filter { it.visibility == View.VISIBLE }
-            .forEachIndexed { i, card -> card.rise(70L * i) }
+    private lateinit var insights: StorageInsights
+    private var root = ""
+    private var parts: List<AnalysisChart.Part> = emptyList()
+    private val kindRows = HashMap<String, View>()
+    private var mapItems: List<TreemapView.Item> = emptyList()
+
+    /** [fromScan] is true when the scan view is about to turn into the ring, which then needs no entrance of its own. */
+    fun bind(insights: StorageInsights, folders: List<FolderSize>, root: String, fromScan: Boolean = false) {
+        this.insights = insights
+        this.root = root
+        arrange(folders.count { it.size > 0 })
+        val cards = listOf(
+            binding.usageCard to { bindUsage(insights) }, binding.filesCard to { bindFiles(fromScan) },
+            binding.cleanupCard to { bindCleanup(insights) }, binding.suggestionCard to { bindSuggestions(insights) },
+            binding.folderCard to { bindFolders(folders, root, insights.own) },
+            binding.growthCard to { bindGrowth(insights) }
+        )
+        val pass = ++passes
+        if (!animate) return cards.forEach { it.second() }
+        // One card per frame after the first two: all six at once is a frame the eye can see, just when the scan's
+        // ring takes off. The first two go together because that ring needs to know where it lands.
+        cards.forEach { it.first.alpha = 0f }
+        fun step(index: Int) {
+            if (pass != passes || index >= cards.size) return
+            val (card, fill) = cards[index]
+            fill()
+            if (card.visibility == View.VISIBLE) card.rise(60L * index)
+            if (index == 0) step(1) else binding.root.postOnAnimation { step(index + 1) }
+        }
+        step(0)
+    }
+
+    // A newer bind takes over from one that is still filling its cards.
+    private var passes = 0
+
+    /**
+     * Wide screens use their whole width like the home screen: two columns of cards, 16 dp to the edge and 8 dp
+     * between. Where a card is wide enough, its chart stands next to its rows instead of above them.
+     */
+    private fun arrange(folderCount: Int) {
+        val width = context.resources.displayMetrics.widthPixels / density
+        if (width < WIDE_DP) return
+        binding.columnB.isVisible(true)
+        val beside = (width - 2 * 16 - 8) / 2 - 2 * 20 >= BESIDE_DP
+        // Roughly how tall each column gets, in dp, to give the last card to the shorter one.
+        val kinds = insights.usage.count { it.first != StorageInsights.KIND_SYSTEM && it.second > 0 }
+        val rows = minOf(folderCount, 7)
+        val map = insights.tiles.size > 1
+        val left = 300 + 60 + if (beside) maxOf(280, kinds * 56) else 268 + kinds * 56
+        val right = 110 + insights.cleanup.count { it.second > 0 } * 48 +
+            (if (insights.suggestions.isEmpty()) 0 else 60 + insights.suggestions.size * 64) +
+            60 + if (beside) maxOf(if (map) 360 else 0, rows * 56) else (if (map) 284 else 0) + rows * 56
+        val second = listOf(binding.cleanupCard, binding.suggestionCard, binding.folderCard) +
+            listOfNotNull(binding.growthCard.takeIf { right < left })
+        for (card in second) {
+            if (card.parent === binding.columnB) continue
+            (card.parent as ViewGroup).removeView(card)
+            binding.columnB.addView(card)
+        }
+        if (right >= left && binding.growthCard.parent !== binding.columnA) {
+            binding.columnB.removeView(binding.growthCard)
+            binding.columnA.addView(binding.growthCard)
+        }
+        for (card in listOf(binding.usageCard, binding.filesCard, binding.cleanupCard, binding.suggestionCard,
+            binding.folderCard, binding.growthCard)) {
+            (card.layoutParams as ViewGroup.MarginLayoutParams).bottomMargin = dp(8)
+        }
+        binding.filesChart.layoutParams = if (beside) {
+            binding.filesBody.orientation = LinearLayout.HORIZONTAL
+            binding.filesList.layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
+                .apply { marginStart = dp(20) }
+            LinearLayout.LayoutParams(dp(280), dp(280))
+        } else {
+            LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(260)).apply { topMargin = dp(8) }
+        }
+        if (beside) {
+            binding.folderBody.orientation = LinearLayout.HORIZONTAL
+            binding.folderMapBlock.layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
+            binding.folderMap.layoutParams.height = dp(300)
+            binding.folderList.layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
+                .apply { marginStart = dp(20); topMargin = dp(4) }
+        }
     }
 
     private fun kindLabel(kind: String) = kindLabel(context, kind)
 
-    // Icon and colour of the matching home category, so a type looks the same everywhere.
-    private fun categoryOf(kind: String) = when (kind) {
-        "image" -> HomeCategory.IMAGES
-        "audio" -> HomeCategory.AUDIO
-        "document" -> HomeCategory.DOCUMENTS
-        "video" -> HomeCategory.VIDEOS
-        "apps" -> HomeCategory.APKS
-        else -> null
-    }
 
     // ---- Usage: your files, system and free as one bar -----------------------------------------
 
@@ -247,28 +313,131 @@ class AnalysisDashboard(
 
     // ---- Your files by type --------------------------------------------------------------------
 
-    private fun bindFiles(insights: StorageInsights) {
+    private fun bindFiles(fromScan: Boolean) {
         val own = insights.own
         val kinds = insights.usage.filter { it.first != StorageInsights.KIND_SYSTEM && it.second > 0 }
-            .sortedByDescending { it.second }
         binding.filesCard.isVisible(kinds.isNotEmpty())
-        binding.filesSubtitle.text = context.getString(R.string.analysis_files_subtitle, size(own))
         binding.filesList.removeAllViews()
-        kinds.forEachIndexed { i, (kind, bytes) ->
-            val category = categoryOf(kind)
-            val row = meterRow(category?.iconRes ?: R.drawable.file_icon_white_24dp,
-                category?.colorRes ?: R.color.chart_system, kindLabel(kind), bytes, own)
+        kindRows.clear()
+        // The rows are the ring's legend: same colour, the name and the real numbers, largest first.
+        kinds.sortedByDescending { it.second }.forEachIndexed { i, (kind, bytes) ->
+            val row = meterRow(kindIcon(kind), kindColor(kind),
+                kindLabel(kind), bytes, own)
             binding.filesList.addView(row)
             row.clickable { onOpen(AnalysisPage.Kind(kind)) }
             row.rise(200L + 40L * i)
+            kindRows[kind] = row
         }
+        binding.filesChart.onSelect = { slice ->
+            chart.kind = slice?.key
+            showPick()
+            onChartChanged()
+        }
+        binding.filesChart.onOpen = { slice ->
+            if (slice.key == AnalysisChart.OTHERS) drill(true) else onOpen(AnalysisPage.Kind(slice.key))
+        }
+        binding.filesChart.onCenterClick = { if (chart.drilled) drill(false) }
+        showRing(entrance = !fromScan)
+        // The scan's ring is on its way here; this one waits for it.
+        if (fromScan) binding.filesChart.await()
+    }
+
+    // The merged small types open up into a ring of their own, and the centre leads back.
+    private fun drill(into: Boolean) {
+        chart.drilled = into
+        chart.kind = null
+        showRing(entrance = true)
+        onChartChanged()
+    }
+
+    private fun showRing(entrance: Boolean) {
+        val kinds = insights.usage.filter { it.first != StorageInsights.KIND_SYSTEM }
+        val all = AnalysisChart.slices(kinds)
+        val small = all.firstOrNull { it.key == AnalysisChart.OTHERS }
+        if (small == null) chart.drilled = false
+        parts = if (chart.drilled) AnalysisChart.slices(kinds.filter { it.first in small!!.members }, minShare = 0.0) else all
+        if (parts.none { it.key == chart.kind }) chart.kind = null
+        binding.filesChart.setSlices(parts.map { part ->
+            DonutView.Slice(part.key, part.value,
+                (part.members.ifEmpty { listOf(part.key) }).map { color(kindColor(it)) }.toIntArray(),
+                "${partLabel(part)}, ${size(part.value)}, ${StorageInsights.share(part.value, insights.own)}")
+        }, entrance)
+        binding.filesChart.select(chart.kind)
+        showPick()
+    }
+
+    private fun partLabel(part: AnalysisChart.Part) =
+        if (part.key == AnalysisChart.OTHERS) context.resources.getQuantityString(R.plurals.analysis_chart_small_types,
+            part.members.size, part.members.size)
+        else kindLabel(part.key)
+
+    // The centre names what is picked, and its rows stay bright while the others step back.
+    private fun showPick() {
+        val part = parts.firstOrNull { it.key == chart.kind }
+        val share = part?.let { StorageInsights.share(it.value, insights.own) }
+        binding.filesChart.setCenter(when {
+            part != null -> DonutView.Center(partLabel(part), size(part.value), "$share · " + context.getString(
+                if (part.key == AnalysisChart.OTHERS) R.string.analysis_chart_show_each else R.string.analysis_view) + " ›")
+            chart.drilled -> DonutView.Center(
+                context.resources.getQuantityString(R.plurals.analysis_chart_small_types, parts.size, parts.size),
+                size(parts.sumOf { it.value }), "‹ " + context.getString(R.string.analysis_chart_all_types))
+            else -> DonutView.Center(context.resources.getQuantityString(R.plurals.analysis_file_count,
+                insights.fileCount, insights.fileCount), size(insights.own))
+        })
+        val bright = when {
+            part != null -> part.members.ifEmpty { listOf(part.key) }
+            chart.drilled -> parts.map { it.key }
+            else -> null
+        }
+        for ((kind, row) in kindRows) {
+            row.animate().cancel()
+            row.translationY = 0f   // the cancel may stop a rise halfway
+            val alpha = if (bright == null || kind in bright) 1f else 0.4f
+            if (animate && row.isShown) row.animate().alpha(alpha).setStartDelay(0).setDuration(160).start() else row.alpha = alpha
+        }
+    }
+
+    /**
+     * The ring as the scan view's slots: degrees and colours per file type in [StorageInsights.KINDS] order, then
+     * the merged small types. With this the scan's ring can end as exactly this one.
+     */
+    fun ringSlots(): Pair<FloatArray, Array<IntArray>> {
+        val keys = StorageInsights.KINDS + AnalysisChart.OTHERS
+        val sweeps = FloatArray(keys.size)
+        val colors = Array(keys.size) { intArrayOf(color(kindColor(keys[it]))) }
+        parts.forEachIndexed { i, part ->
+            val slot = keys.indexOf(part.key)
+            sweeps[slot] = binding.filesChart.drawnSweeps[i]
+            colors[slot] = binding.filesChart.drawnColors[i]
+        }
+        return sweeps to colors
+    }
+
+    /** Drops what is picked in the charts, the newest pick first; false when there was nothing. */
+    fun clearPick(): Boolean {
+        when {
+            chart.tile != null -> {
+                chart.tile = null
+                binding.folderMap.select(null)
+                showTile()
+            }
+            chart.kind != null -> {
+                chart.kind = null
+                binding.filesChart.select(null)
+                showPick()
+            }
+            chart.drilled -> drill(false)
+            else -> return false
+        }
+        onChartChanged()
+        return true
     }
 
     // ---- Cleanup -----------------------------------------------------------------------------
 
     private fun bindCleanup(insights: StorageInsights) {
-        val colors = mapOf("duplicates" to R.color.chart_image, "apks" to R.color.chart_apps,
-            "trash" to R.color.chart_document)
+        val colors = mapOf("duplicates" to R.color.chart_cleanup_duplicates, "apks" to R.color.chart_cleanup_apks,
+            "trash" to R.color.chart_cleanup_trash)
         val items = insights.cleanup.filter { it.second > 0 }
         val (safe, review) = items.partition { it.first in StorageInsights.SAFE }
         binding.cleanupHeadline.text = context.getString(
@@ -349,7 +518,6 @@ class AnalysisDashboard(
     // ---- Biggest folders ---------------------------------------------------------------------
 
     private fun bindFolders(folders: List<FolderSize>, root: String, own: Long) {
-        // Ranked bars read on a phone even when one folder holds most of the data; a treemap did not.
         val sorted = folders.filter { it.size > 0 }.sortedByDescending { it.size }
         val top = sorted.take(6)
         val rest = sorted.drop(6)
@@ -369,12 +537,75 @@ class AnalysisDashboard(
                 context.resources.getQuantityString(R.plurals.analysis_treemap_more, rest.size, rest.size),
                 rest.sumOf { it.size }, own)
             binding.folderList.addView(row)
-            // All folders are one tap away in their own tab.
+            // All folders are one tap away on their own page.
             row.clickable { onOpen(AnalysisPage.Cleanup("folders")) }
             row.rise(200L + 40L * top.size)
         }
+        bindMap(own)
     }
 
+    // The map goes deeper than the rows: it shows where inside the big folders the space is.
+    private fun bindMap(own: Long) {
+        val tiles = insights.tiles
+        // One tile alone is no picture; the rows say it better.
+        val show = tiles.size > 1
+        binding.folderMap.isVisible(show)
+        binding.folderPick.isVisible(show)
+        if (!show) {
+            chart.tile = null
+            return
+        }
+        val areas = AnalysisChart.extents(tiles.map { it.size }, 1f, AnalysisChart.MIN_TILE_AREA)
+        mapItems = tiles.mapIndexed { i, tile ->
+            val share = StorageInsights.share(tile.size, own)
+            TreemapView.Item(tile.path, tileLabel(tile, short = true), size(tile.size), areas[i],
+                tile.size.toFloat() / own.coerceAtLeast(1), "${tileLabel(tile, short = false)}, ${size(tile.size)}, $share")
+        }
+        if (mapItems.none { it.key == chart.tile }) chart.tile = null
+        binding.folderMap.setItems(mapItems, entrance = true)
+        binding.folderMap.onSelect = { item ->
+            chart.tile = item?.key
+            showTile()
+            onChartChanged()
+        }
+        binding.folderMap.onOpen = { openTile(it.key) }
+        binding.folderMap.select(chart.tile)
+        showTile()
+    }
+
+    /** A tile's name: the folder alone on the tile ([short]), the way to it below the map and for TalkBack. */
+    private fun tileLabel(tile: AnalysisChart.Tile, short: Boolean): String {
+        if (tile.path.isEmpty()) {
+            return context.resources.getQuantityString(R.plurals.analysis_treemap_more, tile.count, tile.count)
+        }
+        val path = tile.path.removePrefix(root).trim('/')
+        if (path.isEmpty()) return context.getString(R.string.analysis_tile_loose)
+        val name = if ('/' in path) path.substringAfterLast('/') else folderLabel(context, path)
+        val label = if (short) name else path.replace("/", " › ")
+        return if (tile.direct) context.getString(R.string.analysis_tile_direct, label) else label
+    }
+
+    private fun openTile(key: String) =
+        onOpen(if (key.isEmpty()) AnalysisPage.Cleanup("folders") else AnalysisPage.Folder(key))
+
+    // Below the map: what the marked tile is, as a row that opens it; a hint while nothing is marked.
+    private fun showTile() {
+        val index = mapItems.indexOfFirst { it.key == chart.tile }
+        binding.folderPick.removeAllViews()
+        if (index < 0) {
+            binding.folderPick.addView(label(context.getString(R.string.analysis_map_hint), primary = false).apply {
+                gravity = Gravity.CENTER_VERTICAL
+                minimumHeight = dp(48)
+                importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_YES
+            })
+            return
+        }
+        val tile = insights.tiles[index]
+        val row = legendRow(color(R.color.ai_accent), tileLabel(tile, short = false), size(tile.size),
+            StorageInsights.share(tile.size, insights.own))
+        binding.folderPick.addView(row)
+        row.clickable { openTile(tile.path) }
+    }
 
     // ---- Growth ------------------------------------------------------------------------------
 
@@ -388,7 +619,9 @@ class AnalysisDashboard(
         val set = BarDataSet(months.mapIndexed { i, (_, bytes) -> BarEntry(i.toFloat(), bytes / 1e6f) }, "").apply {
             barCornerRadius = 7f
             isDrawValuesEnabled = false
-            highlightAlpha = 0
+            // A tapped month dims a little under its marker.
+            highlightAlpha = 70
+            highlightColor = text
             // Older months recede, the current one carries the accent: one hue, change over time.
             fills = months.indices.map { i ->
                 if (i == months.lastIndex) Fill(glow, accent)
@@ -401,7 +634,12 @@ class AnalysisDashboard(
             isScaleEnabled = false
             isDragEnabled = false
             isDoubleTapToZoomEnabled = false
-            isHighlightPerTapEnabled = false
+            isHighlightPerTapEnabled = true
+            isHighlightPerDragEnabled = false
+            marker = GrowthMarker(context) { index ->
+                val (year, month) = months[index].first.split("-")
+                "${DateFormatSymbols.getInstance(Locale.getDefault()).months[month.toInt() - 1]} $year · ${size(months[index].second)}"
+            }.also { it.chartView = this }
             xAxis.apply {
                 position = XAxis.XAxisPosition.BOTTOM
                 isDrawGridLinesEnabled = false
@@ -446,7 +684,66 @@ class AnalysisDashboard(
             .setInterpolator(PathInterpolator(0.2f, 0f, 0f, 1f)).start()
     }
 
+    /** A month's name and size above the bar that was tapped. */
+    private class GrowthMarker(context: Context, private val text: (Int) -> String) :
+        MarkerView(context, R.layout.analysis_growth_marker) {
+        private val label = findViewById<TextView>(R.id.markerText)
+
+        override fun refreshContent(e: Entry<*>, highlight: Highlight) {
+            label.text = text(e.x.toInt())
+            super.refreshContent(e, highlight)
+        }
+
+        // Centred over the bar, a little above its top.
+        override var offset: MPPointF
+            get() = MPPointF(-width / 2f, -height - 6 * resources.displayMetrics.density)
+            set(_) {}
+    }
+
     companion object {
+        /** From this width in dp on, the overview has two columns. */
+        const val WIDE_DP = 840
+
+        /** A chart stands next to its rows when the inside of its card is at least this wide, in dp. */
+        const val BESIDE_DP = 560
+
+        /** The icon of a file type: the one of the matching home category, so a type has one sign everywhere. */
+        fun kindIcon(kind: String): Int = when (kind) {
+            "image" -> HomeCategory.IMAGES
+            "audio" -> HomeCategory.AUDIO
+            "document" -> HomeCategory.DOCUMENTS
+            "video" -> HomeCategory.VIDEOS
+            "apps" -> HomeCategory.APKS
+            else -> null
+        }?.iconRes ?: R.drawable.file_icon_white_24dp
+
+        /** A type's icon in its colour on a tinted circle, for the top bar of its page. */
+        fun kindBadge(context: Context, kind: String): android.graphics.drawable.Drawable {
+            val density = context.resources.displayMetrics.density
+            val color = ContextCompat.getColor(context, kindColor(kind))
+            val circle = GradientDrawable().apply {
+                shape = GradientDrawable.OVAL
+                setColor(androidx.core.graphics.ColorUtils.setAlphaComponent(color, 0x26))
+            }
+            val icon = ContextCompat.getDrawable(context, kindIcon(kind))!!.mutate().apply { setTint(color) }
+            val pad = (8 * density).toInt()
+            return android.graphics.drawable.LayerDrawable(arrayOf(circle, icon)).apply {
+                setLayerInset(1, pad, pad, pad, pad)
+                setLayerSize(0, (36 * density).toInt(), (36 * density).toInt())
+                setLayerSize(1, (20 * density).toInt(), (20 * density).toInt())
+            }
+        }
+
+        /** The colour of a file type in the ring, its legend rows and the scan view. */
+        fun kindColor(kind: String): Int = when (kind) {
+            "image" -> R.color.chart_kind_image
+            "audio" -> R.color.chart_kind_audio
+            "document" -> R.color.chart_kind_document
+            "video" -> R.color.chart_kind_video
+            "apps" -> R.color.chart_kind_apps
+            else -> R.color.chart_kind_other
+        }
+
         fun kindLabel(context: Context, kind: String): String = context.getString(
             when (kind) {
                 "image" -> R.string.analysis_kind_image

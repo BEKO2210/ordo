@@ -829,11 +829,6 @@
     <string name="navigation_analysis">Speicher analysieren</string>
     <string name="analysis_title">Speicher analysieren</string>
     <string name="analysis_tab_folders">Ordner</string>
-    <plurals name="analysis_progress_scanning">
-        <item quantity="one">Suche läuft… %1$d Datei gefunden</item>
-        <item quantity="other">Suche läuft… %1$d Dateien gefunden</item>
-    </plurals>
-    <string name="analysis_progress_duplicates">Suche nach Duplikaten…</string>
     <string name="analysis_empty">Hier wurde nichts gefunden</string>
     <plurals name="analysis_duplicate_header_format">
         <item quantity="one">%1$d Kopie · %2$s lässt sich freigeben</item>

@@ -31,8 +31,8 @@
     <string name="analysis_suggestion_download_apks">Installationsdateien (APK) in Download</string>
     <string name="analysis_suggestion_download_apks_command">Lösche die APK-Dateien in Download</string>
     <plurals name="analysis_suggestion_detail">
-        <item quantity="one">%1$d Datei · %2$s</item>
-        <item quantity="other">%1$d Dateien · %2$s</item>
+        <item quantity="one">%1$,d Datei · %2$s</item>
+        <item quantity="other">%1$,d Dateien · %2$s</item>
     </plurals>
     <string name="analysis_preview">Vorschau</string>
     <string name="analysis_treemap_title">Wo dein Speicher liegt</string>
@@ -44,7 +44,6 @@
         <item quantity="other">%d weitere Ordner</item>
     </plurals>
     <string name="analysis_kind_mine">Deine Dateien</string>
-    <string name="analysis_files_subtitle">%s · Art antippen, um die Dateien zu sehen</string>
     <string name="analysis_cleanup_safe_none">Keine Kopien, Installer oder Papierkorb-Reste</string>
     <string name="analysis_cleanup_review">Lohnt einen Blick</string>
     <string name="analysis_folder_apps">App-Dateien (%s)</string>
@@ -56,11 +55,27 @@
     <string name="analysis_share_of_files">%s deiner Dateien</string>
     <string name="analysis_share_of_folder">%1$s von %2$s</string>
     <plurals name="analysis_folder_count">
-        <item quantity="one">%d Ordner</item>
-        <item quantity="other">%d Ordner</item>
+        <item quantity="one">%,d Ordner</item>
+        <item quantity="other">%,d Ordner</item>
     </plurals>
     <plurals name="analysis_file_count">
-        <item quantity="one">%d Datei</item>
-        <item quantity="other">%d Dateien</item>
+        <item quantity="one">%,d Datei</item>
+        <item quantity="other">%,d Dateien</item>
+    </plurals>
+    <string name="analysis_files_subtitle">Ring antippen für Details, Zeile für die Dateien</string>
+    <string name="analysis_scan_walking">Speicher wird gelesen</string>
+    <string name="analysis_scan_comparing">Duplikate werden gesucht</string>
+    <string name="analysis_chart_show_each">Einzeln zeigen</string>
+    <string name="analysis_chart_all_types">Alle Arten</string>
+    <string name="analysis_tile_loose">Einzelne Dateien</string>
+    <string name="analysis_tile_direct">Dateien in %s</string>
+    <string name="analysis_map_hint">Kachel antippen für Details</string>
+    <plurals name="analysis_scan_files">
+        <item quantity="one">Datei</item>
+        <item quantity="other">Dateien</item>
+    </plurals>
+    <plurals name="analysis_chart_small_types">
+        <item quantity="one">%d kleinere Art</item>
+        <item quantity="other">%d kleinere Arten</item>
     </plurals>
 </resources>

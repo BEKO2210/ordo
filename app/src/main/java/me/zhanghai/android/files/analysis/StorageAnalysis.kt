@@ -26,24 +26,46 @@ class DuplicateGroup(val files: List<ScannedFile>) {
 
 class FolderSize(val path: String, val size: Long)
 
+/**
+ * What a running scan knows so far. [kinds] are bytes per [StorageInsights.KINDS] entry and [folder] is where the
+ * walk is, relative to the storage. [compared] is the share of duplicate candidates checked, below 0 while the
+ * walk is still running.
+ */
+class ScanProgress(val files: Int, val bytes: Long, val kinds: LongArray, val folder: String, val compared: Float = -1f)
+
 object StorageAnalysis {
     const val LARGE_FILE_SIZE = 50L * 1024 * 1024
     const val OLD_FILE_DAYS = 180
     private const val PARTIAL_HASH_SIZE = 64 * 1024
+    private const val PROGRESS_INTERVAL_NANOS = 50_000_000L
 
     // Walks the volume with java.io.File; unreadable folders (e.g. Android/data on 11+) are skipped.
-    fun scan(root: File, isCancelled: () -> Boolean, onProgress: (Int) -> Unit): List<ScannedFile> {
+    // Progress is reported by the clock, so the screen moves evenly on a fast and on a slow storage.
+    fun scan(root: File, isCancelled: () -> Boolean, onProgress: (ScanProgress) -> Unit): List<ScannedFile> {
         val files = mutableListOf<ScannedFile>()
         val trash = File(root, Trash.DIRECTORY_NAME)
+        val kinds = LongArray(StorageInsights.KINDS.size)
+        var bytes = 0L
+        var reported = 0L
+        fun report(file: File) = onProgress(
+            ScanProgress(files.size, bytes, kinds.clone(), file.parent.orEmpty().removePrefix(root.path).trim('/'))
+        )
         root.walkTopDown()
             .onEnter { it != trash && !isCancelled() }
             .filter { it.isFile }
             .forEach {
-                files += ScannedFile(it.path, it.length(), it.lastModified())
-                if (files.size % 500 == 0) {
-                    onProgress(files.size)
+                val size = it.length()
+                files += ScannedFile(it.path, size, it.lastModified())
+                bytes += size
+                kinds[StorageInsights.KINDS.indexOf(StorageInsights.kindOf(it.path))] += size
+                val now = System.nanoTime()
+                if (now - reported >= PROGRESS_INTERVAL_NANOS) {
+                    reported = now
+                    report(it)
                 }
             }
+        // The last numbers are the real ones, whatever the clock said; a cancelled scan reports nothing more.
+        if (!isCancelled()) onProgress(ScanProgress(files.size, bytes, kinds.clone(), ""))
         return files
     }
 
@@ -79,14 +101,25 @@ object StorageAnalysis {
         files: List<ScannedFile>,
         partialHash: (ScannedFile) -> String? = { hash(it, PARTIAL_HASH_SIZE.toLong()) },
         fullHash: (ScannedFile) -> String? = { hash(it, Long.MAX_VALUE) },
-        isCancelled: () -> Boolean = { false }
-    ): List<DuplicateGroup> =
-        files.filter { !it.isHidden && it.size > 0 }
+        isCancelled: () -> Boolean = { false },
+        /** Called with the share of same-size groups that are checked, 0 to 1. */
+        onProgress: (Float) -> Unit = {}
+    ): List<DuplicateGroup> {
+        val candidates = files.filter { !it.isHidden && it.size > 0 }
             .groupBy { it.size }.values.filter { it.size > 1 }
+        var done = 0
+        var reported = 0L
+        val groups = candidates
             .flatMap { sameSize ->
                 if (isCancelled()) {
                     return@flatMap emptyList()
                 }
+                val now = System.nanoTime()
+                if (now - reported >= PROGRESS_INTERVAL_NANOS) {
+                    reported = now
+                    onProgress(done.toFloat() / candidates.size)
+                }
+                done++
                 sameSize.groupByNotNull(partialHash).values.filter { it.size > 1 }
                     .flatMap { candidates ->
                         if (candidates.first().size <= PARTIAL_HASH_SIZE) {
@@ -98,6 +131,9 @@ object StorageAnalysis {
             }
             .map { group -> DuplicateGroup(group.sortedByDescending { it.lastModified }) }
             .sortedByDescending { it.wastedSize }
+        if (!isCancelled()) onProgress(1f)
+        return groups
+    }
 
     fun allButNewest(groups: List<DuplicateGroup>): List<ScannedFile> =
         groups.flatMap { it.files.drop(1) }
