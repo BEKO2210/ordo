@@ -6,6 +6,7 @@
 package me.zhanghai.android.files.ai
 
 import android.app.Activity
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
@@ -20,7 +21,7 @@ import org.junit.Test
 
 class AiUnlockTest {
     private class FakeGateway : BillingGateway {
-        override val updates = MutableSharedFlow<List<StorePurchase>>(extraBufferCapacity = 8)
+        override val updates = MutableSharedFlow<PurchaseUpdate>(extraBufferCapacity = 8)
         var owned: List<StorePurchase>? = emptyList()
         var offeredPrice: String? = "0,99 €"
         var queries = 0
@@ -155,7 +156,7 @@ class AiUnlockTest {
     @Test
     fun aPurchaseFromTheDialogUnlocks() = runBlocking {
         val unlock = unlock()
-        gateway.updates.emit(listOf(purchase(StorePurchase.State.PURCHASED)))
+        gateway.updates.emit(PurchaseUpdate(PurchaseUpdate.Code.OK, listOf(purchase(StorePurchase.State.PURCHASED))))
         assertTrue(unlock.unlocked)
         assertEquals(true, stored)
         assertEquals(listOf("token-PURCHASED"), gateway.acknowledged)
@@ -164,7 +165,7 @@ class AiUnlockTest {
     @Test
     fun aCancelledDialogChangesNothing() = runBlocking {
         val unlock = unlock()
-        gateway.updates.emit(emptyList())
+        gateway.updates.emit(PurchaseUpdate(PurchaseUpdate.Code.CANCELLED))
         assertEquals(AiUnlockState.Checking, unlock.state.value)
         assertNull(stored)
     }
@@ -181,5 +182,62 @@ class AiUnlockTest {
         unlock.refresh()
         assertEquals(2, gateway.queries)
         assertTrue(unlock.unlocked)
+    }
+
+    @Test
+    fun aCancelledLaunchReleasesTheBuyButton() = runBlocking {
+        val unlock = unlock()
+        unlock.refresh()
+        val never = CompletableDeferred<LaunchResult>()
+        unlock.buy { never.await() }
+        assertTrue(unlock.busy.value)
+        // Like the app scope going away while Google Play still answers.
+        scope.cancel()
+        assertFalse(unlock.busy.value)
+    }
+
+    @Test
+    fun aStartedDialogStaysBusyUntilItAnswers() = runBlocking {
+        val unlock = unlock()
+        unlock.refresh()
+        unlock.buy { LaunchResult.Started }
+        assertTrue(unlock.busy.value)
+        unlock.buy { error("a second dialog must not open") }
+        gateway.updates.emit(PurchaseUpdate(PurchaseUpdate.Code.CANCELLED))
+        assertFalse(unlock.busy.value)
+        assertFalse(unlock.failed.value)
+    }
+
+    @Test
+    fun aFailedPurchaseIsShownOnceAndClearedByTheNextTry() = runBlocking {
+        val unlock = unlock()
+        unlock.refresh()
+        unlock.buy { LaunchResult.Failed }
+        assertTrue(unlock.failed.value)
+        assertFalse(unlock.busy.value)
+        unlock.buy { LaunchResult.Started }
+        assertFalse(unlock.failed.value)
+        gateway.updates.emit(PurchaseUpdate(PurchaseUpdate.Code.ERROR))
+        assertTrue(unlock.failed.value)
+        assertFalse(unlock.busy.value)
+    }
+
+    @Test
+    fun aChangedPriceIsShownBeforeBuying() = runBlocking {
+        val unlock = unlock()
+        unlock.refresh()
+        unlock.buy { LaunchResult.PriceChanged("1,09 €") }
+        assertEquals(AiUnlockState.Offer("1,09 €"), unlock.state.value)
+        assertFalse(unlock.busy.value)
+    }
+
+    @Test
+    fun alreadyOwnedAsksGooglePlayAgain() = runBlocking {
+        val unlock = unlock()
+        unlock.refresh()
+        gateway.owned = listOf(purchase(StorePurchase.State.PURCHASED, acknowledged = true))
+        gateway.updates.emit(PurchaseUpdate(PurchaseUpdate.Code.ALREADY_OWNED))
+        assertTrue(unlock.unlocked)
+        assertEquals(2, gateway.queries)
     }
 }

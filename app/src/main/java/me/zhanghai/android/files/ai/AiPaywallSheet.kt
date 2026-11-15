@@ -21,6 +21,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import me.zhanghai.android.files.BuildConfig
@@ -37,7 +38,9 @@ class AiPaywallSheet : BottomSheetDialogFragment() {
     private val binding get() = _binding!!
 
     private val unlock get() = AiUnlock.instance
-    private var restoring = false
+    private var supported = true
+    // "No purchase found" after a restore, until the next tap.
+    private var notFound = false
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, state: Bundle?): View {
         _binding = AiPaywallSheetBinding.inflate(inflater, container, false)
@@ -49,18 +52,16 @@ class AiPaywallSheet : BottomSheetDialogFragment() {
         binding.downloadText.text = getString(R.string.ai_paywall_download,
             Formatter.formatShortFileSize(context, CommandModel.SIZE))
         binding.buyButton.setOnClickListener {
-            viewLifecycleOwner.lifecycleScope.launch { unlock.buy(requireActivity()) }
+            notFound = false
+            unlock.buy(requireActivity())
         }
         binding.restoreButton.setOnClickListener {
-            restoring = true
-            binding.statusText.isVisible = false
+            binding.restoreButton.isEnabled = false
             viewLifecycleOwner.lifecycleScope.launch {
                 unlock.refresh()
-                if (restoring && unlock.state.value is AiUnlockState.Offer) {
-                    binding.statusText.setText(R.string.ai_paywall_not_found)
-                    binding.statusText.isVisible = true
-                }
-                restoring = false
+                notFound = unlock.state.value is AiUnlockState.Offer
+                binding.restoreButton.isEnabled = true
+                bind()
             }
         }
         binding.notNowButton.setOnClickListener { dismiss() }
@@ -83,10 +84,10 @@ class AiPaywallSheet : BottomSheetDialogFragment() {
         }
         // Only phones that can run the model may buy it: free space can be made, RAM and a 64-bit CPU cannot.
         val check = CommandModel.check(context)
-        val supported = check.ramOk && check.is64Bit
+        supported = check.ramOk && check.is64Bit
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                unlock.state.collect { bind(it, supported) }
+                combine(unlock.state, unlock.busy, unlock.failed) { _, _, _ -> }.collect { bind() }
             }
         }
     }
@@ -114,27 +115,32 @@ class AiPaywallSheet : BottomSheetDialogFragment() {
         _binding = null
     }
 
-    private fun bind(state: AiUnlockState, supported: Boolean) {
+    private fun bind() {
+        val state = unlock.state.value
         if (state == AiUnlockState.Unlocked) {
             openAi()
             return
         }
+        val offer = state as? AiUnlockState.Offer
         val status = when {
             state == AiUnlockState.Pending -> R.string.ai_paywall_pending
             state == AiUnlockState.Unavailable -> R.string.ai_paywall_unavailable
             !supported -> R.string.ai_paywall_unsupported
+            unlock.failed.value -> R.string.ai_paywall_failed
+            notFound && offer != null -> R.string.ai_paywall_not_found
             else -> null
         }
-        if (status != null || !restoring) {
-            binding.statusText.isVisible = status != null
-            status?.let { binding.statusText.text = getString(it,
-                Formatter.formatShortFileSize(requireContext(), CommandModel.MIN_RAM)) }
+        binding.statusText.isVisible = status != null
+        status?.let { binding.statusText.text = getString(it,
+            Formatter.formatShortFileSize(requireContext(), CommandModel.MIN_RAM)) }
+        val busy = unlock.busy.value
+        binding.buyButton.isVisible = supported && (offer != null || state == AiUnlockState.Checking)
+        binding.buyButton.isEnabled = offer != null && !busy
+        binding.buyButton.text = when {
+            busy -> getString(R.string.ai_paywall_opening)
+            offer != null -> getString(R.string.ai_paywall_buy, offer.price)
+            else -> getString(R.string.ai_paywall_checking)
         }
-        binding.buyButton.isVisible = status == null
-        binding.buyButton.isEnabled = state is AiUnlockState.Offer
-        binding.buyButton.text = if (state is AiUnlockState.Offer) {
-            getString(R.string.ai_paywall_buy, state.price)
-        } else getString(R.string.ai_paywall_checking)
     }
 
     private fun confirmRemoveModel(size: String) {

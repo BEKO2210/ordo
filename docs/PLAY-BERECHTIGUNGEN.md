@@ -33,6 +33,7 @@ Zeichenlimits der Formularfelder: **nicht geprüft**.
 | `WAKE_LOCK` | — |
 | `WRITE_EXTERNAL_STORAGE` | `android:maxSdkVersion="32"` |
 | `com.android.launcher.permission.INSTALL_SHORTCUT` | — |
+| `com.android.vending.BILLING` | kommt aus `billing-ktx` ins zusammengeführte Manifest (in der Beta-APK per `aapt2 dump permissions` gesehen, 15.11.2026); nur für die einmalige KI-Freischaltung |
 
 Nicht im Manifest: Standort (`ACCESS_FINE_LOCATION`, `ACCESS_COARSE_LOCATION`, `ACCESS_BACKGROUND_LOCATION`), Fotos/Videos (`READ_MEDIA_IMAGES`, `READ_MEDIA_VIDEO`, `READ_MEDIA_AUDIO`), `READ_EXTERNAL_STORAGE`, USB-Berechtigung, Bluetooth, Kamera, Mikrofon, SMS, Kontakte, `USE_FULL_SCREEN_INTENT`, `SCHEDULE_EXACT_ALARM`, `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS`. Eine Local-Network-Berechtigung ist ebenfalls nicht deklariert. In `app/build.gradle` steht der Kommentar, `ACCESS_LOCAL_NETWORK` werde noch nicht unterstützt, und `targetSdk` bleibt 36.
 

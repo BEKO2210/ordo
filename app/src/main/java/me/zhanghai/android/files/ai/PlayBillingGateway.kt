@@ -27,6 +27,7 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlin.coroutines.resume
 
 /**
@@ -36,16 +37,14 @@ import kotlin.coroutines.resume
  * "not reachable" instead of crashing.
  */
 class PlayBillingGateway(context: Context) : BillingGateway {
-    private val _updates = MutableSharedFlow<List<StorePurchase>>(extraBufferCapacity = 8)
-    override val updates: SharedFlow<List<StorePurchase>> = _updates.asSharedFlow()
+    private val _updates = MutableSharedFlow<PurchaseUpdate>(extraBufferCapacity = 8)
+    override val updates: SharedFlow<PurchaseUpdate> = _updates.asSharedFlow()
     private val connectLock = Mutex()
 
     private val client: BillingClient = BillingClient.newBuilder(context)
         .setListener { result, purchases ->
             // Cancel and error are reported too: only then may a new purchase dialog start.
-            _updates.tryEmit(
-                if (result.responseCode == BillingResponseCode.OK) purchases.orEmpty().map(::toStore) else emptyList()
-            )
+            _updates.tryEmit(update(result.responseCode, purchases.orEmpty().map(::toStore)))
         }
         .enablePendingPurchases(PendingPurchasesParams.newBuilder().enableOneTimeProducts().build())
         .enableAutoServiceReconnection()
@@ -53,16 +52,21 @@ class PlayBillingGateway(context: Context) : BillingGateway {
 
     private suspend fun connected(): Boolean = connectLock.withLock {
         if (client.isReady) return@withLock true
-        suspendCancellableCoroutine { cont ->
-            client.startConnection(object : BillingClientStateListener {
-                override fun onBillingSetupFinished(result: BillingResult) {
-                    if (cont.isActive) cont.resume(result.responseCode == BillingResponseCode.OK)
-                }
+        // A connection that never answers must not keep the paywall at "Checking" forever.
+        withTimeoutOrNull(CONNECT_TIMEOUT_MS) {
+            suspendCancellableCoroutine { cont ->
+                client.startConnection(object : BillingClientStateListener {
+                    override fun onBillingSetupFinished(result: BillingResult) {
+                        if (cont.isActive) cont.resume(result.responseCode == BillingResponseCode.OK)
+                    }
 
-                // Automatic reconnection is on; the next call connects again.
-                override fun onBillingServiceDisconnected() {}
-            })
-        }
+                    // Lost while connecting: "not reachable" now. Automatic reconnection is on for later calls.
+                    override fun onBillingServiceDisconnected() {
+                        if (cont.isActive) cont.resume(false)
+                    }
+                })
+            }
+        } ?: false
     }
 
     override suspend fun purchases(): List<StorePurchase>? {
@@ -108,9 +112,14 @@ class PlayBillingGateway(context: Context) : BillingGateway {
         val params = BillingFlowParams.newBuilder().setProductDetailsParamsList(listOf(product)).build()
         return withContext(Dispatchers.Main) {
             if (activity.isFinishing || activity.isDestroyed) return@withContext LaunchResult.Failed
-            if (client.launchBillingFlow(activity, params).responseCode == BillingResponseCode.OK) {
-                LaunchResult.Started
-            } else LaunchResult.Failed
+            when (client.launchBillingFlow(activity, params).responseCode) {
+                BillingResponseCode.OK -> LaunchResult.Started
+                // Answered like a dialog that reported it, so the full check runs and releases the button.
+                BillingResponseCode.ITEM_ALREADY_OWNED -> LaunchResult.Started.also {
+                    _updates.tryEmit(PurchaseUpdate(PurchaseUpdate.Code.ALREADY_OWNED))
+                }
+                else -> LaunchResult.Failed
+            }
         }
     }
 
@@ -124,6 +133,13 @@ class PlayBillingGateway(context: Context) : BillingGateway {
         }
     }
 
+    private fun update(code: Int, purchases: List<StorePurchase>) = when (code) {
+        BillingResponseCode.OK -> PurchaseUpdate(PurchaseUpdate.Code.OK, purchases)
+        BillingResponseCode.USER_CANCELED -> PurchaseUpdate(PurchaseUpdate.Code.CANCELLED)
+        BillingResponseCode.ITEM_ALREADY_OWNED -> PurchaseUpdate(PurchaseUpdate.Code.ALREADY_OWNED)
+        else -> PurchaseUpdate(PurchaseUpdate.Code.ERROR)
+    }
+
     private fun toStore(purchase: Purchase) = StorePurchase(
         products = purchase.products,
         state = when (purchase.purchaseState) {
@@ -134,4 +150,8 @@ class PlayBillingGateway(context: Context) : BillingGateway {
         acknowledged = purchase.isAcknowledged,
         token = purchase.purchaseToken
     )
+
+    companion object {
+        private const val CONNECT_TIMEOUT_MS = 30_000L
+    }
 }

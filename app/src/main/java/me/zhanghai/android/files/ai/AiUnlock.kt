@@ -9,7 +9,6 @@ import android.app.Activity
 import android.util.Log
 import androidx.fragment.app.FragmentManager
 import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -32,6 +31,11 @@ data class StorePurchase(val products: List<String>, val state: State, val ackno
     enum class State { PURCHASED, PENDING, OTHER }
 }
 
+/** An answer of the purchase dialog; [purchases] only for [Code.OK]. */
+data class PurchaseUpdate(val code: Code, val purchases: List<StorePurchase> = emptyList()) {
+    enum class Code { OK, CANCELLED, ALREADY_OWNED, ERROR }
+}
+
 sealed interface LaunchResult {
     data object Started : LaunchResult
 
@@ -43,8 +47,8 @@ sealed interface LaunchResult {
 
 /** Thin layer over Google Play Billing for [AiUnlock.PRODUCT_ID]. */
 interface BillingGateway {
-    /** Every answer of the purchase dialog (bought, pending, finished later); empty on cancel or error. */
-    val updates: SharedFlow<List<StorePurchase>>
+    /** Every answer of the purchase dialog (bought, pending, finished later, cancelled, failed). */
+    val updates: SharedFlow<PurchaseUpdate>
 
     /** All owned purchases; `null` when Google Play is not reachable. */
     suspend fun purchases(): List<StorePurchase>?
@@ -87,17 +91,27 @@ class AiUnlock(
     private val refreshLock = Mutex()
     // Counts purchase reports for this product; a full check that ran meanwhile is stale.
     private val updateGeneration = AtomicLong(0)
-    // At most one purchase dialog at a time.
-    private val purchaseInFlight = AtomicBoolean(false)
+    private val _busy = MutableStateFlow(false)
+    /** A purchase dialog is opening or open; at most one at a time. */
+    val busy: StateFlow<Boolean> = _busy.asStateFlow()
+    private val _failed = MutableStateFlow(false)
+    /** The last purchase attempt failed (not cancelled); cleared by the next one. */
+    val failed: StateFlow<Boolean> = _failed.asStateFlow()
     private val acknowledging: MutableSet<String> = ConcurrentHashMap.newKeySet()
 
     init {
         scope.launch {
-            gateway.updates.collect { purchases ->
-                purchaseInFlight.set(false)
+            gateway.updates.collect { update ->
+                _busy.value = false
                 // One failing report must not stop the handling of all later ones.
                 try {
-                    apply(purchases, complete = false)
+                    when (update.code) {
+                        PurchaseUpdate.Code.OK -> apply(update.purchases, complete = false)
+                        // Google Play's cache knew the purchase before the app did: ask for the full list.
+                        PurchaseUpdate.Code.ALREADY_OWNED -> refreshLater()
+                        PurchaseUpdate.Code.ERROR -> _failed.value = true
+                        PurchaseUpdate.Code.CANCELLED -> Unit
+                    }
                 } catch (e: CancellationException) {
                     throw e
                 } catch (e: Exception) {
@@ -140,20 +154,29 @@ class AiUnlock(
         }
     }
 
-    suspend fun buy(activity: Activity) {
+    fun buy(activity: Activity) = buy { price -> gateway.launch(activity, price) }
+
+    // Runs in this class's scope, so closing the sheet while Google Play answers does not cancel it halfway.
+    internal fun buy(launch: suspend (expectedPrice: String) -> LaunchResult) {
         val offer = _state.value as? AiUnlockState.Offer ?: return
-        if (!purchaseInFlight.compareAndSet(false, true)) return
-        when (val result = gateway.launch(activity, offer.price)) {
-            // Released by the answer of the purchase dialog.
-            LaunchResult.Started -> Unit
-            is LaunchResult.PriceChanged -> {
-                // Show the new price first; buying needs another deliberate tap.
-                stateLock.withLock {
-                    if (_state.value is AiUnlockState.Offer) _state.value = AiUnlockState.Offer(result.price)
+        if (!_busy.compareAndSet(false, true)) return
+        _failed.value = false
+        scope.launch {
+            var started = false
+            try {
+                when (val result = launch(offer.price)) {
+                    // Then the answer of the purchase dialog releases it.
+                    LaunchResult.Started -> started = true
+                    // Show the new price first; buying needs another deliberate tap.
+                    is LaunchResult.PriceChanged -> stateLock.withLock {
+                        if (_state.value is AiUnlockState.Offer) _state.value = AiUnlockState.Offer(result.price)
+                    }
+                    LaunchResult.Failed -> _failed.value = true
                 }
-                purchaseInFlight.set(false)
+            } finally {
+                // Also when cancelled: a lost release would block buying until the app restarts.
+                if (!started) _busy.value = false
             }
-            LaunchResult.Failed -> purchaseInFlight.set(false)
         }
     }
 
