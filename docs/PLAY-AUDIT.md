@@ -30,7 +30,7 @@ Status: **ok** = nichts zu tun. **Play Console** = Belkis trägt etwas ein. **Ä
 | 15 | Download von Code (KI-Modell) | **ok**: das Modell sind Daten, kein Code |
 | 16 | 16-KB-Speicherseiten (Pflicht ab 01.02.2027) | **ok**: `-Wl,-z,max-page-size=16384` in `llm/src/main/cpp/CMakeLists.txt`, Prüfung mit `utils/check-16k.sh` |
 | 17 | Käufe und Bezahlinhalte | **ok**: Ordo ist ganz kostenlos, ohne In-App-Kauf und ohne Werbung |
-| 18 | Store-Eintrag nennt den Dateimanager als Kernfunktion | **Änderung**: Store-Texte im Repo sind noch die von Material Files, Abschnitt I |
+| 18 | Store-Eintrag nennt den Dateimanager als Kernfunktion | **ok**: Store-Texte Deutsch und Englisch in `fastlane/metadata/android/`, Abschnitt I |
 
 ## 1. Ziel-API
 
@@ -190,10 +190,10 @@ Gerät eingerichtet und Ordo dort freigegeben hat (Einstellung „Root“, Stand
 
 ## I. Store-Texte
 
-`fastlane/metadata/android/en-US/title.txt` heißt noch „Material Files“, Kurz- und Langbeschreibung sind der Text des
-Originalprojekts. `de-DE` fehlt. So nicht hochladen: Ein fremder App-Name im Store gilt als irreführend. Die
-Roadmap-Zelle „Store-Texte Deutsch und Englisch“ ist offen. Die neuen Texte müssen „Dateimanager“ / „file manager“ als
-Kernfunktion nennen, sonst fehlt die Grundlage für die Formulare A und B.
+Titel, Kurz- und Langbeschreibung liegen in `fastlane/metadata/android/en-US` und `de-DE` („Ordo – File Manager with
+AI“, „Ordo – Dateimanager mit KI“). Sie nennen „file manager“ / „Dateimanager“ als Kernfunktion, die Grundlage für die
+Formulare A und B. Die Texte und Bilder von Material Files sind entfernt. Datensicherheit und Altersfreigabe:
+[PLAY-DATENSICHERHEIT.md](PLAY-DATENSICHERHEIT.md).
 
 ## Nicht geprüft
 

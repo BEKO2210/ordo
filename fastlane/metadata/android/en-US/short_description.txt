@@ -1,1 +1,1 @@
-Open source Material Design file manager
+Free, open-source file manager. On-device AI, no ads, no tracking.
