@@ -81,6 +81,7 @@ import me.zhanghai.android.files.provider.linux.isLinuxPath
 import me.zhanghai.android.files.settings.Settings
 import me.zhanghai.android.files.ui.fitBottomBarInsets
 import me.zhanghai.android.files.util.dpToDimensionPixelSize
+import me.zhanghai.android.files.util.getParcelableSafe
 import me.zhanghai.android.files.util.getQuantityString
 import me.zhanghai.android.files.util.isMaterial3Theme
 import me.zhanghai.android.files.util.showToast
@@ -95,6 +96,10 @@ class BackupFragment : Fragment() {
     private lateinit var biometricPrompt: BiometricPrompt
 
     private var items = emptyList<BackupItem>()
+    private var isItemsLoaded = false
+
+    /** The file the picker made, kept until the list is loaded: after a rotation the result comes first. */
+    private var pendingTarget: Uri? = null
     private var cancelledRestoreJobId = -1
 
     private var usbVolume: StorageVolume? = null
@@ -128,12 +133,9 @@ class BackupFragment : Fragment() {
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
         val target = result.data?.data
-        // The form may have been restored meanwhile, so it is checked again.
-        if (result.resultCode == Activity.RESULT_OK && target != null && validate()) {
-            FileJobService.backup(
-                checkedKeys().filter { it != KEY_VAULT }.map { Paths.get(it) }, isVaultChecked,
-                target, password, requireContext()
-            )
+        if (result.resultCode == Activity.RESULT_OK && target != null) {
+            pendingTarget = target
+            startPendingBackup()
         }
     }
 
@@ -161,6 +163,13 @@ class BackupFragment : Fragment() {
 
         @Suppress("DEPRECATION")
         setHasOptionsMenu(true)
+        pendingTarget = savedInstanceState?.getParcelableSafe(STATE_PENDING_TARGET)
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+
+        outState.putParcelable(STATE_PENDING_TARGET, pendingTarget)
     }
 
     override fun onCreateView(
@@ -388,6 +397,26 @@ class BackupFragment : Fragment() {
                 loadBackupItems(context, standardDirectories, extraFolders)
             }
             bindItems()
+            isItemsLoaded = true
+            startPendingBackup()
+        }
+    }
+
+    // The form may have been restored meanwhile, so it is checked again once the list is back.
+    private fun startPendingBackup() {
+        val target = pendingTarget ?: return
+        if (!isItemsLoaded) {
+            return
+        }
+        pendingTarget = null
+        updateUsb()
+        if (validate()) {
+            FileJobService.backup(
+                checkedKeys().filter { it != KEY_VAULT }.map { Paths.get(it) }, isVaultChecked,
+                target, password, requireContext()
+            )
+        } else {
+            lifecycleScope.launch(Dispatchers.IO) { deleteDocumentIfEmpty(target) }
         }
     }
 
@@ -891,6 +920,8 @@ class BackupFragment : Fragment() {
 
     companion object {
         private const val KEY_VAULT = "vault"
+
+        private const val STATE_PENDING_TARGET = "pendingTarget"
 
         private const val PASSWORD_MIN_LENGTH = 8
 

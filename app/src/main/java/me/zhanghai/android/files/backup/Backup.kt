@@ -6,11 +6,15 @@
 package me.zhanghai.android.files.backup
 
 import android.net.Uri
+import android.provider.DocumentsContract
 import androidx.lifecycle.MutableLiveData
 import java.io.EOFException
 import java.io.IOException
 import java.io.InputStream
 import java.io.InterruptedIOException
+import me.zhanghai.android.files.app.contentResolver
+import me.zhanghai.android.files.provider.content.resolver.Resolver
+import me.zhanghai.android.files.provider.content.resolver.ResolverException
 
 sealed class BackupStatus {
     object Idle : BackupStatus()
@@ -67,6 +71,26 @@ sealed class BackupStatus {
 
 /** Outlives the backup screen, so the result is still there when the user comes back. */
 object BackupStatusLiveData : MutableLiveData<BackupStatus>(BackupStatus.Idle)
+
+/**
+ * Removes the file the picker made for a backup that was not written. The picker can also hand out a file that
+ * already holds data, such as an older backup; that one is left alone.
+ */
+fun deleteDocumentIfEmpty(uri: Uri) {
+    val size = try {
+        Resolver.getSize(uri)
+    } catch (e: ResolverException) {
+        e.printStackTrace()
+        null
+    }
+    if (size == 0L) {
+        try {
+            DocumentsContract.deleteDocument(contentResolver, uri)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+}
 
 /** Entry names mirror the folders on the device, so a restored backup looks familiar. */
 fun backupEntryName(path: String, storageRoot: String): String =

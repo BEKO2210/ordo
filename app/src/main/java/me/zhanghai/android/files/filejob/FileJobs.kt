@@ -57,6 +57,7 @@ import me.zhanghai.android.files.backup.RestoreDestination
 import me.zhanghai.android.files.backup.RestoreDestinationState
 import me.zhanghai.android.files.backup.backupEntryName
 import me.zhanghai.android.files.backup.chooseRestoreDestination
+import me.zhanghai.android.files.backup.deleteDocumentIfEmpty
 import me.zhanghai.android.files.backup.isBackupFormatMarker
 import me.zhanghai.android.files.backup.isProtectedAndroidPath
 import me.zhanghai.android.files.backup.isRestorableBackupEntry
@@ -116,8 +117,6 @@ import me.zhanghai.android.files.provider.common.setOwner
 import me.zhanghai.android.files.provider.common.setSeLinuxContext
 import me.zhanghai.android.files.provider.common.toByteString
 import me.zhanghai.android.files.provider.common.toModeString
-import me.zhanghai.android.files.provider.content.resolver.Resolver
-import me.zhanghai.android.files.provider.content.resolver.ResolverException
 import me.zhanghai.android.files.provider.linux.isLinuxPath
 import me.zhanghai.android.files.trash.Trash
 import me.zhanghai.android.files.trash.TrashEntry
@@ -3343,15 +3342,8 @@ class BackupJob(
     // picker handed out that still holds data, such as an older backup, is not ours to delete.
     private fun deleteTarget() {
         if (!isTargetCut) {
-            val size = try {
-                Resolver.getSize(target)
-            } catch (e: ResolverException) {
-                e.printStackTrace()
-                null
-            }
-            if (size != 0L) {
-                return
-            }
+            deleteDocumentIfEmpty(target)
+            return
         }
         try {
             DocumentsContract.deleteDocument(service.contentResolver, target)
