@@ -129,6 +129,16 @@ class HomeRepository(private val context: Context) {
         }.distinctBy { it.data }
             // Hidden files (".thumbnails", ".trash" …) only count when the user shows hidden files.
             .filter { showHiddenFiles || !it.data.contains("/.") }
+            .let(::dropMissing)
+    }
+
+    // MediaStore keeps rows of files that are gone, e.g. the contents of a folder moved to the trash, or files whose
+    // scan was cut short. They are not counted or listed, and MediaStore is asked once to forget them.
+    // shortcut: one stat per row, fine for tens of thousands of media files; batch by folder if libraries grow larger.
+    private fun dropMissing(rows: List<MediaRow>): List<MediaRow> {
+        val (present, missing) = rows.partition { java.io.File(it.data).exists() }
+        StaleMedia.forget(missing.map { it.data })
+        return present
     }
 
     private fun loadStorages(): List<StorageSummary> {
