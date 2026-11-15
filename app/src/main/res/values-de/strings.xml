@@ -726,8 +726,8 @@
     <string name="file_job_vault_restore_notification_title">Stelle aus dem Tresor wieder her</string>
     <string name="file_job_vault_error_title">Fehler beim Verschieben in den Tresor</string>
     <string name="file_job_vault_error_message_format">Bei „%1$s“ ist ein Fehler aufgetreten.\n%2$s</string>
-    <string name="home_vault_summary_short">Mit Bildschirmsperre</string>
-    <string name="home_backup_summary_short">USB-Stick oder Cloud</string>
+    <string name="home_vault_summary_short">Verschlüsselt</string>
+    <string name="home_backup_summary_short">USB oder Cloud</string>
     <string name="home_vault_summary">Mit deiner Bildschirmsperre geschützt</string>
 
     <!-- Ordo: backup -->

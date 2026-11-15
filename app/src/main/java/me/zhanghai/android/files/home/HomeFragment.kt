@@ -8,6 +8,8 @@ package me.zhanghai.android.files.home
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.Configuration
+import android.graphics.drawable.GradientDrawable
+import android.graphics.drawable.LayerDrawable
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
@@ -16,6 +18,7 @@ import android.view.LayoutInflater
 import android.view.Menu
 import android.view.View
 import android.view.ViewGroup
+import android.widget.FrameLayout
 import androidx.core.view.children
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.widget.PopupMenu
@@ -24,6 +27,7 @@ import androidx.core.view.GravityCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
+import androidx.core.view.updateLayoutParams
 import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.commit
@@ -226,35 +230,32 @@ class HomeFragment : Fragment(), ShowRequestAllFilesAccessRationaleDialogFragmen
         }
     }
 
-    // The content scrolls under the top bar. Android 12+ blurs it; older versions get a solid bar.
+    // The content scrolls under the search bar, at the top or (Settings > Appearance) at the bottom within thumb
+    // reach. Android 12+ blurs it; older versions get a solid bar.
     private fun setUpGlassToolbar() {
         val context = requireContext()
-        // Exactly the page colour: at rest there is no seam under the bar; glass and hairline show once it scrolls.
+        // Exactly the page colour: at rest there is no seam; glass and hairline show once content is under the bar.
         val barColor = context.getColorByAttr(android.R.attr.colorBackground)
         binding.toolbarBlur.setUpGlass(binding.blurTarget, barColor, requireActivity())
-        val hairline = ColorUtils.setAlphaComponent(context.getColorByAttr(android.R.attr.textColorPrimary), 0x1F)
-        binding.toolbarEdge.background = android.graphics.drawable.LayerDrawable(arrayOf(
-            android.graphics.drawable.GradientDrawable(
-                android.graphics.drawable.GradientDrawable.Orientation.TOP_BOTTOM,
-                // Almost the page colour right under the bar: content dissolves before it reaches the search field.
-                intArrayOf(
-                    ColorUtils.setAlphaComponent(barColor, 0xE6), ColorUtils.setAlphaComponent(barColor, 0x80),
-                    android.graphics.Color.TRANSPARENT
-                )
-            ),
-            android.graphics.drawable.GradientDrawable().apply { setColor(hairline) }
-        )).apply { setLayerHeight(1, (resources.displayMetrics.density).toInt().coerceAtLeast(1)) }
+        binding.statusScrim.setBackgroundColor(ColorUtils.setAlphaComponent(barColor, 0xE6))
         binding.toolbarBlur.addOnLayoutChangeListener { bar, _, _, _, _, _, _, _, _ ->
-            binding.toolbarEdge.translationY = bar.height.toFloat()
+            binding.toolbarEdge.translationY = (if (headerAtBottom) -bar.height else bar.height).toFloat()
         }
-        // Glass, edge and hairline appear over the first 24 dp of scrolling: flat at rest, layered in motion.
+        // Glass, edge and hairline appear over the first 24 dp of content under the bar: flat at rest, layered in
+        // motion. The status bar scrim of the bottom position follows the scrolled distance the same way.
         val edgeDistance = 24 * resources.displayMetrics.density
         binding.toolbarBlur.setGlassAmount(barColor, 0f)
-        binding.scrollView.setOnScrollChangeListener { _, _, scrollY, _, _ ->
-            val amount = (scrollY / edgeDistance).coerceIn(0f, 1f)
+        updateGlass = {
+            val scroll = binding.scrollView
+            val range = scroll.getChildAt(0).height + scroll.paddingTop + scroll.paddingBottom - scroll.height
+            val amount = homeHeaderGlassAmount(headerAtBottom, scroll.scrollY, range, edgeDistance)
             binding.toolbarEdge.alpha = amount
             binding.toolbarBlur.setGlassAmount(barColor, amount)
+            binding.statusScrim.alpha = homeHeaderGlassAmount(false, scroll.scrollY, range, edgeDistance)
         }
+        binding.scrollView.setOnScrollChangeListener { _, _, _, _, _ -> updateGlass() }
+        // At the bottom the bar turns to glass as soon as the page is taller than the screen, before any scrolling.
+        binding.scrollView.getChildAt(0).addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> updateGlass() }
         val scrollPaddingBottom = binding.scrollView.paddingBottom
         val refreshDistance = binding.swipeRefreshLayout.progressViewEndOffset
         ViewCompat.setOnApplyWindowInsetsListener(binding.content) { root, windowInsets ->
@@ -262,14 +263,60 @@ class HomeFragment : Fragment(), ShowRequestAllFilesAccessRationaleDialogFragmen
                 WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
             )
             root.updatePadding(left = insets.left, right = insets.right)
-            binding.toolbarBlur.updatePadding(top = insets.top)
             val searchLayoutParams = binding.searchCard.layoutParams as ViewGroup.MarginLayoutParams
-            val top = insets.top + searchLayoutParams.height + searchLayoutParams.topMargin +
-                searchLayoutParams.bottomMargin
-            binding.scrollView.updatePadding(top = top, bottom = scrollPaddingBottom + insets.bottom)
+            val barHeight = searchLayoutParams.height + searchLayoutParams.topMargin + searchLayoutParams.bottomMargin
+            val top: Int
+            if (headerAtBottom) {
+                // Above the navigation bar, and above the keyboard should one ever open on this screen.
+                val ime = windowInsets.getInsets(WindowInsetsCompat.Type.ime()).bottom
+                binding.toolbarBlur.updatePadding(top = 0, bottom = maxOf(insets.bottom, ime))
+                binding.statusScrim.updateLayoutParams { height = insets.top }
+                top = insets.top
+                binding.scrollView.updatePadding(top = top, bottom = scrollPaddingBottom + insets.bottom + barHeight)
+            } else {
+                binding.toolbarBlur.updatePadding(top = insets.top, bottom = 0)
+                top = insets.top + barHeight
+                binding.scrollView.updatePadding(top = top, bottom = scrollPaddingBottom + insets.bottom)
+            }
             binding.swipeRefreshLayout.setProgressViewOffset(true, top, top + refreshDistance)
             windowInsets
         }
+        Settings.HOME_HEADER_POSITION.observe(viewLifecycleOwner) {
+            applyHeaderPosition(it == HEADER_POSITION_BOTTOM, barColor)
+        }
+    }
+
+    private var headerAtBottom = false
+    private var updateGlass: () -> Unit = {}
+
+    // Applied right away when the setting changes, also on the way back from the settings: no restart.
+    private fun applyHeaderPosition(atBottom: Boolean, barColor: Int) {
+        headerAtBottom = atBottom
+        val gravity = if (atBottom) Gravity.BOTTOM else Gravity.TOP
+        (binding.toolbarBlur.layoutParams as FrameLayout.LayoutParams).gravity = gravity
+        (binding.toolbarEdge.layoutParams as FrameLayout.LayoutParams).gravity = gravity
+        binding.statusScrim.isVisible = atBottom
+        val hairline = ColorUtils.setAlphaComponent(
+            requireContext().getColorByAttr(android.R.attr.textColorPrimary), 0x1F
+        )
+        binding.toolbarEdge.background = LayerDrawable(arrayOf(
+            GradientDrawable(
+                if (atBottom) GradientDrawable.Orientation.BOTTOM_TOP else GradientDrawable.Orientation.TOP_BOTTOM,
+                // Almost the page colour right at the bar: content dissolves before it reaches the search field.
+                intArrayOf(
+                    ColorUtils.setAlphaComponent(barColor, 0xE6), ColorUtils.setAlphaComponent(barColor, 0x80),
+                    android.graphics.Color.TRANSPARENT
+                )
+            ),
+            GradientDrawable().apply { setColor(hairline) }
+        )).apply {
+            setLayerHeight(1, (resources.displayMetrics.density).toInt().coerceAtLeast(1))
+            setLayerGravity(1, gravity)
+        }
+        binding.toolbarBlur.requestLayout()
+        binding.toolbarEdge.requestLayout()
+        ViewCompat.requestApplyInsets(binding.content)
+        binding.scrollView.post { if (_binding != null) updateGlass() }
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {
@@ -439,5 +486,6 @@ class HomeFragment : Fragment(), ShowRequestAllFilesAccessRationaleDialogFragmen
         private const val RECENT_VIEW_GRID = "grid"
         private const val RECENT_VIEW_ROW = "row"
         private const val RECENT_VIEW_HIDDEN = "hidden"
+        private const val HEADER_POSITION_BOTTOM = "bottom"
     }
 }

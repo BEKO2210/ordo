@@ -51,6 +51,8 @@ Themes inkl. Schwarz.
 - [x] Startseite mit einer schlanken Glas-Leiste (Seitenmenü, Suche, KI-Befehl, Mehr in einer Zeile, 64 dp hoch);
       das Seitenmenü der Dateiliste auch auf der Startseite, neu gestaltet (Seitenton, Akzent-Pille,
       Haarlinien, Kopf mit App-Icon); abgesichert durch `LayoutResourcesTest`.
+- [x] Suchleiste der Startseite wahlweise unten (Einstellungen › Aussehen), über der Navigationsleiste in
+      Daumennähe, wechselt ohne Neustart; abgesichert durch `HomeLayoutTest` und `e2e/header-position.sh`.
 - [ ] Datenmüll: leere Ordner, Thumbnail-Caches, Restdateien in der Speicheranalyse.
 - [ ] Ungenutzte Apps (Nutzungsdaten-Erlaubnis), Erinnerung „Speicher fast voll".
 - [ ] Teilen in der Nähe (Quick Share über Android-Teilen).

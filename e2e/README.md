@@ -23,6 +23,7 @@ scroll position). A control that moves on a fixed screen (e.g. below a message o
 | `back-navigation.sh` | back from a storage or the analysis returns to home in one step | fixed in 0.3.2 |
 | `bars-replay.sh` | every storage bar, measured on its own in a screen recording, is still empty when home comes back and then grows in | fixed in 0.4.2 / 0.4.3 |
 | `home-header.sh` | the home screen's top bar: search, assistant and every entry under "more" work, back returns home | 0.5.0 |
+| `header-position.sh` | the search bar set to the bottom moves without a restart, floats above the navigation bar, the page's end scrolls clear of it, search, wand, more and side menu still work; the setting is put back as it was | after 0.7.1 |
 | `drawer.sh` | every entry of the side menu opens its screen and back returns home with the menu closed; a menu dragged all the way open closes on back instead of leaving the app | 0.5.0, drag fixed in 0.5.0 |
 | `analysis.sh` | the scan ends in the overview; ring, folder map and rows open their pages; back goes one step at a time; rotation keeps the page | 0.6.0 |
 | `backup-restore.sh` (`--write`, SD card) | an encrypted backup to the SD card restores byte for byte; a wrong password writes nothing; a changed file is never replaced and its backed up version comes back beside it; restoring twice adds no second copy | fixed in 0.7.0 |
@@ -31,7 +32,7 @@ scroll position). A control that moves on a fixed screen (e.g. below a message o
 Rules for every test:
 
 - It acts only while Ordo is in front and aborts the run (exit 2) the moment another app is.
-- It reads, taps and goes back. A test that writes creates its own files under a folder named `ordo-e2e-*`, says so
+- It reads, taps and goes back. A test that has to change a setting (`header-position.sh`) puts it back as it was. A test that writes creates its own files under a folder named `ordo-e2e-*`, says so
   at the top, runs only with `--write`, and removes exactly what it created.
 - It finds controls by resource id, or by text with the German and the English wording (`"Aussehen|Appearance"`).
 - It ends with `finish`, which also fails the test if the crash log is not empty.

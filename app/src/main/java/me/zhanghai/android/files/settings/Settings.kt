@@ -177,6 +177,12 @@ object Settings {
     val MOTION: SettingLiveData<String> =
         StringSettingLiveData(R.string.pref_key_motion, R.string.pref_default_value_motion)
 
+    /** top or bottom: where the home screen's search bar sits. */
+    val HOME_HEADER_POSITION: SettingLiveData<String> =
+        StringSettingLiveData(
+            R.string.pref_key_home_header_position, R.string.pref_default_value_home_header_position
+        )
+
     /** turbo, balanced or eco: threads and how long the AI model stays loaded. */
     val AI_SPEED: SettingLiveData<String> =
         StringSettingLiveData(R.string.pref_key_ai_speed, R.string.pref_default_value_ai_speed)

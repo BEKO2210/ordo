@@ -859,8 +859,8 @@
     <string name="file_job_vault_restore_notification_title">Restoring from vault</string>
     <string name="file_job_vault_error_title">Error while moving to vault</string>
     <string name="file_job_vault_error_message_format">There was an error with “%1$s”.\n%2$s</string>
-    <string name="home_vault_summary_short">Screen-lock protected</string>
-    <string name="home_backup_summary_short">USB drive or cloud</string>
+    <string name="home_vault_summary_short">Encrypted</string>
+    <string name="home_backup_summary_short">USB or cloud</string>
     <string name="home_vault_summary">Protected by your screen lock</string>
 
     <!-- Ordo: backup -->

@@ -6,7 +6,7 @@
     <string name="settings_group_more">Mehr</string>
 
     <string name="settings_section_appearance">Aussehen</string>
-    <string name="settings_section_appearance_summary">Akzentfarbe, Dunkelmodus, Animationen, Sprache</string>
+    <string name="settings_section_appearance_summary">Akzentfarbe, Dunkelmodus, Suchleiste, Animationen, Sprache</string>
     <string name="settings_section_ai">KI-Assistent</string>
     <string name="settings_section_ai_summary">Tempo und Sprachmodell auf dem Gerät</string>
     <string name="settings_section_files">Dateien &amp; Ansicht</string>
@@ -27,6 +27,11 @@
         <item>Minze</item>
         <item>Violett</item>
         <item>Bernstein</item>
+    </string-array>
+    <string name="settings_home_header_position_title">Suchleiste der Startseite</string>
+    <string-array name="settings_home_header_position_entries">
+        <item>Oben</item>
+        <item>Unten – mit dem Daumen erreichbar</item>
     </string-array>
     <string name="settings_motion_title">Animationen</string>
     <string-array name="settings_motion_entries">

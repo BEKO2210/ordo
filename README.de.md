@@ -44,7 +44,7 @@ Was als Nächstes kommt, steht in der [lebenden Roadmap](docs/ROADMAP-LIVE.md): 
 
 - Startseite mit zuletzt verwendeten Dateien, Kategorien (Bilder, Videos, Audio, Dokumente, Downloads, APKs,
   Archive) und Speicher auf einen Blick
-- Eine schlanke Glas-Leiste oben: Seitenmenü, Suche, KI-Befehl und Optionen in einer Zeile
+- Eine schlanke Glas-Leiste: Seitenmenü, Suche, KI-Befehl und Optionen in einer Zeile, oben oder unten
 - Dasselbe Seitenmenü auf der Startseite und in der Dateiliste: Speicher, Ordner, Lesezeichen und alle Werkzeuge
 - Suche nach Namen oder nach Text in Dateien, auf Wunsch mit regulären Ausdrücken
 - Liste oder Raster in drei Größen, für alle Ordner oder nur einen
@@ -94,6 +94,7 @@ Was als Nächstes kommt, steht in der [lebenden Roadmap](docs/ROADMAP-LIVE.md): 
 
 - Ordos eigene Farben auf jedem Handy, in fünf Akzenten, oder die Farben deines Hintergrundbilds (ab Android 12)
 - Hell, dunkel und echtes Schwarz; Animationen voll, dezent oder aus
+- Die Suchleiste der Startseite oben oder unten, mit dem Daumen erreichbar
 
 ## KI-Befehle
 

@@ -12,7 +12,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-    <!-- The content scrolls under the glass top bar, which blurs it. -->
+    <!-- The content scrolls under the glass search bar (top or bottom, see Settings), which blurs it. -->
     <eightbitlab.com.blurview.BlurTarget
         android:id="@+id/blurTarget"
         android:layout_width="match_parent"
@@ -277,13 +277,22 @@
         </com.google.android.material.card.MaterialCardView>
     </eightbitlab.com.blurview.BlurView>
 
-    <!-- Soft edge under the glass bar: content fades out instead of being cut; shown once the page scrolls. -->
+    <!-- Soft edge on the content side of the glass bar: content fades out instead of being cut; shown once content lies under the bar. -->
     <View
         android:id="@+id/toolbarEdge"
         android:layout_width="match_parent"
         android:layout_height="32dp"
         android:alpha="0"
         android:importantForAccessibility="no" />
+
+    <!-- With the search bar at the bottom: keeps the status bar readable once the page scrolls under it. -->
+    <View
+        android:id="@+id/statusScrim"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:alpha="0"
+        android:importantForAccessibility="no"
+        android:visibility="gone" />
     </me.zhanghai.android.files.ui.IgnoreFitsSystemWindowsFullyDraggableDrawerContentLayout>
 
     <me.zhanghai.android.files.ui.NavigationFrameLayout

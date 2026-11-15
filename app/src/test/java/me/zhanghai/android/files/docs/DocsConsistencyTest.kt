@@ -62,7 +62,8 @@ class DocsConsistencyTest {
             return Regex("<item>(.*?)</item>").findAll(body).map { it.groupValues[1].substringBefore(" –") }.toList()
         }
         for ((readmeText, values) in listOf(readme to "values", readmeDe to "values-de")) {
-            for (name in entries(values, "settings_ai_speed_entries") + entries(values, "settings_motion_entries")) {
+            for (name in entries(values, "settings_ai_speed_entries") + entries(values, "settings_motion_entries") +
+                entries(values, "settings_home_header_position_entries")) {
                 assertTrue("README ($values) must name the setting \"$name\"",
                     readmeText.contains(name, ignoreCase = true))
             }
