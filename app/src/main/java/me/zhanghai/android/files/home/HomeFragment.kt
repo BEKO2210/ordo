@@ -369,12 +369,14 @@ class HomeFragment : Fragment(), ShowRequestAllFilesAccessRationaleDialogFragmen
         // again. They are emptied right here, before the first frame, and start together once the reload below
         // is done and the screen is visible. Starting them here would run the animation behind the old screen: a
         // bar whose numbers did not change (the SD card) would already be full when the home screen appears.
+        // The first resume needs no reload: the view model loads when it is created, and twice in parallel would
+        // fight over MediaStore and FUSE. A permission just granted reloads in onStorageAccessResult().
         if (resumedBefore && hasStorageAccess()) {
             holdStorageBars()
             replayBars = true
+            viewModel.reload()
         }
         resumedBefore = true
-        if (hasStorageAccess()) viewModel.reload()
     }
 
     private fun hasStorageAccess(): Boolean =
