@@ -8,7 +8,7 @@ Dateien finden
 Platz schaffen
 • Speicheranalyse für internen Speicher, SD-Karte und USB-Stick
 • Deine Dateien nach Art, die Ordner mit dem meisten Platz, große Dateien, Duplikate, lange nicht genutzte Dateien und alte APKs
-• Vorschläge mit Vorschau – du entscheidest, was weg kann
+• Aufräum-Vorschläge, mit Vorschau über die KI-Befehle
 • Papierkorb: Gelöschtes lässt sich 30 Tage lang wiederherstellen
 • App-Verwaltung: installierte Apps ansehen, APK sichern, deinstallieren
 

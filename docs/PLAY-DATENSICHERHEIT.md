@@ -104,4 +104,5 @@ Erwartet: niedrigste Stufe (zum Beispiel USK 0, PEGI 3) mit dem Hinweis „In-Ap
 - Berechtigungen und Vordergrunddienste: Texte in [PLAY-BERECHTIGUNGEN.md](PLAY-BERECHTIGUNGEN.md).
 
 Diese Antworten sind aus dem Code abgeleitet, nicht von Google freigegeben. Vor dem Einreichen gegen den Code des
-Release-Stands halten; besonders, sobald der Kauf auf `feat/restore` liegt.
+Release-Stands halten; besonders, sobald der Kauf auf `feat/restore` liegt. Der Store-Eintrag in
+`fastlane/metadata/android/` nennt den Kauf schon: erst hochladen, wenn `feat/ai-purchase` gemergt ist.

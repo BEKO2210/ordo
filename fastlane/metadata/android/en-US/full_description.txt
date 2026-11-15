@@ -8,7 +8,7 @@ Find your files
 Free up space
 • Storage analysis for internal storage, SD cards and USB drives
 • See your files by type, the folders that take the most space, large files, duplicates, files you have not used for a long time and old APKs
-• Suggestions with a preview, so you decide what goes
+• Cleanup suggestions, with a preview through the AI commands
 • Trash: deleted files can be restored for 30 days
 • App manager: see installed apps, save their APK, uninstall
 
