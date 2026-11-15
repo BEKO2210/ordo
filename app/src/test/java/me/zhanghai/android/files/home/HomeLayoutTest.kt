@@ -40,9 +40,9 @@ class HomeLayoutTest {
     }
 
     @Test fun homeQuickAccessColumns() {
-        assertEquals(1, homeQuickAccessColumns(400))
-        assertEquals(2, homeQuickAccessColumns(600))
-        assertEquals(3, homeQuickAccessColumns(840))
+        assertEquals(3, homeQuickAccessColumns(400))
+        assertEquals(5, homeQuickAccessColumns(600))
+        assertEquals(8, homeQuickAccessColumns(840))
     }
 
     @Test fun homeStorageColumns() {

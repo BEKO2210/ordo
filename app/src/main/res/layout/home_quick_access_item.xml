@@ -1,15 +1,49 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later -->
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+
+<!--
+  ~ Copyright (c) 2026 Ordo contributors
+  ~ SPDX-License-Identifier: GPL-3.0-or-later
+  -->
+
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    style="@style/Widget.Ordo.HomeCard"
     android:layout_width="match_parent"
-    android:layout_height="56dp"
-    android:background="?selectableItemBackground"
+    android:layout_height="@dimen/home_tile_height"
+    android:layout_margin="4dp"
     android:clickable="true"
     android:focusable="true"
-    android:gravity="center_vertical"
-    android:orientation="horizontal"
-    android:paddingHorizontal="16dp">
-    <ImageView android:id="@+id/iconImage" android:layout_width="24dp" android:layout_height="24dp" android:contentDescription="@null" app:tint="?colorControlNormal" />
-    <TextView android:id="@+id/nameText" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginStart="24dp" android:layout_weight="1" android:maxLines="1" android:textAppearance="?textAppearanceBody1" />
-</LinearLayout>
+    android:foreground="?selectableItemBackground"
+    android:stateListAnimator="@animator/home_press_scale">
+
+    <!-- Same tile as the categories; no count, because counting a folder would scan the disk. -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="12dp">
+
+        <ImageView
+            android:id="@+id/iconImage"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_gravity="top|end"
+            android:background="@drawable/home_icon_circle"
+            android:contentDescription="@null"
+            android:padding="5dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|start"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/nameText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textAppearance="?textAppearanceSubtitle2" />
+        </LinearLayout>
+    </FrameLayout>
+</com.google.android.material.card.MaterialCardView>

@@ -181,12 +181,6 @@ class QuickAccessAdapter(private val onClick: (QuickAccessItem) -> Unit) :
     var items: List<QuickAccessItem> = emptyList()
         set(value) { field = value; notifyDataSetChanged() }
 
-    var multiColumn = false
-        set(value) {
-            if (field == value) return
-            field = value
-            notifyDataSetChanged()
-        }
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = ViewHolder(
         HomeQuickAccessItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
     )
@@ -195,28 +189,22 @@ class QuickAccessAdapter(private val onClick: (QuickAccessItem) -> Unit) :
 
     inner class ViewHolder(private val binding: HomeQuickAccessItemBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(item: QuickAccessItem) {
-            val d = binding.root.resources.displayMetrics.density
-            val inset = (12 * d).toInt()
-            val edge = (16 * d).toInt()
-            val gap = (4 * d).toInt()
-            binding.root.updateLayoutParams<ViewGroup.MarginLayoutParams> {
-                if (multiColumn) {
-                    setMargins(gap, gap, gap, gap)
-                } else {
-                    setMargins(0, 0, 0, 0)
-                }
-            }
-            binding.root.setPadding(
-                if (multiColumn) inset else edge,
-                binding.root.paddingTop,
-                if (multiColumn) inset else edge,
-                binding.root.paddingBottom
-            )
-            binding.iconImage.setImageResource(item.iconRes)
+            binding.iconImage.setTintedCircleIcon(item.iconRes, quickAccessColor(item.iconRes))
             binding.nameText.text = item.name
             binding.root.setOnClickListener { onClick(item) }
         }
     }
+}
+
+// Same colors as the matching categories; a folder without its own pictogram gets the neutral blue.
+@ColorRes
+internal fun quickAccessColor(@DrawableRes iconRes: Int): Int = when (iconRes) {
+    R.drawable.camera_icon_white_24dp, R.drawable.image_icon_white_24dp -> R.color.home_images
+    R.drawable.video_icon_white_24dp -> R.color.home_videos
+    R.drawable.audio_icon_white_24dp, R.drawable.podcast_icon_white_24dp -> R.color.home_audio
+    R.drawable.document_icon_white_24dp -> R.color.home_documents
+    R.drawable.download_icon_white_24dp -> R.color.home_downloads
+    else -> R.color.home_backup
 }
 
 // Icon in its category color on a 15 % tinted circle, the tonal look of Material 3.

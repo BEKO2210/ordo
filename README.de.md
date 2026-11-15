@@ -48,7 +48,7 @@ Was als Nächstes kommt, steht in der [lebenden Roadmap](docs/ROADMAP-LIVE.md): 
 - Dasselbe Seitenmenü auf der Startseite und in der Dateiliste: Speicher, Ordner, Lesezeichen und alle Werkzeuge
 - Suche nach Namen oder nach Text in Dateien, auf Wunsch mit regulären Ausdrücken
 - Liste oder Raster in drei Größen, für alle Ordner oder nur einen
-- Schnellzugriff auf Lesezeichen und häufige Ordner
+- Schnellzugriff auf Lesezeichen und häufige Ordner als Kacheln
 
 **Aufräumen**
 
