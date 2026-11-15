@@ -58,9 +58,12 @@ Was als Nächstes kommt, steht in der [lebenden Roadmap](docs/ROADMAP-LIVE.md): 
   zeigt deine Dateien, System und freien Platz, deine Dateien nach Art als antippbaren Ring, was sich sicher frei
   machen lässt, Vorschläge mit Vorschau, eine Karte der Ordner, in denen der Speicher liegt (ein Ordner, der alles
   dominiert, wird in seine Unterordner aufgeteilt), über der Rangliste und neue Daten pro Monat mit antippbaren
-  Balken. Jede Art, jeder Ordner und jede Liste (große Dateien, Duplikate, lange nicht genutzte Dateien, alte APKs)
-  öffnet sich als eigene Seite, größte zuerst und mit Vorschaubildern; Ordner Ebene für Ebene. Tablets nutzen die
-  ganze Breite: zwei Spalten mit Karten, Zeilen nebeneinander
+  Balken. Jede Art, jeder Ordner und jede Liste (große Dateien, Duplikate, lange nicht genutzte Dateien, alte APKs,
+  Vorschaubilder-Cache, leere Ordner) öffnet sich als eigene Seite, größte zuerst und mit Vorschaubildern; Ordner
+  Ebene für Ebene. Der Vorschaubilder-Cache (Ordner `.thumbnails`) lässt sich sicher frei machen. Leere Ordner
+  lohnen einen Blick; versteckte, solche in `Android` und Standardordner wie Music stehen nie in der Liste. Gelöscht
+  wird nur auf deinen Tipp, und zwar in den Papierkorb. Tablets nutzen die ganze Breite: zwei Spalten mit Karten,
+  Zeilen nebeneinander
 - App-Verwaltung: installierte Apps ansehen, APK sichern, deinstallieren
 
 **Mit Dateien arbeiten**

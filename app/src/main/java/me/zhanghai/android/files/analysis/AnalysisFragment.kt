@@ -290,6 +290,8 @@ class AnalysisFragment : Fragment() {
             "large" -> result.large
             "old" -> result.old
             "apks" -> result.apks
+            "thumbnails" -> StorageAnalysis.thumbnailFiles(result.root, result.files)
+            StorageInsights.EMPTY_FOLDERS -> result.emptyFolders
             "duplicates" -> StorageAnalysis.allButNewest(result.duplicates)
             else -> emptyList()
         }
@@ -324,6 +326,8 @@ class AnalysisFragment : Fragment() {
             }
             page is AnalysisPage.Cleanup && page.type == "folders" ->
                 context.getQuantityString(R.plurals.analysis_folder_count, result.folders.size, result.folders.size)
+            page == AnalysisPage.Cleanup(StorageInsights.EMPTY_FOLDERS) -> context.getQuantityString(
+                R.plurals.analysis_folder_count, result.emptyFolders.size, result.emptyFolders.size)
             else -> files(result, page).let {
                 context.getQuantityString(R.plurals.analysis_suggestion_detail, it.size, it.size,
                     it.sumOf { f -> f.size }.asFileSize().formatHumanReadable(context))
@@ -333,7 +337,7 @@ class AnalysisFragment : Fragment() {
 
     private fun selectedFiles(): List<ScannedFile> {
         val result = result ?: return emptyList()
-        return result.files.filter { it.path in viewModel.selectedPaths }
+        return (result.files + result.emptyFolders).filter { it.path in viewModel.selectedPaths }
     }
 
     private fun updateSelection() {
@@ -411,7 +415,13 @@ class AnalysisFragment : Fragment() {
     }
 
     private fun confirmDelete() {
-        val files = selectedFiles()
+        val emptyFolders = result?.emptyFolders.orEmpty()
+        // A folder found empty at scan time may have filled since; never delete what is now inside.
+        val (files, filled) = selectedFiles()
+            .partition { it !in emptyFolders || StorageAnalysis.isStillEmpty(it.path) }
+        if (filled.isNotEmpty()) {
+            viewModel.removeDeleted(filled.map { it.path }.toSet())
+        }
         if (files.isEmpty()) {
             return
         }
@@ -419,13 +429,16 @@ class AnalysisFragment : Fragment() {
         val size = files.sumOf { it.size }.asFileSize().formatHumanReadable(context)
         val paths = files.map { Paths.get(it.path) }
         val toTrash = Trash.isEnabled && paths.all { Trash.canTrash(it) }
+        // Empty folders have no size to tell; the message names them as folders.
+        val folders = files.all { it in emptyFolders }
         MaterialAlertDialogBuilder(context)
             .setMessage(
                 context.getQuantityString(
-                    if (toTrash) {
-                        R.plurals.analysis_trash_message_format
-                    } else {
-                        R.plurals.analysis_delete_message_format
+                    when {
+                        folders && toTrash -> R.plurals.analysis_trash_folders_message_format
+                        folders -> R.plurals.analysis_delete_folders_message_format
+                        toTrash -> R.plurals.analysis_trash_message_format
+                        else -> R.plurals.analysis_delete_message_format
                     }, files.size, files.size, size
                 )
             )
@@ -475,7 +488,9 @@ class AnalysisFragment : Fragment() {
             val binding = holder.binding
             val context = binding.root.context
             val mimeType = MimeType.guessFromPath(file.path)
-            binding.iconImage.showThumbnail(file, mimeType)
+            // The empty folders page lists folders: a folder icon, and a tap opens it in the file list.
+            val isFolder = page == AnalysisPage.Cleanup(StorageInsights.EMPTY_FOLDERS)
+            if (isFolder) binding.iconImage.showFolderIcon() else binding.iconImage.showThumbnail(file, mimeType)
             binding.nameText.text = file.name
             binding.sizeText.text = file.size.asFileSize().formatHumanReadable(context)
             val modified = DateUtils.formatDateTime(context, file.lastModified, DateUtils.FORMAT_SHOW_DATE)
@@ -493,7 +508,8 @@ class AnalysisFragment : Fragment() {
                 if (viewModel.selectedPaths.isNotEmpty()) {
                     toggle(file, holder)
                 } else {
-                    startActivitySafe(OpenFileActivity.createIntent(Paths.get(file.path), mimeType))
+                    startActivitySafe(if (isFolder) FileListActivity.createViewIntent(Paths.get(file.path))
+                    else OpenFileActivity.createIntent(Paths.get(file.path), mimeType))
                 }
             }
             binding.root.setOnLongClickListener {
@@ -516,13 +532,7 @@ class AnalysisFragment : Fragment() {
         private fun bindFolder(holder: FileHolder, folder: FolderSize, whole: Long) {
             val binding = holder.binding
             val context = binding.root.context
-            binding.iconImage.apply {
-                dispose()
-                scaleType = ImageView.ScaleType.CENTER
-                setImageResource(R.drawable.directory_icon_white_24dp)
-                imageTintList = android.content.res.ColorStateList.valueOf(
-                    ContextCompat.getColor(context, R.color.ai_accent))
-            }
+            binding.iconImage.showFolderIcon()
             val name = folder.path.substringAfterLast('/')
             binding.nameText.text = AnalysisDashboard.folderLabel(context, name)
             binding.sizeText.text = folder.size.asFileSize().formatHumanReadable(context)
@@ -540,6 +550,13 @@ class AnalysisFragment : Fragment() {
             binding.root.setOnLongClickListener(null)
             binding.root.isLongClickable = false
         }
+    }
+
+    private fun ImageView.showFolderIcon() {
+        dispose()
+        scaleType = ImageView.ScaleType.CENTER
+        setImageResource(R.drawable.directory_icon_white_24dp)
+        imageTintList = android.content.res.ColorStateList.valueOf(ContextCompat.getColor(context, R.color.ai_accent))
     }
 
     // The real picture for photos, videos, music covers, APKs and PDFs, as in the file list; the type icon otherwise.

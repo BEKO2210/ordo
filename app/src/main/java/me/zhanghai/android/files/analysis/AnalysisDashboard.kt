@@ -437,8 +437,10 @@ class AnalysisDashboard(
 
     private fun bindCleanup(insights: StorageInsights) {
         val colors = mapOf("duplicates" to R.color.chart_cleanup_duplicates, "apks" to R.color.chart_cleanup_apks,
-            "trash" to R.color.chart_cleanup_trash)
-        val items = insights.cleanup.filter { it.second > 0 }
+            "thumbnails" to R.color.chart_cleanup_thumbnails, "trash" to R.color.chart_cleanup_trash)
+        // Empty folders free no space: their row counts them instead.
+        val empty = StorageInsights.EMPTY_FOLDERS
+        val items = insights.cleanup.filter { it.second > 0 || it.first == empty && insights.emptyFolders > 0 }
         val (safe, review) = items.partition { it.first in StorageInsights.SAFE }
         binding.cleanupHeadline.text = context.getString(
             when {
@@ -454,7 +456,10 @@ class AnalysisDashboard(
         var delay = 300L
         fun addRow(type: String, bytes: Long) {
             val name = context.getString(cleanupLabel(type))
-            val row = legendRow(colors[type]?.let(::color), name, size(bytes), "")
+            val value = if (type == empty) context.resources.getQuantityString(R.plurals.analysis_folder_count,
+                insights.emptyFolders, insights.emptyFolders) else size(bytes)
+            val hint = if (type == "thumbnails") context.getString(R.string.analysis_cleanup_thumbnails_hint) else null
+            val row = legendRow(colors[type]?.let(::color), name, value, "", hint)
             row.addView(MaterialButton(context, null, androidx.appcompat.R.attr.borderlessButtonStyle).apply {
                 text = context.getString(R.string.analysis_view)
                 isAllCaps = false
@@ -762,6 +767,8 @@ class AnalysisDashboard(
             "old" -> R.string.analysis_cleanup_old
             "apks" -> R.string.analysis_cleanup_apks
             "trash" -> R.string.analysis_cleanup_trash
+            "thumbnails" -> R.string.analysis_cleanup_thumbnails
+            StorageInsights.EMPTY_FOLDERS -> R.string.analysis_cleanup_empty_folders
             else -> R.string.analysis_tab_folders
         }
 

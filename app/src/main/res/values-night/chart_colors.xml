@@ -24,8 +24,9 @@
     <color name="chart_kind_video">#0891B2</color>
     <color name="chart_kind_apps">#E2E8F0</color>
     <color name="chart_kind_other">#A3B0C2</color>
-    <!-- The cleanup bar: three of the same validated hues. -->
+    <!-- The cleanup bar: four of the same validated hues. -->
     <color name="chart_cleanup_duplicates">#0891B2</color>
     <color name="chart_cleanup_apks">#65A30D</color>
     <color name="chart_cleanup_trash">#B45309</color>
+    <color name="chart_cleanup_thumbnails">#2563EB</color>
 </resources>

@@ -24,6 +24,9 @@
     <string name="analysis_cleanup_old">Seit 6 Monaten ungenutzt</string>
     <string name="analysis_cleanup_apks">Installationsdateien (APK)</string>
     <string name="analysis_cleanup_trash">Papierkorb</string>
+    <string name="analysis_cleanup_thumbnails">Vorschaubilder-Cache</string>
+    <string name="analysis_cleanup_thumbnails_hint">Die Galerie erstellt sie bei Bedarf neu</string>
+    <string name="analysis_cleanup_empty_folders">Leere Ordner</string>
     <string name="analysis_view">Ansehen</string>
     <string name="analysis_suggestions_title">Vorschläge</string>
     <string name="analysis_suggestion_old_downloads">Downloads älter als 6 Monate</string>
@@ -44,7 +47,7 @@
         <item quantity="other">%d weitere Ordner</item>
     </plurals>
     <string name="analysis_kind_mine">Deine Dateien</string>
-    <string name="analysis_cleanup_safe_none">Keine Kopien, Installer oder Papierkorb-Reste</string>
+    <string name="analysis_cleanup_safe_none">Keine Kopien, Installer, Vorschaubilder oder Papierkorb-Reste</string>
     <string name="analysis_cleanup_review">Lohnt einen Blick</string>
     <string name="analysis_folder_apps">App-Dateien (%s)</string>
     <string name="analysis_folder_hidden">%s (versteckt)</string>
@@ -77,5 +80,13 @@
     <plurals name="analysis_chart_small_types">
         <item quantity="one">%d kleinere Art</item>
         <item quantity="other">%d kleinere Arten</item>
+    </plurals>
+    <plurals name="analysis_trash_folders_message_format">
+        <item quantity="one">%1$d leeren Ordner in den Papierkorb verschieben?</item>
+        <item quantity="other">%1$d leere Ordner in den Papierkorb verschieben?</item>
+    </plurals>
+    <plurals name="analysis_delete_folders_message_format">
+        <item quantity="one">%1$d leeren Ordner endgültig löschen? Das lässt sich nicht rückgängig machen.</item>
+        <item quantity="other">%1$d leere Ordner endgültig löschen? Das lässt sich nicht rückgängig machen.</item>
     </plurals>
 </resources>

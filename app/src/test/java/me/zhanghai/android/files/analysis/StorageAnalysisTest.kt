@@ -8,6 +8,7 @@ package me.zhanghai.android.files.analysis
 import java.io.File
 import java.nio.file.Files
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -75,7 +76,7 @@ class StorageAnalysisTest {
         File(dir, "a").writeBytes(big)
         File(dir, "b").writeBytes(big)
         File(dir, "c").writeBytes(big.copyOf().also { it[it.size - 1] = 1 })
-        val files = StorageAnalysis.scan(dir, { false }, {})
+        val files = StorageAnalysis.scan(dir, { false }) {}
         val groups = StorageAnalysis.duplicates(files)
         assertEquals(1, groups.size)
         assertEquals(setOf("a", "b"), groups[0].files.map { it.name }.toSet())
@@ -124,5 +125,70 @@ class StorageAnalysisTest {
             setOf("/r/.thumbnails", "/r/Music"),
             StorageAnalysis.folderSizes("/r", files).map { it.path }.toSet()
         )
+    }
+
+    @Test
+    fun scan_findsOnlyTrulyEmptyFolders() {
+        val dir = Files.createTempDirectory("empty").toFile()
+        listOf("Old/Empty", "Nested/Leaf", "Hidden only", ".cache/empty", "Notes/.drafts", "Android/data/app",
+            "Android/obb/game", "Music", "Holder/Files").forEach { File(dir, it).mkdirs() }
+        File(dir, "Hidden only/.nomedia").writeBytes(ByteArray(0))
+        File(dir, "Holder/Files/a.txt").writeBytes(ByteArray(5))
+        val empty = mutableListOf<ScannedFile>()
+        val files = StorageAnalysis.scan(dir, { false }, empty) {}
+        assertEquals(setOf("Old/Empty", "Nested/Leaf"), empty.map { it.path.removePrefix(dir.path + "/") }.toSet())
+        assertTrue(empty.all { it.size == 0L })
+        assertEquals(listOf("Hidden only/.nomedia", "Holder/Files/a.txt"),
+            files.map { it.path.removePrefix(dir.path + "/") }.sorted())
+        dir.deleteRecursively()
+    }
+
+    @Test
+    fun scan_unreadableFolderIsNeverEmpty() {
+        val dir = Files.createTempDirectory("locked").toFile()
+        val locked = File(dir, "Locked").apply { mkdirs() }
+        File(locked, "secret.txt").writeBytes(ByteArray(3))
+        locked.setReadable(false)
+        // Only where the system really refuses the listing (not as root).
+        if (locked.list() == null) {
+            val empty = mutableListOf<ScannedFile>()
+            StorageAnalysis.scan(dir, { false }, empty) {}
+            assertTrue(empty.isEmpty())
+        }
+        locked.setReadable(true)
+        dir.deleteRecursively()
+    }
+
+    @Test
+    fun isStillEmpty_folderFilledSinceTheScanIsNot() {
+        val dir = Files.createTempDirectory("filled").toFile()
+        assertTrue(StorageAnalysis.isStillEmpty(dir.path))
+        File(dir, ".nomedia").writeBytes(ByteArray(0))
+        assertFalse(StorageAnalysis.isStillEmpty(dir.path))
+        dir.deleteRecursively()
+        assertFalse(StorageAnalysis.isStillEmpty(dir.path))
+    }
+
+    @Test
+    fun isJunkFolder_keepsSystemHiddenAndAppFolders() {
+        assertTrue(StorageAnalysis.isJunkFolder("Old/Empty"))
+        assertTrue(StorageAnalysis.isJunkFolder("Music/Old album"))
+        assertFalse(StorageAnalysis.isJunkFolder(""))
+        assertFalse(StorageAnalysis.isJunkFolder("Music"))
+        assertFalse(StorageAnalysis.isJunkFolder("download"))
+        assertFalse(StorageAnalysis.isJunkFolder("Android/data/com.app"))
+        assertFalse(StorageAnalysis.isJunkFolder("android/OBB/game"))
+        assertFalse(StorageAnalysis.isJunkFolder(".cache"))
+        assertFalse(StorageAnalysis.isJunkFolder("DCIM/.thumbnails"))
+        assertFalse(StorageAnalysis.isJunkFolder("Notes/.drafts/x"))
+    }
+
+    @Test
+    fun thumbnailFiles_cachesOnlyAndNeverAppData() {
+        val files = listOf(f("/r/DCIM/.thumbnails/a.jpg", 10), f("/r/Pictures/.thumbnails/.thumbdata3", 900),
+            f("/r/Movies/.Thumbnails/b.jpg", 20), f("/r/DCIM/Camera/c.jpg", 500),
+            f("/r/Android/data/app/.thumbnails/d.jpg", 30), f("/r/DCIM/thumbnails-backup/e.jpg", 40))
+        assertEquals(listOf("/r/Pictures/.thumbnails/.thumbdata3", "/r/Movies/.Thumbnails/b.jpg",
+            "/r/DCIM/.thumbnails/a.jpg"), StorageAnalysis.thumbnailFiles("/r", files).map { it.path })
     }
 }

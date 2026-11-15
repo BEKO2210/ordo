@@ -38,10 +38,16 @@ object StorageAnalysis {
     const val OLD_FILE_DAYS = 180
     private const val PARTIAL_HASH_SIZE = 64 * 1024
     private const val PROGRESS_INTERVAL_NANOS = 50_000_000L
+    private val STANDARD_FOLDERS = listOf("Alarms", "Audiobooks", "DCIM", "Documents", "Download", "Movies", "Music",
+        "Notifications", "Pictures", "Podcasts", "Recordings", "Ringtones")
 
     // Walks the volume with java.io.File; unreadable folders (e.g. Android/data on 11+) are skipped.
     // Progress is reported by the clock, so the screen moves evenly on a fast and on a slow storage.
-    fun scan(root: File, isCancelled: () -> Boolean, onProgress: (ScanProgress) -> Unit): List<ScannedFile> {
+    // Empty folders worth offering (see [isJunkFolder]) go to [emptyFolders], with size 0.
+    fun scan(
+        root: File, isCancelled: () -> Boolean, emptyFolders: MutableList<ScannedFile> = ArrayList(),
+        onProgress: (ScanProgress) -> Unit
+    ): List<ScannedFile> {
         val files = mutableListOf<ScannedFile>()
         val trash = File(root, Trash.DIRECTORY_NAME)
         val kinds = LongArray(StorageInsights.KINDS.size)
@@ -50,10 +56,22 @@ object StorageAnalysis {
         fun report(file: File) = onProgress(
             ScanProgress(files.size, bytes, kinds.clone(), file.parent.orEmpty().removePrefix(root.path).trim('/'))
         )
+        // A folder is empty when the walk leaves it right after entering it, with no second read of each folder.
+        // Anything inside counts, hidden files and skipped folders too; a folder it cannot read is never empty.
+        var last: File? = null
+        var unreadable: File? = null
         root.walkTopDown()
-            .onEnter { it != trash && !isCancelled() }
-            .filter { it.isFile }
+            .onEnter { last = it; it != trash && !isCancelled() }
+            .onFail { folder, _ -> unreadable = folder }
+            .onLeave {
+                if (it == last && it != unreadable && !isCancelled() &&
+                    isJunkFolder(it.path.removePrefix(root.path).trim('/'))) {
+                    emptyFolders += ScannedFile(it.path, 0, it.lastModified())
+                }
+            }
             .forEach {
+                last = it
+                if (!it.isFile) return@forEach
                 val size = it.length()
                 files += ScannedFile(it.path, size, it.lastModified())
                 bytes += size
@@ -68,6 +86,25 @@ object StorageAnalysis {
         if (!isCancelled()) onProgress(ScanProgress(files.size, bytes, kinds.clone(), ""))
         return files
     }
+
+    /**
+     * Whether an empty folder at [relative] (to the storage) may be offered for cleanup. Never the storage itself,
+     * hidden folders, anything in Android (app data, obb, media) or the standard folders Android makes again.
+     */
+    fun isJunkFolder(relative: String): Boolean {
+        if (relative.isEmpty() || relative.split('/').any { it.startsWith(".") }) return false
+        if (relative.substringBefore('/').equals("Android", true)) return false
+        return STANDARD_FOLDERS.none { it.equals(relative, true) }
+    }
+
+    /** Whether the folder at [path] is empty right now; a missing or unreadable folder is not. */
+    fun isStillEmpty(path: String): Boolean = File(path).list()?.isEmpty() == true
+
+    /** Thumbnail caches in ".thumbnails" folders (DCIM/.thumbnails and the like): the gallery makes them again. */
+    fun thumbnailFiles(root: String, files: List<ScannedFile>): List<ScannedFile> =
+        files.filter {
+            it.path.contains("/.thumbnails/", true) && !it.path.removePrefix("$root/").startsWith("Android/", true)
+        }.sortedByDescending { it.size }
 
     fun largeFiles(files: List<ScannedFile>, minSize: Long = LARGE_FILE_SIZE): List<ScannedFile> =
         files.filter { !it.isHidden && it.size >= minSize }.sortedByDescending { it.size }
