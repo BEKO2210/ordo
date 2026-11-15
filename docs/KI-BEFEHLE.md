@@ -108,7 +108,9 @@ Tab S9 Ultra (Snapdragon 8 Gen 2, 12 GB), App-Build mit KleidiAI, 4 Threads:
   es fertige Dateien nur für Gemma-4-E2B, das bei uns durchfiel.
 - Nächste Tempo-Schritte: kürzeres Antwortformat (die ~70 Ausgabe-Token sind der größte Anteil) und der
   Varianten-Build (+12 % Ausgabe).
-- Geplant: Modellwahl je Gerät (RAM und CPU-Merkmale), ohne dass Nutzer einen Modellnamen sehen.
+- Modellwahl je Gerät (`ai/ModelChoice.kt`, Test `ModelChoiceTest`): Arbeitsspeicher (`totalMem`) und 64-Bit-Bibliothek
+  (arm64-v8a, x86_64) entscheiden, Nutzer sehen keinen Modellnamen. Es gibt nur das 4B: Unter 5,5 GB RAM bleibt die KI
+  aus. Eine kleinere Stufe (z. B. Qwen3.5-2B Q4_0, 35/54) braucht vorher feste Datei, Hash und Messung auf einem Handy.
 
 ## Offen
 

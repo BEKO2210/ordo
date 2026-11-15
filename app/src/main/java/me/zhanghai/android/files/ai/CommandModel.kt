@@ -42,7 +42,7 @@ object CommandModel {
     data class DeviceCheck(val ramBytes: Long, val freeBytes: Long, val is64Bit: Boolean) {
         val ramOk get() = ramBytes >= MIN_RAM
         val spaceOk get() = freeBytes >= SIZE + SPARE_SPACE
-        val ok get() = ramOk && spaceOk && is64Bit
+        val ok get() = ModelChoice.pick(ramBytes, is64Bit) != ModelChoice.TOO_WEAK && spaceOk
     }
 
     sealed interface State {
