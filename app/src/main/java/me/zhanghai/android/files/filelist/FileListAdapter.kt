@@ -207,7 +207,9 @@ class FileListAdapter(
                     )
                 }
             }
-            popupMenu = PopupMenu(menuButton.context, menuButton)
+            // The compact grid hides the menu button, so its menu hangs off the tile itself.
+            val isCompactGrid = viewType.isGrid && viewType.size.isCompactGrid
+            popupMenu = PopupMenu(menuButton.context, if (isCompactGrid) itemLayout else menuButton)
                 .apply { inflate(R.menu.file_item) }
             menuButton.setOnClickListener { popupMenu.show() }
         }
@@ -238,7 +240,7 @@ class FileListAdapter(
             }
         } else if (size.isCompactGrid) {
             // Narrow tiles have no room for the icon and the menu button next to the name; a long
-            // press still selects the file.
+            // press selects the file and a second one on it opens the menu.
             iconLayout.isVisible = false
             menuButton.isVisible = false
             val margin = context.dpToDimensionPixelSize(8)
@@ -306,6 +308,10 @@ class FileListAdapter(
             setOnLongClickListener {
                 if (selectedFiles.isEmpty()) {
                     selectFile(file)
+                } else if (viewType.isGrid && viewType.size.isCompactGrid && selectedFiles.size == 1 &&
+                    file in selectedFiles
+                ) {
+                    holder.popupMenu.show()
                 } else {
                     listener.openFile(file)
                 }
