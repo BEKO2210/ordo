@@ -35,6 +35,12 @@ TESTS=app/src/test/java/me/zhanghai/android/files
 cell "Analyse neu: Belegung, Rangliste, Seiten statt Reiter" \
     "$TAG 'refs/tags/v0.4.*' | grep -q ." \
     "Speicheranalyse verständlich für jeden; jede Zeile antippbar, Zurück landet am selben Punkt."
+cell "Analyse: Diagramme zurück, fehlerfrei und antippbar" \
+    "grep -Eq 'PieChart|DonutView|TreemapView|SunburstView' app/src/main/res/layout/analysis_overview.xml && test -f $TESTS/analysis/AnalysisChartTest.kt" \
+    "Echte Visualisierung in der Analyse-Übersicht (Bibliothek mit mindestens 10.000 Sternen oder eigene Ansichten): nichts verschluckt alles, jede Fläche antippbar, hell und dunkel lesbar; Datenaufbereitung in AnalysisChartTest abgesichert."
+cell "Analyse: Scan-Animation statt Ladekreisel" \
+    "test -f app/src/main/java/me/zhanghai/android/files/analysis/ScanProgressView.kt" \
+    "Eigene Scan-Ansicht im Aurora-Stil mit hochzählenden Zahlen; richtet sich nach der Animations-Einstellung."
 cell "KI wählt das Modell passend zum Gerät" \
     "test -f $TESTS/ai/ModelChoiceTest.kt" \
     "Modell nach Chip und Arbeitsspeicher wählen; der Nutzer sieht keinen Modellnamen. Fertig, wenn ModelChoiceTest die Wahl absichert."
