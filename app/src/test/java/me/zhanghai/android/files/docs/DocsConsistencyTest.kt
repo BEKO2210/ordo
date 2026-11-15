@@ -91,7 +91,7 @@ class DocsConsistencyTest {
     @Test
     fun readmeVersionAndAndroidMatchTheBuild() {
         assertTrue(readme.contains("version ${BuildConfig.VERSION_NAME}"))
-        assertTrue(readme.contains("Android-6.0%2B"))
+        assertTrue(readme.contains("Android-7.0%2B"))
     }
 
     // Each foreground service type needs its own permission (API 34+ throws without it), and the Play

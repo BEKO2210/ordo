@@ -34,7 +34,7 @@ Status: **ok** = nichts zu tun. **Play Console** = Belkis trägt etwas ein. **Ä
 
 ## 1. Ziel-API
 
-`targetSdk 36`, `minSdk 23`, `compileSdk 37` (`app/build.gradle`). Das zusammengeführte Manifest des Beta-Builds zeigt
+`targetSdk 36`, `minSdk 24`, `compileSdk 37` (`app/build.gradle`). Das zusammengeführte Manifest des Beta-Builds zeigt
 `targetSdkVersion="36"`. Quelle, gelesen am 15.11.2026: [Target API level](https://developer.android.com/google/play/requirements/target-sdk),
 „Starting August 31 2026: New apps and app updates must target Android 16 (API level 36) or higher“.
 
@@ -117,7 +117,7 @@ Video: Menü → FTP-Server → Einschalten → Benachrichtigung mit Adresse und
 
 - `REQUEST_DELETE_PACKAGES`: Deinstallieren aus der App-Liste (`apps/AppsFragment.kt`, `ACTION_UNINSTALL_PACKAGE`).
   Android fragt jedes Mal nach.
-- `INSTALL_SHORTCUT`: Ordner-Verknüpfung auf dem Startbildschirm. Nötig für Android 6 und 7 (`minSdk 23`), ab Android 8
+- `INSTALL_SHORTCUT`: Ordner-Verknüpfung auf dem Startbildschirm. Nötig für Android 7 (`minSdk 24`), ab Android 8
   ersetzt `ShortcutManagerCompat` sie.
 - `POST_NOTIFICATIONS`: ab Android 13 zur Laufzeit erfragt, mit Begründungsdialog (`FileListFragment`).
 - `INTERNET`, `ACCESS_NETWORK_STATE`, `ACCESS_WIFI_STATE`, `WAKE_LOCK`: eigene Server, FTP-Server, KI-Modell-Download.

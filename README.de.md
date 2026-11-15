@@ -13,7 +13,7 @@
 
 <p align="center">
   <a href="LICENSE"><img alt="Lizenz: GPL-3.0-or-later" src="https://img.shields.io/badge/Lizenz-GPL--3.0--or--later-blue"></a>
-  <img alt="Android 6.0+" src="https://img.shields.io/badge/Android-6.0%2B-3DDC84">
+  <img alt="Android 7.0+" src="https://img.shields.io/badge/Android-7.0%2B-3DDC84">
   <img alt="Keine Werbung, kein Tracking" src="https://img.shields.io/badge/Werbung%20%26%20Tracking-keine-2563EB">
   <img alt="KI auf dem Gerät" src="https://img.shields.io/badge/KI-auf%20dem%20Ger%C3%A4t-0E7490">
   <a href="https://beko2210.github.io/ordo/datenschutz.html"><img alt="Datenschutz" src="https://img.shields.io/badge/Datenschutz-Erkl%C3%A4rung-555"></a>
@@ -34,7 +34,7 @@
 
 ## Stand
 
-Ordo ist in Entwicklung (Version 0.8.0) und noch nicht bei Google Play. Testversionen erscheinen als
+Ordo ist in Entwicklung (Version 0.8.1) und noch nicht bei Google Play. Testversionen erscheinen als
 [Pre-Releases](https://github.com/BEKO2210/ordo/releases); du kannst Ordo auch [selbst bauen](#bauen).
 Was als Nächstes kommt, steht in der [lebenden Roadmap](docs/ROADMAP-LIVE.md): Jedes Ziel hat einen Prüfbefehl und schließt sich selbst.
 

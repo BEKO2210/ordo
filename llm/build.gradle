@@ -11,7 +11,7 @@ android {
     compileSdk = 37
     ndkVersion '30.0.16248370'
     defaultConfig {
-        minSdk 23
+        minSdk 24
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
         ndk {
             // 64-bit only: a 4B model needs more memory than 32-bit phones have.
