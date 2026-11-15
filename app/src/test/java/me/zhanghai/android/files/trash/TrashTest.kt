@@ -96,4 +96,21 @@ class TrashTest {
         assertTrue(Trash.isExpired(entry, 30, 30 * day + 1))
         assertFalse(Trash.isExpired(entry, 0, 1000 * day))
     }
+
+    @Test
+    fun entrySize_sumsFolderContents() {
+        val root = kotlin.io.path.createTempDirectory().toFile()
+        try {
+            val entry = TrashEntry("1-a", root.path, "/x/a", 0)
+            val dir = entry.file.apply { resolve("sub").mkdirs() }
+            dir.resolve("a.bin").writeBytes(ByteArray(100))
+            dir.resolve("sub/b.bin").writeBytes(ByteArray(50))
+            assertEquals(150L, entry.size)
+            val single = TrashEntry("2-b", root.path, "/x/b", 0)
+            single.file.writeBytes(ByteArray(7))
+            assertEquals(7L, single.size)
+        } finally {
+            root.deleteRecursively()
+        }
+    }
 }

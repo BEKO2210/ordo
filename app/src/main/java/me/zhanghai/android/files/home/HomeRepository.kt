@@ -72,9 +72,7 @@ class HomeRepository(private val context: Context) {
             .count { it.flags and ApplicationInfo.FLAG_SYSTEM == 0 }
         return state.copy(
             isLoading = false, appCount = appCount, trashCount = trashEntries.size,
-            trashSize = trashEntries.sumOf { entry ->
-                entry.file.walkTopDown().filter { it.isFile }.sumOf { it.length() }
-            }
+            trashSize = trashEntries.sumOf { it.size }
         )
     }
 

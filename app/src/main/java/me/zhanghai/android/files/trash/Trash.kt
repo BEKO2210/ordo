@@ -31,6 +31,10 @@ class TrashEntry(
     val infoFile: File
         get() = File(Trash.infoDir(root), id + Trash.INFO_SUFFIX)
 
+    /** Bytes of all files inside; a folder's own length() is only its inode size. */
+    val size: Long
+        get() = file.walkTopDown().filter { it.isFile }.sumOf { it.length() }
+
     val name: String
         get() = originalPath.substringAfterLast('/')
 }
