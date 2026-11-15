@@ -18,7 +18,7 @@ Status: **ok** = nichts zu tun. **Play Console** = Belkis trägt etwas ein. **Ä
 | 3 | `MANAGE_EXTERNAL_STORAGE` (Zugriff auf alle Dateien) | **Play Console**: Formular, Text A |
 | 4 | `QUERY_ALL_PACKAGES` (installierte Apps sehen) | **Play Console**: Formular, Text B |
 | 5 | `REQUEST_INSTALL_PACKAGES` (APK installieren) | **Play Console**: Formular, Text C |
-| 6 | Vordergrunddienste `specialUse` (2 Dienste) | **Play Console**: Formular + 2 Videos, Texte D und E |
+| 6 | Vordergrunddienste: `dataSync` (Dateiaufträge), `specialUse` (FTP-Server) | **Play Console**: Formular + 2 Videos, Texte D und E |
 | 7 | `REQUEST_DELETE_PACKAGES`, `INSTALL_SHORTCUT`, `POST_NOTIFICATIONS`, `WAKE_LOCK`, Netz | **ok**: kein Formular |
 | 8 | Unverschlüsselter Verkehr (`usesCleartextTraffic`) | **ok**: nötig für FTP und HTTP-WebDAV zu eigenen Servern |
 | 9 | Datensicherheit (Data safety) | **Play Console**: „keine Daten erhoben“, Abschnitt F |
@@ -79,21 +79,20 @@ selbst und lädt keine APKs herunter.
 Ordo is a file manager. When the user taps an APK file in the file list or inside an archive, Ordo hands it to the system package installer (ACTION_INSTALL_PACKAGE). The user confirms every installation in the system dialog. Ordo never installs packages silently, never updates itself and does not download APKs.
 ```
 
-## 4. Vordergrunddienste (`specialUse`)
+## 4. Vordergrunddienste (`dataSync`, `specialUse`)
 
 Ort: Play Console → App-Inhalte → Vordergrunddienste. Je Dienst Beschreibung, Auswirkung und ein Video.
-Risiko: Google ordnet Kopieren und Übertragen eigentlich dem Typ `dataSync` zu (6 Stunden pro Tag im Hintergrund).
-Lehnt Google ab, beide Dienste auf `dataSync` umstellen, mit Abbruch nach dem Zeitlimit.
-Die Roadmap-Zelle „Vordergrunddienst-Typ für Dateiaufträge geklärt“ (`utils/roadmap.sh`) bleibt offen, bis Belkis die
-Zeile „specialUse: Entscheidung …“ in [PLAY-BERECHTIGUNGEN.md](PLAY-BERECHTIGUNGEN.md) einträgt.
+`FileJobService` läuft als `dataSync`: ab Android 15 höchstens 6 Stunden am Tag im Hintergrund, danach bricht der
+Auftrag mit Benachrichtigung ab. `FtpServerService` bleibt `specialUse`. Begründung und Risiko stehen in
+[PLAY-BERECHTIGUNGEN.md](PLAY-BERECHTIGUNGEN.md), Abschnitt 7.
 
 **D. `FileJobService`, Dateiaufträge**
 Kurz: Läuft, solange ein vom Nutzer gestarteter Auftrag (Kopieren, Verschieben, Löschen, Packen, Entpacken) dauert,
 mit sichtbarer Benachrichtigung.
 
-Beschreibung:
+Typ `dataSync`, Anwendungsfall „Local processing: Other“. Beschreibung:
 ```
-Runs a file operation the user started in Ordo: copy, move, delete, compress or extract, also to and from network folders the user added (SMB, SFTP, FTP, WebDAV). A notification with progress and a cancel action stays visible until the operation ends. Large or slow network transfers can exceed the 6-hour background limit of dataSync, so the service uses specialUse to finish what the user asked for.
+FileJobService runs a file operation the user started in Ordo: copy, move, delete, archive, backup or restore, also to or from a network folder the user added. A notification shows the progress until the operation finishes or the user cancels it.
 ```
 Auswirkung, wenn Android den Dienst stoppt:
 ```
@@ -198,7 +197,7 @@ Kernfunktion nennen, sonst fehlt die Grundlage für die Formulare A und B.
 
 ## Nicht geprüft
 
-- Ob Google `specialUse` für die beiden Dienste annimmt. Das entscheidet die Prüfung.
+- Ob Google `specialUse` für den FTP-Server annimmt. Das entscheidet die Prüfung.
 - Das zusammengeführte Manifest des Release-Bundles (geprüft wurde der Beta-Build mit gleichem Quellstand).
 - Welche Daten der Android-Geocoder genau an Google sendet.
 - Die Antwort-Schalter der Data-safety-Seite nach „Nein“. Geprüft ist nur die Regel.
