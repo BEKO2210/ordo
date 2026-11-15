@@ -11,13 +11,6 @@ import me.zhanghai.android.files.BuildConfig
 private const val KEY_VERSION_CODE = "key_version_code"
 
 private const val VERSION_CODE_BELOW_1_1_0 = 17
-private const val VERSION_CODE_1_1_0 = 18
-private const val VERSION_CODE_1_2_0 = 22
-private const val VERSION_CODE_1_3_0 = 24
-private const val VERSION_CODE_1_4_0 = 26
-private const val VERSION_CODE_1_5_0 = 29
-private const val VERSION_CODE_1_6_0 = 32
-private const val VERSION_CODE_1_7_2 = 37
 private const val VERSION_CODE_LATEST = BuildConfig.VERSION_CODE
 
 private var lastVersionCode: Int
@@ -38,27 +31,9 @@ fun upgradeApp() {
     lastVersionCode = VERSION_CODE_LATEST
 }
 
-private fun upgradeAppFrom(lastVersionCode: Int) {
-    if (lastVersionCode < VERSION_CODE_1_1_0) {
-        upgradeAppTo1_1_0()
-    }
-    if (lastVersionCode < VERSION_CODE_1_2_0) {
-        upgradeAppTo1_2_0()
-    }
-    if (lastVersionCode < VERSION_CODE_1_3_0) {
-        upgradeAppTo1_3_0()
-    }
-    if (lastVersionCode < VERSION_CODE_1_4_0) {
-        upgradeAppTo1_4_0()
-    }
-    if (lastVersionCode < VERSION_CODE_1_5_0) {
-        upgradeAppTo1_5_0()
-    }
-    if (lastVersionCode < VERSION_CODE_1_6_0) {
-        upgradeAppTo1_6_0()
-    }
-    if (lastVersionCode < VERSION_CODE_1_7_2) {
-        upgradeAppTo1_7_2()
-    }
-    // Continue with new `if`s on lastVersionCode instead of `else if`.
-}
+// Ordo (com.beko2210.ordo) never shipped Material Files' old settings formats, and Ordo's own version codes
+// (14, 15, …) lie below Material Files' 18–37. Its migrations (upgradeAppTo1_1_0 … 1_7_2) therefore ran on every
+// Ordo update and rewrote settings already in the current format, which crashed the start on a Pixel 11
+// (0.7.0, "bad base-64"). They must never run for Ordo. Ordo's own migrations go here, keyed on Ordo's codes.
+@Suppress("UNUSED_PARAMETER")
+private fun upgradeAppFrom(lastVersionCode: Int) {}
