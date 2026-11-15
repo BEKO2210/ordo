@@ -5,6 +5,7 @@
     ui.py SERIAL tap TARGET [ID]   tap a node; TARGET is a visible text, a content description or a resource id
     ui.py SERIAL longtap TARGET
     ui.py SERIAL has TARGET [ID]   exit 0 if a node matches
+    ui.py SERIAL checked TEXT      exit 0 if the check box after the node with that text is ticked
     ui.py SERIAL visible ID        exit 0 if that view of the front activity's window is shown (fast; no popups/dialogs)
     ui.py SERIAL wait TARGET [S]   wait up to S seconds (default 10) for a node
     ui.py SERIAL bounds TARGET     print "x1 y1 x2 y2" for every matching node
@@ -46,8 +47,13 @@ def nodes(fresh=False):
             xml = f.read()
     else:
         # One round trip: over Tailscale every adb call costs latency.
-        xml = subprocess.run(ADB + ["exec-out", "uiautomator dump /data/local/tmp/ordo-e2e.xml >/dev/null && "
-                                    "cat /data/local/tmp/ordo-e2e.xml"], capture_output=True, text=True).stdout
+        # A busy app (e.g. right after an install) can make the dump give up on waiting for idle: try again.
+        for _ in range(3):
+            xml = subprocess.run(ADB + ["exec-out", "uiautomator dump /data/local/tmp/ordo-e2e.xml >/dev/null && "
+                                        "cat /data/local/tmp/ordo-e2e.xml"], capture_output=True, text=True).stdout
+            if "<node" in xml:
+                break
+            time.sleep(1)
         os.makedirs(os.path.dirname(DUMP), exist_ok=True)
         with open(DUMP, "w") as f:
             f.write(xml)
@@ -150,6 +156,18 @@ elif command == "longtap":
     time.sleep(1.2)
 elif command == "visible":
     sys.exit(0 if visible(sys.argv[3]) else 1)
+elif command == "checked":
+    # The check box that follows the node with that text, e.g. a checkable menu entry.
+    nodes(fresh=True)
+    with open(DUMP) as f:
+        tags = re.findall(r"<node [^>]*>", f.read())
+    wanted = sys.argv[3].split("|")
+    start = next((i for i, tag in enumerate(tags)
+                  if html.unescape(re.search(r'text="([^"]*)"', tag).group(1)) in wanted), None)
+    if start is None:
+        sys.exit(f"not found: {sys.argv[3]}")
+    box = next((tag for tag in tags[start + 1:] if 'checkable="true"' in tag), "")
+    sys.exit(0 if 'checked="true"' in box else 1)
 elif command == "has":
     sys.exit(0 if find(sys.argv[3], *sys.argv[4:5]) else 1)
 elif command == "wait":

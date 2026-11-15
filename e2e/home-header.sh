@@ -34,7 +34,8 @@ check "recent files: horizontal" ui has "Waagerecht|Horizontal" title
 check "recent files: hide" ui has "Ausblenden|Hide" title
 # Close the submenu and the menu. On a phone the popup does not cover the more button, so check the entries.
 for _ in 1 2 3; do ui has "Raster|Grid|Versteckte Dateien anzeigen|Show hidden files" title || break; back; done
-quick() { ui has quickAccessTitle && echo shown || echo hidden; }
+# The section may lie below the fold on a shorter screen, so read the tick of the menu entry instead.
+quick() { more; ui checked "Schnellzugriff anzeigen|Show quick access" && echo shown || echo hidden; back 1; }
 before=$(quick)
 more; ui tap "Schnellzugriff anzeigen|Show quick access" title >/dev/null; sleep 1.5
 check "show quick access switches the section" test "$(quick)" != "$before"
