@@ -77,7 +77,7 @@
                     android:layout_height="wrap_content"
                     android:paddingHorizontal="@dimen/home_list_padding" />
 
-                <!-- Vault and backup side by side, in the same tile form as the categories above. -->
+                <!-- Vault and backup side by side as one row of tools: icon left, text beside it. -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -88,7 +88,7 @@
                         android:id="@+id/vaultCard"
                         style="@style/Widget.Ordo.HomeCard"
                         android:layout_width="0dp"
-                        android:layout_height="@dimen/home_tile_height"
+                        android:layout_height="64dp"
                         android:layout_margin="4dp"
                         android:layout_weight="1"
                         android:clickable="true"
@@ -105,15 +105,16 @@
                                 android:id="@+id/vaultIcon"
                                 android:layout_width="30dp"
                                 android:layout_height="30dp"
-                                android:layout_gravity="top|end"
+                                android:layout_gravity="center_vertical|start"
                                 android:background="@drawable/home_icon_circle"
                                 android:contentDescription="@null"
-                                android:padding="7dp" />
+                                android:padding="5dp" />
 
                             <LinearLayout
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:layout_gravity="bottom|start"
+                                android:layout_gravity="center_vertical|start"
+                                android:layout_marginStart="42dp"
                                 android:orientation="vertical">
 
                                 <TextView
@@ -140,7 +141,7 @@
                         android:id="@+id/backupCard"
                         style="@style/Widget.Ordo.HomeCard"
                         android:layout_width="0dp"
-                        android:layout_height="@dimen/home_tile_height"
+                        android:layout_height="64dp"
                         android:layout_margin="4dp"
                         android:layout_weight="1"
                         android:clickable="true"
@@ -157,15 +158,16 @@
                                 android:id="@+id/backupIcon"
                                 android:layout_width="30dp"
                                 android:layout_height="30dp"
-                                android:layout_gravity="top|end"
+                                android:layout_gravity="center_vertical|start"
                                 android:background="@drawable/home_icon_circle"
                                 android:contentDescription="@null"
-                                android:padding="7dp" />
+                                android:padding="5dp" />
 
                             <LinearLayout
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:layout_gravity="bottom|start"
+                                android:layout_gravity="center_vertical|start"
+                                android:layout_marginStart="42dp"
                                 android:orientation="vertical">
 
                                 <TextView
@@ -220,7 +222,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="?actionBarSize"
                 android:theme="?actionBarTheme"
-                app:popupTheme="?actionBarPopupTheme" />
+                app:popupTheme="?actionBarPopupTheme"
+                app:titleTextAppearance="@style/TextAppearance.Ordo.HomeTitle" />
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/searchCard"
                 style="@style/Widget.Ordo.HomeCard"

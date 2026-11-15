@@ -183,4 +183,10 @@
         <item name="android:textAppearance">?textAppearanceBody2</item>
         <item name="android:textColor">?android:textColorSecondary</item>
     </style>
+
+    <!-- The app name on the home screen: same size as before, medium weight so it leads the page. -->
+    <style name="TextAppearance.Ordo.HomeTitle" parent="TextAppearance.Material3.TitleLarge">
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="fontFamily">sans-serif-medium</item>
+    </style>
 </resources>

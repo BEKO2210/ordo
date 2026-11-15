@@ -226,6 +226,14 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
         setHasOptionsMenu(true)
     }
 
+    private var backStopIndex = -1
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+
+        outState.putInt(STATE_BACK_STOP_INDEX, backStopIndex)
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -336,6 +344,9 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
         }
 
         val viewLifecycleOwner = viewLifecycleOwner
+        if (savedInstanceState != null) {
+            backStopIndex = savedInstanceState.getInt(STATE_BACK_STOP_INDEX, -1)
+        }
         addOnBackPressedCallback(
             object : OnBackPressedCallback(false) {
                 override fun handleOnBackPressed() {
@@ -344,7 +355,17 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
             }
                 .also { callback ->
                     viewModel.breadcrumbLiveData.observe(viewLifecycleOwner) {
-                        callback.isEnabled = viewModel.canNavigateUpBreadcrumb
+                        // Opened on a folder from elsewhere in Ordo (analysis, quick access): back walks up only
+                        // to that folder, then returns to where the user came from, not to the storage root.
+                        if (backStopIndex < 0) {
+                            backStopIndex = if (argsPath != null && args.intent.action == Intent.ACTION_VIEW) {
+                                it.selectedIndex
+                            } else {
+                                0
+                            }
+                        }
+                        callback.isEnabled =
+                            viewModel.canNavigateUpBreadcrumb && it.selectedIndex > backStopIndex
                     }
                 }
         )
@@ -1864,6 +1885,7 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
     }
 
     companion object {
+        private const val STATE_BACK_STOP_INDEX = "back_stop_index"
         private val SELECTION_BAR_ACTIONS = listOf(
             R.id.selectionMoveButton to R.id.action_cut,
             R.id.selectionCopyButton to R.id.action_copy,

@@ -187,11 +187,8 @@ class HomeFragment : Fragment(), ShowRequestAllFilesAccessRationaleDialogFragmen
     // The content scrolls under the top bar. Android 12+ blurs it; older versions get a solid bar.
     private fun setUpGlassToolbar() {
         val context = requireContext()
-        // The page colour with a breath of the Aurora accent, not the grey app bar surface.
-        val barColor = ColorUtils.blendARGB(
-            context.getColorByAttr(android.R.attr.colorBackground),
-            androidx.core.content.ContextCompat.getColor(context, R.color.ai_accent), 0.04f
-        )
+        // Exactly the page colour: at rest there is no seam under the bar; glass and hairline show once it scrolls.
+        val barColor = context.getColorByAttr(android.R.attr.colorBackground)
         binding.toolbarBlur.setUpGlass(binding.blurTarget, barColor, requireActivity())
         val hairline = ColorUtils.setAlphaComponent(context.getColorByAttr(android.R.attr.textColorPrimary), 0x1F)
         binding.toolbarEdge.background = android.graphics.drawable.LayerDrawable(arrayOf(
