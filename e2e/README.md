@@ -8,6 +8,10 @@ e2e/run.sh <adb serial>            # read-only tests
 e2e/run.sh --write <adb serial>    # plus tests that create and delete their own files
 ```
 
+`E2E_FAST=1 e2e/run.sh <adb serial>` remembers every tap position per device, screen size and screen in
+`~/.cache/ordo-e2e/` and taps it straight away next time; checks still read the real screen. Delete the cache file
+after a layout change. On a Pixel 11 Pro the read-only run went from 618 s to 491 s, all 110 checks passing.
+
 | Test | What it proves | Since |
 |---|---|---|
 | `smoke.sh` | start, home screen, every settings section and its way back | 0.4.2 |

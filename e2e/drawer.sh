@@ -14,12 +14,29 @@ menu_scroll() { a shell input swipe $((W / 6)) $((H * $1 / 100)) $((W / 6)) $((H
 menu_top() { menu_scroll 30 80; menu_scroll 30 80; }
 titles() { ui texts | awk -F'|' '$2 == "titleText" { print $1 }'; }
 # Taps an entry by its title; the same word may stand on the page behind the menu, so only titles of the menu count.
+# above ENTRY VISIBLE: true when ENTRY comes before the first visible title in the menu's order.
+above() {
+    local i first=-1 want=-1
+    for i in "${!entries[@]}"; do
+        [ "${entries[$i]}" = "$1" ] && want=$i
+        [ "$first" = -1 ] && grep -qxF -- "${entries[$i]}" <<<"$2" && first=$i
+    done
+    [ "$want" -ge 0 ] && [ "$first" -ge 0 ] && [ "$want" -lt "$first" ]
+}
+# Entries are opened in order, so look where the menu stands first and further down next; only then from the top.
 menu_tap() {
-    local try
-    menu_top
-    for try in 1 2 3 4; do
-        ui tap "$1" titleText >/dev/null 2>&1 && return 0
-        menu_scroll 70 40
+    local round try
+    # The wanted entry lies above everything on screen: start from the top right away.
+    local seen
+    seen=$(titles)
+    grep -qxF -- "$1" <<<"$seen" || ! above "$1" "$seen" || menu_top
+    for round in 1 2; do
+        # Small steps: a long swipe can fling an entry past the visible area on tall phones.
+        for try in 1 2 3 4 5 6 7 8; do
+            E2E_FAST=0 ui tap "$1" titleText >/dev/null 2>&1 && return 0   # the menu scrolls: always read it
+            menu_scroll 65 50
+        done
+        menu_top
     done
     return 1
 }
@@ -46,10 +63,10 @@ for i in "${!entries[@]}"; do
     guard
     open_menu
     if ! menu_tap "$entry"; then fail "$entry: not found in the menu"; back; continue; fi
-    sleep 2; guard
+    wait_on "$screen"; guard
     check "$entry opens ${screen##*.}" on "$screen"
-    back 2
-    on home.HomeActivity || back 2   # an unlock prompt was on top
+    back 0.3
+    wait_on home.HomeActivity 3 || back 2   # an unlock prompt was on top
     check "$entry: back returns to the home screen" on home.HomeActivity
     # A dialog opens over the menu, which stays open below it, as in the file list.
     [ "$screen" = storage.AddStorageDialogActivity ] && menu_open && back

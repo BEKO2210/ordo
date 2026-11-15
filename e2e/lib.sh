@@ -8,9 +8,11 @@ PKG=${PKG:-com.beko2210.ordo}
 HERE=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 FAILS=0
 
-a() { "$ADB" -s "$SERIAL" "$@" < /dev/null; }
+# Anything that acts on the screen drops ui.py's remembered screen read, so the next check reads it fresh.
+DUMP=~/.cache/ordo-e2e/${SERIAL//[^A-Za-z0-9]/_}.xml
+a() { case " $* " in *" input "*|*" am "*|*" monkey "*) rm -f "$DUMP" ;; esac; "$ADB" -s "$SERIAL" "$@" < /dev/null; }
 ui() { python3 "$HERE/ui.py" "$SERIAL" "$@" < /dev/null; }
-top() { a shell dumpsys activity activities | grep -m1 topResumedActivity | grep -o 'com[^ }]*'; }
+top() { a shell "dumpsys activity activities 2>/dev/null | grep -m1 topResumedActivity" | grep -o 'com[^ }]*'; }
 crashes() { a logcat -b crash -d | grep -c FATAL; }
 back() { a shell input keyevent BACK; sleep "${1:-1.5}"; }
 
@@ -24,6 +26,8 @@ guard() {
     case "$(top)" in "$PKG"/*) ;; *) echo "ABORT: $(top) is in front, not Ordo"; exit 2 ;; esac
 }
 on() { [ "$(top)" = "$PKG/me.zhanghai.android.files.$1" ]; }
+# wait_on SCREEN [S]: polls until that screen is in front (up to S seconds, default 4) instead of a fixed sleep.
+wait_on() { local end=$((SECONDS + ${2:-4})); until on "$1"; do [ $SECONDS -ge "$end" ] && return 1; sleep 0.3; done; }
 
 wake() { a shell input keyevent KEYCODE_WAKEUP; a shell wm dismiss-keyguard; sleep 1; }
 # Fresh start on the home screen with an empty crash log.
