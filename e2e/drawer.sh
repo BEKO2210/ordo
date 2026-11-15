@@ -6,7 +6,8 @@
 . "$(dirname "$0")/lib.sh" "$@"
 launch
 read -r W H < <(screen_size)
-menu_open() { ui has navigationFragment; }
+# The side menu lives in the activity's window, so the fast view-tree check is exact for it (0.2 s, not 2.4 s).
+menu_open() { ui visible navigationFragment; }
 menu_closed() { ! menu_open; }
 open_menu() { ui tap menuButton >/dev/null 2>&1; sleep 1; }
 # The menu is a list: its last entries are only reachable by scrolling.
