@@ -6,6 +6,18 @@
 package me.zhanghai.android.files.filelist
 
 object BatchRename {
+    enum class Conflict { INVALID, EXISTS }
+
+    // Renames run as separate parallel jobs, so any target that is not a plain name or that already exists
+    // in the folder (even as another selected file) would fail halfway or move the file elsewhere.
+    fun conflict(renames: List<Pair<String, String>>, exists: (String) -> Boolean): Conflict? {
+        for ((old, new) in renames) {
+            if (new.isEmpty() || '/' in new || '\u0000' in new) return Conflict.INVALID
+            if (new != old && exists(new)) return Conflict.EXISTS
+        }
+        return null
+    }
+
     const val NUMBER_PLACEHOLDER = "{n}"
 
     // "Urlaub_{n}" -> Urlaub_01.jpg, Urlaub_02.png …; without {n} the number is appended.

@@ -101,8 +101,14 @@ def find(target, inside=None, fresh=False):
         if inside and name != inside:
             continue
         if text in wanted or desc in wanted or name in wanted:
+            global FOUND_BY_TEXT
+            FOUND_BY_TEXT = text in wanted and name not in wanted and desc not in wanted
             return (x1 + x2) // 2, (y1 + y2) // 2
     return None
+
+
+# Set by find(): the match was a visible text (a file or folder name), not a control's id or label.
+FOUND_BY_TEXT = False
 
 
 def in_scroller(point):
@@ -160,7 +166,9 @@ if command == "tap" and os.environ.get("E2E_FAST") == "1":
     if point is None:
         point = need(sys.argv[3], *sys.argv[4:5])
         # Only fixed spots are remembered: a target in a list or a scrolling page is looked up every time.
-        if not in_scroller(point):
+        # Visible texts such as folder names move when the content changes (a row inserted above): only ids
+        # and control labels are remembered.
+        if not in_scroller(point) and not FOUND_BY_TEXT:
             cache_store(key, target, point)
     sh("input", "tap", str(point[0]), str(point[1]))
     forget_screen()

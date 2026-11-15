@@ -100,7 +100,14 @@ private fun createNotificationChannels() {
 }
 
 private fun purgeExpiredTrash() {
-    Thread({ Trash.purgeExpired() }, "TrashPurge").start()
+    Thread({
+        // A background purge must never take the app down.
+        try {
+            Trash.purgeExpired()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }, "TrashPurge").start()
 }
 
 private fun cleanUpVault() {

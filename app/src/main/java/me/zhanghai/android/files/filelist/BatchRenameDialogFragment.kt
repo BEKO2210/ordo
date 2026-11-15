@@ -7,6 +7,7 @@ package me.zhanghai.android.files.filelist
 
 import android.app.Dialog
 import android.os.Bundle
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatDialogFragment
 import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.Fragment
@@ -17,6 +18,7 @@ import me.zhanghai.android.files.databinding.BatchRenameDialogBinding
 import me.zhanghai.android.files.file.FileItem
 import me.zhanghai.android.files.util.ParcelableArgs
 import me.zhanghai.android.files.util.args
+import me.zhanghai.android.files.util.hideTextInputLayoutErrorOnTextChange
 import me.zhanghai.android.files.util.putArgs
 import me.zhanghai.android.files.util.show
 
@@ -26,9 +28,9 @@ class BatchRenameDialogFragment : AppCompatDialogFragment() {
     private val listener: Listener
         get() = requireParentFragment() as Listener
 
-    // Sorted by name so the numbers follow the order the user sees in a name-sorted list.
+    // The caller passes the files in list order, so the numbers follow what the user sees.
     private val files: List<FileItem>
-        get() = args.files.sortedWith(compareBy(String.CASE_INSENSITIVE_ORDER) { it.name })
+        get() = args.files.toList()
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val binding = BatchRenameDialogBinding.inflate(layoutInflater)
@@ -47,17 +49,40 @@ class BatchRenameDialogFragment : AppCompatDialogFragment() {
         }
         binding.patternEdit.doAfterTextChanged { updatePreview() }
         updatePreview()
+        binding.patternEdit.hideTextInputLayoutErrorOnTextChange(binding.patternLayout)
         return MaterialAlertDialogBuilder(requireContext(), theme)
             .setTitle(getString(R.string.batch_rename_title_format, files.size))
             .setView(binding.root)
-            .setPositiveButton(R.string.rename) { _, _ ->
-                if (binding.patternEdit.text.isNullOrBlank()) {
-                    return@setPositiveButton
-                }
-                listener.renameFiles(files.zip(newNames()))
-            }
+            .setPositiveButton(R.string.rename, null)
             .setNegativeButton(android.R.string.cancel, null)
             .create()
+            .apply {
+                // Override the listener here so that the dialog stays open when a name is rejected.
+                setOnShowListener {
+                    getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+                        if (binding.patternEdit.text.isNullOrBlank()) {
+                            return@setOnClickListener
+                        }
+                        val renames = files.zip(newNames())
+                        val conflict = BatchRename.conflict(
+                            renames.map { (file, newName) -> file.name to newName },
+                            listener::hasFileWithName
+                        )
+                        if (conflict != null) {
+                            binding.patternLayout.error = getString(
+                                if (conflict == BatchRename.Conflict.INVALID) {
+                                    R.string.file_name_error_invalid
+                                } else {
+                                    R.string.file_name_error_already_exists
+                                }
+                            )
+                            return@setOnClickListener
+                        }
+                        listener.renameFiles(renames)
+                        dismiss()
+                    }
+                }
+            }
     }
 
     companion object {
@@ -73,5 +98,7 @@ class BatchRenameDialogFragment : AppCompatDialogFragment() {
 
     interface Listener {
         fun renameFiles(renames: List<Pair<FileItem, String>>)
+
+        fun hasFileWithName(name: String): Boolean
     }
 }

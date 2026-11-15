@@ -34,7 +34,7 @@
 
 ## Stand
 
-Ordo ist in Entwicklung (Version 0.7.1) und noch nicht bei Google Play. Testversionen erscheinen als
+Ordo ist in Entwicklung (Version 0.8.0) und noch nicht bei Google Play. Testversionen erscheinen als
 [Pre-Releases](https://github.com/BEKO2210/ordo/releases); du kannst Ordo auch [selbst bauen](#bauen).
 Was als Nächstes kommt, steht in der [lebenden Roadmap](docs/ROADMAP-LIVE.md): Jedes Ziel hat einen Prüfbefehl und schließt sich selbst.
 
@@ -44,7 +44,7 @@ Was als Nächstes kommt, steht in der [lebenden Roadmap](docs/ROADMAP-LIVE.md): 
 
 - Startseite mit zuletzt verwendeten Dateien, Kategorien (Bilder, Videos, Audio, Dokumente, Downloads, APKs,
   Archive) und Speicher auf einen Blick
-- Eine schlanke Glas-Leiste oben: Seitenmenü, Suche, KI-Befehl und Optionen in einer Zeile
+- Eine schlanke Glas-Leiste: Seitenmenü, Suche, KI-Befehl und Optionen in einer Zeile, oben oder unten
 - Dasselbe Seitenmenü auf der Startseite und in der Dateiliste: Speicher, Ordner, Lesezeichen und alle Werkzeuge
 - Suche nach Namen oder nach Text in Dateien, auf Wunsch mit regulären Ausdrücken
 - Liste oder Raster in drei Größen, für alle Ordner oder nur einen
@@ -77,7 +77,7 @@ Was als Nächstes kommt, steht in der [lebenden Roadmap](docs/ROADMAP-LIVE.md): 
 
 - Tresor: Dateien werden mit AES-256-GCM verschlüsselt und mit deiner Bildschirmsperre geöffnet
 - Sicherung: Ordner und Tresor als ZIP auf einen USB-Stick oder an jeden Ort, den dein Handy anbietet, etwa Google
-  Drive – auf Wunsch mit Passwort (AES-256), dazu sichere Wiederherstellung normaler Dateien ohne vorhandene zu ersetzen; selbst hinzugefügte Ordner lassen sich wieder aus der Liste nehmen
+  Drive – auf Wunsch mit Passwort (AES-256), dazu sichere Wiederherstellung normaler Dateien ohne vorhandene zu ersetzen; selbst hinzugefügte Ordner lassen sich wieder aus der Liste nehmen; eine Datei, die mittendrin nicht mehr lesbar ist, bricht die Sicherung ab, statt gekürzt darin zu landen; App-Daten in `Android/data` und `Android/obb` bleiben draußen, weil Android sie nicht wiederherstellen lässt
 
 **In deinen eigenen Worten** – siehe [KI-Befehle](#ki-befehle)
 
@@ -94,6 +94,7 @@ Was als Nächstes kommt, steht in der [lebenden Roadmap](docs/ROADMAP-LIVE.md): 
 
 - Ordos eigene Farben auf jedem Handy, in fünf Akzenten, oder die Farben deines Hintergrundbilds (ab Android 12)
 - Hell, dunkel und echtes Schwarz; Animationen voll, dezent oder aus
+- Die Suchleiste der Startseite oben oder unten, mit dem Daumen erreichbar
 
 ## KI-Befehle
 

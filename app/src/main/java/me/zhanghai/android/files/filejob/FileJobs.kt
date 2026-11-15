@@ -48,12 +48,19 @@ import kotlinx.coroutines.runBlocking
 import me.zhanghai.android.files.R
 import me.zhanghai.android.files.app.BackgroundActivityStarter
 import me.zhanghai.android.files.app.mainExecutor
+import me.zhanghai.android.files.backup.BACKUP_VAULT_FOLDER
+import me.zhanghai.android.files.backup.BackupSourceException
+import me.zhanghai.android.files.backup.BackupSourceStream
 import me.zhanghai.android.files.backup.BackupStatus
 import me.zhanghai.android.files.backup.BackupStatusLiveData
 import me.zhanghai.android.files.backup.RestoreDestination
 import me.zhanghai.android.files.backup.RestoreDestinationState
 import me.zhanghai.android.files.backup.backupEntryName
 import me.zhanghai.android.files.backup.chooseRestoreDestination
+import me.zhanghai.android.files.backup.deleteDocumentIfEmpty
+import me.zhanghai.android.files.backup.isBackupFormatMarker
+import me.zhanghai.android.files.backup.isProtectedAndroidPath
+import me.zhanghai.android.files.backup.isRestorableBackupEntry
 import me.zhanghai.android.files.backup.resolveRestoreFile
 import me.zhanghai.android.files.backup.restoreEntryPath
 import me.zhanghai.android.files.backup.uniqueEntryName
@@ -2696,11 +2703,16 @@ class RestorePreviewJob(
                 var size = 0L
                 var vaultFileCount = 0
                 var sawEntry = false
+                var isLegacyBackup = true
                 while (true) {
                     throwIfInterrupted()
                     val entry = archive.readEntry(StandardCharsets.UTF_8) ?: break
+                    if (!sawEntry) {
+                        isLegacyBackup =
+                            !isBackupFormatMarker(entry.name, entry.type == PosixFileType.DIRECTORY)
+                    }
                     sawEntry = true
-                    val entryPath = checkedRestoreEntryPath(entry)
+                    val entryPath = checkedRestoreEntryPath(entry, isLegacyBackup)
                     if (password == null && entry.isEncrypted) {
                         return RestoreArchiveInfo(0, 0, 0, true)
                     }
@@ -2725,18 +2737,6 @@ class RestorePreviewJob(
             }
         }
     }
-
-    private fun checkedRestoreEntryPath(entry: ReadArchive.Entry) =
-        try {
-            val name = if (entry.type == PosixFileType.DIRECTORY) {
-                entry.name.removeSuffix("/")
-            } else {
-                entry.name
-            }
-            restoreEntryPath(name)
-        } catch (e: IllegalArgumentException) {
-            throw UnsafeRestoreArchiveException(e)
-        }
 
     private fun postIdleIfCurrent() {
         val currentJobId = (BackupStatusLiveData.value as? BackupStatus.RestoreChecking)?.jobId
@@ -2768,19 +2768,17 @@ class RestoreBackupJob(
             postProgress(0, null)
             openRestoreChannel(source).use {
                 ReadArchive(it, listOfNotNull(password)).use { archive ->
+                    var isFirstEntry = true
+                    var isLegacyBackup = true
                     while (true) {
                         throwIfInterrupted()
                         val entry = archive.readEntry(StandardCharsets.UTF_8) ?: break
-                        val entryPath = try {
-                            val name = if (entry.type == PosixFileType.DIRECTORY) {
-                                entry.name.removeSuffix("/")
-                            } else {
-                                entry.name
-                            }
-                            restoreEntryPath(name)
-                        } catch (e: IllegalArgumentException) {
-                            throw UnsafeRestoreArchiveException(e)
+                        if (isFirstEntry) {
+                            isFirstEntry = false
+                            isLegacyBackup =
+                                !isBackupFormatMarker(entry.name, entry.type == PosixFileType.DIRECTORY)
                         }
+                        val entryPath = checkedRestoreEntryPath(entry, isLegacyBackup)
                         if (entry.type == PosixFileType.DIRECTORY) {
                             continue
                         }
@@ -2946,6 +2944,18 @@ class RestoreBackupJob(
     }
 }
 
+private fun checkedRestoreEntryPath(entry: ReadArchive.Entry, isLegacyBackup: Boolean) =
+    try {
+        val name = if (entry.type == PosixFileType.DIRECTORY) {
+            entry.name.removeSuffix("/")
+        } else {
+            entry.name
+        }
+        restoreEntryPath(name, isLegacyBackup)
+    } catch (e: IllegalArgumentException) {
+        throw UnsafeRestoreArchiveException(e)
+    }
+
 private data class RestoreArchiveInfo(
     val fileCount: Int,
     val size: Long,
@@ -3103,8 +3113,8 @@ private const val RESTORE_BUFFER_SIZE = 64 * 1024
 
 /**
  * Ordo: writes the chosen folders and the vault into one ZIP at [target], a document the user
- * picked on a USB drive or in a cloud app. Files that cannot be read are skipped and reported
- * instead of failing the whole backup.
+ * picked on a USB drive or in a cloud app. Files that cannot be opened are skipped and reported
+ * instead of failing the whole backup; a file that fails while it is read stops the backup.
  */
 class BackupJob(
     private val folders: List<Path>,
@@ -3113,6 +3123,7 @@ class BackupJob(
     private val password: String?
 ) : FileJob() {
     private val skipped = mutableListOf<String>()
+    private var isTargetCut = false
 
     @Throws(IOException::class)
     override fun run() {
@@ -3128,16 +3139,25 @@ class BackupJob(
             val totalSize = sources.sumOf { it.size }.coerceAtLeast(1)
             var fileCount = 0
             var lastProgressMillis = 0L
-            // Truncating, because the system picker can hand out a file that already exists.
-            val pfd = service.contentResolver.openFileDescriptor(target, "wt")
+            // The system picker can hand out an older backup: it is cut only once the new one
+            // surely fits. Providers without "rw", like cloud apps, cut it at once, as before.
+            val existingPfd = try {
+                service.contentResolver.openFileDescriptor(target, "rw")
+            } catch (e: Exception) {
+                null
+            }
+            val mode = if (existingPfd != null) "rw" else "wt"
+            val pfd = existingPfd ?: service.contentResolver.openFileDescriptor(target, "wt")
                 ?: throw IOException("Cannot open $target")
+            isTargetCut = existingPfd == null
             val fileDescriptor = pfd.fileDescriptor
-            val channel = FileChannel::class.open(pfd, "wt")
+            val channel = FileChannel::class.open(pfd, mode)
             channel.use {
+                val existingSize = if (isTargetCut) 0L else Os.fstat(fileDescriptor).st_size
                 // Minutes of copying should not end with a full drive. Cloud providers hand out a
                 // pipe, which reports no blocks.
                 val stat = Os.fstatvfs(fileDescriptor)
-                val freeSize = stat.f_bavail * stat.f_frsize
+                val freeSize = stat.f_bavail * stat.f_frsize + existingSize
                 if (stat.f_blocks > 0 && freeSize < totalSize) {
                     deleteTarget()
                     BackupStatusLiveData.postValue(
@@ -3152,8 +3172,20 @@ class BackupJob(
                     )
                     return
                 }
+                if (!isTargetCut) {
+                    try {
+                        Os.ftruncate(fileDescriptor, 0)
+                    } catch (e: ErrnoException) {
+                        throw IOException(e)
+                    }
+                    isTargetCut = true
+                }
                 ArchiveWriter(channel, Archive.FORMAT_ZIP, Archive.FILTER_NONE, password).use {
                     writer ->
+                    // Comes first, so the restore knows how vault files are named before it reads one.
+                    writer.writeDirectory(
+                        BACKUP_VAULT_FOLDER, FileTime.fromMillis(System.currentTimeMillis())
+                    )
                     for (source in sources) {
                         throwIfInterrupted()
                         val inputStream = try {
@@ -3166,29 +3198,25 @@ class BackupJob(
                             writtenSize += source.size
                             continue
                         }
-                        try {
-                            BackupSourceStream(inputStream, source.size).use {
-                                writer.write(
-                                    it, source.name, source.size, source.lastModifiedTime,
-                                    PROGRESS_INTERVAL_MILLIS
-                                ) { size ->
-                                    writtenSize += size
-                                    val currentTimeMillis = System.currentTimeMillis()
-                                    if (currentTimeMillis >=
-                                        lastProgressMillis + NOTIFICATION_INTERVAL_MILLIS) {
-                                        lastProgressMillis = currentTimeMillis
-                                        postProgress(
-                                            (writtenSize * 100 / totalSize).toInt().coerceAtMost(100),
-                                            source.name.substringAfterLast('/')
-                                        )
-                                    }
+                        // A read error here stops the backup: the entry is started and cannot be taken back.
+                        BackupSourceStream(inputStream, source.size, source.name).use {
+                            writer.write(
+                                it, source.name, source.size, source.lastModifiedTime,
+                                PROGRESS_INTERVAL_MILLIS
+                            ) { size ->
+                                writtenSize += size
+                                val currentTimeMillis = System.currentTimeMillis()
+                                if (currentTimeMillis >=
+                                    lastProgressMillis + NOTIFICATION_INTERVAL_MILLIS) {
+                                    lastProgressMillis = currentTimeMillis
+                                    postProgress(
+                                        (writtenSize * 100 / totalSize).toInt().coerceAtMost(100),
+                                        source.name.substringAfterLast('/')
+                                    )
                                 }
                             }
-                            ++fileCount
-                        } catch (e: BackupSourceException) {
-                            e.printStackTrace()
-                            skipped += source.name
                         }
+                        ++fileCount
                     }
                 }
                 // People unplug the drive right after "done", so the data must be on it by then.
@@ -3227,7 +3255,12 @@ class BackupJob(
             }
             e.printStackTrace()
             BackupStatusLiveData.postValue(
-                BackupStatus.Failed(e.toString(), writtenSize >= FAT32_FILE_SIZE_HINT)
+                BackupStatus.Failed(
+                    e.toString(), writtenSize >= FAT32_FILE_SIZE_HINT,
+                    (e as? BackupSourceException)?.let {
+                        getString(R.string.backup_failed_read_format, it.fileName)
+                    }
+                )
             )
         }
     }
@@ -3239,15 +3272,30 @@ class BackupJob(
         val sources = mutableListOf<BackupSource>()
         for (folder in withoutNestedFolders(folders.map { it.toString() })) {
             Files.walkFileTree(Paths.get(folder), object : SimpleFileVisitor<Path>() {
+                override fun preVisitDirectory(
+                    directory: Path,
+                    attributes: BasicFileAttributes
+                ): FileVisitResult =
+                    // App data the restore must not write back; on Android 6 to 10 it is readable.
+                    if (isProtectedAndroidPath(backupEntryName(directory.toString(), storageRoot))) {
+                        FileVisitResult.SKIP_SUBTREE
+                    } else {
+                        FileVisitResult.CONTINUE
+                    }
+
                 override fun visitFile(
                     file: Path,
                     attributes: BasicFileAttributes
                 ): FileVisitResult {
                     throwIfInterrupted()
                     if (attributes.isRegularFile) {
-                        val name = uniqueEntryName(
-                            backupEntryName(file.toString(), storageRoot), usedNames
-                        )
+                        val entryName = backupEntryName(file.toString(), storageRoot)
+                        // One entry the restore refuses would make the whole backup unrestorable.
+                        if (!isRestorableBackupEntry(entryName)) {
+                            skipped += entryName
+                            return FileVisitResult.CONTINUE
+                        }
+                        val name = uniqueEntryName(entryName, usedNames)
                         sources += BackupSource(
                             name, attributes.size(), attributes.lastModifiedTime()
                         ) { file.newInputStream() }
@@ -3266,11 +3314,14 @@ class BackupJob(
             })
         }
         if (includeVault) {
-            val vaultFolder = getString(R.string.backup_vault_folder)
             for (entry in Vault.store.entries()) {
-                val name = uniqueEntryName(
-                    "$vaultFolder/${backupEntryName(entry.originalPath, storageRoot)}", usedNames
-                )
+                val entryName =
+                    "$BACKUP_VAULT_FOLDER/${backupEntryName(entry.originalPath, storageRoot)}"
+                if (!isRestorableBackupEntry(entryName, isVault = true)) {
+                    skipped += entryName
+                    continue
+                }
+                val name = uniqueEntryName(entryName, usedNames)
                 sources += BackupSource(name, entry.size, FileTime.fromMillis(entry.addedAt)) {
                     Vault.store.open(entry)
                 }
@@ -3287,8 +3338,13 @@ class BackupJob(
         )
     }
 
-    // A half-written backup looks like a real one, so it must not stay on the drive.
+    // A half-written backup looks like a real one, so it must not stay on the drive. A file the
+    // picker handed out that still holds data, such as an older backup, is not ours to delete.
     private fun deleteTarget() {
+        if (!isTargetCut) {
+            deleteDocumentIfEmpty(target)
+            return
+        }
         try {
             DocumentsContract.deleteDocument(service.contentResolver, target)
         } catch (e: Exception) {
@@ -3302,47 +3358,6 @@ class BackupJob(
         val lastModifiedTime: FileTime,
         val open: () -> InputStream
     )
-
-    private class BackupSourceException(cause: IOException) : IOException(cause)
-
-    /**
-     * Marks read failures, so an unreadable file can be told apart from a failing target. Stops at
-     * the size announced in the archive, which also keeps a backup saved into a folder it backs up
-     * from reading itself forever.
-     */
-    private class BackupSourceStream(
-        private val inputStream: InputStream,
-        private var remainingSize: Long
-    ) : InputStream() {
-        @Throws(IOException::class)
-        override fun read(): Int {
-            val buffer = ByteArray(1)
-            return if (read(buffer, 0, 1) == -1) -1 else buffer[0].toInt() and 0xFF
-        }
-
-        @Throws(IOException::class)
-        override fun read(buffer: ByteArray, offset: Int, length: Int): Int {
-            if (remainingSize <= 0) {
-                return -1
-            }
-            val size = try {
-                inputStream.read(buffer, offset, minOf(length.toLong(), remainingSize).toInt())
-            } catch (e: InterruptedIOException) {
-                throw e
-            } catch (e: IOException) {
-                throw BackupSourceException(e)
-            }
-            if (size > 0) {
-                remainingSize -= size
-            }
-            return size
-        }
-
-        @Throws(IOException::class)
-        override fun close() {
-            inputStream.close()
-        }
-    }
 
     companion object {
         // FAT32 drives cannot hold a file of 4 GB or more.

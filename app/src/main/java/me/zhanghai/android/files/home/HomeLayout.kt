@@ -34,3 +34,10 @@ fun homeStorageColumns(widthDp: Int, storageCount: Int): Int =
  */
 fun homeCategoryCompact(widthDp: Int): Boolean =
     homeCategoryColumns(widthDp) == 9 && (widthDp - 24) / 9 - 8 < 112
+
+/**
+ * How much glass the search bar shows, 0 to 1: it fades in over the first [edgePx] of content that lies under the
+ * bar. At the top that is how far the page is scrolled down; at the bottom, how much page is left below.
+ */
+fun homeHeaderGlassAmount(atBottom: Boolean, scrollY: Int, scrollRange: Int, edgePx: Float): Float =
+    ((if (atBottom) scrollRange - scrollY else scrollY) / edgePx).coerceIn(0f, 1f)

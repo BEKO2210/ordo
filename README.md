@@ -34,7 +34,7 @@
 
 ## Status
 
-Ordo is in development (version 0.7.1). It is not on Google Play yet. Test builds are published as
+Ordo is in development (version 0.8.0). It is not on Google Play yet. Test builds are published as
 [pre-releases](https://github.com/BEKO2210/ordo/releases); you can also [build it from source](#build).
 What comes next is in the [living roadmap](docs/ROADMAP-LIVE.md): every goal has a check command and closes itself.
 
@@ -44,7 +44,7 @@ What comes next is in the [living roadmap](docs/ROADMAP-LIVE.md): every goal has
 
 - Home screen with recent files, categories (images, videos, audio, documents, downloads, APKs, archives) and
   storage at a glance
-- One slim glass bar on top: side menu, search, AI command and options in a single row
+- One slim glass bar: side menu, search, AI command and options in a single row, at the top or at the bottom
 - The same side menu on the home screen and in the file list: storage, folders, bookmarks and all tools
 - Search by name or by text inside files, with regular expressions if you need them
 - List or grid in three sizes, for all folders or just one
@@ -76,7 +76,7 @@ What comes next is in the [living roadmap](docs/ROADMAP-LIVE.md): every goal has
 
 - Vault: files are encrypted with AES-256-GCM and opened with your screen lock
 - Backup: folders and the vault as a ZIP to a USB drive or any place your phone offers, such as Google Drive, with an
-  optional password (AES-256), plus safe restore of normal files without replacing existing files; folders you added can be removed from the list again
+  optional password (AES-256), plus safe restore of normal files without replacing existing files; folders you added can be removed from the list again; a file that fails halfway stops the backup instead of ending up cut short in it; app data in `Android/data` and `Android/obb` is left out, because Android does not let it be restored
 
 **Ask in your own words** – see [AI commands](#ai-commands)
 
@@ -93,6 +93,7 @@ What comes next is in the [living roadmap](docs/ROADMAP-LIVE.md): every goal has
 
 - Ordo's own colours on every phone, in five accents, or your wallpaper's colours (Android 12 and later)
 - Light, dark and true black; motion full, subtle or off
+- The home search bar at the top or at the bottom, within thumb reach
 
 ## AI commands
 

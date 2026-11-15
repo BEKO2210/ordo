@@ -122,11 +122,15 @@ class AppsFragment : Fragment() {
                             Uri.fromParts("package", app.packageName, null)
                         )
                     )
-                    R.id.action_backup -> viewModel.backup(app) { file ->
-                        if (file != null) {
-                            showToast(getString(R.string.apps_backup_done_format, file.path))
-                        } else {
-                            showToast(R.string.apps_backup_failed)
+                    R.id.action_backup -> {
+                        // The fragment may be gone (rotation) when the copy ends; use the application context.
+                        val appContext = context.applicationContext
+                        viewModel.backup(app) { file ->
+                            if (file != null) {
+                                appContext.showToast(appContext.getString(R.string.apps_backup_done_format, file.path))
+                            } else {
+                                appContext.showToast(R.string.apps_backup_failed)
+                            }
                         }
                     }
                     R.id.action_uninstall -> startActivitySafe(

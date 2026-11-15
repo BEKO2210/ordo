@@ -14,6 +14,7 @@ import androidx.lifecycle.viewModelScope
 import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -59,6 +60,16 @@ sealed class AnalysisState {
     class Done(val result: AnalysisResult) : AnalysisState()
 }
 
+/** Tells which scan is the newest, so progress or results of a cancelled scan can be dropped. */
+class ScanGuard {
+    @Volatile
+    private var current = 0
+
+    fun next(): Int = ++current
+
+    fun isCurrent(id: Int): Boolean = id == current
+}
+
 // The root comes from the intent: internal storage by default, or an SD card / USB drive.
 class AnalysisViewModel(handle: SavedStateHandle) : ViewModel() {
     private val _state = MutableLiveData<AnalysisState>()
@@ -79,6 +90,7 @@ class AnalysisViewModel(handle: SavedStateHandle) : ViewModel() {
         private set
 
     private var job: Job? = null
+    private val guard = ScanGuard()
 
     init {
         scan(root)
@@ -87,6 +99,11 @@ class AnalysisViewModel(handle: SavedStateHandle) : ViewModel() {
     fun scan(root: File) {
         this.root = root
         job?.cancel()
+        val id = guard.next()
+        // Runs on the main thread in posting order, so a stale or late progress never overwrites Done.
+        fun post(state: AnalysisState) {
+            viewModelScope.launch { if (guard.isCurrent(id)) _state.value = state }
+        }
         selectedPaths.clear()
         pages.clear()
         scrollStates.clear()
@@ -98,13 +115,15 @@ class AnalysisViewModel(handle: SavedStateHandle) : ViewModel() {
                 val emptyFolders = mutableListOf<ScannedFile>()
                 val files = StorageAnalysis.scan(root, { !isActive }, emptyFolders) {
                     last = it
-                    _state.postValue(AnalysisState.Scanning(it))
+                    post(AnalysisState.Scanning(it))
                 }
-                val walked = last!!
+                // Cancelled before the first file ends as a cancellation; an empty storage has no last progress.
+                ensureActive()
+                val walked = last ?: ScanProgress(0, 0, LongArray(StorageInsights.KINDS.size), "")
                 withInsights(AnalysisResult(
                     root.path, StorageAnalysis.largeFiles(files),
                     StorageAnalysis.duplicates(files, isCancelled = { !isActive }) {
-                        _state.postValue(AnalysisState.Scanning(
+                        post(AnalysisState.Scanning(
                             ScanProgress(walked.files, walked.bytes, walked.kinds, "", it)))
                     },
                     StorageAnalysis.oldFiles(files, System.currentTimeMillis()),
@@ -112,7 +131,7 @@ class AnalysisViewModel(handle: SavedStateHandle) : ViewModel() {
                     emptyFolders = emptyFolders
                 ))
             }
-            _state.value = AnalysisState.Done(result)
+            if (guard.isCurrent(id)) _state.value = AnalysisState.Done(result)
         }
     }
 
@@ -123,7 +142,7 @@ class AnalysisViewModel(handle: SavedStateHandle) : ViewModel() {
             null
         }
         val trashBytes = me.zhanghai.android.files.trash.Trash.entries()
-            .filter { it.root == result.root }.sumOf { it.file.length() }
+            .filter { it.root == result.root }.sumOf { it.size }
         val insights = StorageInsights.compute(
             result.root, result.files, result, stat?.totalBytes ?: 0L, stat?.availableBytes ?: 0L, trashBytes,
             System.currentTimeMillis()
@@ -132,26 +151,37 @@ class AnalysisViewModel(handle: SavedStateHandle) : ViewModel() {
             result.files, insights, result.emptyFolders)
     }
 
+    private var removeJob: Job? = null
+
     // Deleted files leave every list at once, so sizes and duplicate groups stay correct.
+    // The work reads the trash and StatFs, so it runs off the main thread; removals run one after another.
     fun removeDeleted(paths: Set<String>) {
-        val result = (_state.value as? AnalysisState.Done)?.result ?: return
+        selectedPaths.removeAll(paths)
+        val previous = removeJob
+        removeJob = viewModelScope.launch {
+            previous?.join()
+            val done = _state.value as? AnalysisState.Done ?: return@launch
+            val updated = withContext(Dispatchers.IO) { removeFrom(done.result, paths) }
+            // A new scan started meanwhile: its result already lacks the deleted files.
+            if (_state.value === done) _state.value = AnalysisState.Done(updated)
+        }
+    }
+
+    private fun removeFrom(result: AnalysisResult, paths: Set<String>): AnalysisResult {
         fun List<ScannedFile>.keep() = filter { it.path !in paths }
         val deletedFiles = result.files.filter { it.path in paths }
-        _state.value = AnalysisState.Done(
-            withInsights(AnalysisResult(
-                result.root, result.large.keep(),
-                result.duplicates.map { DuplicateGroup(it.files.keep()) }.filter { it.files.size > 1 },
-                result.old.keep(), result.apks.keep(),
-                result.folders.map { folder ->
-                    FolderSize(
-                        folder.path,
-                        folder.size - deletedFiles.filter { it.path.startsWith(folder.path + "/") }
-                            .sumOf { it.size }
-                    )
-                }.sortedByDescending { it.size },
-                result.files.keep(), emptyFolders = result.emptyFolders.keep()
-            ))
-        )
-        selectedPaths.removeAll(paths)
+        return withInsights(AnalysisResult(
+            result.root, result.large.keep(),
+            result.duplicates.map { DuplicateGroup(it.files.keep()) }.filter { it.files.size > 1 },
+            result.old.keep(), result.apks.keep(),
+            result.folders.map { folder ->
+                FolderSize(
+                    folder.path,
+                    folder.size - deletedFiles.filter { it.path.startsWith(folder.path + "/") }
+                        .sumOf { it.size }
+                )
+            }.sortedByDescending { it.size },
+            result.files.keep(), emptyFolders = result.emptyFolders.keep()
+        ))
     }
 }

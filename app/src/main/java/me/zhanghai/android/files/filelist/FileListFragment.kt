@@ -58,6 +58,7 @@ import com.leinardi.android.speeddial.SpeedDialView
 import eightbitlab.com.blurview.BlurView
 import java8.nio.file.Path
 import java8.nio.file.Paths
+import java.net.URI
 import kotlin.math.roundToInt
 import kotlinx.parcelize.Parcelize
 import me.zhanghai.android.files.R
@@ -224,14 +225,24 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
         super.onCreate(savedInstanceState)
 
         setHasOptionsMenu(true)
+
+        // The folder picker result goes to the recreated fragment after a configuration change.
+        savedInstanceState?.getStringArrayList(STATE_TRANSFER_PATHS)?.let { uris ->
+            pendingTransfer = savedInstanceState.getBoolean(STATE_TRANSFER_COPY) to
+                uris.map { Paths.get(URI.create(it)) }
+        }
     }
 
-    private var backStopIndex = -1
+    private var backStopPath: Path? = null
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
 
-        outState.putInt(STATE_BACK_STOP_INDEX, backStopIndex)
+        outState.putString(STATE_BACK_STOP_PATH, backStopPath?.toUri()?.toString())
+        pendingTransfer?.let { (copy, paths) ->
+            outState.putBoolean(STATE_TRANSFER_COPY, copy)
+            outState.putStringArrayList(STATE_TRANSFER_PATHS, ArrayList(paths.map { it.toUri().toString() }))
+        }
     }
 
     override fun onCreateView(
@@ -345,7 +356,8 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
 
         val viewLifecycleOwner = viewLifecycleOwner
         if (savedInstanceState != null) {
-            backStopIndex = savedInstanceState.getInt(STATE_BACK_STOP_INDEX, -1)
+            backStopPath = savedInstanceState.getString(STATE_BACK_STOP_PATH)
+                ?.let { Paths.get(URI.create(it)) }
         }
         addOnBackPressedCallback(
             object : OnBackPressedCallback(false) {
@@ -357,15 +369,11 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
                     viewModel.breadcrumbLiveData.observe(viewLifecycleOwner) {
                         // Opened on a folder from elsewhere in Ordo (analysis, quick access): back walks up only
                         // to that folder, then returns to where the user came from, not to the storage root.
-                        if (backStopIndex < 0) {
-                            backStopIndex = if (argsPath != null && args.intent.action == Intent.ACTION_VIEW) {
-                                it.selectedIndex
-                            } else {
-                                0
-                            }
+                        if (backStopPath == null && argsPath != null && args.intent.action == Intent.ACTION_VIEW) {
+                            backStopPath = viewModel.currentPath
                         }
                         callback.isEnabled =
-                            viewModel.canNavigateUpBreadcrumb && it.selectedIndex > backStopIndex
+                            viewModel.canNavigateUpBreadcrumb && viewModel.currentPath != backStopPath
                     }
                 }
         )
@@ -1120,7 +1128,8 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
                 if (files.size == 1) {
                     showRenameFileDialog(files.single())
                 } else {
-                    BatchRenameDialogFragment.show(fileItemSetOf(*files.toTypedArray()), this)
+                    val inListOrder = files.sortedWith(viewModel.sortOptions.createComparator())
+                    BatchRenameDialogFragment.show(fileItemSetOf(*inListOrder.toTypedArray()), this)
                 }
                 viewModel.selectFiles(files, false)
                 true
@@ -1189,8 +1198,6 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
         viewModel.selectFiles(files, false)
     }
 
-    // shortcut: the pending transfer lives only in memory; if Android kills the app while the
-    // folder picker is open, the choice is dropped and the user starts again.
     private fun transferFilesTo(files: FileItemSet, copy: Boolean) {
         pendingTransfer = copy to makePathListForJob(files)
         viewModel.selectFiles(files, false)
@@ -1465,7 +1472,7 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
             return
         }
         if (file.isListable) {
-            navigateTo(file.listablePath)
+            openListable(file.listablePath)
             return
         }
         openFileWithIntent(file, false)
@@ -1499,7 +1506,16 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
     }
 
     override fun viewApk(file: FileItem) {
-        navigateTo(file.listablePath)
+        openListable(file.listablePath)
+    }
+
+    // From a home category the file list opens on top of it, so back returns to the category list.
+    private fun openListable(path: Path) {
+        if (homeCategory != null) {
+            startActivity(FileListActivity.createViewIntent(path))
+        } else {
+            navigateTo(path)
+        }
     }
 
     override fun openFileWith(file: FileItem) {
@@ -1887,7 +1903,9 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
     }
 
     companion object {
-        private const val STATE_BACK_STOP_INDEX = "back_stop_index"
+        private const val STATE_BACK_STOP_PATH = "back_stop_path"
+        private const val STATE_TRANSFER_COPY = "transfer_copy"
+        private const val STATE_TRANSFER_PATHS = "transfer_paths"
         private val SELECTION_BAR_ACTIONS = listOf(
             R.id.selectionMoveButton to R.id.action_cut,
             R.id.selectionCopyButton to R.id.action_copy,

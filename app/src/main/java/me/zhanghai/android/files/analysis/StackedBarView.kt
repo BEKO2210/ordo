@@ -47,6 +47,11 @@ class StackedBarView @JvmOverloads constructor(context: Context, attrs: Attribut
     private val shinePaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val glowPaint = Paint(Paint.ANTI_ALIAS_FLAG)
 
+    // Shine and glow shaders are built once at the origin and only moved per frame: no allocation in onDraw.
+    // The shader is set on its paint again after each move, or Android 6 and 7 keep drawing the old position.
+    private val shaderMatrix = android.graphics.Matrix()
+    private var shineBand = -1f
+
     /** Called with the grow progress from 0 to 1, e.g. to count a percent label up with the bar. */
     var onProgress: ((Float) -> Unit)? = null
 
@@ -55,6 +60,7 @@ class StackedBarView @JvmOverloads constructor(context: Context, attrs: Attribut
         set(value) {
             field = value
             paint.shader = null
+            glowPaint.shader = null
             invalidate()
         }
 
@@ -128,6 +134,7 @@ class StackedBarView @JvmOverloads constructor(context: Context, attrs: Attribut
     // The gradient spans the bar's width, so a new width needs a new gradient.
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         paint.shader = null
+        glowPaint.shader = null
     }
 
     override fun onDetachedFromWindow() {
@@ -187,8 +194,13 @@ class StackedBarView @JvmOverloads constructor(context: Context, attrs: Attribut
         if (shine in 0f..1f && filled > 0) {
             val band = 0.35f * filled
             val center = -band + (filled + 2 * band) * shine
-            shinePaint.shader = android.graphics.LinearGradient(center - band, 0f, center + band, 0f,
-                intArrayOf(0x00FFFFFF, 0x66FFFFFF, 0x00FFFFFF), null, android.graphics.Shader.TileMode.CLAMP)
+            if (band != shineBand) {
+                shineBand = band
+                shinePaint.shader = android.graphics.LinearGradient(-band, 0f, band, 0f,
+                    intArrayOf(0x00FFFFFF, 0x66FFFFFF, 0x00FFFFFF), null, android.graphics.Shader.TileMode.CLAMP)
+            }
+            shaderMatrix.setTranslate(center, 0f)
+            shinePaint.shader = shinePaint.shader.apply { setLocalMatrix(shaderMatrix) }
             rect.set(0f, 0f, filled, h)
             canvas.drawRoundRect(rect, h / 2, h / 2, shinePaint)
         }
@@ -196,9 +208,13 @@ class StackedBarView @JvmOverloads constructor(context: Context, attrs: Attribut
         // A soft light at the leading edge of a single gradient bar.
         val colors = gradient
         if (colors != null && parts.size == 1 && filled > h) {
-            glowPaint.shader = android.graphics.RadialGradient(filled - h / 2, h / 2, h * 1.6f,
-                intArrayOf(colors.last() and 0x00FFFFFF or 0x88000000.toInt(), colors.last() and 0x00FFFFFF), null,
-                android.graphics.Shader.TileMode.CLAMP)
+            if (glowPaint.shader == null) {
+                glowPaint.shader = android.graphics.RadialGradient(0f, h / 2, h * 1.6f,
+                    intArrayOf(colors.last() and 0x00FFFFFF or 0x88000000.toInt(), colors.last() and 0x00FFFFFF), null,
+                    android.graphics.Shader.TileMode.CLAMP)
+            }
+            shaderMatrix.setTranslate(filled - h / 2, 0f)
+            glowPaint.shader = glowPaint.shader.apply { setLocalMatrix(shaderMatrix) }
             canvas.drawCircle(filled - h / 2, h / 2, h * 1.6f, glowPaint)
         }
     }

@@ -3,7 +3,8 @@
 # Backup and restore (0.7.0), WRITES: creates /sdcard/ordo-e2e-restore and an encrypted backup ZIP on the SD card,
 # removes both at the end. Needs a device with an SD card; the system file picker is driven too.
 # Regressions: an encrypted backup was always "damaged" on restore (sizes stand after the data in a streamed ZIP);
-# restoring twice added a second " (restored 2)" copy; a folder added to the list could not be removed.
+# restoring twice added a second " (restored 2)" copy; a folder added to the list could not be removed; turning the
+# device while the system picker was open dropped the backup with "choose at least one folder".
 . "$(dirname "$0")/lib.sh" "$@"
 DIR=/sdcard/ordo-e2e-restore
 PW=e2eRichtig7
@@ -31,7 +32,12 @@ ui tap encryptRow >/dev/null; sleep 1
 ui tap passwordEdit >/dev/null; a shell input text $PW
 ui tap passwordRepeatEdit >/dev/null; a shell input text $PW; a shell input keyevent 111; sleep 0.5
 ui tap startButton >/dev/null; sleep 3; picker
-ui tap button1 >/dev/null; sleep 6; guard   # the system picker's "save", file name given by Ordo
+# Turned while the picker is open: the backup screen is made anew behind it and must still start the backup.
+rotation=$(a shell settings get system user_rotation | tr -d '\r'); auto=$(a shell settings get system accelerometer_rotation | tr -d '\r')
+a shell settings put system accelerometer_rotation 0; a shell settings put system user_rotation 1; sleep 3; picker
+ui tap button1 >/dev/null; sleep 6   # the system picker's "save", file name given by Ordo
+a shell settings put system user_rotation "${rotation:-0}"; a shell settings put system accelerometer_rotation "${auto:-1}"
+sleep 3; guard
 check "the backup is done" ui has "Sicherung fertig|Backup done" statusTitle
 check "the backup ZIP is on the SD card" a shell "test -s '$zip'"
 st; sleep 2   # "done" closes the screen

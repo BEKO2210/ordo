@@ -30,4 +30,20 @@ class BatchRenameTest {
     fun customStart() {
         assertEquals(listOf("x 09", "x 10"), BatchRename.newNames(listOf("a" to true, "b" to true), "x", 9))
     }
+
+    @Test
+    fun conflictFindsInvalidAndExistingTargets() {
+        val taken = setOf("Urlaub 01.jpg")
+        assertEquals(null, BatchRename.conflict(listOf("a.jpg" to "Urlaub 02.jpg"), taken::contains))
+        assertEquals(null, BatchRename.conflict(listOf("Urlaub 01.jpg" to "Urlaub 01.jpg"), taken::contains))
+        assertEquals(
+            BatchRename.Conflict.EXISTS,
+            BatchRename.conflict(listOf("a.jpg" to "Urlaub 01.jpg"), taken::contains)
+        )
+        assertEquals(
+            BatchRename.Conflict.INVALID,
+            BatchRename.conflict(listOf("a.mp3" to "AC/DC 01.mp3"), taken::contains)
+        )
+        assertEquals(BatchRename.Conflict.INVALID, BatchRename.conflict(listOf("a" to ""), taken::contains))
+    }
 }

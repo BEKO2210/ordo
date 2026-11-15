@@ -104,12 +104,14 @@ fi
 
 # --- A folder row
 reach folderList >/dev/null; swipe_up
+sleep 1.5   # a tap while the page still flings only stops it (Tab S9 Ultra)
 folder=$(first_of "DCIM" "Download" "Pictures" "Movies" "Music" "Documents")
 if [ -n "$folder" ] && ui tap "$folder" >/dev/null 2>&1; then
     sleep 1; guard
-    check "folder row opens its page" not ui has folderList
+    # The folder page lists its subfolders with the same row id, so check that the overview's card is gone.
+    check "folder row opens its page" not ui has folderCard
     back
-    check "back from the folder page shows the rows" ui has folderList
+    check "back from the folder page shows the rows" ui has folderCard
 else
     fail "no folder row found"
 fi

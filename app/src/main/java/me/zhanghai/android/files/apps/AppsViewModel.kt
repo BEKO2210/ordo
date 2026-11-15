@@ -16,6 +16,7 @@ import androidx.lifecycle.viewModelScope
 import java.io.File
 import java.text.Collator
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -42,6 +43,8 @@ class AppsViewModel(application: Application) : AndroidViewModel(application) {
     var showSystemApps = false
         private set
 
+    private var loadJob: Job? = null
+
     init {
         reload()
     }
@@ -54,7 +57,8 @@ class AppsViewModel(application: Application) : AndroidViewModel(application) {
     fun reload() {
         val packageManager = getApplication<Application>().packageManager
         val showSystemApps = showSystemApps
-        viewModelScope.launch {
+        loadJob?.cancel()
+        loadJob = viewModelScope.launch {
             _apps.value = withContext(Dispatchers.IO) {
                 val collator = Collator.getInstance()
                 @Suppress("DEPRECATION")

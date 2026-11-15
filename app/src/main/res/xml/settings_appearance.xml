@@ -37,6 +37,14 @@
         android:defaultValue="@bool/pref_default_value_black_night_mode" />
 
     <ListPreference
+        android:key="@string/pref_key_home_header_position"
+        android:title="@string/settings_home_header_position_title"
+        android:defaultValue="@string/pref_default_value_home_header_position"
+        android:entries="@array/settings_home_header_position_entries"
+        android:entryValues="@array/pref_entry_values_home_header_position"
+        app:useSimpleSummaryProvider="true" />
+
+    <ListPreference
         android:key="@string/pref_key_motion"
         android:title="@string/settings_motion_title"
         android:defaultValue="@string/pref_default_value_motion"

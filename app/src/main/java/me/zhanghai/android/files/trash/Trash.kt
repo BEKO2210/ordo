@@ -31,6 +31,10 @@ class TrashEntry(
     val infoFile: File
         get() = File(Trash.infoDir(root), id + Trash.INFO_SUFFIX)
 
+    /** Bytes of all files inside; a folder's own length() is only its inode size. */
+    val size: Long
+        get() = file.walkTopDown().filter { it.isFile }.sumOf { it.length() }
+
     val name: String
         get() = originalPath.substringAfterLast('/')
 }
@@ -128,6 +132,15 @@ object Trash {
         return roots
     }
 
+    // Info files can be forged or corrupt; Properties.load() throws IllegalArgumentException on a bad \u escape.
+    fun readInfo(infoFile: File): Properties? =
+        try {
+            Properties().also { properties -> infoFile.inputStream().use { properties.load(it) } }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+
     fun entries(): List<TrashEntry> =
         roots().flatMap { root ->
             infoDir(root).listFiles()?.mapNotNull { infoFile ->
@@ -135,13 +148,7 @@ object Trash {
                     return@mapNotNull null
                 }
                 val id = infoFile.name.removeSuffix(INFO_SUFFIX)
-                val properties = Properties()
-                try {
-                    infoFile.inputStream().use { properties.load(it) }
-                } catch (e: IOException) {
-                    e.printStackTrace()
-                    return@mapNotNull null
-                }
+                val properties = readInfo(infoFile) ?: return@mapNotNull null
                 parseInfo(id, root, properties)?.takeIf { it.file.exists() }
             } ?: emptyList()
         }.sortedByDescending { it.deletedAt }

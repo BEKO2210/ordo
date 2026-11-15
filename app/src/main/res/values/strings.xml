@@ -392,6 +392,11 @@
     <string name="file_properties_media_coordinates">Coordinates</string>
     <string name="file_properties_media_coordinates_format">%1$.3f, %2$.3f</string>
     <string name="file_properties_media_address">Location</string>
+    <string name="file_properties_media_address_show">Show address</string>
+    <string name="file_properties_media_address_hint">Uses your device\'s address service, usually Google\'s. Coordinates are sent only when you tap.</string>
+    <string name="file_properties_media_address_loading">Looking up address…</string>
+    <string name="file_properties_media_address_failed">No address found right now. Check your connection and try again.</string>
+    <string name="file_properties_media_address_unavailable">This device has no address service.</string>
     <string name="file_properties_image_gps_altitude">Altitude</string>
     <string name="file_properties_image_gps_altitude_format">%1$,.3f m</string>
     <string name="file_properties_image_equipment">Camera</string>
@@ -859,8 +864,8 @@
     <string name="file_job_vault_restore_notification_title">Restoring from vault</string>
     <string name="file_job_vault_error_title">Error while moving to vault</string>
     <string name="file_job_vault_error_message_format">There was an error with “%1$s”.\n%2$s</string>
-    <string name="home_vault_summary_short">Screen-lock protected</string>
-    <string name="home_backup_summary_short">USB drive or cloud</string>
+    <string name="home_vault_summary_short">Encrypted</string>
+    <string name="home_backup_summary_short">USB or cloud</string>
     <string name="home_vault_summary">Protected by your screen lock</string>
 
     <!-- Ordo: backup -->
@@ -900,7 +905,6 @@
     <string name="backup_start_action">Back up now</string>
     <string name="backup_file_name_format">Ordo-Backup-%1$s</string>
     <string name="backup_vault_prompt_title">Unlock vault for the backup</string>
-    <string name="backup_vault_folder">Vault</string>
     <string name="backup_notification_title">Backup in progress</string>
     <string name="backup_running_title">Backing up …</string>
     <string name="backup_counting">Counting files …</string>
@@ -912,8 +916,8 @@
         <item quantity="other">%1$d files backed up (%2$s)</item>
     </plurals>
     <plurals name="backup_done_skipped_format">
-        <item quantity="one">%1$d file couldn’t be read and is missing:\n%2$s</item>
-        <item quantity="other">%1$d files couldn’t be read and are missing:\n%2$s</item>
+        <item quantity="one">%1$d file couldn’t be backed up and is missing:\n%2$s</item>
+        <item quantity="other">%1$d files couldn’t be backed up and are missing:\n%2$s</item>
     </plurals>
     <string name="backup_done_restore_hint">You can restore this backup from this screen whenever you need it.</string>
     <string name="backup_done_action">Done</string>
@@ -922,6 +926,7 @@
     <string name="backup_failed_large">The backup is larger than 4 GB. Many USB drives can’t store files that large. Choose fewer folders or another place.</string>
     <string name="backup_failed_message">Check that the USB drive is still plugged in and has enough space. Then try again.</string>
     <string name="backup_failed_space_format">There isn’t enough space. The backup needs %1$s, but only %2$s is free. Choose fewer folders or another place.</string>
+    <string name="backup_failed_read_format">Couldn’t read “%1$s” completely, so the backup was stopped. Check the file or leave its folder out, then try again.</string>
     <string name="backup_retry_action">Try again</string>
     <string name="file_job_timeout_title">Task stopped</string>
     <string name="file_job_timeout_message">Android stopped the task after 6 hours in the background. Start it again and keep Ordo open meanwhile.</string>
