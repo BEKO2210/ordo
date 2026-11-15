@@ -62,6 +62,9 @@ cell "Store-Bilder im Repo" \
 cell "Berechtigungen für Google Play begründet" \
     "test -s docs/PLAY-BERECHTIGUNGEN.md" \
     "Begründungen für MANAGE_EXTERNAL_STORAGE, QUERY_ALL_PACKAGES, REQUEST_INSTALL_PACKAGES und den Vordergrunddienst."
+cell "Vordergrunddienst-Typ für Dateiaufträge geklärt" \
+    "! grep -q 'foregroundServiceType=\"specialUse\"' app/src/main/AndroidManifest.xml || grep -q 'specialUse: Entscheidung' docs/PLAY-BERECHTIGUNGEN.md" \
+    "Google ordnet Kopieren und Übertragen dem Typ dataSync zu; Ordo meldet specialUse. Typ wechseln oder die Begründung festhalten (Zeile „specialUse: Entscheidung …“ in docs/PLAY-BERECHTIGUNGEN.md)."
 cell "Native Bibliothek für 16-KB-Seiten" \
     "grep -rq 'max-page-size=16384\\|ANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES' llm/build.gradle llm/src/main/cpp/CMakeLists.txt" \
     "libordo_llm.so mit 16-KB-Seitenausrichtung bauen (Pflicht bei Google Play) und prüfen."
@@ -69,7 +72,7 @@ cell "Geschlossener Test bei Google Play bestanden" \
     "test -s docs/PLAY-TEST.md" \
     "12 Tester, 14 Tage (Belkis); Ergebnis und Rückmeldungen in docs/PLAY-TEST.md." \
     "Store-Texte Deutsch und Englisch" "Store-Bilder im Repo" "Berechtigungen für Google Play begründet" \
-    "Native Bibliothek für 16-KB-Seiten"
+    "Native Bibliothek für 16-KB-Seiten" "Vordergrunddienst-Typ für Dateiaufträge geklärt"
 cell "Version 1.0.0 im Play Store" \
     "$TAG refs/tags/v1.0.0 | grep -q ." \
     "Produktion bei Google Play, Tag v1.0.0." \
