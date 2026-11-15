@@ -5,6 +5,7 @@
 
 package me.zhanghai.android.files.backup
 
+import android.net.Uri
 import androidx.lifecycle.MutableLiveData
 
 sealed class BackupStatus {
@@ -24,6 +25,39 @@ sealed class BackupStatus {
         val detail: String?,
         val isLarge: Boolean,
         val message: String? = null
+    ) : BackupStatus()
+
+    class RestoreChecking(val jobId: Int, val source: Uri) : BackupStatus()
+
+    class RestoreNeedsPassword(val source: Uri) : BackupStatus()
+
+    /** [password] stays only in process memory until the user confirms or leaves this preview. */
+    class RestorePreview(
+        val source: Uri,
+        val password: String?,
+        val fileCount: Int,
+        val size: Long,
+        val vaultFileCount: Int
+    ) : BackupStatus()
+
+    /** [progress] is in percent; [fileName] is null before the first normal file is read. */
+    class RestoreRunning(val jobId: Int, val progress: Int, val fileName: String?) : BackupStatus()
+
+    class RestoreDone(
+        val restored: Int,
+        val skipped: Int,
+        val failed: Int,
+        val vaultSkipped: Int
+    ) : BackupStatus()
+
+    class RestoreFailed(
+        val source: Uri?,
+        val passwordRequired: Boolean,
+        val message: String,
+        val restored: Int = 0,
+        val skipped: Int = 0,
+        val failed: Int = 0,
+        val vaultSkipped: Int = 0
     ) : BackupStatus()
 }
 

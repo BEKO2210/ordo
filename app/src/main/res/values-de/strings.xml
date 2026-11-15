@@ -779,7 +779,7 @@
         <item quantity="one">%1$d Datei ließ sich nicht lesen und fehlt:\n%2$s</item>
         <item quantity="other">%1$d Dateien ließen sich nicht lesen und fehlen:\n%2$s</item>
     </plurals>
-    <string name="backup_done_restore_hint">Zum Zurückholen öffnest du die Sicherung in Ordo und kopierst die Dateien heraus.</string>
+    <string name="backup_done_restore_hint">Du kannst diese Sicherung bei Bedarf auf diesem Bildschirm wiederherstellen.</string>
     <string name="backup_done_action">Fertig</string>
     <string name="backup_failed_title">Sicherung nicht abgeschlossen</string>
     <string name="backup_failed_empty">In den gewählten Ordnern liegen keine Dateien.</string>
@@ -787,6 +787,49 @@
     <string name="backup_failed_message">Prüfe, ob der USB-Stick noch angeschlossen ist und genug Platz hat. Versuche es dann noch einmal.</string>
     <string name="backup_failed_space_format">Der Platz reicht nicht. Die Sicherung braucht %1$s, frei sind nur %2$s. Wähle weniger Ordner oder einen anderen Ort.</string>
     <string name="backup_retry_action">Noch einmal versuchen</string>
+
+    <!-- Ordo: Sicherung wiederherstellen -->
+    <string name="restore_section_title">Sicherung wiederherstellen</string>
+    <string name="restore_choose_title">ZIP-Sicherung auswählen</string>
+    <string name="restore_choose_summary">Ordo prüft sie und zeigt vor dem Schreiben, was passieren wird</string>
+    <string name="restore_checking_title">Sicherung wird geprüft …</string>
+    <string name="restore_checking_message">Jede Datei wird geprüft, bevor etwas geschrieben wird.</string>
+    <string name="restore_password_title">Passwort nötig</string>
+    <string name="restore_password_message">Diese Sicherung ist verschlüsselt. Gib ihr Passwort ein, damit Ordo sie prüfen kann.</string>
+    <string name="restore_password_action">Sicherung prüfen</string>
+    <string name="restore_password_empty_error">Gib das Passwort der Sicherung ein.</string>
+    <string name="restore_preview_title">Bereit zum Wiederherstellen</string>
+    <plurals name="restore_preview_files_format">
+        <item quantity="one">%1$d Datei · %2$s</item>
+        <item quantity="other">%1$d Dateien · %2$s</item>
+    </plurals>
+    <string name="restore_preview_destination_format">Die Dateien kommen zurück in ihre ursprünglichen Ordner unter %1$s.</string>
+    <string name="restore_conflict_rule">Vorhandene Dateien werden nie ersetzt. Eine Datei am selben Ort mit derselben Größe wird übersprungen. Bei anderer Größe erhält die wiederhergestellte Datei den Zusatz „(restored)“ vor der Endung.</string>
+    <plurals name="restore_vault_not_supported_format">
+        <item quantity="one">Die Sicherung enthält außerdem %1$d Tresordatei. Sie wird nicht wiederhergestellt, weil in dieser Sicherung Angaben für einen sicheren Wiederaufbau des Tresors fehlen.</item>
+        <item quantity="other">Die Sicherung enthält außerdem %1$d Tresordateien. Sie werden nicht wiederhergestellt, weil in dieser Sicherung Angaben für einen sicheren Wiederaufbau des Tresors fehlen.</item>
+    </plurals>
+    <string name="restore_confirm_action">Jetzt wiederherstellen</string>
+    <string name="restore_choose_another_action">Andere auswählen</string>
+    <string name="restore_cancel_action">Wiederherstellung abbrechen</string>
+    <string name="restore_running_title">Wiederherstellung läuft …</string>
+    <string name="restore_running_notice">Die Wiederherstellung läuft weiter, wenn du Ordo verlässt. Vorhandene Dateien werden nicht ersetzt.</string>
+    <string name="restore_notification_title">Wiederherstellung läuft</string>
+    <string name="restore_done_title">Wiederherstellung fertig</string>
+    <string name="restore_done_with_problems_title">Wiederherstellung mit Problemen beendet</string>
+    <string name="restore_counts_format">%1$d wiederhergestellt · %2$d übersprungen · %3$d fehlgeschlagen</string>
+    <string name="restore_done_detail">Übersprungene Dateien lagen bereits am selben Ort und hatten dieselbe Größe.</string>
+    <string name="restore_done_failed_detail">Einige Dateien konnten nicht geschrieben werden. Prüfe den freien Speicherplatz und starte die Wiederherstellung erneut.</string>
+    <string name="restore_failed_title">Wiederherstellung abgebrochen</string>
+    <string name="restore_retry_password_action">Passwort erneut eingeben</string>
+    <string name="restore_error_wrong_password">Mit diesem Passwort ließ sich die Sicherung nicht öffnen. Die Wiederherstellung wurde beendet und es werden keine weiteren Dateien geschrieben.</string>
+    <string name="restore_error_corrupt_archive">Die Sicherung ist beschädigt oder unvollständig. Die Wiederherstellung wurde beendet und es werden keine weiteren Dateien geschrieben.</string>
+    <string name="restore_error_unsafe_archive">Diese Sicherung enthält eine möglicherweise unsichere Datei. Ordo hat sie deshalb nicht wiederhergestellt.</string>
+    <string name="restore_error_read_archive">Ordo konnte diese Sicherung nicht lesen. Prüfe, ob sie noch verfügbar ist, und versuche es erneut.</string>
+    <string name="restore_error_write">Eine Datei konnte nicht wiederhergestellt werden. Die Wiederherstellung wurde beendet; fertige Dateien bleiben erhalten und vorhandene Dateien wurden nicht ersetzt. Prüfe den freien Speicherplatz und versuche es erneut.</string>
+    <string name="restore_error_changed_archive">Die Sicherung hat sich nach der Prüfung verändert. Die Wiederherstellung wurde beendet und es werden keine weiteren Dateien geschrieben.</string>
+    <string name="restore_error_empty">Diese Sicherung enthält keine Dateien zum Wiederherstellen.</string>
+    <string name="restore_error_vault_only">Diese Sicherung enthält nur Tresordateien. Sie lassen sich nicht sicher wiederherstellen, weil Angaben für einen sicheren Wiederaufbau des Tresors fehlen.</string>
 
     <!-- Ordo: trash -->
     <string name="navigation_trash">Papierkorb</string>

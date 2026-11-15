@@ -166,6 +166,27 @@ class FileJobService : Service() {
             startJob(job, context)
         }
 
+        @MainThread
+        fun inspectBackup(source: Uri, password: String?, context: Context) {
+            val job = RestorePreviewJob(source, password)
+            BackupStatusLiveData.value = BackupStatus.RestoreChecking(job.id, source)
+            startJob(job, context)
+        }
+
+        @MainThread
+        fun restoreBackup(
+            source: Uri,
+            password: String?,
+            fileCount: Int,
+            size: Long,
+            vaultFileCount: Int,
+            context: Context
+        ) {
+            val job = RestoreBackupJob(source, password, fileCount, size, vaultFileCount)
+            BackupStatusLiveData.value = BackupStatus.RestoreRunning(job.id, 0, null)
+            startJob(job, context)
+        }
+
         fun move(sources: List<Path>, targetDirectory: Path, context: Context) {
             startJob(MoveFileJob(sources, targetDirectory), context)
         }

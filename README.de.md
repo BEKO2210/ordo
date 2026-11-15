@@ -74,7 +74,7 @@ Was als Nächstes kommt, steht in der [lebenden Roadmap](docs/ROADMAP-LIVE.md): 
 
 - Tresor: Dateien werden mit AES-256-GCM verschlüsselt und mit deiner Bildschirmsperre geöffnet
 - Sicherung: Ordner und Tresor als ZIP auf einen USB-Stick oder an jeden Ort, den dein Handy anbietet, etwa Google
-  Drive – auf Wunsch mit Passwort (AES-256)
+  Drive – auf Wunsch mit Passwort (AES-256), dazu sichere Wiederherstellung normaler Dateien ohne vorhandene zu ersetzen
 
 **In deinen eigenen Worten** – siehe [KI-Befehle](#ki-befehle)
 

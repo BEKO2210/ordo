@@ -25,9 +25,11 @@ import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowManager
 import android.view.animation.OvershootInterpolator
 import android.widget.CompoundButton
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SwitchCompat
 import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_WEAK
@@ -46,6 +48,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.transition.TransitionManager
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.transition.MaterialFadeThrough
 import java.io.File
 import java.io.IOException
@@ -64,6 +67,7 @@ import me.zhanghai.android.files.compat.isPrimaryCompat
 import me.zhanghai.android.files.compat.isRemovableCompat
 import me.zhanghai.android.files.compat.stateCompat
 import me.zhanghai.android.files.compat.storageVolumesCompat
+import me.zhanghai.android.files.databinding.ArchivePasswordDialogBinding
 import me.zhanghai.android.files.databinding.BackupFragmentBinding
 import me.zhanghai.android.files.databinding.BackupItemBinding
 import me.zhanghai.android.files.file.asFileSize
@@ -98,6 +102,8 @@ class BackupFragment : Fragment() {
 
     private var lastStatus: BackupStatus? = null
 
+    private var restorePasswordDialog: AlertDialog? = null
+
     private val addFolderLauncher = registerForActivityResult(
         FileListActivity.OpenDirectoryContract()
     ) { path ->
@@ -126,6 +132,15 @@ class BackupFragment : Fragment() {
                 checkedKeys().filter { it != KEY_VAULT }.map { Paths.get(it) }, isVaultChecked,
                 target, password, requireContext()
             )
+        }
+    }
+
+    private val openBackupLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        val source = result.data?.data
+        if (result.resultCode == Activity.RESULT_OK && source != null) {
+            FileJobService.inspectBackup(source, null, requireContext())
         }
     }
 
@@ -163,6 +178,10 @@ class BackupFragment : Fragment() {
         activity.supportActionBar!!.setDisplayHomeAsUpEnabled(true)
 
         binding.usbIcon.setTintedCircleIcon(R.drawable.usb_icon_white_24dp, R.color.home_backup)
+        binding.restoreIcon.setTintedCircleIcon(
+            R.drawable.restore_icon_white_24dp, R.color.home_backup
+        )
+        binding.restoreRow.setOnClickListener { pickBackup() }
         binding.otherIcon.setTintedCircleIcon(
             R.drawable.cloud_icon_white_24dp, R.color.home_documents
         )
@@ -246,10 +265,13 @@ class BackupFragment : Fragment() {
     }
 
     override fun onDestroyView() {
-        super.onDestroyView()
-
         usbPulse?.cancel()
         usbPulse = null
+        restorePasswordDialog?.setOnDismissListener(null)
+        restorePasswordDialog?.dismiss()
+        restorePasswordDialog = null
+
+        super.onDestroyView()
     }
 
     @Deprecated("Deprecated in Java")
@@ -505,6 +527,67 @@ class BackupFragment : Fragment() {
         }
     }
 
+    private fun pickBackup() {
+        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
+            .addCategory(Intent.CATEGORY_OPENABLE)
+            .setType("application/zip")
+        try {
+            openBackupLauncher.launch(intent)
+        } catch (e: ActivityNotFoundException) {
+            showToast(R.string.activity_not_found)
+        }
+    }
+
+    private fun showRestorePasswordDialog(source: Uri) {
+        if (restorePasswordDialog?.isShowing == true) {
+            return
+        }
+        val passwordBinding = ArchivePasswordDialogBinding.inflate(layoutInflater)
+        passwordBinding.passwordEdit.doAfterTextChanged {
+            passwordBinding.passwordLayout.error = null
+        }
+        val dialog = MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.restore_password_title)
+            .setMessage(R.string.restore_password_message)
+            .setView(passwordBinding.root)
+            .setPositiveButton(R.string.restore_password_action, null)
+            .setNegativeButton(android.R.string.cancel) { _, _ ->
+                if ((BackupStatusLiveData.value as? BackupStatus.RestoreNeedsPassword)?.source ==
+                    source) {
+                    BackupStatusLiveData.value = BackupStatus.Idle
+                }
+            }
+            .create()
+        restorePasswordDialog = dialog
+        dialog.setCanceledOnTouchOutside(false)
+        dialog.setOnCancelListener {
+            if ((BackupStatusLiveData.value as? BackupStatus.RestoreNeedsPassword)?.source ==
+                source) {
+                BackupStatusLiveData.value = BackupStatus.Idle
+            }
+        }
+        dialog.setOnDismissListener {
+            if (restorePasswordDialog === dialog) {
+                restorePasswordDialog = null
+            }
+        }
+        dialog.setOnShowListener {
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+                val password = passwordBinding.passwordEdit.text.toString()
+                if (password.isEmpty()) {
+                    passwordBinding.passwordLayout.error =
+                        getString(R.string.restore_password_empty_error)
+                    return@setOnClickListener
+                }
+                FileJobService.inspectBackup(source, password, requireContext())
+                dialog.dismiss()
+            }
+            passwordBinding.passwordEdit.requestFocus()
+        }
+        dialog.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE)
+        dialog.show()
+    }
+
     private fun updateStatus(status: BackupStatus) {
         val lastStatus = lastStatus
         val isChanged = lastStatus != null && lastStatus::class != status::class
@@ -524,34 +607,25 @@ class BackupFragment : Fragment() {
         binding.formView.isVisible = isIdle
         binding.startBar.isVisible = isIdle
         binding.statusView.isVisible = !isIdle
-        val isRunning = status is BackupStatus.Running
-        if (!isRunning) {
-            binding.progress.isVisible = false
-        }
-        binding.percentText.isVisible = isRunning
-        binding.statusIcon.isVisible = !isRunning
-        binding.cancelButton.isVisible = isRunning
-        binding.statusButton.isVisible = !isRunning
+        binding.progress.isVisible = false
+        binding.percentText.isVisible = false
+        binding.statusIcon.isVisible = true
+        binding.cancelButton.isVisible = false
+        binding.statusButton.isVisible = false
+        binding.statusMessage.text = null
+        binding.statusDetail.text = null
         val context = requireContext()
         when (status) {
             is BackupStatus.Idle -> {}
             is BackupStatus.Running -> {
-                if (status.progress < 0) {
-                    // The indicator refuses to become indeterminate while it is visible.
-                    binding.progress.isVisible = false
-                    binding.progress.isIndeterminate = true
-                    binding.percentText.text = null
-                } else {
-                    binding.progress.setProgressCompat(status.progress, true)
-                    binding.percentText.text =
-                        NumberFormat.getPercentInstance().format(status.progress / 100.0)
-                }
-                binding.progress.isVisible = true
+                showProgress(status.progress.takeIf { it >= 0 })
                 binding.statusTitle.setText(R.string.backup_running_title)
                 binding.statusMessage.maxLines = 1
                 binding.statusMessage.text =
                     status.fileName ?: getString(R.string.backup_counting)
                 binding.statusDetail.setText(R.string.backup_running_notice)
+                binding.cancelButton.isVisible = true
+                binding.cancelButton.setText(R.string.backup_cancel_action)
                 binding.cancelButton.setOnClickListener {
                     FileJobService.cancelJob(status.jobId)
                     BackupStatusLiveData.value = BackupStatus.Idle
@@ -585,6 +659,7 @@ class BackupFragment : Fragment() {
                 } else {
                     getString(R.string.backup_done_restore_hint)
                 }
+                binding.statusButton.isVisible = true
                 binding.statusButton.setText(R.string.backup_done_action)
                 binding.statusButton.setOnClickListener {
                     BackupStatusLiveData.value = BackupStatus.Idle
@@ -605,14 +680,186 @@ class BackupFragment : Fragment() {
                     }
                 )
                 binding.statusDetail.text = status.detail
+                binding.statusButton.isVisible = true
                 binding.statusButton.setText(R.string.backup_retry_action)
                 binding.statusButton.setOnClickListener {
                     BackupStatusLiveData.value = BackupStatus.Idle
                 }
             }
+            is BackupStatus.RestoreChecking -> {
+                showProgress(null)
+                binding.statusTitle.setText(R.string.restore_checking_title)
+                binding.statusMessage.maxLines = Int.MAX_VALUE
+                binding.statusMessage.setText(R.string.restore_checking_message)
+                binding.cancelButton.isVisible = true
+                binding.cancelButton.setText(R.string.restore_cancel_action)
+                binding.cancelButton.setOnClickListener {
+                    FileJobService.cancelJob(status.jobId)
+                    BackupStatusLiveData.value = BackupStatus.Idle
+                }
+            }
+            is BackupStatus.RestoreNeedsPassword -> {
+                binding.statusIcon.setTintedCircleIcon(
+                    R.drawable.lock_icon_white_24dp, R.color.home_vault
+                )
+                binding.statusTitle.setText(R.string.restore_password_title)
+                binding.statusMessage.maxLines = Int.MAX_VALUE
+                binding.statusMessage.setText(R.string.restore_password_message)
+                showRestorePasswordDialog(status.source)
+            }
+            is BackupStatus.RestorePreview -> {
+                binding.statusIcon.setTintedCircleIcon(
+                    R.drawable.restore_icon_white_24dp, R.color.home_backup
+                )
+                binding.statusTitle.setText(R.string.restore_preview_title)
+                binding.statusMessage.maxLines = Int.MAX_VALUE
+                binding.statusMessage.text = context.getQuantityString(
+                    R.plurals.restore_preview_files_format, status.fileCount, status.fileCount,
+                    status.size.asFileSize().formatHumanReadable(context)
+                )
+                val details = mutableListOf(
+                    getString(
+                        R.string.restore_preview_destination_format,
+                        Environment.getExternalStorageDirectory().path
+                    ),
+                    getString(R.string.restore_conflict_rule)
+                )
+                vaultNotice(status.vaultFileCount)?.let { details += it }
+                binding.statusDetail.text = details.joinToString("\n\n")
+                binding.cancelButton.isVisible = true
+                binding.cancelButton.setText(R.string.restore_choose_another_action)
+                binding.cancelButton.setOnClickListener {
+                    BackupStatusLiveData.value = BackupStatus.Idle
+                    pickBackup()
+                }
+                binding.statusButton.isVisible = true
+                binding.statusButton.setText(R.string.restore_confirm_action)
+                binding.statusButton.setOnClickListener {
+                    FileJobService.restoreBackup(
+                        status.source, status.password, status.fileCount, status.size,
+                        status.vaultFileCount, requireContext()
+                    )
+                }
+            }
+            is BackupStatus.RestoreRunning -> {
+                showProgress(status.progress)
+                binding.statusTitle.setText(R.string.restore_running_title)
+                binding.statusMessage.maxLines = 1
+                binding.statusMessage.text =
+                    status.fileName ?: getString(R.string.backup_counting)
+                binding.statusDetail.setText(R.string.restore_running_notice)
+                binding.cancelButton.isVisible = true
+                binding.cancelButton.setText(R.string.restore_cancel_action)
+                binding.cancelButton.setOnClickListener {
+                    FileJobService.cancelJob(status.jobId)
+                    BackupStatusLiveData.value = BackupStatus.Idle
+                }
+            }
+            is BackupStatus.RestoreDone -> {
+                if (status.failed == 0) {
+                    binding.statusIcon.setTintedCircleIcon(
+                        R.drawable.check_icon_control_normal_24dp, R.color.home_downloads
+                    )
+                    animateDoneIcon(isChanged)
+                } else {
+                    binding.statusIcon.setTintedCircleIcon(
+                        R.drawable.error_icon_white_24dp, R.color.home_trash
+                    )
+                }
+                binding.statusTitle.setText(
+                    if (status.failed == 0) {
+                        R.string.restore_done_title
+                    } else {
+                        R.string.restore_done_with_problems_title
+                    }
+                )
+                binding.statusMessage.maxLines = Int.MAX_VALUE
+                binding.statusMessage.text = getString(
+                    R.string.restore_counts_format, status.restored, status.skipped, status.failed
+                )
+                val details = mutableListOf<String>()
+                if (status.skipped > 0) {
+                    details += getString(R.string.restore_done_detail)
+                }
+                if (status.failed > 0) {
+                    details += getString(R.string.restore_done_failed_detail)
+                }
+                vaultNotice(status.vaultSkipped)?.let { details += it }
+                binding.statusDetail.text = details.joinToString("\n\n")
+                binding.statusButton.isVisible = true
+                binding.statusButton.setText(R.string.backup_done_action)
+                binding.statusButton.setOnClickListener {
+                    BackupStatusLiveData.value = BackupStatus.Idle
+                }
+            }
+            is BackupStatus.RestoreFailed -> {
+                binding.statusIcon.setTintedCircleIcon(
+                    R.drawable.error_icon_white_24dp, R.color.home_trash
+                )
+                binding.statusTitle.setText(R.string.restore_failed_title)
+                binding.statusMessage.maxLines = Int.MAX_VALUE
+                binding.statusMessage.text = status.message
+                val details = mutableListOf(
+                    getString(
+                        R.string.restore_counts_format, status.restored, status.skipped, status.failed
+                    )
+                )
+                vaultNotice(status.vaultSkipped)?.let { details += it }
+                binding.statusDetail.text = details.joinToString("\n\n")
+                binding.statusButton.isVisible = true
+                binding.statusButton.setText(
+                    if (status.passwordRequired && status.source != null) {
+                        R.string.restore_retry_password_action
+                    } else {
+                        R.string.restore_choose_another_action
+                    }
+                )
+                binding.statusButton.setOnClickListener {
+                    if (status.passwordRequired && status.source != null) {
+                        BackupStatusLiveData.value =
+                            BackupStatus.RestoreNeedsPassword(status.source)
+                    } else {
+                        BackupStatusLiveData.value = BackupStatus.Idle
+                        pickBackup()
+                    }
+                }
+            }
         }
         binding.statusDetail.isVisible = !binding.statusDetail.text.isNullOrEmpty()
     }
+
+    private fun showProgress(progress: Int?) {
+        // The indicator refuses to change mode while it is visible.
+        binding.progress.isVisible = false
+        binding.progress.isIndeterminate = progress == null
+        if (progress == null) {
+            binding.percentText.text = null
+        } else {
+            binding.progress.setProgressCompat(progress, true)
+            binding.percentText.text =
+                NumberFormat.getPercentInstance().format(progress / 100.0)
+            binding.percentText.isVisible = true
+        }
+        binding.statusIcon.isVisible = false
+        binding.progress.isVisible = true
+    }
+
+    private fun animateDoneIcon(animate: Boolean) {
+        if (!animate) {
+            return
+        }
+        binding.statusIcon.scaleX = 0.6f
+        binding.statusIcon.scaleY = 0.6f
+        binding.statusIcon.animate().scaleX(1f).scaleY(1f).setDuration(350)
+            .setInterpolator(OvershootInterpolator()).start()
+    }
+
+    private fun vaultNotice(count: Int): String? =
+        count.takeIf { it > 0 }?.let {
+            requireContext().getQuantityString(
+                R.plurals.restore_vault_not_supported_format, it, it
+            )
+        }
 
     companion object {
         private const val KEY_VAULT = "vault"

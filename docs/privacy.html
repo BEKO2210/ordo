@@ -41,6 +41,7 @@
 <section>
 <h2>Backup</h2>
 <p>A backup is a ZIP file in the place you choose, for example on a USB drive. If you want, Ordo encrypts it with your password (AES-256). Ordo does not store the password.</p>
+<p>When restoring, Ordo reads the backup from the place you choose and writes normal files back to shared storage. Existing files are never replaced. The current backup format does not contain enough information to rebuild the vault safely, so vault files are not restored.</p>
 <p>If you choose cloud storage such as Google Drive, that provider's app transfers the file. The provider's privacy policy applies.</p>
 </section>
 <section>

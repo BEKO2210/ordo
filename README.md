@@ -73,7 +73,7 @@ What comes next is in the [living roadmap](docs/ROADMAP-LIVE.md): every goal has
 
 - Vault: files are encrypted with AES-256-GCM and opened with your screen lock
 - Backup: folders and the vault as a ZIP to a USB drive or any place your phone offers, such as Google Drive, with an
-  optional password (AES-256)
+  optional password (AES-256), plus safe restore of normal files without replacing existing files
 
 **Ask in your own words** – see [AI commands](#ai-commands)
 

@@ -1,0 +1,104 @@
+/*
+ * Copyright (c) 2026 Ordo contributors
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
+package me.zhanghai.android.files.backup
+
+import java.io.File
+
+private const val RESTORE_NAME_MAX_LENGTH = 4096
+private const val RESTORE_CONFLICT_MAX_ATTEMPTS = 10_000
+
+/** The backup format identifies vault files only through these localized folder names. */
+val BACKUP_VAULT_FOLDER_NAMES = setOf("Vault", "Tresor")
+
+data class RestoreEntryPath(val relativePath: String, val isVault: Boolean)
+
+/**
+ * Maps one archive entry to shared storage without accepting alternate path syntax. Keeping this
+ * function free of Android classes makes the complete zip-slip policy directly unit-testable.
+ */
+fun restoreEntryPath(name: String): RestoreEntryPath {
+    require(name.isNotEmpty()) { "The backup contains an empty file name." }
+    require(name.length <= RESTORE_NAME_MAX_LENGTH) { "A file name in the backup is too long." }
+    require(!name.startsWith('/') && !WINDOWS_ABSOLUTE_PATH.containsMatchIn(name)) {
+        "The backup contains an absolute path."
+    }
+    require('\\' !in name) { "The backup contains a path with backslashes." }
+    require(name.none { Character.isISOControl(it) }) {
+        "The backup contains a path with control characters."
+    }
+    val segments = name.split('/')
+    require(segments.none { it.isEmpty() || it == "." || it == ".." }) {
+        "The backup contains a path that leaves its folder."
+    }
+    val isProtectedAndroidPath = segments.size >= 2 &&
+        segments[0].equals("Android", ignoreCase = true) &&
+        (segments[1].equals("data", ignoreCase = true) ||
+            segments[1].equals("obb", ignoreCase = true))
+    require(!isProtectedAndroidPath) { "The backup contains a protected Android folder." }
+    return RestoreEntryPath(name, segments.first() in BACKUP_VAULT_FOLDER_NAMES)
+}
+
+/** Canonical verification is repeated on-device after parent folders have been created. */
+fun resolveRestoreFile(storageRoot: File, relativePath: String): File {
+    restoreEntryPath(relativePath)
+    val canonicalRoot = storageRoot.canonicalFile
+    val target = File(canonicalRoot, relativePath).canonicalFile
+    require(target.path.startsWith("${canonicalRoot.path}${File.separator}")) {
+        "The backup path leaves shared storage."
+    }
+    return target
+}
+
+sealed class RestoreDestinationState {
+    object Missing : RestoreDestinationState()
+    data class ExistingFile(val size: Long) : RestoreDestinationState()
+    object ExistingOther : RestoreDestinationState()
+}
+
+sealed class RestoreDestination {
+    object Skip : RestoreDestination()
+    data class Write(val relativePath: String) : RestoreDestination()
+}
+
+/**
+ * Existing files are never overwritten or deleted. The exact original path is skipped only when
+ * its size matches; otherwise a free " (restored)" name is chosen before the extension.
+ */
+fun chooseRestoreDestination(
+    relativePath: String,
+    expectedSize: Long,
+    stateFor: (String) -> RestoreDestinationState
+): RestoreDestination {
+    require(expectedSize >= 0)
+    when (val state = stateFor(relativePath)) {
+        RestoreDestinationState.Missing -> return RestoreDestination.Write(relativePath)
+        is RestoreDestinationState.ExistingFile -> {
+            if (state.size == expectedSize) {
+                return RestoreDestination.Skip
+            }
+        }
+        RestoreDestinationState.ExistingOther -> {}
+    }
+    var number = 1
+    while (number <= RESTORE_CONFLICT_MAX_ATTEMPTS) {
+        val candidate = restoredName(relativePath, number)
+        if (stateFor(candidate) is RestoreDestinationState.Missing) {
+            return RestoreDestination.Write(candidate)
+        }
+        ++number
+    }
+    throw IllegalStateException("Too many conflicting restore names")
+}
+
+private fun restoredName(relativePath: String, number: Int): String {
+    val fileName = relativePath.substringAfterLast('/')
+    val dotIndex = fileName.lastIndexOf('.').takeIf { it > 0 } ?: fileName.length
+    val cut = relativePath.length - fileName.length + dotIndex
+    val suffix = if (number == 1) " (restored)" else " (restored $number)"
+    return "${relativePath.substring(0, cut)}$suffix${relativePath.substring(cut)}"
+}
+
+private val WINDOWS_ABSOLUTE_PATH = Regex("^[A-Za-z]:/")
