@@ -1,0 +1,14 @@
+{"type": "personal", "text": "Pack die Stadtwerke-Rechnung zu den anderen Rechnungen", "gold": {"action": "move", "source": "Download", "name_contains": "Stadtwerke", "dest": ["Documents/Rechnungen"]}}
+{"type": "personal", "text": "Kopier die Bilder vom Lissabon-Trip in den Ordner Backup", "gold": {"action": "copy", "tag": "lissabon", "tag2": "photo", "dest": ["Backup"]}}
+{"type": "personal", "text": "Verschiebe die Videos von der Reise nach Hamburg nach Filme", "gold": {"action": "move", "tag": "hamburg", "tag2": "video", "dest": ["Movies"]}}
+{"type": "personal", "text": "Lösch die Bewerbungsfotos", "gold": {"action": "delete", "source": "Download", "name_contains": "Bewerbungsfoto"}}
+{"type": "personal", "text": "Die Verdienstnachweise wie immer wegsortieren", "gold": {"action": "move", "source": "Download", "name_contains": "Verdienstnachweis", "dest": ["Documents/Gehalt"]}}
+{"type": "personal", "text": "Kopier die Autokauf-Unterlagen nach Backup", "gold": {"action": "copy", "tag": "autokauf", "dest": ["Backup"]}}
+{"type": "personal", "text": "Verschieb die Riester-Bescheinigung zu den Steuersachen 2025", "gold": {"action": "move", "source": "Download", "name_contains": "Riester", "dest": ["Documents/Steuer 2025"]}}
+{"type": "personal", "text": "Leg die Telekom-Rechnung vom November ab wie immer", "gold": {"action": "move", "source": "Download", "name_contains": "Rechnung_Telekom_2026-11", "dest": ["Documents/Rechnungen"]}}
+{"type": "personal", "text": "Wo sind die Fotos aus Hamburg?", "gold": {"action": "none"}}
+{"type": "generic", "text": "Verschiebe alle PDFs aus WhatsApp Documents nach Dokumente", "gold": {"action": "move", "source": "Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Documents", "extensions": ["pdf"], "dest": ["Documents"]}}
+{"type": "generic", "text": "Lösche alle Sprachaufnahmen im Ordner WhatsApp Audio", "gold": {"action": "delete", "source": "Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Audio", "kinds": ["audio"]}}
+{"type": "generic", "text": "Kopiere die Wallpapers nach Backup", "gold": {"action": "copy", "source": "Pictures/Wallpapers", "dest": ["Backup"]}}
+{"type": "generic", "text": "Räum den Ordner Movies nach Monaten auf", "gold": {"action": "organize", "source": "Movies", "group_by": "month"}}
+{"type": "generic", "text": "Schick die Steuerunterlagen an meinen Steuerberater", "gold": {"action": "none"}}

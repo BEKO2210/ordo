@@ -1,0 +1,18 @@
+{"type": "personal", "text": "Die Amazon-Rechnungen bitte wie immer ablegen", "gold": {"action": "move", "source": "Download", "name_contains": "Amazon", "dest": ["Documents/Rechnungen"]}}
+{"type": "personal", "text": "Schieb den Kontoauszug vom Oktober zu den anderen Kontoauszügen", "gold": {"action": "move", "source": "Download", "name_contains": "Kontoauszug_2026-10", "dest": ["Documents/Bank"]}}
+{"type": "personal", "text": "Kopiere alle Bilder aus dem Portugal-Urlaub nach Backup", "gold": {"action": "copy", "tag": "lissabon", "tag2": "photo", "dest": ["Backup"]}}
+{"type": "personal", "text": "Lösche die Videos vom Hamburg-Trip", "gold": {"action": "delete", "tag": "hamburg", "tag2": "video"}}
+{"type": "personal", "text": "Verschieb die Spendenquittung in den Steuerordner für 2025", "gold": {"action": "move", "source": "Download", "name_contains": "Spendenquittung", "dest": ["Documents/Steuer 2025"]}}
+{"type": "personal", "text": "Mach mit den Arztbriefen das Gleiche wie immer", "gold": {"action": "move", "source": "Download", "name_contains": "Arztbrief", "dest": ["Documents/Gesundheit"]}}
+{"type": "personal", "text": "Lösch die doppelt heruntergeladenen Sachen", "gold": {"action": "delete", "tag": "dup"}}
+{"type": "personal", "text": "Leg die Fahrzeugpapiere vom Autokauf in den Ordner Documents/Auto", "gold": {"action": "move", "tag": "autokauf", "dest": ["Documents/Auto"]}}
+{"type": "personal", "text": "Verschieb die WhatsApp-Screenshots in einen Ordner WhatsApp Screenshots", "gold": {"action": "move", "source": "Pictures/Screenshots", "name_contains": "_WhatsApp", "dest": ["WhatsApp Screenshots", "Pictures/WhatsApp Screenshots", "Pictures/Screenshots/WhatsApp Screenshots"]}}
+{"type": "personal", "text": "Welche Unterlagen gehören zum Autokauf?", "gold": {"action": "none"}}
+{"type": "personal", "text": "Lösch die alten WhatsApp-Videos wie jeden Monat", "gold": {"action": "delete", "source": "Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Video", "older_days": 30}}
+{"type": "personal", "text": "Die Mieterhöhung zu den Wohnungssachen", "gold": {"action": "move", "source": "Download", "name_contains": "Mieterhoehung", "dest": ["Documents/Wohnung"]}}
+{"type": "generic", "text": "Verschiebe alle Videos aus Download nach Filme", "gold": {"action": "move", "source": "Download", "kinds": ["video"], "dest": ["Movies"]}}
+{"type": "generic", "text": "Lösche im Download alle Dateien, die älter als 2 Jahre sind", "gold": {"action": "delete", "source": "Download", "older_days": 730}}
+{"type": "generic", "text": "Kopiere alle Lieder von Cro nach Backup", "gold": {"action": "copy", "source": "Music/Cro", "kinds": ["audio"], "dest": ["Backup"]}}
+{"type": "generic", "text": "Öffne die Datei Lebenslauf.pdf", "gold": {"action": "none"}}
+{"type": "generic", "text": "Sortiere WhatsApp Images nach Monaten", "gold": {"action": "organize", "source": "Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Images", "group_by": "month"}}
+{"type": "generic", "text": "Verschiebe alle Excel-Tabellen aus Download nach Dokumente", "gold": {"action": "move", "source": "Download", "extensions": ["xlsx"], "dest": ["Documents"]}}

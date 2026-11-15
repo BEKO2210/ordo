@@ -1,0 +1,38 @@
+{"type": "generic", "text": "Verschiebe alle PDFs aus Download nach Dokumente", "gold": {"action": "move", "source": "Download", "dest": ["Documents"], "extensions": ["pdf"]}}
+{"type": "generic", "text": "Lösche alle APK-Dateien im Download-Ordner", "gold": {"action": "delete", "source": "Download", "extensions": ["apk"]}}
+{"type": "generic", "text": "Räum den Download-Ordner auf", "gold": {"action": "organize", "source": "Download", "group_by": "type"}}
+{"type": "generic", "text": "Lösche in WhatsApp Video alle Videos, die älter als 6 Monate sind", "gold": {"action": "delete", "source": "Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Video", "kinds": ["video"], "older_days": 180}}
+{"type": "generic", "text": "Sortiere die Screenshots nach Monat", "gold": {"action": "organize", "source": "Pictures/Screenshots", "group_by": "month"}}
+{"type": "generic", "text": "Verschiebe alle Dateien größer als 2 GB aus Movies nach Archiv", "gold": {"action": "move", "source": "Movies", "dest": ["Archiv"], "larger_mb": 2000}}
+{"type": "generic", "text": "Verschiebe alle ZIP-Dateien aus Download nach Archiv", "gold": {"action": "move", "source": "Download", "dest": ["Archiv"], "extensions": ["zip"]}}
+{"type": "generic", "text": "Lösche alle Screenshots, die älter als ein Jahr sind", "gold": {"action": "delete", "source": "Pictures/Screenshots", "older_days": 365}}
+{"type": "generic", "text": "Kopiere alle MP3s aus Download nach Musik", "gold": {"action": "copy", "source": "Download", "dest": ["Music"], "extensions": ["mp3"]}}
+{"type": "generic", "text": "Benenne die Datei Notizen.txt in Ideen.txt um", "gold": {"action": "none"}}
+{"type": "generic", "text": "Wie viel Speicher ist noch frei?", "gold": {"action": "none"}}
+{"type": "generic", "text": "Verschiebe alle Dateien mit Bewerbung im Namen aus Dokumente nach Bewerbungen", "gold": {"action": "move", "source": "Documents", "dest": ["Documents/Bewerbungen"], "name_contains": "Bewerbung"}}
+{"type": "generic", "text": "Lösche im Ordner Movies alle Videos über 3 GB", "gold": {"action": "delete", "source": "Movies", "kinds": ["video"], "larger_mb": 3000}}
+{"type": "generic", "text": "Teile die Urlaubsfotos mit Mama", "gold": {"action": "none"}}
+{"type": "generic", "text": "Kopiere die Bilder aus WhatsApp Images nach Backup", "gold": {"action": "copy", "source": "Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Images", "dest": ["Backup"], "kinds": ["image"]}}
+{"type": "generic", "text": "Verschiebe alle Word-Dateien aus WhatsApp Documents nach Dokumente", "gold": {"action": "move", "source": "Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Documents", "dest": ["Documents"], "extensions": ["docx"]}}
+{"type": "personal", "text": "Verschieb die neuen Rechnungen wie immer", "gold": {"action": "move", "tag": "rechnung", "dest": ["Documents/Rechnungen"]}}
+{"type": "personal", "text": "Leg die Telekom-Rechnungen ab, wo sie hingehören", "gold": {"action": "move", "tag": "telekom", "dest": ["Documents/Rechnungen"]}}
+{"type": "personal", "text": "Die Stadtwerke-Abrechnung bitte dahin, wo ich Rechnungen immer hinlege", "gold": {"action": "move", "tag": "stadtwerke", "dest": ["Documents/Rechnungen"]}}
+{"type": "personal", "text": "Verschieb die Kontoauszüge wie immer", "gold": {"action": "move", "tag": "konto", "dest": ["Documents/Bank"]}}
+{"type": "personal", "text": "Die neue Gehaltsabrechnung dahin, wo die anderen liegen", "gold": {"action": "move", "tag": "gehalt", "dest": ["Documents/Gehalt"]}}
+{"type": "personal", "text": "Verschieb den Arztbrief zu meinen Gesundheitssachen", "gold": {"action": "move", "tag": "arzt", "dest": ["Documents/Gesundheit"]}}
+{"type": "personal", "text": "Pack die Unterlagen vom Autokauf in einen Ordner Auto", "gold": {"action": "move", "tag": "autokauf", "dest": ["Auto", "Documents/Auto", "Download/Auto"]}}
+{"type": "personal", "text": "Lösche die Scans vom Autokauf", "gold": {"action": "delete", "source": "Download", "name_contains": "Scan_20260912"}}
+{"type": "personal", "text": "Verschiebe die Fotos vom Urlaub in Lissabon in einen Ordner Lissabon", "gold": {"action": "move", "tag": "lissabon", "tag2": "photo", "dest": ["Lissabon", "Pictures/Lissabon", "DCIM/Lissabon"]}}
+{"type": "personal", "text": "Kopiere die Videos aus Lissabon nach Backup", "gold": {"action": "copy", "tag": "lissabon", "tag2": "video", "dest": ["Backup"]}}
+{"type": "personal", "text": "Kopiere die Fotos vom Hamburg-Wochenende nach Backup", "gold": {"action": "copy", "tag": "hamburg", "tag2": "photo", "dest": ["Backup"]}}
+{"type": "personal", "text": "Verschiebe die Hochzeitsfotos in einen Ordner Hochzeit", "gold": {"action": "move", "tag": "hochzeit", "tag2": "photo", "dest": ["Hochzeit", "Pictures/Hochzeit", "DCIM/Hochzeit"]}}
+{"type": "personal", "text": "Lösche die doppelten Dateien im Download", "gold": {"action": "delete", "tag": "dup"}}
+{"type": "personal", "text": "Verschieb die Steuersachen für 2025 aus Download in meinen Steuerordner", "gold": {"action": "move", "tag": "steuer", "dest": ["Documents/Steuer 2025"]}}
+{"type": "personal", "text": "Verschieb die Bewerbungsfotos zu den anderen Bewerbungsunterlagen", "gold": {"action": "move", "tag": "bewfoto", "dest": ["Documents/Bewerbungen"]}}
+{"type": "personal", "text": "Verschieb die Instagram-Screenshots in einen Ordner Insta", "gold": {"action": "move", "tag": "insta", "dest": ["Insta", "Pictures/Insta", "Pictures/Screenshots/Insta"]}}
+{"type": "personal", "text": "Lösch in WhatsApp Video wieder das Übliche", "gold": {"action": "delete", "source": "Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Video", "older_days": 30}}
+{"type": "personal", "text": "Räum WhatsApp Documents so auf wie sonst", "gold": {"action": "organize", "source": "Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Documents", "group_by": "month"}}
+{"type": "personal", "text": "Verschieb die Post von meinem Vermieter in den Wohnungsordner", "gold": {"action": "move", "tag": "vonovia", "dest": ["Documents/Wohnung"]}}
+{"type": "personal", "text": "Lösch die APKs im Download wie immer", "gold": {"action": "delete", "source": "Download", "extensions": ["apk"]}}
+{"type": "personal", "text": "Was frisst diesen Monat am meisten Platz?", "gold": {"action": "none"}}
+{"type": "personal", "text": "Welche Fotos habe ich in Lissabon gemacht?", "gold": {"action": "none"}}

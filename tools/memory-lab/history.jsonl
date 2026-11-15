@@ -1,0 +1,85 @@
+{"op": "move", "from": "Download", "to": "Documents/Rechnungen", "name": "Rechnung_Telekom_0.pdf", "t": 1700000000}
+{"op": "move", "from": "Download", "to": "Documents/Rechnungen", "name": "Rechnung_Amazon_1.pdf", "t": 1702600000}
+{"op": "move", "from": "Download", "to": "Documents/Rechnungen", "name": "Rechnung_Stadtwerke_2.pdf", "t": 1705200000}
+{"op": "move", "from": "Download", "to": "Documents/Rechnungen", "name": "Rechnung_Telekom_3.pdf", "t": 1707800000}
+{"op": "move", "from": "Download", "to": "Documents/Rechnungen", "name": "Rechnung_Amazon_4.pdf", "t": 1710400000}
+{"op": "move", "from": "Download", "to": "Documents/Rechnungen", "name": "Rechnung_Stadtwerke_5.pdf", "t": 1713000000}
+{"op": "move", "from": "Download", "to": "Documents/Rechnungen", "name": "Rechnung_Telekom_6.pdf", "t": 1715600000}
+{"op": "move", "from": "Download", "to": "Documents/Rechnungen", "name": "Rechnung_Amazon_7.pdf", "t": 1718200000}
+{"op": "move", "from": "Download", "to": "Documents/Rechnungen", "name": "Rechnung_Stadtwerke_8.pdf", "t": 1720800000}
+{"op": "move", "from": "Download", "to": "Documents/Rechnungen", "name": "Rechnung_Telekom_9.pdf", "t": 1723400000}
+{"op": "move", "from": "Download", "to": "Documents/Rechnungen", "name": "Rechnung_Amazon_10.pdf", "t": 1726000000}
+{"op": "move", "from": "Download", "to": "Documents/Rechnungen", "name": "Rechnung_Stadtwerke_11.pdf", "t": 1728600000}
+{"op": "move", "from": "Download", "to": "Documents/Rechnungen", "name": "Rechnung_Telekom_12.pdf", "t": 1731200000}
+{"op": "move", "from": "Download", "to": "Documents/Rechnungen", "name": "Rechnung_Amazon_13.pdf", "t": 1733800000}
+{"op": "move", "from": "Download", "to": "Documents/Bank", "name": "Kontoauszug_0.pdf", "t": 1700000000}
+{"op": "move", "from": "Download", "to": "Documents/Bank", "name": "Kontoauszug_1.pdf", "t": 1703000000}
+{"op": "move", "from": "Download", "to": "Documents/Bank", "name": "Kontoauszug_2.pdf", "t": 1706000000}
+{"op": "move", "from": "Download", "to": "Documents/Bank", "name": "Kontoauszug_3.pdf", "t": 1709000000}
+{"op": "move", "from": "Download", "to": "Documents/Bank", "name": "Kontoauszug_4.pdf", "t": 1712000000}
+{"op": "move", "from": "Download", "to": "Documents/Bank", "name": "Kontoauszug_5.pdf", "t": 1715000000}
+{"op": "move", "from": "Download", "to": "Documents/Bank", "name": "Kontoauszug_6.pdf", "t": 1718000000}
+{"op": "move", "from": "Download", "to": "Documents/Bank", "name": "Kontoauszug_7.pdf", "t": 1721000000}
+{"op": "move", "from": "Download", "to": "Documents/Bank", "name": "Kontoauszug_8.pdf", "t": 1724000000}
+{"op": "move", "from": "Download", "to": "Documents/Bank", "name": "Kontoauszug_9.pdf", "t": 1727000000}
+{"op": "move", "from": "Download", "to": "Documents/Gehalt", "name": "Verdienstnachweis_0.pdf", "t": 1700000000}
+{"op": "move", "from": "Download", "to": "Documents/Gehalt", "name": "Verdienstnachweis_1.pdf", "t": 1703000000}
+{"op": "move", "from": "Download", "to": "Documents/Gehalt", "name": "Verdienstnachweis_2.pdf", "t": 1706000000}
+{"op": "move", "from": "Download", "to": "Documents/Gehalt", "name": "Verdienstnachweis_3.pdf", "t": 1709000000}
+{"op": "move", "from": "Download", "to": "Documents/Gehalt", "name": "Verdienstnachweis_4.pdf", "t": 1712000000}
+{"op": "move", "from": "Download", "to": "Documents/Gehalt", "name": "Verdienstnachweis_5.pdf", "t": 1715000000}
+{"op": "move", "from": "Download", "to": "Documents/Gehalt", "name": "Verdienstnachweis_6.pdf", "t": 1718000000}
+{"op": "move", "from": "Download", "to": "Documents/Gehalt", "name": "Verdienstnachweis_7.pdf", "t": 1721000000}
+{"op": "move", "from": "Download", "to": "Documents/Gehalt", "name": "Verdienstnachweis_8.pdf", "t": 1724000000}
+{"op": "move", "from": "Download", "to": "Documents/Gehalt", "name": "Verdienstnachweis_9.pdf", "t": 1727000000}
+{"op": "move", "from": "Download", "to": "Documents/Gesundheit", "name": "Arztbrief_0.pdf", "t": 1700000000}
+{"op": "move", "from": "Download", "to": "Documents/Gesundheit", "name": "Arztbrief_1.pdf", "t": 1703000000}
+{"op": "move", "from": "Download", "to": "Documents/Gesundheit", "name": "Arztbrief_2.pdf", "t": 1706000000}
+{"op": "move", "from": "Download", "to": "Documents/Gesundheit", "name": "Arztbrief_3.pdf", "t": 1709000000}
+{"op": "move", "from": "Download", "to": "Documents/Wohnung", "name": "Vonovia_0.pdf", "t": 1700000000}
+{"op": "move", "from": "Download", "to": "Documents/Wohnung", "name": "Vonovia_1.pdf", "t": 1703000000}
+{"op": "move", "from": "Download", "to": "Documents/Wohnung", "name": "Vonovia_2.pdf", "t": 1706000000}
+{"op": "move", "from": "Download", "to": "Documents/Bewerbungen", "name": "Bewerbung_0.pdf", "t": 1700000000}
+{"op": "move", "from": "Download", "to": "Documents/Bewerbungen", "name": "Bewerbung_1.pdf", "t": 1703000000}
+{"op": "move", "from": "Download", "to": "Documents/Steuer 2025", "name": "Beleg_2025_0.pdf", "t": 1700000000}
+{"op": "move", "from": "Download", "to": "Documents/Steuer 2025", "name": "Beleg_2025_1.pdf", "t": 1703000000}
+{"op": "move", "from": "Download", "to": "Documents/Steuer 2025", "name": "Beleg_2025_2.pdf", "t": 1706000000}
+{"op": "delete", "from": "Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Video", "name": "VID-x-WA0000.mp4", "age_days": 31, "t": 1710000000}
+{"op": "delete", "from": "Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Video", "name": "VID-x-WA0001.mp4", "age_days": 43, "t": 1712600000}
+{"op": "delete", "from": "Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Video", "name": "VID-x-WA0002.mp4", "age_days": 37, "t": 1715200000}
+{"op": "delete", "from": "Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Video", "name": "VID-x-WA0003.mp4", "age_days": 34, "t": 1717800000}
+{"op": "delete", "from": "Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Video", "name": "VID-x-WA0004.mp4", "age_days": 31, "t": 1720400000}
+{"op": "delete", "from": "Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Video", "name": "VID-x-WA0005.mp4", "age_days": 40, "t": 1723000000}
+{"op": "delete", "from": "Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Video", "name": "VID-x-WA0006.mp4", "age_days": 43, "t": 1725600000}
+{"op": "delete", "from": "Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Video", "name": "VID-x-WA0007.mp4", "age_days": 36, "t": 1728200000}
+{"op": "delete", "from": "Download", "name": "setup_0.apk", "age_days": 6, "t": 1710000000}
+{"op": "delete", "from": "Download", "name": "setup_1.apk", "age_days": 9, "t": 1714000000}
+{"op": "delete", "from": "Download", "name": "setup_2.apk", "age_days": 20, "t": 1718000000}
+{"op": "delete", "from": "Download", "name": "setup_3.apk", "age_days": 19, "t": 1722000000}
+{"op": "delete", "from": "Download", "name": "setup_4.apk", "age_days": 2, "t": 1726000000}
+{"op": "organize", "from": "Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Documents", "group_by": "month", "t": 1720000000}
+{"op": "organize", "from": "Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Documents", "group_by": "month", "t": 1725000000}
+{"op": "organize", "from": "Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Documents", "group_by": "month", "t": 1730000000}
+{"op": "organize", "from": "Documents", "group_by": "month", "t": 1786100400}
+{"op": "organize", "from": "Documents", "group_by": "month", "t": 1787828400}
+{"op": "organize", "from": "Documents", "group_by": "month", "t": 1789556400}
+{"op": "organize", "from": "Documents", "group_by": "month", "t": 1791284400}
+{"op": "open", "path": "Documents/Lebenslauf.pdf", "t": 1794564000}
+{"op": "open", "path": "Documents/Haushaltsplan.xlsx", "t": 1794477600}
+{"op": "open", "path": "Download/Kontoauszug_2026-10.pdf", "t": 1794304800}
+{"op": "open", "path": "Documents/Notizen.txt", "t": 1794650400}
+{"op": "open", "path": "Download/Rechnung_Telekom_2026-11.pdf", "t": 1794218400}
+{"op": "open", "path": "Documents/Mietvertrag.pdf", "t": 1794650400}
+{"op": "open", "path": "Documents/Impfpass.pdf", "t": 1794477600}
+{"op": "open", "path": "Documents/Rezept_Lasagne.pdf", "t": 1793700000}
+{"op": "open", "path": "Documents/Reisepass_Scan.pdf", "t": 1792576800}
+{"op": "open", "path": "Download/Hotel_Lisboa_Buchung.pdf", "t": 1783504800}
+{"op": "open", "path": "Download/Bordkarte_TAP_LIS.pdf", "t": 1784023200}
+{"op": "open", "path": "Download/Arztbrief_Dr_Weber_2026-10-28.pdf", "t": 1793268000}
+{"op": "open", "path": "Download/Verdienstnachweis_2026-10.pdf", "t": 1793440800}
+{"op": "open", "path": "Documents/Bewerbung_Bosch.docx", "t": 1791280800}
+{"op": "open", "path": "Download/Vonovia_Mieterhoehung_2026.pdf", "t": 1789984800}
+{"op": "open", "path": "Documents/Lebenslauf.pdf", "t": 1792144800}
+{"op": "search", "text": "Mietvertrag", "opened": "Documents/Mietvertrag.pdf", "t": 1794675600}
+{"op": "search", "text": "Impfpass", "opened": "Documents/Impfpass.pdf", "t": 1794481200}
+{"op": "search", "text": "Telekom", "opened": "Download/Rechnung_Telekom_2026-11.pdf", "t": 1794222000}
