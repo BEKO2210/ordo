@@ -1,15 +1,54 @@
-An open source Material Design file manager.
+Ordo keeps your files in order. Find what you need, see what fills your storage, protect private files and back up what matters. Ordo is open source, with no ads and no tracking. Everything is free; only the optional AI commands are a one-time in-app purchase.
 
-Features:
-- Open source: Lightweight, clean and secure.
-- Material Design: Follows Material Design guidelines, with attention into details.
-- Breadcrumbs: Navigate in the filesystem with ease.
-- Root support: View and manage files with root access.
-- Archive support: View, extract and create common compressed files.
-- NAS support: View and manage files on FTP, SFTP, SMB and WebDAV servers.
-- Themes: Customizable UI colors, plus night mode with optional true black.
-- Linux-aware: Knows symbolic links, file permissions and SELinux context.
-- Robust: Uses Linux system calls under the hood, not yet another ls parser.
-- Well-implemented: Built upon the right things, including Java NIO2 File API and LiveData.
+Find your files
+• Home screen with recent files, categories and your storage at a glance
+• Search by name or by text inside files
+• List or grid, bookmarks and quick access to common folders
 
-https://github.com/zhanghai/MaterialFiles
+Free up space
+• Storage analysis for internal storage, SD cards and USB drives
+• See your files by type, the folders that take the most space, large files, duplicates, files you have not used for a long time and old APKs
+• Suggestions with a preview, so you decide what goes
+• Trash: deleted files can be restored for 30 days
+• App manager: see installed apps, save their APK, uninstall
+
+Work with files
+• Copy, move, rename and share, with speed and time remaining
+• Rename many files at once using a pattern
+• Create and extract ZIP, TAR and 7z archives
+• Built-in viewers for images, PDF and text
+
+Keep files safe
+• Vault: files are encrypted with AES-256-GCM and opened with your screen lock
+• Backup: folders and the vault as a ZIP file to a USB drive or any storage your phone offers, with an optional password
+• Restore normal files from a backup without replacing the ones you already have
+
+Ask in your own words
+Type or dictate a sentence like “Move all MP3s from Download to Music”. Ordo shows the plan first and acts only when you confirm. One tap undoes it.
+• Move, copy, sort into subfolders or move to the trash
+• Works in English and German
+• The AI runs entirely on your phone. Your commands and file names never leave the device.
+• Deleting always means the trash. System folders are protected. If a folder is unclear, Ordo asks instead of guessing.
+• Setup downloads the language model once (about 2.6 GB, over Wi-Fi by default). After that it works offline.
+• Needs a 64-bit phone with at least 5.5 GB of RAM and about 3.1 GB of free space
+• AI commands are a one-time in-app purchase, not a subscription
+
+For power users
+• FTP, SFTP, SMB and WebDAV servers, plus a built-in FTP server
+• Root and Shizuku access, Linux permissions, symbolic links and SELinux context
+
+Make it yours
+• Five accent colors, or your wallpaper’s colors on Android 12 and later
+• Light, dark and true black
+• Motion full, subtle or off
+
+Your privacy
+Ordo collects no data. There are no ads, no trackers and no analytics. The app only goes online when you connect to a server you added yourself, and once to download the AI model if you set up AI commands. App data is left out of cloud backups, so saved server passwords stay on your phone.
+
+Why Ordo asks for access to all files
+A file manager has to read and change the files you open with it. Ordo never sends your files anywhere unless you copy them to a server or share them yourself.
+
+Open source
+Ordo is free software under the GNU GPL 3.0 and builds on Material Files by Hai Zhang. Source code: https://github.com/BEKO2210/ordo
+
+Available in English and German. Requires Android 6.0 or later.
