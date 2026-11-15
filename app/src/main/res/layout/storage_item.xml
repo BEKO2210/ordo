@@ -57,6 +57,7 @@
         android:layout_marginStart="@dimen/content_start_from_screen_edge_margin_minus_36dp_considering_at_least_8dp"
         android:layout_marginEnd="@dimen/screen_edge_margin_minus_12dp_at_least_8dp"
         android:padding="@dimen/touch_target_icon_padding"
+        android:contentDescription="@string/drag_handle_description"
         android:src="@drawable/drag_handle_icon_white_24dp"
         app:tint="?colorControlNormal" />
 </me.zhanghai.android.foregroundcompat.ForegroundLinearLayout>

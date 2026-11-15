@@ -938,4 +938,5 @@
     <string name="home_recent_view_hidden">Ausblenden</string>
     <string name="home_search_hint">Dateien suchen</string>
     <string name="home_show_quick_access">Schnellzugriff anzeigen</string>
+    <string name="drag_handle_description">Zum Umsortieren ziehen</string>
 </resources>
