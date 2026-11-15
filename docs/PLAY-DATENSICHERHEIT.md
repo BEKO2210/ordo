@@ -51,6 +51,9 @@ IP-Regel oben ist deshalb nichts anzugeben. Die Datenschutzerklärung nennt den 
 **KI-Befehle.** Das Sprachmodell läuft auf dem Gerät (`llm/`, llama.cpp). Befehle und Dateinamen werden nur dort
 verarbeitet und fallen damit nicht unter „Erheben“.
 
+**Adresse zu Foto-Koordinaten.** Ordo fragt den Android-Geocoder nur nach dem Tipp auf „Adresse anzeigen“ in den Eigenschaften
+(`fileproperties/FilePropertiesTabFragment.kt`). Den Versand übernimmt der Systemdienst, nicht Ordo; die Antworten oben ändern sich nicht.
+
 ## 3. Was Ordo auf dem Gerät speichert
 
 Nicht anzugeben, hier nur zur Kontrolle:

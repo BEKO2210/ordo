@@ -392,6 +392,11 @@
     <string name="file_properties_media_coordinates">Coordinates</string>
     <string name="file_properties_media_coordinates_format">%1$.3f, %2$.3f</string>
     <string name="file_properties_media_address">Location</string>
+    <string name="file_properties_media_address_show">Show address</string>
+    <string name="file_properties_media_address_hint">Uses your device\'s address service, usually Google\'s. Coordinates are sent only when you tap.</string>
+    <string name="file_properties_media_address_loading">Looking up address…</string>
+    <string name="file_properties_media_address_failed">No address found right now. Check your connection and try again.</string>
+    <string name="file_properties_media_address_unavailable">This device has no address service.</string>
     <string name="file_properties_image_gps_altitude">Altitude</string>
     <string name="file_properties_image_gps_altitude_format">%1$,.3f m</string>
     <string name="file_properties_image_equipment">Camera</string>

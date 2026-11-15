@@ -381,6 +381,11 @@
     <string name="file_properties_media_coordinates">Koordinaten</string>
     <string name="file_properties_media_coordinates_format">%1$.3f, %2$.3f</string>
     <string name="file_properties_media_address">Ort</string>
+    <string name="file_properties_media_address_show">Adresse anzeigen</string>
+    <string name="file_properties_media_address_hint">Nutzt den Adressdienst deines Geräts, meist den von Google. Koordinaten werden erst gesendet, wenn du tippst.</string>
+    <string name="file_properties_media_address_loading">Adresse wird gesucht…</string>
+    <string name="file_properties_media_address_failed">Gerade keine Adresse gefunden. Prüfe die Verbindung und versuche es erneut.</string>
+    <string name="file_properties_media_address_unavailable">Dieses Gerät hat keinen Adressdienst.</string>
     <string name="file_properties_image_gps_altitude">Höhe</string>
     <string name="file_properties_image_gps_altitude_format">%1$,.3f m</string>
     <string name="file_properties_image_equipment">Kamera</string>
