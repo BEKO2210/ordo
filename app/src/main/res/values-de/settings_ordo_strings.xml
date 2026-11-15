@@ -39,7 +39,7 @@
     <string-array name="settings_ai_speed_entries">
         <item>Turbo – am schnellsten, bleibt länger bereit</item>
         <item>Ausgewogen</item>
-        <item>Sanft – langsamer, Handy bleibt kühler</item>
+        <item>Sanft – langsamer, Gerät bleibt kühler</item>
     </string-array>
     <string name="settings_ai_model_title">Sprachmodell auf dem Gerät</string>
     <string name="settings_ai_model_ready">Bereit · %1$s auf dem Gerät</string>

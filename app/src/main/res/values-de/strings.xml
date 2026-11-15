@@ -688,7 +688,7 @@
         <item quantity="one">%1$d · %2$s</item>
         <item quantity="other">%1$d · %2$s</item>
     </plurals>
-    <string name="home_storage_summary">%1$s von %2$s verwendet</string>
+    <string name="home_storage_summary">%1$s von %2$s belegt</string>
 
     <string name="about_title">Über</string>
     <string name="about_version_title">Version</string>
@@ -741,7 +741,7 @@
     <string name="backup_target_usb_connected_format">Angeschlossen · %1$s frei</string>
     <string name="backup_target_usb_connected">Angeschlossen. Du wählst ihn im nächsten Schritt aus.</string>
     <string name="backup_target_sd">SD-Karte</string>
-    <string name="backup_target_sd_summary_format">Im Gerät · %1$s frei. Ein USB-Stick ist sicherer, weil er getrennt vom Handy liegt.</string>
+    <string name="backup_target_sd_summary_format">Im Gerät · %1$s frei. Ein USB-Stick ist sicherer, weil er getrennt vom Gerät liegt.</string>
     <string name="backup_target_other">Google Drive oder anderer Ort</string>
     <string name="backup_target_other_summary">Den Ort wählst du im nächsten Schritt</string>
     <string name="backup_target_usb_missing_error">Noch kein USB-Stick erkannt. Schließe ihn an oder wähle den anderen Ort.</string>
@@ -769,7 +769,7 @@
     <string name="backup_notification_title">Sicherung läuft</string>
     <string name="backup_running_title">Sicherung läuft …</string>
     <string name="backup_counting">Dateien werden gezählt …</string>
-    <string name="backup_running_notice">Die Sicherung läuft weiter, wenn du Ordo verlässt. Zieh einen USB-Stick erst ab, wenn sie fertig ist.</string>
+    <string name="backup_running_notice">Die Sicherung läuft weiter, wenn du Ordo verlässt. Zieh den USB-Stick erst ab, wenn sie fertig ist.</string>
     <string name="backup_cancel_action">Sicherung abbrechen</string>
     <string name="backup_done_toast">Sicherung fertig</string>
     <plurals name="backup_done_message_format">
@@ -812,7 +812,7 @@
         <item quantity="one">%1$d Element im Papierkorb endgültig löschen? Das lässt sich nicht rückgängig machen.</item>
         <item quantity="other">Alle %1$d Elemente im Papierkorb endgültig löschen? Das lässt sich nicht rückgängig machen.</item>
     </plurals>
-    <string name="trash_not_supported_message">Diese Dateien können nicht in den Papierkorb und werden endgültig gelöscht.</string>
+    <string name="trash_not_supported_message">Diese Dateien können nicht in den Papierkorb verschoben werden und werden endgültig gelöscht.</string>
     <string name="file_job_trash_error_title">Fehler beim Verschieben in den Papierkorb</string>
     <string name="file_job_restore_trash_error_title">Fehler beim Wiederherstellen</string>
     <string name="settings_trash_title">Papierkorb</string>
@@ -842,7 +842,7 @@
     <string name="analysis_progress_duplicates">Suche nach Duplikaten…</string>
     <string name="analysis_empty">Hier wurde nichts gefunden</string>
     <plurals name="analysis_duplicate_header_format">
-        <item quantity="one">%1$d Kopie · %2$s lassen sich freigeben</item>
+        <item quantity="one">%1$d Kopie · %2$s lässt sich freigeben</item>
         <item quantity="other">%1$d Kopien · %2$s lassen sich freigeben</item>
     </plurals>
     <string name="analysis_file_description_format">%1$s · %2$s\n%3$s</string>

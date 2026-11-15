@@ -37,7 +37,7 @@
         <item quantity="other">%1$d Dateien · %2$s</item>
     </plurals>
     <plurals name="ai_more_files">
-        <item quantity="one">und %d weitere</item>
+        <item quantity="one">und %d weitere Datei</item>
         <item quantity="other">und %d weitere</item>
     </plurals>
     <string name="ai_note_trash">Landet im Papierkorb und lässt sich %d Tage lang wiederherstellen.</string>
@@ -103,13 +103,13 @@
     <string name="ai_undo">Rückgängig</string>
     <string name="ai_setup_title">Ordo-KI einrichten</string>
     <string name="ai_setup_subtitle">Gib Befehle in deinen eigenen Worten. Ordo macht daraus einen Plan, den du bestätigst.</string>
-    <string name="ai_setup_privacy">Läuft komplett auf deinem Handy. Deine Dateien und Befehle verlassen das Gerät nie.</string>
+    <string name="ai_setup_privacy">Läuft komplett auf deinem Gerät. Deine Dateien und Befehle verlassen das Gerät nie.</string>
     <string name="ai_check_ram">Arbeitsspeicher: %1$s (nötig %2$s)</string>
     <string name="ai_check_space">Freier Speicher: %1$s (nötig %2$s)</string>
     <string name="ai_check_device_ok">64-Bit-Prozessor</string>
     <string name="ai_check_device_bad">Braucht einen 64-Bit-Prozessor</string>
     <string name="ai_setup_download">KI über WLAN laden (%s)</string>
-    <string name="ai_setup_not_enough">Auf diesem Handy läuft die Ordo-KI nicht</string>
+    <string name="ai_setup_not_enough">Auf diesem Gerät läuft die Ordo-KI nicht</string>
     <string name="ai_setup_retry">Download erneut starten</string>
     <string name="ai_download_progress">%1$s von %2$s · %3$d %% · läuft im Hintergrund weiter</string>
     <string name="ai_download_paused">Pausiert – wartet auf eine Verbindung</string>
