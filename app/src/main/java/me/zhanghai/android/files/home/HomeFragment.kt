@@ -181,16 +181,20 @@ class HomeFragment : Fragment(), ShowRequestAllFilesAccessRationaleDialogFragmen
             // After a pull to refresh the storage bars grow in again, also when the numbers did not change.
             if (replayBars && !homeState.isLoading) {
                 replayBars = false
-                binding.storageList.post {
-                    binding.storageList.children.forEach {
-                        it.findViewById<me.zhanghai.android.files.analysis.StackedBarView>(R.id.usageBar)?.replay()
-                    }
-                }
+                binding.storageList.post { replayStorageBars() }
             }
         }
     }
 
     private var replayBars = false
+    private var resumedBefore = false
+
+    private fun replayStorageBars() {
+        val binding = _binding ?: return
+        binding.storageList.children.forEach {
+            it.findViewById<me.zhanghai.android.files.analysis.StackedBarView>(R.id.usageBar)?.replay()
+        }
+    }
 
     // The content scrolls under the top bar. Android 12+ blurs it; older versions get a solid bar.
     private fun setUpGlassToolbar() {
@@ -335,6 +339,11 @@ class HomeFragment : Fragment(), ShowRequestAllFilesAccessRationaleDialogFragmen
     override fun onResume() {
         super.onResume()
         binding.permissionCard.isVisible = !hasStorageAccess()
+        // Coming back to the home screen (from another screen or from outside the app) grows the storage bars in
+        // again. Right here, before the first frame, so the full bars never flash; not on the first start, where
+        // they animate with the first load anyway.
+        if (resumedBefore) replayStorageBars()
+        resumedBefore = true
         if (hasStorageAccess()) viewModel.reload()
     }
 
@@ -367,6 +376,11 @@ class HomeFragment : Fragment(), ShowRequestAllFilesAccessRationaleDialogFragmen
 
     private fun onStorageAccessResult() {
         binding.permissionCard.isVisible = !hasStorageAccess()
+        // Coming back to the home screen (from another screen or from outside the app) grows the storage bars in
+        // again. Right here, before the first frame, so the full bars never flash; not on the first start, where
+        // they animate with the first load anyway.
+        if (resumedBefore) replayStorageBars()
+        resumedBefore = true
         if (hasStorageAccess()) viewModel.reload()
     }
 

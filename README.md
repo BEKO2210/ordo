@@ -34,7 +34,7 @@
 
 ## Status
 
-Ordo is in development (version 0.4.1). It is not on Google Play yet. Test builds are published as
+Ordo is in development (version 0.4.2). It is not on Google Play yet. Test builds are published as
 [pre-releases](https://github.com/BEKO2210/ordo/releases); you can also [build it from source](#build).
 What comes next is in the [living roadmap](docs/ROADMAP-LIVE.md): every goal has a check command and closes itself.
 
