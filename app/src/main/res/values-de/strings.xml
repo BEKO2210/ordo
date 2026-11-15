@@ -790,6 +790,8 @@
     <string name="backup_failed_message">Prüfe, ob der USB-Stick noch angeschlossen ist und genug Platz hat. Versuche es dann noch einmal.</string>
     <string name="backup_failed_space_format">Der Platz reicht nicht. Die Sicherung braucht %1$s, frei sind nur %2$s. Wähle weniger Ordner oder einen anderen Ort.</string>
     <string name="backup_retry_action">Noch einmal versuchen</string>
+    <string name="file_job_timeout_title">Auftrag abgebrochen</string>
+    <string name="file_job_timeout_message">Android hat den Auftrag nach 6 Stunden im Hintergrund beendet. Starte ihn neu und lass Ordo dabei geöffnet.</string>
 
     <!-- Ordo: Sicherung wiederherstellen -->
     <string name="restore_section_title">Sicherung wiederherstellen</string>

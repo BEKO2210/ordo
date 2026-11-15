@@ -923,6 +923,8 @@
     <string name="backup_failed_message">Check that the USB drive is still plugged in and has enough space. Then try again.</string>
     <string name="backup_failed_space_format">There isn’t enough space. The backup needs %1$s, but only %2$s is free. Choose fewer folders or another place.</string>
     <string name="backup_retry_action">Try again</string>
+    <string name="file_job_timeout_title">Task stopped</string>
+    <string name="file_job_timeout_message">Android stopped the task after 6 hours in the background. Start it again and keep Ordo open meanwhile.</string>
 
     <!-- Ordo: restore backup -->
     <string name="restore_section_title">Restore a backup</string>

@@ -2811,6 +2811,15 @@ class RestoreBackupJob(
             showToast(R.string.restore_done_title)
         } catch (e: Exception) {
             if (e.isInterruptedFileJob()) {
+                if (service.isTimedOut) {
+                    BackupStatusLiveData.postValue(
+                        BackupStatus.RestoreFailed(
+                            source, false, getString(R.string.file_job_timeout_message), restored,
+                            skipped, failed, vaultFileCount
+                        )
+                    )
+                    return
+                }
                 val currentJobId =
                     (BackupStatusLiveData.value as? BackupStatus.RestoreRunning)?.jobId
                 if (currentJobId == null || currentJobId == id) {
@@ -3202,6 +3211,12 @@ class BackupJob(
             // A blocked write that gets cancelled fails with the interrupt flag still set.
             val isCancelled = e is InterruptedIOException || Thread.interrupted()
             deleteTarget()
+            if (isCancelled && service.isTimedOut) {
+                BackupStatusLiveData.postValue(
+                    BackupStatus.Failed(null, false, getString(R.string.file_job_timeout_message))
+                )
+                return
+            }
             if (isCancelled) {
                 // Also replaces a progress update of this job that is still on its way.
                 val runningJobId = (BackupStatusLiveData.value as? BackupStatus.Running)?.jobId

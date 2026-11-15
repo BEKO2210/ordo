@@ -5,16 +5,23 @@
 
 package me.zhanghai.android.files.filejob
 
+import android.annotation.SuppressLint
+import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.IBinder
 import androidx.annotation.MainThread
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 import java8.nio.file.Path
+import me.zhanghai.android.files.R
+import me.zhanghai.android.files.app.NotificationIds
 import me.zhanghai.android.files.backup.BackupStatus
 import me.zhanghai.android.files.backup.BackupStatusLiveData
 import me.zhanghai.android.files.file.MimeType
+import me.zhanghai.android.files.home.HomeActivity
 import me.zhanghai.android.files.provider.common.PosixFileModeBit
 import me.zhanghai.android.files.provider.common.PosixGroup
 import me.zhanghai.android.files.provider.common.PosixUser
@@ -53,11 +60,36 @@ class FileJobService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int = START_STICKY
 
+    /** Read by backup and restore, so a job stopped by the time limit shows as failed, not cancelled. */
+    @Volatile
+    internal var isTimedOut = false
+        private set
+
     // API 35+: dataSync may run 6 h per 24 h in the background; the service must stop within seconds or
-    // the app crashes. onDestroy cancels the running jobs.
-    // shortcut: the jobs end without a message, add a notification if users hit this.
+    // the app crashes. onDestroy cancels the running jobs, the notification tells the user.
     override fun onTimeout(startId: Int, fgsType: Int) {
+        isTimedOut = true
+        notifyTimedOut()
         stopSelf()
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun notifyTimedOut() {
+        val message = getString(R.string.file_job_timeout_message)
+        val notification = fileJobNotificationTemplate.createBuilder(this)
+            .setOngoing(false)
+            .setAutoCancel(true)
+            .setCategory(NotificationCompat.CATEGORY_ERROR)
+            .setContentTitle(getString(R.string.file_job_timeout_title))
+            .setContentText(message)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(message))
+            .setContentIntent(
+                PendingIntent.getActivity(
+                    this, 0, Intent(this, HomeActivity::class.java), PendingIntent.FLAG_IMMUTABLE
+                )
+            )
+            .build()
+        NotificationManagerCompat.from(this).notify(NotificationIds.FILE_JOB_TIMEOUT, notification)
     }
 
     private val jobCount: Int
