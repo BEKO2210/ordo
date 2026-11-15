@@ -14,6 +14,7 @@ import androidx.lifecycle.viewModelScope
 import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -97,6 +98,8 @@ class AnalysisViewModel(handle: SavedStateHandle) : ViewModel() {
                     last = it
                     _state.postValue(AnalysisState.Scanning(it))
                 }
+                // Cancelled before the first file: end as a cancellation, not as a NullPointerException crash.
+                ensureActive()
                 val walked = last!!
                 withInsights(AnalysisResult(
                     root.path, StorageAnalysis.largeFiles(files),
@@ -128,26 +131,37 @@ class AnalysisViewModel(handle: SavedStateHandle) : ViewModel() {
             result.files, insights)
     }
 
+    private var removeJob: Job? = null
+
     // Deleted files leave every list at once, so sizes and duplicate groups stay correct.
+    // The work reads the trash and StatFs, so it runs off the main thread; removals run one after another.
     fun removeDeleted(paths: Set<String>) {
-        val result = (_state.value as? AnalysisState.Done)?.result ?: return
+        selectedPaths.removeAll(paths)
+        val previous = removeJob
+        removeJob = viewModelScope.launch {
+            previous?.join()
+            val done = _state.value as? AnalysisState.Done ?: return@launch
+            val updated = withContext(Dispatchers.IO) { removeFrom(done.result, paths) }
+            // A new scan started meanwhile: its result already lacks the deleted files.
+            if (_state.value === done) _state.value = AnalysisState.Done(updated)
+        }
+    }
+
+    private fun removeFrom(result: AnalysisResult, paths: Set<String>): AnalysisResult {
         fun List<ScannedFile>.keep() = filter { it.path !in paths }
         val deletedFiles = result.files.filter { it.path in paths }
-        _state.value = AnalysisState.Done(
-            withInsights(AnalysisResult(
-                result.root, result.large.keep(),
-                result.duplicates.map { DuplicateGroup(it.files.keep()) }.filter { it.files.size > 1 },
-                result.old.keep(), result.apks.keep(),
-                result.folders.map { folder ->
-                    FolderSize(
-                        folder.path,
-                        folder.size - deletedFiles.filter { it.path.startsWith(folder.path + "/") }
-                            .sumOf { it.size }
-                    )
-                }.sortedByDescending { it.size },
-                result.files.keep()
-            ))
-        )
-        selectedPaths.removeAll(paths)
+        return withInsights(AnalysisResult(
+            result.root, result.large.keep(),
+            result.duplicates.map { DuplicateGroup(it.files.keep()) }.filter { it.files.size > 1 },
+            result.old.keep(), result.apks.keep(),
+            result.folders.map { folder ->
+                FolderSize(
+                    folder.path,
+                    folder.size - deletedFiles.filter { it.path.startsWith(folder.path + "/") }
+                        .sumOf { it.size }
+                )
+            }.sortedByDescending { it.size },
+            result.files.keep()
+        ))
     }
 }

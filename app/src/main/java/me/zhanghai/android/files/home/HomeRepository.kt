@@ -34,7 +34,8 @@ class HomeRepository(private val context: Context) {
     }
 
     // quickAccess must be read on the main thread: its LiveData sources initialize with setValue().
-    fun load(quickAccess: List<QuickAccessItem>): HomeState {
+    // Still loading: the app and trash counts follow from [loadCounts].
+    fun load(quickAccess: List<QuickAccessItem>, storages: List<StorageSummary>): HomeState {
         val rows = queryRows()
         val recentFiles = rows.asSequence().filter { java.io.File(it.data).isFile }
             .sortedByDescending { it.modified }.take(RECENT_COUNT).map {
@@ -50,17 +51,22 @@ class HomeRepository(private val context: Context) {
             val matching = rows.filter { category in it.categories }
             CategorySummary(category, matching.size.toLong(), matching.sumOf { it.size })
         }
-        val trashEntries = Trash.entries()
-        @Suppress("DEPRECATION")
-        val appCount = context.packageManager.getInstalledApplications(0)
-            .count { it.flags and ApplicationInfo.FLAG_SYSTEM == 0 }
         // Like Samsung: empty system folders such as Alarms or Ringtones only add noise.
         val visibleQuickAccess = quickAccess.filter { item ->
             !item.hideIfEmpty || java.io.File(item.path.toString()).list()?.isNotEmpty() == true
         }
-        return HomeState(
-            recentFiles, summaries, loadStorages(), visibleQuickAccess, false, appCount,
-            trashEntries.size, trashEntries.sumOf { entry ->
+        return HomeState(recentFiles, summaries, storages, visibleQuickAccess, true)
+    }
+
+    // A large trash takes seconds to measure, so these come after the tiles and recent files.
+    fun loadCounts(state: HomeState): HomeState {
+        val trashEntries = Trash.entries()
+        @Suppress("DEPRECATION")
+        val appCount = context.packageManager.getInstalledApplications(0)
+            .count { it.flags and ApplicationInfo.FLAG_SYSTEM == 0 }
+        return state.copy(
+            isLoading = false, appCount = appCount, trashCount = trashEntries.size,
+            trashSize = trashEntries.sumOf { entry ->
                 entry.file.walkTopDown().filter { it.isFile }.sumOf { it.length() }
             }
         )
@@ -141,7 +147,7 @@ class HomeRepository(private val context: Context) {
         return present
     }
 
-    private fun loadStorages(): List<StorageSummary> {
+    fun loadStorages(): List<StorageSummary> {
         val storageManager = context.getSystemService(Context.STORAGE_SERVICE) as android.os.storage.StorageManager
         return storageManager.storageVolumesCompat.mapNotNull { volume ->
             val directory = volume.directoryCompat ?: return@mapNotNull null

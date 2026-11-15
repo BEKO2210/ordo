@@ -434,6 +434,8 @@ class AnalysisFragment : Fragment() {
             ) { _, _ ->
                 FileJobService.delete(paths, context)
                 viewModel.removeDeleted(files.map { it.path }.toSet())
+                // The lists follow once the view model has updated them; the selection bar goes at once.
+                updateSelection()
             }
             .setNegativeButton(android.R.string.cancel, null)
             .show()
