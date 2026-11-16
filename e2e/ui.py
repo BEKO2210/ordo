@@ -6,8 +6,10 @@
     ui.py SERIAL longtap TARGET
     ui.py SERIAL has TARGET [ID]   exit 0 if a node matches
     ui.py SERIAL checked TEXT      exit 0 if the check box after the node with that text is ticked
+    ui.py SERIAL summary TITLE TEXT exit 0 if a preference row has that summary
     ui.py SERIAL visible ID        exit 0 if that view of the front activity's window is shown (fast; no popups/dialogs)
     ui.py SERIAL wait TARGET [S]   wait up to S seconds (default 10) for a node
+    ui.py SERIAL waitgone TARGET [S] wait up to S seconds (default 10) for a node to disappear
     ui.py SERIAL bounds TARGET     print "x1 y1 x2 y2" for every matching node
     ui.py SERIAL texts             print "text|resource-id|content-desc" per node
     ui.py SERIAL shot FILE         screenshot as PNG
@@ -186,17 +188,40 @@ elif command == "longtap":
 elif command == "visible":
     sys.exit(0 if visible(sys.argv[3]) else 1)
 elif command == "checked":
-    # The check box that follows the node with that text, e.g. a checkable menu entry.
+    # New visual choices expose the labelled row itself as a radio button. Older controls expose a text node
+    # followed by a separate checkable node, so accept both accessibility shapes.
     nodes(fresh=True)
     with open(DUMP) as f:
         tags = re.findall(r"<node [^>]*>", f.read())
     wanted = sys.argv[3].split("|")
-    start = next((i for i, tag in enumerate(tags)
-                  if html.unescape(re.search(r'text="([^"]*)"', tag).group(1)) in wanted), None)
+    def label(tag):
+        text = html.unescape(re.search(r'text="([^"]*)"', tag).group(1))
+        desc = html.unescape(re.search(r'content-desc="([^"]*)"', tag).group(1))
+        return text, desc
+    start = next((i for i, tag in enumerate(tags) if any(value in wanted for value in label(tag))), None)
     if start is None:
         sys.exit(f"not found: {sys.argv[3]}")
-    box = next((tag for tag in tags[start + 1:] if 'checkable="true"' in tag), "")
+    box = tags[start] if 'checkable="true"' in tags[start] else next(
+        (tag for tag in tags[start + 1:] if 'checkable="true"' in tag), ""
+    )
     sys.exit(0 if 'checked="true"' in box else 1)
+elif command == "summary":
+    # Preference title and summary are separate accessibility nodes. Keep the assertion tied to its row instead of
+    # accepting an identical value (notably "Off") from another preference elsewhere on the screen.
+    all_nodes = nodes(fresh=True)
+    titles = sys.argv[3].split("|")
+    expected = sys.argv[4].split("|")
+    start = next((i for i, (value, rid, *_rest) in enumerate(all_nodes)
+                  if value in titles and rid.split("/")[-1] == "title"), None)
+    if start is None:
+        sys.exit(f"not found: {sys.argv[3]}")
+    for value, rid, *_rest in all_nodes[start + 1:]:
+        name = rid.split("/")[-1]
+        if name == "title":
+            break
+        if name == "summary":
+            sys.exit(0 if value in expected else 1)
+    sys.exit(1)
 elif command == "has":
     sys.exit(0 if find(sys.argv[3], *sys.argv[4:5]) else 1)
 elif command == "wait":
@@ -206,6 +231,13 @@ elif command == "wait":
             sys.exit(0)
         time.sleep(0.5)
     sys.exit(f"timed out waiting for: {sys.argv[3]}")
+elif command == "waitgone":
+    deadline = time.time() + float(sys.argv[4] if len(sys.argv) > 4 else 10)
+    while time.time() < deadline:
+        if not find(sys.argv[3], fresh=True):
+            sys.exit(0)
+        time.sleep(0.5)
+    sys.exit(f"timed out waiting for disappearance of: {sys.argv[3]}")
 elif command == "bounds":
     wanted = sys.argv[3].split("|")
     for text, rid, desc, x1, y1, x2, y2 in nodes():

@@ -20,6 +20,7 @@ scroll position). A control that moves on a fixed screen (e.g. below a message o
 |---|---|---|
 | `first-run.sh` | a fresh start shows the welcome pages, Skip closes them, home then shows categories and the storage card, the next start goes straight home. Clears Ordo's data, so only on an emulator; a real device prints SKIP | after 0.9.0 |
 | `smoke.sh` | start, home screen, every settings section and its way back | 0.4.2 |
+| `settings-visual.sh` | all nine settings rows; visual night-mode, motion and home-header choices round-trip and restore; the inline accent swatches change and restore | 0.12.0 |
 | `category-search.sh` | searching inside a category does not crash | fixed in 0.3.3 |
 | `back-navigation.sh` | back from a storage or the analysis returns to home in one step | fixed in 0.3.2 |
 | `bars-replay.sh` | every storage bar, measured on its own in a screen recording, is still empty when home comes back and then grows in | fixed in 0.4.2 / 0.4.3 |

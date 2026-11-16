@@ -25,8 +25,10 @@ appearance() {
 # position ENTRY: picks the entry in the settings and returns to the home screen.
 position() {
     appearance
-    ui tap "$TITLE" >/dev/null; sleep 1
-    ui tap "$1" >/dev/null; sleep 1
+    ui tap "$TITLE" >/dev/null
+    ui wait choice_root 6 >/dev/null
+    ui tap "$1" >/dev/null
+    ui waitgone choice_root 6 >/dev/null
     for _ in 1 2 3; do home && break; guard; back; done
 }
 

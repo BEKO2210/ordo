@@ -53,6 +53,10 @@ Themes inkl. Schwarz.
       Haarlinien, Kopf mit App-Icon); abgesichert durch `LayoutResourcesTest`.
 - [x] Suchleiste der Startseite wahlweise unten (Einstellungen › Aussehen), über der Navigationsleiste in
       Daumennähe, wechselt ohne Neustart; abgesichert durch `HomeLayoutTest` und `e2e/header-position.sh`.
+- [x] Durchgängige Bewegung: Menüs und Dialoge mit Fensteranimation, neun animierte Piktogramme in der
+      Einstellungsübersicht, lebendige Farbauswahl sowie visuelle Auswahlfenster für Nachtmodus, Animationen und
+      Position der Startseiten-Suchleiste. Alles folgt Einstellungen › Aussehen › Animationen und zusätzlich der
+      Android-Systemeinstellung „Animationen entfernen“; Geräteablauf in `e2e/settings-visual.sh`.
 - [ ] Datenmüll: leere Ordner, Thumbnail-Caches, Restdateien in der Speicheranalyse.
 - [ ] Ungenutzte Apps (Nutzungsdaten-Erlaubnis), Erinnerung „Speicher fast voll".
 - [ ] Teilen in der Nähe (Quick Share über Android-Teilen).
