@@ -5,7 +5,8 @@
 # then opens the controller without a new queue and checks that it reconnected to the second title.
 # Finally an external file:// VIEW intent must be refused.
 . "$(dirname "$0")/lib.sh" "$@"
-DIR=/sdcard/ordo-e2e-audio
+# /storage/emulated/0, not /sdcard: on real devices Ordo cannot list through the /sdcard link ("Root isn't available").
+DIR=/storage/emulated/0/ordo-e2e-audio
 PLAYER=me.zhanghai.android.files.viewer.audio.AudioPlayerActivity
 tmp=$(mktemp -d); trap 'a shell "rm -rf $DIR"; rm -rf "$tmp"' EXIT
 
