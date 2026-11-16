@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later -->
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout
+    android:clipChildren="false"
+    android:clipToPadding="false" xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:gravity="top"
@@ -28,6 +30,8 @@
     </LinearLayout>
 
     <LinearLayout
+    android:clipChildren="false"
+    android:clipToPadding="false"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginEnd="6dp"
@@ -50,14 +54,19 @@
             android:textColor="?android:textColorSecondary" />
 
         <LinearLayout
+    android:clipChildren="false"
+    android:clipToPadding="false"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:gravity="top"
             android:orientation="horizontal">
 
-            <!-- Filled in code: one 48dp round touch target per accent. -->
+            <!-- Filled in code: one 48dp round touch target per accent. No clipping on the way up: the first
+             target starts 6 dp before the text edge so its circle lines up, and its ring must not be cut. -->
             <LinearLayout
+    android:clipChildren="false"
+    android:clipToPadding="false"
                 android:id="@+id/swatches"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
