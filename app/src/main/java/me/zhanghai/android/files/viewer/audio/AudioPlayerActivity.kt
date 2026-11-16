@@ -50,7 +50,7 @@ import me.zhanghai.android.files.provider.common.readAttributes
 import me.zhanghai.android.files.ui.Motion
 
 /**
- * Exported for ACTION_VIEW audio/*. Ordo's own screens pass a queue through [AudioQueueRequests] and only a token in
+ * Exported for ACTION_VIEW of every audio type. Ordo's own screens pass a queue through [AudioQueueRequests] and only a token in
  * the intent; from any other caller only a `content://` URI with a read grant is played, and every path extra is ignored.
  */
 @OptIn(UnstableApi::class)
