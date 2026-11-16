@@ -230,6 +230,9 @@ selbst ein Löschen.
   Änderung weicht ab.
   Lässt das Netz Wörter weg, steht das in der Vorschau („Mit „telekom“, „rechnung“ zusammen habe ich nichts
   gefunden …“) bzw. unter der Liste, ebenso eine Anzahl, die nicht passt („Du hast 3 genannt, ich habe 5 gefunden“).
+  Gezeigt werden die Wörter so, wie der Nutzer sie getippt hat (das Netz rechnet mit gefalteten Wortstämmen);
+  entfernt der Nutzer einen Filter-Chip, verschwindet der Hinweis. Bekannte Grenze: Die 200 MB Text gelten für alle
+  Zählungen einer Entscheidung zusammen, die Vorschau danach bekommt neue 200 MB.
 - **Rückfrage:** freundliche Frage im Blatt („Wohin sollen die Dateien? …“), der getippte Befehl bleibt stehen und
   kann ergänzt werden. **Absage:** Hinweis-Karte wie bei den Gedächtnis-Sätzen (ZIP, Umwandeln, Umbenennen, Teilen,
   Öffnen, Wiederherstellen, Bearbeiten, frühere Befehle). Ändernde Pläne gehen durch dieselbe Prüfung, Vorschau und

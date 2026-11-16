@@ -61,6 +61,17 @@ class CommandNetPlanTest {
     }
 
     @Test
+    fun filterWordsAreShownAsTyped() {
+        val text = "Lösch die Steuererklärung vom Straßenfest, die Rechnug und den Vertrag, nicht den alten Vertrag"
+        assertEquals("Steuererklärung", CommandNetPlan.typed(text, CommandNet.stem("steuererklärung")))
+        assertEquals("Straßenfest", CommandNetPlan.typed(text, CommandNet.stem("straßenfest")))
+        assertEquals("Rechnug", CommandNetPlan.typed(text, CommandNet.stem("rechnug")))   // a typo stays the user's word
+        assertEquals("Vertrag", CommandNetPlan.typed(text, CommandNet.stem("vertrag")))   // twice: the first
+        assertEquals("Bewerbungsfotos", CommandNetPlan.typed("zeig die Bewerbungsfotos", "bewerbung"))   // a compound
+        assertEquals("xyz", CommandNetPlan.typed(text, "xyz"))
+    }
+
+    @Test
     fun notFoundOnlyForAnAddOn() {
         val adapter = CommandDesign.Tuned.adapter
         assertTrue(CommandModel.failed(adapter, 404).notFound)

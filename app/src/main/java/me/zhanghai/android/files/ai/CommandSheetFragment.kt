@@ -543,9 +543,14 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
         }
     }
 
+    /** A filter word as the user typed it (the net keeps folded stems). */
+    private fun typed(term: String) = CommandNetPlan.typed(text, term)
+
     /** Words the net left out and a count that does not fit, in words; null when there is nothing to say. */
     private fun netNote(outcome: NetOutcome.Plan): String? {
-        val quote = { words: List<String> -> words.joinToString(", ") { getString(R.string.ai_net_quoted, it) } }
+        val quote = { words: List<String> ->
+            words.map { typed(it) }.distinct().joinToString(", ") { getString(R.string.ai_net_quoted, it) }
+        }
         val kept = outcome.plan.nameTerms + outcome.plan.textTerms
         val dropped = outcome.dropped.takeIf { it.isNotEmpty() }?.let {
             if (kept.isEmpty()) getString(R.string.ai_net_dropped_all, quote(it))
@@ -750,6 +755,8 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
             binding.filterChips.addView(glassChip(label).apply {
                 isCloseIconVisible = true
                 setOnCloseIconClickListener {
+                    // the net's note was about the plan it made; after the user widened it, it may no longer apply
+                    netNote = null
                     viewLifecycleOwner.lifecycleScope.launch {
                         withContext(Dispatchers.IO) { collect(without, outcome.source) }
                         showPreview(outcome.copy(plan = without))
@@ -799,8 +806,8 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
             }
             chip(requireContext().quantity(plurals, plan.newerThan, plan.newerThan), plan.copy(newerThan = 0))
         }
-        plan.nameTerms.forEach { chip(getString(R.string.ai_filter_name, it), plan.copy(nameTerms = plan.nameTerms - it)) }
-        plan.textTerms.forEach { chip(getString(R.string.ai_filter_word, it), plan.copy(textTerms = plan.textTerms - it)) }
+        plan.nameTerms.forEach { chip(getString(R.string.ai_filter_name, typed(it)), plan.copy(nameTerms = plan.nameTerms - it)) }
+        plan.textTerms.forEach { chip(getString(R.string.ai_filter_word, typed(it)), plan.copy(textTerms = plan.textTerms - it)) }
         dateRange(plan)?.let { chip(it, plan.copy(dateFrom = "", dateTo = "")) }
         sizeRange(plan)?.let { chip(it, plan.copy(minBytes = 0, maxBytes = 0)) }
         exclusion(plan)?.let {
@@ -968,7 +975,7 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
         if (plan.olderThan > 0) parts += age(plan.olderThan, R.plurals.ai_show_older_days, R.plurals.ai_show_older_weeks,
             R.plurals.ai_show_older_months, R.plurals.ai_show_older_years)
         if (plan.nameTerms.isNotEmpty() || plan.textTerms.isNotEmpty()) {
-            parts += getString(R.string.ai_show_terms, (plan.nameTerms + plan.textTerms).joinToString(" "))
+            parts += getString(R.string.ai_show_terms, (plan.nameTerms + plan.textTerms).map { typed(it) }.distinct().joinToString(" "))
         }
         dateRange(plan)?.let { parts += it }
         sizeRange(plan)?.let { parts += it }
@@ -1017,7 +1024,8 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
     }
 
     private fun exclusion(plan: CommandPlan): String? {
-        val what = plan.excludeKinds.map { kindName(it) } + plan.excludeExtensions.map { it.uppercase() } + plan.excludeTerms
+        val what = plan.excludeKinds.map { kindName(it) } + plan.excludeExtensions.map { it.uppercase() } +
+            plan.excludeTerms.map { typed(it) }
         return if (what.isEmpty()) null else getString(R.string.ai_show_without, what.joinToString(", "))
     }
 

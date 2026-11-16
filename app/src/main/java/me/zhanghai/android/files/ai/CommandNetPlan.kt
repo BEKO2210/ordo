@@ -62,6 +62,19 @@ internal object CommandNetPlan {
         else -> NetOutcome.Plan(plan(d.plan!!), d.warn, d.dropped)
     }
 
+    /**
+     * A filter word as the user typed it, for everything shown: the net keeps folded stems ("steuererklarung"), the user
+     * wrote "Steuererklärung". The first word of [text] with that stem, else the first that contains it (a compound
+     * like "Bewerbungsfotos"), else the stem itself. Display only; the plan keeps the stem.
+     */
+    fun typed(text: String, term: String): String {
+        val words = Regex("[\\p{L}\\p{N}]+").findAll(text).map { it.value }.toList()
+        val folded = CommandNet.fold(term)
+        return words.firstOrNull { CommandNet.stem(it) == folded || CommandNet.fold(it) == folded }
+            ?: words.firstOrNull { folded.length >= 3 && folded in CommandNet.fold(it) }
+            ?: term
+    }
+
     @Suppress("UNCHECKED_CAST")
     fun plan(p: Map<String, Any>): CommandPlan {
         fun s(k: String) = p[k] as? String ?: ""
