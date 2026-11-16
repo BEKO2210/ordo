@@ -256,7 +256,8 @@ class AccentPreference @JvmOverloads constructor(
 
     companion object {
         private const val TOUCH_TARGET_DP = 48
-        private const val SWATCH_SIZE_DP = 44
+        // The whole touch target: the circle is drawn at 18 dp, the ring reaches 21.75 dp and must not touch the edge.
+        private const val SWATCH_SIZE_DP = 48
         private const val SAVE_DELAY_MS = 200L
         private const val DISABLED_ALPHA = 0.38f
         private val EMPHASIZED = PathInterpolator(0.2f, 0f, 0f, 1f)
