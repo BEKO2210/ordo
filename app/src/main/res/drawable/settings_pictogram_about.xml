@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- Dot of the "i" drops in with a small overshoot. -->
+<animated-vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt">
+    <aapt:attr name="android:drawable">
+        <vector
+            android:width="24dp"
+            android:height="24dp"
+            android:viewportWidth="24"
+            android:viewportHeight="24">
+            <path
+                android:name="ring"
+                android:pathData="M12,12m-8.2,0a8.2,8.2 0,1,1 16.4,0a8.2,8.2 0,1,1 -16.4,0"
+                android:fillColor="#00000000"
+                android:strokeWidth="2"
+                android:strokeColor="@android:color/white" />
+            <path
+                android:name="stem"
+                android:pathData="M12,10.6v6.2"
+                android:fillColor="#00000000"
+                android:strokeWidth="2"
+                android:strokeColor="@android:color/white"
+                android:strokeLineCap="round" />
+            <group
+                android:name="dot"
+                android:pivotX="12"
+                android:pivotY="7.4"
+                android:scaleX="1"
+                android:scaleY="1"
+                android:translateY="0">
+                <path
+                    android:fillColor="@android:color/white"
+                    android:pathData="M12,7.4m-1.45,0a1.45,1.45 0,1,1 2.9,0a1.45,1.45 0,1,1 -2.9,0" />
+            </group>
+        </vector>
+    </aapt:attr>
+    <target android:name="dot">
+        <aapt:attr name="android:animation">
+            <set>
+                <objectAnimator
+                    android:duration="480"
+                    android:interpolator="@android:interpolator/overshoot"
+                    android:propertyName="translateY"
+                    android:valueFrom="-4.5"
+                    android:valueTo="0"
+                    android:valueType="floatType" />
+                <objectAnimator
+                    android:duration="480"
+                    android:interpolator="@android:interpolator/overshoot"
+                    android:propertyName="scaleX"
+                    android:valueFrom="0.4"
+                    android:valueTo="1"
+                    android:valueType="floatType" />
+                <objectAnimator
+                    android:duration="480"
+                    android:interpolator="@android:interpolator/overshoot"
+                    android:propertyName="scaleY"
+                    android:valueFrom="0.4"
+                    android:valueTo="1"
+                    android:valueType="floatType" />
+            </set>
+        </aapt:attr>
+    </target>
+</animated-vector>

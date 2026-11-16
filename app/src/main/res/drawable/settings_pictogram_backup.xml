@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- Arrow rises into the cloud. -->
+<animated-vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt">
+    <aapt:attr name="android:drawable">
+        <vector
+            android:width="24dp"
+            android:height="24dp"
+            android:viewportWidth="24"
+            android:viewportHeight="24">
+            <path
+                android:name="cloud"
+                android:pathData="M7.2,17.5h9.8c2.1,0 3.8-1.6 3.8-3.6c0-1.8-1.3-3.3-3.1-3.6C17.3,7.5 15,5.5 12.2,5.5c-2.4,0-4.5,1.5-5.3,3.6C4.8,9.4 3.2,11.1 3.2,13.3c0,2.3 1.8,4.2 4,4.2z"
+                android:fillColor="#00000000"
+                android:strokeWidth="2"
+                android:strokeColor="@android:color/white"
+                android:strokeLineCap="round"
+                android:strokeLineJoin="round" />
+            <group
+                android:name="arrow"
+                android:translateX="0"
+                android:translateY="0">
+                <path
+                    android:pathData="M12,19.2V11.4"
+                    android:fillColor="#00000000"
+                    android:strokeWidth="2"
+                    android:strokeColor="@android:color/white"
+                    android:strokeLineCap="round" />
+                <path
+                    android:pathData="M8.8,13.8L12,10.6L15.2,13.8"
+                    android:fillColor="#00000000"
+                    android:strokeWidth="2"
+                    android:strokeColor="@android:color/white"
+                    android:strokeLineCap="round"
+                    android:strokeLineJoin="round" />
+            </group>
+        </vector>
+    </aapt:attr>
+    <target android:name="arrow">
+        <aapt:attr name="android:animation">
+            <objectAnimator
+                android:duration="500"
+                android:interpolator="@android:interpolator/fast_out_slow_in"
+                android:propertyName="translateY"
+                android:valueFrom="3.5"
+                android:valueTo="0"
+                android:valueType="floatType" />
+        </aapt:attr>
+    </target>
+</animated-vector>

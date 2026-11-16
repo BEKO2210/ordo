@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- Two arcs pulse outward once (share / network). -->
+<animated-vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt">
+    <aapt:attr name="android:drawable">
+        <vector
+            android:width="24dp"
+            android:height="24dp"
+            android:viewportWidth="24"
+            android:viewportHeight="24">
+            <path
+                android:name="hub"
+                android:fillColor="@android:color/white"
+                android:pathData="M12,12m-2.1,0a2.1,2.1 0,1,1 4.2,0a2.1,2.1 0,1,1 -4.2,0" />
+            <path
+                android:name="arc1"
+                android:pathData="M7.2,12a4.8,4.8 0,0,1 4.8,-4.8"
+                android:fillColor="#00000000"
+                android:strokeWidth="2"
+                android:strokeColor="@android:color/white"
+                android:strokeLineCap="round"
+                android:trimPathEnd="1" />
+            <path
+                android:name="arc2"
+                android:pathData="M16.8,12a4.8,4.8 0,0,0 -4.8,-4.8"
+                android:fillColor="#00000000"
+                android:strokeWidth="2"
+                android:strokeColor="@android:color/white"
+                android:strokeLineCap="round"
+                android:trimPathEnd="1" />
+            <path
+                android:name="arc3"
+                android:pathData="M4.5,12a7.5,7.5 0,0,1 7.5,-7.5"
+                android:fillColor="#00000000"
+                android:strokeWidth="2"
+                android:strokeColor="@android:color/white"
+                android:strokeLineCap="round"
+                android:trimPathEnd="1" />
+            <path
+                android:name="arc4"
+                android:pathData="M19.5,12a7.5,7.5 0,0,0 -7.5,-7.5"
+                android:fillColor="#00000000"
+                android:strokeWidth="2"
+                android:strokeColor="@android:color/white"
+                android:strokeLineCap="round"
+                android:trimPathEnd="1" />
+        </vector>
+    </aapt:attr>
+    <target android:name="arc1">
+        <aapt:attr name="android:animation">
+            <objectAnimator
+                android:duration="420"
+                android:interpolator="@android:interpolator/fast_out_slow_in"
+                android:propertyName="trimPathEnd"
+                android:valueFrom="0"
+                android:valueTo="1"
+                android:valueType="floatType" />
+        </aapt:attr>
+    </target>
+    <target android:name="arc2">
+        <aapt:attr name="android:animation">
+            <objectAnimator
+                android:duration="420"
+                android:interpolator="@android:interpolator/fast_out_slow_in"
+                android:propertyName="trimPathEnd"
+                android:valueFrom="0"
+                android:valueTo="1"
+                android:valueType="floatType" />
+        </aapt:attr>
+    </target>
+    <target android:name="arc3">
+        <aapt:attr name="android:animation">
+            <objectAnimator
+                android:duration="420"
+                android:interpolator="@android:interpolator/fast_out_slow_in"
+                android:propertyName="trimPathEnd"
+                android:startOffset="90"
+                android:valueFrom="0"
+                android:valueTo="1"
+                android:valueType="floatType" />
+        </aapt:attr>
+    </target>
+    <target android:name="arc4">
+        <aapt:attr name="android:animation">
+            <objectAnimator
+                android:duration="420"
+                android:interpolator="@android:interpolator/fast_out_slow_in"
+                android:propertyName="trimPathEnd"
+                android:startOffset="90"
+                android:valueFrom="0"
+                android:valueTo="1"
+                android:valueType="floatType" />
+        </aapt:attr>
+    </target>
+</animated-vector>
