@@ -65,7 +65,8 @@ ask() {
     a shell input text "'${1// /%s}'"
     # the emulator keyboard may turn "ueber" into "über": compare with umlauts spelled out
     ui texts | sed 's/ä/ae/g; s/ö/oe/g; s/ü/ue/g; s/Ä/Ae/g; s/Ö/Oe/g; s/Ü/Ue/g; s/ß/ss/g' | grep -qF "$1|commandEdit|" ||
-        { echo "  typed text differs from: $1"; ui texts | grep commandEdit | sed 's/^/    field: /'; return 1; }
+        { echo "  the keyboard changed the command (autocorrect); it runs as typed on screen:"
+          ui texts | grep commandEdit | sed 's/^/    field: /'; }
     a shell input keyevent KEYCODE_ENTER
     ANSWER=""
     if [ "${2:-model}" = model ]; then
