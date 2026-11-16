@@ -28,26 +28,16 @@
                     android:startOffset="0"
                     android:valueFrom="0"
                     android:valueTo="6"
-                    android:valueType="floatType">
-                    <pathInterpolator
-                        android:controlX1="0.2"
-                        android:controlY1="0"
-                        android:controlX2="0"
-                        android:controlY2="1" />
-                </objectAnimator>
+                    android:valueType="floatType"
+                    android:interpolator="@interpolator/ordo_emphasized" />
                 <objectAnimator
                     android:duration="140"
                     android:propertyName="rotation"
                     android:startOffset="0"
                     android:valueFrom="6"
                     android:valueTo="-3"
-                    android:valueType="floatType">
-                    <pathInterpolator
-                        android:controlX1="0.2"
-                        android:controlY1="0"
-                        android:controlX2="0"
-                        android:controlY2="1" />
-                </objectAnimator>
+                    android:valueType="floatType"
+                    android:interpolator="@interpolator/ordo_emphasized" />
                 <objectAnimator
                     android:duration="140"
                     android:interpolator="@android:interpolator/accelerate_cubic"

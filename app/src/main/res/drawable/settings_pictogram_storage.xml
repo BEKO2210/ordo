@@ -27,13 +27,8 @@
                     android:startOffset="0"
                     android:valueFrom="80"
                     android:valueTo="0"
-                    android:valueType="floatType">
-                    <pathInterpolator
-                        android:controlX1="0.2"
-                        android:controlY1="0"
-                        android:controlX2="0"
-                        android:controlY2="1" />
-                </objectAnimator>
+                    android:valueType="floatType"
+                    android:interpolator="@interpolator/ordo_emphasized" />
             </set>
         </aapt:attr>
     </target>
@@ -46,13 +41,8 @@
                     android:startOffset="0"
                     android:valueFrom="0"
                     android:valueTo="1"
-                    android:valueType="floatType">
-                    <pathInterpolator
-                        android:controlX1="0.2"
-                        android:controlY1="0"
-                        android:controlX2="0"
-                        android:controlY2="1" />
-                </objectAnimator>
+                    android:valueType="floatType"
+                    android:interpolator="@interpolator/ordo_emphasized" />
             </set>
         </aapt:attr>
     </target>
