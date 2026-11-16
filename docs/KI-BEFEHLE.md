@@ -189,6 +189,52 @@ Infrastruktur gebaut; Nutzer bekommen weiter den bisherigen Entwurf.
   `--ez show_design true` schaltet K+R für echte Modellbefehle in einem Debug-Build ein. **Der Modellpfad selbst
   lief auf keinem Gerät** (dem Emulator fehlt der Speicher).
 
+## Zwei neue Entwürfe mit Sicherheitsnetz: „Guarded“ und „Tuned“ (16.11.2026)
+
+Beide Entwürfe lassen das Modell nur einen Rohplan schreiben; ein festes Netz aus Wortregeln (Python im Labor,
+`tools/memory-lab/rules2.py` und `rules3.py`, eingefroren) liest Zeit, Größe, Ausschlüsse und Ordner selbst, füllt
+Lücken und **fragt zurück, wenn es unsicher ist**, statt zu raten. Es macht nie aus einer Frage eine Änderung und nie
+selbst ein Löschen.
+
+- **Guarded** = Prompt C (`phase0c.py`, 464 Token statt 754 beim heutigen Prompt) + `rules2.decide` (alle Regeln,
+  Labor-Stand 430da086), mit „Zeigen“. Kein Zusatz-Download. Blindtests auf dem synthetischen Labor-Telefon (keine
+  Sätze des Besitzers): Blindtest 2 29/50 richtig, Blindtest 3 45/60, **0 gefährliche Pläne** in beiden; der heutige
+  Entwurf kam auf 16/50 (8 gefährlich) und 11/60 (15 gefährlich). **Für Nutzer noch aus:** Der Schalter
+  `CommandDesign.RELEASE_GUARDED` (eine Konstante, steht auf `false`) macht ihn zum Entwurf der Release-Builds; mit
+  `false` laufen Release-Builds unverändert mit `Today`.
+- **Tuned** = nachtrainiertes Modell (LoRA-Adapter `ordo-commands-1.gguf`, 42.485.408 Byte, SHA-256 30ac6052…,
+  Schema L, Prompt 75 Token) + `rules3.decide` (Regeln a–d, Labor-Stand 13bfbed9). **Nur im Entwickler-Build, wartet
+  auf den Blindtest:** Blindtest 3 ergab 44/60, 0 gefährlich, unter den geforderten 80 %. Der Adapter ist nicht
+  veröffentlicht; der Download unter `releases/download/ai-adapter-1/` antwortet 404, das Blatt sagt dann „noch nicht
+  veröffentlicht“. Ein neu trainierter Adapter ändert nur Name, Größe und Hash in `CommandDesign.Tuned`.
+- **Port statt Neuschreiben:** `CommandNet.kt` (Wortlesungen aus rules2.py) und `CommandNetDecide.kt` (die beiden
+  Entscheidungen) sind Zeile für Zeile portiert, reines Kotlin. Alle Wortlisten, Muster, Prompts und Grammatiken
+  erzeugt `tools/memory-lab/export_tuned_lexicon.py` als `CommandNetLexicon.kt` aus dem eingefrorenen Labor, niemand
+  tippt sie ab. Golden-Tests vergleichen jede Entscheidung (Status, Grund, Text, übrige Wörter, Warnungen, jedes
+  Planfeld) mit Python: `CommandGuardedGoldenTest` (Fixture `export_guarded_golden.py`: alle aufgezeichneten
+  Prompt-C-Pläne aus Dev-Sätzen, Blindtest 2 und 3, dazu jeder andere aufgezeichnete Rohplan und die Trainingsziele,
+  mit dem Telefon von damals, weil rules2 Dateien zählt) und `CommandTunedGoldenTest` (Fixture
+  `export_tuned_golden.py`: alle Schema-L-Rohpläne der Läufe und die Trainings- und Validierungsziele).
+  Ergebnisse: GOLDEN_RESULTS. Auf dem Gerät (ICU-Regex) prüft `e2e/ai-show-guard.sh` dieselben Fixtures über
+  `DebugAiActivity --es golden_guarded/golden_tuned`.
+- **Zählen auf dem Telefon:** rules2 wählt bei Wörtern, die kein Feld erklärt, die Lesart, die auf dem Telefon Dateien
+  findet. In der App zählt `CommandFiles` (Text nur in reinen Textdateien, siehe oben); bei „Zeigen“ nur „keine oder
+  mindestens eine“. Der Golden-Test zählt mit einem Port des Labor-Ausführers, die App-Suche kann davon abweichen.
+- **Rückfrage:** freundliche Frage im Blatt („Wohin sollen die Dateien? …“), der getippte Befehl bleibt stehen und
+  kann ergänzt werden. **Absage:** Hinweis-Karte wie bei den Gedächtnis-Sätzen (ZIP, Umwandeln, Umbenennen, Teilen,
+  Öffnen, Wiederherstellen, Bearbeiten, frühere Befehle). Ändernde Pläne gehen durch dieselbe Prüfung, Vorschau und
+  Bestätigung wie bisher (Lösch-Wort, geschützte Ordner, zweite Bestätigung); Ordner kommen als Pfad aus dem Netz
+  (`CommandCheck.check(paths = true)`).
+- **Kalender** (Labor-Uhr Sonntag 15.11.2026): „letzte Woche“ = 02.–08.11. (Mo–So der Vorwoche), „diese Woche“ ab
+  Montag, „diesen Monat“ ab dem 1., „letzten Monat“ = Oktober: wie festgelegt. Abweichungen der eingefrorenen Regeln,
+  nicht geändert: „in den letzten 7 Tagen“ beginnt am 08.11. 0 Uhr (7 Tage plus heute); „letzte 7 Tage“ ohne „den“
+  liest der Code gar nicht.
+- **Auffälligkeiten der Python-Referenz, nicht „verbessert“:** Ein unlesbares Datum („vom 31.2.“) bricht rules2/3 mit
+  einem Fehler ab; die App fragt dann zurück. Eine unlesbare Größe des Modells („über viel“) fragt mit dem Text für
+  Zeitangaben nach (Grund `vague_time`).
+- **Entwickler-Build:** `DebugAiActivity --es design today|kr|guarded|tuned` wählt den Entwurf für echte Befehle;
+  eingegebene Modellantworten (`--es answer`) laufen durch Guarded/Tuned, wenn einer davon gewählt ist.
+
 ## Offen
 
 - Älteres Gerät (S21/Exynos 2100) nicht gemessen: Gerät ist gerade nicht verfügbar.
