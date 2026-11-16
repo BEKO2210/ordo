@@ -12,6 +12,8 @@
 
 #include <atomic>
 #include <climits>
+#include <cstdio>
+#include <cstring>
 #include <string>
 #include <vector>
 
@@ -185,6 +187,74 @@ Java_me_zhanghai_android_files_llm_LlamaEngine_nativeGenerate(JNIEnv *env, jclas
     }
     llama_sampler_free(sampler);
     return ok ? toBytes(env, output) : nullptr;
+}
+
+// Prompt state file: magic, then the byte count of the snapshot, then the snapshot from nativePrepare. Written to a
+// temporary file and renamed, so a crash or a full disk never leaves a half file under the real name.
+static const char STATE_MAGIC[8] = {'O', 'R', 'D', 'O', 'S', 'T', '1', '\0'};
+
+JNIEXPORT jlong JNICALL
+Java_me_zhanghai_android_files_llm_LlamaEngine_nativeStateSize(JNIEnv *, jclass, jlong handle) {
+    return (jlong) reinterpret_cast<Engine *>(handle)->snapshot.size();
+}
+
+JNIEXPORT jboolean JNICALL
+Java_me_zhanghai_android_files_llm_LlamaEngine_nativeSaveState(JNIEnv *env, jclass, jlong handle,
+                                                              jbyteArray path) {
+    auto *engine = reinterpret_cast<Engine *>(handle);
+    if (engine->snapshot.empty()) {
+        return JNI_FALSE;
+    }
+    std::string target = toString(env, path);
+    std::string temp = target + ".tmp";
+    FILE *file = fopen(temp.c_str(), "wb");
+    if (file == nullptr) {
+        return JNI_FALSE;
+    }
+    uint64_t size = engine->snapshot.size();
+    bool ok = fwrite(STATE_MAGIC, 1, sizeof(STATE_MAGIC), file) == sizeof(STATE_MAGIC) &&
+              fwrite(&size, sizeof(size), 1, file) == 1 &&
+              fwrite(engine->snapshot.data(), 1, size, file) == size;
+    ok = (fclose(file) == 0) && ok;
+    if (!ok || rename(temp.c_str(), target.c_str()) != 0) {
+        remove(temp.c_str());
+        LOGE("state save failed");
+        return JNI_FALSE;
+    }
+    return JNI_TRUE;
+}
+
+// Loads a saved prompt state instead of reading the prompt again. False (and the engine untouched, without a
+// snapshot) when the file is missing, short, damaged or does not fit this model and context.
+JNIEXPORT jboolean JNICALL
+Java_me_zhanghai_android_files_llm_LlamaEngine_nativeRestoreState(JNIEnv *env, jclass, jlong handle,
+                                                                 jbyteArray path) {
+    auto *engine = reinterpret_cast<Engine *>(handle);
+    FILE *file = fopen(toString(env, path).c_str(), "rb");
+    if (file == nullptr) {
+        return JNI_FALSE;
+    }
+    char magic[sizeof(STATE_MAGIC)];
+    uint64_t size = 0;
+    bool ok = fread(magic, 1, sizeof(magic), file) == sizeof(magic) &&
+              memcmp(magic, STATE_MAGIC, sizeof(magic)) == 0 && fread(&size, sizeof(size), 1, file) == 1 &&
+              fseek(file, 0, SEEK_END) == 0 && (uint64_t) ftell(file) == sizeof(magic) + sizeof(size) + size &&
+              size > 0 && fseek(file, (long) (sizeof(magic) + sizeof(size)), SEEK_SET) == 0;
+    std::vector<uint8_t> data;
+    if (ok) {
+        data.resize(size);
+        ok = fread(data.data(), 1, size, file) == size;
+    }
+    fclose(file);
+    llama_memory_clear(llama_get_memory(engine->ctx), true);
+    if (!ok || llama_state_seq_set_data(engine->ctx, data.data(), data.size(), 0) == 0) {
+        llama_memory_clear(llama_get_memory(engine->ctx), true);
+        engine->snapshot.clear();
+        LOGE("state restore failed");
+        return JNI_FALSE;
+    }
+    engine->snapshot.swap(data);
+    return JNI_TRUE;
 }
 
 JNIEXPORT void JNICALL

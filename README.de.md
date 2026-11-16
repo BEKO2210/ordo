@@ -150,7 +150,9 @@ Grammatik erzwungen). Ordo prüft diesen Plan selbst, bevor es ihn zeigt:
 
 **Einrichtung.** Die Funktion ist aus, bis du sie über den Zauberstab in der Suchleiste öffnest. Ordo prüft das
 Handy und lädt das Modell einmalig herunter (rund 2,6 GB, standardmäßig nur über WLAN) – von einer festen
-Version bei Hugging Face, geprüft per SHA-256. Danach läuft alles offline. Das Modell lässt sich im KI-Blatt
+Version bei Hugging Face, geprüft per SHA-256. Danach läuft alles offline. Nach dem ersten Start speichert Ordo
+die eingelesenen Anweisungen des Modells in seinem privaten Speicher (nie in Backups, bei knappem Platz nicht), so
+sparen spätere Kaltstarts diesen Schritt; sie werden mit dem Modell gelöscht. Das Modell lässt sich im KI-Blatt
 jederzeit wieder entfernen; unter Einstellungen › KI-Assistent siehst du, ob es bereit ist.
 
 | | |

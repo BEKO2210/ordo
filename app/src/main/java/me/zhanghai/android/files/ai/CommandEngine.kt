@@ -16,7 +16,11 @@ import kotlinx.coroutines.withContext
 import me.zhanghai.android.files.llm.LlamaEngine
 import me.zhanghai.android.files.settings.Settings
 import me.zhanghai.android.files.util.valueCompat
+import android.os.SystemClock
+import android.util.Log
+import me.zhanghai.android.files.BuildConfig
 import java.io.File
+import java.security.MessageDigest
 import java.io.IOException
 import java.util.concurrent.Executors
 
@@ -80,13 +84,53 @@ object CommandEngine {
             ?: throw IOException("model load failed")
         loadedThreads = threads
         loadedSystem = design.system
-        if (!loaded.prepare(CommandPlanner.prefix(design.system))) {
-            loaded.close()
-            throw IOException("prompt prefix failed")
+        // A saved prompt state skips reading the prompt again (the slow part of a cold start). It is keyed by
+        // model, prompt, grammar, context size and app version, so a change in any of them never loads it.
+        val state = stateFile(context.applicationContext, design)
+        val started = SystemClock.elapsedRealtime()
+        if (state.isFile && loaded.restoreState(state.path)) {
+            Log.i(TAG, "prompt state restored: ${state.length()} bytes in ${SystemClock.elapsedRealtime() - started} ms")
+        } else {
+            state.delete()
+            if (!loaded.prepare(CommandPlanner.prefix(design.system))) {
+                loaded.close()
+                throw IOException("prompt prefix failed")
+            }
+            Log.i(TAG, "prompt read in ${SystemClock.elapsedRealtime() - started} ms")
+            saveState(loaded, state)
         }
         engine = loaded
         scheduleUnload()
         return loaded
+    }
+
+    /** Private, never backed up (noBackupFilesDir); deleted together with the model. */
+    fun stateDir(context: Context): File = File(context.noBackupFilesDir, "llm-state")
+
+    private fun stateFile(context: Context, design: CommandDesign): File {
+        val key = listOf(CommandModel.SHA256, CommandPlanner.prefix(design.system), design.grammar, CONTEXT_SIZE,
+            BuildConfig.VERSION_CODE).joinToString("\u0000")
+        val hash = MessageDigest.getInstance("SHA-256").digest(key.toByteArray()).joinToString("") { "%02x".format(it) }
+        return File(stateDir(context), "prompt-${hash.take(32)}.state")
+    }
+
+    /** Saves the state when there is room for it and 1 GB to spare; otherwise skips it (the next start reads the prompt). */
+    private fun saveState(engine: LlamaEngine, file: File) {
+        val dir = file.parentFile!!
+        // Only one state is ever kept: an older one is for another prompt, model or version.
+        dir.listFiles()?.forEach { if (it != file) it.delete() }
+        if (!dir.isDirectory && !dir.mkdirs()) return
+        val size = engine.stateSize
+        if (size <= 0 || dir.usableSpace < size + MIN_FREE_AFTER_STATE) {
+            Log.i(TAG, "prompt state not saved: $size bytes, ${dir.usableSpace} free")
+            return
+        }
+        val started = SystemClock.elapsedRealtime()
+        if (engine.saveState(file.path)) {
+            Log.i(TAG, "prompt state saved: ${file.length()} bytes in ${SystemClock.elapsedRealtime() - started} ms")
+        } else {
+            file.delete()
+        }
     }
 
     private fun close() {
@@ -94,7 +138,9 @@ object CommandEngine {
         engine = null
     }
 
+    private const val TAG = "CommandEngine"
     private const val CONTEXT_SIZE = 2048
+    private const val MIN_FREE_AFTER_STATE = 1_000_000_000L
 
     /** How long the model stays loaded after the last answer: turbo saves the next cold start, gentle frees memory sooner. */
     internal fun idleMinutes(speed: String): Long = when (speed) {

@@ -27,7 +27,7 @@ object CommandModel {
     private const val URL = "https://huggingface.co/unsloth/Qwen3.5-4B-GGUF/resolve/" +
         "e87f176479d0855a907a41277aca2f8ee7a09523/Qwen3.5-4B-Q4_0.gguf"
     const val SIZE = 2_583_221_408L
-    private const val SHA256 = "298fcb5fe7a77ccc79745ae24751560c5ac56874caff4bb39b1f2055bd72b8bb"
+    internal const val SHA256 = "298fcb5fe7a77ccc79745ae24751560c5ac56874caff4bb39b1f2055bd72b8bb"
     const val FILE_NAME = "qwen3.5-4b-q4_0.gguf"
     private const val PREFS = "command_model"
     private const val KEY_DOWNLOAD = "download_id"
@@ -186,6 +186,8 @@ object CommandModel {
             }
             prefs.edit().clear().commit()
             file(context).delete()
+            // The saved prompt state belongs to this model and is useless without it.
+            CommandEngine.stateDir(context).deleteRecursively()
         }
     }
 

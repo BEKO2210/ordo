@@ -148,8 +148,10 @@ then checks the plan itself before showing it:
 
 **Setup.** The feature is off until you open it with the wand in the search bar. Ordo checks the phone, then
 downloads the model once (about 2.6 GB, Wi-Fi by default) from a pinned revision on Hugging Face and verifies its
-SHA-256 hash. After that it works offline. The model can be removed in the AI sheet at any time; Settings › AI
-assistant shows whether it is ready.
+SHA-256 hash. After that it works offline. After the first start Ordo keeps the model's read-in instructions in
+its private storage (never in backups, skipped when space is short), so later cold starts skip that step; they go
+with the model. The model can be removed in the AI sheet at any time; Settings › AI assistant shows whether it is
+ready.
 
 | | |
 |---|---|
