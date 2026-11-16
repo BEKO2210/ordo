@@ -1121,7 +1121,7 @@
     <string name="audio_sound_normalization_heading">Volume</string>
     <string name="audio_sound_normalization">Even out volume (ReplayGain / R128)</string>
     <string name="audio_sound_normalization_summary">Evens out loudness between tracks</string>
-    <string name="audio_sound_normalization_preamp">Normalisation pre-amp</string>
+    <string name="audio_sound_normalization_preamp">Pre-amp</string>
     <string name="audio_sound_playback_heading">Playback</string>
     <string name="audio_sound_speed">Tempo</string>
     <string name="audio_sound_speed_value">%1$.2f×</string>
@@ -1130,6 +1130,7 @@
     <string name="audio_sound_mono">Mono audio</string>
     <string name="audio_sound_mono_summary">Combines both channels</string>
     <string name="audio_sound_balance">Balance</string>
+    <string name="audio_sound_balance_recenter">Re-centre</string>
     <string name="audio_sound_balance_center">Centre</string>
     <string name="audio_sound_balance_left">L %1$d %%</string>
     <string name="audio_sound_balance_right">R %1$d %%</string>

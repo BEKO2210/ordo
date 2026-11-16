@@ -986,7 +986,7 @@
     <string name="audio_sound_normalization_heading">Lautstärke</string>
     <string name="audio_sound_normalization">Lautstärke angleichen (ReplayGain / R128)</string>
     <string name="audio_sound_normalization_summary">Gleicht die Lautheit zwischen Titeln an</string>
-    <string name="audio_sound_normalization_preamp">Vorverstärkung der Normalisierung</string>
+    <string name="audio_sound_normalization_preamp">Vorverstärkung</string>
     <string name="audio_sound_playback_heading">Wiedergabe</string>
     <string name="audio_sound_speed">Tempo</string>
     <string name="audio_sound_speed_value">%1$.2f×</string>
@@ -995,6 +995,7 @@
     <string name="audio_sound_mono">Mono-Audio</string>
     <string name="audio_sound_mono_summary">Führt beide Kanäle zusammen</string>
     <string name="audio_sound_balance">Balance</string>
+    <string name="audio_sound_balance_recenter">Zentrieren</string>
     <string name="audio_sound_balance_center">Mitte</string>
     <string name="audio_sound_balance_left">L %1$d %%</string>
     <string name="audio_sound_balance_right">R %1$d %%</string>

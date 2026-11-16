@@ -59,8 +59,10 @@ check "Fine-tune opens its band rows" paused_ui tap fineTuneToggle
 check "a band row shows its gain" paused_ui wait "31 Hz" 5
 check "the Flat preset tile restores the curve" paused_ui tap "Flat|Neutral"
 check "the equalizer switches off again" paused_ui tap equalizerEnabled
-check "the playback section reaches skip silence and mono" paused_ui has "Skip silence|Stille überspringen"
-check "the sleep timer offers end of track" paused_ui has "End of track|Titelende"
+# The sheet is long: scroll down until the row appears (at most five swipes).
+scrolled_to() { local i; for i in 1 2 3 4 5 6; do paused_ui has "$1" && return 0; swipe_up; done; return 1; }
+check "the playback section reaches skip silence and mono" scrolled_to "Skip silence|Stille überspringen"
+check "the sleep timer offers end of track" scrolled_to "End of track|Titelende"
 back 1
 back 2
 check "closing the player returns to the file list" on filelist.FileListActivity
