@@ -6,6 +6,7 @@
 package me.zhanghai.android.files.viewer.audio
 
 import android.app.Dialog
+import android.content.res.ColorStateList
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -14,11 +15,14 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.view.ViewCompat
 import androidx.core.view.isVisible
+import androidx.transition.AutoTransition
+import androidx.transition.TransitionManager
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.chip.Chip
+import com.google.android.material.color.MaterialColors
 import me.zhanghai.android.files.R
 import me.zhanghai.android.files.databinding.AudioSoundSettingsSheetBinding
 import me.zhanghai.android.files.player.AudioFocusBehavior
@@ -40,6 +44,8 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment() {
     private lateinit var speedValue: TextView
     private lateinit var balanceValue: TextView
     private var initializing = true
+    private var fineTuneExpanded = false
+    private var soundStatus: AudioPlayerActivity.SoundStatus? = null
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog =
         BottomSheetDialog(requireContext(), theme)
@@ -54,8 +60,13 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        initializing = true
+        soundStatus = null
+        bandValues.clear()
         settings = AudioSettingsStore.read()
         binding.close.setOnClickListener { dismiss() }
+        binding.fineTuneToggle.setOnClickListener { setFineTuneExpanded(!fineTuneExpanded, true) }
+        setFineTuneExpanded(false, false)
         createPresets()
         createBandSteppers()
         preGainValue = createStepper(
@@ -135,22 +146,10 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment() {
     }
 
     private fun createPresets() {
-        val labels = mapOf(
-            EqualizerPreset.FLAT to R.string.audio_preset_flat,
-            EqualizerPreset.BASS to R.string.audio_preset_bass,
-            EqualizerPreset.TREBLE to R.string.audio_preset_treble,
-            EqualizerPreset.VOCAL to R.string.audio_preset_vocal,
-            EqualizerPreset.ROCK to R.string.audio_preset_rock,
-            EqualizerPreset.POP to R.string.audio_preset_pop,
-            EqualizerPreset.JAZZ to R.string.audio_preset_jazz,
-            EqualizerPreset.CLASSICAL to R.string.audio_preset_classical,
-            EqualizerPreset.LOUDNESS_AT_NIGHT to R.string.audio_preset_night,
-            EqualizerPreset.CUSTOM to R.string.audio_preset_custom
-        )
-        labels.forEach { (preset, label) ->
+        EqualizerPreset.entries.forEach { preset ->
             binding.presets.addView(Chip(requireContext()).apply {
                 id = View.generateViewId()
-                text = getString(label)
+                text = getString(presetLabel(preset))
                 isCheckable = true
                 tag = preset
                 minHeight = dp(48)
@@ -213,11 +212,11 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment() {
                 text = label
                 setTextAppearance(com.google.android.material.R.style.TextAppearance_Material3_BodyLarge)
             }, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
-            addView(stepButton("−", getString(R.string.audio_sound_decrease, label)) {
+            addView(stepButton(R.drawable.audio_remove_icon_24dp, getString(R.string.audio_sound_decrease, label)) {
                 setter((getter() - step).coerceAtLeast(minimum))
             })
             addView(value, LinearLayout.LayoutParams(dp(72), ViewGroup.LayoutParams.WRAP_CONTENT))
-            addView(stepButton("+", getString(R.string.audio_sound_increase, label)) {
+            addView(stepButton(R.drawable.audio_add_icon_24dp, getString(R.string.audio_sound_increase, label)) {
                 setter((getter() + step).coerceAtMost(maximum))
             })
         }
@@ -240,17 +239,54 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment() {
         step.toFloat(), minimum.toFloat(), maximum.toFloat()
     ) { formatter(it.roundToInt()) }
 
-    private fun stepButton(symbol: String, description: String, action: () -> Unit) =
+    private fun stepButton(iconRes: Int, description: String, action: () -> Unit) =
         MaterialButton(requireContext()).apply {
-            text = symbol
+            text = null
+            setIconResource(iconRes)
+            iconSize = dp(18)
+            iconTint = ColorStateList.valueOf(
+                MaterialColors.getColor(
+                    this, com.google.android.material.R.attr.colorOnSurfaceVariant, android.graphics.Color.DKGRAY
+                )
+            )
             contentDescription = description
             minWidth = dp(48)
             minimumWidth = dp(48)
             minimumHeight = dp(48)
-            insetTop = 0
-            insetBottom = 0
+            insetTop = dp(6)
+            insetBottom = dp(6)
+            cornerRadius = dp(18)
+            backgroundTintList = ColorStateList.valueOf(android.graphics.Color.TRANSPARENT)
+            strokeColor = ColorStateList.valueOf(
+                MaterialColors.getColor(
+                    this, com.google.android.material.R.attr.colorOutline, android.graphics.Color.GRAY
+                )
+            )
+            strokeWidth = dp(1)
             setOnClickListener { action() }
         }
+
+    private fun setFineTuneExpanded(expanded: Boolean, animate: Boolean) {
+        fineTuneExpanded = expanded
+        if (animate && Motion.any) {
+            TransitionManager.beginDelayedTransition(
+                binding.equalizerControls,
+                AutoTransition().setDuration(200)
+            )
+        }
+        binding.fineTuneContent.isVisible = expanded
+        binding.fineTuneToggle.iconGravity = MaterialButton.ICON_GRAVITY_END
+        binding.fineTuneToggle.setIconResource(
+            if (expanded) R.drawable.expand_less_icon_24dp else R.drawable.expand_more_icon_24dp
+        )
+        ViewCompat.setStateDescription(
+            binding.fineTuneToggle,
+            getString(if (expanded) R.string.audio_sound_expanded else R.string.audio_sound_collapsed)
+        )
+        if (animate) binding.fineTuneToggle.announceForAccessibility(
+            getString(if (expanded) R.string.audio_sound_fine_tune_expanded else R.string.audio_sound_fine_tune_collapsed)
+        )
+    }
 
     private fun createSleepOptions() {
         listOf(
@@ -310,26 +346,19 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment() {
             if (settings.focusBehavior == AudioFocusBehavior.PAUSE) R.id.focusPause else R.id.focusDuck
         )
         binding.resumeHeadphones.isChecked = settings.resumeOnHeadphones
+        renderEqualizerState()
     }
 
     private fun showStatus(status: AudioPlayerActivity.SoundStatus) {
-        binding.effectStatus.text = when {
-            !status.equalizerAvailable -> getString(R.string.audio_sound_effect_unavailable)
-            status.usingDynamicsProcessing -> getString(R.string.audio_sound_effect_dp)
-            else -> getString(R.string.audio_sound_effect_legacy, status.legacyBandCount)
-        }
-        val eqEnabled = status.equalizerAvailable
-        setEnabledRecursively(binding.equalizerEnabled, eqEnabled)
-        setEnabledRecursively(binding.presets, eqEnabled)
-        setEnabledRecursively(binding.equalizerCurve, eqEnabled)
-        setEnabledRecursively(binding.bandSteppers, eqEnabled)
-        setEnabledRecursively(binding.preGainRow, status.inputGainAvailable)
+        soundStatus = status
+        renderEqualizerState()
         setEnabledRecursively(binding.normalizationEnabled, status.inputGainAvailable)
         setEnabledRecursively(binding.normalizationPreampRow, status.inputGainAvailable)
         // Per-channel input gain is available in DynamicsProcessing, not the API 24-27 Equalizer.
         setEnabledRecursively(binding.balanceRow, status.usingDynamicsProcessing)
         binding.bassSection.isVisible = status.bassBoostAvailable
         binding.virtualizerSection.isVisible = status.virtualizerAvailable
+        binding.effectsSection.isVisible = status.bassBoostAvailable || status.virtualizerAvailable
         val activeTimer = if (status.sleepActive) {
             status.sleepMinutes to status.sleepAtEndOfTrack
         } else {
@@ -347,6 +376,39 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment() {
     private fun setEnabledRecursively(view: View, enabled: Boolean) {
         view.isEnabled = enabled
         if (view is ViewGroup) view.children().forEach { setEnabledRecursively(it, enabled) }
+    }
+
+    private fun renderEqualizerState() {
+        val status = soundStatus
+        if (status != null) {
+            binding.effectStatus.text = when (
+                equalizerStatusKind(status.equalizerAvailable, settings.equalizerEnabled)
+            ) {
+                EqualizerStatusKind.UNSUPPORTED -> getString(R.string.audio_sound_effect_unavailable)
+                EqualizerStatusKind.OFF -> getString(R.string.audio_sound_off)
+                EqualizerStatusKind.PRESET -> getString(presetLabel(settings.preset))
+            }
+        }
+        setEnabledRecursively(binding.equalizerEnabled, status?.equalizerAvailable == true)
+        val controlsEnabled = status?.let {
+            equalizerControlsEnabled(it.equalizerAvailable, settings.equalizerEnabled)
+        } == true
+        setEnabledRecursively(binding.equalizerControls, controlsEnabled)
+        setEnabledRecursively(binding.preGainRow, controlsEnabled && status?.inputGainAvailable == true)
+        binding.equalizerControls.alpha = if (controlsEnabled) 1f else DISABLED_ALPHA
+    }
+
+    private fun presetLabel(preset: EqualizerPreset): Int = when (preset) {
+        EqualizerPreset.FLAT -> R.string.audio_preset_flat
+        EqualizerPreset.BASS -> R.string.audio_preset_bass
+        EqualizerPreset.TREBLE -> R.string.audio_preset_treble
+        EqualizerPreset.VOCAL -> R.string.audio_preset_vocal
+        EqualizerPreset.ROCK -> R.string.audio_preset_rock
+        EqualizerPreset.POP -> R.string.audio_preset_pop
+        EqualizerPreset.JAZZ -> R.string.audio_preset_jazz
+        EqualizerPreset.CLASSICAL -> R.string.audio_preset_classical
+        EqualizerPreset.LOUDNESS_AT_NIGHT -> R.string.audio_preset_night
+        EqualizerPreset.CUSTOM -> R.string.audio_preset_custom
     }
 
     private fun formatDb(value: Float): String = getString(R.string.audio_sound_db, value)
@@ -370,5 +432,16 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment() {
 
     companion object {
         const val TAG = "audioSoundSettings"
+        private const val DISABLED_ALPHA = 0.38f
     }
 }
+
+internal enum class EqualizerStatusKind { UNSUPPORTED, OFF, PRESET }
+
+internal fun equalizerStatusKind(available: Boolean, enabled: Boolean): EqualizerStatusKind = when {
+    !available -> EqualizerStatusKind.UNSUPPORTED
+    !enabled -> EqualizerStatusKind.OFF
+    else -> EqualizerStatusKind.PRESET
+}
+
+internal fun equalizerControlsEnabled(available: Boolean, enabled: Boolean): Boolean = available && enabled

@@ -22,20 +22,24 @@ a shell "rm -rf $DIR; mkdir -p $DIR"
 a push "$tmp/01-one.wav" "$tmp/02-two.wav" "$DIR/" >/dev/null
 
 wake; grant; a logcat -b crash -c
+pause_playback() { a shell input keyevent KEYCODE_MEDIA_PAUSE >/dev/null; }
+paused_ui() { pause_playback; sleep 0.3; ui "$@"; }
 a shell am start -W -a android.intent.action.VIEW -d "file://$DIR" -t inode/directory \
     -n "$PKG/me.zhanghai.android.files.filelist.FileListActivity" >/dev/null
 sleep 3; guard
-check "the test folder opens" ui wait 01-one.wav 10
-ui tap 01-one.wav >/dev/null; sleep 3; guard
+check "the test folder opens" paused_ui wait 01-one.wav 10
+paused_ui tap 01-one.wav >/dev/null; sleep 3; guard
+pause_playback; sleep 1
 check "audio opens Ordo's player" on viewer.audio.AudioPlayerActivity
-check "the tapped title is shown" ui has 01-one.wav
-check "the complete transport row is visible" ui visible playPause
+check "the tapped title is shown" paused_ui has 01-one.wav
+check "the complete transport row is visible" paused_ui visible playPause
 touch_target() {
-    # Measured after the entrance animation has settled (a scaled button reads smaller); a few tries.
+    # Pause before each dump: a changing playback screen cannot be read reliably.
     local l t r b dpi i
+    pause_playback; sleep 0.3
     dpi=$(a shell wm density | tail -1 | sed 's/.*: //' | tr -d '\r')
     for i in 1 2 3 4; do
-        read -r l t r b < <(ui bounds "$1" | head -1) || return 1
+        read -r l t r b < <(paused_ui bounds "$1" | head -1) || return 1
         [ $((r - l)) -ge $((48 * dpi / 160)) ] && [ $((b - t)) -ge $((48 * dpi / 160)) ] && return 0
         sleep 0.5
     done
@@ -43,11 +47,12 @@ touch_target() {
 }
 check "shuffle keeps its 48 dp touch target" touch_target shuffle
 check "repeat keeps its 48 dp touch target" touch_target repeat
-check "Sound opens from the player toolbar" ui tap "Sound|Klang"
-check "the equalizer and deliberate-drag guidance are visible" ui wait "Equalizer" 5
-check "the curve explains its 150 ms hold" ui has "150 ms"
-check "the playback section reaches skip silence and mono" ui has "Skip silence|Stille überspringen"
-check "the sleep timer offers end of track" ui has "End of track|Titelende"
+check "Sound opens from the player toolbar" paused_ui tap actionSound
+check "the equalizer and deliberate-drag guidance are visible" paused_ui wait "Equalizer" 5
+check "the curve explains its 150 ms hold" paused_ui has "150 ms"
+check "the fine-tune controls start collapsed" paused_ui has "Fine-tune|Genau einstellen"
+check "the playback section reaches skip silence and mono" paused_ui has "Skip silence|Stille überspringen"
+check "the sleep timer offers end of track" paused_ui has "End of track|Titelende"
 back 1
 back 2
 check "closing the player returns to the file list" on filelist.FileListActivity
@@ -57,7 +62,7 @@ check "playback service stays alive" playing
 a shell input keyevent KEYCODE_MEDIA_NEXT; sleep 2
 a shell am start -W -n "$PKG/$PLAYER" >/dev/null; sleep 2; guard
 check "the player reconnects" on viewer.audio.AudioPlayerActivity
-check "media Next selected the second title" ui has 02-two.wav
+check "media Next selected the second title" paused_ui has 02-two.wav
 back 1
 # The player is exported: another app may only hand it content:// URIs, never file:// paths (nor Ordo path extras).
 a shell am start -W -a android.intent.action.VIEW -d "file://$DIR/01-one.wav" -t audio/x-wav \
