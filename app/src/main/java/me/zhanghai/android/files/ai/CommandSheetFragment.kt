@@ -108,6 +108,10 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
             (actionId == EditorInfo.IME_ACTION_GO || enter).also { if (it) submit() }
         }
         binding.removeModelButton.setOnClickListener { confirmRemoveModel() }
+        // Set once, before any state shows them: the sheet can open on a download already waiting for Wi-Fi, where
+        // "use mobile data" is shown without the setup page having run.
+        binding.setupButton.setOnClickListener { startDownload(mobileData = false) }
+        binding.mobileDataButton.setOnClickListener { startDownload(mobileData = true) }
         binding.cancelButton.setOnClickListener {
             CommandEngine.cancel()
             job?.cancel()
@@ -247,9 +251,7 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
             return
         }
         binding.setupButton.text = getString(R.string.ai_setup_download, gigabytes(CommandModel.missingBytes(context, design)))
-        binding.setupButton.setOnClickListener { startDownload(mobileData = false) }
         binding.mobileDataButton.isVisible = true
-        binding.mobileDataButton.setOnClickListener { startDownload(mobileData = true) }
     }
 
     private fun startDownload(mobileData: Boolean) {
@@ -375,9 +377,7 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
         binding.downloadText.setText(messageRes)
         binding.setupButton.isVisible = true
         binding.setupButton.setText(R.string.ai_setup_retry)
-        binding.setupButton.setOnClickListener { startDownload(mobileData = false) }
         binding.mobileDataButton.isVisible = true
-        binding.mobileDataButton.setOnClickListener { startDownload(mobileData = true) }
     }
 
     private fun confirmRemoveModel() {
