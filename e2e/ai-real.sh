@@ -40,8 +40,11 @@ cold() {
 ask() {
     a logcat -c
     ui tap commandEdit >/dev/null
-    a shell input keyevent KEYCODE_MOVE_END $(printf 'KEYCODE_DEL %.0s' $(seq 80))
-    a shell input text "'${1// /%s}'"; a shell input keyevent KEYCODE_ENTER
+    # Select all, then type over it: the field wraps, so END and DEL alone can leave words of the last command.
+    a shell input keycombination KEYCODE_CTRL_LEFT KEYCODE_A; a shell input keyevent KEYCODE_DEL
+    a shell input text "'${1// /%s}'"
+    ui texts | grep -qF "$1|commandEdit|" || { echo "  typed text differs from: $1"; return 1; }
+    a shell input keyevent KEYCODE_ENTER
     wait_log "answer in" 900 || return 1
     sleep 3
     ANSWER=$(log | grep -oE 'answer in .*' | tail -1); echo "  $1 -> $ANSWER"
