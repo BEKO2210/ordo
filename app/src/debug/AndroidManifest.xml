@@ -14,5 +14,12 @@
             android:exported="true"
             android:permission="android.permission.DUMP"
             android:theme="@style/Theme.MaterialFiles" />
+        <!-- Test phones only: a moving idle screen started by adb while a phone waits (no burn-in). -->
+        <activity
+            android:name="me.zhanghai.android.files.dev.DebugIdleActivity"
+            android:exported="true"
+            android:permission="android.permission.DUMP"
+            android:excludeFromRecents="true"
+            android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen" />
     </application>
 </manifest>
