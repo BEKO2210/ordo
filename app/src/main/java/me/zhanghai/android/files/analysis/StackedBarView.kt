@@ -28,6 +28,9 @@ class StackedBarView @JvmOverloads constructor(context: Context, attrs: Attribut
     private var parts: List<Pair<Int, Long>> = emptyList()
     private var max = 0L
     private var progress = 1f
+    // Set while a bar that was already full moves to new numbers: the values it moves from, and their max.
+    private var from: List<Long>? = null
+    private var fromMax = 1L
 
     // Only one grow or sweep runs at a time: a rebind while animating must not leave two animators on this bar.
     private var animator: ValueAnimator? = null
@@ -52,7 +55,11 @@ class StackedBarView @JvmOverloads constructor(context: Context, attrs: Attribut
     private val shaderMatrix = android.graphics.Matrix()
     private var shineBand = -1f
 
-    /** Called with the grow progress from 0 to 1, e.g. to count a percent label up with the bar. */
+    /**
+     * Called with the share of the new fill that is drawn, from 0 to 1 while growing in, e.g. to count a percent
+     * label up with the bar. When a full bar moves to new numbers it goes from the old share to 1, so the label
+     * moves from its old value to the new one.
+     */
     var onProgress: ((Float) -> Unit)? = null
 
     /** Optional start and end colour drawn across the whole bar instead of the parts' own colours. */
@@ -70,12 +77,30 @@ class StackedBarView @JvmOverloads constructor(context: Context, attrs: Attribut
         val newMax = maxOf(max, filtered.sumOf { it.second }, 1)
         // Rebinding the same numbers (e.g. while a list scrolls) must not replay the animation.
         if (filtered == this.parts && newMax == this.max) return
+        // A bar already full with the same parts (an automatic reload of the home screen) moves in place from the
+        // old numbers to the new ones; it never empties and grows in again.
+        val inPlace = progress == 1f && animator?.isRunning != true && this.parts.isNotEmpty() &&
+            this.parts.map { it.first } == filtered.map { it.first }
+        val oldValues = this.parts.map { it.second }
+        val oldMax = this.max
         this.parts = filtered
         this.max = newMax
         animator?.cancel()
         removeCallbacks(nextSweep)
         shine = -1f
-        if (me.zhanghai.android.files.ui.Motion.any) {
+        from = null
+        if (inPlace && me.zhanghai.android.files.ui.Motion.any) {
+            from = oldValues
+            fromMax = oldMax
+            setProgress(0f)
+            animator = ValueAnimator.ofFloat(0f, 1f).apply {
+                duration = 450
+                interpolator = PathInterpolator(0.2f, 0f, 0f, 1f)
+                addUpdateListener { setProgress(it.animatedValue as Float) }
+                doOnEnd { from = null; scheduleSweep() }
+            }
+            animator?.start()
+        } else if (me.zhanghai.android.files.ui.Motion.any) {
             setProgress(0f)
             // Grow in when scrolled into view, not while still below the fold.
             onFirstSight {
@@ -96,6 +121,7 @@ class StackedBarView @JvmOverloads constructor(context: Context, attrs: Attribut
     /** Empties the bar and waits: the next [replay] grows it in. Used while its screen is still covered. */
     fun hold() {
         animator?.cancel()
+        from = null
         removeCallbacks(nextSweep)
         shine = -1f
         if (me.zhanghai.android.files.ui.Motion.any) setProgress(0f)
@@ -112,7 +138,11 @@ class StackedBarView @JvmOverloads constructor(context: Context, attrs: Attribut
 
     private fun setProgress(value: Float) {
         progress = value
-        onProgress?.invoke(value)
+        onProgress?.invoke(from?.let { old ->
+            val oldShare = old.sum().toFloat() / fromMax
+            val newShare = parts.sumOf { it.second }.toFloat() / max
+            if (newShare > 0f) (oldShare + (newShare - oldShare) * value) / newShare else 1f
+        } ?: value)
         invalidate()
     }
 
@@ -171,10 +201,15 @@ class StackedBarView @JvmOverloads constructor(context: Context, attrs: Attribut
         canvas.save()
         canvas.clipPath(clip)
         var x = 0f
+        val from = from
         parts.forEachIndexed { i, (color, value) ->
             // Each part starts when the one before it is a third done: a soft cascade.
-            val local = ((progress * (parts.size + 2) - i) / 3f).coerceIn(0f, 1f)
-            val full = w * value / max
+            val local = if (from != null) 1f else ((progress * (parts.size + 2) - i) / 3f).coerceIn(0f, 1f)
+            val full = if (from != null) {
+                w * (from[i].toFloat() / fromMax + (value.toFloat() / max - from[i].toFloat() / fromMax) * progress)
+            } else {
+                w * value / max
+            }
             val width = full * local
             if (width > 0.5f) {
                 paint.color = color
@@ -190,7 +225,7 @@ class StackedBarView @JvmOverloads constructor(context: Context, attrs: Attribut
             }
             x += full
         }
-        val filled = parts.sumOf { it.second } * w / max * minOf(1f, progress * 1.15f)
+        val filled = if (from != null) x else parts.sumOf { it.second } * w / max * minOf(1f, progress * 1.15f)
         if (shine in 0f..1f && filled > 0) {
             val band = 0.35f * filled
             val center = -band + (filled + 2 * band) * shine

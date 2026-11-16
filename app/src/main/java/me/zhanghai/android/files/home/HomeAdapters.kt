@@ -161,7 +161,8 @@ class StorageAdapter(
             // The number counts up with the bar, which waits until it is scrolled into view.
             // Only a changed number is set: each setText on the wrap_content label lays out the whole home screen.
             binding.usageBar.onProgress = {
-                val text = percent.format((progress * it).toInt() / 1000.0)
+                // Rounded, not cut: a bar moving in place from 66.6 % must not show 66 % on the way.
+                val text = percent.format(Math.round(progress * it) / 1000.0)
                 if (binding.percentText.text.toString() != text) binding.percentText.text = text
             }
             // TalkBack reads the real value even before the bar has counted up.

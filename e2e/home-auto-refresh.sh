@@ -12,9 +12,31 @@ launch 10
 sleep 5; a logcat -c; sleep 10
 check "no reload while nothing changes" test "$(count)" = 0
 a logcat -c
+# The storage bar is recorded meanwhile: an automatic reload moves it in place, it never empties and grows in again.
+read -r _ H < <(screen_size); bar=$(ui bounds usageBar | head -1)
+[ "$(echo "$bar" | cut -d' ' -f4)" -gt $((H - 200)) ] 2>/dev/null && { swipe_up; bar=$(ui bounds usageBar | head -1); a logcat -c; }
+command -v ffmpeg >/dev/null && [ -n "$bar" ] && a shell "screenrecord --time-limit 8 /sdcard/ordo-e2e-auto.mp4" & rec=$!
+sleep 1
 a shell "mkdir -p $DIR; for i in \$(seq 50); do echo x > $DIR/f\$i.txt; done"; sleep 6; guard
 n=$(count); echo "  50 new files: $n reloads"
 check "50 new files reload the home screen once or twice" test "$n" -ge 1 -a "$n" -le 2
+wait $rec
+if command -v ffmpeg >/dev/null && [ -n "$bar" ]; then
+    tmp=$(mktemp -d); read -r x1 y1 x2 y2 <<< "$bar"; w=$(((x2 - x1) / 2 * 2)); h=$(((y2 - y1) / 2 * 2))
+    "$ADB" -s "$SERIAL" pull /sdcard/ordo-e2e-auto.mp4 "$tmp/a.mp4" >/dev/null 2>&1; a shell rm -f /sdcard/ordo-e2e-auto.mp4
+    ffmpeg -loglevel error -y -i "$tmp/a.mp4" -vf "fps=15,crop=$w:2:$x1:$((y1 + h / 2))" -f rawvideo -pix_fmt rgb24 "$tmp/a.rgb" < /dev/null
+    # Fill = columns in the aurora colours (as in bars-replay.sh); the lowest of all frames against the last one.
+    low=$(python3 - "$tmp/a.rgb" "$w" <<'PY'
+import sys
+data = open(sys.argv[1], "rb").read(); w = int(sys.argv[2]); size = w * 2 * 3
+fills = [sum(1 for p in range(i * size, i * size + w * 3, 3) if data[p] < 110 and data[p + 1] > 120 and data[p + 2] > 170)
+         for i in range(len(data) // size)]
+print(100 * min(fills) // max(fills[-1], 1) if fills and fills[-1] > w * 0.03 else "skip")
+PY
+)
+    rm -rf "$tmp"; echo "  storage bar during the reload: lowest $low % of its final length"
+    [ "$low" = skip ] || check "the storage bar does not empty and grow in again on an automatic reload" test "$low" -ge 90
+fi
 a shell input keyevent HOME; sleep 2; a logcat -c
 a shell "for i in \$(seq 50); do echo y > $DIR/g\$i.txt; done"; sleep 6
 check "no reload while the home screen is in the background" test "$(count)" = 0
