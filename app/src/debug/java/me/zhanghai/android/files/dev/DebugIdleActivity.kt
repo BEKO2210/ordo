@@ -5,7 +5,6 @@
 
 package me.zhanghai.android.files.dev
 
-import android.app.Activity
 import android.graphics.Color
 import android.os.Bundle
 import android.os.Handler
@@ -14,17 +13,21 @@ import android.view.Gravity
 import android.view.WindowManager
 import android.widget.FrameLayout
 import android.widget.TextView
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import java.text.DateFormat
 import java.util.Date
 import kotlin.random.Random
 import me.zhanghai.android.files.ai.AuroraView
+import me.zhanghai.android.files.app.AppActivity
 
 /**
  * Test phones only (debug builds, started by adb): keeps the screen on with nothing standing still, so it cannot burn
  * in while a phone waits for the next test. The aurora drifts by itself; the clock jumps to a new place every 20 s.
  * A tap or any test that starts an activity ends it.
  */
-class DebugIdleActivity : Activity() {
+class DebugIdleActivity : AppActivity() {
     private val handler = Handler(Looper.getMainLooper())
     private lateinit var clock: TextView
 
@@ -43,6 +46,11 @@ class DebugIdleActivity : Activity() {
             setOnClickListener { finish() }
         }
         setContentView(root)
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        WindowInsetsControllerCompat(window, root).apply {
+            hide(WindowInsetsCompat.Type.systemBars())
+            systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        }
     }
 
     private val move = object : Runnable {
