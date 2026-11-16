@@ -198,9 +198,12 @@ elif command == "checked":
         text = html.unescape(re.search(r'text="([^"]*)"', tag).group(1))
         desc = html.unescape(re.search(r'content-desc="([^"]*)"', tag).group(1))
         return text, desc
-    start = next((i for i, tag in enumerate(tags) if any(value in wanted for value in label(tag))), None)
-    if start is None:
+    matches = [i for i, tag in enumerate(tags) if any(value in wanted for value in label(tag))]
+    if not matches:
         sys.exit(f"not found: {sys.argv[3]}")
+    # A node that is itself checkable wins: a summary showing the same word (the accent row names the chosen
+    # colour) must not send the search to the next checkable node of another option.
+    start = next((i for i in matches if 'checkable="true"' in tags[i]), matches[0])
     box = tags[start] if 'checkable="true"' in tags[start] else next(
         (tag for tag in tags[start + 1:] if 'checkable="true"' in tag), ""
     )
