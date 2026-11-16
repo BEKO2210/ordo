@@ -37,7 +37,7 @@ import me.zhanghai.android.files.util.withTheme
 
 /**
  * The choice dialog of a [VisualListPreference]: every option is a row with its own pictogram, label and a check.
- * Saves exactly what the plain list dialog saved, when the dialog closes.
+ * Saves the chosen value as soon as a row is tapped.
  */
 class VisualListPreferenceDialogFragment : MaterialPreferenceDialogFragmentCompat() {
     override val preference: VisualListPreference
@@ -50,6 +50,7 @@ class VisualListPreferenceDialogFragment : MaterialPreferenceDialogFragmentCompa
 
     private val rows = mutableListOf<Row>()
     private var chosen = false
+    private var closeRunnable: Runnable? = null
 
     private class Row(
         val root: View,
@@ -65,7 +66,9 @@ class VisualListPreferenceDialogFragment : MaterialPreferenceDialogFragmentCompa
             val preference = preference
             entries = preference.entries
             entryValues = preference.entryValues
-            checkedEntryIndex = preference.findIndexOfValue(preference.value)
+            checkedEntryIndex = preference.findIndexOfValue(
+                preference.value ?: preference.entryValues.firstOrNull()?.toString()
+            )
         } else {
             val state = savedInstanceState.getState<State>()
             entries = state.entries
@@ -122,11 +125,13 @@ class VisualListPreferenceDialogFragment : MaterialPreferenceDialogFragmentCompa
             ViewCompat.setAccessibilityDelegate(root, object : AccessibilityDelegateCompat() {
                 override fun onInitializeAccessibilityNodeInfo(host: View, info: AccessibilityNodeInfoCompat) {
                     super.onInitializeAccessibilityNodeInfo(host, info)
+                    info.text = entry
                     info.className = RadioButton::class.java.name
                     info.isCheckable = true
                     info.isChecked = host.isSelected
                 }
             })
+            root.contentDescription = entry
             root.setOnClickListener { choose(index) }
             list.addView(root)
             rows += Row(root, outline, check, pictogram)
@@ -165,13 +170,43 @@ class VisualListPreferenceDialogFragment : MaterialPreferenceDialogFragmentCompa
             else HapticFeedbackConstants.CLOCK_TICK
         )
         row.pictogram.play()
+        // Saved at once: closing early, back or rotation must never lose the choice.
+        val value = entryValues[index].toString()
+        val preference = preference
+        if (preference.callChangeListener(value)) {
+            preference.value = value
+        }
         val dialog = dialog ?: return
-        val finish = {
-            onClick(dialog, DialogInterface.BUTTON_POSITIVE)
+        // The picture plays a moment before the dialog leaves; the dialog's own exit is the faster half.
+        if (animate) {
+            val close = Runnable { dialog.dismiss() }
+            closeRunnable = close
+            row.root.postDelayed(close, CLOSE_DELAY)
+        } else {
             dialog.dismiss()
         }
-        // The picture plays a moment before the dialog leaves; the dialog's own exit is the faster half.
-        if (animate) row.root.postDelayed({ finish() }, CLOSE_DELAY) else finish()
+    }
+
+    private fun cancelPending() {
+        closeRunnable?.let { close -> rows.forEach { it.root.removeCallbacks(close) } }
+        closeRunnable = null
+        rows.forEach {
+            it.pictogram.stop()
+            it.outline.animate().cancel()
+            it.check.animate().cancel()
+            it.root.animate().cancel()
+        }
+    }
+
+    override fun onDismiss(dialog: DialogInterface) {
+        cancelPending()
+        super.onDismiss(dialog)
+    }
+
+    override fun onDestroyView() {
+        cancelPending()
+        rows.clear()
+        super.onDestroyView()
     }
 
     private fun setSelected(row: Row, selected: Boolean, animate: Boolean) {
@@ -215,13 +250,7 @@ class VisualListPreferenceDialogFragment : MaterialPreferenceDialogFragmentCompa
     }
 
     override fun onDialogClosed(positiveResult: Boolean) {
-        if (positiveResult && checkedEntryIndex >= 0) {
-            val value = entryValues[checkedEntryIndex].toString()
-            val preference = preference
-            if (preference.callChangeListener(value)) {
-                preference.value = value
-            }
-        }
+        // The choice is saved in choose().
     }
 
     @Parcelize

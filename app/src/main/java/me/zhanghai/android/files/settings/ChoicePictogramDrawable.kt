@@ -261,7 +261,7 @@ class ChoicePictogramDrawable(
     }
 
     private fun drawBars(canvas: Canvas) {
-        val heights = if (kind == Kind.MOTION_OFF) floatArrayOf(12f, 12f, 12f) else floatArrayOf(12f, 20f, 28f)
+        val heights = if (kind == Kind.MOTION_OFF) HEIGHTS_OFF else HEIGHTS_ON
         val color = if (kind == Kind.MOTION_OFF) muted else accent
         val staggered = kind == Kind.MOTION_FULL
         val length = if (staggered) 260f / kind.duration else 1f
@@ -305,3 +305,6 @@ class ChoicePictogramDrawable(
     @Suppress("OVERRIDE_DEPRECATION")
     override fun getOpacity(): Int = PixelFormat.TRANSLUCENT
 }
+
+private val HEIGHTS_OFF = floatArrayOf(12f, 12f, 12f)
+private val HEIGHTS_ON = floatArrayOf(12f, 20f, 28f)
