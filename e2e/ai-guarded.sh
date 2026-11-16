@@ -62,7 +62,9 @@ ask() {
     ui tap commandEdit >/dev/null
     a shell input keycombination KEYCODE_CTRL_LEFT KEYCODE_A; a shell input keyevent KEYCODE_DEL
     a shell input text "'${1// /%s}'"
-    ui texts | grep -qF "$1|commandEdit|" || { echo "  typed text differs from: $1"; return 1; }
+    # the emulator keyboard may turn "ueber" into "über": compare with umlauts spelled out
+    ui texts | sed 's/ä/ae/g; s/ö/oe/g; s/ü/ue/g; s/Ä/Ae/g; s/Ö/Oe/g; s/Ü/Ue/g; s/ß/ss/g' | grep -qF "$1|commandEdit|" ||
+        { echo "  typed text differs from: $1"; ui texts | grep commandEdit | sed 's/^/    field: /'; return 1; }
     a shell input keyevent KEYCODE_ENTER
     ANSWER=""
     if [ "${2:-model}" = model ]; then
@@ -74,7 +76,12 @@ ask() {
     echo "  $1 -> ${ANSWER:-(no model call)}"
 }
 answer_json() { echo "${ANSWER#*: }"; }
-in_list() { wait_on filelist.FileListActivity 30 && ui wait "$1" 30; }
+in_list() {
+    wait_on filelist.FileListActivity 30 && ui wait "$1" 30 && return 0
+    echo "    on $(top); screen: $(ui texts | cut -d'|' -f1 | grep -v '^$' | head -12 | tr '\n' ';')"
+    log | grep -E "net |W CommandSheet" | tail -3 | sed 's/^/    /'
+    return 1
+}
 
 wake; grant
 a shell cmd locale set-app-locales "$PKG" --locales de-DE >/dev/null 2>&1
