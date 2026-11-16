@@ -41,7 +41,11 @@ data class CommandPlan(
     val minBytes: Long = 0,
     val maxBytes: Long = 0,
     /** Set by [CommandCheck] when the sentence asks for duplicates, never by the model. */
-    val duplicates: Boolean = false
+    val duplicates: Boolean = false,
+    /** Net designs only (CommandNetPlan): words that must all be in the file name, ä = a as in the lab. */
+    val nameTerms: List<String> = emptyList(),
+    /** Net designs only: words that must all be in the name or, for plain text files, in the text. */
+    val textTerms: List<String> = emptyList()
 ) {
     // The model only copies numbers and units, the app does the arithmetic.
     // Capped at 100 years, so a silly number can never wrap around into "every file".

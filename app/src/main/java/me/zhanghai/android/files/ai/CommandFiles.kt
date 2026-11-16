@@ -85,6 +85,8 @@ object CommandFiles {
     private fun ordered(files: List<File>, plan: CommandPlan, byName: Boolean): List<File> {
         val sorted = when {
             plan.sort == "size" -> files.sortedByDescending { it.length() }
+            plan.sort == "smallest" -> files.sortedBy { it.length() }
+            plan.sort == "oldest" -> files.sortedBy { it.lastModified() }
             plan.sort == "newest" || !byName -> files.sortedByDescending { it.lastModified() }
             else -> files
         }
@@ -111,6 +113,9 @@ object CommandFiles {
         }.timeInMillis
         private val word = plan.contentContains.trim()
         private val text = if (word.isEmpty()) null else ContentSearch(word, false, true)
+        private val nameTerms = plan.nameTerms.map { CommandNet.fold(it) }
+        private val textTerms = plan.textTerms.map { CommandNet.fold(it) to ContentSearch(it, false, true) }
+        private val excludeTerms = plan.excludeTerms.filter { it.isNotBlank() }.map { CommandNet.fold(it.trim()) }
 
         fun matches(file: File): Boolean =
             (extensions.isEmpty() || file.extension.lowercase(Locale.ROOT) in extensions) &&
@@ -119,9 +124,14 @@ object CommandFiles {
                 (plan.newerThanDays == 0 || file.lastModified() >= newerLimit) &&
                 (!plan.today || file.lastModified() >= midnight) &&
                 (plan.largerThanBytes == 0L || file.length() > plan.largerThanBytes) &&
-                (text == null || file.name.contains(word, true) || containsText(file)) &&
+                (text == null || file.name.contains(word, true) || containsText(file, text)) &&
                 file.extension.lowercase(Locale.ROOT) !in excluded &&
-                plan.excludeTerms.none { it.isNotBlank() && file.name.contains(it.trim(), true) } &&
+                // ä = a, ß = ss, as the lab matched (phase0.c_filters); only the net designs set terms
+                (excludeTerms.isEmpty() || CommandNet.fold(file.name).let { name -> excludeTerms.none { it in name } }) &&
+                (nameTerms.isEmpty() || CommandNet.fold(file.name).let { name -> nameTerms.all { it in name } }) &&
+                (textTerms.isEmpty() || CommandNet.fold(file.name).let { name ->
+                    textTerms.all { (term, search) -> term in name || containsText(file, search) }
+                }) &&
                 (from == 0L || file.lastModified() >= from) && (to == 0L || file.lastModified() < to) &&
                 (plan.minBytes == 0L || file.length() >= plan.minBytes) &&
                 (plan.maxBytes == 0L || file.length() <= plan.maxBytes)
@@ -132,7 +142,7 @@ object CommandFiles {
         var textCapped = false
         private var textLeft = MAX_TEXT_TOTAL
 
-        private fun containsText(file: File): Boolean {
+        private fun containsText(file: File, search: ContentSearch): Boolean {
             if (file.extension.lowercase(Locale.ROOT) !in TEXT_EXTENSIONS || file.length() > MAX_TEXT_SIZE) return false
             if (textLeft < file.length()) {
                 textCapped = true
@@ -141,7 +151,7 @@ object CommandFiles {
             textLeft -= file.length()
             textReads.incrementAndGet()
             return try {
-                file.inputStream().use { text!!.contentMatches(it) }
+                file.inputStream().use { search.contentMatches(it) }
             } catch (e: java.io.IOException) {
                 false
             }

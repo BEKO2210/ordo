@@ -63,7 +63,8 @@ object CommandCheck {
         "kamera" to "DCIM/Camera", "camera" to "DCIM/Camera", "dcim" to "DCIM"
     )
 
-    fun check(text: String, model: CommandPlan, here: File?, root: File): Outcome {
+    /** [paths]: the net designs give folders as paths below [root] ("DCIM/Camera"), already read against the tree. */
+    fun check(text: String, model: CommandPlan, here: File?, root: File, paths: Boolean = false): Outcome {
         if (model.action !in ACTIONS) {
             return Outcome.Refused(Reason.UNSUPPORTED)
         }
@@ -81,7 +82,7 @@ object CommandCheck {
         if ('\\' in plan.source || '\\' in plan.destination) {
             return Outcome.Refused(Reason.PROTECTED_FOLDER)
         }
-        val sources = resolveAll(plan.source, here, root)
+        val sources = resolveAll(plan.source, here, root, paths)
         if (sources.size > 1) {
             return Outcome.AskFolder(plan, forDestination = false, candidates = sources)
         }
@@ -95,7 +96,7 @@ object CommandCheck {
         if (normalize(plan.destination) in HERE && here == null) {
             return Outcome.AskFolder(plan, forDestination = true)
         }
-        val destinations = resolveAll(plan.destination, here, root)
+        val destinations = resolveAll(plan.destination, here, root, paths)
         if (destinations.size > 1) {
             return Outcome.AskFolder(plan, forDestination = true, candidates = destinations)
         }
@@ -121,7 +122,8 @@ object CommandCheck {
             plan.contentContains.isBlank() && plan.olderThanDays == 0 && plan.newerThanDays == 0 && !plan.today &&
             plan.largerThanBytes == 0L && !plan.duplicates && plan.limit == 0 && plan.excludeKinds.isEmpty() &&
             plan.excludeExtensions.isEmpty() && plan.excludeTerms.isEmpty() && plan.dateFrom.isBlank() &&
-            plan.dateTo.isBlank() && plan.minBytes == 0L && plan.maxBytes == 0L
+            plan.dateTo.isBlank() && plan.minBytes == 0L && plan.maxBytes == 0L && plan.nameTerms.isEmpty() &&
+            plan.textTerms.isEmpty()
         val dir = source.canonicalFile
         val top = dir == root.canonicalFile || dir.parentFile == root.canonicalFile
         return count > MANY_FILES || unfiltered && top
@@ -164,7 +166,7 @@ object CommandCheck {
     fun resolve(name: String, here: File?, root: File): File? = resolveAll(name, here, root).firstOrNull()
 
     /** Every folder of that name on the shallowest level that has one; more than one means ambiguous. */
-    fun resolveAll(name: String, here: File?, root: File): List<File> {
+    fun resolveAll(name: String, here: File?, root: File, paths: Boolean = false): List<File> {
         val key = normalize(name)
         if (key in HERE) {
             return listOfNotNull(here)
@@ -174,6 +176,11 @@ object CommandCheck {
         if (clean.startsWith("/")) {
             return listOfNotNull(
                 File(clean).canonicalFile.takeIf { it.isDirectory && it.path.startsWith(root.canonicalPath + "/") }
+            )
+        }
+        if (paths && '/' in clean) {
+            return listOfNotNull(
+                File(root, clean).canonicalFile.takeIf { it.isDirectory && it.path.startsWith(root.canonicalPath + "/") }
             )
         }
         // Breadth first, three levels deep, so nested folders such as "Projekte/2026/Fertig" are found.

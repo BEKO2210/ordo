@@ -7,6 +7,7 @@ package me.zhanghai.android.files.ai
 
 import android.content.Context
 import me.zhanghai.android.files.BuildConfig
+import java.time.LocalDateTime
 
 /**
  * Prompt, grammar and word rules as one swappable unit, so a reworked design (docs/KI-ZEIGEN-PHASE0B.md, Phase 0c)
@@ -24,6 +25,14 @@ interface CommandDesign {
 
     /** The model's plan with what the words decide put right. */
     fun fix(text: String, plan: CommandPlan, folders: List<String>): CommandPlan
+
+    /**
+     * The net designs decide the whole answer from the model's JSON [answer] (null: before the model, only a refusal
+     * can come back) and the phone's folders; [count] is how many files a plan finds. Null for the older designs,
+     * which use [route] and [fix].
+     */
+    fun decide(text: String, answer: String?, folders: List<String>, now: LocalDateTime, count: (CommandPlan) -> Int)
+        : NetOutcome? = null
 
     /** The shipped design: move, copy, delete, organize; no rules, no "show". */
     object Today : CommandDesign {
@@ -44,6 +53,39 @@ interface CommandDesign {
         override fun fix(text: String, plan: CommandPlan, folders: List<String>) = CommandRules.fix(text, plan, folders)
     }
 
+    /**
+     * Prompt C + the frozen net rules2.decide (lab 430da086), with "show". Blind tests on the lab phone: 29/50 (blind 2)
+     * and 45/60 (blind 3) correct, 0 dangerous; today's design 16/50 and 11/60 with 8 and 15 dangerous plans.
+     * Debug builds only until [RELEASE_GUARDED] is switched on.
+     */
+    object Guarded : CommandDesign {
+        override val system = CommandNetLexicon.SYSTEM_C
+        override val grammar = CommandNetLexicon.GRAMMAR_C
+        override fun route(text: String): CommandRules.Route? = null
+        override fun fix(text: String, plan: CommandPlan, folders: List<String>) = plan
+        override fun decide(text: String, answer: String?, folders: List<String>, now: LocalDateTime, count: (CommandPlan) -> Int) =
+            CommandNetPlan.guarded(text, answer, folders, now, count)
+    }
+
+    /**
+     * The fine-tuned model (LoRA adapter, schema L, short prompt) + the frozen net rules3.decide (lab 13bfbed9). Debug
+     * builds only: blind test 3 gave 44/60 (0 dangerous), below the 80 % the owner asked for; the adapter is not
+     * published yet (a download answers 404, the sheet says so).
+     */
+    object Tuned : CommandDesign {
+        override val system = CommandNetLexicon.SYSTEM_LORA
+        override val grammar = CommandNetLexicon.GRAMMAR_L
+        // The only part a retrained adapter changes (same prompt, grammar and net): file name, size, hash, address.
+        override val adapter = CommandModel.Part(
+            "ordo-commands-1.gguf", 42_485_408L, "30ac6052cf23a0052262f52c44dbd860533b164db33c599a76a674a2f84ede64",
+            "https://github.com/BEKO2210/ordo/releases/download/ai-adapter-1/ordo-commands-1.gguf"
+        )
+        override fun route(text: String): CommandRules.Route? = null
+        override fun fix(text: String, plan: CommandPlan, folders: List<String>) = plan
+        override fun decide(text: String, answer: String?, folders: List<String>, now: LocalDateTime, count: (CommandPlan) -> Int) =
+            CommandNetPlan.tuned(text, answer, folders, now)
+    }
+
     /** A design with an adapter added; everything else as [base]. Debug builds only, until an adapter ships. */
     class WithAdapter(base: CommandDesign, override val adapter: CommandModel.Part) : CommandDesign by base
 
@@ -51,12 +93,26 @@ interface CommandDesign {
         private const val PREFS = "ai_debug"
         private const val KEY_SHOW = "show_design"
         private const val KEY_ADAPTER = "adapter"
+        private const val KEY_DESIGN = "design"
 
-        // BuildConfig.DEBUG is a constant: in a release build this is always Today and the switch is compiled out.
+        /**
+         * THE release switch: true makes [Guarded] (prompt C + net, with "show") the design of release builds. Off until
+         * the review; with it off, release builds run [Today] exactly as before. A debug build follows it too, unless
+         * DebugAiActivity picked a design.
+         */
+        const val RELEASE_GUARDED = false
+
+        // BuildConfig.DEBUG is a constant: in a release build only the switch above counts, the rest is compiled out.
         fun current(context: Context): CommandDesign {
-            if (!BuildConfig.DEBUG) return Today
+            if (!BuildConfig.DEBUG) return if (RELEASE_GUARDED) Guarded else Today
             val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-            val base = if (prefs.getBoolean(KEY_SHOW, false)) KR else Today
+            val base = when (prefs.getString(KEY_DESIGN, null)) {
+                "today" -> Today
+                "kr" -> KR
+                "guarded" -> Guarded
+                "tuned" -> Tuned
+                else -> if (prefs.getBoolean(KEY_SHOW, false)) KR else if (RELEASE_GUARDED) Guarded else Today
+            }
             return prefs.getString(KEY_ADAPTER, null)?.let { parseAdapter(it) }?.let { WithAdapter(base, it) } ?: base
         }
 
@@ -73,6 +129,13 @@ interface CommandDesign {
                 .apply { if (spec.isEmpty()) remove(KEY_ADAPTER) else putString(KEY_ADAPTER, spec) }
                 // commit: the activity finishes at once, and adb may stop the app right after (an apply would be lost).
                 .commit()
+        }
+
+        /** Debug builds only (DebugAiActivity): today, kr, guarded or tuned; "" goes back to the default. */
+        fun setDesign(context: Context, name: String) {
+            if (!BuildConfig.DEBUG) return
+            context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
+                .apply { if (name.isEmpty()) remove(KEY_DESIGN) else putString(KEY_DESIGN, name) }.commit()
         }
 
         /** Debug builds only (DebugAiActivity): turns K+R with "show" on or off for real model commands. */
