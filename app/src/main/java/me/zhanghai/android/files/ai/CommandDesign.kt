@@ -16,6 +16,9 @@ interface CommandDesign {
     val system: String
     val grammar: String
 
+    /** A LoRA adapter for the model, downloaded and checked with it; null for the base model alone. */
+    val adapter: CommandModel.Part? get() = null
+
     /** An answer without the model (a refusal or an existing screen), or null to ask the model. */
     fun route(text: String): CommandRules.Route?
 
@@ -41,14 +44,34 @@ interface CommandDesign {
         override fun fix(text: String, plan: CommandPlan, folders: List<String>) = CommandRules.fix(text, plan, folders)
     }
 
+    /** A design with an adapter added; everything else as [base]. Debug builds only, until an adapter ships. */
+    class WithAdapter(base: CommandDesign, override val adapter: CommandModel.Part) : CommandDesign by base
+
     companion object {
         private const val PREFS = "ai_debug"
         private const val KEY_SHOW = "show_design"
+        private const val KEY_ADAPTER = "adapter"
 
         // BuildConfig.DEBUG is a constant: in a release build this is always Today and the switch is compiled out.
-        fun current(context: Context): CommandDesign =
-            if (BuildConfig.DEBUG && context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getBoolean(KEY_SHOW, false)) KR
-            else Today
+        fun current(context: Context): CommandDesign {
+            if (!BuildConfig.DEBUG) return Today
+            val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            val base = if (prefs.getBoolean(KEY_SHOW, false)) KR else Today
+            return prefs.getString(KEY_ADAPTER, null)?.let { parseAdapter(it) }?.let { WithAdapter(base, it) } ?: base
+        }
+
+        /** "file name,size,sha256[,url]", as DebugAiActivity takes it; null when malformed. */
+        internal fun parseAdapter(spec: String): CommandModel.Part? = spec.split(',').let { f ->
+            if (f.size !in 3..4) null
+            else runCatching { CommandModel.Part(f[0], f[1].toLong(), f[2], f.getOrElse(3) { "" }) }.getOrNull()
+        }
+
+        /** Debug builds only (DebugAiActivity): an adapter for the current design, or none with an empty [spec]. */
+        fun setAdapter(context: Context, spec: String) {
+            if (!BuildConfig.DEBUG) return
+            context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
+                .apply { if (spec.isEmpty()) remove(KEY_ADAPTER) else putString(KEY_ADAPTER, spec) }.apply()
+        }
 
         /** Debug builds only (DebugAiActivity): turns K+R with "show" on or off for real model commands. */
         fun setShowEnabled(context: Context, enabled: Boolean) {

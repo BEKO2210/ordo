@@ -33,6 +33,7 @@ struct Engine {
     llama_model *model = nullptr;
     llama_context *ctx = nullptr;
     const llama_vocab *vocab = nullptr;
+    llama_adapter_lora *adapter = nullptr;
     std::vector<uint8_t> snapshot;
     std::atomic<bool> cancelled{false};
 };
@@ -90,7 +91,7 @@ extern "C" {
 
 JNIEXPORT jlong JNICALL
 Java_me_zhanghai_android_files_llm_LlamaEngine_nativeLoad(JNIEnv *env, jclass, jbyteArray path,
-                                                         jint threads, jint contextSize) {
+                                                         jint threads, jint contextSize, jbyteArray adapterPath) {
     llama_backend_init();
     llama_model_params modelParams = llama_model_default_params();
     modelParams.n_gpu_layers = 0;
@@ -111,9 +112,24 @@ Java_me_zhanghai_android_files_llm_LlamaEngine_nativeLoad(JNIEnv *env, jclass, j
         llama_model_free(model);
         return 0;
     }
+    // An optional LoRA adapter at scale 1. One that does not load fails the whole load: answers without it would
+    // silently come from another model than the design was made for.
+    llama_adapter_lora *adapter = nullptr;
+    if (adapterPath != nullptr) {
+        adapter = llama_adapter_lora_init(model, toString(env, adapterPath).c_str());
+        float scale = 1.0f;
+        if (adapter == nullptr || llama_set_adapters_lora(ctx, &adapter, 1, &scale) != 0) {
+            LOGE("adapter load failed");
+            if (adapter != nullptr) llama_adapter_lora_free(adapter);
+            llama_free(ctx);
+            llama_model_free(model);
+            return 0;
+        }
+    }
     auto *engine = new Engine();
     engine->model = model;
     engine->ctx = ctx;
+    engine->adapter = adapter;
     engine->vocab = llama_model_get_vocab(model);
     return reinterpret_cast<jlong>(engine);
 }
@@ -298,6 +314,8 @@ JNIEXPORT void JNICALL
 Java_me_zhanghai_android_files_llm_LlamaEngine_nativeFree(JNIEnv *, jclass, jlong handle) {
     auto *engine = reinterpret_cast<Engine *>(handle);
     llama_free(engine->ctx);
+    // Before the model: an adapter belongs to it.
+    if (engine->adapter != nullptr) llama_adapter_lora_free(engine->adapter);
     llama_model_free(engine->model);
     delete engine;
 }

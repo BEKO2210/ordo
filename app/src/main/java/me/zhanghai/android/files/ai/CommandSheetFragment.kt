@@ -151,7 +151,7 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
         val restoredPending = state?.getBoolean(STATE_PENDING) == true
         val context = requireContext().applicationContext
         viewLifecycleOwner.lifecycleScope.launch {
-            val modelState = withContext(Dispatchers.IO) { CommandModel.state(context) }
+            val modelState = withContext(Dispatchers.IO) { CommandModel.state(context, design) }
             if (modelState == CommandModel.State.Ready) {
                 showInput()
                 warmUp()
@@ -214,13 +214,13 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
             followDownload()
             return
         }
-        val check = CommandModel.check(context)
+        val check = CommandModel.check(context, design)
         bindCheck(binding.checkRam, check.ramOk, getString(
             R.string.ai_check_ram, gigabytes(check.ramBytes), gigabytes(CommandModel.MIN_RAM)
         ))
         bindCheck(binding.checkSpace, check.spaceOk, getString(
             R.string.ai_check_space, gigabytes(check.freeBytes),
-            gigabytes(CommandModel.SIZE + CommandModel.SPARE_SPACE)
+            gigabytes(check.needBytes + CommandModel.SPARE_SPACE)
         ))
         bindCheck(binding.checkDevice, check.is64Bit && check.dotProd, getString(when {
             !check.is64Bit -> R.string.ai_check_device_bad
@@ -246,7 +246,7 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
             binding.mobileDataButton.isVisible = false
             return
         }
-        binding.setupButton.text = getString(R.string.ai_setup_download, gigabytes(CommandModel.SIZE))
+        binding.setupButton.text = getString(R.string.ai_setup_download, gigabytes(CommandModel.missingBytes(context, design)))
         binding.setupButton.setOnClickListener { startDownload(mobileData = false) }
         binding.mobileDataButton.isVisible = true
         binding.mobileDataButton.setOnClickListener { startDownload(mobileData = true) }
@@ -254,7 +254,7 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
 
     private fun startDownload(mobileData: Boolean) {
         val context = requireContext().applicationContext
-        if (CommandModel.startDownload(context, mobileData)) {
+        if (CommandModel.startDownload(context, mobileData, design)) {
             followDownload()
         } else {
             downloadStopped(R.string.ai_download_failed)
@@ -301,7 +301,7 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
             var lastTime = 0L
             var rate = 0.0
             while (isActive) {
-                when (val state = withContext(Dispatchers.IO) { CommandModel.state(context) }) {
+                when (val state = withContext(Dispatchers.IO) { CommandModel.state(context, design) }) {
                     is CommandModel.State.Downloading -> {
                         val now = System.nanoTime()
                         if (lastBytes >= 0 && state.bytes > lastBytes) {
@@ -331,7 +331,7 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
                         binding.percentText.isVisible = false
                         binding.downloadProgress.isIndeterminate = true
                         binding.downloadText.setText(R.string.ai_verifying)
-                        if (CommandModel.verify(context)) {
+                        if (CommandModel.verify(context, design)) {
                             binding.phaseText.setText(R.string.ai_phase_ready)
                             binding.setupOrb.thinking = false
                             binding.setupOrb.celebrate()
@@ -383,7 +383,7 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
     private fun confirmRemoveModel() {
         com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
             .setTitle(R.string.ai_remove_title)
-            .setMessage(getString(R.string.ai_remove_text, gigabytes(CommandModel.SIZE)))
+            .setMessage(getString(R.string.ai_remove_text, gigabytes(CommandModel.parts(design).sumOf { it.size })))
             .setNegativeButton(android.R.string.cancel, null)
             .setPositiveButton(R.string.ai_remove_confirm) { _, _ ->
                 val context = requireContext().applicationContext

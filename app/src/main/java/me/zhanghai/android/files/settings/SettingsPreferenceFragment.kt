@@ -19,6 +19,7 @@ import kotlinx.coroutines.withContext
 import me.zhanghai.android.files.BuildConfig
 import me.zhanghai.android.files.R
 import me.zhanghai.android.files.about.AboutActivity
+import me.zhanghai.android.files.ai.CommandDesign
 import me.zhanghai.android.files.ai.CommandModel
 import me.zhanghai.android.files.ai.CommandSheetFragment
 import me.zhanghai.android.files.backup.BackupActivity
@@ -88,10 +89,11 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         }
         val context = requireContext().applicationContext
         viewLifecycleOwner.lifecycleScope.launch {
-            val state = withContext(Dispatchers.IO) { CommandModel.state(context) }
+            val design = CommandDesign.current(context)
+            val state = withContext(Dispatchers.IO) { CommandModel.state(context, design) }
             preference.summary = when (state) {
                 CommandModel.State.Ready -> getString(R.string.settings_ai_model_ready,
-                    CommandModel.SIZE.asFileSize().formatHumanReadable(context))
+                    CommandModel.parts(design).sumOf { it.size }.asFileSize().formatHumanReadable(context))
                 is CommandModel.State.Downloading -> getString(R.string.settings_ai_model_downloading,
                     if (state.total > 0) (state.bytes * 100 / state.total).toInt() else 0)
                 CommandModel.State.Verifying -> getString(R.string.settings_ai_model_verifying)

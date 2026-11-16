@@ -36,6 +36,7 @@ object CommandEngine {
     private var engine: LlamaEngine? = null
     private var loadedThreads = 0
     private var loadedSystem = ""
+    private var loadedAdapter: String? = null
     private var unloadJob: Job? = null
 
     val isLoaded: Boolean
@@ -79,17 +80,23 @@ object CommandEngine {
         unloadJob?.cancel()
         val threads = threadsFor(Settings.AI_SPEED.valueCompat, fastCores(), Runtime.getRuntime().availableProcessors())
         engine?.let {
-            if (loadedThreads == threads && loadedSystem == design.system) return it.also { scheduleUnload() }
-            // The speed setting or the prompt changed: load again.
+            if (loadedThreads == threads && loadedSystem == design.system && loadedAdapter == design.adapter?.sha256) {
+                return it.also { scheduleUnload() }
+            }
+            // The speed setting, the prompt or the adapter changed: load again.
             close()
         }
         val file = CommandModel.file(context.applicationContext)
+        // The sheet only gets here after CommandModel.verify() checked the model and the adapter (size and hash).
+        val adapter = design.adapter?.let { CommandModel.file(context.applicationContext, it) }
         val loadStarted = SystemClock.elapsedRealtime()
-        val loaded = LlamaEngine.load(file.path, threads, CONTEXT_SIZE)
+        val loaded = LlamaEngine.load(file.path, threads, CONTEXT_SIZE, adapter?.path)
             ?: throw IOException("model load failed")
-        Log.i(TAG, "model loaded with $threads threads in ${SystemClock.elapsedRealtime() - loadStarted} ms")
+        Log.i(TAG, "model loaded with $threads threads in ${SystemClock.elapsedRealtime() - loadStarted} ms" +
+            (design.adapter?.let { ", adapter ${it.sha256}" } ?: ""))
         loadedThreads = threads
         loadedSystem = design.system
+        loadedAdapter = design.adapter?.sha256
         // A saved prompt state skips reading the prompt again (the slow part of a cold start). It is keyed by
         // model, prompt, grammar, context size and app version, so a change in any of them never loads it.
         val state = stateFile(context.applicationContext, design)
@@ -117,8 +124,9 @@ object CommandEngine {
     fun stateDir(context: Context): File = File(context.noBackupFilesDir, "llm-state")
 
     private fun stateFile(context: Context, design: CommandDesign): File {
-        val key = listOf(CommandModel.SHA256, CommandPlanner.prefix(design.system), design.grammar, CONTEXT_SIZE,
-            BuildConfig.VERSION_CODE).joinToString("\u0000")
+        // The adapter changes every saved number, so its hash is part of the key; without one the key is as before.
+        val key = (listOf(CommandModel.SHA256, CommandPlanner.prefix(design.system), design.grammar, CONTEXT_SIZE,
+            BuildConfig.VERSION_CODE) + listOfNotNull(design.adapter?.sha256)).joinToString("\u0000")
         val hash = MessageDigest.getInstance("SHA-256").digest(key.toByteArray()).joinToString("") { "%02x".format(it) }
         return File(stateDir(context), "prompt-${hash.take(32)}.state")
     }

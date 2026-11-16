@@ -18,6 +18,8 @@ import me.zhanghai.android.files.app.AppActivity
  *       --es text "zeig mir die videos über 500 mb" --es answer '{"action":"show","kinds":["video"]}'
  *
  * `--ez show_design true|false` instead switches the K+R design with "show" on or off for real model commands.
+ * `--es adapter "<file name>,<size>,<sha256>"` gives the current design a LoRA adapter in the model folder (checked by
+ * size and hash like the model); `--es adapter ""` removes it again.
  * `--es golden <file in the app's external files dir>` runs CommandRulesGoldenTest's fixture through the rules on
  * the device (Android's regex engine is ICU, not the JVM's) and logs "OrdoGolden: n/m equal".
  */
@@ -26,6 +28,11 @@ class DebugAiActivity : AppActivity() {
         super.onCreate(savedInstanceState)
         if (intent.hasExtra(EXTRA_SHOW_DESIGN)) {
             CommandDesign.setShowEnabled(this, intent.getBooleanExtra(EXTRA_SHOW_DESIGN, false))
+            finish()
+            return
+        }
+        intent.getStringExtra(EXTRA_ADAPTER)?.let {
+            CommandDesign.setAdapter(this, it)
             finish()
             return
         }
@@ -76,5 +83,6 @@ class DebugAiActivity : AppActivity() {
         const val EXTRA_TEXT = "text"
         const val EXTRA_ANSWER = "answer"
         const val EXTRA_SHOW_DESIGN = "show_design"
+        const val EXTRA_ADAPTER = "adapter"
     }
 }

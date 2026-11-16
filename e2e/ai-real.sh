@@ -52,6 +52,7 @@ ask() {
 answer_json() { echo "${ANSWER#*: }"; }
 back_to_input() { ui has editButton && ui tap editButton >/dev/null; sleep 1; }
 no_confirm() { ! ui wait confirmButton 8; }
+not() { ! "$@"; }
 on_screen() { a shell uiautomator dump /sdcard/ordoai-ui.xml >/dev/null 2>&1; a shell cat /sdcard/ordoai-ui.xml | grep -qE "$1"; }
 logged() { log | grep -qE "$1"; }
 not_logged() { ! log | grep -qE "$1"; }
@@ -77,11 +78,11 @@ log | grep -E "loaded|saved|restored|read in" | sed 's/^/  /'
 before=$(listing)
 ask "Verschiebe alle PDFs aus Download nach Documents"
 check "move PDFs: preview with confirm" ui wait confirmButton 20
-check "move PDFs: the PDF is listed" ui has ordoai_handbuch.pdf
+check "move PDFs: the PDF is listed" on_screen ordoai_handbuch.pdf
 shot ai-real-move; first=$(answer_json); back_to_input
 ask "Entferne alle APKs in Download"
 check "delete APKs: preview with the confirm button" ui wait confirmButton 20
-check "delete APKs: the APK is listed" ui has ordoai_spiel.apk
+check "delete APKs: the APK is listed" on_screen ordoai_spiel.apk
 check "delete APKs: the trash note" ui has noteText
 shot ai-real-delete; back_to_input
 ask "Sortiere den Ordner Download nach Typ"
@@ -97,7 +98,9 @@ check "nothing changed on disk without a confirm" test "$(listing)" = "$before"
 
 # --- one confirmed move on the script's own files
 ask "Verschiebe alle PDFs aus OrdoKiTest nach OrdoKiZiel"
-check "move OrdoKiTest: preview lists the PDFs" ui wait ordoai_rechnung.pdf 20
+ui wait confirmButton 20 >/dev/null
+# The preview lists the names as lines of one text, so look for them inside it (ui.py matches whole texts).
+check "move OrdoKiTest: preview lists both PDFs" on_screen "ordoai_rechnung.pdf.*ordoai_vertrag.pdf|ordoai_vertrag.pdf.*ordoai_rechnung.pdf"
 ui tap confirmButton >/dev/null; sleep 4
 check "the PDFs are in OrdoKiZiel" a shell "[ -f $Z/ordoai_rechnung.pdf ] && [ -f $Z/ordoai_vertrag.pdf ]"
 check "the txt stayed" a shell "[ -f $T/ordoai_notiz.txt ] && [ ! -f $T/ordoai_rechnung.pdf ]"
@@ -140,7 +143,36 @@ check "and the state is not written again" test -z "$(run_as ls "$STATE" | grep 
 ask "Verschiebe alle PDFs aus Download nach Documents"
 check "same answer after the damaged state" test "$(answer_json)" = "$with"
 
+# --- ADAPTER=<a LoRA GGUF for this model> (optional): a debug design with the adapter on top of Today
+if [ -f "${ADAPTER:-}" ]; then
+    LORA=ordoai-test-adapter.gguf; SPEC="$LORA,$(stat -c %s "$ADAPTER"),$(sha256sum "$ADAPTER" | cut -c1-64)"
+    lora() { a shell am start -W -n "$PKG/$DEBUG" --es adapter "'$1'" >/dev/null; }
+    a push "$ADAPTER" "${TARGET%/*}/$LORA" >/dev/null
+    lora "$SPEC"
+    cold
+    check "the adapter loads (its hash in the log)" logged "adapter ${SPEC##*,}"
+    check "the adapter gets its own prompt state, not the base one" not_logged "prompt state restored"
+    ask "Verschiebe alle PDFs aus Download nach Documents"
+    check "an answer with the adapter" test -n "$(answer_json)"
+    [ "$(answer_json)" = "$with" ] && echo "  (same answer as the base model for this command)" \
+        || echo "  (differs from the base model's answer)"
+    cold
+    check "the adapter's own state is restored on the next start" logged "prompt state restored"
+    # A wrong hash: the file is refused like a damaged download, removed, and the sheet says so.
+    a push "$ADAPTER" "${TARGET%/*}/$LORA" >/dev/null
+    lora "$LORA,$(stat -c %s "$ADAPTER"),$(printf '0%.0s' $(seq 64))"
+    a shell am force-stop "$PKG"; a logcat -c; launch; ui tap assistantButton >/dev/null
+    check "a wrong-hash adapter is refused with a message" ui wait "Der Download war beschädigt und wurde entfernt. Bitte versuch es noch einmal.|The download was damaged and has been removed. Please try again." 300
+    check "and removed" not a shell "[ -f '${TARGET%/*}/$LORA' ]"
+    check "the model stays" a shell "[ -f '$TARGET' ]"
+    lora ""
+    cold
+    check "without the adapter the base design runs again" not_logged "adapter "
+    ask "Verschiebe alle PDFs aus Download nach Documents"
+    check "with the base answer as before" test "$(answer_json)" = "$with"
+fi
+
 a shell am force-stop "$PKG"
 run_as rm -rf "$STATE"
-a shell "rm -rf $T $Z /sdcard/ordoai-ui.xml; rm -f $D/ordoai_*"
+a shell "rm -rf $T $Z /sdcard/ordoai-ui.xml; rm -f $D/ordoai_* '${TARGET%/*}/ordoai-test-adapter.gguf'"
 finish

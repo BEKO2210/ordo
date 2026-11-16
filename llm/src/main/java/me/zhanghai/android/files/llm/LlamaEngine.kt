@@ -66,16 +66,18 @@ class LlamaEngine private constructor(@Volatile private var handle: Long) : Clos
             }
         }
 
-        fun load(path: String, threads: Int, contextSize: Int): LlamaEngine? {
+        /** [adapterPath]: an optional LoRA adapter for this model, applied at scale 1; null when it does not load. */
+        fun load(path: String, threads: Int, contextSize: Int, adapterPath: String? = null): LlamaEngine? {
             if (!isSupported) {
                 return null
             }
-            val handle = nativeLoad(path.toByteArray(Charsets.UTF_8), threads, contextSize)
+            val handle = nativeLoad(path.toByteArray(Charsets.UTF_8), threads, contextSize,
+                adapterPath?.toByteArray(Charsets.UTF_8))
             return if (handle != 0L) LlamaEngine(handle) else null
         }
 
         @JvmStatic
-        private external fun nativeLoad(path: ByteArray, threads: Int, contextSize: Int): Long
+        private external fun nativeLoad(path: ByteArray, threads: Int, contextSize: Int, adapterPath: ByteArray?): Long
 
         @JvmStatic
         private external fun nativePrepare(handle: Long, prefix: ByteArray): Boolean
