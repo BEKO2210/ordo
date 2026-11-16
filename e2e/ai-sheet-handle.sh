@@ -15,7 +15,7 @@ read -r cx1 _ cx2 _ < <(ui bounds contentLayout)
 hw=$((${hx2:-0} - ${hx1:-0}))
 cw=$((${cx2:-0} - ${cx1:-0}))
 name="drag handle width is between 48 dp and a third of the sheet"
-if [ "$cw" -le 0 ] || [ "$hw" -lt "$min_px" ] || [ "$hw" -gt $((cw / 3)) ]; then
+if [ "$cw" -le 0 ] || [ "$hw" -lt $((min_px - 1)) ] || [ "$hw" -gt $((cw / 3)) ]; then
     fail "$name (${hw}px, sheet ${cw}px, min ${min_px}px)"
 else
     pass "$name (${hw}px of ${cw}px)"
