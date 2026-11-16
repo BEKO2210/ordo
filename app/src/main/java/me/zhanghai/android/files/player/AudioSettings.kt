@@ -63,12 +63,11 @@ enum class EqualizerPreset(val gainsDb: List<Float>) {
     JAZZ(gains(4, 3, 1, 2, -1, -1, 1, 3, 4, 5)),
     CLASSICAL(gains(5, 4, 3, 1, -1, -1, 0, 2, 4, 5)),
     LOUDNESS_AT_NIGHT(gains(-4, -3, -2, 0, 2, 3, 3, 1, -1, -3)),
-    CUSTOM(gains(0, 0, 0, 0, 0, 0, 0, 0, 0, 0));
-
-    companion object {
-        private fun gains(vararg values: Int) = values.map(Int::toFloat)
-    }
+    CUSTOM(gains(0, 0, 0, 0, 0, 0, 0, 0, 0, 0))
 }
+
+// Top level, not in the companion: enum entries are built before their companion object exists.
+private fun gains(vararg values: Int) = values.map(Int::toFloat)
 
 /** Pure codec kept separate from SharedPreferences so corrupt or newer settings degrade to safe defaults. */
 object AudioSettingsCodec {

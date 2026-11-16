@@ -107,7 +107,8 @@ class SoundEffectController {
                 channel == 1 && currentSettings.balance < 0 -> 60f * currentSettings.balance / 100f
                 else -> 0f
             }
-            effect.setInputGainByChannelIndex(channel, inputGainDb + balanceAttenuation)
+            // https://developer.android.com/reference/android/media/audiofx/DynamicsProcessing#setInputGainbyChannel(int,%20float)
+            effect.setInputGainbyChannel(channel, inputGainDb + balanceAttenuation)
         }
         effect.enabled = currentSettings.equalizerEnabled || inputGainDb != 0f || currentSettings.balance != 0
         return true
