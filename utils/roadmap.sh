@@ -108,7 +108,7 @@ cell "Stand der Technik für Medien belegt" \
     "Für Musik, Video, PDF, Markdown und Office je Baustein: beste Bibliothek, Version, Lizenz (verträglich mit GPL-3.0), 16-KB-Seiten, Quelle an der Originalstelle geprüft. Keine Blogs. Ergebnis in docs/MEDIEN-RECHERCHE.md."
 cell "Musik-Player: Audio direkt in Ordo abspielen" \
     "ls app/src/main/java/me/zhanghai/android/files/viewer/audio/*.kt >/dev/null 2>&1 && grep -q 'mediaPlayback' app/src/main/AndroidManifest.xml" \
-    "MP3 und alle gängigen Formate, Wiedergabe im Hintergrund mit Benachrichtigung, Sperrbildschirm und Kopfhörertasten, Warteschlange, lückenlos, Titelbild und Texte. Auf Pixel und Tab geprüft." \
+    "MP3 und alle gängigen Formate, Wiedergabe im Hintergrund mit Benachrichtigung, Sperrbildschirm und Kopfhörertasten, Warteschlange, lückenlos, Titelbild und Texte; Equalizer (10 Bänder, Voreinstellungen), Bassverstärkung, Lautstärkeausgleich (ReplayGain), Tempo mit gleicher Tonhöhe, Stille überspringen, Schlaf-Timer, Mono und Balance. Auf Pixel und Tab geprüft." \
     "Stand der Technik für Medien belegt"
 cell "Musik-Player als eigenes App-Symbol zum Einschalten" \
     "grep -q 'activity-alias' app/src/main/AndroidManifest.xml && grep -rq 'setComponentEnabledSetting' app/src/main/java/me/zhanghai/android/files/" \
