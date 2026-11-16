@@ -1,4 +1,5 @@
 New in this test build:
 • To try (Settings › AI assistant › "Try new commands", off by default): Ordo finds and shows files ("Show me the PDFs from last week", "Where is my invoice?"), understands time and size and asks back when unsure
 • It is a preview and can be wrong. Nothing changes without your confirmation
+• The AI sheet is now easy to read on every device
 Please send us sentences Ordo gets wrong: nullmesh@protonmail.com

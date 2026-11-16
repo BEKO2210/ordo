@@ -18,9 +18,12 @@
         android:paddingHorizontal="24dp"
         android:paddingBottom="24dp">
 
+        <!-- Only as wide as its touch target: with a keyboard its focus highlight was a band across the sheet. -->
         <com.google.android.material.bottomsheet.BottomSheetDragHandleView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:minWidth="48dp" />
 
         <LinearLayout
             android:id="@+id/headerLayout"

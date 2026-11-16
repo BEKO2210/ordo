@@ -7,6 +7,7 @@ package me.zhanghai.android.files.ai
 
 import android.content.Context
 import android.content.res.ColorStateList
+import android.graphics.drawable.GradientDrawable
 import android.os.Build
 import android.os.Bundle
 import android.os.SystemClock
@@ -26,6 +27,7 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.TextView
 import android.widget.Toast
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.ColorUtils
 import androidx.core.view.isVisible
 import androidx.core.widget.TextViewCompat
 import androidx.lifecycle.lifecycleScope
@@ -193,11 +195,18 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
         val dialog = dialog as BottomSheetDialog
         dialog.behavior.skipCollapsed = true
         dialog.behavior.state = BottomSheetBehavior.STATE_EXPANDED
-        dialog.findViewById<View>(com.google.android.material.R.id.design_bottom_sheet)
-            ?.setBackgroundResource(R.drawable.ai_sheet_background)
+        val sheet = dialog.findViewById<View>(com.google.android.material.R.id.design_bottom_sheet)
+        sheet?.setBackgroundResource(R.drawable.ai_sheet_background)
+        val blur = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
+            requireContext().getSystemService(WindowManager::class.java).isCrossWindowBlurEnabled
+        if (!blur) {
+            // Without blur behind it (older Android, many tablets) the glass lets the text below shine through sharp.
+            val glass = ContextCompat.getColor(requireContext(), R.color.ai_sheet_glass)
+            (sheet?.background?.mutate() as? GradientDrawable)?.setColor(ColorUtils.setAlphaComponent(glass, 255))
+        }
         dialog.window?.apply {
             setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            if (blur) {
                 addFlags(WindowManager.LayoutParams.FLAG_BLUR_BEHIND)
                 attributes = attributes.apply {
                     blurBehindRadius = (28 * resources.displayMetrics.density).toInt()
