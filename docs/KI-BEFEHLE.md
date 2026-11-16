@@ -178,7 +178,8 @@ Infrastruktur gebaut; Nutzer bekommen weiter den bisherigen Entwurf.
   wenn danach noch 1 GB frei ist. `restoreState` lehnt fehlende, gekürzte oder unpassende Dateien ab, dann liest die
   App den Prompt wie bisher. Gelöscht mit dem Modell. Gilt auch für den ausgelieferten Entwurf.
   Gemessen nur mit dem Testmodell (Qwen3.5-0.8B Q4_K_M, kurzer Test-Prompt, Emulator x86_64, 16.11.2026):
-  Datei 20,4 MB, Speichern 33 ms, Wiederherstellen 14 ms statt 316 ms Einlesen, gleiche Antwort; eine halbierte
+  Datei 20,4 MB, Speichern 179 ms (mit fsync), Wiederherstellen 15 ms statt 312 ms Einlesen, gleiche Antwort; ein
+  gekipptes Byte (CRC) und eine halbierte
   Datei wird abgelehnt (`LlamaEngineTest`). **Für das 4B-Modell mit Prompt K ist die Größe ungemessen**
   (Labor-Schätzung ~160 MB auf dem Tab).
 - **Ohne Modell testen (nur Debug):** `DebugAiActivity` liegt in `app/src/debug` und existiert im Release nicht;
