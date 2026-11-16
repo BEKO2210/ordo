@@ -66,8 +66,11 @@ class CommandShowTest {
         file("old.jpg", daysAgo = 10)
         file("week.jpg", daysAgo = 3)
         assertEquals(listOf("week.jpg"), show(CommandPlan("show", "", newerThan = 1, ageUnit = "weeks")))
-        val todayFile = file("today.jpg")
-        todayFile.setLastModified(System.currentTimeMillis())
+        // "today" counts from the real midnight, so these files get real times
+        val real = System.currentTimeMillis()
+        File(root, "old.jpg").setLastModified(real - 10 * day)
+        File(root, "week.jpg").setLastModified(real - 3 * day)
+        file("today.jpg").setLastModified(real)
         assertEquals(listOf("today.jpg"),
             CommandFiles.show(CommandPlan("show", "", today = true), listOf(root), root).map { it.name })
     }

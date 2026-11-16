@@ -76,7 +76,7 @@ class CommandRulesGoldenTest {
         fun reason(text: String) = (CommandRules.route(text) as CommandRules.Route.Refuse).reason
         assertEquals(CommandRules.Refusal.OPENED, reason("Zeig mir Dateien, die ich seit einer Woche nicht geöffnet habe"))
         assertEquals(CommandRules.Refusal.SEARCHED, reason("Ich hab gestern eine Datei gesucht, zeig sie nochmal"))
-        assertEquals(CommandRules.Refusal.HABIT, reason("Sortier den Download wie ich es normalerweise mache"))
+        assertEquals(CommandRules.Refusal.HABIT, reason("Sortier den Download so wie ich es normalerweise mache"))
         assertEquals(CommandRules.Refusal.CONVERSATION, reason("Mach mit den restlichen Bildern das gleiche"))
         assertEquals(CommandRules.Refusal.WORK, reason("Räum meine Arbeitsdokumente auf"))
     }
