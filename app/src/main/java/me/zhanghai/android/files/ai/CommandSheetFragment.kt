@@ -9,6 +9,7 @@ import android.content.Context
 import android.content.res.ColorStateList
 import android.os.Build
 import android.os.Bundle
+import android.os.SystemClock
 import android.util.Log
 import android.os.Environment
 import android.text.format.Formatter
@@ -518,8 +519,15 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
      * not exist, a number too large: the lab's Python stops there too) is asked back, never guessed.
      */
     private fun netDecide(answer: String?, folders: List<String>, now: LocalDateTime, counter: CommandNetCount): NetOutcome? = try {
-        design.decide(text, answer, folders, now, counter::count)
+        val started = SystemClock.elapsedRealtime()
+        design.decide(text, answer, folders, now, counter::count).also {
+            // e2e/ai-guarded.sh reads the counting time; no command text in the log
+            if (BuildConfig.DEBUG && answer != null && it != null) {
+                Log.i(TAG, "net decision in ${SystemClock.elapsedRealtime() - started} ms, ${counter.listings} folders listed")
+            }
+        }
     } catch (e: CancellationException) {
+        if (BuildConfig.DEBUG) Log.i(TAG, "net counting stopped: the sheet was closed")
         throw e
     } catch (e: RuntimeException) {
         Log.w(TAG, "net could not read the command", e)

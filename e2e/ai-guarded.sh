@@ -172,6 +172,30 @@ ask "Loesche alles im Download Ordner"
 check "regression delete all in Download: preview with the confirm button" ui wait confirmButton 20
 check "regression: nothing changed without a confirm" test "$(listing)" = "$before"
 
+# --- words that find nothing together: the preview says which were left out, as typed
+ask "Verschiebe die Telekom Vodafone Rechnung aus OrdoKiTest nach OrdoKiZiel"
+check "dropped words: preview with confirm" ui wait confirmButton 20
+check "dropped words: the note says what was left out" on_screen "zusammen habe ich nichts gefunden|together, so I only searched"
+shot guarded-dropped-de
+
+# --- one decision over the whole storage with three content words: the counting time (emulator CPU)
+ask "Zeig mir alles mit Steuer Versicherung Telekom"
+COUNTING=$(log | grep -oE 'net decision in [0-9]+ ms, [0-9]+ folders listed' | tail -1)
+echo "  whole storage, 3 words: ${COUNTING:-not logged}; files on the device: $(a shell 'find /sdcard -type f 2>/dev/null | wc -l' | tr -d '\r')"
+check "whole storage: the counting time is logged" test -n "$COUNTING"
+# closing the sheet while the net counts stops the walk
+reopen; a logcat -c
+ui tap commandEdit >/dev/null
+a shell input keycombination KEYCODE_CTRL_LEFT KEYCODE_A; a shell input keyevent KEYCODE_DEL
+a shell input text "'Zeig%smir%salles%smit%sKaufvertrag%sKfz%sGarantie'"
+a shell input keyevent KEYCODE_ENTER
+end=$((SECONDS + 900)); until log | grep -q "answer in"; do [ $SECONDS -ge $end ] && break; sleep 0.3; done
+a shell input keyevent BACK; a shell input keyevent BACK
+sleep 5
+log | grep -E "net (decision|counting)" | sed 's/^/  /'
+check "closing the sheet during the count stops it (or it had already finished)" logged "net counting stopped|net decision in"
+logged "net counting stopped" && echo "  stopped mid-count" || echo "  the count finished before the sheet closed"
+
 # --- one confirmed move on the script's own files
 ask "Verschiebe die Telekom PDFs aus OrdoKiTest nach OrdoKiZiel"
 ui wait confirmButton 20 >/dev/null; ui tap confirmButton >/dev/null; sleep 4
@@ -180,10 +204,13 @@ check "confirmed: the other PDF stayed" a shell "[ -f $T/ordoai_vertrag.pdf ] &&
 
 # --- dark theme screenshots of a list, a question and a hint
 if [ -n "${SHOTS:-}" ]; then
+    a shell "mv $Z/ordoai_rechnung_telekom.pdf $T/ 2>/dev/null"
     a shell cmd uimode night yes >/dev/null; sleep 2
     ask "Zeig mir alle PDFs in OrdoKiTest"; in_list ordoai_vertrag.pdf >/dev/null; shot guarded-list-de-dark
     ask "Verschieb die alten Sachen"; shot guarded-ask-de-dark
     ask "Pack alle Fotos aus Download in eine ZIP Datei" none; shot guarded-refusal-de-dark
+    ask "Verschiebe die Telekom Vodafone Rechnung aus OrdoKiTest nach OrdoKiZiel"; ui wait confirmButton 20 >/dev/null
+    shot guarded-dropped-de-dark
     a shell cmd uimode night no >/dev/null; sleep 2
 fi
 
