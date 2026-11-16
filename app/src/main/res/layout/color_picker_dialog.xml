@@ -5,11 +5,20 @@
   ~ All Rights Reserved.
   -->
 
-<FrameLayout
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:orientation="vertical"
     android:paddingTop="@dimen/abc_dialog_title_divider_material">
+
+    <me.zhanghai.android.files.colorpicker.ColorPreviewView
+        android:id="@+id/preview"
+        android:layout_width="match_parent"
+        android:layout_height="96dp"
+        android:layout_marginStart="?dialogPreferredPadding"
+        android:layout_marginEnd="?dialogPreferredPadding"
+        android:importantForAccessibility="no" />
 
     <GridView
         android:id="@+id/palette"
@@ -29,4 +38,4 @@
         android:scrollbarStyle="outsideOverlay"
         android:stretchMode="spacingWidth"
         android:verticalSpacing="16dp" />
-</FrameLayout>
+</LinearLayout>
