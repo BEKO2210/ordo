@@ -170,7 +170,8 @@ check "delete APKs: no other file" not_on_screen "ordoai_handbuch.pdf|ordoai_fot
 ask "Verschieb die alten Sachen"
 check "ambiguous: a question back, no confirm" not ui wait confirmButton 5
 check "ambiguous: the question is shown" on_screen "Kurz nachgefragt|Quick question"
-check "ambiguous: the typed command stays" ui has "Verschieb die alten Sachen"
+# the keyboard may have written "Verschiebe": the command stays in the field as typed on screen
+check "ambiguous: the typed command stays" on_screen "die alten Sachen"
 shot guarded-ask-de
 # --- 9 something Ordo cannot do: answered before the model
 ask "Pack alle Fotos aus Download in eine ZIP Datei" none
