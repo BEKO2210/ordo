@@ -1,493 +1,59 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- The curve is the primary EQ control; exact steppers are progressively disclosed. -->
-<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:clipToPadding="false"
-    android:fillViewport="true">
-
-    <LinearLayout
-        android:id="@+id/content"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:paddingStart="24dp"
-        android:paddingTop="12dp"
-        android:paddingEnd="24dp"
-        android:paddingBottom="40dp">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:accessibilityHeading="true"
-                android:text="@string/audio_sound_title"
-                android:textAppearance="?textAppearanceHeadline6" />
-            <ImageButton
-                android:id="@+id/close"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="@string/close"
-                android:padding="12dp"
-                android:src="@drawable/close_icon_control_normal_24dp"
-                app:tint="?colorOnSurface" />
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent" android:layout_height="match_parent" android:clipToPadding="false" android:fillViewport="true">
+    <LinearLayout android:id="@+id/content" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical"
+        android:paddingStart="20dp" android:paddingTop="8dp" android:paddingEnd="20dp" android:paddingBottom="40dp">
+        <View android:layout_width="32dp" android:layout_height="4dp" android:layout_gravity="center_horizontal" android:layout_marginVertical="8dp" android:background="?attr/colorOutline" />
+        <LinearLayout android:layout_width="match_parent" android:layout_height="56dp" android:gravity="center_vertical" android:orientation="horizontal">
+            <ImageView android:layout_width="40dp" android:layout_height="48dp" android:contentDescription="@null" android:paddingEnd="16dp" android:src="@drawable/audio_equalizer_icon_24dp" app:tint="?attr/colorPrimary" />
+            <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:accessibilityHeading="true" android:text="@string/audio_sound_title" android:textAppearance="?attr/textAppearanceTitleLarge" />
+            <com.google.android.material.materialswitch.MaterialSwitch android:id="@+id/equalizerEnabled" android:layout_width="wrap_content" android:layout_height="48dp" android:contentDescription="@string/audio_sound_equalizer" />
+            <ImageButton android:id="@+id/close" android:layout_width="48dp" android:layout_height="48dp" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/close" android:padding="12dp" android:src="@drawable/close_icon_control_normal_24dp" app:tint="?attr/colorOnSurface" />
         </LinearLayout>
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:layout_marginBottom="8dp"
-            android:accessibilityHeading="true"
-            android:text="@string/audio_sound_equalizer"
-            android:textAppearance="?attr/textAppearanceLabelLarge"
-            android:textColor="?attr/colorPrimary" />
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:minHeight="64dp"
-            android:orientation="horizontal">
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical"
-                android:paddingEnd="16dp">
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:labelFor="@id/equalizerEnabled"
-                    android:text="@string/audio_sound_equalizer"
-                    android:textAppearance="?attr/textAppearanceBodyLarge" />
-                <TextView
-                    android:id="@+id/effectStatus"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
-                    android:accessibilityLiveRegion="polite"
-                    android:ellipsize="end"
-                    android:maxLines="1"
-                    android:text="@string/audio_sound_checking"
-                    android:textAppearance="?attr/textAppearanceBodyMedium"
-                    android:textColor="?android:textColorSecondary" />
-            </LinearLayout>
-            <com.google.android.material.materialswitch.MaterialSwitch
-                android:id="@+id/equalizerEnabled"
-                android:layout_width="wrap_content"
-                android:layout_height="48dp"
-                android:contentDescription="@string/audio_sound_equalizer"
-                android:gravity="center" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/equalizerControls"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
-            <com.google.android.material.chip.ChipGroup
-                android:id="@+id/presets"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                app:chipSpacingHorizontal="8dp"
-                app:chipSpacingVertical="4dp"
-                app:selectionRequired="true"
-                app:singleSelection="true" />
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:text="@string/audio_sound_curve_hint"
-                android:textAppearance="?attr/textAppearanceBodySmall"
-                android:textColor="?android:textColorSecondary" />
-            <me.zhanghai.android.files.viewer.audio.EqualizerCurveView
-                android:id="@+id/equalizerCurve"
-                android:layout_width="match_parent"
-                android:layout_height="220dp" />
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/fineTuneToggle"
-                style="@style/Widget.Material3.Button.TextButton"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:gravity="center_vertical"
-                android:text="@string/audio_sound_fine_tune"
-                android:textAlignment="viewStart"
-                app:icon="@drawable/expand_more_icon_24dp"
-                app:iconGravity="end"
-                app:iconPadding="8dp" />
-            <LinearLayout
-                android:id="@+id/fineTuneContent"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:visibility="gone">
-                <LinearLayout
-                    android:id="@+id/bandSteppers"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical" />
-                <LinearLayout
-                    android:id="@+id/preGainRow"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical" />
+        <TextView android:id="@+id/effectStatus" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="12dp" android:accessibilityLiveRegion="polite" android:text="@string/audio_sound_checking" android:textAppearance="?attr/textAppearanceBodyMedium" android:textColor="?attr/colorOnSurfaceVariant" />
+        <LinearLayout android:id="@+id/equalizerControls" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
+            <com.google.android.material.card.MaterialCardView android:id="@+id/equalizerStage" android:layout_width="match_parent" android:layout_height="wrap_content" app:cardCornerRadius="28dp" app:cardElevation="0dp" app:strokeWidth="0dp">
+                <FrameLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="8dp">
+                    <me.zhanghai.android.files.viewer.audio.EqualizerCurveView android:id="@+id/equalizerCurve" android:layout_width="match_parent" android:layout_height="@dimen/audio_equalizer_curve_height" />
+                    <TextView android:id="@+id/equalizerOffOverlay" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:background="?attr/colorSurface" android:padding="10dp" android:text="@string/audio_sound_equalizer_off" android:textAppearance="?attr/textAppearanceLabelLarge" android:visibility="gone" />
+                    <com.google.android.material.button.MaterialButton android:id="@+id/resetEqualizer" style="@style/Widget.Material3.Button.TextButton" android:layout_width="wrap_content" android:layout_height="48dp" android:layout_gravity="bottom|end" android:text="@string/audio_sound_reset" android:visibility="gone" />
+                </FrameLayout>
+            </com.google.android.material.card.MaterialCardView>
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:text="@string/audio_sound_curve_hint" android:textAppearance="?attr/textAppearanceBodySmall" android:textColor="?attr/colorOnSurfaceVariant" />
+            <HorizontalScrollView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:clipToPadding="false" android:scrollbars="none">
+                <LinearLayout android:id="@+id/presets" android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal" android:paddingEnd="8dp" />
+            </HorizontalScrollView>
+            <com.google.android.material.button.MaterialButton android:id="@+id/fineTuneToggle" style="@style/Widget.Material3.Button.TextButton" android:layout_width="match_parent" android:layout_height="56dp" android:gravity="center_vertical" android:text="@string/audio_sound_fine_tune" android:textAlignment="viewStart" app:icon="@drawable/audio_tune_icon_24dp" app:iconGravity="textStart" app:iconPadding="12dp" />
+            <LinearLayout android:id="@+id/fineTuneContent" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:visibility="gone">
+                <LinearLayout android:id="@+id/bandSteppers" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" />
+                <LinearLayout android:id="@+id/preGainRow" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" />
             </LinearLayout>
         </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/effectsSection"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:visibility="gone">
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="28dp"
-                android:layout_marginBottom="8dp"
-                android:accessibilityHeading="true"
-                android:text="@string/audio_sound_effects_heading"
-                android:textAppearance="?attr/textAppearanceLabelLarge"
-                android:textColor="?attr/colorPrimary" />
-
-            <LinearLayout
-                android:id="@+id/bassSection"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical">
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:minHeight="64dp"
-                    android:orientation="horizontal">
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical"
-                        android:paddingEnd="16dp">
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:labelFor="@id/bassEnabled"
-                            android:text="@string/audio_sound_bass_boost"
-                            android:textAppearance="?attr/textAppearanceBodyLarge" />
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="2dp"
-                            android:ellipsize="end"
-                            android:maxLines="1"
-                            android:text="@string/audio_sound_bass_summary"
-                            android:textAppearance="?attr/textAppearanceBodyMedium"
-                            android:textColor="?android:textColorSecondary" />
-                    </LinearLayout>
-                    <com.google.android.material.materialswitch.MaterialSwitch
-                        android:id="@+id/bassEnabled"
-                        android:layout_width="wrap_content"
-                        android:layout_height="48dp"
-                        android:contentDescription="@string/audio_sound_bass_boost" />
-                </LinearLayout>
-                <LinearLayout
-                    android:id="@+id/bassStrengthRow"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/virtualizerSection"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical">
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:minHeight="64dp"
-                    android:orientation="horizontal">
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical"
-                        android:paddingEnd="16dp">
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:labelFor="@id/virtualizerEnabled"
-                            android:text="@string/audio_sound_virtualizer"
-                            android:textAppearance="?attr/textAppearanceBodyLarge" />
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="2dp"
-                            android:ellipsize="end"
-                            android:maxLines="1"
-                            android:text="@string/audio_sound_virtualizer_summary"
-                            android:textAppearance="?attr/textAppearanceBodyMedium"
-                            android:textColor="?android:textColorSecondary" />
-                    </LinearLayout>
-                    <com.google.android.material.materialswitch.MaterialSwitch
-                        android:id="@+id/virtualizerEnabled"
-                        android:layout_width="wrap_content"
-                        android:layout_height="48dp"
-                        android:contentDescription="@string/audio_sound_virtualizer" />
-                </LinearLayout>
-                <LinearLayout
-                    android:id="@+id/virtualizerStrengthRow"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical" />
-            </LinearLayout>
+        <TextView style="@style/Widget.Ordo.AudioSound.Section" android:text="@string/audio_sound_effects_heading" />
+        <GridLayout android:id="@+id/effectsGrid" android:layout_width="match_parent" android:layout_height="wrap_content" android:columnCount="@integer/audio_sound_card_columns">
+            <LinearLayout android:id="@+id/bassSection" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:orientation="vertical" />
+            <LinearLayout android:id="@+id/virtualizerSection" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:orientation="vertical" />
+        </GridLayout>
+        <LinearLayout android:id="@+id/effectsUnavailable" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" />
+        <TextView style="@style/Widget.Ordo.AudioSound.Section" android:text="@string/audio_sound_normalization_heading" />
+        <GridLayout android:id="@+id/volumeGrid" android:layout_width="match_parent" android:layout_height="wrap_content" android:columnCount="@integer/audio_sound_card_columns">
+            <LinearLayout android:id="@+id/normalizationCard" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:orientation="vertical" />
+            <LinearLayout android:id="@+id/balanceCard" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:orientation="vertical" />
+        </GridLayout>
+        <LinearLayout android:id="@+id/normalizationPreampRow" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:visibility="gone" />
+        <LinearLayout android:id="@+id/balanceRow" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:visibility="gone" />
+        <LinearLayout android:layout_width="match_parent" android:layout_height="64dp" android:gravity="center_vertical" android:orientation="horizontal">
+            <ImageView android:layout_width="48dp" android:layout_height="48dp" android:contentDescription="@null" android:padding="12dp" android:src="@drawable/audio_hearing_icon_24dp" app:tint="?attr/colorPrimary" />
+            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical"><TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/audio_sound_mono" android:textAppearance="?attr/textAppearanceBodyLarge" /><TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/audio_sound_mono_summary" android:textAppearance="?attr/textAppearanceBodyMedium" android:textColor="?attr/colorOnSurfaceVariant" /></LinearLayout>
+            <com.google.android.material.materialswitch.MaterialSwitch android:id="@+id/mono" android:layout_width="wrap_content" android:layout_height="48dp" android:contentDescription="@string/audio_sound_mono" />
         </LinearLayout>
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="28dp"
-            android:layout_marginBottom="8dp"
-            android:accessibilityHeading="true"
-            android:text="@string/audio_sound_normalization_heading"
-            android:textAppearance="?attr/textAppearanceLabelLarge"
-            android:textColor="?attr/colorPrimary" />
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:minHeight="64dp"
-            android:orientation="horizontal">
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical"
-                android:paddingEnd="16dp">
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:labelFor="@id/normalizationEnabled"
-                    android:text="@string/audio_sound_normalization"
-                    android:textAppearance="?attr/textAppearanceBodyLarge" />
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
-                    android:ellipsize="end"
-                    android:maxLines="1"
-                    android:text="@string/audio_sound_normalization_summary"
-                    android:textAppearance="?attr/textAppearanceBodyMedium"
-                    android:textColor="?android:textColorSecondary" />
-            </LinearLayout>
-            <com.google.android.material.materialswitch.MaterialSwitch
-                android:id="@+id/normalizationEnabled"
-                android:layout_width="wrap_content"
-                android:layout_height="48dp"
-                android:contentDescription="@string/audio_sound_normalization" />
-        </LinearLayout>
-        <LinearLayout
-            android:id="@+id/normalizationPreampRow"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical" />
-        <LinearLayout
-            android:id="@+id/balanceRow"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical" />
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:minHeight="64dp"
-            android:orientation="horizontal">
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical"
-                android:paddingEnd="16dp">
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:labelFor="@id/mono"
-                    android:text="@string/audio_sound_mono"
-                    android:textAppearance="?attr/textAppearanceBodyLarge" />
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
-                    android:ellipsize="end"
-                    android:maxLines="1"
-                    android:text="@string/audio_sound_mono_summary"
-                    android:textAppearance="?attr/textAppearanceBodyMedium"
-                    android:textColor="?android:textColorSecondary" />
-            </LinearLayout>
-            <com.google.android.material.materialswitch.MaterialSwitch
-                android:id="@+id/mono"
-                android:layout_width="wrap_content"
-                android:layout_height="48dp"
-                android:contentDescription="@string/audio_sound_mono" />
-        </LinearLayout>
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="28dp"
-            android:layout_marginBottom="8dp"
-            android:accessibilityHeading="true"
-            android:text="@string/audio_sound_playback_heading"
-            android:textAppearance="?attr/textAppearanceLabelLarge"
-            android:textColor="?attr/colorPrimary" />
-        <LinearLayout
-            android:id="@+id/speedRow"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical" />
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:minHeight="64dp"
-            android:orientation="horizontal">
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical"
-                android:paddingEnd="16dp">
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:labelFor="@id/skipSilence"
-                    android:text="@string/audio_sound_skip_silence"
-                    android:textAppearance="?attr/textAppearanceBodyLarge" />
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
-                    android:ellipsize="end"
-                    android:maxLines="1"
-                    android:text="@string/audio_sound_skip_silence_summary"
-                    android:textAppearance="?attr/textAppearanceBodyMedium"
-                    android:textColor="?android:textColorSecondary" />
-            </LinearLayout>
-            <com.google.android.material.materialswitch.MaterialSwitch
-                android:id="@+id/skipSilence"
-                android:layout_width="wrap_content"
-                android:layout_height="48dp"
-                android:contentDescription="@string/audio_sound_skip_silence" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:paddingTop="8dp"
-            android:paddingBottom="8dp">
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/audio_sound_sleep_heading"
-                android:textAppearance="?attr/textAppearanceBodyLarge" />
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
-                android:ellipsize="end"
-                android:maxLines="1"
-                android:text="@string/audio_sound_sleep_summary"
-                android:textAppearance="?attr/textAppearanceBodyMedium"
-                android:textColor="?android:textColorSecondary" />
-            <com.google.android.material.chip.ChipGroup
-                android:id="@+id/sleepOptions"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                app:chipSpacingHorizontal="8dp"
-                app:chipSpacingVertical="4dp"
-                app:singleSelection="true" />
-        </LinearLayout>
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="@string/audio_sound_focus_title"
-            android:textAppearance="?attr/textAppearanceBodyLarge" />
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
-            android:ellipsize="end"
-            android:maxLines="1"
-            android:text="@string/audio_sound_focus_summary"
-            android:textAppearance="?attr/textAppearanceBodyMedium"
-            android:textColor="?android:textColorSecondary" />
-        <RadioGroup
-            android:id="@+id/focusBehavior"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-            <RadioButton
-                android:id="@+id/focusDuck"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:minHeight="48dp"
-                android:text="@string/audio_sound_focus_duck" />
-            <RadioButton
-                android:id="@+id/focusPause"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:minHeight="48dp"
-                android:text="@string/audio_sound_focus_pause" />
-        </RadioGroup>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:minHeight="64dp"
-            android:orientation="horizontal">
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical"
-                android:paddingEnd="16dp">
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:labelFor="@id/resumeHeadphones"
-                    android:text="@string/audio_sound_resume_headphones"
-                    android:textAppearance="?attr/textAppearanceBodyLarge" />
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
-                    android:ellipsize="end"
-                    android:maxLines="1"
-                    android:text="@string/audio_sound_headphones_summary"
-                    android:textAppearance="?attr/textAppearanceBodyMedium"
-                    android:textColor="?android:textColorSecondary" />
-            </LinearLayout>
-            <com.google.android.material.materialswitch.MaterialSwitch
-                android:id="@+id/resumeHeadphones"
-                android:layout_width="wrap_content"
-                android:layout_height="48dp"
-                android:contentDescription="@string/audio_sound_resume_headphones" />
-        </LinearLayout>
+        <TextView style="@style/Widget.Ordo.AudioSound.Section" android:text="@string/audio_sound_playback_heading" />
+        <LinearLayout android:id="@+id/speedCard" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" />
+        <LinearLayout android:id="@+id/speedRow" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:visibility="gone" />
+        <LinearLayout android:id="@+id/sleepCard" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" />
+        <com.google.android.material.button.MaterialButtonToggleGroup android:id="@+id/sleepOptions" android:layout_width="match_parent" android:layout_height="wrap_content" android:visibility="gone" app:selectionRequired="true" app:singleSelection="true" />
+        <LinearLayout android:layout_width="match_parent" android:layout_height="64dp" android:gravity="center_vertical" android:orientation="horizontal"><ImageView android:layout_width="48dp" android:layout_height="48dp" android:contentDescription="@null" android:padding="12dp" android:src="@drawable/audio_fast_forward_icon_24dp" app:tint="?attr/colorPrimary" /><LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical"><TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/audio_sound_skip_silence" android:textAppearance="?attr/textAppearanceBodyLarge" /><TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/audio_sound_skip_silence_summary" android:textAppearance="?attr/textAppearanceBodyMedium" android:textColor="?attr/colorOnSurfaceVariant" /></LinearLayout><com.google.android.material.materialswitch.MaterialSwitch android:id="@+id/skipSilence" android:layout_width="wrap_content" android:layout_height="48dp" android:contentDescription="@string/audio_sound_skip_silence" /></LinearLayout>
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical" android:orientation="horizontal" android:paddingVertical="8dp"><ImageView android:layout_width="48dp" android:layout_height="48dp" android:contentDescription="@null" android:padding="12dp" android:src="@drawable/audio_speaker_icon_24dp" app:tint="?attr/colorPrimary" /><LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical"><TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/audio_sound_focus_title" android:textAppearance="?attr/textAppearanceBodyLarge" /><TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/audio_sound_focus_summary" android:textAppearance="?attr/textAppearanceBodyMedium" android:textColor="?attr/colorOnSurfaceVariant" /><com.google.android.material.button.MaterialButtonToggleGroup android:id="@+id/focusBehavior" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" app:selectionRequired="true" app:singleSelection="true"><com.google.android.material.button.MaterialButton android:id="@+id/focusPause" style="@style/Widget.Material3.Button.OutlinedButton" android:layout_width="0dp" android:layout_height="48dp" android:layout_weight="1" android:text="@string/audio_sound_focus_pause_short" /><com.google.android.material.button.MaterialButton android:id="@+id/focusDuck" style="@style/Widget.Material3.Button.OutlinedButton" android:layout_width="0dp" android:layout_height="48dp" android:layout_weight="1" android:text="@string/audio_sound_focus_duck_short" /></com.google.android.material.button.MaterialButtonToggleGroup></LinearLayout></LinearLayout>
+        <LinearLayout android:layout_width="match_parent" android:layout_height="64dp" android:gravity="center_vertical" android:orientation="horizontal"><ImageView android:layout_width="48dp" android:layout_height="48dp" android:contentDescription="@null" android:padding="12dp" android:src="@drawable/audio_headphones_icon_24dp" app:tint="?attr/colorPrimary" /><LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical"><TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/audio_sound_resume_headphones" android:textAppearance="?attr/textAppearanceBodyLarge" /><TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/audio_sound_headphones_summary" android:textAppearance="?attr/textAppearanceBodyMedium" android:textColor="?attr/colorOnSurfaceVariant" /></LinearLayout><com.google.android.material.materialswitch.MaterialSwitch android:id="@+id/resumeHeadphones" android:layout_width="wrap_content" android:layout_height="48dp" android:contentDescription="@string/audio_sound_resume_headphones" /></LinearLayout>
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>

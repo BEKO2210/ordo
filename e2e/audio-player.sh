@@ -51,6 +51,11 @@ check "Sound opens from the player toolbar" paused_ui tap actionSound
 check "the equalizer and deliberate-drag guidance are visible" paused_ui wait "Equalizer" 5
 check "the curve explains its 150 ms hold" paused_ui has "150 ms"
 check "the fine-tune controls start collapsed" paused_ui has "Fine-tune|Genau einstellen"
+check "the equalizer can be enabled" paused_ui tap equalizerEnabled
+check "fine-tune opens the exact controls" paused_ui tap "Fine-tune|Genau einstellen"
+check "fine-tune reveals the 31 Hz band" paused_ui wait "31 Hz" 5
+check "the Bass preset tile can be selected" paused_ui tap audioPresetBass
+check "the Bass preset becomes selected" paused_ui checked Bass
 check "the playback section reaches skip silence and mono" paused_ui has "Skip silence|Stille überspringen"
 check "the sleep timer offers end of track" paused_ui has "End of track|Titelende"
 back 1

@@ -5,12 +5,18 @@
 
 package me.zhanghai.android.files.viewer.audio
 
+import me.zhanghai.android.files.player.EqualizerPreset
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class AudioSoundUiStateTest {
+    @Test
+    fun customPresetOnlyAppearsAfterAUserAdjustment() {
+        assertFalse(EqualizerPreset.CUSTOM in equalizerPresetRail(EqualizerPreset.ROCK))
+        assertEquals(EqualizerPreset.CUSTOM, equalizerPresetRail(EqualizerPreset.CUSTOM).last())
+    }
     @Test
     fun equalizerStatusNeverClaimsAnInactiveEqualizer() {
         assertEquals(EqualizerStatusKind.UNSUPPORTED, equalizerStatusKind(false, false))

@@ -1105,6 +1105,9 @@
     <string name="audio_sound_checking">Checking sound effects…</string>
     <string name="audio_sound_equalizer">Equalizer</string>
     <string name="audio_sound_curve_hint">Hold a handle for 150 ms, then drag.</string>
+    <string name="audio_sound_curve_value">%1$+.1f dB · %2$s</string>
+    <string name="audio_sound_equalizer_off">Equalizer is off</string>
+    <string name="audio_sound_reset">Reset</string>
     <string name="audio_sound_fine_tune">Fine-tune</string>
     <string name="audio_sound_collapsed">Collapsed</string>
     <string name="audio_sound_expanded">Expanded</string>
@@ -1118,6 +1121,9 @@
     <string name="audio_sound_virtualizer">Virtualizer</string>
     <string name="audio_sound_virtualizer_summary">Widens the perceived sound stage</string>
     <string name="audio_sound_strength">Strength</string>
+    <string name="audio_sound_strength_percent">Strength %1$d%%</string>
+    <string name="audio_sound_bass_unavailable">Bass boost: not available on this device</string>
+    <string name="audio_sound_virtualizer_unavailable">Virtualizer: not available on this device</string>
     <string name="audio_sound_normalization_heading">Volume</string>
     <string name="audio_sound_normalization">Volume normalisation (ReplayGain / R128)</string>
     <string name="audio_sound_normalization_summary">Evens out loudness between tracks</string>
@@ -1125,6 +1131,8 @@
     <string name="audio_sound_playback_heading">Playback</string>
     <string name="audio_sound_speed">Speed</string>
     <string name="audio_sound_speed_value">%1$.2f×</string>
+    <string name="audio_sound_speed_fine">Fine adjustment</string>
+    <string name="audio_sound_pitch_unchanged">Pitch stays the same</string>
     <string name="audio_sound_skip_silence">Skip silence</string>
     <string name="audio_sound_skip_silence_summary">Moves past quiet passages</string>
     <string name="audio_sound_mono">Mono audio</string>
@@ -1137,6 +1145,8 @@
     <string name="audio_sound_focus_summary">Choose what happens when another app plays</string>
     <string name="audio_sound_focus_duck">Lower Ordo’s volume</string>
     <string name="audio_sound_focus_pause">Pause Ordo</string>
+    <string name="audio_sound_focus_pause_short">Pause</string>
+    <string name="audio_sound_focus_duck_short">Lower</string>
     <string name="audio_sound_resume_headphones">Resume when headphones connect</string>
     <string name="audio_sound_headphones_summary">Continues paused playback after connecting</string>
     <string name="audio_sound_sleep_heading">Sleep timer</string>
@@ -1144,6 +1154,7 @@
     <string name="audio_sleep_off">Off</string>
     <string name="audio_sleep_minutes">%1$d min</string>
     <string name="audio_sleep_end_track">End of track</string>
+    <string name="audio_sleep_remaining">%1$d min left</string>
     <string name="audio_sound_decrease">Decrease %1$s</string>
     <string name="audio_sound_increase">Increase %1$s</string>
     <string name="audio_sound_db">%1$+.1f dB</string>

@@ -19,6 +19,17 @@ RES = Path(__file__).resolve().parent.parent / "app/src/main/res"
 
 # Drawable (without .xml, in drawable/ unless a folder is given) -> Material Symbol
 ICONS = {
+    "audio_equalizer_icon_24dp": "equalizer",
+    "audio_tune_icon_24dp": "tune",
+    "audio_speaker_icon_24dp": "speaker",
+    "audio_surround_icon_24dp": "surround_sound",
+    "audio_graphic_eq_icon_24dp": "graphic_eq",
+    "audio_hearing_icon_24dp": "hearing",
+    "audio_fast_forward_icon_24dp": "fast_forward",
+    "audio_headphones_icon_24dp": "headphones",
+    "audio_timer_icon_24dp": "timer",
+    "audio_speed_icon_24dp": "speed",
+    "audio_balance_icon_24dp": "balance",
     "about_icon_white_24dp": "help",
     "add_icon_white_24dp": "add",
     "ai_check_icon_white_24dp": "check_circle",
