@@ -29,6 +29,15 @@ check "the test folder opens" ui wait 01-one.wav 10
 ui tap 01-one.wav >/dev/null; sleep 3; guard
 check "audio opens Ordo's player" on viewer.audio.AudioPlayerActivity
 check "the tapped title is shown" ui has 01-one.wav
+check "the complete transport row is visible" ui visible playPause
+touch_target() {
+    local l t r b dpi
+    read -r l t r b < <(ui bounds "$1" | head -1) || return 1
+    dpi=$(a shell wm density | tail -1 | sed 's/.*: //' | tr -d '\r')
+    [ $((r - l)) -ge $((48 * dpi / 160)) ] && [ $((b - t)) -ge $((48 * dpi / 160)) ]
+}
+check "shuffle keeps its 48 dp touch target" touch_target shuffle
+check "repeat keeps its 48 dp touch target" touch_target repeat
 back 2
 check "closing the player returns to the file list" on filelist.FileListActivity
 not_on() { ! on "$@"; }
