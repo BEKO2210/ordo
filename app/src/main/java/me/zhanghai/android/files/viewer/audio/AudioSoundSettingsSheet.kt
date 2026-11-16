@@ -416,6 +416,8 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment() {
         renderers += {
             binding.balanceView.balance = settings.balance
             binding.balanceValue.text = formatBalance(settings.balance)
+            // Re-centring only means something off centre; the value pill already says "Mitte".
+            binding.balanceCenter.isVisible = settings.balance != 0
             ViewCompat.setStateDescription(binding.balanceView, binding.balanceValue.text)
         }
     }
