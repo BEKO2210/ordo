@@ -118,6 +118,7 @@ a shell "rm -rf $T $Z; rm -f $D/ordoai_*; mkdir -p $T $Z $D
     echo a > $T/ordoai_rechnung_telekom.pdf; echo b > $T/ordoai_vertrag.pdf; echo 'Steuer 2025 Belege' > $T/ordoai_notiz.txt
     echo c > $T/ordoai_alt.txt; touch -d '2024-01-10 10:00' $T/ordoai_alt.txt
     echo d > $D/ordoai_handbuch.pdf; echo e > $D/ordoai_spiel.apk; echo f > $D/ordoai_foto.jpg
+    echo h > $D/ordoai_app2.apk; echo i > $D/ordoai_text.txt
     dd if=/dev/zero of=$D/ordoai_film.mp4 bs=1000000 count=120 2>/dev/null; echo g > $D/ordoai_klein.mp4"
 if [ "$(a shell stat -c %s "$TARGET" 2>/dev/null | tr -d '\r')" != "$(stat -c %s "$MODEL")" ]; then
     a shell mkdir -p "$MODELS"; a push "$MODEL" "$TARGET" >/dev/null || { fail "model pushed"; finish; }
@@ -161,6 +162,10 @@ check "move with a name: the other PDF is not" not_on_screen ordoai_vertrag.pdf
 ask "Loesche alle APKs in Download"
 check "delete APKs: preview with the confirm button" ui wait confirmButton 20
 check "delete APKs: the APK is listed" on_screen ordoai_spiel.apk
+# exactly the two APKs of the script's seven files in Download, nothing else
+check "delete APKs: the second APK too" on_screen ordoai_app2.apk
+check "delete APKs: exactly 2 files" on_screen "text=\"2 (Dateien|files)"
+check "delete APKs: no other file" not_on_screen "ordoai_handbuch.pdf|ordoai_foto.jpg|ordoai_text.txt|ordoai_film.mp4"
 # --- 8 ambiguous: asks back and keeps the typed command
 ask "Verschieb die alten Sachen"
 check "ambiguous: a question back, no confirm" not ui wait confirmButton 5
@@ -181,6 +186,8 @@ ask "Show me the photos in Download"
 check "English show: the photo" in_list ordoai_foto.jpg
 ask "Delete the apk files in Download"
 check "English delete: preview with the confirm button" ui wait confirmButton 20
+check "English delete: exactly the 2 APKs" on_screen "text=\"2 (Dateien|files)"
+check "English delete: no other file" not_on_screen "ordoai_handbuch.pdf|ordoai_foto.jpg|ordoai_text.txt"
 check "nothing changed on disk without a confirm" test "$(listing)" = "$before"
 
 # --- regression: the five commands of ai-real.sh
@@ -196,6 +203,11 @@ ask "Wie viele Fotos habe ich auf dem Handy?"
 check "regression question: no confirm button" not ui wait confirmButton 5
 ask "Loesche alles im Download Ordner"
 check "regression delete all in Download: preview with the confirm button" ui wait confirmButton 20
+ALL=$(a shell "ls $D | wc -l" | tr -d '\r')
+check "regression delete all: all $ALL files of Download" on_screen "text=\"$ALL (Dateien|files)"
+ui tap confirmButton >/dev/null; sleep 2
+check "regression delete all: a second confirmation, as before" ui has "Abbrechen|Cancel"
+ui tap "Abbrechen|Cancel" >/dev/null; sleep 1
 check "regression: nothing changed without a confirm" test "$(listing)" = "$before"
 
 # --- words that find nothing together: the preview says which were left out, as typed

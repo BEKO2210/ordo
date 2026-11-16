@@ -65,6 +65,28 @@ class CommandNetPlanTest {
         assertEquals(42_485_408L, CommandDesign.Tuned.adapter.size)
     }
 
+    /** Real model answers from the emulator run: a delete without a filter in the raw plan gets "apk" from the words. */
+    @Test
+    fun deleteCommandsSelectExactlyWhatWasSaid() {
+        val root = tmp.newFolder("phone")
+        val download = File(root, "Download").apply { mkdirs() }
+        listOf("spiel.apk", "app2.apk", "handbuch.pdf", "foto.jpg", "film.mp4", "klein.mp4", "text.txt")
+            .forEach { File(download, it).writeText(it) }
+        fun decide(text: String, answer: String) =
+            (CommandNetPlan.guarded(text, answer, listOf("Download"), now, CommandNetCount(root, text)::count) as NetOutcome.Plan).plan
+        fun files(plan: CommandPlan) = CommandFiles.collect(plan, download).map { it.name }.sorted()
+        val apks = decide("Löschen alle APKs in Download", """{"action":"delete","source":"Download"}""")
+        assertEquals(listOf("apk"), apks.extensions)
+        assertEquals(listOf("app2.apk", "spiel.apk"), files(apks))
+        val english = decide("Delete the APK files in Download", """{"action":"delete","source":"Download","name_contains":"APK"}""")
+        assertEquals(listOf("app2.apk", "spiel.apk"), files(english))
+        val all = decide("Löschen alles im Download Ordner", """{"action":"delete","source":"Download"}""")
+        assertEquals(7, files(all).size)
+        // a whole top-level folder without a filter: the second confirmation, as before
+        assertTrue(CommandCheck.needsSecondConfirm(all, download, root, 7))
+        assertTrue(!CommandCheck.needsSecondConfirm(apks, download, root, 2))
+    }
+
     @Test
     fun filterWordsAreShownAsTyped() {
         val text = "Lösch die Steuererklärung vom Straßenfest, die Rechnug und den Vertrag, nicht den alten Vertrag"
