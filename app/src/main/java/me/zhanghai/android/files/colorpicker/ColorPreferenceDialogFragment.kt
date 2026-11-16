@@ -8,6 +8,8 @@ package me.zhanghai.android.files.colorpicker
 import android.app.Dialog
 import android.content.Context
 import android.os.Bundle
+import android.os.Build
+import android.view.HapticFeedbackConstants
 import android.view.View
 import android.widget.GridView
 import androidx.appcompat.app.AlertDialog
@@ -29,6 +31,7 @@ class ColorPreferenceDialogFragment : MaterialPreferenceDialogFragmentCompat() {
     private var defaultColor = 0
 
     private lateinit var paletteGrid: GridView
+    private lateinit var preview: ColorPreviewView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -61,10 +64,23 @@ class ColorPreferenceDialogFragment : MaterialPreferenceDialogFragmentCompat() {
         super.onBindDialogView(view)
 
         paletteGrid = ViewCompat.requireViewById(view, R.id.palette)
+        preview = ViewCompat.requireViewById(view, R.id.preview)
         paletteGrid.adapter = ColorPaletteAdapter(colors)
         val checkedPosition = colors.indexOf(checkedColor)
         if (checkedPosition != -1) {
             paletteGrid.setItemChecked(checkedPosition, true)
+        }
+        preview.setAccent(if (checkedPosition != -1) checkedColor else colors.first(), false)
+        preview.revealStorage()
+        paletteGrid.setOnItemClickListener { _, itemView, position, _ ->
+            itemView.performHapticFeedback(
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    HapticFeedbackConstants.CONFIRM
+                } else {
+                    HapticFeedbackConstants.CLOCK_TICK
+                }
+            )
+            preview.setAccent(colors[position])
         }
     }
 
@@ -82,7 +98,9 @@ class ColorPreferenceDialogFragment : MaterialPreferenceDialogFragmentCompat() {
                 // Override the listener here so that we won't close the dialog.
                 setOnShowListener {
                     getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener {
-                        paletteGrid.setItemChecked(colors.indexOf(defaultColor), true)
+                        val position = colors.indexOf(defaultColor)
+                        paletteGrid.setItemChecked(position, true)
+                        preview.setAccent(defaultColor)
                     }
                 }
             }
