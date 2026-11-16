@@ -40,8 +40,8 @@ on() { [ "$(top)" = "$PKG/me.zhanghai.android.files.$1" ]; }
 wait_on() { local end=$((SECONDS + ${2:-4})); until on "$1"; do [ $SECONDS -ge "$end" ] && return 1; sleep 0.3; done; }
 
 wake() { a shell input keyevent KEYCODE_WAKEUP; a shell wm dismiss-keyguard; sleep 1; }
+# Only the platform's own property counts: adb also names a real phone forwarded to a local port "emulator-<port>".
 is_emulator() {
-    case "$SERIAL" in emulator-*) return 0 ;; esac
     [ "$(a shell getprop ro.kernel.qemu | tr -d '\r')" = 1 ] || [ "$(a shell getprop ro.boot.qemu | tr -d '\r')" = 1 ]
 }
 # On an emulator only, what adb may grant, so no system dialog comes to the front: notifications (Android 13+) and
@@ -84,7 +84,7 @@ check_wand() {
     local name="the wand opens the command sheet" kb
     kb=$(a shell cat /proc/meminfo | awk '/^MemTotal/ { print $2 }')
     if ui has headerOrb; then pass "$name"
-    elif [ "${kb:-0}" -lt 9765625 ] && ui has "Auf diesem Gerät läuft die Ordo-KI nicht|This phone can’t run Ordo AI"; then
+    elif [ -n "$kb" ] && [ "$kb" -lt 9765625 ] && ui has "Auf diesem Gerät läuft die Ordo-KI nicht|This phone can’t run Ordo AI"; then
         echo "SKIP $name (not enough RAM for the model on this device)"
     else fail "$name"; fi
 }
