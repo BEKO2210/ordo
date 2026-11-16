@@ -356,7 +356,7 @@
         <item name="android:textColor">?colorPrimary</item>
     </style>
 
-    <style name="ShapeAppearanceOverlay.Ordo.Klang.Pill">
+    <style name="ShapeAppearanceOverlay.Ordo.Klang.Pill" parent="">
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">50%</item>
     </style>
