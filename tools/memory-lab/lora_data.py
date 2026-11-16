@@ -8,6 +8,7 @@ The phones here are NOT the lab phone (gen_tree.py): other folders, other names,
 Today is the lab's fixed day (bench.NOW) because rules2 reads time relative to it.
 """
 import json
+import os
 import pathlib
 import random
 import sys
@@ -20,7 +21,7 @@ import rules3
 from p0_cases import G, P
 
 HERE = pathlib.Path(__file__).parent
-OUT = HERE / "lora"
+OUT = HERE / os.environ.get("LORA_DIR", "lora")   # run 4: LORA_DIR=lora2 (clean data, local models only)
 NOW = datetime.fromtimestamp(bench.NOW)
 TODAY = NOW.date()
 WA = "Android/media/com.whatsapp/WhatsApp/Media/"

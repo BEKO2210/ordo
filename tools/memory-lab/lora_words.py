@@ -6,6 +6,7 @@
 Each LLM sees only facts (lora_data.describe), never a test sentence and never the target JSON.
 """
 import json
+import os
 import pathlib
 import random
 import re
@@ -16,7 +17,7 @@ import time
 import urllib.request
 
 HERE = pathlib.Path(__file__).parent
-OUT = HERE / "lora"
+OUT = HERE / os.environ.get("LORA_DIR", "lora")   # run 4: LORA_DIR=lora2 (clean data, local models only)
 PERSONAS_DE = [
     "eine ältere Person, die per Spracheingabe diktiert: keine Satzzeichen, Zahlen oft als Wörter, Füllwörter (äh, also, mal), "
     "manchmal falsch erkannte oder getrennte Wörter (down load, whats app, p d f)",
@@ -128,6 +129,91 @@ def jobs(seed=11):
     print(len(items), "items in", len(batches), "jobs")
 
 
+PERSONAS_DE4 = PERSONAS_DE + [
+    "eine Rentnerin über 80, sehr höflich und umständlich, erklärt erst, warum sie etwas will",
+    "ein zehnjähriges Kind, kurze einfache Sätze, Rechtschreibfehler",
+    "ein Handwerker auf der Baustelle, diktiert schnell zwischen zwei Aufträgen, ohne Satzzeichen",
+    "eine Person aus Bayern, umgangssprachlich ('dua', 'de Buidl', 'gscheid'), aber verständlich",
+    "eine Person aus Berlin, schnoddrig ('ick', 'wat', 'mach ma')",
+    "eine Person aus Norddeutschland, sehr knapp ('moin', 'mal eben', 'tüdelig')",
+    "eine Person aus Köln oder dem Ruhrgebiet, locker ('dat', 'wat', 'ma eben')",
+    "eine Person mit Türkisch als Muttersprache, die Deutsch und ein paar türkische Füllwörter mischt ('yani', 'abi')",
+    "eine Person mit Russisch als Muttersprache: Artikel fehlen oft, Wortstellung ungewohnt",
+    "eine Studentin, die Denglisch spricht (files, checken, downloaden, Folder)",
+    "eine müde Pflegekraft nach der Nachtschicht, Tippfehler, sehr kurz",
+    "ein Vater mit Baby auf dem Arm, tippt einhändig: klein, Wörter fehlen, Tippfehler",
+    "eine technisch unsichere Person, die Wörter verwechselt (Ordner/Datei/App/Galerie) und nachfragt",
+    "eine Person, die per Sprachassistent diktiert: Satzzeichen ausgesprochen ('komma', 'punkt', 'fragezeichen')",
+]
+PERSONAS_EN4 = PERSONAS_EN + [
+    "a British English speaker, polite and a bit formal (could you possibly, cheers)",
+    "an American teenager texting: lowercase, slang (lol, rn, pls, gonna)",
+    "an Indian English speaker, polite, kindly do the needful style",
+    "a busy parent typing one-handed: very short, typos, no punctuation",
+]
+TIME_SLANG = {"im Januar": ["Anfang des Jahres", "gleich nach Neujahr", "im Jänner"],
+              "Weihnachten": ["über die Feiertage", "an Heiligabend", "über Weihnachten", "an den Weihnachtstagen"],
+              "Silvester": ["an Silvester", "zum Jahreswechsel", "in der Silvesternacht"],
+              "Ostern": ["über Ostern", "an den Osterfeiertagen", "am Osterwochenende"],
+              "im Sommer": ["in den Sommerferien", "im Sommerurlaub", "als es so heiß war"],
+              "im Dezember": ["Ende letzten Jahres", "kurz vor Weihnachten"], "neulich": ["vor kurzem", "letztens", "die Tage"],
+              "gestern": ["gestern Abend", "gestern früh"], "heute": ["heute morgen", "vorhin"],
+              "letzte Woche": ["vorige Woche", "letzte Woche irgendwann"], "letzten Monat": ["vorigen Monat", "im letzten Monat"]}
+FREE4 = {
+    "ask": FREE["ask"] + [
+        "etwas 'wegmachen' oder 'aufräumen' wollen, aber unklar ob löschen oder verschieben, und ohne zu sagen was",
+        "Dateien 'woanders hin' tun wollen, ohne Ziel und ohne zu sagen welche",
+        "'die von gestern' verschieben wollen, ohne zu sagen welche Art von Dateien und wohin",
+        "eine Sache mit 'dem Ding von neulich' machen wollen, ohne zu sagen was",
+        "'alles' löschen wollen, ohne Ordner oder Art zu nennen",
+        "Fotos 'sortieren' wollen, aber nicht sagen ob nach Datum, nach Ort oder in welchen Ordner",
+    ],
+    "refuse": FREE["refuse"] + [
+        "eine Datei als Anhang an eine Mail hängen", "einen Ordner mit einem Passwort sperren oder verstecken",
+        "Fotos automatisch in die Cloud sichern lassen", "ein Video in eine andere Auflösung umwandeln",
+        "eine Datei an den Fernseher oder Drucker senden", "eine Erinnerung oder einen Termin anlegen",
+        "Kontakte oder SMS sichern", "eine Datei auf einen USB-Stick oder den PC übertragen",
+        "Gesichter auf Fotos erkennen lassen ('alle Fotos auf denen Oma ist', ohne dass Oma im Dateinamen steht)",
+        "den Text auf einem Foto oder Screenshot lesen lassen", "eine App-Berechtigung ändern",
+    ],
+    "chat": FREE["chat"] + ["fragen, ob der Assistent Gefühle hat", "eine Geschichte erzählt bekommen wollen",
+                            "einen Tipp für ein Geschenk wollen", "fragen, wie man ein Foto schöner macht (Rat, keine Aktion)"],
+}
+
+
+def jobs4(seed=41):
+    """Run 4 (clean data): all plan specs in LORA_DIR + free classes; hints for colloquial time and content questions.
+    Batches of 8 (small local models lose items in long JSON)."""
+    r = random.Random(seed)
+    items = []
+    for f in sorted(OUT.glob("specs_*.jsonl")):
+        for row in (json.loads(l) for l in open(f, encoding="utf-8")):
+            d = row["desc"]
+            t = row["spec"].get("time")
+            if t in TIME_SLANG and r.random() < .5:
+                d += f" – sag die Zeit umgangssprachlich, z. B. '{r.choice(TIME_SLANG[t])}'"
+            if row["spec"].get("content") and r.random() < .6:
+                d += " – formuliere als Frage, in welcher Datei das steht (z. B. 'in welcher Datei steht ...', 'wo hab ich ... drin')"
+            if row["spec"].get("name") and not row["spec"].get("source") and r.random() < .5:
+                d += " – nenne KEINEN Ordner, nur das Thema"
+            items.append({"id": row["id"], "lang": row["lang"], "desc": d, "k": 3})
+            if row["spec"]["action"] in ("delete", "move") and r.random() < .3:
+                items.append({"id": row["id"] + "q", "lang": row["lang"], "k": 2,
+                              "desc": row["desc"] + " – ABER nur als FRAGE formuliert, ob man das tun kann/sollte "
+                                      "(z. B. 'Kann ich ... löschen?', 'Sollte ich ...?'), keine Aufforderung"})
+    for cls, topics in list(FREE4.items()) + list(FREE2.items()):
+        n = {"refuse": 10, "chat": 6, "ask": 12}.get(cls, 10 if cls != "refuse2" else 8)
+        for i in range(len(topics) * n // 2):
+            items.append({"id": f"{cls}_{i:04d}", "lang": "en" if r.random() < .15 else "de", "k": 3,
+                          "desc": f"Nutzer will: {topics[i % len(topics)]}" if cls != "chat" else f"Nutzer sagt: {topics[i % len(topics)]}"})
+    r.shuffle(items)
+    with open(OUT / "jobs.jsonl", "w", encoding="utf-8") as fh:
+        for i, b in enumerate(items[j:j + 8] for j in range(0, len(items), 8)):
+            fh.write(json.dumps({"job": i, "items": b, "persona_de": r.choice(PERSONAS_DE4),
+                                 "persona_en": r.choice(PERSONAS_EN4)}, ensure_ascii=False) + "\n")
+    print(len(items), "items")
+
+
 def prompt(job):
     L = ["Du schreibst Testsätze für eine Dateimanager-App auf dem Handy. Nutzer sprechen oder tippen der App einen Befehl.",
          f"Schreibe für jeden Eintrag unten die verlangte Anzahl verschiedener Sätze, so wie {job['persona_de']} sie sagen würde.",
@@ -153,6 +239,13 @@ def call(backend, text):
                                      {"Content-Type": "application/json"})
         with urllib.request.urlopen(req, timeout=400) as r:
             return json.load(r)["choices"][0]["message"]["content"]
+    if backend.startswith("local:"):   # run 4: a model on pop-os behind llama-server, e.g. local:8180:qwen3.5-9b
+        body = {"model": "x", "stream": False, "temperature": random.choice([.7, .85, 1.0, 1.1]), "top_p": .95, "max_tokens": 3500,
+                "chat_template_kwargs": {"enable_thinking": False}, "messages": [{"role": "user", "content": text}]}
+        req = urllib.request.Request(f"http://127.0.0.1:{backend.split(':')[1]}/v1/chat/completions", json.dumps(body).encode(),
+                                     {"Content-Type": "application/json"})
+        with urllib.request.urlopen(req, timeout=600) as r:
+            return json.load(r)["choices"][0]["message"]["content"]
     if backend == "codex":
         p = subprocess.run(["codex", "exec", "--skip-git-repo-check", "--ephemeral", "-s", "read-only", "-"], input=text,
                            capture_output=True, text=True, timeout=900, cwd="/tmp")
@@ -176,7 +269,7 @@ def parse(out):
 
 
 LOCK = threading.Lock()
-REV = "--rev" in sys.argv
+REV = "--rev" in sys.argv or bool(os.environ.get("LORA_REV"))
 
 
 def done_jobs():
@@ -222,6 +315,8 @@ if __name__ == "__main__":
         jobs()
     elif sys.argv[1] == "jobs2":
         jobs2()
+    elif sys.argv[1] == "jobs4":
+        jobs4()
     elif sys.argv[1] == "jobs3":
         jobs3()
     elif sys.argv[1] == "run":

@@ -9,6 +9,7 @@ Writes out/RUN/ (PEFT adapter) and out/RUN/log.jsonl (train loss every 10 steps,
 """
 import json
 import math
+import os
 import random
 import sys
 import time
@@ -18,7 +19,7 @@ from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig, get_cosine_schedule_with_warmup
 
 BASE = "/home/belkis/ordo-lora/base/Qwen3.5-4B"
-LAB = "/home/belkis/ordo-lora/lab/lora"
+LAB = "/home/belkis/ordo-lora/lab/" + os.environ.get("LORA_DIR", "lora")
 arg = lambda k, d: type(d)(sys.argv[sys.argv.index(k) + 1]) if k in sys.argv else d
 RUN, EPOCHS, LR, RANK, MINUTES = sys.argv[1], arg("--epochs", 2), arg("--lr", 2e-4), arg("--r", 16), arg("--minutes", 38.0)
 MICRO, ACCUM = 4, 4

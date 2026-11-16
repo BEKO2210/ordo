@@ -289,3 +289,176 @@ cd ~/ordo-lora/lab && ./run_frozen.sh blind3_cases blind3
   greedy.
 - Er schreibt `lora/raw_blind3.json` und `lora/results_ext.md`, dort mit „Modell allein“ und „+ Netz a-d“.
 - Gezählt wird wie bei `blind2_run.score`.
+
+## 11. Nachtraining Nr. 2: sauberer Datensatz (Lauf 4)
+
+Stand 16.11.2026. Ziel: ein Adapter, dessen Trainingssätze **nur** von lokal laufenden Modellen mit freier Lizenz und von
+eigenem Code stammen. Damit wäre er ohne die offene Anbieter-Frage aus Abschnitt 8 auslieferbar. Dazu kommen die
+schwachen Klassen aus Abschnitt 9 und die Fehlerschwerpunkte aus Blindtest 3. Die habe ich **nur als Kategorien**
+übernommen: Änderungen an einer benannten Teilmenge und Befehle mit mehreren Themenwörtern. Blind-3-Fälle, Rohpläne
+und Fehlerlisten habe ich nicht angesehen.
+
+### 11.1 Herkunft der Daten und Lizenzen
+
+- **Kein Satz aus `lora/words.jsonl`** (codex, Cursor, Grok) ist übernommen. Kein Cloud- oder API-Modell wurde aufgerufen.
+- Übernommen ist nur eigener Code: Handys, Plan-Ziehung, Prüfung (`lora_data.py`, `lora_build.py`).
+- **Neue Pläne** mit eigenen Seeds liegen in `lora2/specs_*.jsonl`:
+  - 111: Mischung
+  - 222: Inhaltsfragen
+  - 333: zwei Themenwörter
+  - 444: Aufräumen
+  - 555–557: Löschen, Verschieben und Kopieren mit zwei Themenwörtern
+  - 565–566: Löschen und Verschieben; davon nur die Pläne mit Namensfilter
+- **Wortlaut-Generatoren**, alle lokal auf pop-os (RTX 3070) über `llama-server`, ohne Denkmodus:
+
+| Modell | Familie / Hersteller | Lizenz | Rohsätze | behalten (Lauf 4) | + Rauschvarianten |
+|---|---|---|---|---|---|
+| `qwen3.5:9b` (Ollama-Blob `02d45dc1…`, Q4_K_M), 4 Slots | Qwen (Alibaba) | Apache-2.0 | 2 546 | 2 140 | 529 |
+| `granite4.2:8b` (Ollama-Blob `16a9369d…`), 4 Slots | Granite (IBM) | Apache-2.0 | 1 546 | 1 199 | 304 |
+| `Ministral-3-14B-Instruct-2512` UD-IQ3_XXS (GGUF), 2 Slots | Mistral | Apache-2.0 | 1 064 | 824 | 199 |
+| eigene Schablonen (`lora_templates.py`) | – | eigener Code | 949 | 892 | 198 |
+
+  Tempo auf der 3070: qwen3.5-9b ≈ 13 Jobs/min (je Job 8 Pläne × 3 Sätze, ≈ 15 000 Sätze/h), granite ähnlich,
+  Ministral ≈ 3,5 Jobs/min. Gelaufen ist das in Stücken von höchstens 10 Minuten, nur mit `gpu.lock`, nur bei ≥ 10 GB
+  freiem RAM, mit RAM-Wächter (`gen_local.sh`, `gen_loop.sh`), weil parallel Release- und Emulator-Läufe liefen.
+
+- **Lizenzprüfung an der Quelle:**
+  - Lizenzdatei im Ollama-Manifest (qwen3.5, granite4.2, gemma4: jeweils der Apache-2.0-Text)
+  - `general.license` in den GGUF-Metadaten
+  - Hugging-Face-API (`cardData.license`) für `Qwen/Qwen3.5-9B`, `ibm-granite/granite-4.2-8b`,
+    `mistralai/Ministral-3-14B-Instruct-2512`, `google/gemma-4-26B-A4B-it`
+
+  Apache-2.0 setzt der Nutzung der Ausgaben keine Grenzen, also auch nicht dem Training damit.
+- **Programmatisch (eigener Code, keine Fremdausgabe):**
+  - `lora_templates.py`: ein Schablonensatz je Plan der schwachen Klassen (Inhaltsfrage, benannte Änderung,
+    umgangssprachliche Zeit), nur Deutsch.
+  - `lora_build.py noisy()`: Rauschen auf rund 40 % der behaltenen Sätze, danach **erneut voll geprüft**. Arten:
+    - Kleinschreibung
+    - Umlaute weg (ä→a oder ä→ae)
+    - Satzzeichen weg oder diktiert („komma“, „punkt“)
+    - Tippfehler (Buchstaben vertauscht, fehlend oder doppelt)
+    - Füllwörter („mal“, „äh“, „halt“; englisch „um“, „pls“)
+    - Wörter getrennt oder zusammengezogen
+- **Personas:** 22 deutsche und 8 englische. Dazu gehören Dialekte (Bayern, Berlin, Köln/Ruhr, Norddeutschland, Schwaben),
+  Senioren, Kinder, Deutsch als Zweitsprache (türkisch, russisch), Denglisch, Diktat mit gesprochenen Satzzeichen,
+  einhändiges Tippen und ein Problem statt eines Befehls. Die Temperatur wechselt je Anfrage (0,7–1,1).
+- **Nicht genutzt:**
+  - gemma4:12b: passt mit Kontext nicht in 8 GB VRAM.
+  - Gemma-4-26B-A4B: legt Experten in den RAM. Der RAM war wegen der Release- und Emulator-Läufe gesperrt.
+  - Qwen3.8-27B: zu langsam.
+  - Ein CPU-Versuch mit granite-4.2-3b auf belkis-home: 2,5 Token/s, abgebrochen, 0 Sätze.
+
+### 11.2 Prüfung und Leck-Check
+
+- Jeder Satz läuft durch dieselbe mechanische Prüfung wie bei Lauf 2: Schema L gültig, Gold-Dateien auf seinem Handy
+  exakt getroffen, alle Fakten im Satz, keine Änderungsverben in Fragen. Das gilt auch für jede Rauschvariante.
+- **Leck-Check** gegen alle 284 Dev-Testsätze: p0 inkl. der 20 Originale, p0b inkl. der heutigen 27, Blind 1, Blind 2
+  und die Laborsätze. Schwelle wie bisher 0,70.
+- **Blind 3** ist zusätzlich drin, aber **nur gezählt**: `lora_build.blind3_texts()` liest nur das Feld `text`. Nichts
+  davon wird ausgegeben oder geschrieben, `build.md` nennt nur die Anzahl.
+- Gebremst wurde die Erzeugung von Sperre und RAM, nicht vom Tempo. 170 der 384 Wortlaut-Jobs (gemischte Pläne) blieben
+  ohne Wortlaut.
+
+### 11.3 Lauf 4 (Daten `lora2/`) – durchgefallen
+
+- **Daten:** 6 285 Sätze behalten. Das Training ist auf 4 800 gekappt (Zufallsauswahl), damit das Sperrstück unter
+  25 min bleibt; dazu 651 zur Validierung.
+- **Mechanische Prüfung:** LLM-Sätze 81 % bestanden (4 163 von 5 156), Schablonen 94 %.
+- **Verworfen:**
+  - 89 nahe an Dev-Testsätzen
+  - 14 nahe an Blind 3 (nur gezählt)
+  - 935 doppelt
+- **Training:** Rezept wie run2 (QLoRA r16, LR 2e-4, 1 Epoche).
+  - Bei Schritt 297 von 300 griff der Zeitdeckel von 22 min.
+  - Val-Loss: 1,699 → 0,082 (100) → 0,059 (200) → 0,053.
+  - Diese Werte sind nicht mit run2 vergleichbar: Die Validierung ist eine andere, verrauschte Verteilung.
+- **Adapter:** pop-os `~/ordo-lora/out/run4.gguf`, 42 485 408 Byte, SHA-256 `9186a6bc9374f2e2…`.
+- **Dev-Ergebnis:** `lora2/results_run4.md`. Zwei harte Bedingungen sind verletzt: Rückschritt bei den heutigen
+  Befehlen und 1 gefährlicher Plan mit Netz. **Nicht eingefroren.**
+- **Ursachen**, gefunden an Dev-Rohplänen (nicht an Blind 3):
+  1. **Datenfehler.** Der Plan-Rückfall „Änderung ohne Filter → Art der Ankerdatei“ setzt `kinds`, ohne dass der
+     Satz eine Dateiart nennt. Den gab es schon in Lauf 2, aber dort schrieben die stärkeren Modelle die Art meist mit
+     hin. Folge: Bei vagen Änderungen hängt das Modell „document“ an, und „Räum Download auf“ oder „Leg … ab“ werden zum
+     Löschen.
+  2. **Zu wenige Negativklassen:** Ablehnung 314, Chat 85, Rückfrage 190; Lauf 2 hatte 589/384/216. Folge:
+     „umbenennen“ wird zu move, „öffnen“ zu show.
+
+### 11.4 Lauf 5 (Daten `lora3/`) – durchgefallen
+
+**Was sich gegenüber Lauf 4 ändert** (`LORA_STRICT=1`, gleicher Wortlaut ohne neue Fremdsätze):
+
+- Neue Prüfung „Dateiart muss im Satz stehen“: 264 Sätze verworfen.
+- Ablehnung, Chat und Rückfrage im Training doppelt (Überabtastung).
+- Eigene Schablonen für 240 Ablehnungen (umbenennen, öffnen, teilen, zippen, drucken, …) und 120 Rückfragen
+  (Änderung ohne Objekt oder Ziel).
+- Prompt, Grammatik und Netz sind **unverändert** (`rules3` wie 13bfbed9).
+
+**Daten:**
+- 6 335 Sätze behalten, Training 4 800 (gekappt), Validierung 672.
+- Klassen im Training: show 1 182, move 831, delete 807, Ablehnung 721, Rückfrage 349, organize 333, copy 250,
+  chat 115, Frage→show 113, Rest 99.
+
+**Training:**
+- 300 Schritte, 23,7 min.
+- Val-Loss 0,090 (100) → 0,066 (200) → 0,061.
+
+**Adapter:** pop-os `~/ordo-lora/out/run5.gguf`, 42 485 408 Byte, SHA-256 `2653db00138e9aca…`.
+
+**Dev-Ergebnis** (`lora3/results_run5.md`, Wertung `eval3.py` wie bisher):
+
+| Lauf | Regeln | Blind 1 (40) | Blind 2 (50) | p0b (41) | 20 Originale | heutige (27) | p0 Einzel (51) | gefährlich |
+|---|---|---|---|---|---|---|---|---|
+| run2 (eingefroren, Fremd-Wortlaut) | + Netz a-d | 34 | 35 | 39 | 11 | 26 | 33 | 0 |
+| run4 (lokal) | Modell allein | 27 | 34 | 34 | 9 | 24 | 31 | 16 |
+| run4 (lokal) | + Netz a-d | 30 | 34 | 38 | 11 | 25 | 34 | **1** |
+| run5 (lokal) | Modell allein | 30 | 35 | 38 | 9 | 24 | 31 | 11 |
+| run5 (lokal) | + Netz a-d | 33 | 35 | 38 | 11 | 24 | 34 | **3** |
+
+**Ergebnis:** Lauf 5 behebt die Fehler aus Lauf 4. „umbenennen“ und „schicken an Mama“ werden zu `none`, vage
+Änderungen nicht mehr zu einem Löschen von Dokumenten. Dafür kommt ein neuer, gefährlicher Fehler hinzu:
+
+- Bei Löschen und Verschieben macht das Modell aus „größer als 1 GB“ / „über 3 GB“ ein `"size":"unter …"`
+  (n021, rc05, rc12).
+- Das Netz liest die Größe des Modells und prüft sie nicht gegen den Satz. Darum bleibt der Fehler gefährlich.
+- **Ursache:** zu wenige Größen-Beispiele. Nur 114 von 4 800 Trainingszeilen haben eine Größe. Davon widersprechen
+  6 dem Satz, 5 davon von granite.
+- Die Prüfung prüfte bisher nur, ob Zahl und Einheit vorkommen, nicht die Richtung. Für einen Lauf 6 liegt sie bereit:
+  `LORA_STRICT=2` → „size differs“, 15 Sätze.
+
+### 11.5 Urteil und nächster Schritt
+
+- **Nichts eingefroren.** Beide sauberen Läufe verletzen die harten Bedingungen: 0 gefährlich mit Netz und kein
+  Rückschritt bei den heutigen Befehlen. Damit gibt es keinen Kandidaten für Blindtest 4.
+- `run_frozen2.sh` liegt bereit: Adapter als 3. Argument, Standard `~/ordo-lora/out/FROZEN2.gguf`. Die Datei gibt es
+  noch nicht.
+- **Ehrliche Einschätzung:**
+  - Lokale 8–14B-Modelle liefern brauchbaren, aber weniger treuen Wortlaut als codex/Cursor/Grok.
+  - Die mechanische Prüfung muss deshalb strenger sein. Zwei Lücken haben erst die Läufe gezeigt: Dateiart und
+    Größenrichtung.
+  - Die Daten werden knapper. Bei 4 800 Zeilen haben seltene Klassen (Größe, Chat) zu wenige Beispiele.
+- **Vorschlag Lauf 6** (braucht ein OK, weil höchstens 2 Läufe erlaubt waren):
+  - `LORA_STRICT=2`
+  - Größen-Pläne gezielt nachziehen: Seeds mit `size`, Schablonen „größer/kleiner als“.
+  - Die 170 offenen Wortlaut-Jobs erzeugen, sobald RAM frei ist (≈ 15 min mit qwen/granite).
+  - Chat aus den LLM-Jobs verdoppeln.
+  - Training auf ~6 000 Zeilen in zwei gesperrten Stücken oder mit längerem Sperrfenster.
+  - Erwartung: Dev etwa auf run2-Niveau. Ob 0 gefährlich hält, zeigt erst der Lauf.
+
+### 11.6 Skripte (neu)
+
+- `lora_words.py jobs4`: Jobs aus `$LORA_DIR/specs_*`, 22 + 8 Personas, Hinweise für Umgangszeit, Inhaltsfragen und
+  Themenwörter ohne Ordner. Backend `local:PORT:NAME`, die Temperatur wechselt je Anfrage.
+- `gen_local.sh NAME MIN THREADS -- LLAMA_ARGS` und `gen_loop.sh`: Wortlaut mit einem lokalen Modell, nur
+  `gpu.lock`, RAM-Tor und RAM-Wächter.
+- `lora_templates.py`: eigene Schablonen; mit `LORA_STRICT` auch Ablehnung und Rückfrage.
+- `lora_build.py`:
+  - `LORA_DIR`, `LORA_NOISE`, `LORA_MAX_TRAIN`, `LORA_STRICT=1|2`
+  - Rauschen `noisy()` mit Selbsttest: `lora_build.py selftest`
+  - Leck-Zählung gegen Blind 3
+- `train4.sh RUN` (mit `LORA_DIR`): wartet, bis niemand an `build.lock` steht, trainiert unter beiden Sperren und
+  wandelt in GGUF um.
+- `eval4.sh TAG ADAPTER`: Dev-Auswertung nur mit `gpu.lock`, RAM-gesperrt. Ein Lauf dauert ~2 min.
+- **Reproduzieren** (`LORA_NOISE=0.4 LORA_MAX_TRAIN=4800`):
+  - run4: `LORA_DIR=lora2 lora_build.py` → train md5 `526c7c00…`
+  - run5: `lora3` = `lora2/specs_*` + `lora2/jobs.jsonl` + `lora3/words.jsonl`, `LORA_STRICT=1` → train md5 `9a6d4ec9…`
+  - Beide nachgeprüft.
