@@ -95,6 +95,7 @@ Was als Nächstes kommt, steht in der [lebenden Roadmap](docs/ROADMAP-LIVE.md): 
 - Ordos eigene Farben auf jedem Handy, in fünf Akzenten, oder die Farben deines Hintergrundbilds (ab Android 12)
 - Hell, dunkel und echtes Schwarz; Animationen voll, dezent oder aus
 - Die Suchleiste der Startseite oben oder unten, mit dem Daumen erreichbar
+- Bei ausgewählten Dateien liegen die Aktionen in einer Leiste unten; ihr „Mehr“-Menü öffnet direkt darüber, beim Daumen
 
 ## KI-Befehle
 
