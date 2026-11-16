@@ -5,6 +5,7 @@
 
 package me.zhanghai.android.files.home
 
+import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.core.view.isInvisible
@@ -13,6 +14,7 @@ import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import android.content.res.ColorStateList
 import android.widget.ImageView
+import androidx.annotation.ColorInt
 import androidx.annotation.ColorRes
 import androidx.annotation.DrawableRes
 import androidx.core.content.ContextCompat
@@ -150,9 +152,10 @@ class StorageAdapter(
     inner class ViewHolder(private val binding: HomeStorageItemBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(item: StorageSummary) {
             val context = binding.root.context
-            binding.iconImage.setTintedCircleIcon(
+            // Storage belongs to no file type, so it wears the chosen accent like its bar.
+            binding.iconImage.setTintedCircleIconColor(
                 if (item.removable) R.drawable.sd_card_icon_white_24dp else R.drawable.device_icon_white_24dp,
-                R.color.home_analysis
+                context.getColorByAttr(androidx.appcompat.R.attr.colorPrimary)
             )
             binding.nameText.text = item.name
             binding.descriptionText.text = context.getString(
@@ -173,16 +176,15 @@ class StorageAdapter(
             }
             // TalkBack reads the real value even before the bar has counted up.
             binding.percentText.contentDescription = storagePercentLabel(item.used, item.total)
-            // Aurora gradient like the analysis charts; amber to red once the storage is nearly full.
+            // The chosen accent, a lighter tone flowing into the full one; amber to red once the storage is nearly full.
+            val accent = context.getColorByAttr(androidx.appcompat.R.attr.colorPrimary)
             binding.usageBar.gradient = if (progress >= 900) {
                 intArrayOf(ContextCompat.getColor(context, R.color.chart_audio), ContextCompat.getColor(context, R.color.chart_video))
             } else {
-                intArrayOf(ContextCompat.getColor(context, R.color.ai_glow_1), ContextCompat.getColor(context, R.color.ai_glow_2))
+                intArrayOf(ColorUtils.blendARGB(accent, Color.WHITE, 0.35f), accent)
             }
             // Keyed by the volume: a recycled card that showed another volume grows in instead of moving from its number.
-            binding.usageBar.setParts(
-                listOf(ContextCompat.getColor(context, R.color.ai_accent) to item.used), item.total, item.path
-            )
+            binding.usageBar.setParts(listOf(accent to item.used), item.total, item.path)
             binding.analyzeButton.setOnClickListener { onAnalyze(item) }
             binding.root.setOnClickListener { onClick(item) }
             binding.openButton.setOnClickListener { onClick(item) }
@@ -222,8 +224,10 @@ internal fun quickAccessColor(@DrawableRes iconRes: Int): Int = when (iconRes) {
 }
 
 // Icon in its category color on a 15 % tinted circle, the tonal look of Material 3.
-fun ImageView.setTintedCircleIcon(@DrawableRes iconRes: Int, @ColorRes colorRes: Int) {
-    val color = ContextCompat.getColor(context, colorRes)
+fun ImageView.setTintedCircleIcon(@DrawableRes iconRes: Int, @ColorRes colorRes: Int) =
+    setTintedCircleIconColor(iconRes, ContextCompat.getColor(context, colorRes))
+
+fun ImageView.setTintedCircleIconColor(@DrawableRes iconRes: Int, @ColorInt color: Int) {
     setImageResource(iconRes)
     imageTintList = ColorStateList.valueOf(color)
     backgroundTintList = ColorStateList.valueOf(ColorUtils.setAlphaComponent(color, 0x26))

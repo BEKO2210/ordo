@@ -5,20 +5,28 @@
 
 package me.zhanghai.android.files.settings
 
+import android.animation.ValueAnimator
 import android.content.Context
-import android.content.res.ColorStateList
+import android.graphics.Canvas
 import android.graphics.Color
-import android.graphics.drawable.GradientDrawable
+import android.graphics.Paint
+import android.graphics.Path
+import android.graphics.PathMeasure
+import android.os.Parcelable
+import android.os.SystemClock
 import android.util.AttributeSet
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.HapticFeedbackConstants
+import android.view.MotionEvent
 import android.view.View
+import android.view.animation.AccelerateInterpolator
+import android.view.animation.PathInterpolator
 import android.widget.FrameLayout
-import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.RadioButton
 import android.widget.TextView
+import androidx.annotation.ColorInt
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.use
 import androidx.core.graphics.ColorUtils
@@ -28,9 +36,14 @@ import androidx.core.view.accessibility.AccessibilityNodeInfoCompat
 import androidx.preference.Preference
 import androidx.preference.PreferenceViewHolder
 import com.google.android.material.color.MaterialColors
+import kotlinx.parcelize.Parcelize
 import me.zhanghai.android.files.R
+import me.zhanghai.android.files.colorpicker.ColorPreviewView
+import me.zhanghai.android.files.ui.Motion
+import me.zhanghai.android.files.util.ParcelableState
+import me.zhanghai.android.files.util.getColorByAttr
 
-/** Ordo's accent colours as five round swatches; the chosen one carries a ring and a check mark. */
+/** Ordo's accent colours as five round swatches with a live miniature of the resulting theme. */
 class AccentPreference @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null
@@ -41,6 +54,21 @@ class AccentPreference @JvmOverloads constructor(
         R.color.accent_aurora_primary, R.color.accent_blue_primary, R.color.accent_mint_primary,
         R.color.accent_violet_primary, R.color.accent_amber_primary
     )
+    private val boundSwatches = mutableListOf<BoundSwatch>()
+    private var boundRoot: View? = null
+    private var boundPreview: ColorPreviewView? = null
+    private var pendingValue: String? = null
+    private var pendingSaveUptime = 0L
+    private var storageRevealPlayed = false
+    private val savePending = Runnable { commitPendingValue() }
+    private val rootAttachListener = object : View.OnAttachStateChangeListener {
+        override fun onViewAttachedToWindow(view: View) = Unit
+
+        override fun onViewDetachedFromWindow(view: View) {
+            commitPendingValue()
+            cancelBoundAnimations()
+        }
+    }
 
     init {
         layoutResource = R.layout.accent_preference
@@ -52,66 +80,305 @@ class AccentPreference @JvmOverloads constructor(
 
     override fun onAttached() {
         super.onAttached()
-        summaryProvider = SummaryProvider<AccentPreference> { names[values.indexOf(selected).coerceAtLeast(0)] }
+        summaryProvider = SummaryProvider<AccentPreference> {
+            names[values.indexOf(selected).coerceAtLeast(0)]
+        }
     }
 
     override fun onBindViewHolder(holder: PreferenceViewHolder) {
         super.onBindViewHolder(holder)
+        boundRoot?.removeOnAttachStateChangeListener(rootAttachListener)
+        cancelBoundAnimations()
+
+        val root = holder.itemView
+        boundRoot = root
+        root.addOnAttachStateChangeListener(rootAttachListener)
+
         // Preference greys the title of rows that are not selectable; this one is, through its swatches.
         context.obtainStyledAttributes(intArrayOf(android.R.attr.textColorPrimary)).use { it.getColorStateList(0) }
             ?.let { (holder.findViewById(android.R.id.title) as TextView).setTextColor(it) }
+
+        val visualValue = pendingValue ?: selected
+        val preview = holder.findViewById(R.id.accent_preview) as ColorPreviewView
+        boundPreview = preview
+        val previewColor = if (isEnabled) {
+            colorForValue(visualValue)
+        } else {
+            // The active theme already contains the wallpaper-derived accent.
+            context.getColorByAttr(androidx.appcompat.R.attr.colorPrimary)
+        }
+        preview.setAccent(previewColor, false)
+        preview.alpha = if (isEnabled) 1f else DISABLED_ALPHA
+        preview.revealStorage(!storageRevealPlayed) { storageRevealPlayed = true }
+
         val row = holder.findViewById(R.id.swatches) as LinearLayout
         row.removeAllViews()
         val density = context.resources.displayMetrics.density
-        val ring = MaterialColors.getColor(row, com.google.android.material.R.attr.colorOnSurface)
-        values.forEachIndexed { i, value ->
-            val color = ContextCompat.getColor(context, colors[i])
-            val chosen = value == selected
-            val swatch = ImageView(context).apply {
+        val ringColor = MaterialColors.getColor(
+            context, com.google.android.material.R.attr.colorOnSurface, Color.BLACK
+        )
+        values.forEachIndexed { index, value ->
+            val chosen = value == visualValue
+            val swatch = AccentSwatchView(context, ContextCompat.getColor(context, colors[index]), ringColor).apply {
                 importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
-                layoutParams = FrameLayout.LayoutParams((36 * density).toInt(), (36 * density).toInt(), Gravity.CENTER)
-                background = GradientDrawable().apply {
-                    shape = GradientDrawable.OVAL
-                    setColor(color)
-                    if (chosen) setStroke((3 * density).toInt(), ring)
-                }
-                if (chosen) {
-                    setImageResource(R.drawable.check_icon_control_normal_24dp)
-                    // The check mark takes whichever of black or white reads better on the swatch.
-                    imageTintList = ColorStateList.valueOf(
-                        if (ColorUtils.calculateContrast(Color.WHITE, color) >= 3) Color.WHITE else Color.BLACK)
-                    val pad = (7 * density).toInt()
-                    setPadding(pad, pad, pad, pad)
-                }
+                layoutParams = FrameLayout.LayoutParams(
+                    (SWATCH_SIZE_DP * density).toInt(), (SWATCH_SIZE_DP * density).toInt(), Gravity.CENTER
+                )
+                setSelectedImmediately(chosen)
             }
-            // 48dp touch target around the 36dp circle.
-            row.addView(FrameLayout(context).apply {
-                layoutParams = LinearLayout.LayoutParams((48 * density).toInt(), (48 * density).toInt())
+            val touchTarget = FrameLayout(context).apply {
+                layoutParams = LinearLayout.LayoutParams(
+                    (TOUCH_TARGET_DP * density).toInt(), (TOUCH_TARGET_DP * density).toInt()
+                )
                 addView(swatch)
-                contentDescription = names[i]
+                contentDescription = names[index]
                 isSelected = chosen
-                // TalkBack reads the five swatches as radio buttons: name, then checked or not checked.
                 ViewCompat.setAccessibilityDelegate(this, object : AccessibilityDelegateCompat() {
-                    override fun onInitializeAccessibilityNodeInfo(host: View, info: AccessibilityNodeInfoCompat) {
+                    override fun onInitializeAccessibilityNodeInfo(
+                        host: View,
+                        info: AccessibilityNodeInfoCompat
+                    ) {
                         super.onInitializeAccessibilityNodeInfo(host, info)
                         info.className = RadioButton::class.java.name
                         info.isCheckable = true
-                        info.isChecked = chosen
+                        info.isChecked = host.isSelected
                     }
                 })
                 isEnabled = this@AccentPreference.isEnabled
-                alpha = if (this@AccentPreference.isEnabled) 1f else 0.38f
+                alpha = if (this@AccentPreference.isEnabled) 1f else DISABLED_ALPHA
                 background = TypedValue().let {
                     context.theme.resolveAttribute(android.R.attr.selectableItemBackgroundBorderless, it, true)
                     ContextCompat.getDrawable(context, it.resourceId)
                 }
-                setOnClickListener {
-                    if (value == selected || !callChangeListener(value)) return@setOnClickListener
-                    it.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
-                    persistString(value)
-                    notifyChanged()
+                setOnTouchListener { view, event ->
+                    when (event.actionMasked) {
+                        MotionEvent.ACTION_DOWN -> animatePress(view, true)
+                        MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> animatePress(view, false)
+                    }
+                    false
                 }
-            })
+                setOnClickListener { choose(value, this) }
+            }
+            row.addView(touchTarget)
+            boundSwatches += BoundSwatch(value, touchTarget, swatch)
         }
+        schedulePendingSave()
+    }
+
+    private fun choose(value: String, hapticView: View) {
+        val currentValue = pendingValue ?: selected
+        if (value == currentValue || !callChangeListener(value)) return
+
+        hapticView.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
+        pendingValue = value
+        pendingSaveUptime = SystemClock.uptimeMillis() + SAVE_DELAY_MS
+        boundPreview?.setAccent(colorForValue(value))
+        boundSwatches.forEach { bound ->
+            val chosen = bound.value == value
+            if (bound.target.isSelected != chosen) {
+                bound.target.isSelected = chosen
+                bound.swatch.setSelected(chosen, Motion.any)
+            }
+        }
+
+        schedulePendingSave()
+    }
+
+    private fun schedulePendingSave() {
+        if (pendingValue == null) return
+        boundRoot?.removeCallbacks(savePending)
+        val remaining = pendingSaveUptime - SystemClock.uptimeMillis()
+        if (!Motion.any || remaining <= 0L) {
+            commitPendingValue()
+        } else {
+            // The preview is the longest transition at 200 ms; save only after it and both swatches settle.
+            boundRoot?.postDelayed(savePending, remaining)
+        }
+    }
+
+    private fun commitPendingValue() {
+        boundRoot?.removeCallbacks(savePending)
+        val value = pendingValue ?: return
+        pendingValue = null
+        pendingSaveUptime = 0L
+        persistString(value)
+        notifyChanged()
+    }
+
+    private fun cancelBoundAnimations() {
+        boundRoot?.removeCallbacks(savePending)
+        boundSwatches.forEach {
+            it.target.animate().cancel()
+            it.target.scaleX = 1f
+            it.target.scaleY = 1f
+            it.swatch.cancelAnimation()
+        }
+        boundSwatches.clear()
+        boundPreview = null
+    }
+
+    @ColorInt
+    private fun colorForValue(value: String): Int {
+        val index = values.indexOf(value).coerceAtLeast(0)
+        return ContextCompat.getColor(context, colors[index])
+    }
+
+    override fun onSaveInstanceState(): Parcelable? {
+        commitPendingValue()
+        return State(super.onSaveInstanceState(), storageRevealPlayed)
+    }
+
+    override fun onRestoreInstanceState(state: Parcelable?) {
+        if (state !is State) {
+            super.onRestoreInstanceState(state)
+            return
+        }
+        super.onRestoreInstanceState(state.superState)
+        storageRevealPlayed = state.storageRevealPlayed
+    }
+
+    override fun onDetached() {
+        commitPendingValue()
+        boundRoot?.removeOnAttachStateChangeListener(rootAttachListener)
+        cancelBoundAnimations()
+        boundRoot = null
+        super.onDetached()
+    }
+
+    private data class BoundSwatch(
+        val value: String,
+        val target: View,
+        val swatch: AccentSwatchView
+    )
+
+    @Parcelize
+    private class State(val superState: Parcelable?, val storageRevealPlayed: Boolean) : ParcelableState
+
+    companion object {
+        private const val TOUCH_TARGET_DP = 48
+        // The whole touch target: the circle is drawn at 18 dp, the ring reaches 21.75 dp and must not touch the edge.
+        private const val SWATCH_SIZE_DP = 48
+        private const val SAVE_DELAY_MS = 200L
+        private const val DISABLED_ALPHA = 0.38f
+        private val EMPHASIZED = PathInterpolator(0.2f, 0f, 0f, 1f)
+
+        private fun animatePress(view: View, pressed: Boolean) {
+            view.animate().cancel()
+            if (!Motion.any) {
+                view.scaleX = 1f
+                view.scaleY = 1f
+                return
+            }
+            view.animate()
+                .scaleX(if (pressed) 0.96f else 1f)
+                .scaleY(if (pressed) 0.96f else 1f)
+                .setDuration(if (pressed) 70 else 120)
+                .setInterpolator(if (pressed) EMPHASIZED else AccelerateInterpolator())
+                .start()
+        }
+    }
+}
+
+/** Draws selection separately from the colour so the ring and check can follow their own short choreography. */
+private class AccentSwatchView(
+    context: Context,
+    @ColorInt private val color: Int,
+    @ColorInt private val ringColor: Int
+) : View(context) {
+    private val density = resources.displayMetrics.density
+    private val fillPaint = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val ringPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        style = Paint.Style.STROKE
+        strokeWidth = 2.5f * density
+    }
+    private val checkPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        style = Paint.Style.STROKE
+        strokeCap = Paint.Cap.ROUND
+        strokeJoin = Paint.Join.ROUND
+        strokeWidth = 2.5f * density
+    }
+    private val checkPath = Path()
+    private val drawnCheck = Path()
+    private val pathMeasure = PathMeasure()
+    private var ringAmount = 0f
+    private var checkAmount = 0f
+    private var animator: ValueAnimator? = null
+
+    fun setSelected(selected: Boolean, animate: Boolean) {
+        animator?.cancel()
+        if (!animate) {
+            setSelectedImmediately(selected)
+            return
+        }
+        val startRing = ringAmount
+        val startCheck = checkAmount
+        val end = if (selected) 1f else 0f
+        animator = ValueAnimator.ofFloat(0f, 1f).apply {
+            duration = if (selected) 160 else 100
+            interpolator = if (selected) EMPHASIZED else AccelerateInterpolator()
+            addUpdateListener {
+                val fraction = it.animatedValue as Float
+                ringAmount = lerp(startRing, end, fraction)
+                checkAmount = lerp(startCheck, end, fraction)
+                invalidate()
+            }
+            start()
+        }
+    }
+
+    fun setSelectedImmediately(selected: Boolean) {
+        animator?.cancel()
+        animator = null
+        ringAmount = if (selected) 1f else 0f
+        checkAmount = ringAmount
+        invalidate()
+    }
+
+    fun cancelAnimation() {
+        animator?.cancel()
+        animator = null
+    }
+
+    override fun onDraw(canvas: Canvas) {
+        super.onDraw(canvas)
+        val cx = width / 2f
+        val cy = height / 2f
+        val radius = 18f * density
+        fillPaint.color = color
+        canvas.drawCircle(cx, cy, radius, fillPaint)
+
+        if (ringAmount > 0f) {
+            ringPaint.color = ringColor
+            ringPaint.alpha = (255 * ringAmount).toInt()
+            val ringRadius = radius + (4f - 1.5f * ringAmount) * density
+            canvas.drawCircle(cx, cy, ringRadius, ringPaint)
+        }
+        if (checkAmount <= 0f) return
+        checkPaint.color = if (ColorUtils.calculateContrast(Color.WHITE, color) >= 3.0) {
+            Color.WHITE
+        } else {
+            Color.BLACK
+        }
+        checkPaint.alpha = (255 * checkAmount).toInt()
+        checkPath.reset()
+        checkPath.moveTo(cx - 7f * density, cy)
+        checkPath.lineTo(cx - 2f * density, cy + 5f * density)
+        checkPath.lineTo(cx + 8f * density, cy - 6f * density)
+        pathMeasure.setPath(checkPath, false)
+        drawnCheck.reset()
+        pathMeasure.getSegment(0f, pathMeasure.length * checkAmount, drawnCheck, true)
+        canvas.drawPath(drawnCheck, checkPaint)
+    }
+
+    override fun onDetachedFromWindow() {
+        cancelAnimation()
+        super.onDetachedFromWindow()
+    }
+
+    companion object {
+        private val EMPHASIZED = PathInterpolator(0.2f, 0f, 0f, 1f)
+
+        private fun lerp(start: Float, end: Float, fraction: Float): Float =
+            start + (end - start) * fraction
     }
 }

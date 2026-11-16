@@ -9,15 +9,22 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.view.View
+import android.graphics.drawable.VectorDrawable
+import android.view.animation.PathInterpolator
+import android.widget.ImageView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.Preference
+import androidx.preference.PreferenceCategory
+import androidx.preference.PreferenceGroup
+import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import me.zhanghai.android.files.BuildConfig
 import me.zhanghai.android.files.R
+import me.zhanghai.android.files.util.getColorByAttr
 import me.zhanghai.android.files.about.AboutActivity
 import me.zhanghai.android.files.ai.CommandDesign
 import me.zhanghai.android.files.ai.CommandModel
@@ -30,12 +37,14 @@ import me.zhanghai.android.files.theme.custom.CustomThemeHelper
 import me.zhanghai.android.files.theme.custom.ThemeColor
 import me.zhanghai.android.files.theme.night.NightMode
 import me.zhanghai.android.files.theme.night.NightModeHelper
+import me.zhanghai.android.files.ui.Motion
 import me.zhanghai.android.files.ui.PreferenceFragmentCompat
 import me.zhanghai.android.files.util.createIntent
 import me.zhanghai.android.files.util.startActivitySafe
 
 class SettingsPreferenceFragment : PreferenceFragmentCompat() {
     private var localePreference: LocalePreference? = null
+    private var iconSettleCount = 0
 
     private val section: String?
         get() = (requireActivity() as SettingsActivity).section
@@ -59,7 +68,32 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
                 activity.setApplicationLocalesPre33(locales)
             }
         }
-        if (section == null) bindOverview()
+        if (section == null) {
+            bindOverview()
+        } else {
+            // Rows without an icon keep the same text start as rows that have one.
+            reserveIconSpace(preferenceScreen)
+        }
+    }
+
+    private fun reserveIconSpace(group: PreferenceGroup) {
+        for (i in 0 until group.preferenceCount) {
+            when (val preference = group.getPreference(i)) {
+                is PreferenceCategory -> reserveIconSpace(preference)
+                else -> preference.isIconSpaceReserved = true
+            }
+        }
+        group.tintIcons()
+    }
+
+    override fun onDisplayPreferenceDialog(preference: Preference) {
+        if (preference is VisualListPreference) {
+            if (parentFragmentManager.findFragmentByTag(DIALOG_FRAGMENT_TAG) == null) {
+                displayPreferenceDialog(VisualListPreferenceDialogFragment(), preference.key)
+            }
+        } else {
+            super.onDisplayPreferenceDialog(preference)
+        }
     }
 
     private fun bindOverview() {
@@ -107,12 +141,14 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         super.onActivityCreated(savedInstanceState)
 
         // Every tappable row gets Ordo's rounded, accent-tinted touch feedback instead of a full-width flash.
+        // On sub-pages the first eight icons settle once (scale + fade); with motion off they simply stand.
         listView.addOnChildAttachStateChangeListener(object : RecyclerView.OnChildAttachStateChangeListener {
             override fun onChildViewAttachedToWindow(view: View) {
                 if (view.isClickable && view.getTag(R.id.ordo_row_ripple) == null) {
                     view.background = ContextCompat.getDrawable(view.context, R.drawable.ordo_row_ripple)
                     view.setTag(R.id.ordo_row_ripple, true)
                 }
+                if (section != null) settleIcon(view)
             }
 
             override fun onChildViewDetachedFromWindow(view: View) {}
@@ -160,6 +196,27 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         CustomThemeHelper.sync()
     }
 
+    private fun settleIcon(row: View) {
+        if (!Motion.any || iconSettleCount >= ICON_SETTLE_MAX) return
+        val icon = row.findViewById<ImageView>(android.R.id.icon) ?: return
+        if (icon.visibility != View.VISIBLE || icon.drawable == null) return
+        if (icon.getTag(R.id.on_first_sight) != null) return
+        val delay = iconSettleCount * ICON_SETTLE_STAGGER_MS
+        iconSettleCount++
+        icon.setTag(R.id.on_first_sight, true)
+        icon.alpha = 0f
+        icon.scaleX = 0.85f
+        icon.scaleY = 0.85f
+        icon.animate()
+            .alpha(1f)
+            .scaleX(1f)
+            .scaleY(1f)
+            .setStartDelay(delay)
+            .setDuration(ICON_SETTLE_DURATION_MS)
+            .setInterpolator(EMPHASIZED)
+            .start()
+    }
+
     override fun onResume() {
         super.onResume()
 
@@ -169,5 +226,33 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
             localePreference?.notifyChanged()
         }
         if (section == SettingsActivity.SECTION_AI) bindAiModel()
+    }
+
+    companion object {
+        // @see PreferenceFragmentCompat.DIALOG_FRAGMENT_TAG
+        private const val DIALOG_FRAGMENT_TAG = "androidx.preference.PreferenceFragment.DIALOG"
+        private const val ICON_SETTLE_MAX = 8
+        private const val ICON_SETTLE_STAGGER_MS = 30L
+        private const val ICON_SETTLE_DURATION_MS = 240L
+        private val EMPHASIZED = PathInterpolator(0.2f, 0f, 0f, 1f)
+    }
+}
+
+/**
+ * The symbols of settings rows are white vectors; without a tint they vanish on the light theme. Pictures drawn in code
+ * (night mode, black night mode) keep their own colours.
+ */
+fun PreferenceGroup.tintIcons() {
+    val color = context.getColorByAttr(androidx.appcompat.R.attr.colorControlNormal)
+    for (i in 0 until preferenceCount) {
+        val preference = getPreference(i)
+        if (preference is PreferenceGroup) {
+            preference.tintIcons()
+            continue
+        }
+        val icon = preference.icon ?: continue
+        if (icon is VectorDrawable || icon is VectorDrawableCompat) {
+            preference.icon = icon.mutate().apply { setTint(color) }
+        }
     }
 }

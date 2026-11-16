@@ -17,6 +17,10 @@
         <item name="actionBarTheme">@style/ThemeOverlay.MaterialFiles.ActionBar</item>
         <item name="actionBarPopupTheme">@style/ThemeOverlay.MaterialFiles.ActionBarPopup</item>
         <item name="android:colorBackground">?colorSurface</item>
+        <item name="popupMenuStyle">@style/Widget.Ordo.MaterialComponents.PopupMenu</item>
+        <item name="actionOverflowMenuStyle">@style/Widget.Ordo.MaterialComponents.PopupMenu.Overflow</item>
+        <item name="materialAlertDialogTheme">@style/ThemeOverlay.Ordo.MaterialComponents.MaterialAlertDialog</item>
+        <item name="alertDialogTheme">@style/ThemeOverlay.Ordo.MaterialComponents.Dialog.Alert</item>
         <item name="dropDownListViewStyle">@style/Widget.MaterialFiles.ListView.DropDown</item>
         <!-- https://developer.android.com/training/tv/start/start#transition-color -->
         <item name="android:windowAllowEnterTransitionOverlap">true</item>
@@ -67,6 +71,10 @@
         <item name="actionBarTheme">@style/ThemeOverlay.MaterialFiles.ActionBar</item>
         <item name="actionBarPopupTheme">@style/ThemeOverlay.MaterialFiles.ActionBarPopup</item>
         <item name="android:colorBackground">?colorSurface</item>
+        <item name="popupMenuStyle">@style/Widget.Ordo.MaterialComponents.PopupMenu</item>
+        <item name="actionOverflowMenuStyle">@style/Widget.Ordo.MaterialComponents.PopupMenu.Overflow</item>
+        <item name="materialAlertDialogTheme">@style/ThemeOverlay.Ordo.MaterialComponents.MaterialAlertDialog</item>
+        <item name="alertDialogTheme">@style/ThemeOverlay.Ordo.MaterialComponents.Dialog.Alert</item>
         <item name="dropDownListViewStyle">@style/Widget.MaterialFiles.ListView.DropDown</item>
         <!-- https://developer.android.com/training/tv/start/start#transition-color -->
         <item name="android:windowAllowEnterTransitionOverlap">true</item>

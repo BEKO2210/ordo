@@ -11,12 +11,14 @@
 
     <SwitchPreferenceCompat
         android:key="@string/pref_key_trash_enabled"
+        android:icon="@drawable/delete_icon_white_24dp"
         android:title="@string/settings_trash_enabled_title"
         android:summary="@string/settings_trash_enabled_summary"
         android:defaultValue="@bool/pref_default_value_trash_enabled" />
 
-    <ListPreference
+    <me.zhanghai.android.files.settings.VisualListPreference
         android:key="@string/pref_key_trash_retention_days"
+        android:icon="@drawable/settings_auto_delete_icon_white_24dp"
         android:title="@string/settings_trash_retention_title"
         android:defaultValue="@string/pref_default_value_trash_retention_days"
         android:dependency="@string/pref_key_trash_enabled"

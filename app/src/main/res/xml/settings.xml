@@ -14,14 +14,14 @@
 
         <me.zhanghai.android.files.settings.SettingsCategoryPreference
             android:key="section_appearance"
-            android:icon="@drawable/palette_icon_white_24dp"
+            android:icon="@drawable/settings_pictogram_appearance"
             android:title="@string/settings_section_appearance"
             android:summary="@string/settings_section_appearance_summary"
             app:ordoCircleColor="#D97706" />
 
         <me.zhanghai.android.files.settings.SettingsCategoryPreference
             android:key="section_ai"
-            android:icon="@drawable/assistant_icon_white_24dp"
+            android:icon="@drawable/settings_pictogram_ai"
             android:title="@string/settings_section_ai"
             android:summary="@string/settings_section_ai_summary"
             app:ordoCircleColor="#0891B2"
@@ -32,35 +32,35 @@
 
         <me.zhanghai.android.files.settings.SettingsCategoryPreference
             android:key="section_files"
-            android:icon="@drawable/directory_icon_white_24dp"
+            android:icon="@drawable/settings_pictogram_files"
             android:title="@string/settings_section_files"
             android:summary="@string/settings_section_files_summary"
             app:ordoCircleColor="#2563EB" />
 
         <me.zhanghai.android.files.settings.SettingsCategoryPreference
             android:key="section_storage"
-            android:icon="@drawable/device_icon_white_24dp"
+            android:icon="@drawable/settings_pictogram_storage"
             android:title="@string/settings_section_storage"
             android:summary="@string/settings_section_storage_summary"
             app:ordoCircleColor="#0D9488" />
 
         <me.zhanghai.android.files.settings.SettingsCategoryPreference
             android:key="section_trash"
-            android:icon="@drawable/delete_icon_white_24dp"
+            android:icon="@drawable/settings_pictogram_trash"
             android:title="@string/settings_trash_title"
             android:summary="@string/settings_section_trash_summary"
             app:ordoCircleColor="#DC2626" />
 
         <me.zhanghai.android.files.settings.SettingsCategoryPreference
             android:key="link_backup"
-            android:icon="@drawable/backup_icon_white_24dp"
+            android:icon="@drawable/settings_pictogram_backup"
             android:title="@string/navigation_backup"
             android:summary="@string/home_backup_summary"
             app:ordoCircleColor="#16A34A" />
 
         <me.zhanghai.android.files.settings.SettingsCategoryPreference
             android:key="link_ftp_server"
-            android:icon="@drawable/shared_directory_icon_white_24dp"
+            android:icon="@drawable/settings_pictogram_ftp"
             android:title="@string/navigation_ftp_server"
             android:summary="@string/settings_link_ftp_server_summary"
             app:ordoCircleColor="#EA580C" />
@@ -70,14 +70,14 @@
 
         <me.zhanghai.android.files.settings.SettingsCategoryPreference
             android:key="link_legal"
-            android:icon="@drawable/legal_icon_white_24dp"
+            android:icon="@drawable/settings_pictogram_legal"
             android:title="@string/legal_title"
             android:summary="@string/settings_link_legal_summary"
             app:ordoCircleColor="#475569" />
 
         <me.zhanghai.android.files.settings.SettingsCategoryPreference
             android:key="link_about"
-            android:icon="@drawable/about_icon_white_24dp"
+            android:icon="@drawable/settings_pictogram_about"
             android:title="@string/navigation_about"
             android:summary="@string/navigation_about"
             app:ordoCircleColor="#64748B" />

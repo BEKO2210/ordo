@@ -34,9 +34,9 @@
 
 ## Status
 
-Ordo is in development (version 0.11.1). A closed test runs on Google Play; test builds are also published as
+Ordo is in development (version 0.12.0). A closed test runs on Google Play; test builds are also published as
 [pre-releases](https://github.com/BEKO2210/ordo/releases); you can also [build it from source](#build).
-What comes next is in the [living roadmap](docs/ROADMAP-LIVE.md): every goal has a check command and closes itself.
+What comes next is in the [living roadmap](docs/ROADMAP-LIVE.md): every goal has a check command and closes itself. The research behind the planned music and video player, PDF reader and editors is in [docs/MEDIEN-RECHERCHE.md](docs/MEDIEN-RECHERCHE.md) (German).
 
 ## Features
 
@@ -99,6 +99,10 @@ What comes next is in the [living roadmap](docs/ROADMAP-LIVE.md): every goal has
 
 - Ordo's own colours on every phone, in five accents, or your wallpaper's colours (Android 12 and later)
 - Light, dark and true black; motion full, subtle or off
+- Night mode, Motion and Home search bar use visual choice panels with a preview pictogram instead of plain radio lists
+- Menus, dialogs, colour choices and the nine settings pictograms move together; Settings › Appearance › Motion
+  (Full – all effects, Subtle – transitions only or Off) controls all of it, and Android's Remove animations switch
+  always takes priority
 - The home search bar at the top or at the bottom, within thumb reach
 - With files selected, the actions sit in a bar at the bottom; its "More" menu opens right above it, next to the thumb
 

@@ -23,6 +23,7 @@ import android.view.View
 import android.view.animation.LinearInterpolator
 import android.view.animation.PathInterpolator
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.ColorUtils
 import com.google.android.material.color.MaterialColors
 import me.zhanghai.android.files.R
 import me.zhanghai.android.files.file.asFileSize
@@ -41,10 +42,12 @@ import kotlin.math.sin
 class ScanProgressView @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null) : View(context, attrs) {
     private val density = resources.displayMetrics.density
     private fun sp(value: Float) = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, value, resources.displayMetrics)
-    private val glows = intArrayOf(
-        ContextCompat.getColor(context, R.color.ai_glow_1), ContextCompat.getColor(context, R.color.ai_glow_2),
-        ContextCompat.getColor(context, R.color.ai_glow_3)
-    )
+    private val glows = run {
+        val accent = MaterialColors.getColor(this, androidx.appcompat.R.attr.colorPrimary)
+        val container = MaterialColors.getColor(this, com.google.android.material.R.attr.colorPrimaryContainer, accent)
+        val onContainer = MaterialColors.getColor(this, com.google.android.material.R.attr.colorOnPrimaryContainer, accent)
+        intArrayOf(accent, ColorUtils.blendARGB(accent, container, 0.4f), ColorUtils.blendARGB(accent, onContainer, 0.25f))
+    }
     private val primary = MaterialColors.getColor(this, android.R.attr.textColorPrimary)
     private val secondary = MaterialColors.getColor(this, android.R.attr.textColorSecondary)
 

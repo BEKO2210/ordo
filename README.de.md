@@ -34,9 +34,9 @@
 
 ## Stand
 
-Ordo ist in Entwicklung (Version 0.11.1). Bei Google Play läuft ein geschlossener Test; Testversionen erscheinen auch als
+Ordo ist in Entwicklung (Version 0.12.0). Bei Google Play läuft ein geschlossener Test; Testversionen erscheinen auch als
 [Pre-Releases](https://github.com/BEKO2210/ordo/releases); du kannst Ordo auch [selbst bauen](#bauen).
-Was als Nächstes kommt, steht in der [lebenden Roadmap](docs/ROADMAP-LIVE.md): Jedes Ziel hat einen Prüfbefehl und schließt sich selbst.
+Was als Nächstes kommt, steht in der [lebenden Roadmap](docs/ROADMAP-LIVE.md): Jedes Ziel hat einen Prüfbefehl und schließt sich selbst. Die Recherche hinter dem geplanten Musik- und Video-Player, PDF-Leser und den Editoren steht in [docs/MEDIEN-RECHERCHE.md](docs/MEDIEN-RECHERCHE.md).
 
 ## Funktionen
 
@@ -100,6 +100,11 @@ Was als Nächstes kommt, steht in der [lebenden Roadmap](docs/ROADMAP-LIVE.md): 
 
 - Ordos eigene Farben auf jedem Handy, in fünf Akzenten, oder die Farben deines Hintergrundbilds (ab Android 12)
 - Hell, dunkel und echtes Schwarz; Animationen voll, dezent oder aus
+- Nachtmodus, Animationen und Suchleiste der Startseite haben visuelle Auswahlfenster mit Vorschau-Piktogramm statt
+  einfacher Optionslisten
+- Menüs, Dialoge, Farbauswahl und die neun Piktogramme der Einstellungen bewegen sich gemeinsam; Einstellungen ›
+  Aussehen › Animationen (Voll – alle Effekte, Dezent – nur Übergänge oder Aus) steuert alles, und Androids
+  Systemeinstellung „Animationen entfernen“ hat immer Vorrang
 - Die Suchleiste der Startseite oben oder unten, mit dem Daumen erreichbar
 - Bei ausgewählten Dateien liegen die Aktionen in einer Leiste unten; ihr „Mehr“-Menü öffnet direkt darüber, beim Daumen
 
