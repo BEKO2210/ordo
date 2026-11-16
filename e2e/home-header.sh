@@ -5,7 +5,7 @@
 . "$(dirname "$0")/lib.sh" "$@"
 launch
 home() { on home.HomeActivity; }
-sheet_closed() { ! ui has headerOrb; }
+sheet_closed() { ! ui has "headerOrb|setupLayout"; }
 check "the menu icon has a label" ui has "Navigationsmenü öffnen|Open navigation drawer"
 check "the wand has a label" ui has "Ordo einen Befehl geben|Give Ordo a command"
 check "more has a label" ui has "Weitere Optionen|More options"
@@ -17,7 +17,7 @@ for _ in 1 2 3; do home && break; guard; back; done   # keyboard, search, list
 check "back from the search returns to the home screen" home
 
 ui tap assistantButton >/dev/null; sleep 2; guard
-check "the wand opens the command sheet" ui has headerOrb
+check_wand
 back
 ui has headerOrb && back   # the first back only hid the keyboard
 check "back closes the command sheet" sheet_closed

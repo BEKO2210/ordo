@@ -30,7 +30,8 @@ import me.zhanghai.android.files.databinding.HomeQuickAccessItemBinding
 import me.zhanghai.android.files.file.asFileSize
 import me.zhanghai.android.files.util.getColorByAttr
 import me.zhanghai.android.files.util.getQuantityString
-import java.text.NumberFormat
+import java.util.Locale
+import me.zhanghai.android.files.analysis.StorageInsights
 
 class RecentFileAdapter(private val onClick: (RecentFile) -> Unit) :
     RecyclerView.Adapter<RecentFileAdapter.ViewHolder>() {
@@ -127,6 +128,13 @@ class TileAdapter : RecyclerView.Adapter<TileAdapter.ViewHolder>() {
     }
 }
 
+/**
+ * The storage card's percentage, worded exactly as the analysis shows it ([StorageInsights.share]); [shown] is the
+ * share of [used] drawn so far while the bar grows or moves, so the label never jumps to another wording on the way.
+ */
+internal fun storagePercentLabel(used: Long, total: Long, shown: Float = 1f, locale: Locale = Locale.getDefault()): String =
+    StorageInsights.share(if (shown >= 1f) used else Math.round(used * shown.toDouble()), total, locale)
+
 class StorageAdapter(
     private val onAnalyze: (StorageSummary) -> Unit,
     private val onClick: (StorageSummary) -> Unit
@@ -157,22 +165,24 @@ class StorageAdapter(
             } else {
                 0
             }
-            val percent = NumberFormat.getPercentInstance()
             // The number counts up with the bar, which waits until it is scrolled into view.
             // Only a changed number is set: each setText on the wrap_content label lays out the whole home screen.
             binding.usageBar.onProgress = {
-                val text = percent.format((progress * it).toInt() / 1000.0)
+                val text = storagePercentLabel(item.used, item.total, it)
                 if (binding.percentText.text.toString() != text) binding.percentText.text = text
             }
             // TalkBack reads the real value even before the bar has counted up.
-            binding.percentText.contentDescription = percent.format(progress / 1000.0)
+            binding.percentText.contentDescription = storagePercentLabel(item.used, item.total)
             // Aurora gradient like the analysis charts; amber to red once the storage is nearly full.
             binding.usageBar.gradient = if (progress >= 900) {
                 intArrayOf(ContextCompat.getColor(context, R.color.chart_audio), ContextCompat.getColor(context, R.color.chart_video))
             } else {
                 intArrayOf(ContextCompat.getColor(context, R.color.ai_glow_1), ContextCompat.getColor(context, R.color.ai_glow_2))
             }
-            binding.usageBar.setParts(listOf(ContextCompat.getColor(context, R.color.ai_accent) to item.used), item.total)
+            // Keyed by the volume: a recycled card that showed another volume grows in instead of moving from its number.
+            binding.usageBar.setParts(
+                listOf(ContextCompat.getColor(context, R.color.ai_accent) to item.used), item.total, item.path
+            )
             binding.analyzeButton.setOnClickListener { onAnalyze(item) }
             binding.root.setOnClickListener { onClick(item) }
             binding.openButton.setOnClickListener { onClick(item) }

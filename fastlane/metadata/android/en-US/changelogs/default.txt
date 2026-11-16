@@ -1,6 +1,6 @@
 New in this test build:
-• The home screen updates itself when files change
-• Pull to refresh only when you mean it, with a new animated symbol
-• "More" for selected files opens right above the bar, next to your thumb
-• Fixed: crash on tablets in landscape when selecting a file
+• Fixed: the storage figure on the home screen dropped to 0 % and counted up again on every automatic update – it now stays calm
+• The percentage now matches the storage analysis
+• Calmer during long copies: a pause between automatic updates
+From 0.9.0: home updates itself, deliberate pull to refresh, "More" at the thumb, tablet crash fixed
 Feedback: nullmesh@protonmail.com

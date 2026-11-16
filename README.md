@@ -34,7 +34,7 @@
 
 ## Status
 
-Ordo is in development (version 0.9.0). A closed test runs on Google Play; test builds are also published as
+Ordo is in development (version 0.9.1). A closed test runs on Google Play; test builds are also published as
 [pre-releases](https://github.com/BEKO2210/ordo/releases); you can also [build it from source](#build).
 What comes next is in the [living roadmap](docs/ROADMAP-LIVE.md): every goal has a check command and closes itself.
 
@@ -45,7 +45,8 @@ What comes next is in the [living roadmap](docs/ROADMAP-LIVE.md): every goal has
 - Home screen with recent files, categories (images, videos, audio, documents, downloads, APKs, archives) and
   storage at a glance
 - The home screen keeps itself up to date: new, changed or deleted files show up on their own, a burst of 50 new
-  files reloads it once (measured on the emulator, 16.11.2026), and nothing runs while it is hidden. Pulling down
+  files reloads it once (measured on the emulator, 16.11.2026), during a long copy it waits 3 s after every
+  reload, so the storage is not read without a break, and nothing runs while it is hidden. Pulling down
   still refreshes, but only on purpose: from the top of the page and 120 dp far (the stock gesture fired after 64 dp,
   also when scrolling back up). A folder pictogram follows the finger, fills when letting go would refresh, spins
   while loading and ends with a check; "Refresh" in the menu does the same without the gesture
