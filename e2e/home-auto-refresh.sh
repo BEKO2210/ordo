@@ -4,6 +4,8 @@
 # times, and nothing reloads while it is in the background. WRITES: 50 tiny files in Download/ordo-e2e-refresh,
 # removed at the end.
 . "$(dirname "$0")/lib.sh" "$@"
+# Reloads are counted in the log, which only debug builds write.
+a shell dumpsys package "$PKG" | grep -q "flags=\[.*DEBUGGABLE" || { echo "SKIP: needs a debug build"; exit 0; }
 DIR=/sdcard/Download/ordo-e2e-refresh
 count() { a logcat -d -s HomeViewModel:D | grep -c reload; }
 launch 10

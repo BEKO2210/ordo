@@ -31,6 +31,7 @@ import androidx.core.view.updateLayoutParams
 import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.commit
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -500,6 +501,8 @@ class HomeFragment : Fragment(), ShowRequestAllFilesAccessRationaleDialogFragmen
     private fun onStorageAccessResult() {
         binding.permissionCard.isVisible = !hasStorageAccess()
         if (hasStorageAccess()) viewModel.reload()
+        // Android 7 to 10 only pause the screen for the permission dialog: onStart does not run again.
+        if (lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) viewModel.watchChanges(hasStorageAccess())
     }
 
     override fun onDestroyView() {

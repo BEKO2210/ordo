@@ -12,14 +12,12 @@ import android.os.Looper
 import android.os.SystemClock
 import android.provider.MediaStore
 import android.util.Log
+import me.zhanghai.android.files.BuildConfig
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class HomeViewModel(application: Application) : AndroidViewModel(application) {
@@ -27,16 +25,13 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     private val _state = MutableLiveData(HomeState())
     val state: LiveData<HomeState> = _state
 
-    // A reload replaces the one still running, so an older result can never overwrite a newer one.
-    // Declared before init: its reload() sets it.
-    private var job: Job? = null
+    // Declared before init: its reload() uses it.
+    private val auto = AutoReload(viewModelScope, QUIET_MS, MAX_WAIT_MS, SystemClock::elapsedRealtime) { load() }
 
     init { reload() }
 
-    private val debounce = ReloadDebounce(QUIET_MS, MAX_WAIT_MS)
-    private var pending: Job? = null
     private val mediaObserver = object : ContentObserver(Handler(Looper.getMainLooper())) {
-        override fun onChange(selfChange: Boolean) = reloadSoon()
+        override fun onChange(selfChange: Boolean) = auto.signal()
     }
     private var watching = false
 
@@ -52,19 +47,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
             resolver.registerContentObserver(MediaStore.Files.getContentUri("external"), true, mediaObserver)
         } else {
             resolver.unregisterContentObserver(mediaObserver)
-            pending?.cancel()
-            debounce.reset()
-        }
-    }
-
-    /** A burst of changes (50 files copied at once) becomes one reload, not fifty. */
-    fun reloadSoon() {
-        pending?.cancel()
-        val wait = debounce.delayFor(SystemClock.elapsedRealtime())
-        pending = viewModelScope.launch {
-            delay(wait)
-            debounce.reset()
-            reload()
+            auto.stop()
         }
     }
 
@@ -72,22 +55,24 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         watchChanges(false)
     }
 
-    fun reload() {
-        Log.d(TAG, "reload")
+    /** Loads now and replaces a load still running, so an older result can never overwrite a newer one. */
+    fun reload() = auto.reloadNow()
+
+    private suspend fun load() {
+        // Device tests count reloads in the log; release builds stay quiet.
+        if (BuildConfig.DEBUG) Log.d(TAG, "reload")
         _state.value = _state.value?.copy(isLoading = true)
         val quickAccess = repository.loadQuickAccess()
-        job?.cancel()
-        job = viewModelScope.launch {
-            val storages = withContext(Dispatchers.IO) { repository.loadStorages() }
-            // The storage card needs only statfs: on a cold start it shows at once, not after the media scan.
-            // Later reloads keep the old card until the end, so held bars grow in together (HomeFragment.onResume).
-            if (_state.value?.storages.isNullOrEmpty()) _state.value = _state.value?.copy(storages = storages)
-            val partial = withContext(Dispatchers.IO) { repository.load(quickAccess, storages) }
-            _state.value = _state.value?.copy(
-                recentFiles = partial.recentFiles, categories = partial.categories, quickAccess = partial.quickAccess
-            )
-            _state.value = withContext(Dispatchers.IO) { repository.loadCounts(partial) }
-        }
+        val storages = withContext(Dispatchers.IO) { repository.loadStorages() }
+        // The storage card needs only statfs: on a cold start it shows at once, not after the media scan.
+        // Later reloads keep the old card until the end, so held bars grow in together (HomeFragment.onResume).
+        if (_state.value?.storages.isNullOrEmpty()) _state.value = _state.value?.copy(storages = storages)
+        val partial = withContext(Dispatchers.IO) { repository.load(quickAccess, storages) }
+        _state.value = _state.value?.copy(
+            recentFiles = partial.recentFiles, categories = partial.categories, quickAccess = partial.quickAccess
+        )
+        _state.value = withContext(Dispatchers.IO) { repository.loadCounts(partial) }
+        if (BuildConfig.DEBUG) Log.d(TAG, "reload done")
     }
 
     companion object {

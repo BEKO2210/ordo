@@ -4,6 +4,8 @@
 # never reloads, a long pull from the top does (once). Reloads are counted in the log ("HomeViewModel: reload").
 # Read-only.
 . "$(dirname "$0")/lib.sh" "$@"
+# Reloads are counted in the log, which only debug builds write.
+a shell dumpsys package "$PKG" | grep -q "flags=\[.*DEBUGGABLE" || { echo "SKIP: needs a debug build"; exit 0; }
 launch 10
 read -r W H < <(screen_size)
 DPI=$(a shell wm density | tail -1 | sed 's/.*: //' | tr -d '\r')

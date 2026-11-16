@@ -24,7 +24,9 @@ import me.zhanghai.android.files.util.getColorByAttr
 import com.google.android.material.R as MaterialR
 
 /**
- * Ordo's pull-to-refresh pictogram, drawn in place of the stock spinner. SwipeRefreshLayout keeps driving it through
+ * Depends on androidx.swiperefreshlayout 1.2.0 internals (end trim 0.8 at the trigger, the rotation formula in
+ * setProgressRotation, mProgress being replaceable): re-check this class whenever that dependency is bumped.
+ * * Ordo's pull-to-refresh pictogram, drawn in place of the stock spinner. SwipeRefreshLayout keeps driving it through
  * the spinner's setters: the end trim grows to 0.8 exactly at the trigger distance, the rotation keeps growing with
  * the overshoot. A folder traces itself while pulling, fills and flips its arrow when letting go would refresh,
  * turns the arrow into a spinning sync arc while loading and draws a check when done.
@@ -131,8 +133,9 @@ class PullPictogram(context: Context) : CircularProgressDrawable(context) {
         invalidateSelf()
     }
 
-    /** Spin turns into a check; [then] runs once it has been seen. */
+    /** Spin turns into a check; [then] runs once it has been seen. A second call while the check shows does nothing. */
     fun finish(then: Runnable) {
+        if (done) return
         running = false
         done = true
         spinAnimator.cancel()
@@ -162,7 +165,7 @@ class PullPictogram(context: Context) : CircularProgressDrawable(context) {
         if (value && !running) {
             (callback as? View)?.performHapticFeedback(
                 if (Build.VERSION.SDK_INT >= 34) HapticFeedbackConstants.GESTURE_THRESHOLD_ACTIVATE
-                else HapticFeedbackConstants.CONTEXT_CLICK
+                else HapticFeedbackConstants.CLOCK_TICK
             )
         }
         armAnimator?.cancel()
