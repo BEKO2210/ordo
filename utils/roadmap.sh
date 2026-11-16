@@ -138,6 +138,10 @@ cell "Jede gängige Datei öffnen, lesen und schreiben – und es sieht gut aus"
     "test -s docs/DATEITYPEN.md && ls app/src/main/java/me/zhanghai/android/files/viewer/data/*.kt >/dev/null 2>&1" \
     "Liste aller Dateitypen, die auf einem Handy heute vorkommen (JSON, YAML, XML, CSV, TOML, Logs, Code, Markdown, Untertitel, E-Books …), in docs/DATEITYPEN.md: was Ordo heute damit tut und was es können soll. Dann je Gruppe ein eigener, schöner Betrachter und Editor (Baumansicht für JSON, Tabelle für CSV, farbiger Code), kein nackter Text." \
     "Markdown lesen und schreiben"
+cell "Eingebaute Apps entkoppeln: jede als eigenes App-Symbol, einzeln schaltbar" \
+    "test -f app/src/main/java/me/zhanghai/android/files/settings/LauncherIconsPreferenceFragment.kt && [ \"\$(grep -c '<activity-alias' app/src/main/AndroidManifest.xml)\" -ge 3 ]" \
+    "Eine Seite in den Einstellungen mit einem Schalter je eingebauter App (Musik, Video, Bilder, PDF, Notizen): eingeschaltet bekommt sie ein eigenes Symbol und einen eigenen Namen auf dem Startbildschirm und öffnet direkt ihre Ansicht. Erst freischalten, wenn die jeweilige App gut genug ist. Ein Mechanismus für alle, auf Pixel und Samsung gemessen." \
+    "Musik-Player als eigenes App-Symbol zum Einschalten" "Video-Player: Filme direkt in Ordo ansehen"
 cell "Dokumente bearbeiten: Entscheidung für Office-Formate" \
     "test -s docs/OFFICE-ENTSCHEIDUNG.md" \
     "DOCX, XLSX, PPTX und ODT: ehrlich klären, was auf dem Gerät ohne Cloud in Spitzenqualität geht (ansehen, bearbeiten, gar nicht), mit Größe und Lizenz. Entscheidung von Belkis in docs/OFFICE-ENTSCHEIDUNG.md." \
