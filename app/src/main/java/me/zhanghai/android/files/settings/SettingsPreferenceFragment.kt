@@ -62,6 +62,16 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         if (section == null) bindOverview()
     }
 
+    override fun onDisplayPreferenceDialog(preference: Preference) {
+        if (preference is VisualListPreference) {
+            if (parentFragmentManager.findFragmentByTag(DIALOG_FRAGMENT_TAG) == null) {
+                displayPreferenceDialog(VisualListPreferenceDialogFragment(), preference.key)
+            }
+        } else {
+            super.onDisplayPreferenceDialog(preference)
+        }
+    }
+
     private fun bindOverview() {
         fun open(key: String, intent: () -> Intent) {
             preferenceScreen.findPreference<Preference>(key)!!.setOnPreferenceClickListener {
@@ -169,5 +179,10 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
             localePreference?.notifyChanged()
         }
         if (section == SettingsActivity.SECTION_AI) bindAiModel()
+    }
+
+    companion object {
+        // @see PreferenceFragmentCompat.DIALOG_FRAGMENT_TAG
+        private const val DIALOG_FRAGMENT_TAG = "androidx.preference.PreferenceFragment.DIALOG"
     }
 }
