@@ -67,6 +67,7 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
     private var text = ""
     private var ready: Outcome.Ready? = null
     private var files: List<File> = emptyList()
+    private lateinit var design: CommandDesign
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, state: Bundle?): View {
         _binding = CommandSheetBinding.inflate(inflater, container, false)
@@ -74,6 +75,7 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
     }
 
     override fun onViewCreated(view: View, state: Bundle?) {
+        design = CommandDesign.current(requireContext())
         binding.loadingText.setFactory {
             TextView(requireContext()).apply {
                 gravity = Gravity.CENTER
@@ -400,7 +402,7 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
         val context = requireContext().applicationContext
         viewLifecycleOwner.lifecycleScope.launch {
             try {
-                CommandEngine.warmUp(context)
+                CommandEngine.warmUp(context, design)
             } catch (e: Exception) {
                 e.printStackTrace()
             }
@@ -418,6 +420,11 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
         if (job?.isActive == true) CommandEngine.cancel()
         job?.cancel()
         val context = requireContext().applicationContext
+        // Package 1: the router's screens and hints follow with "show"; until then such a command is refused.
+        if (design.route(text) != null) {
+            showRefused(Reason.UNSUPPORTED)
+            return
+        }
         job = viewLifecycleOwner.lifecycleScope.launch {
             show(binding.loadingLayout)
             binding.cancelButton.isVisible = true
@@ -433,7 +440,12 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
                 }
             }
             val plan = try {
-                CommandEngine.plan(context, text)
+                CommandEngine.plan(context, text, design)?.let { plan ->
+                    // The rules read folder names after "aus/nach"; the shipped design has no rules and needs none.
+                    val folders = if (design === CommandDesign.Today) emptyList()
+                    else withContext(Dispatchers.IO) { folderNames() }
+                    design.fix(text, plan, folders)
+                }
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
@@ -719,6 +731,24 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
         if (paths.isNotEmpty()) {
             android.media.MediaScannerConnection.scanFile(context, paths.toTypedArray(), null, null)
         }
+    }
+
+    /** Folder paths below the storage, relative to it, for the rules' "aus X" / "nach Y" (hidden ones never). */
+    private fun folderNames(): List<String> {
+        val out = mutableListOf<String>()
+        val rootPath = root.path
+        fun walk(dir: File, depth: Int) {
+            if (depth > 8 || out.size >= 20_000) return
+            for (child in dir.listFiles() ?: return) {
+                if (!child.isDirectory || child.name.startsWith(".")) continue
+                val relative = child.path.removePrefix("$rootPath/")
+                if (relative == "Android/data" || relative == "Android/obb") continue
+                out += relative
+                walk(child, depth + 1)
+            }
+        }
+        walk(root, 0)
+        return out.sorted()
     }
 
     // ---- Helpers -----------------------------------------------------------------------------

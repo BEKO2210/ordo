@@ -8,7 +8,7 @@ package me.zhanghai.android.files.ai
 import org.json.JSONArray
 import org.json.JSONObject
 
-/** What the model may answer. Same contract as utils/command-bench/bench.py (SCHEMA). */
+/** What the model may answer. Same contract as plan K in tools/memory-lab/phase0b.py (FIELDS_K). */
 data class CommandPlan(
     val action: String,
     val source: String,
@@ -16,23 +16,37 @@ data class CommandPlan(
     val kinds: List<String> = emptyList(),
     val extensions: List<String> = emptyList(),
     val nameContains: String = "",
+    /** A word in the name or, for plain text files, in the text (show, move, copy). */
+    val contentContains: String = "",
     val olderThan: Int = 0,
+    val newerThan: Int = 0,
     val ageUnit: String = "days",
     val largerThan: Int = 0,
     val sizeUnit: String = "mb",
+    /** "", "size" (largest first) or "newest". */
+    val sort: String = "",
+    /** At most this many files; 0 means all. */
+    val limit: Int = 0,
     val groupBy: String = "",
+    /** "heute"/"today": changed since midnight. Set by [CommandRules], never by the model. */
+    val today: Boolean = false,
     /** Set by [CommandCheck] when the sentence asks for duplicates, never by the model. */
     val duplicates: Boolean = false
 ) {
     // The model only copies numbers and units, the app does the arithmetic.
     // Capped at 100 years, so a silly number can never wrap around into "every file".
     val olderThanDays: Int
-        get() = (olderThan.toLong() * when (ageUnit) {
-            "weeks" -> 7
-            "months" -> 30
-            "years" -> 365
-            else -> 1
-        }).coerceIn(0, 36_500).toInt()
+        get() = days(olderThan)
+
+    val newerThanDays: Int
+        get() = days(newerThan)
+
+    private fun days(count: Int): Int = (count.toLong() * when (ageUnit) {
+        "weeks" -> 7
+        "months" -> 30
+        "years" -> 365
+        else -> 1
+    }).coerceIn(0, 36_500).toInt()
 
     val largerThanBytes: Long
         get() = largerThan.toLong() * if (sizeUnit == "gb") 1_000_000_000L else 1_000_000L
@@ -43,8 +57,9 @@ data class CommandPlan(
     fun toJson(): String = JSONObject()
         .put("action", action).put("source", source).put("destination", destination)
         .put("kinds", JSONArray(kinds)).put("extensions", JSONArray(extensions)).put("name_contains", nameContains)
-        .put("older_than", olderThan).put("age_unit", ageUnit).put("larger_than", largerThan)
-        .put("size_unit", sizeUnit).put("group_by", groupBy).toString()
+        .put("content_contains", contentContains).put("older_than", olderThan).put("newer_than", newerThan)
+        .put("age_unit", ageUnit).put("larger_than", largerThan).put("size_unit", sizeUnit).put("sort", sort)
+        .put("limit", limit).put("group_by", groupBy).put("today", today).toString()
 
     companion object {
         fun parse(json: String): CommandPlan? =
@@ -57,11 +72,16 @@ data class CommandPlan(
                     kinds = o.optJSONArray("kinds").strings(),
                     extensions = o.optJSONArray("extensions").strings(),
                     nameContains = o.optString("name_contains"),
+                    contentContains = o.optString("content_contains"),
                     olderThan = o.optInt("older_than").coerceAtLeast(0),
+                    newerThan = o.optInt("newer_than").coerceAtLeast(0),
                     ageUnit = o.optString("age_unit", "days"),
                     largerThan = o.optInt("larger_than").coerceAtLeast(0),
                     sizeUnit = o.optString("size_unit", "mb"),
-                    groupBy = o.optString("group_by")
+                    sort = o.optString("sort"),
+                    limit = o.optInt("limit").coerceAtLeast(0),
+                    groupBy = o.optString("group_by"),
+                    today = o.optBoolean("today")
                 )
             } catch (e: Exception) {
                 null

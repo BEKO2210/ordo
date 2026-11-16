@@ -31,19 +31,20 @@ object CommandEngine {
     @Volatile
     private var engine: LlamaEngine? = null
     private var loadedThreads = 0
+    private var loadedSystem = ""
     private var unloadJob: Job? = null
 
     val isLoaded: Boolean
         get() = engine != null
 
     /** Loads the model and its fixed prompt part; fast when it is already loaded. */
-    suspend fun warmUp(context: Context) {
-        withContext(dispatcher) { ensure(context) }
+    suspend fun warmUp(context: Context, design: CommandDesign) {
+        withContext(dispatcher) { ensure(context, design) }
     }
 
     /** Null means the model answered with something that is not a plan. */
-    suspend fun plan(context: Context, text: String): CommandPlan? = withContext(dispatcher) {
-        val answer = ensure(context).generate(CommandPlanner.suffix(text), CommandPlanner.GRAMMAR, 200)
+    suspend fun plan(context: Context, text: String, design: CommandDesign): CommandPlan? = withContext(dispatcher) {
+        val answer = ensure(context, design).generate(CommandPlanner.suffix(text), design.grammar, 200)
         scheduleUnload()
         CommandPlan.parse(answer ?: throw IOException("generation cancelled or failed"))
     }
@@ -66,19 +67,20 @@ object CommandEngine {
         }
     }
 
-    private fun ensure(context: Context): LlamaEngine {
+    private fun ensure(context: Context, design: CommandDesign): LlamaEngine {
         unloadJob?.cancel()
         val threads = threadsFor(Settings.AI_SPEED.valueCompat, fastCores(), Runtime.getRuntime().availableProcessors())
         engine?.let {
-            if (loadedThreads == threads) return it.also { scheduleUnload() }
-            // The speed setting changed: load again with the new thread count.
+            if (loadedThreads == threads && loadedSystem == design.system) return it.also { scheduleUnload() }
+            // The speed setting or the prompt changed: load again.
             close()
         }
         val file = CommandModel.file(context.applicationContext)
-        val loaded = LlamaEngine.load(file.path, threads, 2048)
+        val loaded = LlamaEngine.load(file.path, threads, CONTEXT_SIZE)
             ?: throw IOException("model load failed")
         loadedThreads = threads
-        if (!loaded.prepare(CommandPlanner.PREFIX)) {
+        loadedSystem = design.system
+        if (!loaded.prepare(CommandPlanner.prefix(design.system))) {
             loaded.close()
             throw IOException("prompt prefix failed")
         }
@@ -91,6 +93,8 @@ object CommandEngine {
         engine?.close()
         engine = null
     }
+
+    private const val CONTEXT_SIZE = 2048
 
     /** How long the model stays loaded after the last answer: turbo saves the next cold start, gentle frees memory sooner. */
     internal fun idleMinutes(speed: String): Long = when (speed) {
