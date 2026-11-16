@@ -24,11 +24,15 @@ class VisualListPreference @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null
 ) : ListPreference(context, attrs) {
-    enum class Style { NIGHT_MODE, MOTION, HOME_HEADER }
+    enum class Style { NIGHT_MODE, MOTION, HOME_HEADER, AI_SPEED, TRASH_RETENTION, FILE_NAME_ELLIPSIZE, APK_ACTION }
 
     val style: Style = when (key) {
         context.getString(R.string.pref_key_night_mode) -> Style.NIGHT_MODE
         context.getString(R.string.pref_key_motion) -> Style.MOTION
+        context.getString(R.string.pref_key_ai_speed) -> Style.AI_SPEED
+        context.getString(R.string.pref_key_trash_retention_days) -> Style.TRASH_RETENTION
+        context.getString(R.string.pref_key_file_name_ellipsize) -> Style.FILE_NAME_ELLIPSIZE
+        context.getString(R.string.pref_key_open_apk_default_action) -> Style.APK_ACTION
         else -> Style.HOME_HEADER
     }
 
@@ -75,6 +79,28 @@ class VisualListPreference @JvmOverloads constructor(
                 "subtle" -> Kind.MOTION_SUBTLE
                 "off" -> Kind.MOTION_OFF
                 else -> Kind.MOTION_FULL
+            }
+            Style.AI_SPEED -> when (value) {
+                "turbo" -> Kind.AI_TURBO
+                "eco" -> Kind.AI_ECO
+                else -> Kind.AI_BALANCED
+            }
+            Style.TRASH_RETENTION -> when (value) {
+                "7" -> Kind.TRASH_SHORT
+                "30" -> Kind.TRASH_MEDIUM
+                "90" -> Kind.TRASH_LONG
+                else -> Kind.TRASH_NEVER
+            }
+            Style.FILE_NAME_ELLIPSIZE -> when (value) {
+                "0" -> Kind.ELLIPSIZE_START
+                "1" -> Kind.ELLIPSIZE_MIDDLE
+                "3" -> Kind.ELLIPSIZE_MARQUEE
+                else -> Kind.ELLIPSIZE_END
+            }
+            Style.APK_ACTION -> when (value) {
+                "1" -> Kind.APK_VIEW
+                "2" -> Kind.APK_ASK
+                else -> Kind.APK_INSTALL
             }
             Style.HOME_HEADER -> if (value == "bottom") Kind.HEADER_BOTTOM else Kind.HEADER_TOP
         }
