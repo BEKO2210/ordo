@@ -119,7 +119,9 @@ object CommandCheck {
         if (plan.action != "delete") return false
         val unfiltered = plan.extensions.isEmpty() && plan.kinds.isEmpty() && plan.nameContains.isBlank() &&
             plan.contentContains.isBlank() && plan.olderThanDays == 0 && plan.newerThanDays == 0 && !plan.today &&
-            plan.largerThanBytes == 0L && !plan.duplicates && plan.limit == 0
+            plan.largerThanBytes == 0L && !plan.duplicates && plan.limit == 0 && plan.excludeKinds.isEmpty() &&
+            plan.excludeExtensions.isEmpty() && plan.excludeTerms.isEmpty() && plan.dateFrom.isBlank() &&
+            plan.dateTo.isBlank() && plan.minBytes == 0L && plan.maxBytes == 0L
         val dir = source.canonicalFile
         val top = dir == root.canonicalFile || dir.parentFile == root.canonicalFile
         return count > MANY_FILES || unfiltered && top

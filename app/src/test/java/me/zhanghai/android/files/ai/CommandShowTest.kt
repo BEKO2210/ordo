@@ -135,4 +135,25 @@ class CommandShowTest {
         assertEquals(plan, CommandDesign.Today.fix("Was kann ich löschen?", plan, emptyList()))
         assertTrue("\"show\"" !in CommandDesign.Today.grammar)
     }
+
+    // Fields a later rule set (rules2.py) fills: the executor already narrows by them.
+    @Test
+    fun exclusionsDateRangeAndSizeRange() {
+        file("a.pdf", size = 10)
+        file("b.mp4", size = 50)
+        file("entwurf_c.mp4", size = 50)
+        assertEquals(setOf("b.mp4"), show(CommandPlan("show", "", excludeExtensions = listOf("pdf"),
+            excludeTerms = listOf("Entwurf"))).toSet())
+        assertEquals(setOf("a.pdf"), show(CommandPlan("show", "", excludeKinds = listOf("video"))).toSet())
+        assertEquals(setOf("a.pdf"), show(CommandPlan("show", "", maxBytes = 20)).toSet())
+        assertEquals(2, show(CommandPlan("show", "", minBytes = 50)).size)
+        val format = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.ROOT)
+        File(root, "a.pdf").setLastModified(format.parse("2026-11-02")!!.time + 3_600_000)
+        File(root, "b.mp4").setLastModified(format.parse("2026-11-05")!!.time)
+        File(root, "entwurf_c.mp4").setLastModified(format.parse("2026-10-30")!!.time)
+        assertEquals(listOf("a.pdf"), show(CommandPlan("show", "", dateFrom = "2026-11-01", dateTo = "2026-11-05")))
+        assertTrue(show(CommandPlan("show", "", dateFrom = "letzte Woche")).isEmpty())
+        assertEquals(false, CommandCheck.needsSecondConfirm(CommandPlan("delete", "x", excludeTerms = listOf("y")),
+            File(root, "x").apply { mkdirs() }, root, 3))
+    }
 }

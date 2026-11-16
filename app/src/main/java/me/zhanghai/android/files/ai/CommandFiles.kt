@@ -75,7 +75,10 @@ object CommandFiles {
         files.associate { it.path to (it.length() to it.lastModified()) }
 
     /** The plan's filters: ending or kind, name, word, age, size. */
-    private class Filter(private val plan: CommandPlan, private val extensions: Set<String>, now: Long) {
+    private class Filter(
+        private val plan: CommandPlan, private val extensions: Set<String>, private val excluded: Set<String>,
+        private val from: Long, private val to: Long, now: Long
+    ) {
         private val olderLimit = now - plan.olderThanDays * DAY
         private val newerLimit = now - plan.newerThanDays * DAY
         private val midnight = java.util.Calendar.getInstance().apply {
@@ -95,7 +98,12 @@ object CommandFiles {
                 (plan.newerThanDays == 0 || file.lastModified() >= newerLimit) &&
                 (!plan.today || file.lastModified() >= midnight) &&
                 (plan.largerThanBytes == 0L || file.length() > plan.largerThanBytes) &&
-                (text == null || file.name.contains(word, true) || containsText(file))
+                (text == null || file.name.contains(word, true) || containsText(file)) &&
+                file.extension.lowercase(Locale.ROOT) !in excluded &&
+                plan.excludeTerms.none { it.isNotBlank() && file.name.contains(it.trim(), true) } &&
+                (from == 0L || file.lastModified() >= from) && (to == 0L || file.lastModified() < to) &&
+                (plan.minBytes == 0L || file.length() >= plan.minBytes) &&
+                (plan.maxBytes == 0L || file.length() <= plan.maxBytes)
 
         // Only plain text is read: PDF and Office files need a text extraction Ordo does not have yet, so for
         // them the word is found in the name only (docs/KI-ZEIGEN-PHASE0B.md, 6.5).
@@ -114,7 +122,19 @@ object CommandFiles {
                 val extensions = plan.cleanExtensions.toSet()
                     .ifEmpty { plan.kinds.flatMap { KINDS[it] ?: emptySet() }.toSet() }
                 if (extensions.isEmpty() && (plan.extensions.isNotEmpty() || plan.kinds.isNotEmpty())) return null
-                return Filter(plan, extensions, now)
+                val excluded = plan.excludeExtensions.map { it.trim().trimStart('.').lowercase(Locale.ROOT) }.toSet() +
+                    plan.excludeKinds.flatMap { KINDS[it] ?: emptySet() }
+                // A date that cannot be read selects nothing, like a kind that means nothing.
+                val from = if (plan.dateFrom.isBlank()) 0L else isoTime(plan.dateFrom) ?: return null
+                val to = if (plan.dateTo.isBlank()) 0L else isoTime(plan.dateTo) ?: return null
+                return Filter(plan, extensions, excluded, from, to, now)
+            }
+
+            /** Local time of "2026-11-01" (midnight) or "2026-11-01T14:00", or null. */
+            fun isoTime(value: String): Long? = listOf("yyyy-MM-dd'T'HH:mm", "yyyy-MM-dd").firstNotNullOfOrNull {
+                val format = SimpleDateFormat(it, Locale.ROOT).apply { isLenient = false }
+                val position = java.text.ParsePosition(0)
+                format.parse(value.trim(), position)?.takeIf { position.index == value.trim().length }?.time
             }
         }
     }

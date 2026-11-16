@@ -30,6 +30,16 @@ data class CommandPlan(
     val groupBy: String = "",
     /** "heute"/"today": changed since midnight. Set by [CommandRules], never by the model. */
     val today: Boolean = false,
+    // Room for the next rule set (tools/memory-lab/rules2.py), so it needs no change in the executor: exclusions
+    // ("außer PDFs"), a date range as ISO day or minute ("2026-11-01", "2026-11-01T14:00"; from inclusive, to
+    // exclusive) and a size range in bytes. The current rules never set them.
+    val excludeKinds: List<String> = emptyList(),
+    val excludeExtensions: List<String> = emptyList(),
+    val excludeTerms: List<String> = emptyList(),
+    val dateFrom: String = "",
+    val dateTo: String = "",
+    val minBytes: Long = 0,
+    val maxBytes: Long = 0,
     /** Set by [CommandCheck] when the sentence asks for duplicates, never by the model. */
     val duplicates: Boolean = false
 ) {
@@ -59,7 +69,10 @@ data class CommandPlan(
         .put("kinds", JSONArray(kinds)).put("extensions", JSONArray(extensions)).put("name_contains", nameContains)
         .put("content_contains", contentContains).put("older_than", olderThan).put("newer_than", newerThan)
         .put("age_unit", ageUnit).put("larger_than", largerThan).put("size_unit", sizeUnit).put("sort", sort)
-        .put("limit", limit).put("group_by", groupBy).put("today", today).toString()
+        .put("limit", limit).put("group_by", groupBy).put("today", today)
+        .put("exclude_kinds", JSONArray(excludeKinds)).put("exclude_extensions", JSONArray(excludeExtensions))
+        .put("exclude_terms", JSONArray(excludeTerms)).put("date_from", dateFrom).put("date_to", dateTo)
+        .put("min_bytes", minBytes).put("max_bytes", maxBytes).toString()
 
     companion object {
         fun parse(json: String): CommandPlan? =
@@ -81,7 +94,14 @@ data class CommandPlan(
                     sort = o.optString("sort"),
                     limit = o.optInt("limit").coerceAtLeast(0),
                     groupBy = o.optString("group_by"),
-                    today = o.optBoolean("today")
+                    today = o.optBoolean("today"),
+                    excludeKinds = o.optJSONArray("exclude_kinds").strings(),
+                    excludeExtensions = o.optJSONArray("exclude_extensions").strings(),
+                    excludeTerms = o.optJSONArray("exclude_terms").strings(),
+                    dateFrom = o.optString("date_from"),
+                    dateTo = o.optString("date_to"),
+                    minBytes = o.optLong("min_bytes").coerceAtLeast(0),
+                    maxBytes = o.optLong("max_bytes").coerceAtLeast(0)
                 )
             } catch (e: Exception) {
                 null
