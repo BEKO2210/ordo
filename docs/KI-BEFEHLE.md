@@ -149,6 +149,11 @@ Infrastruktur gebaut; Nutzer bekommen weiter den bisherigen Entwurf.
 - **show** ändert nie etwas. Es sucht rekursiv unter dem Ordner (ohne versteckte Ordner und `Android/data`, mit
   `Android/media` für WhatsApp), sortiert wie verlangt (sonst neueste zuerst), kürzt auf `limit` und öffnet die
   normale Dateiliste mit dem Verstandenen als Titel. Antippen öffnet, langes Drücken wählt aus wie überall.
+  Der Auftrag reist nicht im Intent (FileListActivity ist exportiert), sondern als zufälliges Token für eine
+  Anfrage im selben Prozess; ein fremder Intent landet in der normalen Dateiliste. Quellen und Ordner, die über
+  Links oder „..“ aus dem Speicher führen, werden nie gelesen. Das Schließen des Blatts beendet die Suche; das
+  Blatt sucht nur bis zum ersten Treffer. Höchstens 2.000 Treffer und 200 MB gelesener Text je Suche, sonst sagt die
+  Liste, dass sie früh aufgehört hat.
 - **Weiche ohne Modell:** Speicherfragen und „die größten Dateien“ öffnen die Speicheranalyse auf „Große Dateien“,
   „doppelt“ auf „Duplikate“; Zurück führt zur Übersicht. Sätze, die ein Gedächtnis bräuchten, bekommen einen
   animierten Hinweis (Glühbirne, Antippen = neuer Befehl), bei „nicht geöffnet“ mit Knopf „Unveränderte Dateien
@@ -166,7 +171,9 @@ Infrastruktur gebaut; Nutzer bekommen weiter den bisherigen Entwurf.
   Toleranz für FUSE), und die Meldung nennt die Zahl („seit der Vorschau geändert und nicht angefasst“). Das schließt
   die Lücke aus `docs/GEDAECHTNIS-PHASE0.md`, Abschnitt 7.
 - **Gespeicherter Prompt-Zustand:** Nach dem ersten Einlesen schreibt `LlamaEngine.saveState` den Zustand nach dem
-  System-Prompt in `noBackupFilesDir/llm-state` (nie in Backups), atomar über eine Temp-Datei. Schlüssel: SHA-256 aus
+  System-Prompt in `noBackupFilesDir/llm-state` (nie in Backups), atomar über eine Temp-Datei mit `fsync` von Datei
+  und Ordner, mit CRC-32 der Daten im Kopf (vor dem Laden geprüft). Höchstens 256 MB (S maß 205 MB auf dem Tab, K
+  geschätzt ~160 MB); lädt eine selbst geschriebene Datei nicht, wird sie für diesen Schlüssel nicht neu geschrieben. Schlüssel: SHA-256 aus
   Modell-Hash, Prompt, Grammatik, Kontextgröße und App-Version; nur eine Datei wird behalten. Gespeichert wird nur,
   wenn danach noch 1 GB frei ist. `restoreState` lehnt fehlende, gekürzte oder unpassende Dateien ab, dann liest die
   App den Prompt wie bisher. Gelöscht mit dem Modell. Gilt auch für den ausgelieferten Entwurf.
@@ -174,7 +181,8 @@ Infrastruktur gebaut; Nutzer bekommen weiter den bisherigen Entwurf.
   Datei 20,4 MB, Speichern 33 ms, Wiederherstellen 14 ms statt 316 ms Einlesen, gleiche Antwort; eine halbierte
   Datei wird abgelehnt (`LlamaEngineTest`). **Für das 4B-Modell mit Prompt K ist die Größe ungemessen**
   (Labor-Schätzung ~160 MB auf dem Tab).
-- **Ohne Modell testen (nur Debug):** `DebugAiActivity` liegt in `app/src/debug` und existiert im Release nicht.
+- **Ohne Modell testen (nur Debug):** `DebugAiActivity` liegt in `app/src/debug` und existiert im Release nicht;
+  sie verlangt `android.permission.DUMP`, die nur die adb-Shell hat, keine installierte App.
   `e2e/ai-show.sh` gibt damit Modellantworten vor und prüft Liste, Frage→Liste, Hinweis, Analyse-Weiche, Vorschau
   und die Identitätsprüfung: 24/24 auf Deutsch und 24/24 auf Englisch (emulator-5580, 16.11.2026).
   `--ez show_design true` schaltet K+R für echte Modellbefehle in einem Debug-Build ein. **Der Modellpfad selbst

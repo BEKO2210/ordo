@@ -39,25 +39,44 @@ object CommandFiles {
      * The files a "show" plan lists: every folder below [sources], hidden ones and Android/data never, Android/media
      * (WhatsApp) yes. Read-only: nothing here changes a file.
      */
-    fun show(plan: CommandPlan, sources: List<File>, root: File, now: Long = System.currentTimeMillis()): List<File> {
-        val filter = Filter.of(plan, now) ?: return emptyList()
+    /** What [show] found; [capped] when it stopped early (too many results or too much text to read). */
+    class Found(val files: List<File>, val capped: Boolean)
+
+    /**
+     * [active] is asked between files, so a closed sheet or a newer load stops the walk; [stopAfter] ends it after
+     * that many matches (1 to see whether anything matches at all). Sources and folders that resolve outside [root]
+     * (a link, "..") are never read.
+     */
+    fun show(
+        plan: CommandPlan, sources: List<File>, root: File, now: Long = System.currentTimeMillis(),
+        active: () -> Boolean = { !Thread.currentThread().isInterrupted }, stopAfter: Int = MAX_RESULTS
+    ): Found {
+        val filter = Filter.of(plan, now) ?: return Found(emptyList(), false)
         val found = LinkedHashMap<String, File>()
         val visited = HashSet<String>()
         val rootPath = root.canonicalPath
+        var stopped = false
         fun walk(dir: File) {
-            // canonical paths, so a link or two overlapping sources never visit a folder twice
+            // canonical paths, so a link or two overlapping sources never visit a folder twice or leave the storage
             val path = runCatching { dir.canonicalPath }.getOrNull() ?: return
-            if (!visited.add(path)) return
+            if (path != rootPath && !path.startsWith("$rootPath/") || !visited.add(path)) return
             val parts = path.removePrefix(rootPath).split('/').filter { it.isNotEmpty() }
             if (parts.firstOrNull() == "Android" && parts.size >= 2 && parts[1] != "media") return
             for (child in dir.listFiles() ?: return) {
-                if (Thread.currentThread().isInterrupted) return
+                if (stopped || !active()) return
                 if (child.name.startsWith(".")) continue
-                if (child.isDirectory) walk(child) else if (child.isFile && filter.matches(child)) found[child.path] = child
+                if (child.isDirectory) {
+                    walk(child)
+                } else if (child.isFile && filter.matches(child) &&
+                    runCatching { child.canonicalPath.startsWith("$rootPath/") }.getOrDefault(false)) {
+                    found[child.path] = child
+                    if (found.size >= stopAfter) stopped = true
+                }
             }
         }
         sources.forEach { walk(it) }
-        return ordered(found.values.toList(), plan, byName = false)
+        return Found(ordered(found.values.toList(), plan, byName = false), stopped && stopAfter == MAX_RESULTS ||
+            filter.textCapped)
     }
 
     /** Sorted as asked (largest or newest first; else by name, or newest for a list to look at) and cut to the limit. */
@@ -107,13 +126,23 @@ object CommandFiles {
 
         // Only plain text is read: PDF and Office files need a text extraction Ordo does not have yet, so for
         // them the word is found in the name only (docs/KI-ZEIGEN-PHASE0B.md, 6.5).
-        private fun containsText(file: File): Boolean =
-            file.extension.lowercase(Locale.ROOT) in TEXT_EXTENSIONS && file.length() <= MAX_TEXT_SIZE &&
-                try {
-                    file.inputStream().use { text!!.contentMatches(it) }
-                } catch (e: java.io.IOException) {
-                    false
-                }
+        /** True once [MAX_TEXT_TOTAL] was read: later text files were matched by name only. */
+        var textCapped = false
+        private var textLeft = MAX_TEXT_TOTAL
+
+        private fun containsText(file: File): Boolean {
+            if (file.extension.lowercase(Locale.ROOT) !in TEXT_EXTENSIONS || file.length() > MAX_TEXT_SIZE) return false
+            if (textLeft < file.length()) {
+                textCapped = true
+                return false
+            }
+            textLeft -= file.length()
+            return try {
+                file.inputStream().use { text!!.contentMatches(it) }
+            } catch (e: java.io.IOException) {
+                false
+            }
+        }
 
         companion object {
             /** Null when a filter was asked for but means nothing: that selects nothing, never everything. */
@@ -142,6 +171,11 @@ object CommandFiles {
     /** Endings whose text Ordo can search today. */
     val TEXT_EXTENSIONS = setOf("txt", "md", "csv", "log", "json", "xml", "html", "htm", "rtf", "ics", "vcf")
     private const val MAX_TEXT_SIZE = 20L * 1024 * 1024
+    // A list to scroll through, not an export: 2,000 rows load in seconds; past that the list says it stopped early.
+    const val MAX_RESULTS = 2_000
+    // Text read per search: enough for every note and document of a normal phone, small enough that a word search
+    // over the whole storage cannot read gigabytes of logs.
+    private const val MAX_TEXT_TOTAL = 200L * 1024 * 1024
     private const val DAY = 86_400_000L
 
     /**

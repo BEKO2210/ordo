@@ -208,6 +208,7 @@
         <item quantity="other">die ersten %d</item>
     </plurals>
     <string name="ai_show_text_note">PDF- und Office-Dateien sucht Ordo vorerst nur im Namen.</string>
+    <string name="ai_show_capped">Sehr viele Dateien: Ordo hat früh aufgehört und zeigt nur einen Teil der Treffer.</string>
     <string name="ai_hint_title">Das kann Ordo noch nicht wissen</string>
     <string name="ai_hint_opened">Ich sehe nicht, wann du eine Datei zuletzt geöffnet hast. Ich kann dir Dateien zeigen, die sich seit einem Monat nicht geändert haben.</string>
     <string name="ai_hint_opened_action">Unveränderte Dateien zeigen</string>

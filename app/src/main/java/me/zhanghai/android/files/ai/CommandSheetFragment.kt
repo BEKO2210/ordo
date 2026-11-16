@@ -39,6 +39,7 @@ import java8.nio.file.Paths
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -47,6 +48,7 @@ import me.zhanghai.android.files.BuildConfig
 import me.zhanghai.android.files.R
 import me.zhanghai.android.files.analysis.AnalysisActivity
 import me.zhanghai.android.files.filelist.FileListActivity
+import me.zhanghai.android.files.filelist.ShowFileListLiveData
 import me.zhanghai.android.files.ai.CommandCheck.Outcome
 import me.zhanghai.android.files.ai.CommandCheck.Reason
 import me.zhanghai.android.files.databinding.CommandSheetBinding
@@ -806,7 +808,11 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
         }
         show(binding.loadingLayout)
         binding.loadingText.setText(getString(R.string.ai_finding_files))
-        val found = withContext(Dispatchers.IO) { CommandFiles.show(plan, sources, root) }
+        // Only whether anything matches: the list searches for itself. Closing the sheet stops this walk.
+        val job = currentCoroutineContext()[Job]
+        val found = withContext(Dispatchers.IO) {
+            CommandFiles.show(plan, sources, root, active = { job?.isActive != false }, stopAfter = 1).files
+        }
         if (found.isEmpty()) {
             val where = if (sources.size == 1) display(sources[0]) else plan.source
             showMessage(R.string.ai_no_files_title, getString(R.string.ai_no_files_text, where))
@@ -815,7 +821,7 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
         val activity = requireActivity()
         startActivity(
             understood(plan, sources).let { (title, detail) ->
-                FileListActivity.createShowIntent(plan.toJson(), sources.map { it.path }, title, detail)
+                FileListActivity.createShowIntent(ShowFileListLiveData.Request(plan, sources, title, detail))
             }
         )
         if (plan.contentContains.isNotBlank()) {

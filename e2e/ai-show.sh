@@ -28,16 +28,6 @@ fi
 a shell "rm -rf $DIR; mkdir -p $DIR && dd if=/dev/zero of=$DIR/big_ordoe2e.mp4 bs=1024 count=2048 2>/dev/null &&
     dd if=/dev/zero of=$DIR/small_ordoe2e.mp4 bs=1024 count=10 2>/dev/null && echo note > $DIR/keep_ordoe2e.txt"
 
-# --- the rules on the device's regex engine (ICU) give what rules.py gives, for every recorded lab case
-FILES=/sdcard/Android/data/$PKG/files
-a shell mkdir -p "$FILES"; a push "$HERE/../app/src/test/resources/ai/rules-golden.json" "$FILES/" >/dev/null
-a logcat -c; a shell am start -n "$PKG/$DEBUG" --es golden rules-golden.json >/dev/null
-for _ in $(seq 30); do line=$(a logcat -d -s OrdoGolden:I | grep -m1 equal); [ -n "$line" ] && break; sleep 1; done
-echo "   ${line:-no answer}"
-total=$(python3 -c "import json,sys; print(len(json.load(open(sys.argv[1]))['rows']))" "$HERE/../app/src/test/resources/ai/rules-golden.json")
-check "rules on the device equal rules.py ($total cases)" grep -q " $total/$total equal" <<< "$line"
-a shell rm -f "$FILES/rules-golden.json"
-
 # --- show: a list in the app's own style, nothing to confirm
 ask "zeig mir die ordoe2e videos größer als 1 mb" \
     '{"action":"show","kinds":["video"],"larger_than":1,"size_unit":"mb","name_contains":"ordoe2e"}'

@@ -35,7 +35,7 @@ class CommandShowTest {
     }
 
     private fun show(plan: CommandPlan, vararg sources: File = arrayOf(root)) =
-        CommandFiles.show(plan, sources.toList(), root, now).map { it.path.removePrefix(root.path + "/") }
+        CommandFiles.show(plan, sources.toList(), root, now).files.map { it.path.removePrefix(root.path + "/") }
 
     @Test
     fun searchesEveryFolderBelow_butNotHiddenOrAndroidData() {
@@ -72,7 +72,7 @@ class CommandShowTest {
         File(root, "week.jpg").setLastModified(real - 3 * day)
         file("today.jpg").setLastModified(real)
         assertEquals(listOf("today.jpg"),
-            CommandFiles.show(CommandPlan("show", "", today = true), listOf(root), root).map { it.name })
+            CommandFiles.show(CommandPlan("show", "", today = true), listOf(root), root).files.map { it.name })
     }
 
     @Test
@@ -155,5 +155,29 @@ class CommandShowTest {
         assertTrue(show(CommandPlan("show", "", dateFrom = "letzte Woche")).isEmpty())
         assertEquals(false, CommandCheck.needsSecondConfirm(CommandPlan("delete", "x", excludeTerms = listOf("y")),
             File(root, "x").apply { mkdirs() }, root, 3))
+    }
+
+    // Review of PR #51: a source or a link that leads out of the storage is never read.
+    @Test
+    fun neverReadsOutsideTheStorage() {
+        val outside = temp.newFolder("private").apply { File(this, "secret.mp4").writeText("x") }
+        file("Movies/a.mp4")
+        assertEquals(emptyList<String>(), show(CommandPlan("show", ""), outside))
+        java.nio.file.Files.createSymbolicLink(File(root, "Movies/link").toPath(), outside.toPath())
+        java.nio.file.Files.createSymbolicLink(File(root, "Movies/secret-link.mp4").toPath(), File(outside, "secret.mp4").toPath())
+        assertEquals(listOf("Movies/a.mp4"), show(CommandPlan("show", "", kinds = listOf("video"))))
+    }
+
+    @Test
+    fun stopsWhenAskedAndAfterEnough() {
+        repeat(5) { file("f$it.txt") }
+        val one = CommandFiles.show(CommandPlan("show", ""), listOf(root), root, now, stopAfter = 1)
+        assertEquals(1, one.files.size)
+        assertEquals(false, one.capped)
+        assertTrue(CommandFiles.show(CommandPlan("show", ""), listOf(root), root, now, active = { false }).files.isEmpty())
+        repeat(CommandFiles.MAX_RESULTS) { File(root, "many/m$it.txt").apply { parentFile!!.mkdirs(); writeText("") } }
+        val many = CommandFiles.show(CommandPlan("show", ""), listOf(root), root, now)
+        assertEquals(CommandFiles.MAX_RESULTS, many.files.size)
+        assertTrue(many.capped)
     }
 }

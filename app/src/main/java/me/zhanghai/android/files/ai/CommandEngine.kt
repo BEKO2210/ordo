@@ -91,6 +91,9 @@ object CommandEngine {
         if (state.isFile && loaded.restoreState(state.path)) {
             Log.i(TAG, "prompt state restored: ${state.length()} bytes in ${SystemClock.elapsedRealtime() - started} ms")
         } else {
+            // A state this app wrote itself that does not load again (damaged, or llama.cpp refuses it) is not
+            // written again for this key: a marker file stops a rewrite on every cold start.
+            if (state.isFile) File(state.path + FAILED).createNewFile()
             state.delete()
             if (!loaded.prepare(CommandPlanner.prefix(design.system))) {
                 loaded.close()
@@ -117,11 +120,13 @@ object CommandEngine {
     /** Saves the state when there is room for it and 1 GB to spare; otherwise skips it (the next start reads the prompt). */
     private fun saveState(engine: LlamaEngine, file: File) {
         val dir = file.parentFile!!
+        val failed = File(file.path + FAILED)
         // Only one state is ever kept: an older one is for another prompt, model or version.
-        dir.listFiles()?.forEach { if (it != file) it.delete() }
+        dir.listFiles()?.forEach { if (it != file && it != failed) it.delete() }
+        if (failed.exists()) return
         if (!dir.isDirectory && !dir.mkdirs()) return
         val size = engine.stateSize
-        if (size <= 0 || dir.usableSpace < size + MIN_FREE_AFTER_STATE) {
+        if (size <= 0 || size > MAX_STATE || dir.usableSpace < size + MIN_FREE_AFTER_STATE) {
             Log.i(TAG, "prompt state not saved: $size bytes, ${dir.usableSpace} free")
             return
         }
@@ -141,6 +146,11 @@ object CommandEngine {
     private const val TAG = "CommandEngine"
     private const val CONTEXT_SIZE = 2048
     private const val MIN_FREE_AFTER_STATE = 1_000_000_000L
+    // Measured: 205 MB for the 1,440-token prompt S on the Tab S9 Ultra, ~160 MB estimated for K (KI-ZEIGEN-PHASE0B
+    // 6.4). 256 MB keeps both with room and refuses a state that grew far beyond them (a longer prompt or a context
+    // change), where writing and reading that much flash would eat most of what it saves.
+    private const val MAX_STATE = 256L * 1024 * 1024
+    private const val FAILED = ".failed"
 
     /** How long the model stays loaded after the last answer: turbo saves the next cold start, gentle frees memory sooner. */
     internal fun idleMinutes(speed: String): Long = when (speed) {

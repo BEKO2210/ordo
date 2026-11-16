@@ -10,6 +10,11 @@
 #include <android/log.h>
 #include <jni.h>
 
+#include <fcntl.h>
+#include <unistd.h>
+#include <zlib.h>
+
+#include <algorithm>
 #include <atomic>
 #include <climits>
 #include <cstdio>
@@ -189,9 +194,11 @@ Java_me_zhanghai_android_files_llm_LlamaEngine_nativeGenerate(JNIEnv *env, jclas
     return ok ? toBytes(env, output) : nullptr;
 }
 
-// Prompt state file: magic, then the byte count of the snapshot, then the snapshot from nativePrepare. Written to a
-// temporary file and renamed, so a crash or a full disk never leaves a half file under the real name.
-static const char STATE_MAGIC[8] = {'O', 'R', 'D', 'O', 'S', 'T', '1', '\0'};
+// Prompt state file: magic, the byte count and the CRC-32 of the snapshot, then the snapshot from nativePrepare.
+// Written to a temporary file, flushed to the disk (fsync) and renamed, so a crash, a power loss or a full disk never
+// leaves a half or stale file under the real name; the CRC catches what still goes wrong on the flash.
+static const char STATE_MAGIC[8] = {'O', 'R', 'D', 'O', 'S', 'T', '2', '\0'};
+static const size_t STATE_HEADER = sizeof(STATE_MAGIC) + sizeof(uint64_t) + sizeof(uint32_t);
 
 JNIEXPORT jlong JNICALL
 Java_me_zhanghai_android_files_llm_LlamaEngine_nativeStateSize(JNIEnv *, jclass, jlong handle) {
@@ -212,20 +219,34 @@ Java_me_zhanghai_android_files_llm_LlamaEngine_nativeSaveState(JNIEnv *env, jcla
         return JNI_FALSE;
     }
     uint64_t size = engine->snapshot.size();
+    auto crc = (uint32_t) crc32(0L, engine->snapshot.data(), (uInt) 0);
+    for (uint64_t done = 0; done < size;) {
+        auto chunk = (uInt) std::min<uint64_t>(size - done, 1u << 30);
+        crc = (uint32_t) crc32(crc, engine->snapshot.data() + done, chunk);
+        done += chunk;
+    }
     bool ok = fwrite(STATE_MAGIC, 1, sizeof(STATE_MAGIC), file) == sizeof(STATE_MAGIC) &&
-              fwrite(&size, sizeof(size), 1, file) == 1 &&
+              fwrite(&size, sizeof(size), 1, file) == 1 && fwrite(&crc, sizeof(crc), 1, file) == 1 &&
               fwrite(engine->snapshot.data(), 1, size, file) == size;
+    ok = ok && fflush(file) == 0 && fsync(fileno(file)) == 0;
     ok = (fclose(file) == 0) && ok;
     if (!ok || rename(temp.c_str(), target.c_str()) != 0) {
         remove(temp.c_str());
         LOGE("state save failed");
         return JNI_FALSE;
     }
+    // The rename itself lives in the folder: flush that too, so it survives a power loss.
+    std::string dir = target.substr(0, target.find_last_of('/'));
+    int fd = open(dir.c_str(), O_RDONLY | O_DIRECTORY);
+    if (fd >= 0) {
+        fsync(fd);
+        close(fd);
+    }
     return JNI_TRUE;
 }
 
 // Loads a saved prompt state instead of reading the prompt again. False (and the engine untouched, without a
-// snapshot) when the file is missing, short, damaged or does not fit this model and context.
+// snapshot) when the file is missing, short, damaged (CRC) or does not fit this model and context.
 JNIEXPORT jboolean JNICALL
 Java_me_zhanghai_android_files_llm_LlamaEngine_nativeRestoreState(JNIEnv *env, jclass, jlong handle,
                                                                  jbyteArray path) {
@@ -236,16 +257,27 @@ Java_me_zhanghai_android_files_llm_LlamaEngine_nativeRestoreState(JNIEnv *env, j
     }
     char magic[sizeof(STATE_MAGIC)];
     uint64_t size = 0;
+    uint32_t crc = 0;
     bool ok = fread(magic, 1, sizeof(magic), file) == sizeof(magic) &&
               memcmp(magic, STATE_MAGIC, sizeof(magic)) == 0 && fread(&size, sizeof(size), 1, file) == 1 &&
-              fseek(file, 0, SEEK_END) == 0 && (uint64_t) ftell(file) == sizeof(magic) + sizeof(size) + size &&
-              size > 0 && fseek(file, (long) (sizeof(magic) + sizeof(size)), SEEK_SET) == 0;
+              fread(&crc, sizeof(crc), 1, file) == 1 && fseek(file, 0, SEEK_END) == 0 &&
+              (uint64_t) ftell(file) == STATE_HEADER + size && size > 0 &&
+              fseek(file, (long) STATE_HEADER, SEEK_SET) == 0;
     std::vector<uint8_t> data;
     if (ok) {
         data.resize(size);
         ok = fread(data.data(), 1, size, file) == size;
     }
     fclose(file);
+    if (ok) {
+        auto actual = (uint32_t) crc32(0L, data.data(), (uInt) 0);
+        for (uint64_t done = 0; done < size;) {
+            auto chunk = (uInt) std::min<uint64_t>(size - done, 1u << 30);
+            actual = (uint32_t) crc32(actual, data.data() + done, chunk);
+            done += chunk;
+        }
+        ok = actual == crc;
+    }
     llama_memory_clear(llama_get_memory(engine->ctx), true);
     if (!ok || llama_state_seq_set_data(engine->ctx, data.data(), data.size(), 0) == 0) {
         llama_memory_clear(llama_get_memory(engine->ctx), true);

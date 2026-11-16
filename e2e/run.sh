@@ -7,7 +7,7 @@
 cd "$(dirname "$0")" || exit 1
 write=0; [ "${1:-}" = "--write" ] && { write=1; shift; }
 serial=${1:?usage: e2e/run.sh [--write] <adb serial>}
-tests="smoke category-search back-navigation bars-replay home-header header-position drawer selection-more tablet-landscape analysis"
+tests="smoke category-search back-navigation bars-replay home-header header-position drawer selection-more tablet-landscape analysis ai-show-guard"
 [ "$write" = 1 ] && tests="$tests stress-delete backup-restore ai-show"
 failed=0
 for t in $tests; do

@@ -6,9 +6,14 @@
 package me.zhanghai.android.files.filelist
 
 import android.content.Intent
+import android.os.Handler
+import android.os.Looper
+import android.widget.Toast
 import android.os.Environment
 import java8.nio.file.Paths
+import me.zhanghai.android.files.R
 import me.zhanghai.android.files.ai.CommandFiles
+import me.zhanghai.android.files.app.application
 import me.zhanghai.android.files.ai.CommandPlan
 import me.zhanghai.android.files.file.FileItem
 import me.zhanghai.android.files.file.loadFileItem
@@ -19,6 +24,8 @@ import me.zhanghai.android.files.util.Stateful
 import me.zhanghai.android.files.util.Success
 import me.zhanghai.android.files.util.valueCompat
 import java.io.File
+import java.util.UUID
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executors
 import java.util.concurrent.Future
 
@@ -27,23 +34,27 @@ class ShowFileListLiveData(
     private val request: Request,
     private val query: String
 ) : CloseableLiveData<Stateful<List<FileItem>>>() {
-    /** What the command sheet understood: the plan, the folders it searches, and in words a title and the filters. */
+    /**
+     * What the command sheet understood: the plan, the folders it searches, and in words a title and the filters.
+     * It never travels in the intent: FileListActivity is exported, so the intent only carries a random token for a
+     * request kept in this process. Another app cannot forge one, and after the process is gone the token is void.
+     */
     class Request(val plan: CommandPlan, val sources: List<File>, val title: String, val detail: String) {
         companion object {
-            fun from(intent: Intent): Request? {
-                val plan = intent.getStringExtra(FileListActivity.EXTRA_SHOW_PLAN)?.let(CommandPlan::parse)
-                    ?: return null
-                // Read-only either way; a plan that is not "show" never gets a list here.
-                if (plan.action != "show") return null
-                val sources = intent.getStringArrayExtra(FileListActivity.EXTRA_SHOW_SOURCES)?.map(::File)
-                    ?: return null
-                return Request(plan, sources, intent.getStringExtra(FileListActivity.EXTRA_SHOW_TITLE).orEmpty(),
-                    intent.getStringExtra(FileListActivity.EXTRA_SHOW_DETAIL).orEmpty())
-            }
+            private val pending = ConcurrentHashMap<String, Request>()
+
+            /** Keeps [request] for the list about to open and returns its token. */
+            fun register(request: Request): String =
+                UUID.randomUUID().toString().also { pending[it] = request }
+
+            fun from(intent: Intent): Request? =
+                intent.getStringExtra(FileListActivity.EXTRA_SHOW_TOKEN)?.let { pending[it] }
+                    ?.takeIf { it.plan.action == "show" }
         }
     }
 
     private var future: Future<Unit>? = null
+    private val handler = Handler(Looper.getMainLooper())
 
     init {
         loadValue()
@@ -56,7 +67,12 @@ class ShowFileListLiveData(
             val result = try {
                 @Suppress("DEPRECATION")
                 val root = Environment.getExternalStorageDirectory()
-                val files = CommandFiles.show(request.plan, request.sources, root)
+                val found = CommandFiles.show(request.plan, request.sources, root)
+                if (found.capped) {
+                    // Honest about a partial list: the walk stopped at the result or text limit.
+                    handler.post { Toast.makeText(application, R.string.ai_show_capped, Toast.LENGTH_LONG).show() }
+                }
+                val files = found.files
                     .filter { query.isEmpty() || it.name.contains(query, true) }
                     .mapNotNull {
                         if (Thread.currentThread().isInterrupted) return@submit

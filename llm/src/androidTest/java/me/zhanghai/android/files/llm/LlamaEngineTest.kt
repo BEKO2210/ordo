@@ -69,6 +69,20 @@ class LlamaEngineTest {
             assertTrue(it.restoreState(state.path))
             android.util.Log.i("LlamaEngineTest", "restored in ${(System.nanoTime() - started) / 1_000_000} ms")
             assertEquals(first, it.generate(suffix, grammar, 40))
+            // One flipped byte in the middle: the CRC refuses it, and reading the prompt again gives the same answer.
+            val copy = File(state.path + ".flipped")
+            state.copyTo(copy, overwrite = true)
+            java.io.RandomAccessFile(copy, "rw").use { f ->
+                f.seek(f.length() / 2)
+                val b = f.read()
+                f.seek(f.length() / 2)
+                f.write(b xor 0x01)
+            }
+            assertFalse(it.restoreState(copy.path))
+            assertEquals(0L, it.stateSize)
+            assertTrue(it.prepare(prefix))
+            assertEquals(first, it.generate(suffix, grammar, 40))
+            copy.delete()
             // Cut short: refused, and the engine is left without a state instead of with a broken one.
             java.io.RandomAccessFile(state, "rw").use { f -> f.setLength(f.length() / 2) }
             assertFalse(it.restoreState(state.path))
