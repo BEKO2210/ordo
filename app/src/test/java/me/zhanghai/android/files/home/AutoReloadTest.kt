@@ -53,7 +53,7 @@ class AutoReloadTest {
         advanceUntilIdle()
         assertEquals(loads.started, loads.finished)
         // Loads at 3, 11 and 19 s (5 s load + 3 s pause), plus one for the changes during the last load.
-        assertEquals(4, loads.started)
+        assertEquals(listOf(3000L, 11000L, 19000L, 27000L), loads.starts)
     }
 
     @Test
@@ -95,6 +95,28 @@ class AutoReloadTest {
         loads.auto.reloadNow()
         signals(loads.auto, 3, 100)
         testScheduler.advanceTimeBy(3000)
+        loads.auto.stop()
+        advanceUntilIdle()
+        assertEquals(1, loads.started)
+    }
+
+    @Test
+    fun aChangeStillWaitingWhenALoadEndsDoesNotStartASecondLoad() = runTest {
+        // The first change marks the load dirty; the second is still in its quiet time when the load ends.
+        val loads = Loads(this, 2000)
+        loads.auto.reloadNow()
+        launch { delay(100); loads.auto.signal(); delay(1400); loads.auto.signal() }
+        advanceUntilIdle()
+        assertEquals(2, loads.started)
+        assertEquals(2, loads.finished)
+    }
+
+    @Test
+    fun nothingStartsAfterStopAtTheEndOfACopy() = runTest {
+        val loads = Loads(this, 2000)
+        loads.auto.reloadNow()
+        launch { delay(100); loads.auto.signal(); delay(1400); loads.auto.signal() }
+        testScheduler.advanceTimeBy(2100)
         loads.auto.stop()
         advanceUntilIdle()
         assertEquals(1, loads.started)

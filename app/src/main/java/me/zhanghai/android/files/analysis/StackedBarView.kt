@@ -31,6 +31,7 @@ class StackedBarView @JvmOverloads constructor(context: Context, attrs: Attribut
     // Set while a bar that was already full moves to new numbers: the values it moves from, and their max.
     private var from: List<Long>? = null
     private var fromMax = 1L
+    private var key: Any? = null
 
     // Only one grow or sweep runs at a time: a rebind while animating must not leave two animators on this bar.
     private var animator: ValueAnimator? = null
@@ -71,15 +72,20 @@ class StackedBarView @JvmOverloads constructor(context: Context, attrs: Attribut
             invalidate()
         }
 
-    /** [parts] are colour and value; [max] is the full width (e.g. used space), at least their sum. */
-    fun setParts(parts: List<Pair<Int, Long>>, max: Long) {
+    /**
+     * [parts] are colour and value; [max] is the full width (e.g. used space), at least their sum. [key] names what the
+     * bar shows (e.g. a volume): only the same key moves in place from its old numbers.
+     */
+    fun setParts(parts: List<Pair<Int, Long>>, max: Long, key: Any? = null) {
         val filtered = parts.filter { it.second > 0 }
         val newMax = maxOf(max, filtered.sumOf { it.second }, 1)
+        val sameKey = key == this.key
+        this.key = key
         // Rebinding the same numbers (e.g. while a list scrolls) must not replay the animation.
         if (filtered == this.parts && newMax == this.max) return
         // A bar already full with the same parts (an automatic reload of the home screen) moves in place from the
         // old numbers to the new ones; it never empties and grows in again.
-        val inPlace = progress == 1f && animator?.isRunning != true && this.parts.isNotEmpty() &&
+        val inPlace = progress == 1f && animator?.isRunning != true && this.parts.isNotEmpty() && sameKey &&
             this.parts.map { it.first } == filtered.map { it.first }
         val oldValues = this.parts.map { it.second }
         val oldMax = this.max

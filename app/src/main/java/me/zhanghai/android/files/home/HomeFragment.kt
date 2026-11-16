@@ -231,6 +231,7 @@ class HomeFragment : Fragment(), ShowRequestAllFilesAccessRationaleDialogFragmen
     private var replayBars = false
     private var resumedBefore = false
     private var stoppedBefore = false
+    private var reloadedOnStart = false
 
     private fun holdStorageBars() {
         val binding = _binding ?: return
@@ -433,6 +434,7 @@ class HomeFragment : Fragment(), ShowRequestAllFilesAccessRationaleDialogFragmen
         if (stoppedBefore && Build.VERSION.SDK_INT < Build.VERSION_CODES.Q && requireActivity().isInMultiWindowMode &&
             hasStorageAccess()) {
             viewModel.reload()
+            reloadedOnStart = true
         }
     }
 
@@ -440,6 +442,7 @@ class HomeFragment : Fragment(), ShowRequestAllFilesAccessRationaleDialogFragmen
         super.onStop()
         viewModel.watchChanges(false)
         stoppedBefore = true
+        reloadedOnStart = false
     }
 
     override fun onResume() {
@@ -451,12 +454,14 @@ class HomeFragment : Fragment(), ShowRequestAllFilesAccessRationaleDialogFragmen
         // bar whose numbers did not change (the SD card) would already be full when the home screen appears.
         // The first resume needs no reload: the view model loads when it is created, and twice in parallel would
         // fight over MediaStore and FUSE. A permission just granted reloads in onStorageAccessResult().
-        if (resumedBefore && hasStorageAccess()) {
+        // A pane that already reloaded in onStart (split screen, Android 7 to 9) and now gets the focus has it.
+        if (resumedBefore && hasStorageAccess() && !reloadedOnStart) {
             holdStorageBars()
             replayBars = true
             viewModel.reload()
         }
         resumedBefore = true
+        reloadedOnStart = false
     }
 
     private fun hasStorageAccess(): Boolean =

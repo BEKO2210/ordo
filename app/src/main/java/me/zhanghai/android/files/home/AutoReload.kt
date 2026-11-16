@@ -7,6 +7,7 @@ package me.zhanghai.android.files.home
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -30,6 +31,7 @@ class AutoReload(
     private var running: Job? = null
     private var dirty = false
     private var nextAuto = 0L
+    private var pausing: Job? = null
 
     fun reloadNow() {
         pending?.cancel()
@@ -40,6 +42,8 @@ class AutoReload(
     }
 
     fun signal() {
+        // A load already waiting out its pause will see this change too; restarting the quiet time would only delay it.
+        if (pausing?.isActive == true) return
         pending?.cancel()
         val wait = debounce.delayFor(now())
         pending = scope.launch {
@@ -62,13 +66,16 @@ class AutoReload(
             nextAuto = now() + minPauseMs
             if (dirty) {
                 dirty = false
-                // In pending, so stop() drops it like any other automatic load still waiting.
+                // In pending, so stop() drops it like any other automatic load still waiting; it covers a change
+                // still in its quiet time, which would otherwise start a second load beside it.
+                pending?.cancel()
                 pending = scope.launch { startAfterPause() }
             }
         }
     }
 
     private suspend fun startAfterPause() {
+        pausing = currentCoroutineContext()[Job]
         delay(nextAuto - now())
         start()
     }

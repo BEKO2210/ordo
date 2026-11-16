@@ -15,6 +15,8 @@ a logcat -c
 # The storage bar is recorded meanwhile: an automatic reload moves it in place, it never empties and grows in again.
 read -r _ H < <(screen_size); bar=$(ui bounds usageBar | head -1)
 [ "$(echo "$bar" | cut -d' ' -f4)" -gt $((H - 200)) ] 2>/dev/null && { swipe_up; bar=$(ui bounds usageBar | head -1); a logcat -c; }
+if ! command -v ffmpeg >/dev/null; then echo "SKIP storage bar check: ffmpeg missing"
+elif [ -z "$bar" ]; then echo "SKIP storage bar check: no storage bar on the home screen"; fi
 command -v ffmpeg >/dev/null && [ -n "$bar" ] && a shell "screenrecord --time-limit 8 /sdcard/ordo-e2e-auto.mp4" & rec=$!
 sleep 1
 a shell "mkdir -p $DIR; for i in \$(seq 50); do echo x > $DIR/f\$i.txt; done"; sleep 6; guard
@@ -34,8 +36,9 @@ fills = [sum(1 for p in range(i * size, i * size + w * 3, 3) if data[p] < 110 an
 print(100 * min(fills) // max(fills[-1], 1) if fills and fills[-1] > w * 0.03 else "skip")
 PY
 )
-    rm -rf "$tmp"; echo "  storage bar during the reload: lowest $low % of its final length"
-    [ "$low" = skip ] || check "the storage bar does not empty and grow in again on an automatic reload" test "$low" -ge 90
+    rm -rf "$tmp"; [ "$low" = skip ] || echo "  storage bar during the reload: lowest $low % of its final length"
+    if [ "$low" = skip ]; then echo "SKIP storage bar check: bar nearly empty or not in the aurora colours (storage 90 % full or more)"
+    else check "the storage bar does not empty and grow in again on an automatic reload" test "$low" -ge 90; fi
 fi
 a shell input keyevent HOME; sleep 2; a logcat -c
 a shell "for i in \$(seq 50); do echo y > $DIR/g\$i.txt; done"; sleep 6
