@@ -70,7 +70,8 @@ object CommandModel {
     sealed interface State {
         data object Missing : State
         data class Downloading(val bytes: Long, val total: Long, val paused: Boolean, val waitingForWifi: Boolean) : State
-        data class Failed(val noSpace: Boolean) : State
+        /** [notFound]: the server has no such file (HTTP 404), e.g. an adapter that is not published yet. */
+        data class Failed(val noSpace: Boolean, val notFound: Boolean = false) : State
         data object Verifying : State
         data object Ready : State
     }
@@ -168,7 +169,7 @@ object CommandModel {
                 return when (status) {
                     DownloadManager.STATUS_SUCCESSFUL -> State.Verifying
                     DownloadManager.STATUS_FAILED ->
-                        State.Failed(reason == DownloadManager.ERROR_INSUFFICIENT_SPACE)
+                        State.Failed(reason == DownloadManager.ERROR_INSUFFICIENT_SPACE, notFound = reason == 404)
                     else -> State.Downloading(
                         bytes, part.size, status == DownloadManager.STATUS_PAUSED,
                         reason == DownloadManager.PAUSED_QUEUED_FOR_WIFI
