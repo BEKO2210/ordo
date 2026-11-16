@@ -26,7 +26,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     val state: LiveData<HomeState> = _state
 
     // Declared before init: its reload() uses it.
-    private val auto = AutoReload(viewModelScope, QUIET_MS, MAX_WAIT_MS, SystemClock::elapsedRealtime) { load() }
+    private val auto = AutoReload(viewModelScope, QUIET_MS, MAX_WAIT_MS, MIN_PAUSE_MS, SystemClock::elapsedRealtime) { load() }
 
     init { reload() }
 
@@ -79,5 +79,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         private const val TAG = "HomeViewModel"
         private const val QUIET_MS = 800L
         private const val MAX_WAIT_MS = 3000L
+        // The rhythm MAX_WAIT_MS already gives fast loads during a long copy; slow loads (large libraries) get it too.
+        private const val MIN_PAUSE_MS = 3000L
     }
 }

@@ -230,6 +230,7 @@ class HomeFragment : Fragment(), ShowRequestAllFilesAccessRationaleDialogFragmen
 
     private var replayBars = false
     private var resumedBefore = false
+    private var stoppedBefore = false
 
     private fun holdStorageBars() {
         val binding = _binding ?: return
@@ -427,11 +428,18 @@ class HomeFragment : Fragment(), ShowRequestAllFilesAccessRationaleDialogFragmen
     override fun onStart() {
         super.onStart()
         viewModel.watchChanges(hasStorageAccess())
+        // Android 7 to 9 in split screen: the pane without focus is started but not resumed, so the reload in
+        // onResume would wait for a tap and changes made while it was stopped (e.g. screen off) would not show.
+        if (stoppedBefore && Build.VERSION.SDK_INT < Build.VERSION_CODES.Q && requireActivity().isInMultiWindowMode &&
+            hasStorageAccess()) {
+            viewModel.reload()
+        }
     }
 
     override fun onStop() {
         super.onStop()
         viewModel.watchChanges(false)
+        stoppedBefore = true
     }
 
     override fun onResume() {

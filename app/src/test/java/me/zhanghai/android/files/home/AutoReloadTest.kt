@@ -20,10 +20,14 @@ class AutoReloadTest {
     private class Loads(scope: TestScope, loadMs: Long) {
         var started = 0
         var finished = 0
-        val auto = AutoReload(scope, 800, 3000, { scope.testScheduler.currentTime }) {
+        val starts = mutableListOf<Long>()
+        val ends = mutableListOf<Long>()
+        val auto = AutoReload(scope, 800, 3000, 3000, { scope.testScheduler.currentTime }) {
             started++
+            starts += scope.testScheduler.currentTime
             delay(loadMs)
             finished++
+            ends += scope.testScheduler.currentTime
         }
     }
 
@@ -48,8 +52,8 @@ class AutoReloadTest {
         signals(loads.auto, 200, 100)
         advanceUntilIdle()
         assertEquals(loads.started, loads.finished)
-        // One load per 5 s while changes keep coming, plus one for the changes during the last load.
-        assertEquals(5, loads.started)
+        // Loads at 3, 11 and 19 s (5 s load + 3 s pause), plus one for the changes during the last load.
+        assertEquals(4, loads.started)
     }
 
     @Test
@@ -59,6 +63,41 @@ class AutoReloadTest {
         advanceUntilIdle()
         assertEquals(4, loads.started)
         assertEquals(4, loads.finished)
+    }
+
+    @Test
+    fun aLongCopyLeavesThreeSecondsBetweenSlowLoads() = runTest {
+        // 30 s of changes every 100 ms, a load takes 5 s: the disk gets a 3 s break after every automatic load.
+        val loads = Loads(this, 5000)
+        signals(loads.auto, 300, 100)
+        advanceUntilIdle()
+        for (i in 1 until loads.starts.size) {
+            assertEquals(true, loads.starts[i] - loads.ends[i - 1] >= 3000)
+        }
+        assertEquals(loads.started, loads.finished)
+    }
+
+    @Test
+    fun anExplicitReloadRightAfterAnAutomaticOneDoesNotWait() = runTest {
+        val loads = Loads(this, 500)
+        signals(loads.auto, 1, 0)
+        advanceUntilIdle()
+        val end = testScheduler.currentTime
+        loads.auto.reloadNow()
+        testScheduler.runCurrent()
+        assertEquals(listOf(800L, end), loads.starts)
+    }
+
+    @Test
+    fun stopDropsAReloadWaitingForItsPause() = runTest {
+        // Changes during a load schedule one more after the pause; hiding the screen in that pause drops it.
+        val loads = Loads(this, 2000)
+        loads.auto.reloadNow()
+        signals(loads.auto, 3, 100)
+        testScheduler.advanceTimeBy(3000)
+        loads.auto.stop()
+        advanceUntilIdle()
+        assertEquals(1, loads.started)
     }
 
     @Test

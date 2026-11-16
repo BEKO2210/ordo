@@ -14,12 +14,14 @@ import kotlinx.coroutines.launch
  * Runs [load] for the home screen. An explicit reload (pull, menu, coming back) replaces the one running, so an older
  * result never overwrites a newer one. Changes on disk only [signal]: a burst becomes one load ([ReloadDebounce]),
  * and a load already running is never cancelled for them – it finishes and runs once more, so during a long copy
- * the numbers still arrive.
+ * the numbers still arrive. An automatic load waits until [minPauseMs] after the end of the last load, so a long copy
+ * does not keep the disk busy with loads back to back; explicit reloads never wait.
  */
 class AutoReload(
     private val scope: CoroutineScope,
     quietMs: Long,
     maxWaitMs: Long,
+    private val minPauseMs: Long,
     private val now: () -> Long,
     private val load: suspend () -> Unit
 ) {
@@ -27,6 +29,7 @@ class AutoReload(
     private var pending: Job? = null
     private var running: Job? = null
     private var dirty = false
+    private var nextAuto = 0L
 
     fun reloadNow() {
         pending?.cancel()
@@ -42,7 +45,7 @@ class AutoReload(
         pending = scope.launch {
             delay(wait)
             debounce.reset()
-            if (running?.isActive == true) dirty = true else start()
+            if (running?.isActive == true) dirty = true else startAfterPause()
         }
     }
 
@@ -56,10 +59,17 @@ class AutoReload(
     private fun start() {
         running = scope.launch {
             load()
+            nextAuto = now() + minPauseMs
             if (dirty) {
                 dirty = false
-                start()
+                // In pending, so stop() drops it like any other automatic load still waiting.
+                pending = scope.launch { startAfterPause() }
             }
         }
+    }
+
+    private suspend fun startAfterPause() {
+        delay(nextAuto - now())
+        start()
     }
 }
