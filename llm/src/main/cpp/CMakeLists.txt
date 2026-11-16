@@ -21,6 +21,7 @@ endif()
 add_subdirectory(llama.cpp build-llama)
 
 add_library(ordo_llm SHARED ordo_llm.cpp)
-target_link_libraries(ordo_llm PRIVATE llama android log)
+# z: CRC-32 of the saved prompt state (zlib ships with Android).
+target_link_libraries(ordo_llm PRIVATE llama android log z)
 # Google Play needs 16 KB page alignment; NDK 30 does it by default, pinned here so a toolchain change cannot drop it.
 target_link_options(ordo_llm PRIVATE "-Wl,-z,max-page-size=16384")

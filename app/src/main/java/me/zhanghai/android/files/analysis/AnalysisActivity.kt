@@ -14,9 +14,12 @@ import me.zhanghai.android.files.app.AppActivity
 class AnalysisActivity : AppActivity() {
     companion object {
         const val EXTRA_ROOT = "root"
+        const val EXTRA_PAGE = "page"
 
-        fun createIntent(context: android.content.Context, root: String): android.content.Intent =
+        /** [page] opens one cleanup list on top of the overview ("large" or "duplicates"). */
+        fun createIntent(context: android.content.Context, root: String, page: String? = null): android.content.Intent =
             android.content.Intent(context, AnalysisActivity::class.java).putExtra(EXTRA_ROOT, root)
+                .apply { if (page != null) putExtra(EXTRA_PAGE, page) }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

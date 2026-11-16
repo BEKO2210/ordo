@@ -25,7 +25,12 @@ import me.zhanghai.android.files.util.valueCompat
 import java.io.Closeable
 
 // TODO: Use SavedStateHandle to save state.
-class FileListViewModel(private val homeCategory: HomeCategory? = null) : ViewModel() {
+class FileListViewModel(
+    private val homeCategory: HomeCategory? = null,
+    private val showRequest: ShowFileListLiveData.Request? = null,
+    /** Runs when the list is gone for good (not on rotation), e.g. to drop the show list's token. */
+    private val onGone: () -> Unit = {}
+) : ViewModel() {
     private val trailLiveData = TrailLiveData()
     val hasTrail: Boolean
         get() = trailLiveData.value != null
@@ -72,7 +77,7 @@ class FileListViewModel(private val homeCategory: HomeCategory? = null) : ViewMo
     }
 
     private val _fileListLiveData =
-        FileListSwitchMapLiveData(currentPathLiveData, _searchStateLiveData, homeCategory)
+        FileListSwitchMapLiveData(currentPathLiveData, _searchStateLiveData, homeCategory, showRequest)
     val fileListLiveData: LiveData<Stateful<List<FileItem>>>
         get() = _fileListLiveData
     val fileListStateful: Stateful<List<FileItem>>
@@ -245,6 +250,7 @@ class FileListViewModel(private val homeCategory: HomeCategory? = null) : ViewMo
 
     override fun onCleared() {
         _fileListLiveData.close()
+        onGone()
     }
 
     companion object {
@@ -254,7 +260,8 @@ class FileListViewModel(private val homeCategory: HomeCategory? = null) : ViewMo
     private class FileListSwitchMapLiveData(
         private val pathLiveData: LiveData<Path>,
         private val searchStateLiveData: LiveData<SearchState>,
-        private val homeCategory: HomeCategory?
+        private val homeCategory: HomeCategory?,
+        private val showRequest: ShowFileListLiveData.Request?
     ) : MediatorLiveData<Stateful<List<FileItem>>>(), Closeable {
         private var liveData: CloseableLiveData<Stateful<List<FileItem>>>? = null
 
@@ -270,7 +277,9 @@ class FileListViewModel(private val homeCategory: HomeCategory? = null) : ViewMo
             }
             val path = pathLiveData.valueCompat
             val searchState = searchStateLiveData.valueCompat
-            val liveData = if (homeCategory != null) {
+            val liveData = if (showRequest != null) {
+                ShowFileListLiveData(showRequest, searchState.query)
+            } else if (homeCategory != null) {
                 CategoryFileListLiveData(homeCategory, searchState.query)
             } else if (searchState.isSearching) {
                 SearchFileListLiveData(path, searchState.query)
@@ -286,6 +295,7 @@ class FileListViewModel(private val homeCategory: HomeCategory? = null) : ViewMo
                 is FileListLiveData -> liveData.loadValue()
                 is SearchFileListLiveData -> liveData.loadValue()
                 is CategoryFileListLiveData -> liveData.loadValue()
+                is ShowFileListLiveData -> liveData.loadValue()
             }
         }
 

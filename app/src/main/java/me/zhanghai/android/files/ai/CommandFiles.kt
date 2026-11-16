@@ -7,12 +7,16 @@ package me.zhanghai.android.files.ai
 
 import me.zhanghai.android.files.analysis.ScannedFile
 import me.zhanghai.android.files.analysis.StorageAnalysis
+import me.zhanghai.android.files.filelist.ContentSearch
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-/** Finds the files a checked plan touches. Only the top level of the source folder, hidden files never. */
+/**
+ * Finds the files a checked plan touches: for a change only the top level of the source folder, for "show" every
+ * folder below it. Hidden files never.
+ */
 object CommandFiles {
     val KINDS = mapOf(
         "audio" to setOf("mp3", "m4a", "aac", "flac", "ogg", "opus", "wav", "wma", "amr", "mid"),
@@ -24,22 +28,161 @@ object CommandFiles {
     )
 
     fun collect(plan: CommandPlan, source: File, now: Long = System.currentTimeMillis()): List<File> {
-        // A named ending is more exact than a kind: "MP3s" must not take every audio file.
-        val extensions = plan.cleanExtensions.toSet().ifEmpty { plan.kinds.flatMap { KINDS[it] ?: emptySet() }.toSet() }
-        // A filter that was asked for but means nothing selects nothing, never everything.
-        if (extensions.isEmpty() && (plan.extensions.isNotEmpty() || plan.kinds.isNotEmpty())) {
-            return emptyList()
-        }
-        val ageLimit = now - plan.olderThanDays * 86_400_000L
+        val filter = Filter.of(plan, now) ?: return emptyList()
         val files = (source.listFiles() ?: return emptyList()).filter { file ->
-            file.isFile && !file.name.startsWith(".") &&
-                (extensions.isEmpty() || file.extension.lowercase(Locale.ROOT) in extensions) &&
-                (plan.nameContains.isBlank() || file.name.contains(plan.nameContains.trim(), true)) &&
-                (plan.olderThanDays == 0 || file.lastModified() < ageLimit) &&
-                (plan.largerThanBytes == 0L || file.length() > plan.largerThanBytes)
+            file.isFile && !file.name.startsWith(".") && filter.matches(file)
         }.sortedBy { it.name.lowercase(Locale.ROOT) }
-        return if (plan.duplicates) extraCopies(files) else files
+        return ordered(if (plan.duplicates) extraCopies(files) else files, plan, byName = true)
     }
+
+    /**
+     * The files a "show" plan lists: every folder below [sources], hidden ones and Android/data never, Android/media
+     * (WhatsApp) yes. Read-only: nothing here changes a file.
+     */
+    /** What [show] found; [capped] when it stopped early (too many results or too much text to read). */
+    class Found(val files: List<File>, val capped: Boolean)
+
+    /**
+     * [active] is asked between files, so a closed sheet or a newer load stops the walk; [stopAfter] ends it after
+     * that many matches (1 to see whether anything matches at all). Sources and folders that resolve outside [root]
+     * (a link, "..") are never read.
+     */
+    fun show(
+        plan: CommandPlan, sources: List<File>, root: File, now: Long = System.currentTimeMillis(),
+        active: () -> Boolean = { !Thread.currentThread().isInterrupted }, stopAfter: Int = MAX_RESULTS
+    ): Found {
+        val filter = Filter.of(plan, now) ?: return Found(emptyList(), false)
+        val found = LinkedHashMap<String, File>()
+        val visited = HashSet<String>()
+        val rootPath = root.canonicalPath
+        var stopped = false
+        fun walk(dir: File) {
+            // canonical paths, so a link or two overlapping sources never visit a folder twice or leave the storage
+            val path = runCatching { dir.canonicalPath }.getOrNull() ?: return
+            if (path != rootPath && !path.startsWith("$rootPath/") || !visited.add(path)) return
+            val parts = path.removePrefix(rootPath).split('/').filter { it.isNotEmpty() }
+            if (parts.firstOrNull() == "Android" && parts.size >= 2 && parts[1] != "media") return
+            for (child in dir.listFiles() ?: return) {
+                if (stopped || !active()) return
+                if (child.name.startsWith(".")) continue
+                if (child.isDirectory) {
+                    walk(child)
+                } else if (child.isFile &&
+                    // inside the storage first: a link to a file outside is never opened, not even to read its text
+                    runCatching { child.canonicalPath.startsWith("$rootPath/") }.getOrDefault(false) &&
+                    filter.matches(child)) {
+                    found[child.path] = child
+                    if (found.size >= stopAfter) stopped = true
+                }
+            }
+        }
+        sources.forEach { walk(it) }
+        return Found(ordered(found.values.toList(), plan, byName = false), stopped && stopAfter == MAX_RESULTS ||
+            filter.textCapped)
+    }
+
+    /** Sorted as asked (largest or newest first; else by name, or newest for a list to look at) and cut to the limit. */
+    private fun ordered(files: List<File>, plan: CommandPlan, byName: Boolean): List<File> {
+        val sorted = when {
+            plan.sort == "size" -> files.sortedByDescending { it.length() }
+            plan.sort == "newest" || !byName -> files.sortedByDescending { it.lastModified() }
+            else -> files
+        }
+        return if (plan.limit > 0) sorted.take(plan.limit) else sorted
+    }
+
+    /** Size and time of each file when the preview was made, to recognise a file replaced since. */
+    fun snapshot(files: List<File>): Map<String, Pair<Long, Long>> =
+        files.associate { it.path to (it.length() to it.lastModified()) }
+
+    /** The plan's filters: ending or kind, name, word, age, size. */
+    private class Filter(
+        private val plan: CommandPlan, private val extensions: Set<String>, private val excluded: Set<String>,
+        private val from: Long, private val to: Long, now: Long
+    ) {
+        private val olderLimit = now - plan.olderThanDays * DAY
+        private val newerLimit = now - plan.newerThanDays * DAY
+        private val midnight = java.util.Calendar.getInstance().apply {
+            timeInMillis = now
+            set(java.util.Calendar.HOUR_OF_DAY, 0)
+            set(java.util.Calendar.MINUTE, 0)
+            set(java.util.Calendar.SECOND, 0)
+            set(java.util.Calendar.MILLISECOND, 0)
+        }.timeInMillis
+        private val word = plan.contentContains.trim()
+        private val text = if (word.isEmpty()) null else ContentSearch(word, false, true)
+
+        fun matches(file: File): Boolean =
+            (extensions.isEmpty() || file.extension.lowercase(Locale.ROOT) in extensions) &&
+                (plan.nameContains.isBlank() || file.name.contains(plan.nameContains.trim(), true)) &&
+                (plan.olderThanDays == 0 || file.lastModified() < olderLimit) &&
+                (plan.newerThanDays == 0 || file.lastModified() >= newerLimit) &&
+                (!plan.today || file.lastModified() >= midnight) &&
+                (plan.largerThanBytes == 0L || file.length() > plan.largerThanBytes) &&
+                (text == null || file.name.contains(word, true) || containsText(file)) &&
+                file.extension.lowercase(Locale.ROOT) !in excluded &&
+                plan.excludeTerms.none { it.isNotBlank() && file.name.contains(it.trim(), true) } &&
+                (from == 0L || file.lastModified() >= from) && (to == 0L || file.lastModified() < to) &&
+                (plan.minBytes == 0L || file.length() >= plan.minBytes) &&
+                (plan.maxBytes == 0L || file.length() <= plan.maxBytes)
+
+        // Only plain text is read: PDF and Office files need a text extraction Ordo does not have yet, so for
+        // them the word is found in the name only (docs/KI-ZEIGEN-PHASE0B.md, 6.5).
+        /** True once [MAX_TEXT_TOTAL] was read: later text files were matched by name only. */
+        var textCapped = false
+        private var textLeft = MAX_TEXT_TOTAL
+
+        private fun containsText(file: File): Boolean {
+            if (file.extension.lowercase(Locale.ROOT) !in TEXT_EXTENSIONS || file.length() > MAX_TEXT_SIZE) return false
+            if (textLeft < file.length()) {
+                textCapped = true
+                return false
+            }
+            textLeft -= file.length()
+            textReads.incrementAndGet()
+            return try {
+                file.inputStream().use { text!!.contentMatches(it) }
+            } catch (e: java.io.IOException) {
+                false
+            }
+        }
+
+        companion object {
+            /** Null when a filter was asked for but means nothing: that selects nothing, never everything. */
+            fun of(plan: CommandPlan, now: Long): Filter? {
+                // A named ending is more exact than a kind: "MP3s" must not take every audio file.
+                val extensions = plan.cleanExtensions.toSet()
+                    .ifEmpty { plan.kinds.flatMap { KINDS[it] ?: emptySet() }.toSet() }
+                if (extensions.isEmpty() && (plan.extensions.isNotEmpty() || plan.kinds.isNotEmpty())) return null
+                val excluded = plan.excludeExtensions.map { it.trim().trimStart('.').lowercase(Locale.ROOT) }.toSet() +
+                    plan.excludeKinds.flatMap { KINDS[it] ?: emptySet() }
+                // A date that cannot be read selects nothing, like a kind that means nothing.
+                val from = if (plan.dateFrom.isBlank()) 0L else isoTime(plan.dateFrom) ?: return null
+                val to = if (plan.dateTo.isBlank()) 0L else isoTime(plan.dateTo) ?: return null
+                return Filter(plan, extensions, excluded, from, to, now)
+            }
+
+            /** Local time of "2026-11-01" (midnight) or "2026-11-01T14:00", or null. */
+            fun isoTime(value: String): Long? = listOf("yyyy-MM-dd'T'HH:mm", "yyyy-MM-dd").firstNotNullOfOrNull {
+                val format = SimpleDateFormat(it, Locale.ROOT).apply { isLenient = false }
+                val position = java.text.ParsePosition(0)
+                format.parse(value.trim(), position)?.takeIf { position.index == value.trim().length }?.time
+            }
+        }
+    }
+
+    /** Every file opened to read its text, counted for CommandShowTest. */
+    internal val textReads = java.util.concurrent.atomic.AtomicInteger()
+
+    /** Endings whose text Ordo can search today. */
+    val TEXT_EXTENSIONS = setOf("txt", "md", "csv", "log", "json", "xml", "html", "htm", "rtf", "ics", "vcf")
+    private const val MAX_TEXT_SIZE = 20L * 1024 * 1024
+    // A list to scroll through, not an export: 2,000 rows load in seconds; past that the list says it stopped early.
+    const val MAX_RESULTS = 2_000
+    // Text read per search: enough for every note and document of a normal phone, small enough that a word search
+    // over the whole storage cannot read gigabytes of logs.
+    private const val MAX_TEXT_TOTAL = 200L * 1024 * 1024
+    private const val DAY = 86_400_000L
 
     /**
      * Files with the same content as another file in [files], all but the original of each group: the oldest,

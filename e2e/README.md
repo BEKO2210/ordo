@@ -32,6 +32,8 @@ scroll position). A control that moves on a fixed screen (e.g. below a message o
 | `tablet-landscape.sh` | as a landscape tablet, selecting a file no longer crashes, it shows the bar beside the side pane, "More" opens above it. Only an emulator is resized (2560x1600 at 320 dpi; its previous overrides come back exactly, also on Ctrl-C); a real device is never resized or rotated: it runs only when it already is a tablet in landscape, otherwise SKIP | fixed 0.9.0 |
 | `analysis.sh` | the scan ends in the overview; ring, folder map and rows open their pages; back goes one step at a time; rotation keeps the page | 0.6.0 |
 | `backup-restore.sh` (`--write`, SD card) | an encrypted backup to the SD card restores byte for byte; a wrong password writes nothing; a changed file is never replaced and its backed up version comes back beside it; restoring twice adds no second copy | fixed in 0.7.0 |
+| `ai-show-guard.sh` | another app's explicit intent with the AI list's extras opens the normal file list, never Ordo's private folders; debug builds: the rules on the device (ICU regex) equal rules.py for all lab cases | after 0.8.1 |
+| `ai-show.sh` (`--write`, debug build) | without the model (DebugAiActivity): "show" opens the file list with what was understood, a question never deletes, a hint instead of a guess, storage and duplicate questions open the analysis, a delete keeps preview and confirm, a file replaced since the preview stays and is named | after 0.8.1 |
 | `stress-delete.sh` (`--write`) | 3000 files to the trash: no crash, bounded memory, the list follows | fixed in 0.3.1 / 0.3.3 |
 
 Every test starts through `launch` in `lib.sh`, which also copes with a fresh install: on an emulator it grants what

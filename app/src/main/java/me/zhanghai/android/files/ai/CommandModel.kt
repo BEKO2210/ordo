@@ -19,30 +19,51 @@ import me.zhanghai.android.files.llm.LlamaEngine
 import java.io.File
 import java.security.MessageDigest
 
-/** The on-device model: device check, download through DownloadManager, hash check. */
+/**
+ * The on-device model: device check, download through DownloadManager, hash check. A design may add a LoRA adapter
+ * ([CommandDesign.adapter]); it is downloaded, checked and deleted together with the model, as one more [Part].
+ */
 object CommandModel {
+    /** One downloaded, hash-checked file in the model folder. */
+    data class Part(val fileName: String, val size: Long, val sha256: String, val url: String) {
+        init {
+            require(fileName.isNotBlank() && '/' !in fileName && size > 0 && sha256.matches(Regex("[0-9a-f]{64}")))
+        }
+    }
+
     // Qwen3.5-4B (Apache-2.0), Q4_0 by unsloth, pinned to one revision and checked by hash. Q4_0, not
     // Q4_K_M: Arm's KleidiAI kernels speed it up 3x reading and 1.5x writing (Tab S9 Ultra) at the
     // same accuracy (docs/KI-BEFEHLE.md).
     private const val URL = "https://huggingface.co/unsloth/Qwen3.5-4B-GGUF/resolve/" +
         "e87f176479d0855a907a41277aca2f8ee7a09523/Qwen3.5-4B-Q4_0.gguf"
     const val SIZE = 2_583_221_408L
-    private const val SHA256 = "298fcb5fe7a77ccc79745ae24751560c5ac56874caff4bb39b1f2055bd72b8bb"
+    internal const val SHA256 = "298fcb5fe7a77ccc79745ae24751560c5ac56874caff4bb39b1f2055bd72b8bb"
     const val FILE_NAME = "qwen3.5-4b-q4_0.gguf"
     private const val PREFS = "command_model"
     private const val KEY_DOWNLOAD = "download_id"
     private const val KEY_VERIFIED = "verified"
     private const val KEY_STAMP = "stamp"
     private const val KEY_DOWNLOAD_FOR = "download_for"
+    private const val KEY_BAD = "bad"
 
     // The 4B was only measured on 12 GB devices (Tab S9 Ultra: 4.3 GB app PSS with Q4_K_M). totalMem of 12 GB devices lies
     // above 10 GB, of "8 GB" phones below, so smaller phones stay off until one is measured (docs/KI-BEFEHLE.md).
     const val MIN_RAM = 10_000_000_000L
     const val SPARE_SPACE = 500_000_000L
+    val MODEL = Part(FILE_NAME, SIZE, SHA256, URL)
 
-    data class DeviceCheck(val ramBytes: Long, val freeBytes: Long, val is64Bit: Boolean, val dotProd: Boolean) {
+    /** The model first, then the design's adapter, if it has one. */
+    fun parts(design: CommandDesign): List<Part> = listOfNotNull(MODEL, design.adapter)
+
+    /** Bytes still to download for [design]: parts already complete on disk do not count. */
+    fun missingBytes(context: Context, design: CommandDesign): Long =
+        parts(design).filter { file(context, it).length() != it.size }.sumOf { it.size }
+
+    data class DeviceCheck(
+        val ramBytes: Long, val freeBytes: Long, val is64Bit: Boolean, val dotProd: Boolean, val needBytes: Long = SIZE
+    ) {
         val ramOk get() = ramBytes >= MIN_RAM
-        val spaceOk get() = freeBytes >= SIZE + SPARE_SPACE
+        val spaceOk get() = freeBytes >= needBytes + SPARE_SPACE
         val ok get() = ModelChoice.pick(ramBytes, is64Bit, dotProd) != ModelChoice.TOO_WEAK && spaceOk
     }
 
@@ -55,14 +76,14 @@ object CommandModel {
     }
 
     // Null when shared storage is not mounted; then the download fails cleanly instead of crashing.
-    fun file(context: Context): File =
-        File(context.getExternalFilesDir("models") ?: File(context.filesDir, "models"), FILE_NAME)
+    fun file(context: Context, part: Part = MODEL): File =
+        File(context.getExternalFilesDir("models") ?: File(context.filesDir, "models"), part.fileName)
 
-    fun check(context: Context): DeviceCheck {
+    fun check(context: Context, design: CommandDesign): DeviceCheck {
         val memory = ActivityManager.MemoryInfo()
         context.getSystemService(ActivityManager::class.java).getMemoryInfo(memory)
         val dir = file(context).parentFile!!.apply { mkdirs() }
-        val alreadyThere = file(context).takeIf { it.exists() }?.length() ?: 0L
+        val alreadyThere = parts(design).sumOf { part -> file(context, part).takeIf { it.exists() }?.length() ?: 0L }
         return DeviceCheck(
             ramBytes = memory.totalMem,
             freeBytes = try {
@@ -75,33 +96,68 @@ object CommandModel {
                 ModelChoice.hasDotProd(File("/proc/cpuinfo").readText())
             } catch (e: Exception) {
                 false
-            }
+            },
+            needBytes = parts(design).sumOf { it.size }
         )
     }
 
-    fun state(context: Context): State {
-        val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-        val file = file(context)
-        // A model of an earlier app version would only take up gigabytes.
-        file.parentFile?.listFiles { other -> other.name.endsWith(".gguf") && other.name != FILE_NAME }
+    /** All parts of [design] together: failed if one failed, downloading while one downloads, ready when all are. */
+    fun state(context: Context, design: CommandDesign): State {
+        val parts = parts(design)
+        // A model or adapter of an earlier app version or another design would only take up space.
+        file(context).parentFile?.listFiles { other -> other.name.endsWith(".gguf") && parts.none { it.fileName == other.name } }
             ?.forEach { it.delete() }
-        if (prefs.getBoolean(KEY_VERIFIED, false)) {
+        return combine(parts.map { partState(context, it) }, parts)
+    }
+
+    internal fun combine(states: List<State>, parts: List<Part>): State {
+        states.firstOrNull { it is State.Failed }?.let { return it }
+        val downloading = states.filterIsInstance<State.Downloading>()
+        if (downloading.isNotEmpty()) {
+            val bytes = states.zip(parts).sumOf { (state, part) ->
+                when (state) {
+                    is State.Downloading -> state.bytes
+                    State.Missing -> 0L
+                    else -> part.size
+                }
+            }
+            return State.Downloading(bytes, parts.sumOf { it.size }, downloading.any { it.paused },
+                downloading.any { it.waitingForWifi })
+        }
+        return when {
+            State.Missing in states -> State.Missing
+            State.Verifying in states -> State.Verifying
+            else -> State.Ready
+        }
+    }
+
+    // The model keeps the keys it always had, so an update does not lose a finished download or hash check. An adapter's
+    // keys name its expected hash too: a new adapter under the same file name is hashed again, never taken as checked.
+    private fun key(part: Part, name: String) = if (part == MODEL) name else "$name:${part.fileName}:${part.sha256}"
+
+    private fun partState(context: Context, part: Part): State {
+        if (part != MODEL && context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getBoolean(key(part, KEY_BAD), false)) {
+            return State.Failed(noSpace = false)
+        }
+        val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        val file = file(context, part)
+        if (prefs.getBoolean(key(part, KEY_VERIFIED), false)) {
             // The hash only counts for the exact file it was computed on; any change means hash again.
-            if (file.length() == SIZE && prefs.getString(KEY_STAMP, null) == stamp(file)) {
+            if (file.length() == part.size && prefs.getString(key(part, KEY_STAMP), null) == stamp(file)) {
                 return State.Ready
             }
-            prefs.edit().putBoolean(KEY_VERIFIED, false).apply()
+            prefs.edit().putBoolean(key(part, KEY_VERIFIED), false).apply()
         }
-        var id = prefs.getLong(KEY_DOWNLOAD, -1)
+        var id = prefs.getLong(key(part, KEY_DOWNLOAD), -1)
         // A download started by an older app version was for another model file: forget it, so its old
         // result (e.g. "not enough space") is not shown for the current model.
-        if (id != -1L && prefs.getString(KEY_DOWNLOAD_FOR, null) != FILE_NAME) {
+        if (id != -1L && prefs.getString(key(part, KEY_DOWNLOAD_FOR), null) != part.fileName) {
             context.getSystemService(DownloadManager::class.java).remove(id)
-            prefs.edit().remove(KEY_DOWNLOAD).commit()
+            prefs.edit().remove(key(part, KEY_DOWNLOAD)).commit()
             id = -1L
         }
         if (id == -1L) {
-            return if (file.length() == SIZE) State.Verifying else State.Missing
+            return if (file.length() == part.size) State.Verifying else State.Missing
         }
         val manager = context.getSystemService(DownloadManager::class.java)
         manager.query(DownloadManager.Query().setFilterById(id))?.use { cursor ->
@@ -114,35 +170,63 @@ object CommandModel {
                     DownloadManager.STATUS_FAILED ->
                         State.Failed(reason == DownloadManager.ERROR_INSUFFICIENT_SPACE)
                     else -> State.Downloading(
-                        bytes, SIZE, status == DownloadManager.STATUS_PAUSED,
+                        bytes, part.size, status == DownloadManager.STATUS_PAUSED,
                         reason == DownloadManager.PAUSED_QUEUED_FOR_WIFI
                     )
                 }
             }
         }
         // The download entry is gone (cleared, cancelled): a complete file is still worth a hash check.
-        return if (file.length() == SIZE) State.Verifying else State.Missing
+        return if (file.length() == part.size) State.Verifying else State.Missing
     }
 
-    /** False when the system download service refused the job. Wi-Fi only unless [mobileData]. */
-    fun startDownload(context: Context, mobileData: Boolean): Boolean {
+    /** False when the system download service refused a job. Wi-Fi only unless [mobileData]. */
+    fun startDownload(context: Context, mobileData: Boolean, design: CommandDesign): Boolean {
+        val parts = parts(design)
+        return toStart(parts.map { partState(context, it) }, parts, mobileData).all { startDownload(context, mobileData, it) }
+    }
+
+    /**
+     * Missing or failed parts start (again); with [mobileData] also a part queued for Wi-Fi, so "use mobile data"
+     * requeues it with mobile data allowed. A part downloading or waiting for its check keeps its bytes.
+     */
+    internal fun toStart(states: List<State>, parts: List<Part>, mobileData: Boolean): List<Part> =
+        parts.filterIndexed { i, _ ->
+            val state = states[i]
+            state == State.Missing || state is State.Failed || (mobileData && state is State.Downloading && state.waitingForWifi)
+        }
+
+    /**
+     * An adapter that passed its hash check but did not load on this model: deleted, and shown as a failed download
+     * until the user tries again, instead of failing every start with the same file. The model is not touched.
+     */
+    fun rejectAdapter(context: Context, part: Part) {
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
+            .putBoolean(key(part, KEY_BAD), true).remove(key(part, KEY_VERIFIED)).commit()
+        file(context, part).delete()
+    }
+
+    private fun startDownload(context: Context, mobileData: Boolean, part: Part): Boolean {
         val manager = context.getSystemService(DownloadManager::class.java)
         val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-        prefs.getLong(KEY_DOWNLOAD, -1).takeIf { it != -1L }?.let { manager.remove(it) }
-        prefs.edit().remove(KEY_DOWNLOAD).putBoolean(KEY_VERIFIED, false).commit()
-        if (file(context).length() == SIZE) {
+        prefs.getLong(key(part, KEY_DOWNLOAD), -1).takeIf { it != -1L }?.let { manager.remove(it) }
+        prefs.edit().remove(key(part, KEY_DOWNLOAD)).remove(key(part, KEY_BAD)).putBoolean(key(part, KEY_VERIFIED), false)
+            .commit()
+        val file = file(context, part)
+        if (file.length() == part.size) {
             return true // complete already; state() sends it to the hash check
         }
-        file(context).delete()
+        file.delete()
         return try {
-            val request = DownloadManager.Request(Uri.parse(URL))
+            val request = DownloadManager.Request(Uri.parse(part.url))
                 .setTitle("Ordo KI")
                 .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
                 .setAllowedOverMetered(mobileData)
                 .setAllowedOverRoaming(false)
-                .setDestinationInExternalFilesDir(context, "models", FILE_NAME)
+                .setDestinationInExternalFilesDir(context, "models", part.fileName)
             // commit, not apply: if the app dies right after enqueue, the id must already be stored.
-            prefs.edit().putLong(KEY_DOWNLOAD, manager.enqueue(request)).putString(KEY_DOWNLOAD_FOR, FILE_NAME).commit()
+            prefs.edit().putLong(key(part, KEY_DOWNLOAD), manager.enqueue(request))
+                .putString(key(part, KEY_DOWNLOAD_FOR), part.fileName).commit()
             true
         } catch (e: RuntimeException) {
             e.printStackTrace()
@@ -150,42 +234,47 @@ object CommandModel {
         }
     }
 
-    /** Hashes the downloaded file; a wrong file is deleted so the next attempt starts clean. */
-    suspend fun verify(context: Context): Boolean = verifyLock.withLock {
-        withContext(Dispatchers.IO) { verifyLocked(context) }
+    /** Hashes the downloaded files; a wrong file is deleted so the next attempt starts clean. */
+    suspend fun verify(context: Context, design: CommandDesign): Boolean = verifyLock.withLock {
+        withContext(Dispatchers.IO) { parts(design).all { verifyLocked(context, it) } }
     }
 
     // One hash at a time: reopening the sheet mid-check must not start a second one on the same file.
     private val verifyLock = Mutex()
 
-    private fun verifyLocked(context: Context): Boolean {
-        val file = file(context)
+    private fun verifyLocked(context: Context, part: Part): Boolean {
+        val file = file(context, part)
         val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-        if (prefs.getBoolean(KEY_VERIFIED, false) && prefs.getString(KEY_STAMP, null) == stamp(file)) {
+        if (prefs.getBoolean(key(part, KEY_VERIFIED), false) && prefs.getString(key(part, KEY_STAMP), null) == stamp(file)) {
             return true
         }
         val ok = try {
-            file.length() == SIZE && sha256(file) == SHA256
+            file.length() == part.size && sha256(file) == part.sha256
         } catch (e: java.io.IOException) {
             false
         }
-        prefs.edit().remove(KEY_DOWNLOAD).putBoolean(KEY_VERIFIED, ok).putString(KEY_STAMP, stamp(file)).apply()
+        prefs.edit().remove(key(part, KEY_DOWNLOAD)).putBoolean(key(part, KEY_VERIFIED), ok)
+            .putString(key(part, KEY_STAMP), stamp(file)).apply()
         if (!ok) {
             file.delete()
         }
         return ok
     }
 
-    /** Frees the model from memory first, then deletes it. */
+    /** Frees the model from memory first, then deletes it and every adapter next to it. */
     suspend fun remove(context: Context) {
         CommandEngine.release()
         withContext(Dispatchers.IO) {
             val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-            prefs.getLong(KEY_DOWNLOAD, -1).takeIf { it != -1L }?.let {
-                context.getSystemService(DownloadManager::class.java).remove(it)
+            prefs.all.filterKeys { it == KEY_DOWNLOAD || it.startsWith("$KEY_DOWNLOAD:") }.values.forEach {
+                (it as? Long)?.takeIf { id -> id != -1L }?.let { id ->
+                    context.getSystemService(DownloadManager::class.java).remove(id)
+                }
             }
             prefs.edit().clear().commit()
-            file(context).delete()
+            file(context).parentFile?.listFiles { other -> other.name.endsWith(".gguf") }?.forEach { it.delete() }
+            // The saved prompt state belongs to this model and is useless without it.
+            CommandEngine.stateDir(context).deleteRecursively()
         }
     }
 

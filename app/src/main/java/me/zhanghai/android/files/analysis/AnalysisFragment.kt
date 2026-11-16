@@ -106,6 +106,12 @@ class AnalysisFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Opened by an AI command on one cleanup list ("large", "duplicates"): that page sits on the overview, so
+        // back leads to the overview. Only on first creation; afterwards the view model keeps the pages.
+        val startPage = arguments?.getString(AnalysisActivity.EXTRA_PAGE)
+        if (savedInstanceState == null && startPage in setOf("large", "duplicates") && viewModel.pages.isEmpty()) {
+            viewModel.pages += AnalysisPage.Cleanup(startPage!!)
+        }
 
         @Suppress("DEPRECATION")
         setHasOptionsMenu(true)

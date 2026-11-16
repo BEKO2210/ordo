@@ -149,13 +149,16 @@ then checks the plan itself before showing it:
 - “Delete the duplicates” only ever selects the extra copies (same content); the oldest copy of each stays.
 - Deleting a whole top-level folder such as Download, or more than 50 files, needs a second tap that shows the
   number of files and their size.
-- Every file is checked again right before it is touched; existing files are never overwritten.
+- Every file is checked again right before it is touched; existing files are never overwritten. A file that was
+  replaced since the preview (other size or time) is left alone, and the result says so.
 - Undo reverses exactly what the command did and leaves files alone that changed since.
 
 **Setup.** The feature is off until you open it with the wand in the search bar. Ordo checks the phone, then
 downloads the model once (about 2.6 GB, Wi-Fi by default) from a pinned revision on Hugging Face and verifies its
-SHA-256 hash. After that it works offline. The model can be removed in the AI sheet at any time; Settings › AI
-assistant shows whether it is ready.
+SHA-256 hash. After that it works offline. After the first start Ordo keeps the model's read-in instructions in
+its private storage (never in backups, skipped when space is short), so later cold starts skip that step; they go
+with the model. The model can be removed in the AI sheet at any time; Settings › AI assistant shows whether it is
+ready.
 
 | | |
 |---|---|
