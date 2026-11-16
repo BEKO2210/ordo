@@ -205,8 +205,8 @@ selbst ein Löschen.
 - **Tuned** = nachtrainiertes Modell (LoRA-Adapter `ordo-commands-1.gguf`, 42.485.408 Byte, SHA-256 30ac6052…,
   Schema L, Prompt 75 Token) + `rules3.decide` (Regeln a–d, Labor-Stand 13bfbed9). **Nur im Entwickler-Build, wartet
   auf den Blindtest:** Blindtest 3 ergab 44/60, 0 gefährlich, unter den geforderten 80 %. Der Adapter ist nicht
-  veröffentlicht; der Download unter `releases/download/ai-adapter-1/` antwortet 404, das Blatt sagt dann „noch nicht
-  veröffentlicht“. Ein neu trainierter Adapter ändert nur Name, Größe und Hash in `CommandDesign.Tuned`.
+  veröffentlicht; der Download unter `releases/download/ai-adapter-1/` antwortet 404, das Blatt sagt dann, dass der Zusatz für
+  die KI-Befehle noch nicht verfügbar ist (nur beim Zusatz; das Modell behält die bisherige Meldung). Ein neu trainierter Adapter ändert nur Name, Größe und Hash in `CommandDesign.Tuned`.
 - **Port statt Neuschreiben:** `CommandNet.kt` (Wortlesungen aus rules2.py) und `CommandNetDecide.kt` (die beiden
   Entscheidungen) sind Zeile für Zeile portiert, reines Kotlin. Alle Wortlisten, Muster, Prompts und Grammatiken
   erzeugt `tools/memory-lab/export_tuned_lexicon.py` als `CommandNetLexicon.kt` aus dem eingefrorenen Labor, niemand
@@ -219,8 +219,17 @@ selbst ein Löschen.
   10.717/10.717 gleich. Auf dem Gerät (ICU-Regex) prüft `e2e/ai-show-guard.sh` dieselben Fixtures über
   `DebugAiActivity --es golden_guarded/golden_tuned`.
 - **Zählen auf dem Telefon:** rules2 wählt bei Wörtern, die kein Feld erklärt, die Lesart, die auf dem Telefon Dateien
-  findet. In der App zählt `CommandFiles` (Text nur in reinen Textdateien, siehe oben); bei „Zeigen“ nur „keine oder
-  mindestens eine“. Der Golden-Test zählt mit einem Port des Labor-Ausführers, die App-Suche kann davon abweichen.
+  findet (bis zu 2^n − 1 Wort-Teilmengen). `CommandNetCount` liest dafür jede Quelle einmal je Entscheidung, filtert im
+  Speicher, liest den Text jeder Datei höchstens einmal (gleiche Grenzen wie die Suche), zählt gleiche Pläne einmal und
+  bricht ab, wenn das Blatt schließt. Über 10 Wörtern sucht es keine Teilmengen mehr (eine Änderung fragt dann
+  zurück); 10 ist das Größte, was die Labor-Fälle brauchen. Wie die App zählt: eine Änderung nur im Ordner selbst
+  (auch das Labor zählt dort nicht rekursiv, `phase0.execute`: `tree.by_folder`), „Zeigen“ darunter, ohne versteckte
+  Ordner und `Android/` außer `media`, Text nur in reinen Textdateien, Duplikate nur bei Änderungen. Gemessen mit
+  dieser App-Zählweise auf dem Labor-Telefon weichen von den 334 Prompt-C-Fällen 5 ab (Dev 3/224, Blindtest 2 1/50,
+  Blindtest 3 1/60), alle „Zeigen“ mit einem Inhaltswort, das im Labor nur im Text eines PDFs oder Office-Dokuments stand (die App liest dort nur den Namen); keine
+  Änderung weicht ab.
+  Lässt das Netz Wörter weg, steht das in der Vorschau („Mit „telekom“, „rechnung“ zusammen habe ich nichts
+  gefunden …“) bzw. unter der Liste, ebenso eine Anzahl, die nicht passt („Du hast 3 genannt, ich habe 5 gefunden“).
 - **Rückfrage:** freundliche Frage im Blatt („Wohin sollen die Dateien? …“), der getippte Befehl bleibt stehen und
   kann ergänzt werden. **Absage:** Hinweis-Karte wie bei den Gedächtnis-Sätzen (ZIP, Umwandeln, Umbenennen, Teilen,
   Öffnen, Wiederherstellen, Bearbeiten, frühere Befehle). Ändernde Pläne gehen durch dieselbe Prüfung, Vorschau und
