@@ -16,7 +16,7 @@
         android:summary="@string/settings_ai_preview_summary"
         android:defaultValue="@bool/pref_default_value_ai_preview" />
 
-    <ListPreference
+    <me.zhanghai.android.files.settings.VisualListPreference
         android:icon="@drawable/settings_speed_icon_white_24dp"
         android:key="@string/pref_key_ai_speed"
         android:title="@string/settings_ai_speed_title"

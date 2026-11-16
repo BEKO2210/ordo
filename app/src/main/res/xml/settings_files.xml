@@ -21,7 +21,7 @@
         android:title="@string/settings_default_directory_title"
         app:useSimpleSummaryProvider="true" />
 
-    <ListPreference
+    <me.zhanghai.android.files.settings.VisualListPreference
         android:key="@string/pref_key_file_name_ellipsize"
         android:icon="@drawable/settings_ellipsize_icon_white_24dp"
         android:title="@string/settings_file_name_ellipsize_title"
@@ -30,7 +30,7 @@
         android:entryValues="@array/pref_entry_values_file_name_ellipsize"
         app:useSimpleSummaryProvider="true" />
 
-    <ListPreference
+    <me.zhanghai.android.files.settings.VisualListPreference
         android:key="@string/pref_key_open_apk_default_action"
         android:icon="@drawable/android_icon_white_24dp"
         android:title="@string/settings_open_apk_default_action_title"
