@@ -11,11 +11,13 @@
 
     <SwitchPreferenceCompat
         android:key="@string/pref_key_ai_preview"
+        android:icon="@drawable/settings_preview_icon_white_24dp"
         android:title="@string/settings_ai_preview_title"
         android:summary="@string/settings_ai_preview_summary"
         android:defaultValue="@bool/pref_default_value_ai_preview" />
 
     <ListPreference
+        android:icon="@drawable/settings_speed_icon_white_24dp"
         android:key="@string/pref_key_ai_speed"
         android:title="@string/settings_ai_speed_title"
         android:defaultValue="@string/pref_default_value_ai_speed"
@@ -26,9 +28,11 @@
     <!-- Summary filled in code from the model's state; a tap opens the assistant, which sets it up or removes it. -->
     <Preference
         android:key="ai_model"
+        android:icon="@drawable/ai_memory_icon_white_24dp"
         android:title="@string/settings_ai_model_title" />
 
     <Preference
         android:selectable="false"
+        android:icon="@drawable/ai_privacy_icon_white_24dp"
         android:summary="@string/settings_ai_privacy_summary" />
 </PreferenceScreen>

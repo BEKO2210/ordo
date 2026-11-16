@@ -11,16 +11,19 @@
 
     <SwitchPreferenceCompat
         android:key="@string/pref_key_show_home_on_start"
+        android:icon="@drawable/settings_home_icon_white_24dp"
         android:title="@string/settings_show_home_on_start_title"
         android:defaultValue="@bool/pref_default_value_show_home_on_start" />
 
     <me.zhanghai.android.files.settings.DefaultDirectoryPreference
         android:key="@string/pref_key_file_list_default_directory"
+        android:icon="@drawable/directory_icon_white_24dp"
         android:title="@string/settings_default_directory_title"
         app:useSimpleSummaryProvider="true" />
 
     <ListPreference
         android:key="@string/pref_key_file_name_ellipsize"
+        android:icon="@drawable/settings_ellipsize_icon_white_24dp"
         android:title="@string/settings_file_name_ellipsize_title"
         android:defaultValue="@string/pref_default_value_file_name_ellipsize"
         android:entries="@array/settings_file_name_ellipsize_entries"
@@ -29,6 +32,7 @@
 
     <ListPreference
         android:key="@string/pref_key_open_apk_default_action"
+        android:icon="@drawable/android_icon_white_24dp"
         android:title="@string/settings_open_apk_default_action_title"
         android:defaultValue="@string/pref_default_value_open_apk_default_action"
         android:entries="@array/settings_open_apk_default_action_entries"
@@ -37,12 +41,14 @@
 
     <me.zhanghai.android.files.settings.CharsetPreference
         android:key="@string/pref_key_archive_file_name_encoding"
+        android:icon="@drawable/archive_icon_white_24dp"
         android:title="@string/settings_archive_file_name_encoding_title"
         android:defaultValue="@string/pref_default_value_archive_file_name_encoding"
         app:useSimpleSummaryProvider="true" />
 
     <me.zhanghai.android.files.settings.RootStrategyPreference
         android:key="@string/pref_key_root_strategy"
+        android:icon="@drawable/settings_root_icon_white_24dp"
         android:title="@string/settings_root_strategy_title"
         android:defaultValue="@string/pref_default_value_root_strategy"
         android:entries="@array/settings_root_strategy_entries"
@@ -51,6 +57,7 @@
 
     <SwitchPreferenceCompat
         android:key="@string/pref_key_show_pdf_thumbnail_pre_28"
+        android:icon="@drawable/settings_pdf_icon_white_24dp"
         android:title="@string/settings_show_pdf_thumbnail_pre_28_title"
         android:defaultValue="@bool/pref_default_value_show_pdf_thumbnail_pre_28"
         android:summary="@string/settings_show_pdf_thumbnail_pre_28_summary"
@@ -58,6 +65,7 @@
 
     <SwitchPreferenceCompat
         android:key="@string/pref_key_read_remote_files_for_thumbnail"
+        android:icon="@drawable/cloud_icon_white_24dp"
         android:title="@string/settings_read_remote_files_for_thumbnail_title"
         android:defaultValue="@bool/pref_default_value_read_remote_files_for_thumbnail" />
 </PreferenceScreen>

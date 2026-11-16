@@ -11,6 +11,7 @@
 
     <SwitchPreferenceCompat
         android:key="@string/pref_key_wallpaper_colors"
+        android:icon="@drawable/settings_wallpaper_icon_white_24dp"
         android:title="@string/settings_wallpaper_colors_title"
         android:summary="@string/settings_wallpaper_colors_summary"
         android:defaultValue="@bool/pref_default_value_wallpaper_colors"
@@ -19,6 +20,7 @@
 
     <me.zhanghai.android.files.settings.AccentPreference
         android:key="@string/pref_key_accent"
+        android:icon="@drawable/palette_icon_white_24dp"
         android:title="@string/settings_accent_title"
         android:defaultValue="@string/pref_default_value_accent"
         android:dependency="@string/pref_key_wallpaper_colors" />
@@ -38,6 +40,7 @@
 
     <me.zhanghai.android.files.settings.VisualListPreference
         android:key="@string/pref_key_home_header_position"
+        android:icon="@drawable/settings_header_position_icon_white_24dp"
         android:title="@string/settings_home_header_position_title"
         android:defaultValue="@string/pref_default_value_home_header_position"
         android:entries="@array/settings_home_header_position_entries"
@@ -45,6 +48,7 @@
         app:useSimpleSummaryProvider="true" />
 
     <me.zhanghai.android.files.settings.VisualListPreference
+        android:icon="@drawable/settings_motion_icon_white_24dp"
         android:key="@string/pref_key_motion"
         android:title="@string/settings_motion_title"
         android:defaultValue="@string/pref_default_value_motion"
@@ -53,11 +57,13 @@
         app:useSimpleSummaryProvider="true" />
 
     <SwitchPreferenceCompat
+        android:icon="@drawable/settings_list_motion_icon_white_24dp"
         android:key="@string/pref_key_file_list_animation"
         android:title="@string/settings_file_list_animation_title"
         android:defaultValue="@bool/pref_default_value_file_list_animation" />
 
     <me.zhanghai.android.files.settings.LocalePreference
+        android:icon="@drawable/settings_language_icon_white_24dp"
         android:key="@string/pref_key_locale"
         android:title="@string/settings_locale_title" />
 </PreferenceScreen>
