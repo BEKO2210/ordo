@@ -27,11 +27,14 @@ back
 DEBUG=me.zhanghai.android.files.ai.DebugAiActivity
 FILES=/sdcard/Android/data/$PKG/files
 FIXTURE="$HERE/../app/src/test/resources/ai/rules-golden.json"
-a shell mkdir -p "$FILES"; a push "$FIXTURE" "$FILES/" >/dev/null
-a logcat -c
-if a shell am start -n "$PKG/$DEBUG" --es golden rules-golden.json 2>&1 | grep -q "does not exist"; then
+# A release or beta build has no DebugAiActivity. Decided by the package flag, as in home-pull.sh: the text that
+# `am start` prints for a missing activity is not a reliable signal on every platform version.
+if ! a shell dumpsys package "$PKG" | grep -q "flags=\[.*DEBUGGABLE"; then
     echo "SKIP rules on ICU: not a debug build"
 else
+    a shell mkdir -p "$FILES"; a push "$FIXTURE" "$FILES/" >/dev/null
+    a logcat -c
+    a shell am start -n "$PKG/$DEBUG" --es golden rules-golden.json >/dev/null 2>&1
     for _ in $(seq 30); do line=$(a logcat -d -s OrdoGolden:I | grep -m1 equal); [ -n "$line" ] && break; sleep 1; done
     echo "   ${line:-no answer}"
     total=$(python3 -c "import json,sys; print(len(json.load(open(sys.argv[1]))['rows']))" "$FIXTURE")
