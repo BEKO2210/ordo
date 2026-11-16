@@ -25,6 +25,7 @@ import android.widget.Toast
 import androidx.annotation.OptIn
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
+import androidx.core.os.bundleOf
 import androidx.core.view.ViewCompat
 import androidx.core.view.isVisible
 import androidx.core.widget.ImageViewCompat
@@ -54,6 +55,7 @@ import me.zhanghai.android.files.R
 import me.zhanghai.android.files.app.AppActivity
 import me.zhanghai.android.files.databinding.AudioPlayerActivityBinding
 import me.zhanghai.android.files.player.AudioPlaybackService
+import me.zhanghai.android.files.player.AudioPlayerCommands
 import me.zhanghai.android.files.player.AudioQueueRequests
 import me.zhanghai.android.files.provider.common.readAttributes
 import me.zhanghai.android.files.ui.Motion
@@ -116,6 +118,12 @@ class AudioPlayerActivity : AppActivity() {
         binding.root.setBackgroundColor(backgroundColor)
         binding.root.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> updateArtworkSize() }
         binding.toolbar.setNavigationOnClickListener { finish() }
+        binding.toolbar.setOnMenuItemClickListener { item ->
+            if (item.itemId == R.id.actionSound) {
+                AudioSoundSettingsSheet().show(supportFragmentManager, AudioSoundSettingsSheet.TAG)
+                true
+            } else false
+        }
         binding.previous.setOnClickListener { controller?.seekToPreviousMediaItem() }
         binding.playPause.setOnClickListener {
             controller?.let { Util.handlePlayPauseButtonAction(it) }
@@ -206,6 +214,10 @@ class AudioPlayerActivity : AppActivity() {
             }
             controller = newController
             newController.addListener(playerListener)
+            // A setting can be persisted while the asynchronous controller connection is still pending.
+            applySoundSettings()
+            (supportFragmentManager.findFragmentByTag(AudioSoundSettingsSheet.TAG)
+                as? AudioSoundSettingsSheet)?.refreshStatus()
             startLaunchQueue(newController)
             updateUi(newController)
         }, ContextCompat.getMainExecutor(this))
@@ -484,6 +496,57 @@ class AudioPlayerActivity : AppActivity() {
             }
         }
     }
+
+    internal fun applySoundSettings(onApplied: (() -> Unit)? = null) {
+        val player = controller ?: return
+        val future = player.sendCustomCommand(AudioPlayerCommands.APPLY_SETTINGS, Bundle.EMPTY)
+        if (onApplied != null) future.addListener(onApplied, ContextCompat.getMainExecutor(this))
+    }
+
+    internal fun querySoundStatus(callback: (SoundStatus) -> Unit) {
+        val player = controller ?: return callback(SoundStatus())
+        val future = player.sendCustomCommand(AudioPlayerCommands.GET_SOUND_STATUS, Bundle.EMPTY)
+        future.addListener({
+            val extras = runCatching { future.get().extras }.getOrNull() ?: return@addListener
+            callback(
+                SoundStatus(
+                    extras.getBoolean(AudioPlayerCommands.EXTRA_EQ_AVAILABLE),
+                    extras.getBoolean(AudioPlayerCommands.EXTRA_DP),
+                    extras.getBoolean(AudioPlayerCommands.EXTRA_INPUT_GAIN_AVAILABLE),
+                    extras.getInt(AudioPlayerCommands.EXTRA_LEGACY_BANDS),
+                    extras.getBoolean(AudioPlayerCommands.EXTRA_BASS_AVAILABLE),
+                    extras.getBoolean(AudioPlayerCommands.EXTRA_VIRTUALIZER_AVAILABLE),
+                    extras.getBoolean(AudioPlayerCommands.EXTRA_SLEEP_ACTIVE),
+                    extras.getInt(AudioPlayerCommands.EXTRA_SLEEP_MINUTES),
+                    extras.getBoolean(AudioPlayerCommands.EXTRA_END_OF_TRACK)
+                )
+            )
+        }, ContextCompat.getMainExecutor(this))
+    }
+
+    internal fun setSleepTimer(minutes: Int, endOfTrack: Boolean, onApplied: (() -> Unit)? = null) {
+        val player = controller ?: return
+        val future = player.sendCustomCommand(
+            AudioPlayerCommands.SLEEP_TIMER,
+            bundleOf(
+                AudioPlayerCommands.EXTRA_SLEEP_MINUTES to minutes,
+                AudioPlayerCommands.EXTRA_END_OF_TRACK to endOfTrack
+            )
+        )
+        if (onApplied != null) future.addListener(onApplied, ContextCompat.getMainExecutor(this))
+    }
+
+    internal data class SoundStatus(
+        val equalizerAvailable: Boolean = false,
+        val usingDynamicsProcessing: Boolean = false,
+        val inputGainAvailable: Boolean = false,
+        val legacyBandCount: Int = 0,
+        val bassBoostAvailable: Boolean = false,
+        val virtualizerAvailable: Boolean = false,
+        val sleepActive: Boolean = false,
+        val sleepMinutes: Int = 0,
+        val sleepAtEndOfTrack: Boolean = false
+    )
 
     private fun formatTime(milliseconds: Long): String {
         val totalSeconds = milliseconds.coerceAtLeast(0L) / 1_000L

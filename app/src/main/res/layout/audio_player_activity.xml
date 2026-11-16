@@ -16,6 +16,7 @@
         android:theme="?actionBarTheme"
         app:navigationContentDescription="@string/close"
         app:navigationIcon="@drawable/close_icon_control_normal_24dp"
+        app:menu="@menu/audio_player"
         app:popupTheme="?actionBarPopupTheme" />
 
     <androidx.core.widget.NestedScrollView

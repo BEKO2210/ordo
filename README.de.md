@@ -80,7 +80,8 @@ Was als Nächstes kommt, steht in der [lebenden Roadmap](docs/ROADMAP-LIVE.md): 
 - Eingebaute Ansicht für Bilder, PDF und Text
 - Musik direkt in Ordo abspielen – mit Warteschlange, Cover und Steuerung im Hintergrund. Auf Handys und Tablets
   im Hochformat steht der Player großzügig in der Mitte, in einem breiten Querformat liegen Cover und Steuerung
-  nebeneinander; die Coverfarbe tönt den Hintergrund sanft, ohne die Textfarben des Designs zu verändern
+  nebeneinander; die Coverfarbe tönt den Hintergrund sanft, ohne die Textfarben des Designs zu verändern; „Klang“
+  ergänzt 10-Band-Equalizer, Geräteeffekte, ReplayGain/R128, Wiedergabeoptionen und einen ausblendenden Einschlaf-Timer
 
 **Dateien schützen**
 
