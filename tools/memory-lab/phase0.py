@@ -16,6 +16,7 @@ Scoring simulates the app on the synthetic phone (gen_tree.py); nothing real is 
 """
 import hashlib
 import json
+import os
 import pathlib
 import re
 import sys
@@ -303,7 +304,9 @@ def judge(case, plan, res, tree, history, session_results):
         for how, w in want:
             if how == "set" and set(got) == set(w) and w:
                 ok = True
-            if how == "top" and w and got[:min(5, len(got))] == w[:min(5, len(got))] and len(got) >= min(len(w), 3):
+            # one file asked for ("die größte", "the newest"): the first file decides; scorer fix after the first look
+            enough = len(got) >= (1 if gold.get("singular") and not os.environ.get("STRICT_TOP") else min(len(w), 3))
+            if how == "top" and w and got[:min(5, len(got))] == w[:min(5, len(got))] and enough:
                 ok = True
             if how == "first" and w and got[0] == w[0]:
                 ok = True

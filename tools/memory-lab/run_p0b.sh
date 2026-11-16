@@ -10,5 +10,5 @@ exec flock -w 900 ~/reel/gpu.lock timeout 1500 bash -c '
     /usr/local/lib/ollama/llama-server -m '"$M"' -ngl 99 -c 2048 -np 1 --host 127.0.0.1 --port 8096 > server.log 2>&1 &
   S=$!; trap "kill $S" EXIT
   for i in $(seq 90); do curl -sf http://127.0.0.1:8096/health >/dev/null && break; sleep 1; done
-  python3 phase0b.py run --url http://127.0.0.1:8096 --only '"$1"'
+  python3 phase0b.py run --url http://127.0.0.1:8096 --only '"$1"' ${SETS:+--sets $SETS}
 '

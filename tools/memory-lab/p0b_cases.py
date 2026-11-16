@@ -29,8 +29,8 @@ HOLDOUT = [
     (["show", "content", "english"], "find all files that mention Kessler", G("show", {"plan": P("show", content_contains="Kessler")})),
     (["show", "content"], "In welchen Dokumenten steht was von Nobilia?", G("show", {"plan": P("show", content_contains="Nobilia")})),
     (["show", "sort"], "zeig mir das neueste foto aus der kamera",
-     G("show", {"top": P("show", "Kamera", kinds=["image"], sort="newest")})),
-    (["show", "sort"], "was ist die größte datei im download ordner", G("show", {"top": P("show", "Download", sort="size")})),
+     G("show", {"top": P("show", "Kamera", kinds=["image"], sort="newest")}, singular=True)),
+    (["show", "sort"], "was ist die größte datei im download ordner", G("show", {"top": P("show", "Download", sort="size")}, singular=True)),
     (["show", "recency"], "die bilder der letzten drei tage", G("show", {"plan": P("show", kinds=["image"], newer_than=3)})),
     (["show"], "zeig alle zip dateien die größer als ein giga sind",
      G("show", {"plan": P("show", extensions=["zip"], larger_than=1, size_unit="gb")})),
@@ -39,7 +39,7 @@ HOLDOUT = [
     (["show"], "wo ist die apk von signal", G("show", {"paths": ["Download/Signal-Android-7.24.apk"]})),
     (["show", "recency"], "zeig mir was ich heute runtergeladen hab", G("show", {"paths": ["Download/Signal-Android-7.24.apk"]})),
     (["show", "sort", "english"], "the newest pdf in downloads",
-     G("show", {"top": P("show", "Download", extensions=["pdf"], sort="newest")})),
+     G("show", {"top": P("show", "Download", extensions=["pdf"], sort="newest")}, singular=True)),
     (["today"], "verschieb alle pdfs aus download in den ordner dokumente",
      G("move", {"plan": P("move", "Download", extensions=["pdf"])}, dest=["Documents"])),
     (["today"], "kopier die bilder aus whatsapp images nach backup",
@@ -97,7 +97,7 @@ def regress():
                                       larger_than=g.get("larger_mb", 0))}
                 gold = G(g["action"], spec, **({"dest": g["dest"]} if "dest" in g else {}),
                          **({"group_by": [g["group_by"]]} if "group_by" in g else {}))
-            out.append({"id": f"r{name[0]}{i:02d}", "set": "regress", "type": c["type"], "kind": "regress", "cmd": None,
+            out.append({"id": f"r{ {'commands.jsonl': 'c', 'holdout.jsonl': 'h', 'holdout2.jsonl': 'g'}[name] }{i:02d}", "set": "regress", "type": c["type"], "kind": "regress", "cmd": None,
                         "caps": ["today", c["type"]], "text": c["text"], "session": [], "gold": gold})
     return out
 

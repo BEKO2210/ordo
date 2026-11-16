@@ -147,7 +147,7 @@ def ask(url, system, grammar_, user, n=256):
     return r["content"], r.get("timings", {})
 
 
-def run(url, only):
+def run(url, only, sets=None):
     ps = prompts()
     out_file = HERE / "results-0b.json"
     res = json.loads(out_file.read_text()) if out_file.exists() else {"raw": {}, "system_tokens": {}}
@@ -155,8 +155,10 @@ def run(url, only):
     for k, (s, _) in ps.items():
         res["system_tokens"][k] = bench.tokens(url, bench.prefix(s))
     for cond in only:
-        rows = {}
+        rows = res["raw"].get(cond, {}) if sets else {}
         for case in all_sets():
+            if sets and not set(sets) & set(case["sets"]):
+                continue
             before, now_files, results, history = p0.build_state(case, base_files, base_history)
             text = case["text"]
             calls = []
@@ -272,7 +274,7 @@ def report():
         cells = []
         for v in order:
             r = by[v][r0["id"]]
-            cells.append(("ok" if r["ok"] else {"miss": "·", "wrong": "falsch"}[r["outcome"]]) + (" ⚠" if r["danger"] else "") +
+            cells.append(("ok" if r["ok"] else {"miss": "·", "wrong": "falsch", "ok": "falsch"}[r["outcome"]]) + (" ⚠" if r["danger"] else "") +
                          (" R" if r["routed"] else ""))
         L.append(f"| {r0['text']} | " + " | ".join(cells) + " |")
     L += ["", "ok = richtig · „·“ = nichts/Rückfrage · ⚠ = gefährlich · R = ohne Modell (Regel)"]
@@ -297,6 +299,7 @@ if __name__ == "__main__":
         selftest()
     elif sys.argv[1] == "run":
         arg = lambda k, d: sys.argv[sys.argv.index(k) + 1] if k in sys.argv else d
-        run(arg("--url", "http://127.0.0.1:8096"), arg("--only", "A,S,K,KS,T").split(","))
+        run(arg("--url", "http://127.0.0.1:8096"), arg("--only", "A,S,K,KS,T").split(","),
+            arg("--sets", "").split(",") if "--sets" in sys.argv else None)
     elif sys.argv[1] == "report":
         report()

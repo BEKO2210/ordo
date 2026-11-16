@@ -2126,24 +2126,43 @@
    },
    "rh00": {
     "plan": {
-     "action": "move",
+     "action": "organize",
      "source": ".",
      "extensions": [
       "pdf"
-     ]
+     ],
+     "name_contains": "Amazon",
+     "group_by": "type"
     },
     "calls": [
      [
       "A",
-      21,
-      48
+      19,
+      51
      ]
     ]
    },
    "rh01": {
     "plan": {
+     "action": "move",
+     "source": ".",
+     "extensions": [
+      "pdf"
+     ],
+     "name_contains": "Kontoauszug"
+    },
+    "calls": [
+     [
+      "A",
+      25,
+      53
+     ]
+    ]
+   },
+   "rh02": {
+    "plan": {
      "action": "copy",
-     "source": "Lissabon-Trip",
+     "source": "Portugal-Urlaub",
      "destination": "Backup",
      "kinds": [
       "image"
@@ -2152,24 +2171,7 @@
     "calls": [
      [
       "A",
-      26,
-      55
-     ]
-    ]
-   },
-   "rh02": {
-    "plan": {
-     "action": "move",
-     "source": "Reise nach Hamburg",
-     "destination": "Filme",
-     "kinds": [
-      "video"
-     ]
-    },
-    "calls": [
-     [
-      "A",
-      21,
+      22,
       54
      ]
     ]
@@ -2179,170 +2181,160 @@
      "action": "delete",
      "source": ".",
      "kinds": [
-      "image"
-     ]
-    },
-    "calls": [
-     [
-      "A",
-      15,
-      47
-     ]
-    ]
-   },
-   "rh04": {
-    "plan": {
-     "action": "organize",
-     "source": ".",
-     "extensions": [
-      "pdf"
+      "video"
      ],
-     "name_contains": "Verdienstnachweise"
-    },
-    "calls": [
-     [
-      "A",
-      20,
-      53
-     ]
-    ]
-   },
-   "rh05": {
-    "plan": {
-     "action": "copy",
-     "source": ".",
-     "destination": "Backup",
-     "name_contains": "Autokauf-Unterlagen"
-    },
-    "calls": [
-     [
-      "A",
-      21,
-      55
-     ]
-    ]
-   },
-   "rh06": {
-    "plan": {
-     "action": "move",
-     "source": ".",
-     "destination": "Steuersachen 2025",
-     "extensions": [
-      "pdf"
-     ]
-    },
-    "calls": [
-     [
-      "A",
-      29,
-      56
-     ]
-    ]
-   },
-   "rh07": {
-    "plan": {
-     "action": "organize",
-     "source": ".",
-     "extensions": [
-      "pdf"
-     ],
-     "name_contains": "Telekom",
-     "group_by": "month"
-    },
-    "calls": [
-     [
-      "A",
-      20,
-      52
-     ]
-    ]
-   },
-   "rh08": {
-    "plan": {
-     "kinds": [
-      "image"
-     ],
-     "name_contains": "Hamburg"
-    },
-    "calls": [
-     [
-      "A",
-      16,
-      49
-     ]
-    ]
-   },
-   "rh09": {
-    "plan": {
-     "action": "move",
-     "source": "WhatsApp Documents",
-     "destination": "Dokumente",
-     "extensions": [
-      "pdf"
-     ]
-    },
-    "calls": [
-     [
-      "A",
-      20,
-      53
-     ]
-    ]
-   },
-   "rh10": {
-    "plan": {
-     "action": "delete",
-     "source": "WhatsApp Audio",
-     "kinds": [
-      "audio"
-     ]
-    },
-    "calls": [
-     [
-      "A",
-      20,
-      49
-     ]
-    ]
-   },
-   "rh11": {
-    "plan": {
-     "action": "copy",
-     "source": ".",
-     "destination": "Backup",
-     "kinds": [
-      "image"
-     ]
+     "name_contains": "Hamburg-Trip"
     },
     "calls": [
      [
       "A",
       17,
-      49
+      52
      ]
     ]
    },
-   "rh12": {
+   "rh04": {
     "plan": {
-     "action": "organize",
-     "source": "Movies",
-     "group_by": "month"
+     "action": "move",
+     "source": ".",
+     "destination": "Steuerordner",
+     "extensions": [
+      "pdf"
+     ],
+     "name_contains": "Spendenquittung"
     },
     "calls": [
      [
       "A",
-      18,
-      49
+      28,
+      59
      ]
     ]
    },
-   "rh13": {
+   "rh05": {
+    "plan": {
+     "source": "."
+    },
+    "calls": [
+     [
+      "A",
+      21,
+      46
+     ]
+    ]
+   },
+   "rh06": {
+    "plan": {
+     "action": "delete",
+     "source": "."
+    },
+    "calls": [
+     [
+      "A",
+      19,
+      46
+     ]
+    ]
+   },
+   "rh07": {
+    "plan": {
+     "action": "move",
+     "source": "Autokauf",
+     "destination": "Documents/Auto"
+    },
+    "calls": [
+     [
+      "A",
+      26,
+      53
+     ]
+    ]
+   },
+   "rh08": {
+    "plan": {
+     "action": "move",
+     "source": ".",
+     "destination": "WhatsApp Screenshots",
+     "extensions": [
+      "jpg",
+      "jpeg",
+      "png",
+      "bmp",
+      "gif"
+     ]
+    },
+    "calls": [
+     [
+      "A",
+      24,
+      59
+     ]
+    ]
+   },
+   "rh09": {
     "plan": {},
     "calls": [
      [
       "A",
       18,
       45
+     ]
+    ]
+   },
+   "rh10": {
+    "plan": {
+     "action": "delete",
+     "source": ".",
+     "kinds": [
+      "video"
+     ]
+    },
+    "calls": [
+     [
+      "A",
+      19,
+      47
+     ]
+    ]
+   },
+   "rh11": {
+    "plan": {},
+    "calls": [
+     [
+      "A",
+      17,
+      45
+     ]
+    ]
+   },
+   "rh12": {
+    "plan": {
+     "action": "move",
+     "source": "Download",
+     "destination": "Filme",
+     "kinds": [
+      "video"
+     ]
+    },
+    "calls": [
+     [
+      "A",
+      18,
+      51
+     ]
+    ]
+   },
+   "rh13": {
+    "plan": {
+     "action": "delete",
+     "source": "Download",
+     "older_than": 730
+    },
+    "calls": [
+     [
+      "A",
+      24,
+      49
      ]
     ]
    },
@@ -2409,6 +2401,228 @@
       "A",
       21,
       54
+     ]
+    ]
+   },
+   "rg00": {
+    "plan": {
+     "action": "move",
+     "source": ".",
+     "extensions": [
+      "pdf"
+     ]
+    },
+    "calls": [
+     [
+      "A",
+      21,
+      48
+     ]
+    ]
+   },
+   "rg01": {
+    "plan": {
+     "action": "copy",
+     "source": "Lissabon-Trip",
+     "destination": "Backup",
+     "kinds": [
+      "image"
+     ]
+    },
+    "calls": [
+     [
+      "A",
+      26,
+      55
+     ]
+    ]
+   },
+   "rg02": {
+    "plan": {
+     "action": "move",
+     "source": "Reise nach Hamburg",
+     "destination": "Filme",
+     "kinds": [
+      "video"
+     ]
+    },
+    "calls": [
+     [
+      "A",
+      21,
+      54
+     ]
+    ]
+   },
+   "rg03": {
+    "plan": {
+     "action": "delete",
+     "source": ".",
+     "kinds": [
+      "image"
+     ]
+    },
+    "calls": [
+     [
+      "A",
+      15,
+      47
+     ]
+    ]
+   },
+   "rg04": {
+    "plan": {
+     "action": "organize",
+     "source": ".",
+     "extensions": [
+      "pdf"
+     ],
+     "name_contains": "Verdienstnachweise"
+    },
+    "calls": [
+     [
+      "A",
+      20,
+      53
+     ]
+    ]
+   },
+   "rg05": {
+    "plan": {
+     "action": "copy",
+     "source": ".",
+     "destination": "Backup",
+     "name_contains": "Autokauf-Unterlagen"
+    },
+    "calls": [
+     [
+      "A",
+      21,
+      55
+     ]
+    ]
+   },
+   "rg06": {
+    "plan": {
+     "action": "move",
+     "source": ".",
+     "destination": "Steuersachen 2025",
+     "extensions": [
+      "pdf"
+     ]
+    },
+    "calls": [
+     [
+      "A",
+      29,
+      56
+     ]
+    ]
+   },
+   "rg07": {
+    "plan": {
+     "action": "organize",
+     "source": ".",
+     "extensions": [
+      "pdf"
+     ],
+     "name_contains": "Telekom",
+     "group_by": "month"
+    },
+    "calls": [
+     [
+      "A",
+      20,
+      52
+     ]
+    ]
+   },
+   "rg08": {
+    "plan": {
+     "kinds": [
+      "image"
+     ],
+     "name_contains": "Hamburg"
+    },
+    "calls": [
+     [
+      "A",
+      16,
+      49
+     ]
+    ]
+   },
+   "rg09": {
+    "plan": {
+     "action": "move",
+     "source": "WhatsApp Documents",
+     "destination": "Dokumente",
+     "extensions": [
+      "pdf"
+     ]
+    },
+    "calls": [
+     [
+      "A",
+      20,
+      53
+     ]
+    ]
+   },
+   "rg10": {
+    "plan": {
+     "action": "delete",
+     "source": "WhatsApp Audio",
+     "kinds": [
+      "audio"
+     ]
+    },
+    "calls": [
+     [
+      "A",
+      20,
+      49
+     ]
+    ]
+   },
+   "rg11": {
+    "plan": {
+     "action": "copy",
+     "source": ".",
+     "destination": "Backup",
+     "kinds": [
+      "image"
+     ]
+    },
+    "calls": [
+     [
+      "A",
+      17,
+      49
+     ]
+    ]
+   },
+   "rg12": {
+    "plan": {
+     "action": "organize",
+     "source": "Movies",
+     "group_by": "month"
+    },
+    "calls": [
+     [
+      "A",
+      18,
+      49
+     ]
+    ]
+   },
+   "rg13": {
+    "plan": {},
+    "calls": [
+     [
+      "A",
+      18,
+      45
      ]
     ]
    }
@@ -4656,44 +4870,39 @@
     "plan": {
      "action": "organize",
      "source": ".",
-     "extensions": [
-      "pdf"
-     ],
-     "name_contains": "Stadtwerke-Rechnung",
-     "group_by": "type"
+     "name_contains": "Amazon-Rechnung",
+     "group_by": "month"
     },
     "calls": [
      [
       "S",
-      55,
-      73
+      53,
+      71
      ]
     ]
    },
    "rh01": {
     "plan": {
-     "action": "copy",
-     "source": "Kamera",
-     "destination": "Backup",
-     "kinds": [
-      "image"
-     ]
+     "action": "move",
+     "source": "Kontoauszüge",
+     "destination": "Kontoauszüge",
+     "name_contains": "Oktober"
     },
     "calls": [
      [
       "S",
-      59,
-      68
+      58,
+      75
      ]
     ]
    },
    "rh02": {
     "plan": {
-     "action": "move",
-     "source": "Reise nach Hamburg",
-     "destination": "Filme",
+     "action": "copy",
+     "source": "Portugal-Urlaub",
+     "destination": "Backup",
      "kinds": [
-      "video"
+      "image"
      ]
     },
     "calls": [
@@ -4708,163 +4917,157 @@
     "plan": {
      "action": "delete",
      "kinds": [
-      "image"
+      "video"
      ]
     },
     "calls": [
      [
       "S",
-      49,
+      51,
       63
      ]
     ]
    },
    "rh04": {
     "plan": {
+     "action": "move",
+     "source": ".",
+     "destination": "Steuerordner für 2025",
+     "name_contains": "Spendenquittung"
+    },
+    "calls": [
+     [
+      "S",
+      62,
+      81
+     ]
+    ]
+   },
+   "rh05": {
+    "plan": {
      "action": "organize",
      "source": ".",
+     "name_contains": "Arztbriefe",
      "group_by": "type"
     },
     "calls": [
      [
       "S",
       54,
-      66
-     ]
-    ]
-   },
-   "rh05": {
-    "plan": {
-     "action": "copy",
-     "source": ".",
-     "destination": "Backup",
-     "name_contains": "Autokauf-Unterlagen"
-    },
-    "calls": [
-     [
-      "S",
-      54,
-      72
+      71
      ]
     ]
    },
    "rh06": {
     "plan": {
-     "action": "move",
-     "source": ".",
-     "destination": "Steuersachen 2025",
-     "name_contains": "Riester-Bescheinigung"
+     "action": "delete",
+     "source": "Download"
     },
     "calls": [
      [
       "S",
-      63,
-      80
+      53,
+      64
      ]
     ]
    },
    "rh07": {
     "plan": {
-     "action": "organize",
+     "action": "move",
      "source": ".",
-     "name_contains": "Telekom-Rechnung",
-     "sort": "newest",
-     "group_by": "month"
+     "destination": "Documents/Auto",
+     "name_contains": "Fahrzeugpapiere"
     },
     "calls": [
      [
       "S",
-      54,
-      75
+      60,
+      73
      ]
     ]
    },
    "rh08": {
     "plan": {
-     "action": "show",
-     "kinds": [
-      "image"
-     ],
-     "name_contains": "Hamburg"
+     "action": "move",
+     "source": "Screenshots",
+     "destination": "WhatsApp Screenshots"
     },
     "calls": [
      [
       "S",
-      50,
-      66
+      58,
+      69
      ]
     ]
    },
    "rh09": {
     "plan": {
-     "action": "move",
-     "source": "WhatsApp Documents",
-     "destination": "Dokumente",
-     "extensions": [
-      "pdf"
-     ]
+     "action": "show",
+     "content_contains": "Autokauf"
     },
     "calls": [
      [
       "S",
-      54,
-      70
+      51,
+      66
      ]
     ]
    },
    "rh10": {
     "plan": {
      "action": "delete",
-     "source": "WhatsApp Audio",
+     "source": "WhatsApp Images",
      "kinds": [
-      "audio"
-     ]
+      "video"
+     ],
+     "age_unit": "months"
     },
     "calls": [
      [
       "S",
-      54,
+      53,
       66
      ]
     ]
    },
    "rh11": {
-    "plan": {
-     "action": "copy",
-     "destination": "Backup",
-     "kinds": [
-      "image"
-     ]
-    },
+    "plan": {},
     "calls": [
      [
       "S",
-      50,
-      65
+      51,
+      62
      ]
     ]
    },
    "rh12": {
     "plan": {
-     "action": "organize",
-     "source": "Movies",
-     "group_by": "month"
+     "action": "move",
+     "source": "Download",
+     "destination": "Filme",
+     "kinds": [
+      "video"
+     ]
     },
     "calls": [
      [
       "S",
       52,
-      67
+      68
      ]
     ]
    },
    "rh13": {
-    "plan": {},
+    "plan": {
+     "action": "delete",
+     "source": "Download",
+     "older_than": 730
+    },
     "calls": [
      [
       "S",
-      52,
-      62
+      58,
+      66
      ]
     ]
    },
@@ -4929,6 +5132,222 @@
       "S",
       55,
       69
+     ]
+    ]
+   },
+   "rg00": {
+    "plan": {
+     "action": "organize",
+     "source": ".",
+     "extensions": [
+      "pdf"
+     ],
+     "name_contains": "Stadtwerke-Rechnung",
+     "group_by": "type"
+    },
+    "calls": [
+     [
+      "S",
+      55,
+      73
+     ]
+    ]
+   },
+   "rg01": {
+    "plan": {
+     "action": "copy",
+     "source": "Kamera",
+     "destination": "Backup",
+     "kinds": [
+      "image"
+     ]
+    },
+    "calls": [
+     [
+      "S",
+      59,
+      68
+     ]
+    ]
+   },
+   "rg02": {
+    "plan": {
+     "action": "move",
+     "source": "Reise nach Hamburg",
+     "destination": "Filme",
+     "kinds": [
+      "video"
+     ]
+    },
+    "calls": [
+     [
+      "S",
+      55,
+      71
+     ]
+    ]
+   },
+   "rg03": {
+    "plan": {
+     "action": "delete",
+     "kinds": [
+      "image"
+     ]
+    },
+    "calls": [
+     [
+      "S",
+      49,
+      63
+     ]
+    ]
+   },
+   "rg04": {
+    "plan": {
+     "action": "organize",
+     "source": ".",
+     "group_by": "type"
+    },
+    "calls": [
+     [
+      "S",
+      54,
+      66
+     ]
+    ]
+   },
+   "rg05": {
+    "plan": {
+     "action": "copy",
+     "source": ".",
+     "destination": "Backup",
+     "name_contains": "Autokauf-Unterlagen"
+    },
+    "calls": [
+     [
+      "S",
+      54,
+      72
+     ]
+    ]
+   },
+   "rg06": {
+    "plan": {
+     "action": "move",
+     "source": ".",
+     "destination": "Steuersachen 2025",
+     "name_contains": "Riester-Bescheinigung"
+    },
+    "calls": [
+     [
+      "S",
+      63,
+      80
+     ]
+    ]
+   },
+   "rg07": {
+    "plan": {
+     "action": "organize",
+     "source": ".",
+     "name_contains": "Telekom-Rechnung",
+     "sort": "newest",
+     "group_by": "month"
+    },
+    "calls": [
+     [
+      "S",
+      54,
+      75
+     ]
+    ]
+   },
+   "rg08": {
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "image"
+     ],
+     "name_contains": "Hamburg"
+    },
+    "calls": [
+     [
+      "S",
+      50,
+      66
+     ]
+    ]
+   },
+   "rg09": {
+    "plan": {
+     "action": "move",
+     "source": "WhatsApp Documents",
+     "destination": "Dokumente",
+     "extensions": [
+      "pdf"
+     ]
+    },
+    "calls": [
+     [
+      "S",
+      54,
+      70
+     ]
+    ]
+   },
+   "rg10": {
+    "plan": {
+     "action": "delete",
+     "source": "WhatsApp Audio",
+     "kinds": [
+      "audio"
+     ]
+    },
+    "calls": [
+     [
+      "S",
+      54,
+      66
+     ]
+    ]
+   },
+   "rg11": {
+    "plan": {
+     "action": "copy",
+     "destination": "Backup",
+     "kinds": [
+      "image"
+     ]
+    },
+    "calls": [
+     [
+      "S",
+      50,
+      65
+     ]
+    ]
+   },
+   "rg12": {
+    "plan": {
+     "action": "organize",
+     "source": "Movies",
+     "group_by": "month"
+    },
+    "calls": [
+     [
+      "S",
+      52,
+      67
+     ]
+    ]
+   },
+   "rg13": {
+    "plan": {},
+    "calls": [
+     [
+      "S",
+      52,
+      62
      ]
     ]
    }
@@ -7206,11 +7625,86 @@
    },
    "rh00": {
     "plan": {
+     "action": "organize",
+     "name_contains": "Amazon-Rechnung",
+     "group_by": "type"
+    },
+    "calls": [
+     [
+      "K",
+      19,
+      67
+     ]
+    ]
+   },
+   "rh01": {
+    "plan": {
      "action": "move",
      "extensions": [
       "pdf"
      ],
-     "name_contains": "Stadtwerke-Rechnung"
+     "name_contains": "Kontoauszug Oktober"
+    },
+    "calls": [
+     [
+      "K",
+      25,
+      67
+     ]
+    ]
+   },
+   "rh02": {
+    "plan": {
+     "action": "copy",
+     "source": "Portugal-Urlaub",
+     "destination": "Backup",
+     "kinds": [
+      "image"
+     ]
+    },
+    "calls": [
+     [
+      "K",
+      22,
+      69
+     ]
+    ]
+   },
+   "rh03": {
+    "plan": {
+     "action": "delete",
+     "kinds": [
+      "video"
+     ],
+     "name_contains": "Hamburg-Trip"
+    },
+    "calls": [
+     [
+      "K",
+      17,
+      66
+     ]
+    ]
+   },
+   "rh04": {
+    "plan": {
+     "action": "move",
+     "destination": "Steuerordner",
+     "name_contains": "Spendenquittung"
+    },
+    "calls": [
+     [
+      "K",
+      28,
+      72
+     ]
+    ]
+   },
+   "rh05": {
+    "plan": {
+     "action": "organize",
+     "source": "Arztbriefe",
+     "group_by": "type"
     },
     "calls": [
      [
@@ -7220,28 +7714,101 @@
      ]
     ]
    },
-   "rh01": {
+   "rh06": {
     "plan": {
-     "action": "copy",
+     "action": "delete",
      "source": ".",
-     "destination": "Backup",
-     "kinds": [
-      "image"
-     ],
-     "name_contains": "Lissabon"
+     "content_contains": "doppelt heruntergeladen"
+    },
+    "calls": [
+     [
+      "K",
+      19,
+      68
+     ]
+    ]
+   },
+   "rh07": {
+    "plan": {
+     "action": "move",
+     "source": ".",
+     "destination": "Documents/Auto",
+     "name_contains": "Fahrzeugpapiere"
     },
     "calls": [
      [
       "K",
       26,
-      69
+      71
      ]
     ]
    },
-   "rh02": {
+   "rh08": {
     "plan": {
      "action": "move",
-     "source": "Reise nach Hamburg",
+     "source": "Screenshots",
+     "destination": "WhatsApp Screenshots"
+    },
+    "calls": [
+     [
+      "K",
+      24,
+      67
+     ]
+    ]
+   },
+   "rh09": {
+    "plan": {
+     "action": "show",
+     "extensions": [
+      "pdf"
+     ],
+     "name_contains": "Autokauf"
+    },
+    "calls": [
+     [
+      "K",
+      18,
+      65
+     ]
+    ]
+   },
+   "rh10": {
+    "plan": {
+     "action": "delete",
+     "source": "WhatsApp Images",
+     "kinds": [
+      "video"
+     ]
+    },
+    "calls": [
+     [
+      "K",
+      19,
+      64
+     ]
+    ]
+   },
+   "rh11": {
+    "plan": {
+     "action": "show",
+     "extensions": [
+      "pdf"
+     ],
+     "content_contains": "Mieterhöhung"
+    },
+    "calls": [
+     [
+      "K",
+      17,
+      65
+     ]
+    ]
+   },
+   "rh12": {
+    "plan": {
+     "action": "move",
+     "source": "Download",
      "destination": "Filme",
      "kinds": [
       "video"
@@ -7250,177 +7817,22 @@
     "calls": [
      [
       "K",
-      21,
-      69
-     ]
-    ]
-   },
-   "rh03": {
-    "plan": {
-     "action": "delete",
-     "source": ".",
-     "kinds": [
-      "image"
-     ],
-     "name_contains": "Bewerbung"
-    },
-    "calls": [
-     [
-      "K",
-      15,
+      18,
       66
      ]
     ]
    },
-   "rh04": {
-    "plan": {
-     "action": "organize",
-     "name_contains": "Verdienstnachweise",
-     "group_by": "type"
-    },
-    "calls": [
-     [
-      "K",
-      20,
-      67
-     ]
-    ]
-   },
-   "rh05": {
-    "plan": {
-     "action": "copy",
-     "destination": "Backup",
-     "name_contains": "Autokauf-Unterlagen"
-    },
-    "calls": [
-     [
-      "K",
-      21,
-      69
-     ]
-    ]
-   },
-   "rh06": {
-    "plan": {
-     "action": "move",
-     "source": ".",
-     "destination": "Steuersachen 2025",
-     "name_contains": "Riester-Bescheinigung"
-    },
-    "calls": [
-     [
-      "K",
-      29,
-      78
-     ]
-    ]
-   },
-   "rh07": {
-    "plan": {
-     "action": "move",
-     "source": ".",
-     "extensions": [
-      "pdf"
-     ],
-     "name_contains": "Telekom",
-     "content_contains": "November"
-    },
-    "calls": [
-     [
-      "K",
-      20,
-      67
-     ]
-    ]
-   },
-   "rh08": {
-    "plan": {
-     "action": "show",
-     "source": "Kamera",
-     "kinds": [
-      "image"
-     ],
-     "name_contains": "Hamburg"
-    },
-    "calls": [
-     [
-      "K",
-      16,
-      67
-     ]
-    ]
-   },
-   "rh09": {
-    "plan": {
-     "action": "move",
-     "source": "WhatsApp Documents",
-     "destination": "Dokumente",
-     "extensions": [
-      "pdf"
-     ]
-    },
-    "calls": [
-     [
-      "K",
-      20,
-      68
-     ]
-    ]
-   },
-   "rh10": {
+   "rh13": {
     "plan": {
      "action": "delete",
-     "source": "WhatsApp Audio",
-     "kinds": [
-      "audio"
-     ]
+     "source": "Download",
+     "older_than": 730
     },
     "calls": [
      [
       "K",
-      20,
+      24,
       64
-     ]
-    ]
-   },
-   "rh11": {
-    "plan": {
-     "action": "copy",
-     "source": ".",
-     "destination": "Backup",
-     "kinds": [
-      "image"
-     ]
-    },
-    "calls": [
-     [
-      "K",
-      17,
-      64
-     ]
-    ]
-   },
-   "rh12": {
-    "plan": {
-     "action": "organize",
-     "source": "Movies",
-     "group_by": "month"
-    },
-    "calls": [
-     [
-      "K",
-      18,
-      64
-     ]
-    ]
-   },
-   "rh13": {
-    "plan": {},
-    "calls": [
-     [
-      "K",
-      18,
-      60
      ]
     ]
    },
@@ -7487,6 +7899,226 @@
       "K",
       21,
       69
+     ]
+    ]
+   },
+   "rg00": {
+    "plan": {
+     "action": "move",
+     "extensions": [
+      "pdf"
+     ],
+     "name_contains": "Stadtwerke-Rechnung"
+    },
+    "calls": [
+     [
+      "K",
+      21,
+      67
+     ]
+    ]
+   },
+   "rg01": {
+    "plan": {
+     "action": "copy",
+     "source": ".",
+     "destination": "Backup",
+     "kinds": [
+      "image"
+     ],
+     "name_contains": "Lissabon"
+    },
+    "calls": [
+     [
+      "K",
+      26,
+      69
+     ]
+    ]
+   },
+   "rg02": {
+    "plan": {
+     "action": "move",
+     "source": "Reise nach Hamburg",
+     "destination": "Filme",
+     "kinds": [
+      "video"
+     ]
+    },
+    "calls": [
+     [
+      "K",
+      21,
+      69
+     ]
+    ]
+   },
+   "rg03": {
+    "plan": {
+     "action": "delete",
+     "source": ".",
+     "kinds": [
+      "image"
+     ],
+     "name_contains": "Bewerbung"
+    },
+    "calls": [
+     [
+      "K",
+      15,
+      66
+     ]
+    ]
+   },
+   "rg04": {
+    "plan": {
+     "action": "organize",
+     "name_contains": "Verdienstnachweise",
+     "group_by": "type"
+    },
+    "calls": [
+     [
+      "K",
+      20,
+      67
+     ]
+    ]
+   },
+   "rg05": {
+    "plan": {
+     "action": "copy",
+     "destination": "Backup",
+     "name_contains": "Autokauf-Unterlagen"
+    },
+    "calls": [
+     [
+      "K",
+      21,
+      69
+     ]
+    ]
+   },
+   "rg06": {
+    "plan": {
+     "action": "move",
+     "source": ".",
+     "destination": "Steuersachen 2025",
+     "name_contains": "Riester-Bescheinigung"
+    },
+    "calls": [
+     [
+      "K",
+      29,
+      78
+     ]
+    ]
+   },
+   "rg07": {
+    "plan": {
+     "action": "move",
+     "source": ".",
+     "extensions": [
+      "pdf"
+     ],
+     "name_contains": "Telekom",
+     "content_contains": "November"
+    },
+    "calls": [
+     [
+      "K",
+      20,
+      67
+     ]
+    ]
+   },
+   "rg08": {
+    "plan": {
+     "action": "show",
+     "source": "Kamera",
+     "kinds": [
+      "image"
+     ],
+     "name_contains": "Hamburg"
+    },
+    "calls": [
+     [
+      "K",
+      16,
+      67
+     ]
+    ]
+   },
+   "rg09": {
+    "plan": {
+     "action": "move",
+     "source": "WhatsApp Documents",
+     "destination": "Dokumente",
+     "extensions": [
+      "pdf"
+     ]
+    },
+    "calls": [
+     [
+      "K",
+      20,
+      68
+     ]
+    ]
+   },
+   "rg10": {
+    "plan": {
+     "action": "delete",
+     "source": "WhatsApp Audio",
+     "kinds": [
+      "audio"
+     ]
+    },
+    "calls": [
+     [
+      "K",
+      20,
+      64
+     ]
+    ]
+   },
+   "rg11": {
+    "plan": {
+     "action": "copy",
+     "source": ".",
+     "destination": "Backup",
+     "kinds": [
+      "image"
+     ]
+    },
+    "calls": [
+     [
+      "K",
+      17,
+      64
+     ]
+    ]
+   },
+   "rg12": {
+    "plan": {
+     "action": "organize",
+     "source": "Movies",
+     "group_by": "month"
+    },
+    "calls": [
+     [
+      "K",
+      18,
+      64
+     ]
+    ]
+   },
+   "rg13": {
+    "plan": {},
+    "calls": [
+     [
+      "K",
+      18,
+      60
      ]
     ]
    }
@@ -9757,11 +10389,95 @@
    },
    "rh00": {
     "plan": {
-     "action": "move",
+     "action": "organize",
      "extensions": [
       "pdf"
      ],
-     "name_contains": "Stadtwerke-Rechnung"
+     "name_contains": "Amazon",
+     "content_contains": "Rechnung"
+    },
+    "calls": [
+     [
+      "KS",
+      19,
+      41
+     ]
+    ]
+   },
+   "rh01": {
+    "plan": {
+     "action": "move",
+     "source": ".",
+     "extensions": [
+      "pdf"
+     ],
+     "name_contains": "Kontoauszug",
+     "content_contains": "Oktober"
+    },
+    "calls": [
+     [
+      "KS",
+      25,
+      43
+     ]
+    ]
+   },
+   "rh02": {
+    "plan": {
+     "action": "copy",
+     "source": "Portugal-Urlaub",
+     "destination": "Backup",
+     "kinds": [
+      "image"
+     ]
+    },
+    "calls": [
+     [
+      "KS",
+      22,
+      42
+     ]
+    ]
+   },
+   "rh03": {
+    "plan": {
+     "action": "delete",
+     "source": ".",
+     "kinds": [
+      "video"
+     ],
+     "name_contains": "Hamburg-Trip"
+    },
+    "calls": [
+     [
+      "KS",
+      17,
+      40
+     ]
+    ]
+   },
+   "rh04": {
+    "plan": {
+     "action": "move",
+     "destination": "Steuerordner für 2025",
+     "extensions": [
+      "pdf"
+     ],
+     "name_contains": "Spendenquittung"
+    },
+    "calls": [
+     [
+      "KS",
+      28,
+      52
+     ]
+    ]
+   },
+   "rh05": {
+    "plan": {
+     "action": "organize",
+     "source": "Arztbriefe",
+     "group_by": "type"
     },
     "calls": [
      [
@@ -9771,28 +10487,101 @@
      ]
     ]
    },
-   "rh01": {
+   "rh06": {
     "plan": {
-     "action": "copy",
+     "action": "delete",
+     "source": "Download",
+     "content_contains": "doppelt"
+    },
+    "calls": [
+     [
+      "KS",
+      19,
+      39
+     ]
+    ]
+   },
+   "rh07": {
+    "plan": {
+     "action": "move",
      "source": ".",
-     "destination": "Backup",
-     "kinds": [
-      "image"
-     ],
-     "name_contains": "Lissabon"
+     "destination": "Documents/Auto",
+     "name_contains": "Fahrzeugpapiere"
     },
     "calls": [
      [
       "KS",
       26,
-      42
+      44
      ]
     ]
    },
-   "rh02": {
+   "rh08": {
     "plan": {
      "action": "move",
-     "source": "Reise nach Hamburg",
+     "source": "Screenshots",
+     "destination": "WhatsApp Screenshots"
+    },
+    "calls": [
+     [
+      "KS",
+      24,
+      40
+     ]
+    ]
+   },
+   "rh09": {
+    "plan": {
+     "action": "show",
+     "extensions": [
+      "pdf"
+     ],
+     "content_contains": "Autokauf"
+    },
+    "calls": [
+     [
+      "KS",
+      18,
+      38
+     ]
+    ]
+   },
+   "rh10": {
+    "plan": {
+     "action": "delete",
+     "source": "WhatsApp Images",
+     "kinds": [
+      "video"
+     ]
+    },
+    "calls": [
+     [
+      "KS",
+      19,
+      37
+     ]
+    ]
+   },
+   "rh11": {
+    "plan": {
+     "action": "show",
+     "extensions": [
+      "pdf"
+     ],
+     "content_contains": "Mieterhöhung"
+    },
+    "calls": [
+     [
+      "KS",
+      17,
+      38
+     ]
+    ]
+   },
+   "rh12": {
+    "plan": {
+     "action": "move",
+     "source": "Download",
      "destination": "Filme",
      "kinds": [
       "video"
@@ -9801,178 +10590,21 @@
     "calls": [
      [
       "KS",
-      21,
-      42
-     ]
-    ]
-   },
-   "rh03": {
-    "plan": {
-     "action": "delete",
-     "kinds": [
-      "image"
-     ],
-     "name_contains": "Bewerbung"
-    },
-    "calls": [
-     [
-      "KS",
-      15,
-      38
-     ]
-    ]
-   },
-   "rh04": {
-    "plan": {
-     "action": "organize",
-     "name_contains": "Verdienstnachweis"
-    },
-    "calls": [
-     [
-      "KS",
-      20,
-      39
-     ]
-    ]
-   },
-   "rh05": {
-    "plan": {
-     "action": "copy",
-     "destination": "Backup",
-     "name_contains": "Autokauf"
-    },
-    "calls": [
-     [
-      "KS",
-      21,
-      39
-     ]
-    ]
-   },
-   "rh06": {
-    "plan": {
-     "action": "move",
-     "source": ".",
-     "destination": "Steuersachen 2025",
-     "extensions": [
-      "pdf"
-     ],
-     "name_contains": "Riester-Bescheinigung"
-    },
-    "calls": [
-     [
-      "KS",
-      29,
-      52
-     ]
-    ]
-   },
-   "rh07": {
-    "plan": {
-     "action": "move",
-     "source": ".",
-     "extensions": [
-      "pdf"
-     ],
-     "name_contains": "Telekom",
-     "content_contains": "November"
-    },
-    "calls": [
-     [
-      "KS",
-      20,
-      40
-     ]
-    ]
-   },
-   "rh08": {
-    "plan": {
-     "action": "show",
-     "source": "Kamera",
-     "kinds": [
-      "image"
-     ],
-     "name_contains": "Hamburg"
-    },
-    "calls": [
-     [
-      "KS",
-      16,
-      40
-     ]
-    ]
-   },
-   "rh09": {
-    "plan": {
-     "action": "move",
-     "source": "WhatsApp Documents",
-     "destination": "Dokumente",
-     "extensions": [
-      "pdf"
-     ]
-    },
-    "calls": [
-     [
-      "KS",
-      20,
-      41
-     ]
-    ]
-   },
-   "rh10": {
-    "plan": {
-     "action": "delete",
-     "source": "WhatsApp Audio",
-     "kinds": [
-      "audio"
-     ]
-    },
-    "calls": [
-     [
-      "KS",
-      20,
-      37
-     ]
-    ]
-   },
-   "rh11": {
-    "plan": {
-     "action": "copy",
-     "source": ".",
-     "destination": "Backup",
-     "kinds": [
-      "image"
-     ]
-    },
-    "calls": [
-     [
-      "KS",
-      17,
-      37
-     ]
-    ]
-   },
-   "rh12": {
-    "plan": {
-     "action": "organize",
-     "source": "Movies",
-     "group_by": "month"
-    },
-    "calls": [
-     [
-      "KS",
       18,
-      37
+      39
      ]
     ]
    },
    "rh13": {
-    "plan": {},
+    "plan": {
+     "action": "delete",
+     "source": "Download"
+    },
     "calls": [
      [
       "KS",
-      18,
-      33
+      24,
+      35
      ]
     ]
    },
@@ -10042,6 +10674,227 @@
       "KS",
       21,
       42
+     ]
+    ]
+   },
+   "rg00": {
+    "plan": {
+     "action": "move",
+     "extensions": [
+      "pdf"
+     ],
+     "name_contains": "Stadtwerke-Rechnung"
+    },
+    "calls": [
+     [
+      "KS",
+      21,
+      40
+     ]
+    ]
+   },
+   "rg01": {
+    "plan": {
+     "action": "copy",
+     "source": ".",
+     "destination": "Backup",
+     "kinds": [
+      "image"
+     ],
+     "name_contains": "Lissabon"
+    },
+    "calls": [
+     [
+      "KS",
+      26,
+      42
+     ]
+    ]
+   },
+   "rg02": {
+    "plan": {
+     "action": "move",
+     "source": "Reise nach Hamburg",
+     "destination": "Filme",
+     "kinds": [
+      "video"
+     ]
+    },
+    "calls": [
+     [
+      "KS",
+      21,
+      42
+     ]
+    ]
+   },
+   "rg03": {
+    "plan": {
+     "action": "delete",
+     "kinds": [
+      "image"
+     ],
+     "name_contains": "Bewerbung"
+    },
+    "calls": [
+     [
+      "KS",
+      15,
+      38
+     ]
+    ]
+   },
+   "rg04": {
+    "plan": {
+     "action": "organize",
+     "name_contains": "Verdienstnachweis"
+    },
+    "calls": [
+     [
+      "KS",
+      20,
+      39
+     ]
+    ]
+   },
+   "rg05": {
+    "plan": {
+     "action": "copy",
+     "destination": "Backup",
+     "name_contains": "Autokauf"
+    },
+    "calls": [
+     [
+      "KS",
+      21,
+      39
+     ]
+    ]
+   },
+   "rg06": {
+    "plan": {
+     "action": "move",
+     "source": ".",
+     "destination": "Steuersachen 2025",
+     "extensions": [
+      "pdf"
+     ],
+     "name_contains": "Riester-Bescheinigung"
+    },
+    "calls": [
+     [
+      "KS",
+      29,
+      52
+     ]
+    ]
+   },
+   "rg07": {
+    "plan": {
+     "action": "move",
+     "source": ".",
+     "extensions": [
+      "pdf"
+     ],
+     "name_contains": "Telekom",
+     "content_contains": "November"
+    },
+    "calls": [
+     [
+      "KS",
+      20,
+      40
+     ]
+    ]
+   },
+   "rg08": {
+    "plan": {
+     "action": "show",
+     "source": "Kamera",
+     "kinds": [
+      "image"
+     ],
+     "name_contains": "Hamburg"
+    },
+    "calls": [
+     [
+      "KS",
+      16,
+      40
+     ]
+    ]
+   },
+   "rg09": {
+    "plan": {
+     "action": "move",
+     "source": "WhatsApp Documents",
+     "destination": "Dokumente",
+     "extensions": [
+      "pdf"
+     ]
+    },
+    "calls": [
+     [
+      "KS",
+      20,
+      41
+     ]
+    ]
+   },
+   "rg10": {
+    "plan": {
+     "action": "delete",
+     "source": "WhatsApp Audio",
+     "kinds": [
+      "audio"
+     ]
+    },
+    "calls": [
+     [
+      "KS",
+      20,
+      37
+     ]
+    ]
+   },
+   "rg11": {
+    "plan": {
+     "action": "copy",
+     "source": ".",
+     "destination": "Backup",
+     "kinds": [
+      "image"
+     ]
+    },
+    "calls": [
+     [
+      "KS",
+      17,
+      37
+     ]
+    ]
+   },
+   "rg12": {
+    "plan": {
+     "action": "organize",
+     "source": "Movies",
+     "group_by": "month"
+    },
+    "calls": [
+     [
+      "KS",
+      18,
+      37
+     ]
+    ]
+   },
+   "rg13": {
+    "plan": {},
+    "calls": [
+     [
+      "KS",
+      18,
+      33
      ]
     ]
    }
@@ -12915,28 +13768,40 @@
     ]
    },
    "rh00": {
-    "plan": {
-     "action": "organize",
-     "source": "Stadtwerke-Rechnung",
-     "group_by": "type"
-    },
+    "plan": {},
     "calls": [
      [
       "T1",
-      21,
-      3
-     ],
-     [
-      "T2organize",
-      21,
-      20
+      19,
+      2
      ]
     ]
    },
    "rh01": {
     "plan": {
-     "action": "copy",
-     "source": "Lissabon-Trip",
+     "action": "move",
+     "extensions": [
+      "pdf"
+     ],
+     "name_contains": "Kontoauszug Oktober"
+    },
+    "calls": [
+     [
+      "T1",
+      25,
+      2
+     ],
+     [
+      "T2move",
+      25,
+      31
+     ]
+    ]
+   },
+   "rh02": {
+    "plan": {
+     "action": "move",
+     "source": "Portugal-Urlaub",
      "destination": "Backup",
      "kinds": [
       "image"
@@ -12945,34 +13810,12 @@
     "calls": [
      [
       "T1",
-      26,
-      2
-     ],
-     [
-      "T2copy",
-      26,
-      34
-     ]
-    ]
-   },
-   "rh02": {
-    "plan": {
-     "action": "move",
-     "source": "Reise nach Hamburg",
-     "destination": "Filme",
-     "kinds": [
-      "video"
-     ]
-    },
-    "calls": [
-     [
-      "T1",
-      21,
+      22,
       2
      ],
      [
       "T2move",
-      21,
+      22,
       33
      ]
     ]
@@ -12982,143 +13825,136 @@
      "action": "delete",
      "source": ".",
      "kinds": [
-      "image"
+      "video"
      ],
-     "name_contains": "Bewerbung"
+     "name_contains": "Hamburg-Trip"
     },
     "calls": [
      [
       "T1",
-      15,
+      17,
       2
      ],
      [
       "T2delete",
-      15,
-      28
+      17,
+      29
      ]
     ]
    },
    "rh04": {
     "plan": {
-     "action": "organize",
-     "source": "Verdienstnachweise",
-     "group_by": "type"
+     "action": "move",
+     "destination": "Steuerordner",
+     "name_contains": "Spendenquittung"
     },
     "calls": [
      [
       "T1",
-      20,
-      3
+      28,
+      2
      ],
      [
-      "T2organize",
-      20,
-      19
+      "T2move",
+      28,
+      36
      ]
     ]
    },
    "rh05": {
     "plan": {
-     "action": "move",
-     "destination": "Backup",
-     "name_contains": "Autokauf-Unterlagen"
+     "action": "organize",
+     "source": "Arztbriefe",
+     "group_by": "type"
     },
     "calls": [
      [
       "T1",
       21,
-      2
+      3
      ],
      [
-      "T2move",
+      "T2organize",
       21,
-      33
+      19
      ]
     ]
    },
    "rh06": {
     "plan": {
-     "action": "move",
-     "destination": "SteuerSachen 2025",
-     "name_contains": "Riester-Bescheinigung"
+     "action": "delete",
+     "source": "Downloads",
+     "content_contains": "doppelt"
     },
     "calls": [
      [
       "T1",
-      29,
+      19,
       2
      ],
      [
-      "T2move",
-      29,
-      43
+      "T2delete",
+      19,
+      27
      ]
     ]
    },
    "rh07": {
     "plan": {
      "action": "move",
-     "source": "Downloads",
-     "extensions": [
-      "pdf"
-     ],
-     "name_contains": "Telekom",
-     "content_contains": "November"
+     "source": "Autokauf",
+     "destination": "Documents/Auto",
+     "name_contains": "Fahrzeugpapiere"
     },
     "calls": [
      [
       "T1",
-      20,
+      26,
       2
      ],
      [
       "T2move",
-      20,
-      31
+      26,
+      38
      ]
     ]
    },
    "rh08": {
     "plan": {
-     "action": "show",
-     "source": "Kamera",
-     "kinds": [
-      "image"
-     ],
-     "name_contains": "Hamburg"
+     "action": "move",
+     "source": "Screenshots",
+     "destination": "WhatsApp Screenshots"
     },
     "calls": [
      [
       "T1",
-      16,
+      24,
       2
      ],
      [
-      "T2show",
-      16,
-      34
+      "T2move",
+      24,
+      31
      ]
     ]
    },
    "rh09": {
     "plan": {
-     "action": "move",
-     "source": "WhatsApp Documents",
-     "destination": "Dokumente",
-     "extensions": [
-      "pdf"
-     ]
+     "action": "show",
+     "kinds": [
+      "document"
+     ],
+     "content_contains": "Autokauf"
     },
     "calls": [
      [
       "T1",
-      20,
+      18,
       2
      ],
      [
-      "T2move",
-      20,
+      "T2show",
+      18,
       32
      ]
     ]
@@ -13126,72 +13962,71 @@
    "rh10": {
     "plan": {
      "action": "delete",
-     "source": "WhatsApp Audio",
+     "source": "WhatsApp Images",
      "kinds": [
-      "audio"
+      "video"
      ]
     },
     "calls": [
      [
       "T1",
-      20,
+      19,
       2
      ],
      [
       "T2delete",
-      20,
+      19,
       26
      ]
     ]
    },
    "rh11": {
-    "plan": {
-     "action": "move",
-     "source": "Kamera",
-     "destination": "Backup",
-     "kinds": [
-      "image"
-     ]
-    },
+    "plan": {},
     "calls": [
      [
       "T1",
       17,
       2
-     ],
-     [
-      "T2move",
-      17,
-      30
      ]
     ]
    },
    "rh12": {
     "plan": {
-     "action": "organize",
-     "source": "Movies",
-     "group_by": "month"
+     "action": "move",
+     "source": "Download",
+     "destination": "Filme",
+     "kinds": [
+      "video"
+     ]
     },
     "calls": [
      [
       "T1",
       18,
-      3
+      2
      ],
      [
-      "T2organize",
+      "T2move",
       18,
-      16
+      30
      ]
     ]
    },
    "rh13": {
-    "plan": {},
+    "plan": {
+     "action": "delete",
+     "source": "Downloads"
+    },
     "calls": [
      [
       "T1",
-      18,
+      24,
       2
+     ],
+     [
+      "T2delete",
+      24,
+      24
      ]
     ]
    },
@@ -13267,6 +14102,287 @@
       "T2move",
       21,
       33
+     ]
+    ]
+   },
+   "rg00": {
+    "plan": {
+     "action": "organize",
+     "source": "Stadtwerke-Rechnung",
+     "group_by": "type"
+    },
+    "calls": [
+     [
+      "T1",
+      21,
+      3
+     ],
+     [
+      "T2organize",
+      21,
+      20
+     ]
+    ]
+   },
+   "rg01": {
+    "plan": {
+     "action": "copy",
+     "source": "Lissabon-Trip",
+     "destination": "Backup",
+     "kinds": [
+      "image"
+     ]
+    },
+    "calls": [
+     [
+      "T1",
+      26,
+      2
+     ],
+     [
+      "T2copy",
+      26,
+      34
+     ]
+    ]
+   },
+   "rg02": {
+    "plan": {
+     "action": "move",
+     "source": "Reise nach Hamburg",
+     "destination": "Filme",
+     "kinds": [
+      "video"
+     ]
+    },
+    "calls": [
+     [
+      "T1",
+      21,
+      2
+     ],
+     [
+      "T2move",
+      21,
+      33
+     ]
+    ]
+   },
+   "rg03": {
+    "plan": {
+     "action": "delete",
+     "source": ".",
+     "kinds": [
+      "image"
+     ],
+     "name_contains": "Bewerbung"
+    },
+    "calls": [
+     [
+      "T1",
+      15,
+      2
+     ],
+     [
+      "T2delete",
+      15,
+      28
+     ]
+    ]
+   },
+   "rg04": {
+    "plan": {
+     "action": "organize",
+     "source": "Verdienstnachweise",
+     "group_by": "type"
+    },
+    "calls": [
+     [
+      "T1",
+      20,
+      3
+     ],
+     [
+      "T2organize",
+      20,
+      19
+     ]
+    ]
+   },
+   "rg05": {
+    "plan": {
+     "action": "move",
+     "destination": "Backup",
+     "name_contains": "Autokauf-Unterlagen"
+    },
+    "calls": [
+     [
+      "T1",
+      21,
+      2
+     ],
+     [
+      "T2move",
+      21,
+      33
+     ]
+    ]
+   },
+   "rg06": {
+    "plan": {
+     "action": "move",
+     "destination": "SteuerSachen 2025",
+     "name_contains": "Riester-Bescheinigung"
+    },
+    "calls": [
+     [
+      "T1",
+      29,
+      2
+     ],
+     [
+      "T2move",
+      29,
+      43
+     ]
+    ]
+   },
+   "rg07": {
+    "plan": {
+     "action": "move",
+     "source": "Downloads",
+     "extensions": [
+      "pdf"
+     ],
+     "name_contains": "Telekom",
+     "content_contains": "November"
+    },
+    "calls": [
+     [
+      "T1",
+      20,
+      2
+     ],
+     [
+      "T2move",
+      20,
+      31
+     ]
+    ]
+   },
+   "rg08": {
+    "plan": {
+     "action": "show",
+     "source": "Kamera",
+     "kinds": [
+      "image"
+     ],
+     "name_contains": "Hamburg"
+    },
+    "calls": [
+     [
+      "T1",
+      16,
+      2
+     ],
+     [
+      "T2show",
+      16,
+      34
+     ]
+    ]
+   },
+   "rg09": {
+    "plan": {
+     "action": "move",
+     "source": "WhatsApp Documents",
+     "destination": "Dokumente",
+     "extensions": [
+      "pdf"
+     ]
+    },
+    "calls": [
+     [
+      "T1",
+      20,
+      2
+     ],
+     [
+      "T2move",
+      20,
+      32
+     ]
+    ]
+   },
+   "rg10": {
+    "plan": {
+     "action": "delete",
+     "source": "WhatsApp Audio",
+     "kinds": [
+      "audio"
+     ]
+    },
+    "calls": [
+     [
+      "T1",
+      20,
+      2
+     ],
+     [
+      "T2delete",
+      20,
+      26
+     ]
+    ]
+   },
+   "rg11": {
+    "plan": {
+     "action": "move",
+     "source": "Kamera",
+     "destination": "Backup",
+     "kinds": [
+      "image"
+     ]
+    },
+    "calls": [
+     [
+      "T1",
+      17,
+      2
+     ],
+     [
+      "T2move",
+      17,
+      30
+     ]
+    ]
+   },
+   "rg12": {
+    "plan": {
+     "action": "organize",
+     "source": "Movies",
+     "group_by": "month"
+    },
+    "calls": [
+     [
+      "T1",
+      18,
+      3
+     ],
+     [
+      "T2organize",
+      18,
+      16
+     ]
+    ]
+   },
+   "rg13": {
+    "plan": {},
+    "calls": [
+     [
+      "T1",
+      18,
+      2
      ]
     ]
    }
