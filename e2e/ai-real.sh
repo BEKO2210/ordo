@@ -76,6 +76,10 @@ echo "  first open incl. hash check: $((SECONDS - started)) s; load $(ms 'thread
 check "the prompt state is written" wait_log "prompt state saved" 60
 log | grep -E "loaded|saved|restored|read in" | sed 's/^/  /'
 
+# ADAPTER_ONLY=1: only the base answer the adapter part compares with, then the adapter part.
+if [ -n "${ADAPTER_ONLY:-}" ]; then
+    ask "Verschiebe alle PDFs aus Download nach Documents"; with=$(answer_json)
+else
 # --- previews for five commands; nothing is executed without the confirm
 before=$(listing)
 ask "Verschiebe alle PDFs aus Download nach Documents"
@@ -145,6 +149,7 @@ check "and the state is not written again" test -z "$(run_as ls "$STATE" | grep 
 ask "Verschiebe alle PDFs aus Download nach Documents"
 check "same answer after the damaged state" test "$(answer_json)" = "$with"
 
+fi
 # --- ADAPTER=<a LoRA GGUF for this model> (optional): a debug design with the adapter on top of Today
 if [ -f "${ADAPTER:-}" ]; then
     LORA=ordoai-test-adapter.gguf; SPEC="$LORA,$(stat -c %s "$ADAPTER"),$(sha256sum "$ADAPTER" | cut -c1-64)"

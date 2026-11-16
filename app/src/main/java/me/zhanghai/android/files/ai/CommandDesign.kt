@@ -70,13 +70,15 @@ interface CommandDesign {
         fun setAdapter(context: Context, spec: String) {
             if (!BuildConfig.DEBUG) return
             context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
-                .apply { if (spec.isEmpty()) remove(KEY_ADAPTER) else putString(KEY_ADAPTER, spec) }.apply()
+                .apply { if (spec.isEmpty()) remove(KEY_ADAPTER) else putString(KEY_ADAPTER, spec) }
+                // commit: the activity finishes at once, and adb may stop the app right after (an apply would be lost).
+                .commit()
         }
 
         /** Debug builds only (DebugAiActivity): turns K+R with "show" on or off for real model commands. */
         fun setShowEnabled(context: Context, enabled: Boolean) {
             if (!BuildConfig.DEBUG) return
-            context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putBoolean(KEY_SHOW, enabled).apply()
+            context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putBoolean(KEY_SHOW, enabled).commit()
         }
     }
 }
