@@ -10,14 +10,17 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <me.zhanghai.android.files.settings.StoragesPreference
+        android:icon="@drawable/settings_storage_icon_white_24dp"
         android:title="@string/settings_storages_title"
         android:summary="@string/settings_storages_summary_empty" />
 
     <me.zhanghai.android.files.settings.StandardDirectoriesPreference
+        android:icon="@drawable/directory_icon_white_24dp"
         android:title="@string/settings_standard_directories_title"
         android:summary="@string/settings_standard_directories_summary_empty" />
 
     <me.zhanghai.android.files.settings.BookmarkDirectoriesPreference
+        android:icon="@drawable/settings_bookmark_icon_white_24dp"
         android:title="@string/settings_bookmark_directories_title"
         android:summary="@string/settings_bookmark_directories_summary_empty" />
 </PreferenceScreen>
