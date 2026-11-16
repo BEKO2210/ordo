@@ -36,7 +36,7 @@
 
 Ordo ist in Entwicklung (Version 0.11.1). Bei Google Play läuft ein geschlossener Test; Testversionen erscheinen auch als
 [Pre-Releases](https://github.com/BEKO2210/ordo/releases); du kannst Ordo auch [selbst bauen](#bauen).
-Was als Nächstes kommt, steht in der [lebenden Roadmap](docs/ROADMAP-LIVE.md): Jedes Ziel hat einen Prüfbefehl und schließt sich selbst. Die Recherche hinter dem geplanten Musik- und Video-Player, PDF-Leser und den Editoren steht in [docs/MEDIEN-RECHERCHE.md](docs/MEDIEN-RECHERCHE.md).
+Was als Nächstes kommt, steht in der [lebenden Roadmap](docs/ROADMAP-LIVE.md): Jedes Ziel hat einen Prüfbefehl und schließt sich selbst. Die Recherche hinter dem Musik-Player und dem geplanten Video-Player, PDF-Leser und den Editoren steht in [docs/MEDIEN-RECHERCHE.md](docs/MEDIEN-RECHERCHE.md).
 
 ## Funktionen
 
@@ -78,6 +78,7 @@ Was als Nächstes kommt, steht in der [lebenden Roadmap](docs/ROADMAP-LIVE.md): 
 - Viele Dateien auf einmal nach Muster umbenennen
 - ZIP-, TAR- und 7z-Archive erstellen und entpacken
 - Eingebaute Ansicht für Bilder, PDF und Text
+- Musik direkt in Ordo abspielen – mit Warteschlange, Cover und Steuerung im Hintergrund
 
 **Dateien schützen**
 
@@ -231,7 +232,7 @@ Unit-Tests:
 
 ## Ausblick
 
-Als Nächstes geplant: Tabs und Zwei-Fenster-Ansicht, ein Medienplayer, Sicherung nach Zeitplan und
+Als Nächstes geplant: Tabs und Zwei-Fenster-Ansicht, ein Video-Player, Sicherung nach Zeitplan und
 Cloud-Speicher. Der ganze Plan steht in [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ## Mitmachen

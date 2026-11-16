@@ -131,6 +131,13 @@ ICONS = {
     "settings_key_icon_white_24dp": "key",
     "settings_port_icon_white_24dp": "pin",
     "settings_writable_icon_white_24dp": "edit",
+    "play_icon_24dp": "play_arrow",
+    "pause_icon_24dp": "pause",
+    "repeat_icon_24dp": "repeat",
+    "repeat_one_icon_24dp": "repeat_one",
+    "shuffle_icon_24dp": "shuffle",
+    "skip_next_icon_24dp": "skip_next",
+    "skip_previous_icon_24dp": "skip_previous",
 }
 
 

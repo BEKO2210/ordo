@@ -169,6 +169,13 @@
     </notice>
 
     <notice>
+        <name>AndroidX Media3</name>
+        <url>https://github.com/androidx/media</url>
+        <copyright>Copyright 2020 The Android Open Source Project</copyright>
+        <license>Apache Software License 2.0</license>
+    </notice>
+
+    <notice>
         <name>AppIconLoader</name>
         <url>https://github.com/zhanghai/AppIconLoader</url>
         <copyright>Copyright 2020 Google LLC</copyright>

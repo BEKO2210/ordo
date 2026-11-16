@@ -13,6 +13,7 @@ import me.zhanghai.android.files.app.application
 import me.zhanghai.android.files.file.MimeType
 import me.zhanghai.android.files.file.asMimeTypeOrNull
 import me.zhanghai.android.files.file.fileProviderUri
+import me.zhanghai.android.files.file.isAudio
 import me.zhanghai.android.files.provider.archive.isArchivePath
 import me.zhanghai.android.files.provider.linux.isLinuxPath
 import me.zhanghai.android.files.trash.Trash
@@ -21,6 +22,7 @@ import java.io.IOException
 import me.zhanghai.android.files.util.createViewIntent
 import me.zhanghai.android.files.util.extraPath
 import me.zhanghai.android.files.util.startActivitySafe
+import me.zhanghai.android.files.viewer.audio.AudioPlayerActivity
 
 class OpenFileActivity : AppActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -51,7 +53,13 @@ class OpenFileActivity : AppActivity() {
 
     private fun openFile(path: Path, mimeType: MimeType) {
         val intent = path.fileProviderUri.createViewIntent(mimeType)
-            .apply { extraPath = path }
+            .apply {
+                extraPath = path
+                if (mimeType.isAudio) {
+                    setClass(this@OpenFileActivity, AudioPlayerActivity::class.java)
+                    AudioPlayerActivity.putExtras(this, listOf(path), 0)
+                }
+            }
         startActivitySafe(intent)
     }
 

@@ -1079,4 +1079,22 @@
     <string name="home_search_hint">Search files</string>
     <string name="home_show_quick_access">Show quick access</string>
     <string name="drag_handle_description">Drag to reorder</string>
+    <string name="audio_player_title">Music player</string>
+    <string name="audio_player_unknown_title">Unknown title</string>
+    <string name="audio_player_unknown_artist">Unknown artist</string>
+    <string name="audio_player_play">Play</string>
+    <string name="audio_player_pause">Pause</string>
+    <string name="audio_player_previous">Previous</string>
+    <string name="audio_player_next">Next</string>
+    <string name="audio_player_shuffle">Shuffle</string>
+    <string name="audio_player_shuffle_on">Shuffle on</string>
+    <string name="audio_player_shuffle_off">Shuffle off</string>
+    <string name="audio_player_repeat">Repeat</string>
+    <string name="audio_player_repeat_off">Repeat off</string>
+    <string name="audio_player_repeat_all">Repeat all</string>
+    <string name="audio_player_repeat_one">Repeat this song</string>
+    <string name="audio_player_elapsed">Elapsed time</string>
+    <string name="audio_player_remaining">Remaining time</string>
+    <string name="audio_player_error">This song couldn’t be played.</string>
+    <string name="audio_player_connection_error">The player couldn’t be opened.</string>
 </resources>

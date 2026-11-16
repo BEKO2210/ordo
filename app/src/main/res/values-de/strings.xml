@@ -946,4 +946,22 @@
     <string name="home_search_hint">Dateien suchen</string>
     <string name="home_show_quick_access">Schnellzugriff anzeigen</string>
     <string name="drag_handle_description">Zum Umsortieren ziehen</string>
+    <string name="audio_player_title">Musik-Player</string>
+    <string name="audio_player_unknown_title">Unbekannter Titel</string>
+    <string name="audio_player_unknown_artist">Unbekannter Interpret</string>
+    <string name="audio_player_play">Abspielen</string>
+    <string name="audio_player_pause">Pause</string>
+    <string name="audio_player_previous">Zurück</string>
+    <string name="audio_player_next">Weiter</string>
+    <string name="audio_player_shuffle">Zufällige Reihenfolge</string>
+    <string name="audio_player_shuffle_on">Zufällige Reihenfolge an</string>
+    <string name="audio_player_shuffle_off">Zufällige Reihenfolge aus</string>
+    <string name="audio_player_repeat">Wiederholen</string>
+    <string name="audio_player_repeat_off">Wiederholen aus</string>
+    <string name="audio_player_repeat_all">Alle wiederholen</string>
+    <string name="audio_player_repeat_one">Diesen Titel wiederholen</string>
+    <string name="audio_player_elapsed">Vergangene Zeit</string>
+    <string name="audio_player_remaining">Verbleibende Zeit</string>
+    <string name="audio_player_error">Dieser Titel lässt sich nicht abspielen.</string>
+    <string name="audio_player_connection_error">Der Player ließ sich nicht öffnen.</string>
 </resources>

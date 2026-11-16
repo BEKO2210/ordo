@@ -24,6 +24,7 @@ Zeichenlimits der Formularfelder: **nicht geprüft**.
 | `ACCESS_WIFI_STATE` | — |
 | `FOREGROUND_SERVICE` | `tools:ignore="ForegroundServicesPolicy"` |
 | `FOREGROUND_SERVICE_DATA_SYNC` | — |
+| `FOREGROUND_SERVICE_MEDIA_PLAYBACK` | — |
 | `FOREGROUND_SERVICE_SPECIAL_USE` | — |
 | `INTERNET` | — |
 | `MANAGE_EXTERNAL_STORAGE` | `tools:ignore="AllFilesAccessPolicy,ScopedStorage"` |
@@ -44,6 +45,7 @@ Nicht im Manifest: Standort (`ACCESS_FINE_LOCATION`, `ACCESS_COARSE_LOCATION`, `
 | Komponente | `foregroundServiceType` | exportiert |
 | --- | --- | --- |
 | `me.zhanghai.android.files.filejob.FileJobService` | `dataSync` | Attribut fehlt, kein `intent-filter` |
+| `me.zhanghai.android.files.player.AudioPlaybackService` | `mediaPlayback` | `true`, `androidx.media3.session.MediaSessionService` |
 | `me.zhanghai.android.files.ftpserver.FtpServerService` | `specialUse` | Attribut fehlt, kein `intent-filter` |
 | `me.zhanghai.android.files.ftpserver.FtpServerTileService` | keines | `true`, dazu `android.permission.BIND_QUICK_SETTINGS_TILE` |
 | `androidx.appcompat.app.AppLocalesMetadataHolderService` | keines | `false` |
@@ -148,7 +150,7 @@ Ordo is a file manager. When the user opens an APK in the file list, Ordo hands 
 
 **(d)** Ablehnungsrisiko: mittel. Wenn Google die Installation nicht als Teil des Dateimanagers akzeptiert, die Berechtigung und `createInstallPackageIntent` entfernen. APKs lassen sich dann nicht mehr aus Ordo heraus installieren. `LinuxPath` erlaubt `Android/obb` fremder Apps dann nicht mehr über diese App-Op. Nur das eigene OBB-Verzeichnis bliebe über den Pfadvergleich übrig.
 
-## 7. Vordergrunddienste, Typen `dataSync` und `specialUse`
+## 7. Vordergrunddienste, Typen `dataSync`, `mediaPlayback` und `specialUse`
 
 **(a)** Gelesen am 15. November 2026:
 
@@ -156,7 +158,23 @@ Ordo is a file manager. When the user opens an APK in the file list, Ordo hands 
 - [Foreground service types](https://developer.android.com/develop/background-work/services/fgs/service-types). `dataSync` beschreibt Datenübertragung, darunter Sichern und Wiederherstellen, Import und Export, „Local file processing“ und Übertragen über ein Netzwerk. `specialUse` gilt nur für Fälle, die kein anderer Typ abdeckt. `specialUse` braucht `FOREGROUND_SERVICE_SPECIAL_USE` und `PROPERTY_SPECIAL_USE_FGS_SUBTYPE`. Diesen Text prüft die Play Console. Dieselbe Pflicht, die Typen in der Play Console zu deklarieren, steht dort für Target ab Android 14.
 - [Foreground service timeouts](https://developer.android.com/develop/background-work/services/fgs/timeout). Für Apps mit Target ab Android 15 (API 35) dürfen `dataSync` und `mediaProcessing` zusammen 6 Stunden in 24 Stunden laufen, solange die App im Hintergrund ist. Danach `onTimeout`. Kommt die App in den Vordergrund, läuft der Zähler neu. `specialUse` nennt diese Seite nicht als von diesem Limit betroffen.
 
-Ordo deklariert `dataSync` für `FileJobService` und `specialUse` für `FtpServerService`, dazu `FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_DATA_SYNC` und `FOREGROUND_SERVICE_SPECIAL_USE`. `DocsConsistencyTest` prüft, dass jeder Typ seine Berechtigung hat und hier richtig steht. Der Kachel-Dienst ist ein Quick-Settings-Tile ohne `foregroundServiceType`.
+Ordo deklariert `dataSync` für `FileJobService`, `mediaPlayback` für `AudioPlaybackService` und `specialUse` für `FtpServerService`, dazu `FOREGROUND_SERVICE` und die drei typspezifischen Berechtigungen. `DocsConsistencyTest` prüft, dass jeder Typ seine Berechtigung hat und hier richtig steht. Der Kachel-Dienst ist ein Quick-Settings-Tile ohne `foregroundServiceType`.
+
+### `AudioPlaybackService`
+
+Der Nutzer startet die Wiedergabe durch Antippen einer Audiodatei. Media3 hält Player und Session im Dienst, zeigt die Standard-Medienbenachrichtigung und liefert Sperrbildschirm- und Headset-Steuerung. Schließen der Player-Ansicht beendet die Musik nicht. Warteschlange, Titelposition und Abspielposition werden für Medienknopf-Wiederaufnahme gespeichert. Ein Start aus `BOOT_COMPLETED` ist nicht vorhanden.
+
+Play-Console-Text:
+
+```
+The user starts music playback by tapping an audio file in Ordo. AudioPlaybackService keeps that user-selected track playing when the player screen is closed and provides the standard Android media notification, lock-screen controls, and headset buttons. The service stops being foreground playback when Media3 no longer considers playback ongoing.
+```
+
+Auswirkung einer Unterbrechung:
+
+```
+If the system stops the service, playback stops. The saved queue and position let the user resume it with a media button or by opening the player again.
+```
 
 ### `FileJobService`
 
@@ -194,7 +212,7 @@ specialUse: Entscheidung 15.11.2026: `FileJobService` nutzt `dataSync`, weil And
 
 **(d)** `FileJobService`: Ablehnungsrisiko gering, der Anwendungsfall steht in der Play-Tabelle unter `TYPE_DATA_SYNC`. Folge: ein Auftrag, der ab Android 15 länger als 6 Stunden am Tag im Hintergrund läuft, bricht ab; Ordo meldet das per Benachrichtigung, der Nutzer startet ihn neu. `FtpServerService`: Ablehnungsrisiko hoch, denn Play nennt `specialUse` nur für Fälle, die kein definierter Typ abdeckt. Wenn Google ablehnt, auf `dataSync` umstellen (wie `FileJobService`); der FTP-Server liefe dann höchstens 6 Stunden am Tag im Hintergrund.
 
-Das Formular verlangt ein Video pro Typ. Die Aufnahme macht Belkis. Inhalt laut Play-Seite: die Nutzeraktion, die den Dienst startet. Für die Dateiaufträge ein Kopieren oder Verschieben starten und die Benachrichtigung zeigen. Für den FTP-Server den Server starten, die Benachrichtigung mit Adresse und Stop zeigen.
+Das Formular verlangt ein Video pro Typ. Die Aufnahme macht Belkis. Inhalt laut Play-Seite: die Nutzeraktion, die den Dienst startet. Für die Dateiaufträge ein Kopieren oder Verschieben starten und die Benachrichtigung zeigen. Für Musik eine Audiodatei antippen, die Wiedergabe im Hintergrund und die Medienbenachrichtigung zeigen. Für den FTP-Server den Server starten, die Benachrichtigung mit Adresse und Stop zeigen.
 
 ## 8. `POST_NOTIFICATIONS`
 
