@@ -14,7 +14,7 @@ BOTTOM="Unten – mit dem Daumen erreichbar|Bottom – within thumb reach"
 TOP="Oben|Top"
 bar_top() { ui bounds searchCard | awk 'NR == 1 { print $2 }'; }
 at_bottom() { local y; y=$(bar_top); [ -n "$y" ] && [ "$y" -gt $((H / 2)) ]; }
-sheet_closed() { ! ui has headerOrb; }
+sheet_closed() { ! ui has "headerOrb|setupLayout"; }
 menu_closed() { ! ui visible navigationFragment; }
 at_top() { local y; y=$(bar_top); [ -n "$y" ] && [ "$y" -lt $((H / 2)) ]; }
 appearance() {
@@ -52,7 +52,7 @@ for _ in 1 2 3; do home && break; guard; back; done
 check "back returns to the home screen" home
 
 ui tap assistantButton >/dev/null; sleep 2; guard
-check "the wand opens the command sheet" ui has headerOrb
+check_wand
 back
 ui has headerOrb && back   # the first back only hid the keyboard
 check "back closes the command sheet" sheet_closed
