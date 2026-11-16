@@ -34,9 +34,9 @@
 
 ## Stand
 
-Ordo ist in Entwicklung (Version 0.11.1). Bei Google Play läuft ein geschlossener Test; Testversionen erscheinen auch als
+Ordo ist in Entwicklung (Version 0.12.0). Bei Google Play läuft ein geschlossener Test; Testversionen erscheinen auch als
 [Pre-Releases](https://github.com/BEKO2210/ordo/releases); du kannst Ordo auch [selbst bauen](#bauen).
-Was als Nächstes kommt, steht in der [lebenden Roadmap](docs/ROADMAP-LIVE.md): Jedes Ziel hat einen Prüfbefehl und schließt sich selbst.
+Was als Nächstes kommt, steht in der [lebenden Roadmap](docs/ROADMAP-LIVE.md): Jedes Ziel hat einen Prüfbefehl und schließt sich selbst. Die Recherche hinter dem geplanten Musik- und Video-Player, PDF-Leser und den Editoren steht in [docs/MEDIEN-RECHERCHE.md](docs/MEDIEN-RECHERCHE.md).
 
 ## Funktionen
 

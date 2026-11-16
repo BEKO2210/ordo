@@ -1,5 +1,6 @@
 New in this test build:
-• To try (Settings › AI assistant › "Try new commands", off by default): Ordo finds and shows files ("Show me the PDFs from last week", "Where is my invoice?"), understands time and size and asks back when unsure
-• It is a preview and can be wrong. Nothing changes without your confirmation
-• The AI sheet is now easy to read on every device
-Please send us sentences Ordo gets wrong: nullmesh@protonmail.com
+• Settings with pictures: sun and moon for night mode, previews for motion and the search bar, an icon on every entry
+• Accent colour with a live preview
+• Menus, dialogs and the side menu open and close calmly and consistently; all of it follows Settings › Appearance › Motion
+• Still to try: new AI commands (Settings › AI assistant)
+Feedback welcome: nullmesh@protonmail.com
