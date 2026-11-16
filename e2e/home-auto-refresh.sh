@@ -7,7 +7,7 @@
 # Reloads are counted in the log, which only debug builds write.
 a shell dumpsys package "$PKG" | grep -q "flags=\[.*DEBUGGABLE" || { echo "SKIP: needs a debug build"; exit 0; }
 DIR=/sdcard/Download/ordo-e2e-refresh
-count() { a logcat -d -s HomeViewModel:D | grep -c reload; }
+count() { a logcat -d -s HomeViewModel:D | grep -c "reload$"; }
 launch 10
 sleep 5; a logcat -c; sleep 10
 check "no reload while nothing changes" test "$(count)" = 0

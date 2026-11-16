@@ -12,13 +12,14 @@ DPI=$(a shell wm density | tail -1 | sed 's/.*: //' | tr -d '\r')
 px() { echo $(($1 * DPI / 160)); }
 X=$((W / 2)); Y=$((H / 4))
 # reloads_after CMD...: runs it, then prints how many reloads followed.
-reloads_after() { a logcat -c; "$@"; sleep 5; guard; a logcat -d -s HomeViewModel:D | grep -c reload; }
+reloads_after() { a logcat -c; "$@"; sleep 5; guard; a logcat -d -s HomeViewModel:D | grep -c "reload$"; }
 # pull DP: one finger pull of DP from the top of the page.
 pull() { a shell input swipe $X $Y $X $((Y + $(px "$1"))) 600; }
 to_top() { swipe_down; swipe_down; }
 to_top
 check "a 90 dp pull does not refresh" test "$(reloads_after pull 90)" = 0
-check "a 170 dp pull refreshes once" test "$(reloads_after pull 170)" = 1
+n=$(reloads_after pull 170); echo "  170 dp pull: $n reloads"
+check "a 170 dp pull refreshes once" test "$n" = 1
 sleep 3
 # Scrolled down, one long swipe that reaches the top and keeps going: before, the rest of it refreshed.
 a shell input swipe $X $((H * 3 / 4)) $X $((H / 4)) 300; sleep 1
