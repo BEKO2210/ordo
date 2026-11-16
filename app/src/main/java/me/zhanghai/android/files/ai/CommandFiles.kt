@@ -115,9 +115,17 @@ object CommandFiles {
         private val nameTerms = plan.nameTerms.map { CommandNet.fold(it) }
         private val textTerms = plan.textTerms.map { CommandNet.fold(it) to it }
         private val excludeTerms = plan.excludeTerms.filter { it.isNotBlank() }.map { CommandNet.fold(it.trim()) }
-        /** Every word this plan looks for inside files, with its search. */
-        val searches: Map<String, ContentSearch> = (listOf(word).filter { it.isNotEmpty() } + plan.textTerms)
-            .distinct().associateWith { ContentSearch(it, false, true) }
+        /**
+         * Every word this plan looks for inside files, with its test on the file's bytes. The net's words are folded
+         * stems ("steur" for "Steuer"), so the text is folded too (phase0.c_filters); the shipped word as before.
+         */
+        val searches: Map<String, (java.io.InputStream) -> Boolean> = LinkedHashMap<String, (java.io.InputStream) -> Boolean>().also { m ->
+            plan.textTerms.forEach { term ->
+                val folded = CommandNet.fold(term)
+                m[term] = { input -> folded in CommandNet.fold(input.readBytes().toString(Charsets.UTF_8)) }
+            }
+            if (word.isNotEmpty()) ContentSearch(word, false, true).let { s -> m[word] = { input -> s.contentMatches(input) } }
+        }
 
         fun matches(file: File): Boolean = matches(file.name, file.length(), file.lastModified()) {
             containsText(file, searches.getValue(it))
@@ -149,7 +157,7 @@ object CommandFiles {
         var textCapped = false
         private var textLeft = MAX_TEXT_TOTAL
 
-        private fun containsText(file: File, search: ContentSearch): Boolean {
+        private fun containsText(file: File, search: (java.io.InputStream) -> Boolean): Boolean {
             if (file.extension.lowercase(Locale.ROOT) !in TEXT_EXTENSIONS || file.length() > MAX_TEXT_SIZE) return false
             if (textLeft < file.length()) {
                 textCapped = true
@@ -158,7 +166,7 @@ object CommandFiles {
             textLeft -= file.length()
             textReads.incrementAndGet()
             return try {
-                file.inputStream().use { search.contentMatches(it) }
+                file.inputStream().use { search(it) }
             } catch (e: java.io.IOException) {
                 false
             }

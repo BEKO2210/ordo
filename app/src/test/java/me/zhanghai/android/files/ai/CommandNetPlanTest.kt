@@ -156,5 +156,9 @@ class CommandNetPlanTest {
             names(CommandPlan("show", "", nameTerms = listOf("munchen"), sort = "oldest")))
         assertEquals(listOf("Berlin.jpg"), names(CommandPlan("show", "", excludeTerms = listOf("munchen"))))
         assertEquals(listOf("Muenchen_Plan.pdf", "Berlin.jpg", "München_Urlaub.jpg"), names(CommandPlan("show", "", sort = "smallest")))
+        // the net's stems are folded ("Steuer" -> "steur"); the file's text is folded the same way
+        File(dir, "notiz.txt").apply { writeText("Steuer 2025 Belege"); setLastModified(4_000_000L) }
+        assertEquals(listOf("notiz.txt"), names(CommandPlan("show", "", textTerms = listOf(CommandNet.stem("Steuer")))))
+
     }
 }

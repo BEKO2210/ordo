@@ -5,7 +5,6 @@
 
 package me.zhanghai.android.files.ai
 
-import me.zhanghai.android.files.filelist.ContentSearch
 import java.io.File
 import java.io.IOException
 import java.util.Locale
@@ -89,7 +88,7 @@ internal class CommandNetCount(
     }
 
     /** Whether the file's text holds [word]; the first question reads the file once and answers every word the plan has. */
-    private fun inText(e: Entry, word: String, searches: Map<String, ContentSearch>): Boolean {
+    private fun inText(e: Entry, word: String, searches: Map<String, (java.io.InputStream) -> Boolean>): Boolean {
         val known = texts.getOrPut(e.file.path) { HashMap() }
         known[word]?.let { return it }
         val extension = e.name.substringAfterLast('.', "").lowercase(Locale.ROOT)
@@ -101,7 +100,7 @@ internal class CommandNetCount(
             null
         }
         for ((w, search) in searches) {
-            if (w !in known) known[w] = bytes != null && runCatching { search.contentMatches(bytes.inputStream()) }.getOrDefault(false)
+            if (w !in known) known[w] = bytes != null && runCatching { search(bytes.inputStream()) }.getOrDefault(false)
         }
         return known[word] ?: false
     }
