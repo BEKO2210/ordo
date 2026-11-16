@@ -18,6 +18,7 @@ scroll position). A control that moves on a fixed screen (e.g. below a message o
 
 | Test | What it proves | Since |
 |---|---|---|
+| `first-run.sh` | a fresh start shows the welcome pages, Skip closes them, home then shows categories and the storage card, the next start goes straight home. Clears Ordo's data, so only on an emulator; a real device prints SKIP | after 0.9.0 |
 | `smoke.sh` | start, home screen, every settings section and its way back | 0.4.2 |
 | `category-search.sh` | searching inside a category does not crash | fixed in 0.3.3 |
 | `back-navigation.sh` | back from a storage or the analysis returns to home in one step | fixed in 0.3.2 |
@@ -32,6 +33,18 @@ scroll position). A control that moves on a fixed screen (e.g. below a message o
 | `analysis.sh` | the scan ends in the overview; ring, folder map and rows open their pages; back goes one step at a time; rotation keeps the page | 0.6.0 |
 | `backup-restore.sh` (`--write`, SD card) | an encrypted backup to the SD card restores byte for byte; a wrong password writes nothing; a changed file is never replaced and its backed up version comes back beside it; restoring twice adds no second copy | fixed in 0.7.0 |
 | `stress-delete.sh` (`--write`) | 3000 files to the trash: no crash, bounded memory, the list follows | fixed in 0.3.1 / 0.3.3 |
+
+Every test starts through `launch` in `lib.sh`, which also copes with a fresh install: on an emulator it grants what
+adb may grant (notifications on Android 13+, all-files access as an app op on Android 11+), so no system dialog comes
+to the front; a real device keeps its owner's choices, and if a permission question comes to the front the test stops
+and prints the `adb` command the owner can run himself. If Ordo's welcome pages are in front (on any device) it skips
+them with their own button and prints `first run: onboarding skipped`. A system dialog is never tapped, and app data is
+only ever cleared on an emulator (`first-run.sh`). To put an older build over a newer one, install it with `adb install -r -d`.
+
+The wand checks in `home-header.sh` and `header-position.sh` print `SKIP (not enough RAM for the model on this
+device)` instead of failing only when the device's MemTotal is below the model's 10 GB floor (`CommandModel.MIN_RAM`)
+and the sheet shows its setup page saying the AI can't run here. Any other screen, or that page on a device with
+enough memory, is a FAIL.
 
 Rules for every test:
 
