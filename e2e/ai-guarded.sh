@@ -25,7 +25,7 @@ fi
 [ -f "${MODEL:-}" ] || { echo "SKIP: MODEL=<path to Qwen3.5-4B-Q4_0.gguf> not set"; exit 0; }
 
 run_as() { a shell run-as "$PKG" "$@"; }
-log() { a logcat -d -s CommandEngine:I CommandSheet:I CommandSheet:W | tr -d '\r'; }
+log() { a logcat -d -s CommandEngine:I CommandSheet:I | tr -d '\r'; }
 wait_log() { local end=$((SECONDS + $2)); until log | grep -qE "$1"; do [ $SECONDS -ge "$end" ] && return 1; sleep 2; done; }
 ms() { log | grep -oE "$1 [0-9]+ ms" | tail -1 | grep -oE '[0-9]+ ms'; }
 listing() { a shell "ls -l $T $Z $D 2>/dev/null | grep ordoai | sort"; }
