@@ -5,6 +5,7 @@
 
 package me.zhanghai.android.files.ai
 
+import me.zhanghai.android.files.filelist.ContentSearch
 import java.io.File
 import java.io.IOException
 import java.util.Locale
