@@ -34,7 +34,8 @@ ask "zeig mir die ordoe2e videos größer als 1 mb" \
 check "show opens the result list" wait_on filelist.FileListActivity 8
 check "the title names the kind" ui wait "Videos" 10
 check "the subtitle counts and says what was understood" on_screen "1 (Datei|file) · (mit „ordoe2e“ über 1 MB|with “ordoe2e” over 1 MB)"
-check "the big video is listed" ui has big_ordoe2e.mp4
+# Waits with fresh reads: the rows can come after the title, and `ui has` may reuse the read `ui wait` made for it.
+check "the big video is listed" ui wait big_ordoe2e.mp4 10
 check "the small one is not" not_has small_ordoe2e.mp4
 shot ai-show-list
 ui longtap big_ordoe2e.mp4 >/dev/null 2>&1; sleep 1.5
