@@ -10,6 +10,7 @@
         android:title="@string/audio_player_title" android:theme="?actionBarTheme"
         app:navigationContentDescription="@string/close"
         app:navigationIcon="@drawable/close_icon_control_normal_24dp"
+        app:menu="@menu/audio_player"
         app:popupTheme="?actionBarPopupTheme" />
     <LinearLayout
         android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1"

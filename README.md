@@ -79,7 +79,8 @@ What comes next is in the [living roadmap](docs/ROADMAP-LIVE.md): every goal has
 - Built-in viewers for images, PDF and text
 - Play music in Ordo, with a queue, cover art and background controls. The player uses a generous centred
   composition on phones and portrait tablets, and puts the cover beside the controls in a wide landscape window;
-  the cover softly colours the background without changing the theme’s text colours
+  the cover softly colours the background without changing the theme’s text colours; Sound adds a 10-band EQ,
+  device effects, ReplayGain/R128 normalisation, playback controls and a fading sleep timer
 
 **Keep files safe**
 

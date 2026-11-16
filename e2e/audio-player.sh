@@ -31,13 +31,24 @@ check "audio opens Ordo's player" on viewer.audio.AudioPlayerActivity
 check "the tapped title is shown" ui has 01-one.wav
 check "the complete transport row is visible" ui visible playPause
 touch_target() {
-    local l t r b dpi
-    read -r l t r b < <(ui bounds "$1" | head -1) || return 1
+    # Measured after the entrance animation has settled (a scaled button reads smaller); a few tries.
+    local l t r b dpi i
     dpi=$(a shell wm density | tail -1 | sed 's/.*: //' | tr -d '\r')
-    [ $((r - l)) -ge $((48 * dpi / 160)) ] && [ $((b - t)) -ge $((48 * dpi / 160)) ]
+    for i in 1 2 3 4; do
+        read -r l t r b < <(ui bounds "$1" | head -1) || return 1
+        [ $((r - l)) -ge $((48 * dpi / 160)) ] && [ $((b - t)) -ge $((48 * dpi / 160)) ] && return 0
+        sleep 0.5
+    done
+    return 1
 }
 check "shuffle keeps its 48 dp touch target" touch_target shuffle
 check "repeat keeps its 48 dp touch target" touch_target repeat
+check "Sound opens from the player toolbar" ui tap "Sound|Klang"
+check "the equalizer and deliberate-drag guidance are visible" ui wait "Equalizer" 5
+check "the curve explains its 150 ms hold" ui has "150 ms"
+check "the playback section reaches skip silence and mono" ui has "Skip silence|Stille überspringen"
+check "the sleep timer offers end of track" ui has "End of track|Titelende"
+back 1
 back 2
 check "closing the player returns to the file list" on filelist.FileListActivity
 not_on() { ! on "$@"; }

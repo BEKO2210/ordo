@@ -1,0 +1,28 @@
+/*
+ * Copyright (c) 2026 Ordo contributors
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
+package me.zhanghai.android.files.player
+
+import androidx.core.os.bundleOf
+import androidx.media3.session.SessionCommand
+
+object AudioPlayerCommands {
+    const val ACTION_APPLY_SETTINGS = "me.zhanghai.android.files.player.APPLY_SETTINGS"
+    const val ACTION_GET_SOUND_STATUS = "me.zhanghai.android.files.player.GET_SOUND_STATUS"
+    const val ACTION_SLEEP_TIMER = "me.zhanghai.android.files.player.SLEEP_TIMER"
+    const val EXTRA_SLEEP_MINUTES = "sleepMinutes"
+    const val EXTRA_END_OF_TRACK = "endOfTrack"
+    const val EXTRA_EQ_AVAILABLE = "equalizerAvailable"
+    const val EXTRA_DP = "dynamicsProcessing"
+    const val EXTRA_INPUT_GAIN_AVAILABLE = "inputGainAvailable"
+    const val EXTRA_LEGACY_BANDS = "legacyBands"
+    const val EXTRA_BASS_AVAILABLE = "bassBoostAvailable"
+    const val EXTRA_VIRTUALIZER_AVAILABLE = "virtualizerAvailable"
+    const val EXTRA_SLEEP_ACTIVE = "sleepActive"
+
+    val APPLY_SETTINGS = SessionCommand(ACTION_APPLY_SETTINGS, bundleOf())
+    val GET_SOUND_STATUS = SessionCommand(ACTION_GET_SOUND_STATUS, bundleOf())
+    val SLEEP_TIMER = SessionCommand(ACTION_SLEEP_TIMER, bundleOf())
+}
