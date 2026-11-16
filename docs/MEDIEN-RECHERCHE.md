@@ -27,11 +27,13 @@ GitHub-API). Alles andere wird vor dem jeweiligen Baustein noch einmal an der Qu
 | E-Books | Readium Kotlin Toolkit | BSD-3 | Größe nicht gemessen |
 | Office (DOCX, XLSX, PPTX, ODT) | **keine eigene Engine**: Weitergabe an eine Office-App, später höchstens einfache Inhaltsvorschau | – | Bearbeiten in Spitzenqualität ist auf dem Gerät mit Open Source nicht realistisch (LibreOfficeKit 80–95 MB, vom Hersteller „experimentell“) |
 
-## Offene Entscheidungen für Belkis
+## Entscheidungen (Belkis, 16.11.2026)
 
-1. Office nur als Weitergabe an eine Office-App – oder doch eine eingeschränkte eigene Vorschau?
-2. Markdown-Leser: ein zweites Oberflächen-System (Compose) in die App holen oder Markwon einfrieren?
-3. PDF bearbeiten: Googles experimentelle Bibliothek abwarten oder MuPDF (AGPL, größer) nehmen?
+1. **Office:** keine eigene Engine. DOCX, XLSX, PPTX und ODT gehen an eine installierte Office-App, wie empfohlen.
+2. **Markdown, JSON und Co.:** der gute Weg – gepflegter Markdown-Renderer (auch wenn er Compose in die App holt),
+   Sora Editor zum Schreiben, ein Strukturbetrachter für JSON, YAML, TOML, XML, CSV und SQLite.
+3. **PDF bearbeiten:** mit Googles androidx.pdf (`EditablePdfViewerFragment`) weiterentwickeln, auch solange es
+   experimentell ist; kein MuPDF.
 
 ## Reihenfolge
 

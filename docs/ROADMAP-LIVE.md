@@ -25,8 +25,6 @@ für die nächste – vor 1.0.0 und danach.
 - [ ] Jede gängige Datei öffnen, lesen und schreiben – und es sieht gut aus
 - [ ] Eingebaute Apps entkoppeln: jede als eigenes App-Symbol, einzeln schaltbar
 - [ ] Dokumente bearbeiten: Entscheidung für Office-Formate
-- [ ] Nach v0.11.1: nächste Version hat eine eigene Nummer
-- [ ] Nach v0.11.1: beide READMEs nennen die neue Version
 - [ ] Nach v0.11.1: neue Version veröffentlicht
 
 ## Erledigt
@@ -48,6 +46,8 @@ für die nächste – vor 1.0.0 und danach.
 - [x] Einstellungen bildlich: Symbol an jedem Eintrag, Auswahl mit Bildern
 - [x] Bewegung aus einem Guss: Menüs, Dialoge, Piktogramme
 - [x] Stand der Technik für Medien belegt
+- [x] Nach v0.11.1: nächste Version hat eine eigene Nummer
+- [x] Nach v0.11.1: beide READMEs nennen die neue Version
 
 ## Graph
 
@@ -85,8 +85,6 @@ flowchart TD
   nc_8094b1["Jede gängige Datei öffnen, lesen und schreiben – und es sieht gut aus [active]"]
   nc_02cd71["Eingebaute Apps entkoppeln: jede als eigenes App-Symbol, einzeln schaltbar [active]"]
   nc_06654e["Dokumente bearbeiten: Entscheidung für Office-Formate [active]"]
-  nc_fb21a6["Nach v0.11.1: nächste Version hat eine eigene Nummer [active]"]
-  nc_d1de03["Nach v0.11.1: beide READMEs nennen die neue Version [active]"]
   nc_765e65["Nach v0.11.1: neue Version veröffentlicht [active]"]
   nc_3a43c7 --> nc_885a63
   nc_5836f9 --> nc_885a63
@@ -108,6 +106,4 @@ flowchart TD
   nc_e43d3c --> nc_02cd71
   nc_f3c3b7 --> nc_02cd71
   nc_f8cb8a --> nc_06654e
-  nc_fb21a6 --> nc_d1de03
-  nc_d1de03 --> nc_765e65
 ```
