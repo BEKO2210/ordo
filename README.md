@@ -94,6 +94,7 @@ What comes next is in the [living roadmap](docs/ROADMAP-LIVE.md): every goal has
 - Ordo's own colours on every phone, in five accents, or your wallpaper's colours (Android 12 and later)
 - Light, dark and true black; motion full, subtle or off
 - The home search bar at the top or at the bottom, within thumb reach
+- With files selected, the actions sit in a bar at the bottom; its "More" menu opens right above it, next to the thumb
 
 ## AI commands
 

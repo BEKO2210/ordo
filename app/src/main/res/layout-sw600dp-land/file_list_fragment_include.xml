@@ -35,9 +35,11 @@
                     android:background="?colorSurface" />
 
                 <include layout="@layout/file_list_fragment_content_include" />
-
-                <include layout="@layout/file_list_fragment_selection_bar_include" />
             </me.zhanghai.android.files.ui.PersistentDrawerLayout>
+
+            <!-- Below the drawer, not in it: PersistentDrawerLayout only takes start/end children, and a bottom one
+                 crashed every folder on a tablet in landscape. -->
+            <include layout="@layout/file_list_fragment_selection_bar_include" />
         </LinearLayout>
 
         <include layout="@layout/file_list_fragment_bottom_bar_include" />
