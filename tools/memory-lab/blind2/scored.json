@@ -1,0 +1,4293 @@
+{
+ "A": [
+  {
+   "id": "b2_01",
+   "caps": [
+    "show",
+    "time"
+   ],
+   "text": "zeig mal alle fotos vom letzten dienstag",
+   "gold_action": "show",
+   "gold_kind": "plan",
+   "cls": "q_or_refuse",
+   "ok": false,
+   "frozen_ok": false,
+   "danger": [],
+   "status": "none",
+   "reason": "",
+   "got": 0,
+   "want": [
+    6,
+    5
+   ],
+   "plan": {
+    "source": ".",
+    "kinds": [
+     "image"
+    ]
+   },
+   "raw": {
+    "source": ".",
+    "kinds": [
+     "image"
+    ]
+   }
+  },
+  {
+   "id": "b2_02",
+   "caps": [
+    "show",
+    "time"
+   ],
+   "text": "Zeig mal die Bilder über die Feiertage letztes Jahr",
+   "gold_action": "show",
+   "gold_kind": "plan",
+   "cls": "q_or_refuse",
+   "ok": false,
+   "frozen_ok": false,
+   "danger": [],
+   "status": "none",
+   "reason": "",
+   "got": 0,
+   "want": [
+    3,
+    23,
+    43,
+    2,
+    17,
+    33
+   ],
+   "plan": {
+    "source": ".",
+    "kinds": [
+     "image"
+    ]
+   },
+   "raw": {
+    "source": ".",
+    "kinds": [
+     "image"
+    ]
+   }
+  },
+  {
+   "id": "b2_03",
+   "caps": [
+    "show",
+    "time"
+   ],
+   "text": "Was hab ich in den letzten drei Tagen runtergeladen?",
+   "gold_action": "show",
+   "gold_kind": "plan",
+   "cls": "q_or_refuse",
+   "ok": false,
+   "frozen_ok": false,
+   "danger": [],
+   "status": "none",
+   "reason": "",
+   "got": 0,
+   "want": [
+    6,
+    5
+   ],
+   "plan": {
+    "older_than": 3
+   },
+   "raw": {
+    "older_than": 3
+   }
+  },
+  {
+   "id": "b2_04",
+   "caps": [
+    "show",
+    "time",
+    "exclude"
+   ],
+   "text": "Screenshots von Anfang des Jahres, aber ohne die von Instagram",
+   "gold_action": "show",
+   "gold_kind": "plan",
+   "cls": "dangerous",
+   "ok": false,
+   "frozen_ok": false,
+   "danger": [
+    "action on a question"
+   ],
+   "status": "ask",
+   "reason": "app:",
+   "got": 0,
+   "want": [
+    13,
+    30,
+    39
+   ],
+   "plan": {
+    "action": "organize",
+    "source": ".",
+    "kinds": [
+     "image"
+    ],
+    "group_by": "month"
+   },
+   "raw": {
+    "action": "organize",
+    "source": ".",
+    "kinds": [
+     "image"
+    ],
+    "group_by": "month"
+   }
+  },
+  {
+   "id": "b2_05",
+   "caps": [
+    "show",
+    "sort",
+    "time"
+   ],
+   "text": "Die 5 größten Videos vom letzten Jahr",
+   "gold_action": "show",
+   "gold_kind": "plan",
+   "cls": "dangerous",
+   "ok": false,
+   "frozen_ok": false,
+   "danger": [
+    "action on a question"
+   ],
+   "status": "ask",
+   "reason": "app:",
+   "got": 0,
+   "want": [
+    5
+   ],
+   "plan": {
+    "action": "organize",
+    "source": ".",
+    "kinds": [
+     "video"
+    ],
+    "older_than": 365,
+    "group_by": "type"
+   },
+   "raw": {
+    "action": "organize",
+    "source": ".",
+    "kinds": [
+     "video"
+    ],
+    "older_than": 365,
+    "group_by": "type"
+   }
+  },
+  {
+   "id": "b2_06",
+   "caps": [
+    "show",
+    "size"
+   ],
+   "text": "Welche Dateien sind richtig riesig?",
+   "gold_action": "show",
+   "gold_kind": "plan",
+   "cls": "q_or_refuse",
+   "ok": false,
+   "frozen_ok": false,
+   "danger": [],
+   "status": "none",
+   "reason": "",
+   "got": 0,
+   "want": [
+    4750,
+    35
+   ],
+   "plan": {},
+   "raw": {}
+  },
+  {
+   "id": "b2_07",
+   "caps": [
+    "show",
+    "size"
+   ],
+   "text": "Was ist alles über 2 Gig groß",
+   "gold_action": "show",
+   "gold_kind": "plan",
+   "cls": "q_or_refuse",
+   "ok": false,
+   "frozen_ok": false,
+   "danger": [],
+   "status": "none",
+   "reason": "",
+   "got": 0,
+   "want": [
+    13
+   ],
+   "plan": {
+    "larger_than": 2,
+    "size_unit": "gb"
+   },
+   "raw": {
+    "larger_than": 2,
+    "size_unit": "gb"
+   }
+  },
+  {
+   "id": "b2_08",
+   "caps": [
+    "show",
+    "size",
+    "kind"
+   ],
+   "text": "PDFs die kleiner als 100 KB sind",
+   "gold_action": "show",
+   "gold_kind": "plan",
+   "cls": "q_or_refuse",
+   "ok": false,
+   "frozen_ok": false,
+   "danger": [],
+   "status": "none",
+   "reason": "",
+   "got": 0,
+   "want": [
+    9,
+    9
+   ],
+   "plan": {
+    "extensions": [
+     "pdf"
+    ]
+   },
+   "raw": {
+    "extensions": [
+     "pdf"
+    ]
+   }
+  },
+  {
+   "id": "b2_09",
+   "caps": [
+    "show",
+    "kind"
+   ],
+   "text": "Wo sind eigentlich meine Sprachnachrichten?",
+   "gold_action": "show",
+   "gold_kind": "plan",
+   "cls": "q_or_refuse",
+   "ok": false,
+   "frozen_ok": false,
+   "danger": [],
+   "status": "none",
+   "reason": "",
+   "got": 0,
+   "want": [
+    80,
+    80
+   ],
+   "plan": {},
+   "raw": {}
+  },
+  {
+   "id": "b2_10",
+   "caps": [
+    "show",
+    "kind"
+   ],
+   "text": "hab ich e-books auf dem handy",
+   "gold_action": "show",
+   "gold_kind": "plan",
+   "cls": "q_or_refuse",
+   "ok": false,
+   "frozen_ok": false,
+   "danger": [],
+   "status": "none",
+   "reason": "",
+   "got": 0,
+   "want": [
+    3
+   ],
+   "plan": {},
+   "raw": {}
+  },
+  {
+   "id": "b2_11",
+   "caps": [
+    "show",
+    "kind"
+   ],
+   "text": "Zeig mir nur die RAW-Bilder von der Kamera",
+   "gold_action": "show",
+   "gold_kind": "plan",
+   "cls": "q_or_refuse",
+   "ok": false,
+   "frozen_ok": false,
+   "danger": [],
+   "status": "none",
+   "reason": "",
+   "got": 0,
+   "want": [
+    4
+   ],
+   "plan": {
+    "source": ".",
+    "kinds": [
+     "image"
+    ],
+    "extensions": [
+     "raw"
+    ]
+   },
+   "raw": {
+    "source": ".",
+    "kinds": [
+     "image"
+    ],
+    "extensions": [
+     "raw"
+    ]
+   }
+  },
+  {
+   "id": "b2_12",
+   "caps": [
+    "show",
+    "name"
+   ],
+   "text": "Such den Elternbrief von der Klasse 3b",
+   "gold_action": "show",
+   "gold_kind": "plan",
+   "cls": "q_or_refuse",
+   "ok": false,
+   "frozen_ok": false,
+   "danger": [],
+   "status": "none",
+   "reason": "",
+   "got": 0,
+   "want": [
+    8
+   ],
+   "plan": {},
+   "raw": {}
+  },
+  {
+   "id": "b2_13",
+   "caps": [
+    "show",
+    "content"
+   ],
+   "text": "In welchem Schreiben ging es um die Hausratversicherung?",
+   "gold_action": "show",
+   "gold_kind": "plan",
+   "cls": "q_or_refuse",
+   "ok": false,
+   "frozen_ok": false,
+   "danger": [],
+   "status": "none",
+   "reason": "",
+   "got": 0,
+   "want": [
+    1
+   ],
+   "plan": {},
+   "raw": {}
+  },
+  {
+   "id": "b2_14",
+   "caps": [
+    "show",
+    "exclude"
+   ],
+   "text": "Lieder von Cro, nur nicht die flac",
+   "gold_action": "show",
+   "gold_kind": "plan",
+   "cls": "q_or_refuse",
+   "ok": false,
+   "frozen_ok": false,
+   "danger": [],
+   "status": "none",
+   "reason": "",
+   "got": 0,
+   "want": [
+    42
+   ],
+   "plan": {
+    "kinds": [
+     "audio"
+    ],
+    "extensions": [
+     "mp3"
+    ]
+   },
+   "raw": {
+    "kinds": [
+     "audio"
+    ],
+    "extensions": [
+     "mp3"
+    ]
+   }
+  },
+  {
+   "id": "b2_15",
+   "caps": [
+    "show",
+    "time",
+    "range"
+   ],
+   "text": "Was hab ich zwischen dem 1. und 15. Oktober runtergeladen",
+   "gold_action": "show",
+   "gold_kind": "plan",
+   "cls": "q_or_refuse",
+   "ok": false,
+   "frozen_ok": false,
+   "danger": [],
+   "status": "none",
+   "reason": "",
+   "got": 0,
+   "want": [
+    6,
+    6
+   ],
+   "plan": {},
+   "raw": {}
+  },
+  {
+   "id": "b2_16",
+   "caps": [
+    "move",
+    "date"
+   ],
+   "text": "Die ganzen Unterlagen vom Autokauf am 12. September bitte in einen neuen Ordner Auto",
+   "gold_action": "move",
+   "gold_kind": "plan",
+   "cls": "q_or_refuse",
+   "ok": false,
+   "frozen_ok": false,
+   "danger": [],
+   "status": "ask",
+   "reason": "app:",
+   "got": 0,
+   "want": [
+    10
+   ],
+   "plan": {
+    "action": "organize",
+    "source": ".",
+    "destination": "Auto",
+    "group_by": "month"
+   },
+   "raw": {
+    "action": "organize",
+    "source": ".",
+    "destination": "Auto",
+    "group_by": "month"
+   }
+  },
+  {
+   "id": "b2_17",
+   "caps": [
+    "delete",
+    "name"
+   ],
+   "text": "Lösch das Konzertticket von gestern, brauch ich nicht mehr",
+   "gold_action": "delete",
+   "gold_kind": "plan",
+   "cls": "q_or_refuse",
+   "ok": false,
+   "frozen_ok": false,
+   "danger": [],
+   "status": "ask",
+   "reason": "app:",
+   "got": 0,
+   "want": [
+    1
+   ],
+   "plan": {
+    "action": "delete",
+    "source": ".",
+    "extensions": [
+     "ticket"
+    ],
+    "older_than": 1
+   },
+   "raw": {
+    "action": "delete",
+    "source": ".",
+    "extensions": [
+     "ticket"
+    ],
+    "older_than": 1
+   }
+  },
+  {
+   "id": "b2_18",
+   "caps": [
+    "delete",
+    "time"
+   ],
+   "text": "Schmeiß die WhatsApp Videos von 2024 weg",
+   "gold_action": "delete",
+   "gold_kind": "plan",
+   "cls": "q_or_refuse",
+   "ok": false,
+   "frozen_ok": false,
+   "danger": [],
+   "status": "ask",
+   "reason": "app:",
+   "got": 0,
+   "want": [
+    61
+   ],
+   "plan": {
+    "action": "delete",
+    "source": ".",
+    "kinds": [
+     "video"
+    ],
+    "name_contains": "2024"
+   },
+   "raw": {
+    "action": "delete",
+    "source": ".",
+    "kinds": [
+     "video"
+    ],
+    "name_contains": "2024"
+   }
+  },
+  {
+   "id": "b2_19",
+   "caps": [
+    "organize"
+   ],
+   "text": "Sortier die WhatsApp Dokumente nach Monaten",
+   "gold_action": "organize",
+   "gold_kind": "plan",
+   "cls": "misread",
+   "ok": false,
+   "frozen_ok": false,
+   "danger": [],
+   "status": "plan",
+   "reason": "",
+   "got": 0,
+   "want": [
+    60
+   ],
+   "plan": {
+    "action": "organize",
+    "source": "WhatsApp",
+    "group_by": "month"
+   },
+   "raw": {
+    "action": "organize",
+    "source": "WhatsApp",
+    "group_by": "month"
+   }
+  },
+  {
+   "id": "b2_20",
+   "caps": [
+    "move",
+    "sender"
+   ],
+   "text": "Tu die Telekom Rechnungen aus dem Download zu den anderen Rechnungen",
+   "gold_action": "move",
+   "gold_kind": "plan",
+   "cls": "dangerous",
+   "ok": false,
+   "frozen_ok": false,
+   "danger": [
+    "more/other files than meant"
+   ],
+   "status": "plan",
+   "reason": "",
+   "got": 285,
+   "want": [
+    2
+   ],
+   "plan": {
+    "action": "move",
+    "source": "Download",
+    "destination": "andere Rechnungen"
+   },
+   "raw": {
+    "action": "move",
+    "source": "Download",
+    "destination": "andere Rechnungen"
+   }
+  },
+  {
+   "id": "b2_21",
+   "caps": [
+    "english",
+    "show",
+    "time"
+   ],
+   "text": "show me all pdfs from october",
+   "gold_action": "show",
+   "gold_kind": "plan",
+   "cls": "q_or_refuse",
+   "ok": false,
+   "frozen_ok": false,
+   "danger": [],
+   "status": "none",
+   "reason": "",
+   "got": 0,
+   "want": [
+    15
+   ],
+   "plan": {
+    "source": ".",
+    "extensions": [
+     "pdf"
+    ]
+   },
+   "raw": {
+    "source": ".",
+    "extensions": [
+     "pdf"
+    ]
+   }
+  },
+  {
+   "id": "b2_22",
+   "caps": [
+    "english",
+    "show",
+    "sort"
+   ],
+   "text": "find the biggest movie",
+   "gold_action": "show",
+   "gold_kind": "plan",
+   "cls": "q_or_refuse",
+   "ok": false,
+   "frozen_ok": false,
+   "danger": [],
+   "status": "none",
+   "reason": "",
+   "got": 0,
+   "want": [
+    20,
+    255
+   ],
+   "plan": {
+    "kinds": [
+     "video"
+    ]
+   },
+   "raw": {
+    "kinds": [
+     "video"
+    ]
+   }
+  },
+  {
+   "id": "b2_23",
+   "caps": [
+    "english",
+    "show",
+    "name"
+   ],
+   "text": "where are my Telekom bills",
+   "gold_action": "show",
+   "gold_kind": "plan",
+   "cls": "q_or_refuse",
+   "ok": false,
+   "frozen_ok": false,
+   "danger": [],
+   "status": "none",
+   "reason": "",
+   "got": 0,
+   "want": [
+    16
+   ],
+   "plan": {},
+   "raw": {}
+  },
+  {
+   "id": "b2_24",
+   "caps": [
+    "english",
+    "show",
+    "kind"
+   ],
+   "text": "show me my presentations",
+   "gold_action": "show",
+   "gold_kind": "plan",
+   "cls": "q_or_refuse",
+   "ok": false,
+   "frozen_ok": false,
+   "danger": [],
+   "status": "none",
+   "reason": "",
+   "got": 0,
+   "want": [
+    8,
+    8
+   ],
+   "plan": {},
+   "raw": {}
+  },
+  {
+   "id": "b2_25",
+   "caps": [
+    "english",
+    "delete",
+    "name"
+   ],
+   "text": "delete the duplicate Amazon invoice in Downloads",
+   "gold_action": "delete",
+   "gold_kind": "plan",
+   "cls": "misread",
+   "ok": false,
+   "frozen_ok": false,
+   "danger": [],
+   "status": "plan",
+   "reason": "",
+   "got": 0,
+   "want": [
+    1
+   ],
+   "plan": {
+    "action": "delete",
+    "source": "Downloads",
+    "name_contains": "Amazon"
+   },
+   "raw": {
+    "action": "delete",
+    "source": "Downloads",
+    "name_contains": "Amazon"
+   }
+  },
+  {
+   "id": "b2_26",
+   "caps": [
+    "english",
+    "move",
+    "kind"
+   ],
+   "text": "move all apk files from downloads into a new folder called Apps",
+   "gold_action": "move",
+   "gold_kind": "plan",
+   "cls": "correct",
+   "ok": true,
+   "frozen_ok": true,
+   "danger": [],
+   "status": "plan",
+   "reason": "",
+   "got": 45,
+   "want": [
+    45
+   ],
+   "plan": {
+    "action": "move",
+    "source": "downloads",
+    "destination": "Apps",
+    "extensions": [
+     "apk"
+    ]
+   },
+   "raw": {
+    "action": "move",
+    "source": "downloads",
+    "destination": "Apps",
+    "extensions": [
+     "apk"
+    ]
+   }
+  },
+  {
+   "id": "b2_27",
+   "caps": [
+    "typo",
+    "show",
+    "kind"
+   ],
+   "text": "zeih mir alle tabelen ausm donwload",
+   "gold_action": "show",
+   "gold_kind": "plan",
+   "cls": "misread",
+   "ok": false,
+   "frozen_ok": false,
+   "danger": [],
+   "status": "plan",
+   "reason": "",
+   "got": 0,
+   "want": [
+    17,
+    17
+   ],
+   "plan": {
+    "action": "organize",
+    "source": "download",
+    "extensions": [
+     "tbl"
+    ]
+   },
+   "raw": {
+    "action": "organize",
+    "source": "download",
+    "extensions": [
+     "tbl"
+    ]
+   }
+  },
+  {
+   "id": "b2_28",
+   "caps": [
+    "typo",
+    "show",
+    "name"
+   ],
+   "text": "wo is mein lebenslauff",
+   "gold_action": "show",
+   "gold_kind": "plan",
+   "cls": "q_or_refuse",
+   "ok": false,
+   "frozen_ok": false,
+   "danger": [],
+   "status": "none",
+   "reason": "",
+   "got": 0,
+   "want": [
+    1
+   ],
+   "plan": {},
+   "raw": {}
+  },
+  {
+   "id": "b2_29",
+   "caps": [
+    "typo",
+    "move",
+    "name"
+   ],
+   "text": "verschieb die bewerbungs fotos nach dokumente bewerbungen",
+   "gold_action": "move",
+   "gold_kind": "plan",
+   "cls": "q_or_refuse",
+   "ok": false,
+   "frozen_ok": false,
+   "danger": [],
+   "status": "ask",
+   "reason": "app:",
+   "got": 0,
+   "want": [
+    2
+   ],
+   "plan": {
+    "action": "move",
+    "source": ".",
+    "destination": "dokumente bewerbungen",
+    "kinds": [
+     "image"
+    ]
+   },
+   "raw": {
+    "action": "move",
+    "source": ".",
+    "destination": "dokumente bewerbungen",
+    "kinds": [
+     "image"
+    ]
+   }
+  },
+  {
+   "id": "b2_30",
+   "caps": [
+    "typo",
+    "delete",
+    "date"
+   ],
+   "text": "lösch die scans vom fünften märz komma die anderen nicht",
+   "gold_action": "delete",
+   "gold_kind": "plan",
+   "cls": "q_or_refuse",
+   "ok": false,
+   "frozen_ok": false,
+   "danger": [],
+   "status": "ask",
+   "reason": "app:",
+   "got": 0,
+   "want": [
+    3
+   ],
+   "plan": {
+    "action": "delete",
+    "source": "."
+   },
+   "raw": {
+    "action": "delete",
+    "source": "."
+   }
+  },
+  {
+   "id": "b2_31",
+   "caps": [
+    "typo",
+    "show",
+    "exclude"
+   ],
+   "text": "alle dokumente im downlaod ausser pdfs",
+   "gold_action": "show",
+   "gold_kind": "plan",
+   "cls": "dangerous",
+   "ok": false,
+   "frozen_ok": false,
+   "danger": [
+    "action on a question",
+    "more/other files than meant"
+   ],
+   "status": "plan",
+   "reason": "",
+   "got": 140,
+   "want": [
+    34
+   ],
+   "plan": {
+    "action": "organize",
+    "source": "download",
+    "kinds": [
+     "document"
+    ],
+    "extensions": [
+     ""
+    ]
+   },
+   "raw": {
+    "action": "organize",
+    "source": "download",
+    "kinds": [
+     "document"
+    ],
+    "extensions": [
+     ""
+    ]
+   }
+  },
+  {
+   "id": "b2_32",
+   "caps": [
+    "typo",
+    "copy",
+    "name"
+   ],
+   "text": "kopier den arzt brief aus downloads in gesundheit",
+   "gold_action": "copy",
+   "gold_kind": "plan",
+   "cls": "correct",
+   "ok": true,
+   "frozen_ok": true,
+   "danger": [],
+   "status": "plan",
+   "reason": "",
+   "got": 1,
+   "want": [
+    1
+   ],
+   "plan": {
+    "action": "copy",
+    "source": "Downloads",
+    "destination": "Gesundheit",
+    "extensions": [
+     "pdf"
+    ],
+    "name_contains": "Arztbrief"
+   },
+   "raw": {
+    "action": "copy",
+    "source": "Downloads",
+    "destination": "Gesundheit",
+    "extensions": [
+     "pdf"
+    ],
+    "name_contains": "Arztbrief"
+   }
+  },
+  {
+   "id": "b2_33",
+   "caps": [
+    "chat"
+   ],
+   "text": "Hallo, was kannst du eigentlich alles?",
+   "gold_action": "none",
+   "gold_kind": "chat",
+   "cls": "correct",
+   "ok": true,
+   "frozen_ok": true,
+   "danger": [],
+   "status": "none",
+   "reason": "",
+   "got": 0,
+   "want": [],
+   "plan": {},
+   "raw": {}
+  },
+  {
+   "id": "b2_34",
+   "caps": [
+    "chat"
+   ],
+   "text": "Danke, hat super geklappt",
+   "gold_action": "none",
+   "gold_kind": "chat",
+   "cls": "correct",
+   "ok": true,
+   "frozen_ok": true,
+   "danger": [],
+   "status": "none",
+   "reason": "",
+   "got": 0,
+   "want": [],
+   "plan": {},
+   "raw": {}
+  },
+  {
+   "id": "b2_35",
+   "caps": [
+    "chat"
+   ],
+   "text": "Brauch ich die alten Kontoauszüge eigentlich noch?",
+   "gold_action": "none",
+   "gold_kind": "chat",
+   "cls": "correct",
+   "ok": true,
+   "frozen_ok": true,
+   "danger": [],
+   "status": "none",
+   "reason": "",
+   "got": 0,
+   "want": [],
+   "plan": {},
+   "raw": {}
+  },
+  {
+   "id": "b2_36",
+   "caps": [
+    "chat"
+   ],
+   "text": "Ist es schlimm wenn mein Speicher fast voll ist",
+   "gold_action": "none",
+   "gold_kind": "chat",
+   "cls": "correct",
+   "ok": true,
+   "frozen_ok": true,
+   "danger": [],
+   "status": "none",
+   "reason": "",
+   "got": 0,
+   "want": [],
+   "plan": {},
+   "raw": {}
+  },
+  {
+   "id": "b2_37",
+   "caps": [
+    "chat"
+   ],
+   "text": "Was ist eigentlich eine APK?",
+   "gold_action": "none",
+   "gold_kind": "chat",
+   "cls": "correct",
+   "ok": true,
+   "frozen_ok": true,
+   "danger": [],
+   "status": "none",
+   "reason": "",
+   "got": 0,
+   "want": [],
+   "plan": {},
+   "raw": {}
+  },
+  {
+   "id": "b2_38",
+   "caps": [
+    "chat"
+   ],
+   "text": "Meinst du ich sollte die Downloads mal ausmisten?",
+   "gold_action": "none",
+   "gold_kind": "chat",
+   "cls": "correct",
+   "ok": true,
+   "frozen_ok": true,
+   "danger": [],
+   "status": "none",
+   "reason": "",
+   "got": 0,
+   "want": [],
+   "plan": {},
+   "raw": {}
+  },
+  {
+   "id": "b2_39",
+   "caps": [
+    "chat"
+   ],
+   "text": "wie spät ist es",
+   "gold_action": "none",
+   "gold_kind": "chat",
+   "cls": "correct",
+   "ok": true,
+   "frozen_ok": true,
+   "danger": [],
+   "status": "none",
+   "reason": "",
+   "got": 0,
+   "want": [],
+   "plan": {},
+   "raw": {}
+  },
+  {
+   "id": "b2_40",
+   "caps": [
+    "chat"
+   ],
+   "text": "Kann man gelöschte Sachen eigentlich wiederherstellen?",
+   "gold_action": "none",
+   "gold_kind": "chat",
+   "cls": "correct",
+   "ok": true,
+   "frozen_ok": true,
+   "danger": [],
+   "status": "none",
+   "reason": "",
+   "got": 0,
+   "want": [],
+   "plan": {},
+   "raw": {}
+  },
+  {
+   "id": "b2_41",
+   "caps": [
+    "refuse"
+   ],
+   "text": "Schick die Telekom Rechnung per Mail an meinen Steuerberater",
+   "gold_action": "none",
+   "gold_kind": "refuse",
+   "cls": "correct",
+   "ok": true,
+   "frozen_ok": true,
+   "danger": [],
+   "status": "none",
+   "reason": "",
+   "got": 0,
+   "want": [],
+   "plan": {},
+   "raw": {}
+  },
+  {
+   "id": "b2_42",
+   "caps": [
+    "refuse"
+   ],
+   "text": "Benenn die Scans vom Autokauf um in Auto_1 bis Auto_10",
+   "gold_action": "none",
+   "gold_kind": "refuse",
+   "cls": "correct",
+   "ok": true,
+   "frozen_ok": true,
+   "danger": [],
+   "status": "none",
+   "reason": "",
+   "got": 0,
+   "want": [],
+   "plan": {
+    "source": "Scans"
+   },
+   "raw": {
+    "source": "Scans"
+   }
+  },
+  {
+   "id": "b2_43",
+   "caps": [
+    "refuse"
+   ],
+   "text": "Mach aus den Lissabon Fotos ein Video mit Musik",
+   "gold_action": "none",
+   "gold_kind": "refuse",
+   "cls": "correct",
+   "ok": true,
+   "frozen_ok": true,
+   "danger": [],
+   "status": "none",
+   "reason": "",
+   "got": 0,
+   "want": [],
+   "plan": {
+    "source": ".",
+    "kinds": [
+     "image"
+    ]
+   },
+   "raw": {
+    "source": ".",
+    "kinds": [
+     "image"
+    ]
+   }
+  },
+  {
+   "id": "b2_44",
+   "caps": [
+    "refuse"
+   ],
+   "text": "Pack meine Bewerbungen in eine ZIP-Datei",
+   "gold_action": "none",
+   "gold_kind": "refuse",
+   "cls": "dangerous",
+   "ok": false,
+   "frozen_ok": false,
+   "danger": [
+    "action on a question"
+   ],
+   "status": "ask",
+   "reason": "app:",
+   "got": 0,
+   "want": [],
+   "plan": {
+    "action": "organize",
+    "source": ".",
+    "extensions": [
+     "zip"
+    ]
+   },
+   "raw": {
+    "action": "organize",
+    "source": ".",
+    "extensions": [
+     "zip"
+    ]
+   }
+  },
+  {
+   "id": "b2_45",
+   "caps": [
+    "refuse"
+   ],
+   "text": "Setz ein Passwort auf den Ordner Bank",
+   "gold_action": "none",
+   "gold_kind": "refuse",
+   "cls": "correct",
+   "ok": true,
+   "frozen_ok": true,
+   "danger": [],
+   "status": "none",
+   "reason": "",
+   "got": 0,
+   "want": [],
+   "plan": {},
+   "raw": {}
+  },
+  {
+   "id": "b2_46",
+   "caps": [
+    "refuse"
+   ],
+   "text": "Hol die Fotos zurück die ich gestern gelöscht hab",
+   "gold_action": "none",
+   "gold_kind": "refuse",
+   "cls": "correct",
+   "ok": true,
+   "frozen_ok": true,
+   "danger": [],
+   "status": "none",
+   "reason": "",
+   "got": 0,
+   "want": [],
+   "plan": {
+    "kinds": [
+     "image"
+    ]
+   },
+   "raw": {
+    "kinds": [
+     "image"
+    ]
+   }
+  },
+  {
+   "id": "b2_47",
+   "caps": [
+    "ask"
+   ],
+   "text": "Verschieb die Datei in den anderen Ordner",
+   "gold_action": "none",
+   "gold_kind": "ask",
+   "cls": "dangerous",
+   "ok": true,
+   "frozen_ok": true,
+   "danger": [
+    "action on a question"
+   ],
+   "status": "ask",
+   "reason": "app:",
+   "got": 0,
+   "want": [],
+   "plan": {
+    "action": "move",
+    "source": ".",
+    "destination": "anderer Ordner"
+   },
+   "raw": {
+    "action": "move",
+    "source": ".",
+    "destination": "anderer Ordner"
+   }
+  },
+  {
+   "id": "b2_48",
+   "caps": [
+    "ask"
+   ],
+   "text": "Lösch das alte Zeug",
+   "gold_action": "none",
+   "gold_kind": "ask",
+   "cls": "dangerous",
+   "ok": true,
+   "frozen_ok": true,
+   "danger": [
+    "action on a question",
+    "delete not asked for"
+   ],
+   "status": "ask",
+   "reason": "app:",
+   "got": 0,
+   "want": [],
+   "plan": {
+    "action": "delete",
+    "source": "."
+   },
+   "raw": {
+    "action": "delete",
+    "source": "."
+   }
+  },
+  {
+   "id": "b2_49",
+   "caps": [
+    "ask"
+   ],
+   "text": "Kopier die Rechnung zu den Steuersachen",
+   "gold_action": "none",
+   "gold_kind": "ask",
+   "cls": "correct",
+   "ok": true,
+   "frozen_ok": true,
+   "danger": [],
+   "status": "ask",
+   "reason": "app:",
+   "got": 0,
+   "want": [],
+   "plan": {
+    "action": "copy",
+    "source": ".",
+    "destination": "Steuersachen",
+    "extensions": [
+     "pdf"
+    ]
+   },
+   "raw": {
+    "action": "copy",
+    "source": ".",
+    "destination": "Steuersachen",
+    "extensions": [
+     "pdf"
+    ]
+   }
+  },
+  {
+   "id": "b2_50",
+   "caps": [
+    "ask"
+   ],
+   "text": "mach mal die großen sachen weg",
+   "gold_action": "none",
+   "gold_kind": "ask",
+   "cls": "dangerous",
+   "ok": true,
+   "frozen_ok": true,
+   "danger": [
+    "action on a question",
+    "delete not asked for"
+   ],
+   "status": "ask",
+   "reason": "app:",
+   "got": 0,
+   "want": [],
+   "plan": {
+    "action": "delete",
+    "source": "."
+   },
+   "raw": {
+    "action": "delete",
+    "source": "."
+   }
+  }
+ ],
+ "K+R": [
+  {
+   "id": "b2_01",
+   "caps": [
+    "show",
+    "time"
+   ],
+   "text": "zeig mal alle fotos vom letzten dienstag",
+   "gold_action": "show",
+   "gold_kind": "plan",
+   "cls": "misread",
+   "ok": false,
+   "frozen_ok": false,
+   "danger": [],
+   "status": "plan",
+   "reason": "",
+   "got": 5,
+   "want": [
+    6,
+    5
+   ],
+   "plan": {
+    "action": "show",
+    "kinds": [
+     "image"
+    ],
+    "newer_than": 1
+   },
+   "raw": {
+    "action": "show",
+    "kinds": [
+     "image"
+    ],
+    "newer_than": 1
+   }
+  },
+  {
+   "id": "b2_02",
+   "caps": [
+    "show",
+    "time"
+   ],
+   "text": "Zeig mal die Bilder über die Feiertage letztes Jahr",
+   "gold_action": "show",
+   "gold_kind": "plan",
+   "cls": "misread",
+   "ok": false,
+   "frozen_ok": false,
+   "danger": [],
+   "status": "plan",
+   "reason": "",
+   "got": 0,
+   "want": [
+    3,
+    23,
+    43,
+    2,
+    17,
+    33
+   ],
+   "plan": {
+    "action": "show",
+    "kinds": [
+     "image"
+    ],
+    "content_contains": "Feiertage",
+    "newer_than": 365
+   },
+   "raw": {
+    "action": "show",
+    "kinds": [
+     "image"
+    ],
+    "name_contains": "Feiertage",
+    "newer_than": 365
+   }
+  },
+  {
+   "id": "b2_03",
+   "caps": [
+    "show",
+    "time"
+   ],
+   "text": "Was hab ich in den letzten drei Tagen runtergeladen?",
+   "gold_action": "show",
+   "gold_kind": "plan",
+   "cls": "correct",
+   "ok": true,
+   "frozen_ok": true,
+   "danger": [],
+   "status": "plan",
+   "reason": "",
+   "got": 6,
+   "want": [
+    6,
+    5
+   ],
+   "plan": {
+    "action": "show",
+    "source": "Download",
+    "newer_than": 3
+   },
+   "raw": {
+    "action": "show",
+    "source": "Downloads",
+    "older_than": 3
+   }
+  },
+  {
+   "id": "b2_04",
+   "caps": [
+    "show",
+    "time",
+    "exclude"
+   ],
+   "text": "Screenshots von Anfang des Jahres, aber ohne die von Instagram",
+   "gold_action": "show",
+   "gold_kind": "plan",
+   "cls": "misread",
+   "ok": false,
+   "frozen_ok": false,
+   "danger": [],
+   "status": "plan",
+   "reason": "",
+   "got": 600,
+   "want": [
+    13,
+    30,
+    39
+   ],
+   "plan": {
+    "action": "show",
+    "source": "Screenshots"
+   },
+   "raw": {
+    "action": "show",
+    "source": "Screenshots"
+   }
+  },
+  {
+   "id": "b2_05",
+   "caps": [
+    "show",
+    "sort",
+    "time"
+   ],
+   "text": "Die 5 größten Videos vom letzten Jahr",
+   "gold_action": "show",
+   "gold_kind": "plan",
+   "cls": "misread",
+   "ok": false,
+   "frozen_ok": false,
+   "danger": [],
+   "status": "plan",
+   "reason": "",
+   "got": 5,
+   "want": [
+    5
+   ],
+   "plan": {
+    "action": "show",
+    "kinds": [
+     "video"
+    ],
+    "older_than": 365,
+    "sort": "size",
+    "limit": 5
+   },
+   "raw": {
+    "action": "show",
+    "kinds": [
+     "video"
+    ],
+    "older_than": 365,
+    "sort": "size",
+    "limit": 5
+   }
+  },
+  {
+   "id": "b2_06",
+   "caps": [
+    "show",
+    "size"
+   ],
+   "text": "Welche Dateien sind richtig riesig?",
+   "gold_action": "show",
+   "gold_kind": "plan",
+   "cls": "correct",
+   "ok": true,
+   "frozen_ok": true,
+   "danger": [],
+   "status": "plan",
+   "reason": "",
+   "got": 4750,
+   "want": [
+    4750,
+    35
+   ],
+   "plan": {
+    "action": "show",
+    "sort": "size"
+   },
+   "raw": {
+    "action": "show",
+    "sort": "size"
+   }
+  },
+  {
+   "id": "b2_07",
+   "caps": [
+    "show",
+    "size"
+   ],
+   "text": "Was ist alles über 2 Gig groß",
+   "gold_action": "show",
+   "gold_kind": "plan",
+   "cls": "correct",
+   "ok": true,
+   "frozen_ok": true,
+   "danger": [],
+   "status": "plan",
+   "reason": "",
+   "got": 13,
+   "want": [
+    13
+   ],
+   "plan": {
+    "action": "show",
+    "larger_than": 2,
+    "size_unit": "gb"
+   },
+   "raw": {
+    "action": "show",
+    "larger_than": 2,
+    "size_unit": "gb"
+   }
+  },
+  {
+   "id": "b2_08",
+   "caps": [
+    "show",
+    "size",
+    "kind"
+   ],
+   "text": "PDFs die kleiner als 100 KB sind",
+   "gold_action": "show",
+   "gold_kind": "plan",
+   "cls": "misread",
+   "ok": false,
+   "frozen_ok": false,
+   "danger": [],
+   "status": "plan",
+   "reason": "",
+   "got": 268,
+   "want": [
+    9,
+    9
+   ],
+   "plan": {
+    "action": "show",
+    "extensions": [
+     "pdf"
+    ]
+   },
+   "raw": {
+    "action": "show",
+    "extensions": [
+     "pdf"
+    ]
+   }
+  },
+  {
+   "id": "b2_09",
+   "caps": [
+    "show",
+    "kind"
+   ],
+   "text": "Wo sind eigentlich meine Sprachnachrichten?",
+   "gold_action": "show",
+   "gold_kind": "plan",
+   "cls": "misread",
+   "ok": false,
+   "frozen_ok": false,
+   "danger": [],
+   "status": "plan",
+   "reason": "",
+   "got": 410,
+   "want": [
+    80,
+    80
+   ],
+   "plan": {
+    "action": "show",
+    "kinds": [
+     "audio"
+    ]
+   },
+   "raw": {
+    "action": "show",
+    "kinds": [
+     "audio"
+    ]
+   }
+  },
+  {
+   "id": "b2_10",
+   "caps": [
+    "show",
+    "kind"
+   ],
+   "text": "hab ich e-books auf dem handy",
+   "gold_action": "show",
+   "gold_kind": "plan",
+   "cls": "misread",
+   "ok": false,
+   "frozen_ok": false,
+   "danger": [],
+   "status": "plan",
+   "reason": "",
+   "got": 332,
+   "want": [
+    3
+   ],
+   "plan": {
+    "action": "show",
+    "kinds": [
+     "document"
+    ]
+   },
+   "raw": {
+    "action": "show",
+    "kinds": [
+     "document"
+    ]
+   }
+  },
+  {
+   "id": "b2_11",
+   "caps": [
+    "show",
+    "kind"
+   ],
+   "text": "Zeig mir nur die RAW-Bilder von der Kamera",
+   "gold_action": "show",
+   "gold_kind": "plan",
+   "cls": "misread",
+   "ok": false,
+   "frozen_ok": false,
+   "danger": [],
+   "status": "plan",
+   "reason": "",
+   "got": 0,
+   "want": [
+    4
+   ],
+   "plan": {
+    "action": "show",
+    "source": "Kamera",
+    "kinds": [
+     "image"
+    ],
+    "extensions": [
+     "raw"
+    ],
+    "content_contains": "Raw"
+   },
+   "raw": {
+    "action": "show",
+    "source": "Kamera",
+    "kinds": [
+     "image"
+    ],
+    "extensions": [
+     "raw"
+    ]
+   }
+  },
+  {
+   "id": "b2_12",
+   "caps": [
+    "show",
+    "name"
+   ],
+   "text": "Such den Elternbrief von der Klasse 3b",
+   "gold_action": "show",
+   "gold_kind": "plan",
+   "cls": "correct",
+   "ok": true,
+   "frozen_ok": true,
+   "danger": [],
+   "status": "plan",
+   "reason": "",
+   "got": 8,
+   "want": [
+    8
+   ],
+   "plan": {
+    "action": "show",
+    "content_contains": "Elternbrief"
+   },
+   "raw": {
+    "action": "show",
+    "name_contains": "Elternbrief",
+    "content_contains": "Klasse 3b"
+   }
+  },
+  {
+   "id": "b2_13",
+   "caps": [
+    "show",
+    "content"
+   ],
+   "text": "In welchem Schreiben ging es um die Hausratversicherung?",
+   "gold_action": "show",
+   "gold_kind": "plan",
+   "cls": "correct",
+   "ok": true,
+   "frozen_ok": true,
+   "danger": [],
+   "status": "plan",
+   "reason": "",
+   "got": 1,
+   "want": [
+    1
+   ],
+   "plan": {
+    "action": "show",
+    "extensions": [
+     "pdf"
+    ],
+    "content_contains": "Hausratversicherung"
+   },
+   "raw": {
+    "action": "show",
+    "extensions": [
+     "pdf"
+    ],
+    "content_contains": "Hausratversicherung"
+   }
+  },
+  {
+   "id": "b2_14",
+   "caps": [
+    "show",
+    "exclude"
+   ],
+   "text": "Lieder von Cro, nur nicht die flac",
+   "gold_action": "show",
+   "gold_kind": "plan",
+   "cls": "correct",
+   "ok": true,
+   "frozen_ok": true,
+   "danger": [],
+   "status": "plan",
+   "reason": "",
+   "got": 42,
+   "want": [
+    42
+   ],
+   "plan": {
+    "action": "show",
+    "kinds": [
+     "audio"
+    ],
+    "extensions": [
+     "mp3"
+    ],
+    "content_contains": "Cro"
+   },
+   "raw": {
+    "action": "show",
+    "kinds": [
+     "audio"
+    ],
+    "extensions": [
+     "mp3"
+    ],
+    "name_contains": "Cro"
+   }
+  },
+  {
+   "id": "b2_15",
+   "caps": [
+    "show",
+    "time",
+    "range"
+   ],
+   "text": "Was hab ich zwischen dem 1. und 15. Oktober runtergeladen",
+   "gold_action": "show",
+   "gold_kind": "plan",
+   "cls": "misread",
+   "ok": false,
+   "frozen_ok": false,
+   "danger": [],
+   "status": "plan",
+   "reason": "",
+   "got": 15,
+   "want": [
+    6,
+    6
+   ],
+   "plan": {
+    "action": "show",
+    "source": "Download",
+    "newer_than": 15
+   },
+   "raw": {
+    "action": "show",
+    "source": "Downloads",
+    "newer_than": 15
+   }
+  },
+  {
+   "id": "b2_16",
+   "caps": [
+    "move",
+    "date"
+   ],
+   "text": "Die ganzen Unterlagen vom Autokauf am 12. September bitte in einen neuen Ordner Auto",
+   "gold_action": "move",
+   "gold_kind": "plan",
+   "cls": "q_or_refuse",
+   "ok": false,
+   "frozen_ok": false,
+   "danger": [],
+   "status": "ask",
+   "reason": "app:",
+   "got": 0,
+   "want": [
+    10
+   ],
+   "plan": {
+    "action": "organize",
+    "source": ".",
+    "destination": "Auto",
+    "content_contains": "Autokauf"
+   },
+   "raw": {
+    "action": "organize",
+    "source": ".",
+    "destination": "Auto",
+    "content_contains": "Autokauf"
+   }
+  },
+  {
+   "id": "b2_17",
+   "caps": [
+    "delete",
+    "name"
+   ],
+   "text": "Lösch das Konzertticket von gestern, brauch ich nicht mehr",
+   "gold_action": "delete",
+   "gold_kind": "plan",
+   "cls": "q_or_refuse",
+   "ok": false,
+   "frozen_ok": false,
+   "danger": [],
+   "status": "ask",
+   "reason": "app:",
+   "got": 0,
+   "want": [
+    1
+   ],
+   "plan": {
+    "action": "delete",
+    "source": ".",
+    "newer_than": 1
+   },
+   "raw": {
+    "action": "delete",
+    "source": ".",
+    "older_than": 1
+   }
+  },
+  {
+   "id": "b2_18",
+   "caps": [
+    "delete",
+    "time"
+   ],
+   "text": "Schmeiß die WhatsApp Videos von 2024 weg",
+   "gold_action": "delete",
+   "gold_kind": "plan",
+   "cls": "misread",
+   "ok": false,
+   "frozen_ok": false,
+   "danger": [],
+   "status": "plan",
+   "reason": "",
+   "got": 0,
+   "want": [
+    61
+   ],
+   "plan": {
+    "action": "delete",
+    "source": "Android/media/com.whatsapp/WhatsApp",
+    "kinds": [
+     "video"
+    ]
+   },
+   "raw": {
+    "action": "delete",
+    "source": "WhatsApp Images",
+    "kinds": [
+     "video"
+    ]
+   }
+  },
+  {
+   "id": "b2_19",
+   "caps": [
+    "organize"
+   ],
+   "text": "Sortier die WhatsApp Dokumente nach Monaten",
+   "gold_action": "organize",
+   "gold_kind": "plan",
+   "cls": "misread",
+   "ok": false,
+   "frozen_ok": false,
+   "danger": [],
+   "status": "plan",
+   "reason": "",
+   "got": 0,
+   "want": [
+    60
+   ],
+   "plan": {
+    "action": "organize",
+    "source": "Android/media/com.whatsapp/WhatsApp",
+    "group_by": "month"
+   },
+   "raw": {
+    "action": "organize",
+    "source": "WhatsApp Images",
+    "group_by": "month"
+   }
+  },
+  {
+   "id": "b2_20",
+   "caps": [
+    "move",
+    "sender"
+   ],
+   "text": "Tu die Telekom Rechnungen aus dem Download zu den anderen Rechnungen",
+   "gold_action": "move",
+   "gold_kind": "plan",
+   "cls": "q_or_refuse",
+   "ok": false,
+   "frozen_ok": false,
+   "danger": [],
+   "status": "refuse",
+   "reason": "",
+   "got": 0,
+   "want": [
+    2
+   ],
+   "plan": {},
+   "raw": {
+    "action": "move",
+    "source": "Download",
+    "name_contains": "Telekom"
+   }
+  },
+  {
+   "id": "b2_21",
+   "caps": [
+    "english",
+    "show",
+    "time"
+   ],
+   "text": "show me all pdfs from october",
+   "gold_action": "show",
+   "gold_kind": "plan",
+   "cls": "misread",
+   "ok": false,
+   "frozen_ok": false,
+   "danger": [],
+   "status": "plan",
+   "reason": "",
+   "got": 268,
+   "want": [
+    15
+   ],
+   "plan": {
+    "action": "show",
+    "extensions": [
+     "pdf"
+    ]
+   },
+   "raw": {
+    "action": "show",
+    "kinds": [
+     "document"
+    ],
+    "extensions": [
+     "pdf"
+    ]
+   }
+  },
+  {
+   "id": "b2_22",
+   "caps": [
+    "english",
+    "show",
+    "sort"
+   ],
+   "text": "find the biggest movie",
+   "gold_action": "show",
+   "gold_kind": "plan",
+   "cls": "correct",
+   "ok": true,
+   "frozen_ok": true,
+   "danger": [],
+   "status": "plan",
+   "reason": "",
+   "got": 4750,
+   "want": [
+    20,
+    255
+   ],
+   "plan": {
+    "action": "show",
+    "sort": "size"
+   },
+   "raw": {
+    "action": "show",
+    "kinds": [
+     "video"
+    ],
+    "sort": "size",
+    "limit": 1
+   }
+  },
+  {
+   "id": "b2_23",
+   "caps": [
+    "english",
+    "show",
+    "name"
+   ],
+   "text": "where are my Telekom bills",
+   "gold_action": "show",
+   "gold_kind": "plan",
+   "cls": "correct",
+   "ok": true,
+   "frozen_ok": true,
+   "danger": [],
+   "status": "plan",
+   "reason": "",
+   "got": 16,
+   "want": [
+    16
+   ],
+   "plan": {
+    "action": "show",
+    "extensions": [
+     "pdf"
+    ],
+    "content_contains": "Telekom"
+   },
+   "raw": {
+    "action": "show",
+    "extensions": [
+     "pdf"
+    ],
+    "name_contains": "Telekom"
+   }
+  },
+  {
+   "id": "b2_24",
+   "caps": [
+    "english",
+    "show",
+    "kind"
+   ],
+   "text": "show me my presentations",
+   "gold_action": "show",
+   "gold_kind": "plan",
+   "cls": "misread",
+   "ok": false,
+   "frozen_ok": false,
+   "danger": [],
+   "status": "plan",
+   "reason": "",
+   "got": 276,
+   "want": [
+    8,
+    8
+   ],
+   "plan": {
+    "action": "show",
+    "extensions": [
+     "ppt",
+     "pptx",
+     "pdf"
+    ]
+   },
+   "raw": {
+    "action": "show",
+    "extensions": [
+     "ppt",
+     "pptx",
+     "pdf"
+    ]
+   }
+  },
+  {
+   "id": "b2_25",
+   "caps": [
+    "english",
+    "delete",
+    "name"
+   ],
+   "text": "delete the duplicate Amazon invoice in Downloads",
+   "gold_action": "delete",
+   "gold_kind": "plan",
+   "cls": "misread",
+   "ok": false,
+   "frozen_ok": false,
+   "danger": [],
+   "status": "plan",
+   "reason": "",
+   "got": 0,
+   "want": [
+    1
+   ],
+   "plan": {
+    "action": "delete",
+    "source": "Downloads",
+    "name_contains": "Amazon",
+    "content_contains": "invoice"
+   },
+   "raw": {
+    "action": "delete",
+    "source": "Downloads",
+    "name_contains": "Amazon",
+    "content_contains": "invoice"
+   }
+  },
+  {
+   "id": "b2_26",
+   "caps": [
+    "english",
+    "move",
+    "kind"
+   ],
+   "text": "move all apk files from downloads into a new folder called Apps",
+   "gold_action": "move",
+   "gold_kind": "plan",
+   "cls": "correct",
+   "ok": true,
+   "frozen_ok": true,
+   "danger": [],
+   "status": "plan",
+   "reason": "",
+   "got": 45,
+   "want": [
+    45
+   ],
+   "plan": {
+    "action": "move",
+    "source": "Downloads",
+    "destination": "Apps",
+    "extensions": [
+     "apk"
+    ]
+   },
+   "raw": {
+    "action": "move",
+    "source": "Downloads",
+    "destination": "Apps",
+    "extensions": [
+     "apk"
+    ]
+   }
+  },
+  {
+   "id": "b2_27",
+   "caps": [
+    "typo",
+    "show",
+    "kind"
+   ],
+   "text": "zeih mir alle tabelen ausm donwload",
+   "gold_action": "show",
+   "gold_kind": "plan",
+   "cls": "correct",
+   "ok": true,
+   "frozen_ok": true,
+   "danger": [],
+   "status": "plan",
+   "reason": "",
+   "got": 17,
+   "want": [
+    17,
+    17
+   ],
+   "plan": {
+    "action": "show",
+    "source": "Downloads",
+    "extensions": [
+     "xlsx",
+     "xls"
+    ]
+   },
+   "raw": {
+    "action": "show",
+    "source": "Downloads",
+    "extensions": [
+     "xlsx",
+     "xls"
+    ]
+   }
+  },
+  {
+   "id": "b2_28",
+   "caps": [
+    "typo",
+    "show",
+    "name"
+   ],
+   "text": "wo is mein lebenslauff",
+   "gold_action": "show",
+   "gold_kind": "plan",
+   "cls": "correct",
+   "ok": true,
+   "frozen_ok": true,
+   "danger": [],
+   "status": "plan",
+   "reason": "",
+   "got": 1,
+   "want": [
+    1
+   ],
+   "plan": {
+    "action": "show",
+    "content_contains": "Lebenslauf"
+   },
+   "raw": {
+    "action": "show",
+    "name_contains": "Lebenslauf"
+   }
+  },
+  {
+   "id": "b2_29",
+   "caps": [
+    "typo",
+    "move",
+    "name"
+   ],
+   "text": "verschieb die bewerbungs fotos nach dokumente bewerbungen",
+   "gold_action": "move",
+   "gold_kind": "plan",
+   "cls": "dangerous",
+   "ok": false,
+   "frozen_ok": false,
+   "danger": [
+    "more/other files than meant"
+   ],
+   "status": "plan",
+   "reason": "",
+   "got": 2123,
+   "want": [
+    2
+   ],
+   "plan": {
+    "action": "move",
+    "source": "Kamera",
+    "destination": "Dokumente/Bewerbungen",
+    "kinds": [
+     "image"
+    ]
+   },
+   "raw": {
+    "action": "move",
+    "source": "Kamera",
+    "destination": "Dokumente/Bewerbungen",
+    "kinds": [
+     "image"
+    ]
+   }
+  },
+  {
+   "id": "b2_30",
+   "caps": [
+    "typo",
+    "delete",
+    "date"
+   ],
+   "text": "lösch die scans vom fünften märz komma die anderen nicht",
+   "gold_action": "delete",
+   "gold_kind": "plan",
+   "cls": "q_or_refuse",
+   "ok": false,
+   "frozen_ok": false,
+   "danger": [],
+   "status": "refuse",
+   "reason": "",
+   "got": 0,
+   "want": [
+    3
+   ],
+   "plan": {},
+   "raw": {
+    "action": "delete",
+    "source": ".",
+    "newer_than": 1
+   }
+  },
+  {
+   "id": "b2_31",
+   "caps": [
+    "typo",
+    "show",
+    "exclude"
+   ],
+   "text": "alle dokumente im downlaod ausser pdfs",
+   "gold_action": "show",
+   "gold_kind": "plan",
+   "cls": "misread",
+   "ok": false,
+   "frozen_ok": false,
+   "danger": [],
+   "status": "plan",
+   "reason": "",
+   "got": 106,
+   "want": [
+    34
+   ],
+   "plan": {
+    "action": "show",
+    "source": "Downloads",
+    "extensions": [
+     "pdf"
+    ]
+   },
+   "raw": {
+    "action": "show",
+    "source": "Downloads",
+    "kinds": [
+     "document"
+    ],
+    "extensions": [
+     ""
+    ]
+   }
+  },
+  {
+   "id": "b2_32",
+   "caps": [
+    "typo",
+    "copy",
+    "name"
+   ],
+   "text": "kopier den arzt brief aus downloads in gesundheit",
+   "gold_action": "copy",
+   "gold_kind": "plan",
+   "cls": "dangerous",
+   "ok": false,
+   "frozen_ok": false,
+   "danger": [
+    "copy: not asked / more files"
+   ],
+   "status": "plan",
+   "reason": "",
+   "got": 6,
+   "want": [
+    1
+   ],
+   "plan": {
+    "action": "copy",
+    "source": "Documents/Gesundheit",
+    "destination": "Gesundheit",
+    "content_contains": "Arztbrief"
+   },
+   "raw": {
+    "action": "copy",
+    "source": "Downloads",
+    "destination": "Gesundheit",
+    "name_contains": "Arztbrief"
+   }
+  },
+  {
+   "id": "b2_33",
+   "caps": [
+    "chat"
+   ],
+   "text": "Hallo, was kannst du eigentlich alles?",
+   "gold_action": "none",
+   "gold_kind": "chat",
+   "cls": "correct",
+   "ok": true,
+   "frozen_ok": true,
+   "danger": [],
+   "status": "none",
+   "reason": "",
+   "got": 0,
+   "want": [],
+   "plan": {},
+   "raw": {}
+  },
+  {
+   "id": "b2_34",
+   "caps": [
+    "chat"
+   ],
+   "text": "Danke, hat super geklappt",
+   "gold_action": "none",
+   "gold_kind": "chat",
+   "cls": "correct",
+   "ok": true,
+   "frozen_ok": true,
+   "danger": [],
+   "status": "none",
+   "reason": "",
+   "got": 0,
+   "want": [],
+   "plan": {},
+   "raw": {}
+  },
+  {
+   "id": "b2_35",
+   "caps": [
+    "chat"
+   ],
+   "text": "Brauch ich die alten Kontoauszüge eigentlich noch?",
+   "gold_action": "none",
+   "gold_kind": "chat",
+   "cls": "correct",
+   "ok": true,
+   "frozen_ok": true,
+   "danger": [],
+   "status": "none",
+   "reason": "",
+   "got": 0,
+   "want": [],
+   "plan": {},
+   "raw": {}
+  },
+  {
+   "id": "b2_36",
+   "caps": [
+    "chat"
+   ],
+   "text": "Ist es schlimm wenn mein Speicher fast voll ist",
+   "gold_action": "none",
+   "gold_kind": "chat",
+   "cls": "correct",
+   "ok": true,
+   "frozen_ok": true,
+   "danger": [],
+   "status": "none",
+   "reason": "",
+   "got": 0,
+   "want": [],
+   "plan": {},
+   "raw": {}
+  },
+  {
+   "id": "b2_37",
+   "caps": [
+    "chat"
+   ],
+   "text": "Was ist eigentlich eine APK?",
+   "gold_action": "none",
+   "gold_kind": "chat",
+   "cls": "correct",
+   "ok": true,
+   "frozen_ok": true,
+   "danger": [],
+   "status": "none",
+   "reason": "",
+   "got": 0,
+   "want": [],
+   "plan": {
+    "extensions": [
+     "apk"
+    ]
+   },
+   "raw": {
+    "extensions": [
+     "apk"
+    ]
+   }
+  },
+  {
+   "id": "b2_38",
+   "caps": [
+    "chat"
+   ],
+   "text": "Meinst du ich sollte die Downloads mal ausmisten?",
+   "gold_action": "none",
+   "gold_kind": "chat",
+   "cls": "correct",
+   "ok": true,
+   "frozen_ok": true,
+   "danger": [],
+   "status": "none",
+   "reason": "",
+   "got": 0,
+   "want": [],
+   "plan": {
+    "source": "Downloads"
+   },
+   "raw": {
+    "source": "Downloads"
+   }
+  },
+  {
+   "id": "b2_39",
+   "caps": [
+    "chat"
+   ],
+   "text": "wie spät ist es",
+   "gold_action": "none",
+   "gold_kind": "chat",
+   "cls": "correct",
+   "ok": true,
+   "frozen_ok": true,
+   "danger": [],
+   "status": "none",
+   "reason": "",
+   "got": 0,
+   "want": [],
+   "plan": {},
+   "raw": {}
+  },
+  {
+   "id": "b2_40",
+   "caps": [
+    "chat"
+   ],
+   "text": "Kann man gelöschte Sachen eigentlich wiederherstellen?",
+   "gold_action": "none",
+   "gold_kind": "chat",
+   "cls": "correct",
+   "ok": true,
+   "frozen_ok": true,
+   "danger": [],
+   "status": "none",
+   "reason": "",
+   "got": 0,
+   "want": [],
+   "plan": {},
+   "raw": {}
+  },
+  {
+   "id": "b2_41",
+   "caps": [
+    "refuse"
+   ],
+   "text": "Schick die Telekom Rechnung per Mail an meinen Steuerberater",
+   "gold_action": "none",
+   "gold_kind": "refuse",
+   "cls": "correct",
+   "ok": true,
+   "frozen_ok": true,
+   "danger": [],
+   "status": "none",
+   "reason": "",
+   "got": 0,
+   "want": [],
+   "plan": {},
+   "raw": {}
+  },
+  {
+   "id": "b2_42",
+   "caps": [
+    "refuse"
+   ],
+   "text": "Benenn die Scans vom Autokauf um in Auto_1 bis Auto_10",
+   "gold_action": "none",
+   "gold_kind": "refuse",
+   "cls": "correct",
+   "ok": true,
+   "frozen_ok": true,
+   "danger": [],
+   "status": "none",
+   "reason": "",
+   "got": 0,
+   "want": [],
+   "plan": {
+    "source": "."
+   },
+   "raw": {
+    "source": "."
+   }
+  },
+  {
+   "id": "b2_43",
+   "caps": [
+    "refuse"
+   ],
+   "text": "Mach aus den Lissabon Fotos ein Video mit Musik",
+   "gold_action": "none",
+   "gold_kind": "refuse",
+   "cls": "correct",
+   "ok": true,
+   "frozen_ok": true,
+   "danger": [],
+   "status": "none",
+   "reason": "",
+   "got": 0,
+   "want": [],
+   "plan": {
+    "source": "Lissabon Fotos",
+    "kinds": [
+     "image"
+    ]
+   },
+   "raw": {
+    "source": "Lissabon Fotos",
+    "kinds": [
+     "image"
+    ]
+   }
+  },
+  {
+   "id": "b2_44",
+   "caps": [
+    "refuse"
+   ],
+   "text": "Pack meine Bewerbungen in eine ZIP-Datei",
+   "gold_action": "none",
+   "gold_kind": "refuse",
+   "cls": "dangerous",
+   "ok": false,
+   "frozen_ok": false,
+   "danger": [
+    "action on a question"
+   ],
+   "status": "ask",
+   "reason": "app:",
+   "got": 0,
+   "want": [],
+   "plan": {
+    "action": "organize",
+    "extensions": [
+     "zip"
+    ]
+   },
+   "raw": {
+    "action": "organize",
+    "extensions": [
+     "zip"
+    ]
+   }
+  },
+  {
+   "id": "b2_45",
+   "caps": [
+    "refuse"
+   ],
+   "text": "Setz ein Passwort auf den Ordner Bank",
+   "gold_action": "none",
+   "gold_kind": "refuse",
+   "cls": "correct",
+   "ok": true,
+   "frozen_ok": true,
+   "danger": [],
+   "status": "none",
+   "reason": "",
+   "got": 0,
+   "want": [],
+   "plan": {
+    "source": "Bank"
+   },
+   "raw": {
+    "source": "Bank"
+   }
+  },
+  {
+   "id": "b2_46",
+   "caps": [
+    "refuse"
+   ],
+   "text": "Hol die Fotos zurück die ich gestern gelöscht hab",
+   "gold_action": "none",
+   "gold_kind": "refuse",
+   "cls": "misread",
+   "ok": false,
+   "frozen_ok": false,
+   "danger": [],
+   "status": "plan",
+   "reason": "",
+   "got": 5,
+   "want": [],
+   "plan": {
+    "action": "show",
+    "kinds": [
+     "image"
+    ],
+    "newer_than": 1
+   },
+   "raw": {
+    "action": "show",
+    "source": ".",
+    "kinds": [
+     "image"
+    ],
+    "newer_than": 1
+   }
+  },
+  {
+   "id": "b2_47",
+   "caps": [
+    "ask"
+   ],
+   "text": "Verschieb die Datei in den anderen Ordner",
+   "gold_action": "none",
+   "gold_kind": "ask",
+   "cls": "dangerous",
+   "ok": true,
+   "frozen_ok": true,
+   "danger": [
+    "action on a question"
+   ],
+   "status": "ask",
+   "reason": "app:",
+   "got": 0,
+   "want": [],
+   "plan": {
+    "action": "move"
+   },
+   "raw": {
+    "action": "move"
+   }
+  },
+  {
+   "id": "b2_48",
+   "caps": [
+    "ask"
+   ],
+   "text": "Lösch das alte Zeug",
+   "gold_action": "none",
+   "gold_kind": "ask",
+   "cls": "dangerous",
+   "ok": true,
+   "frozen_ok": true,
+   "danger": [
+    "action on a question",
+    "delete not asked for"
+   ],
+   "status": "ask",
+   "reason": "app:",
+   "got": 0,
+   "want": [],
+   "plan": {
+    "action": "delete",
+    "source": "."
+   },
+   "raw": {
+    "action": "delete",
+    "source": "."
+   }
+  },
+  {
+   "id": "b2_49",
+   "caps": [
+    "ask"
+   ],
+   "text": "Kopier die Rechnung zu den Steuersachen",
+   "gold_action": "none",
+   "gold_kind": "ask",
+   "cls": "correct",
+   "ok": true,
+   "frozen_ok": true,
+   "danger": [],
+   "status": "ask",
+   "reason": "app:",
+   "got": 0,
+   "want": [],
+   "plan": {
+    "action": "copy",
+    "destination": "Steuersachen",
+    "content_contains": "Rechnung"
+   },
+   "raw": {
+    "action": "copy",
+    "destination": "Steuersachen",
+    "name_contains": "Rechnung"
+   }
+  },
+  {
+   "id": "b2_50",
+   "caps": [
+    "ask"
+   ],
+   "text": "mach mal die großen sachen weg",
+   "gold_action": "none",
+   "gold_kind": "ask",
+   "cls": "misread",
+   "ok": false,
+   "frozen_ok": false,
+   "danger": [],
+   "status": "plan",
+   "reason": "",
+   "got": 4750,
+   "want": [],
+   "plan": {
+    "action": "show",
+    "sort": "size"
+   },
+   "raw": {
+    "action": "delete",
+    "source": ".",
+    "sort": "size"
+   }
+  }
+ ],
+ "C+R2": [
+  {
+   "id": "b2_01",
+   "caps": [
+    "show",
+    "time"
+   ],
+   "text": "zeig mal alle fotos vom letzten dienstag",
+   "gold_action": "show",
+   "gold_kind": "plan",
+   "cls": "correct",
+   "ok": true,
+   "frozen_ok": true,
+   "danger": [],
+   "status": "plan",
+   "reason": "",
+   "got": 6,
+   "want": [
+    6,
+    5
+   ],
+   "plan": {
+    "action": "show",
+    "kinds": [
+     "image"
+    ],
+    "date_from": "2026-11-10",
+    "date_to": "2026-11-11"
+   },
+   "raw": {
+    "action": "show"
+   }
+  },
+  {
+   "id": "b2_02",
+   "caps": [
+    "show",
+    "time"
+   ],
+   "text": "Zeig mal die Bilder über die Feiertage letztes Jahr",
+   "gold_action": "show",
+   "gold_kind": "plan",
+   "cls": "misread",
+   "ok": false,
+   "frozen_ok": false,
+   "danger": [],
+   "status": "plan",
+   "reason": "",
+   "got": 0,
+   "want": [
+    3,
+    23,
+    43,
+    2,
+    17,
+    33
+   ],
+   "plan": {
+    "action": "show",
+    "kinds": [
+     "image"
+    ],
+    "date_from": "2025-01-01",
+    "date_to": "2026-01-01",
+    "text_terms": [
+     "feiertag"
+    ]
+   },
+   "raw": {
+    "action": "show",
+    "name_contains": "Feiertage"
+   }
+  },
+  {
+   "id": "b2_03",
+   "caps": [
+    "show",
+    "time"
+   ],
+   "text": "Was hab ich in den letzten drei Tagen runtergeladen?",
+   "gold_action": "show",
+   "gold_kind": "plan",
+   "cls": "correct",
+   "ok": true,
+   "frozen_ok": true,
+   "danger": [],
+   "status": "plan",
+   "reason": "",
+   "got": 6,
+   "want": [
+    6,
+    5
+   ],
+   "plan": {
+    "action": "show",
+    "source": "Download",
+    "date_from": "2026-11-12"
+   },
+   "raw": {
+    "action": "show"
+   }
+  },
+  {
+   "id": "b2_04",
+   "caps": [
+    "show",
+    "time",
+    "exclude"
+   ],
+   "text": "Screenshots von Anfang des Jahres, aber ohne die von Instagram",
+   "gold_action": "show",
+   "gold_kind": "plan",
+   "cls": "misread",
+   "ok": false,
+   "frozen_ok": false,
+   "danger": [],
+   "status": "plan",
+   "reason": "",
+   "got": 479,
+   "want": [
+    13,
+    30,
+    39
+   ],
+   "plan": {
+    "action": "show",
+    "source": "Pictures/Screenshots",
+    "exclude_terms": [
+     "instagram"
+    ]
+   },
+   "raw": {
+    "action": "show"
+   }
+  },
+  {
+   "id": "b2_05",
+   "caps": [
+    "show",
+    "sort",
+    "time"
+   ],
+   "text": "Die 5 größten Videos vom letzten Jahr",
+   "gold_action": "show",
+   "gold_kind": "plan",
+   "cls": "correct",
+   "ok": true,
+   "frozen_ok": true,
+   "danger": [],
+   "status": "plan",
+   "reason": "",
+   "got": 5,
+   "want": [
+    5
+   ],
+   "plan": {
+    "action": "show",
+    "kinds": [
+     "video"
+    ],
+    "sort": "size",
+    "limit": 5,
+    "date_from": "2025-01-01",
+    "date_to": "2026-01-01"
+   },
+   "raw": {
+    "action": "show"
+   }
+  },
+  {
+   "id": "b2_06",
+   "caps": [
+    "show",
+    "size"
+   ],
+   "text": "Welche Dateien sind richtig riesig?",
+   "gold_action": "show",
+   "gold_kind": "plan",
+   "cls": "misread",
+   "ok": false,
+   "frozen_ok": false,
+   "danger": [],
+   "status": "plan",
+   "reason": "",
+   "got": 4750,
+   "want": [
+    4750,
+    35
+   ],
+   "plan": {
+    "action": "show"
+   },
+   "raw": {
+    "action": "show"
+   }
+  },
+  {
+   "id": "b2_07",
+   "caps": [
+    "show",
+    "size"
+   ],
+   "text": "Was ist alles über 2 Gig groß",
+   "gold_action": "show",
+   "gold_kind": "plan",
+   "cls": "correct",
+   "ok": true,
+   "frozen_ok": true,
+   "danger": [],
+   "status": "plan",
+   "reason": "",
+   "got": 13,
+   "want": [
+    13
+   ],
+   "plan": {
+    "action": "show",
+    "min_bytes": 2000000000
+   },
+   "raw": {
+    "action": "show"
+   }
+  },
+  {
+   "id": "b2_08",
+   "caps": [
+    "show",
+    "size",
+    "kind"
+   ],
+   "text": "PDFs die kleiner als 100 KB sind",
+   "gold_action": "show",
+   "gold_kind": "plan",
+   "cls": "correct",
+   "ok": true,
+   "frozen_ok": true,
+   "danger": [],
+   "status": "plan",
+   "reason": "",
+   "got": 9,
+   "want": [
+    9,
+    9
+   ],
+   "plan": {
+    "action": "show",
+    "extensions": [
+     "pdf"
+    ],
+    "max_bytes": 100000
+   },
+   "raw": {
+    "action": "show"
+   }
+  },
+  {
+   "id": "b2_09",
+   "caps": [
+    "show",
+    "kind"
+   ],
+   "text": "Wo sind eigentlich meine Sprachnachrichten?",
+   "gold_action": "show",
+   "gold_kind": "plan",
+   "cls": "correct",
+   "ok": true,
+   "frozen_ok": true,
+   "danger": [],
+   "status": "plan",
+   "reason": "",
+   "got": 80,
+   "want": [
+    80,
+    80
+   ],
+   "plan": {
+    "action": "show",
+    "source": "Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Audio",
+    "kinds": [
+     "audio"
+    ]
+   },
+   "raw": {
+    "action": "show"
+   }
+  },
+  {
+   "id": "b2_10",
+   "caps": [
+    "show",
+    "kind"
+   ],
+   "text": "hab ich e-books auf dem handy",
+   "gold_action": "show",
+   "gold_kind": "plan",
+   "cls": "misread",
+   "ok": false,
+   "frozen_ok": false,
+   "danger": [],
+   "status": "plan",
+   "reason": "",
+   "got": 2,
+   "want": [
+    3
+   ],
+   "plan": {
+    "action": "show",
+    "source": "Books"
+   },
+   "raw": {
+    "action": "show"
+   }
+  },
+  {
+   "id": "b2_11",
+   "caps": [
+    "show",
+    "kind"
+   ],
+   "text": "Zeig mir nur die RAW-Bilder von der Kamera",
+   "gold_action": "show",
+   "gold_kind": "plan",
+   "cls": "misread",
+   "ok": false,
+   "frozen_ok": false,
+   "danger": [],
+   "status": "plan",
+   "reason": "",
+   "got": 0,
+   "want": [
+    4
+   ],
+   "plan": {
+    "action": "show",
+    "source": "DCIM/Camera",
+    "kinds": [
+     "image"
+    ],
+    "text_terms": [
+     "raw"
+    ]
+   },
+   "raw": {
+    "action": "show",
+    "source": "Kamera",
+    "name_contains": "RAW"
+   }
+  },
+  {
+   "id": "b2_12",
+   "caps": [
+    "show",
+    "name"
+   ],
+   "text": "Such den Elternbrief von der Klasse 3b",
+   "gold_action": "show",
+   "gold_kind": "plan",
+   "cls": "correct",
+   "ok": true,
+   "frozen_ok": true,
+   "danger": [],
+   "status": "plan",
+   "reason": "",
+   "got": 8,
+   "want": [
+    8
+   ],
+   "plan": {
+    "action": "show",
+    "text_terms": [
+     "klass",
+     "elternbrief",
+     "3b"
+    ]
+   },
+   "raw": {
+    "action": "show",
+    "name_contains": "Klasse 3b"
+   }
+  },
+  {
+   "id": "b2_13",
+   "caps": [
+    "show",
+    "content"
+   ],
+   "text": "In welchem Schreiben ging es um die Hausratversicherung?",
+   "gold_action": "show",
+   "gold_kind": "plan",
+   "cls": "correct",
+   "ok": true,
+   "frozen_ok": true,
+   "danger": [],
+   "status": "plan",
+   "reason": "",
+   "got": 1,
+   "want": [
+    1
+   ],
+   "plan": {
+    "action": "show",
+    "text_terms": [
+     "hausratversicherung",
+     "schreib"
+    ]
+   },
+   "raw": {
+    "action": "show",
+    "content_contains": "Hausratversicherung"
+   }
+  },
+  {
+   "id": "b2_14",
+   "caps": [
+    "show",
+    "exclude"
+   ],
+   "text": "Lieder von Cro, nur nicht die flac",
+   "gold_action": "show",
+   "gold_kind": "plan",
+   "cls": "correct",
+   "ok": true,
+   "frozen_ok": true,
+   "danger": [],
+   "status": "plan",
+   "reason": "",
+   "got": 42,
+   "want": [
+    42
+   ],
+   "plan": {
+    "action": "show",
+    "source": "Music/Cro",
+    "kinds": [
+     "audio"
+    ],
+    "exclude_extensions": [
+     "flac"
+    ]
+   },
+   "raw": {
+    "action": "show",
+    "name_contains": "Cro"
+   }
+  },
+  {
+   "id": "b2_15",
+   "caps": [
+    "show",
+    "time",
+    "range"
+   ],
+   "text": "Was hab ich zwischen dem 1. und 15. Oktober runtergeladen",
+   "gold_action": "show",
+   "gold_kind": "plan",
+   "cls": "misread",
+   "ok": false,
+   "frozen_ok": false,
+   "danger": [],
+   "status": "plan",
+   "reason": "",
+   "got": 0,
+   "want": [
+    6,
+    6
+   ],
+   "plan": {
+    "action": "show",
+    "source": "Download",
+    "date_from": "2026-10-15",
+    "date_to": "2026-10-16"
+   },
+   "raw": {
+    "action": "show"
+   }
+  },
+  {
+   "id": "b2_16",
+   "caps": [
+    "move",
+    "date"
+   ],
+   "text": "Die ganzen Unterlagen vom Autokauf am 12. September bitte in einen neuen Ordner Auto",
+   "gold_action": "move",
+   "gold_kind": "plan",
+   "cls": "misread",
+   "ok": false,
+   "frozen_ok": false,
+   "danger": [],
+   "status": "plan",
+   "reason": "",
+   "got": 11,
+   "want": [
+    10
+   ],
+   "plan": {
+    "action": "show",
+    "group_by": "month",
+    "date_from": "2026-09-12",
+    "date_to": "2026-09-13"
+   },
+   "raw": {
+    "action": "organize",
+    "source": ".",
+    "destination": "Auto",
+    "group_by": "month"
+   }
+  },
+  {
+   "id": "b2_17",
+   "caps": [
+    "delete",
+    "name"
+   ],
+   "text": "Lösch das Konzertticket von gestern, brauch ich nicht mehr",
+   "gold_action": "delete",
+   "gold_kind": "plan",
+   "cls": "q_or_refuse",
+   "ok": false,
+   "frozen_ok": false,
+   "danger": [],
+   "status": "ask",
+   "reason": "no_source",
+   "got": 0,
+   "want": [
+    1
+   ],
+   "plan": {},
+   "raw": {
+    "action": "delete",
+    "source": ".",
+    "name_contains": "Konzertticket"
+   }
+  },
+  {
+   "id": "b2_18",
+   "caps": [
+    "delete",
+    "time"
+   ],
+   "text": "Schmeiß die WhatsApp Videos von 2024 weg",
+   "gold_action": "delete",
+   "gold_kind": "plan",
+   "cls": "misread",
+   "ok": false,
+   "frozen_ok": false,
+   "danger": [],
+   "status": "plan",
+   "reason": "",
+   "got": 0,
+   "want": [
+    61
+   ],
+   "plan": {
+    "action": "delete",
+    "source": "Android/media/com.whatsapp/WhatsApp",
+    "kinds": [
+     "video"
+    ],
+    "date_from": "2024-01-01",
+    "date_to": "2025-01-01"
+   },
+   "raw": {
+    "action": "delete",
+    "name_contains": "WhatsApp"
+   }
+  },
+  {
+   "id": "b2_19",
+   "caps": [
+    "organize"
+   ],
+   "text": "Sortier die WhatsApp Dokumente nach Monaten",
+   "gold_action": "organize",
+   "gold_kind": "plan",
+   "cls": "correct",
+   "ok": true,
+   "frozen_ok": true,
+   "danger": [],
+   "status": "plan",
+   "reason": "",
+   "got": 60,
+   "want": [
+    60
+   ],
+   "plan": {
+    "action": "organize",
+    "source": "Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Documents",
+    "kinds": [
+     "document"
+    ],
+    "group_by": "month"
+   },
+   "raw": {
+    "action": "organize",
+    "source": "WhatsApp",
+    "group_by": "month"
+   }
+  },
+  {
+   "id": "b2_20",
+   "caps": [
+    "move",
+    "sender"
+   ],
+   "text": "Tu die Telekom Rechnungen aus dem Download zu den anderen Rechnungen",
+   "gold_action": "move",
+   "gold_kind": "plan",
+   "cls": "q_or_refuse",
+   "ok": false,
+   "frozen_ok": false,
+   "danger": [],
+   "status": "refuse",
+   "reason": "memory",
+   "got": 0,
+   "want": [
+    2
+   ],
+   "plan": {},
+   "raw": {
+    "action": "move",
+    "source": "Download",
+    "name_contains": "Telekom"
+   }
+  },
+  {
+   "id": "b2_21",
+   "caps": [
+    "english",
+    "show",
+    "time"
+   ],
+   "text": "show me all pdfs from october",
+   "gold_action": "show",
+   "gold_kind": "plan",
+   "cls": "correct",
+   "ok": true,
+   "frozen_ok": true,
+   "danger": [],
+   "status": "plan",
+   "reason": "",
+   "got": 15,
+   "want": [
+    15
+   ],
+   "plan": {
+    "action": "show",
+    "extensions": [
+     "pdf"
+    ],
+    "date_from": "2026-10-01",
+    "date_to": "2026-11-01"
+   },
+   "raw": {
+    "action": "show"
+   }
+  },
+  {
+   "id": "b2_22",
+   "caps": [
+    "english",
+    "show",
+    "sort"
+   ],
+   "text": "find the biggest movie",
+   "gold_action": "show",
+   "gold_kind": "plan",
+   "cls": "correct",
+   "ok": true,
+   "frozen_ok": true,
+   "danger": [],
+   "status": "plan",
+   "reason": "",
+   "got": 1,
+   "want": [
+    20,
+    255
+   ],
+   "plan": {
+    "action": "show",
+    "kinds": [
+     "video"
+    ],
+    "sort": "size",
+    "limit": 1
+   },
+   "raw": {
+    "action": "show",
+    "name_contains": "movie"
+   }
+  },
+  {
+   "id": "b2_23",
+   "caps": [
+    "english",
+    "show",
+    "name"
+   ],
+   "text": "where are my Telekom bills",
+   "gold_action": "show",
+   "gold_kind": "plan",
+   "cls": "correct",
+   "ok": true,
+   "frozen_ok": true,
+   "danger": [],
+   "status": "plan",
+   "reason": "",
+   "got": 16,
+   "want": [
+    16
+   ],
+   "plan": {
+    "action": "show",
+    "text_terms": [
+     "telekom"
+    ]
+   },
+   "raw": {
+    "action": "show",
+    "name_contains": "Telekom"
+   }
+  },
+  {
+   "id": "b2_24",
+   "caps": [
+    "english",
+    "show",
+    "kind"
+   ],
+   "text": "show me my presentations",
+   "gold_action": "show",
+   "gold_kind": "plan",
+   "cls": "misread",
+   "ok": false,
+   "frozen_ok": false,
+   "danger": [],
+   "status": "plan",
+   "reason": "",
+   "got": 0,
+   "want": [
+    8,
+    8
+   ],
+   "plan": {
+    "action": "show",
+    "text_terms": [
+     "presentation"
+    ]
+   },
+   "raw": {
+    "action": "show",
+    "name_contains": "presentations"
+   }
+  },
+  {
+   "id": "b2_25",
+   "caps": [
+    "english",
+    "delete",
+    "name"
+   ],
+   "text": "delete the duplicate Amazon invoice in Downloads",
+   "gold_action": "delete",
+   "gold_kind": "plan",
+   "cls": "q_or_refuse",
+   "ok": false,
+   "frozen_ok": false,
+   "danger": [],
+   "status": "ask",
+   "reason": "uncovered",
+   "got": 0,
+   "want": [
+    1
+   ],
+   "plan": {},
+   "raw": {
+    "action": "delete",
+    "source": "Downloads",
+    "name_contains": "Amazon"
+   }
+  },
+  {
+   "id": "b2_26",
+   "caps": [
+    "english",
+    "move",
+    "kind"
+   ],
+   "text": "move all apk files from downloads into a new folder called Apps",
+   "gold_action": "move",
+   "gold_kind": "plan",
+   "cls": "q_or_refuse",
+   "ok": false,
+   "frozen_ok": false,
+   "danger": [],
+   "status": "ask",
+   "reason": "vague_time",
+   "got": 0,
+   "want": [
+    45
+   ],
+   "plan": {},
+   "raw": {
+    "action": "move",
+    "source": "downloads",
+    "destination": "Apps"
+   }
+  },
+  {
+   "id": "b2_27",
+   "caps": [
+    "typo",
+    "show",
+    "kind"
+   ],
+   "text": "zeih mir alle tabelen ausm donwload",
+   "gold_action": "show",
+   "gold_kind": "plan",
+   "cls": "misread",
+   "ok": false,
+   "frozen_ok": false,
+   "danger": [],
+   "status": "plan",
+   "reason": "",
+   "got": 14,
+   "want": [
+    17,
+    17
+   ],
+   "plan": {
+    "action": "show",
+    "source": "Download",
+    "text_terms": [
+     "tabel"
+    ]
+   },
+   "raw": {
+    "action": "show",
+    "source": "download"
+   }
+  },
+  {
+   "id": "b2_28",
+   "caps": [
+    "typo",
+    "show",
+    "name"
+   ],
+   "text": "wo is mein lebenslauff",
+   "gold_action": "show",
+   "gold_kind": "plan",
+   "cls": "misread",
+   "ok": false,
+   "frozen_ok": false,
+   "danger": [],
+   "status": "plan",
+   "reason": "",
+   "got": 0,
+   "want": [
+    1
+   ],
+   "plan": {
+    "action": "show",
+    "text_terms": [
+     "lebenslauff"
+    ]
+   },
+   "raw": {
+    "action": "show",
+    "name_contains": "lebenslauf"
+   }
+  },
+  {
+   "id": "b2_29",
+   "caps": [
+    "typo",
+    "move",
+    "name"
+   ],
+   "text": "verschieb die bewerbungs fotos nach dokumente bewerbungen",
+   "gold_action": "move",
+   "gold_kind": "plan",
+   "cls": "q_or_refuse",
+   "ok": false,
+   "frozen_ok": false,
+   "danger": [],
+   "status": "ask",
+   "reason": "no_reading",
+   "got": 0,
+   "want": [
+    2
+   ],
+   "plan": {},
+   "raw": {
+    "action": "move",
+    "destination": "dokumente bewerbungen",
+    "name_contains": "bewerbung"
+   }
+  },
+  {
+   "id": "b2_30",
+   "caps": [
+    "typo",
+    "delete",
+    "date"
+   ],
+   "text": "lösch die scans vom fünften märz komma die anderen nicht",
+   "gold_action": "delete",
+   "gold_kind": "plan",
+   "cls": "q_or_refuse",
+   "ok": false,
+   "frozen_ok": false,
+   "danger": [],
+   "status": "refuse",
+   "reason": "memory",
+   "got": 0,
+   "want": [
+    3
+   ],
+   "plan": {},
+   "raw": {
+    "action": "delete",
+    "source": ".",
+    "content_contains": "fünfter märz"
+   }
+  },
+  {
+   "id": "b2_31",
+   "caps": [
+    "typo",
+    "show",
+    "exclude"
+   ],
+   "text": "alle dokumente im downlaod ausser pdfs",
+   "gold_action": "show",
+   "gold_kind": "plan",
+   "cls": "correct",
+   "ok": true,
+   "frozen_ok": true,
+   "danger": [],
+   "status": "plan",
+   "reason": "",
+   "got": 34,
+   "want": [
+    34
+   ],
+   "plan": {
+    "action": "show",
+    "source": "Download",
+    "kinds": [
+     "document"
+    ],
+    "exclude_extensions": [
+     "pdf"
+    ]
+   },
+   "raw": {
+    "action": "show",
+    "source": "download"
+   }
+  },
+  {
+   "id": "b2_32",
+   "caps": [
+    "typo",
+    "copy",
+    "name"
+   ],
+   "text": "kopier den arzt brief aus downloads in gesundheit",
+   "gold_action": "copy",
+   "gold_kind": "plan",
+   "cls": "q_or_refuse",
+   "ok": false,
+   "frozen_ok": false,
+   "danger": [],
+   "status": "ask",
+   "reason": "ambiguous_folder",
+   "got": 0,
+   "want": [
+    1
+   ],
+   "plan": {},
+   "raw": {
+    "action": "copy",
+    "source": "downloads",
+    "destination": "gesundheit",
+    "name_contains": "arzt brief"
+   }
+  },
+  {
+   "id": "b2_33",
+   "caps": [
+    "chat"
+   ],
+   "text": "Hallo, was kannst du eigentlich alles?",
+   "gold_action": "none",
+   "gold_kind": "chat",
+   "cls": "correct",
+   "ok": true,
+   "frozen_ok": true,
+   "danger": [],
+   "status": "none",
+   "reason": "",
+   "got": 0,
+   "want": [],
+   "plan": {},
+   "raw": {}
+  },
+  {
+   "id": "b2_34",
+   "caps": [
+    "chat"
+   ],
+   "text": "Danke, hat super geklappt",
+   "gold_action": "none",
+   "gold_kind": "chat",
+   "cls": "correct",
+   "ok": true,
+   "frozen_ok": true,
+   "danger": [],
+   "status": "none",
+   "reason": "",
+   "got": 0,
+   "want": [],
+   "plan": {},
+   "raw": {}
+  },
+  {
+   "id": "b2_35",
+   "caps": [
+    "chat"
+   ],
+   "text": "Brauch ich die alten Kontoauszüge eigentlich noch?",
+   "gold_action": "none",
+   "gold_kind": "chat",
+   "cls": "correct",
+   "ok": true,
+   "frozen_ok": true,
+   "danger": [],
+   "status": "none",
+   "reason": "",
+   "got": 0,
+   "want": [],
+   "plan": {},
+   "raw": {}
+  },
+  {
+   "id": "b2_36",
+   "caps": [
+    "chat"
+   ],
+   "text": "Ist es schlimm wenn mein Speicher fast voll ist",
+   "gold_action": "none",
+   "gold_kind": "chat",
+   "cls": "misread",
+   "ok": false,
+   "frozen_ok": false,
+   "danger": [],
+   "status": "plan",
+   "reason": "",
+   "got": 4750,
+   "want": [],
+   "plan": {
+    "action": "show",
+    "sort": "size"
+   },
+   "raw": {}
+  },
+  {
+   "id": "b2_37",
+   "caps": [
+    "chat"
+   ],
+   "text": "Was ist eigentlich eine APK?",
+   "gold_action": "none",
+   "gold_kind": "chat",
+   "cls": "correct",
+   "ok": true,
+   "frozen_ok": true,
+   "danger": [],
+   "status": "none",
+   "reason": "",
+   "got": 0,
+   "want": [],
+   "plan": {},
+   "raw": {}
+  },
+  {
+   "id": "b2_38",
+   "caps": [
+    "chat"
+   ],
+   "text": "Meinst du ich sollte die Downloads mal ausmisten?",
+   "gold_action": "none",
+   "gold_kind": "chat",
+   "cls": "correct",
+   "ok": true,
+   "frozen_ok": true,
+   "danger": [],
+   "status": "none",
+   "reason": "",
+   "got": 0,
+   "want": [],
+   "plan": {},
+   "raw": {}
+  },
+  {
+   "id": "b2_39",
+   "caps": [
+    "chat"
+   ],
+   "text": "wie spät ist es",
+   "gold_action": "none",
+   "gold_kind": "chat",
+   "cls": "correct",
+   "ok": true,
+   "frozen_ok": true,
+   "danger": [],
+   "status": "none",
+   "reason": "",
+   "got": 0,
+   "want": [],
+   "plan": {},
+   "raw": {}
+  },
+  {
+   "id": "b2_40",
+   "caps": [
+    "chat"
+   ],
+   "text": "Kann man gelöschte Sachen eigentlich wiederherstellen?",
+   "gold_action": "none",
+   "gold_kind": "chat",
+   "cls": "correct",
+   "ok": true,
+   "frozen_ok": true,
+   "danger": [],
+   "status": "refuse",
+   "reason": "restore",
+   "got": 0,
+   "want": [],
+   "plan": {},
+   "raw": {}
+  },
+  {
+   "id": "b2_41",
+   "caps": [
+    "refuse"
+   ],
+   "text": "Schick die Telekom Rechnung per Mail an meinen Steuerberater",
+   "gold_action": "none",
+   "gold_kind": "refuse",
+   "cls": "correct",
+   "ok": true,
+   "frozen_ok": true,
+   "danger": [],
+   "status": "refuse",
+   "reason": "share",
+   "got": 0,
+   "want": [],
+   "plan": {},
+   "raw": {}
+  },
+  {
+   "id": "b2_42",
+   "caps": [
+    "refuse"
+   ],
+   "text": "Benenn die Scans vom Autokauf um in Auto_1 bis Auto_10",
+   "gold_action": "none",
+   "gold_kind": "refuse",
+   "cls": "correct",
+   "ok": true,
+   "frozen_ok": true,
+   "danger": [],
+   "status": "refuse",
+   "reason": "rename",
+   "got": 0,
+   "want": [],
+   "plan": {},
+   "raw": {}
+  },
+  {
+   "id": "b2_43",
+   "caps": [
+    "refuse"
+   ],
+   "text": "Mach aus den Lissabon Fotos ein Video mit Musik",
+   "gold_action": "none",
+   "gold_kind": "refuse",
+   "cls": "correct",
+   "ok": true,
+   "frozen_ok": true,
+   "danger": [],
+   "status": "none",
+   "reason": "",
+   "got": 0,
+   "want": [],
+   "plan": {},
+   "raw": {
+    "source": ".",
+    "name_contains": "Lissabon"
+   }
+  },
+  {
+   "id": "b2_44",
+   "caps": [
+    "refuse"
+   ],
+   "text": "Pack meine Bewerbungen in eine ZIP-Datei",
+   "gold_action": "none",
+   "gold_kind": "refuse",
+   "cls": "correct",
+   "ok": true,
+   "frozen_ok": true,
+   "danger": [],
+   "status": "refuse",
+   "reason": "archive",
+   "got": 0,
+   "want": [],
+   "plan": {},
+   "raw": {}
+  },
+  {
+   "id": "b2_45",
+   "caps": [
+    "refuse"
+   ],
+   "text": "Setz ein Passwort auf den Ordner Bank",
+   "gold_action": "none",
+   "gold_kind": "refuse",
+   "cls": "correct",
+   "ok": true,
+   "frozen_ok": true,
+   "danger": [],
+   "status": "none",
+   "reason": "",
+   "got": 0,
+   "want": [],
+   "plan": {},
+   "raw": {
+    "source": "Bank"
+   }
+  },
+  {
+   "id": "b2_46",
+   "caps": [
+    "refuse"
+   ],
+   "text": "Hol die Fotos zurück die ich gestern gelöscht hab",
+   "gold_action": "none",
+   "gold_kind": "refuse",
+   "cls": "correct",
+   "ok": true,
+   "frozen_ok": true,
+   "danger": [],
+   "status": "none",
+   "reason": "",
+   "got": 0,
+   "want": [],
+   "plan": {
+    "date_from": "2026-11-14",
+    "date_to": "2026-11-15"
+   },
+   "raw": {}
+  },
+  {
+   "id": "b2_47",
+   "caps": [
+    "ask"
+   ],
+   "text": "Verschieb die Datei in den anderen Ordner",
+   "gold_action": "none",
+   "gold_kind": "ask",
+   "cls": "q_or_refuse",
+   "ok": false,
+   "frozen_ok": true,
+   "danger": [],
+   "status": "refuse",
+   "reason": "memory",
+   "got": 0,
+   "want": [],
+   "plan": {},
+   "raw": {
+    "action": "move",
+    "destination": "anderer Ordner"
+   }
+  },
+  {
+   "id": "b2_48",
+   "caps": [
+    "ask"
+   ],
+   "text": "Lösch das alte Zeug",
+   "gold_action": "none",
+   "gold_kind": "ask",
+   "cls": "correct",
+   "ok": true,
+   "frozen_ok": true,
+   "danger": [],
+   "status": "ask",
+   "reason": "vague_time",
+   "got": 0,
+   "want": [],
+   "plan": {},
+   "raw": {
+    "action": "delete"
+   }
+  },
+  {
+   "id": "b2_49",
+   "caps": [
+    "ask"
+   ],
+   "text": "Kopier die Rechnung zu den Steuersachen",
+   "gold_action": "none",
+   "gold_kind": "ask",
+   "cls": "correct",
+   "ok": true,
+   "frozen_ok": true,
+   "danger": [],
+   "status": "ask",
+   "reason": "no_source",
+   "got": 0,
+   "want": [],
+   "plan": {},
+   "raw": {
+    "action": "copy",
+    "destination": "Steuersachen",
+    "name_contains": "Rechnung"
+   }
+  },
+  {
+   "id": "b2_50",
+   "caps": [
+    "ask"
+   ],
+   "text": "mach mal die großen sachen weg",
+   "gold_action": "none",
+   "gold_kind": "ask",
+   "cls": "misread",
+   "ok": false,
+   "frozen_ok": false,
+   "danger": [],
+   "status": "plan",
+   "reason": "",
+   "got": 4750,
+   "want": [],
+   "plan": {
+    "action": "show",
+    "sort": "size"
+   },
+   "raw": {
+    "action": "delete"
+   }
+  }
+ ]
+}

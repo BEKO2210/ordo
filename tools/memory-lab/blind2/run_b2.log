@@ -1,0 +1,150 @@
+C b2_01 zeig mal alle fotos vom letzten dienstag -> {'action': 'show'}
+C b2_02 Zeig mal die Bilder über die Feiertage letztes Jah -> {'action': 'show', 'name_contains': 'Feiertage'}
+C b2_03 Was hab ich in den letzten drei Tagen runtergelade -> {'action': 'show'}
+C b2_04 Screenshots von Anfang des Jahres, aber ohne die v -> {'action': 'show'}
+C b2_05 Die 5 größten Videos vom letzten Jahr -> {'action': 'show'}
+C b2_06 Welche Dateien sind richtig riesig? -> {'action': 'show'}
+C b2_07 Was ist alles über 2 Gig groß -> {'action': 'show'}
+C b2_08 PDFs die kleiner als 100 KB sind -> {'action': 'show'}
+C b2_09 Wo sind eigentlich meine Sprachnachrichten? -> {'action': 'show'}
+C b2_10 hab ich e-books auf dem handy -> {'action': 'show'}
+C b2_11 Zeig mir nur die RAW-Bilder von der Kamera -> {'action': 'show', 'source': 'Kamera', 'name_contains': 'RAW'}
+C b2_12 Such den Elternbrief von der Klasse 3b -> {'action': 'show', 'name_contains': 'Klasse 3b'}
+C b2_13 In welchem Schreiben ging es um die Hausratversich -> {'action': 'show', 'content_contains': 'Hausratversicherung'}
+C b2_14 Lieder von Cro, nur nicht die flac -> {'action': 'show', 'name_contains': 'Cro'}
+C b2_15 Was hab ich zwischen dem 1. und 15. Oktober runter -> {'action': 'show'}
+C b2_16 Die ganzen Unterlagen vom Autokauf am 12. Septembe -> {'action': 'organize', 'source': '.', 'destination': 'Auto', 'group_by': 'month'}
+C b2_17 Lösch das Konzertticket von gestern, brauch ich ni -> {'action': 'delete', 'source': '.', 'name_contains': 'Konzertticket'}
+C b2_18 Schmeiß die WhatsApp Videos von 2024 weg -> {'action': 'delete', 'name_contains': 'WhatsApp'}
+C b2_19 Sortier die WhatsApp Dokumente nach Monaten -> {'action': 'organize', 'source': 'WhatsApp', 'group_by': 'month'}
+C b2_20 Tu die Telekom Rechnungen aus dem Download zu den  -> {'action': 'move', 'source': 'Download', 'name_contains': 'Telekom'}
+C b2_21 show me all pdfs from october -> {'action': 'show'}
+C b2_22 find the biggest movie -> {'action': 'show', 'name_contains': 'movie'}
+C b2_23 where are my Telekom bills -> {'action': 'show', 'name_contains': 'Telekom'}
+C b2_24 show me my presentations -> {'action': 'show', 'name_contains': 'presentations'}
+C b2_25 delete the duplicate Amazon invoice in Downloads -> {'action': 'delete', 'source': 'Downloads', 'name_contains': 'Amazon'}
+C b2_26 move all apk files from downloads into a new folde -> {'action': 'move', 'source': 'downloads', 'destination': 'Apps'}
+C b2_27 zeih mir alle tabelen ausm donwload -> {'action': 'show', 'source': 'download'}
+C b2_28 wo is mein lebenslauff -> {'action': 'show', 'name_contains': 'lebenslauf'}
+C b2_29 verschieb die bewerbungs fotos nach dokumente bewe -> {'action': 'move', 'destination': 'dokumente bewerbungen', 'name_contains': 'bewerbung'}
+C b2_30 lösch die scans vom fünften märz komma die anderen -> {'action': 'delete', 'source': '.', 'content_contains': 'fünfter märz'}
+C b2_31 alle dokumente im downlaod ausser pdfs -> {'action': 'show', 'source': 'download'}
+C b2_32 kopier den arzt brief aus downloads in gesundheit -> {'action': 'copy', 'source': 'downloads', 'destination': 'gesundheit', 'name_contains': 'arzt brief'}
+C b2_33 Hallo, was kannst du eigentlich alles? -> {}
+C b2_34 Danke, hat super geklappt -> {}
+C b2_35 Brauch ich die alten Kontoauszüge eigentlich noch? -> {}
+C b2_36 Ist es schlimm wenn mein Speicher fast voll ist -> {}
+C b2_37 Was ist eigentlich eine APK? -> {}
+C b2_38 Meinst du ich sollte die Downloads mal ausmisten? -> {}
+C b2_39 wie spät ist es -> {}
+C b2_40 Kann man gelöschte Sachen eigentlich wiederherstel -> {}
+C b2_41 Schick die Telekom Rechnung per Mail an meinen Ste -> {}
+C b2_42 Benenn die Scans vom Autokauf um in Auto_1 bis Aut -> {}
+C b2_43 Mach aus den Lissabon Fotos ein Video mit Musik -> {'source': '.', 'name_contains': 'Lissabon'}
+C b2_44 Pack meine Bewerbungen in eine ZIP-Datei -> {}
+C b2_45 Setz ein Passwort auf den Ordner Bank -> {'source': 'Bank'}
+C b2_46 Hol die Fotos zurück die ich gestern gelöscht hab -> {}
+C b2_47 Verschieb die Datei in den anderen Ordner -> {'action': 'move', 'destination': 'anderer Ordner'}
+C b2_48 Lösch das alte Zeug -> {'action': 'delete'}
+C b2_49 Kopier die Rechnung zu den Steuersachen -> {'action': 'copy', 'destination': 'Steuersachen', 'name_contains': 'Rechnung'}
+C b2_50 mach mal die großen sachen weg -> {'action': 'delete'}
+A b2_01 zeig mal alle fotos vom letzten dienstag -> {'source': '.', 'kinds': ['image']}
+A b2_02 Zeig mal die Bilder über die Feiertage letztes Jah -> {'source': '.', 'kinds': ['image']}
+A b2_03 Was hab ich in den letzten drei Tagen runtergelade -> {'older_than': 3}
+A b2_04 Screenshots von Anfang des Jahres, aber ohne die v -> {'action': 'organize', 'source': '.', 'kinds': ['image'], 'group_by': 'month'}
+A b2_05 Die 5 größten Videos vom letzten Jahr -> {'action': 'organize', 'source': '.', 'kinds': ['video'], 'older_than': 365, 'group_by': 'type'}
+A b2_06 Welche Dateien sind richtig riesig? -> {}
+A b2_07 Was ist alles über 2 Gig groß -> {'larger_than': 2, 'size_unit': 'gb'}
+A b2_08 PDFs die kleiner als 100 KB sind -> {'extensions': ['pdf']}
+A b2_09 Wo sind eigentlich meine Sprachnachrichten? -> {}
+A b2_10 hab ich e-books auf dem handy -> {}
+A b2_11 Zeig mir nur die RAW-Bilder von der Kamera -> {'source': '.', 'kinds': ['image'], 'extensions': ['raw']}
+A b2_12 Such den Elternbrief von der Klasse 3b -> {}
+A b2_13 In welchem Schreiben ging es um die Hausratversich -> {}
+A b2_14 Lieder von Cro, nur nicht die flac -> {'kinds': ['audio'], 'extensions': ['mp3']}
+A b2_15 Was hab ich zwischen dem 1. und 15. Oktober runter -> {}
+A b2_16 Die ganzen Unterlagen vom Autokauf am 12. Septembe -> {'action': 'organize', 'source': '.', 'destination': 'Auto', 'group_by': 'month'}
+A b2_17 Lösch das Konzertticket von gestern, brauch ich ni -> {'action': 'delete', 'source': '.', 'extensions': ['ticket'], 'older_than': 1}
+A b2_18 Schmeiß die WhatsApp Videos von 2024 weg -> {'action': 'delete', 'source': '.', 'kinds': ['video'], 'name_contains': '2024'}
+A b2_19 Sortier die WhatsApp Dokumente nach Monaten -> {'action': 'organize', 'source': 'WhatsApp', 'group_by': 'month'}
+A b2_20 Tu die Telekom Rechnungen aus dem Download zu den  -> {'action': 'move', 'source': 'Download', 'destination': 'andere Rechnungen'}
+A b2_21 show me all pdfs from october -> {'source': '.', 'extensions': ['pdf']}
+A b2_22 find the biggest movie -> {'kinds': ['video']}
+A b2_23 where are my Telekom bills -> {}
+A b2_24 show me my presentations -> {}
+A b2_25 delete the duplicate Amazon invoice in Downloads -> {'action': 'delete', 'source': 'Downloads', 'name_contains': 'Amazon'}
+A b2_26 move all apk files from downloads into a new folde -> {'action': 'move', 'source': 'downloads', 'destination': 'Apps', 'extensions': ['apk']}
+A b2_27 zeih mir alle tabelen ausm donwload -> {'action': 'organize', 'source': 'download', 'extensions': ['tbl']}
+A b2_28 wo is mein lebenslauff -> {}
+A b2_29 verschieb die bewerbungs fotos nach dokumente bewe -> {'action': 'move', 'source': '.', 'destination': 'dokumente bewerbungen', 'kinds': ['image']}
+A b2_30 lösch die scans vom fünften märz komma die anderen -> {'action': 'delete', 'source': '.'}
+A b2_31 alle dokumente im downlaod ausser pdfs -> {'action': 'organize', 'source': 'download', 'kinds': ['document'], 'extensions': ['']}
+A b2_32 kopier den arzt brief aus downloads in gesundheit -> {'action': 'copy', 'source': 'Downloads', 'destination': 'Gesundheit', 'extensions': ['pdf'], 'name_contains': 'Arztbrief'}
+A b2_33 Hallo, was kannst du eigentlich alles? -> {}
+A b2_34 Danke, hat super geklappt -> {}
+A b2_35 Brauch ich die alten Kontoauszüge eigentlich noch? -> {}
+A b2_36 Ist es schlimm wenn mein Speicher fast voll ist -> {}
+A b2_37 Was ist eigentlich eine APK? -> {}
+A b2_38 Meinst du ich sollte die Downloads mal ausmisten? -> {}
+A b2_39 wie spät ist es -> {}
+A b2_40 Kann man gelöschte Sachen eigentlich wiederherstel -> {}
+A b2_41 Schick die Telekom Rechnung per Mail an meinen Ste -> {}
+A b2_42 Benenn die Scans vom Autokauf um in Auto_1 bis Aut -> {'source': 'Scans'}
+A b2_43 Mach aus den Lissabon Fotos ein Video mit Musik -> {'source': '.', 'kinds': ['image']}
+A b2_44 Pack meine Bewerbungen in eine ZIP-Datei -> {'action': 'organize', 'source': '.', 'extensions': ['zip']}
+A b2_45 Setz ein Passwort auf den Ordner Bank -> {}
+A b2_46 Hol die Fotos zurück die ich gestern gelöscht hab -> {'kinds': ['image']}
+A b2_47 Verschieb die Datei in den anderen Ordner -> {'action': 'move', 'source': '.', 'destination': 'anderer Ordner'}
+A b2_48 Lösch das alte Zeug -> {'action': 'delete', 'source': '.'}
+A b2_49 Kopier die Rechnung zu den Steuersachen -> {'action': 'copy', 'source': '.', 'destination': 'Steuersachen', 'extensions': ['pdf']}
+A b2_50 mach mal die großen sachen weg -> {'action': 'delete', 'source': '.'}
+K b2_01 zeig mal alle fotos vom letzten dienstag -> {'action': 'show', 'kinds': ['image'], 'newer_than': 1}
+K b2_02 Zeig mal die Bilder über die Feiertage letztes Jah -> {'action': 'show', 'kinds': ['image'], 'name_contains': 'Feiertage', 'newer_than': 365}
+K b2_03 Was hab ich in den letzten drei Tagen runtergelade -> {'action': 'show', 'source': 'Downloads', 'older_than': 3}
+K b2_04 Screenshots von Anfang des Jahres, aber ohne die v -> {'action': 'show', 'source': 'Screenshots'}
+K b2_05 Die 5 größten Videos vom letzten Jahr -> {'action': 'show', 'kinds': ['video'], 'older_than': 365, 'sort': 'size', 'limit': 5}
+K b2_06 Welche Dateien sind richtig riesig? -> {'action': 'show', 'sort': 'size'}
+K b2_07 Was ist alles über 2 Gig groß -> {'action': 'show', 'larger_than': 2, 'size_unit': 'gb'}
+K b2_08 PDFs die kleiner als 100 KB sind -> {'action': 'show', 'extensions': ['pdf']}
+K b2_09 Wo sind eigentlich meine Sprachnachrichten? -> {'action': 'show', 'kinds': ['audio']}
+K b2_10 hab ich e-books auf dem handy -> {'action': 'show', 'kinds': ['document']}
+K b2_11 Zeig mir nur die RAW-Bilder von der Kamera -> {'action': 'show', 'source': 'Kamera', 'kinds': ['image'], 'extensions': ['raw']}
+K b2_12 Such den Elternbrief von der Klasse 3b -> {'action': 'show', 'name_contains': 'Elternbrief', 'content_contains': 'Klasse 3b'}
+K b2_13 In welchem Schreiben ging es um die Hausratversich -> {'action': 'show', 'extensions': ['pdf'], 'content_contains': 'Hausratversicherung'}
+K b2_14 Lieder von Cro, nur nicht die flac -> {'action': 'show', 'kinds': ['audio'], 'extensions': ['mp3'], 'name_contains': 'Cro'}
+K b2_15 Was hab ich zwischen dem 1. und 15. Oktober runter -> {'action': 'show', 'source': 'Downloads', 'newer_than': 15}
+K b2_16 Die ganzen Unterlagen vom Autokauf am 12. Septembe -> {'action': 'organize', 'source': '.', 'destination': 'Auto', 'content_contains': 'Autokauf'}
+K b2_17 Lösch das Konzertticket von gestern, brauch ich ni -> {'action': 'delete', 'source': '.', 'older_than': 1}
+K b2_18 Schmeiß die WhatsApp Videos von 2024 weg -> {'action': 'delete', 'source': 'WhatsApp Images', 'kinds': ['video']}
+K b2_19 Sortier die WhatsApp Dokumente nach Monaten -> {'action': 'organize', 'source': 'WhatsApp Images', 'group_by': 'month'}
+K b2_20 Tu die Telekom Rechnungen aus dem Download zu den  -> {'action': 'move', 'source': 'Download', 'name_contains': 'Telekom'}
+K b2_21 show me all pdfs from october -> {'action': 'show', 'kinds': ['document'], 'extensions': ['pdf']}
+K b2_22 find the biggest movie -> {'action': 'show', 'kinds': ['video'], 'sort': 'size', 'limit': 1}
+K b2_23 where are my Telekom bills -> {'action': 'show', 'extensions': ['pdf'], 'name_contains': 'Telekom'}
+K b2_24 show me my presentations -> {'action': 'show', 'extensions': ['ppt', 'pptx', 'pdf']}
+K b2_25 delete the duplicate Amazon invoice in Downloads -> {'action': 'delete', 'source': 'Downloads', 'name_contains': 'Amazon', 'content_contains': 'invoice'}
+K b2_26 move all apk files from downloads into a new folde -> {'action': 'move', 'source': 'Downloads', 'destination': 'Apps', 'extensions': ['apk']}
+K b2_27 zeih mir alle tabelen ausm donwload -> {'action': 'show', 'source': 'Downloads', 'extensions': ['xlsx', 'xls']}
+K b2_28 wo is mein lebenslauff -> {'action': 'show', 'name_contains': 'Lebenslauf'}
+K b2_29 verschieb die bewerbungs fotos nach dokumente bewe -> {'action': 'move', 'source': 'Kamera', 'destination': 'Dokumente/Bewerbungen', 'kinds': ['image']}
+K b2_30 lösch die scans vom fünften märz komma die anderen -> {'action': 'delete', 'source': '.', 'newer_than': 1}
+K b2_31 alle dokumente im downlaod ausser pdfs -> {'action': 'show', 'source': 'Downloads', 'kinds': ['document'], 'extensions': ['']}
+K b2_32 kopier den arzt brief aus downloads in gesundheit -> {'action': 'copy', 'source': 'Downloads', 'destination': 'Gesundheit', 'name_contains': 'Arztbrief'}
+K b2_33 Hallo, was kannst du eigentlich alles? -> {}
+K b2_34 Danke, hat super geklappt -> {}
+K b2_35 Brauch ich die alten Kontoauszüge eigentlich noch? -> {}
+K b2_36 Ist es schlimm wenn mein Speicher fast voll ist -> {}
+K b2_37 Was ist eigentlich eine APK? -> {'extensions': ['apk']}
+K b2_38 Meinst du ich sollte die Downloads mal ausmisten? -> {'source': 'Downloads'}
+K b2_39 wie spät ist es -> {}
+K b2_40 Kann man gelöschte Sachen eigentlich wiederherstel -> {}
+K b2_41 Schick die Telekom Rechnung per Mail an meinen Ste -> {}
+K b2_42 Benenn die Scans vom Autokauf um in Auto_1 bis Aut -> {'source': '.'}
+K b2_43 Mach aus den Lissabon Fotos ein Video mit Musik -> {'source': 'Lissabon Fotos', 'kinds': ['image']}
+K b2_44 Pack meine Bewerbungen in eine ZIP-Datei -> {'action': 'organize', 'extensions': ['zip']}
+K b2_45 Setz ein Passwort auf den Ordner Bank -> {'source': 'Bank'}
+K b2_46 Hol die Fotos zurück die ich gestern gelöscht hab -> {'action': 'show', 'source': '.', 'kinds': ['image'], 'newer_than': 1}
+K b2_47 Verschieb die Datei in den anderen Ordner -> {'action': 'move'}
+K b2_48 Lösch das alte Zeug -> {'action': 'delete', 'source': '.'}
+K b2_49 Kopier die Rechnung zu den Steuersachen -> {'action': 'copy', 'destination': 'Steuersachen', 'name_contains': 'Rechnung'}
+K b2_50 mach mal die großen sachen weg -> {'action': 'delete', 'source': '.', 'sort': 'size'}

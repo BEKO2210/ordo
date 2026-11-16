@@ -1,0 +1,622 @@
+{
+ "raw": {
+  "C": {
+   "b2_01": {
+    "plan": {
+     "action": "show"
+    },
+    "calls": [
+     [
+      "C",
+      18,
+      20
+     ]
+    ]
+   },
+   "b2_02": {
+    "plan": {
+     "action": "show",
+     "name_contains": "Feiertage"
+    },
+    "calls": [
+     [
+      "C",
+      22,
+      24
+     ]
+    ]
+   },
+   "b2_03": {
+    "plan": {
+     "action": "show"
+    },
+    "calls": [
+     [
+      "C",
+      22,
+      20
+     ]
+    ]
+   },
+   "b2_04": {
+    "plan": {
+     "action": "show"
+    },
+    "calls": [
+     [
+      "C",
+      21,
+      20
+     ]
+    ]
+   },
+   "b2_05": {
+    "plan": {
+     "action": "show"
+    },
+    "calls": [
+     [
+      "C",
+      17,
+      20
+     ]
+    ]
+   },
+   "b2_06": {
+    "plan": {
+     "action": "show"
+    },
+    "calls": [
+     [
+      "C",
+      17,
+      20
+     ]
+    ]
+   },
+   "b2_07": {
+    "plan": {
+     "action": "show"
+    },
+    "calls": [
+     [
+      "C",
+      17,
+      20
+     ]
+    ]
+   },
+   "b2_08": {
+    "plan": {
+     "action": "show"
+    },
+    "calls": [
+     [
+      "C",
+      20,
+      20
+     ]
+    ]
+   },
+   "b2_09": {
+    "plan": {
+     "action": "show"
+    },
+    "calls": [
+     [
+      "C",
+      17,
+      20
+     ]
+    ]
+   },
+   "b2_10": {
+    "plan": {
+     "action": "show"
+    },
+    "calls": [
+     [
+      "C",
+      16,
+      20
+     ]
+    ]
+   },
+   "b2_11": {
+    "plan": {
+     "action": "show",
+     "source": "Kamera",
+     "name_contains": "RAW"
+    },
+    "calls": [
+     [
+      "C",
+      20,
+      25
+     ]
+    ]
+   },
+   "b2_12": {
+    "plan": {
+     "action": "show",
+     "name_contains": "Klasse 3b"
+    },
+    "calls": [
+     [
+      "C",
+      19,
+      26
+     ]
+    ]
+   },
+   "b2_13": {
+    "plan": {
+     "action": "show",
+     "content_contains": "Hausratversicherung"
+    },
+    "calls": [
+     [
+      "C",
+      21,
+      25
+     ]
+    ]
+   },
+   "b2_14": {
+    "plan": {
+     "action": "show",
+     "name_contains": "Cro"
+    },
+    "calls": [
+     [
+      "C",
+      19,
+      22
+     ]
+    ]
+   },
+   "b2_15": {
+    "plan": {
+     "action": "show"
+    },
+    "calls": [
+     [
+      "C",
+      27,
+      20
+     ]
+    ]
+   },
+   "b2_16": {
+    "plan": {
+     "action": "organize",
+     "source": ".",
+     "destination": "Auto",
+     "group_by": "month"
+    },
+    "calls": [
+     [
+      "C",
+      29,
+      25
+     ]
+    ]
+   },
+   "b2_17": {
+    "plan": {
+     "action": "delete",
+     "source": ".",
+     "name_contains": "Konzertticket"
+    },
+    "calls": [
+     [
+      "C",
+      21,
+      25
+     ]
+    ]
+   },
+   "b2_18": {
+    "plan": {
+     "action": "delete",
+     "name_contains": "WhatsApp"
+    },
+    "calls": [
+     [
+      "C",
+      22,
+      22
+     ]
+    ]
+   },
+   "b2_19": {
+    "plan": {
+     "action": "organize",
+     "source": "WhatsApp",
+     "group_by": "month"
+    },
+    "calls": [
+     [
+      "C",
+      16,
+      24
+     ]
+    ]
+   },
+   "b2_20": {
+    "plan": {
+     "action": "move",
+     "source": "Download",
+     "name_contains": "Telekom"
+    },
+    "calls": [
+     [
+      "C",
+      22,
+      25
+     ]
+    ]
+   },
+   "b2_21": {
+    "plan": {
+     "action": "show"
+    },
+    "calls": [
+     [
+      "C",
+      17,
+      20
+     ]
+    ]
+   },
+   "b2_22": {
+    "plan": {
+     "action": "show",
+     "name_contains": "movie"
+    },
+    "calls": [
+     [
+      "C",
+      13,
+      22
+     ]
+    ]
+   },
+   "b2_23": {
+    "plan": {
+     "action": "show",
+     "name_contains": "Telekom"
+    },
+    "calls": [
+     [
+      "C",
+      14,
+      23
+     ]
+    ]
+   },
+   "b2_24": {
+    "plan": {
+     "action": "show",
+     "name_contains": "presentations"
+    },
+    "calls": [
+     [
+      "C",
+      13,
+      23
+     ]
+    ]
+   },
+   "b2_25": {
+    "plan": {
+     "action": "delete",
+     "source": "Downloads",
+     "name_contains": "Amazon"
+    },
+    "calls": [
+     [
+      "C",
+      16,
+      24
+     ]
+    ]
+   },
+   "b2_26": {
+    "plan": {
+     "action": "move",
+     "source": "downloads",
+     "destination": "Apps"
+    },
+    "calls": [
+     [
+      "C",
+      21,
+      24
+     ]
+    ]
+   },
+   "b2_27": {
+    "plan": {
+     "action": "show",
+     "source": "download"
+    },
+    "calls": [
+     [
+      "C",
+      20,
+      22
+     ]
+    ]
+   },
+   "b2_28": {
+    "plan": {
+     "action": "show",
+     "name_contains": "lebenslauf"
+    },
+    "calls": [
+     [
+      "C",
+      15,
+      24
+     ]
+    ]
+   },
+   "b2_29": {
+    "plan": {
+     "action": "move",
+     "destination": "dokumente bewerbungen",
+     "name_contains": "bewerbung"
+    },
+    "calls": [
+     [
+      "C",
+      23,
+      29
+     ]
+    ]
+   },
+   "b2_30": {
+    "plan": {
+     "action": "delete",
+     "source": ".",
+     "content_contains": "fünfter märz"
+    },
+    "calls": [
+     [
+      "C",
+      22,
+      27
+     ]
+    ]
+   },
+   "b2_31": {
+    "plan": {
+     "action": "show",
+     "source": "download"
+    },
+    "calls": [
+     [
+      "C",
+      20,
+      22
+     ]
+    ]
+   },
+   "b2_32": {
+    "plan": {
+     "action": "copy",
+     "source": "downloads",
+     "destination": "gesundheit",
+     "name_contains": "arzt brief"
+    },
+    "calls": [
+     [
+      "C",
+      19,
+      28
+     ]
+    ]
+   },
+   "b2_33": {
+    "plan": {},
+    "calls": [
+     [
+      "C",
+      17,
+      20
+     ]
+    ]
+   },
+   "b2_34": {
+    "plan": {},
+    "calls": [
+     [
+      "C",
+      17,
+      20
+     ]
+    ]
+   },
+   "b2_35": {
+    "plan": {},
+    "calls": [
+     [
+      "C",
+      20,
+      20
+     ]
+    ]
+   },
+   "b2_36": {
+    "plan": {},
+    "calls": [
+     [
+      "C",
+      19,
+      20
+     ]
+    ]
+   },
+   "b2_37": {
+    "plan": {},
+    "calls": [
+     [
+      "C",
+      15,
+      20
+     ]
+    ]
+   },
+   "b2_38": {
+    "plan": {},
+    "calls": [
+     [
+      "C",
+      21,
+      20
+     ]
+    ]
+   },
+   "b2_39": {
+    "plan": {},
+    "calls": [
+     [
+      "C",
+      13,
+      20
+     ]
+    ]
+   },
+   "b2_40": {
+    "plan": {},
+    "calls": [
+     [
+      "C",
+      21,
+      20
+     ]
+    ]
+   },
+   "b2_41": {
+    "plan": {},
+    "calls": [
+     [
+      "C",
+      20,
+      20
+     ]
+    ]
+   },
+   "b2_42": {
+    "plan": {},
+    "calls": [
+     [
+      "C",
+      28,
+      20
+     ]
+    ]
+   },
+   "b2_43": {
+    "plan": {
+     "source": ".",
+     "name_contains": "Lissabon"
+    },
+    "calls": [
+     [
+      "C",
+      22,
+      26
+     ]
+    ]
+   },
+   "b2_44": {
+    "plan": {},
+    "calls": [
+     [
+      "C",
+      19,
+      20
+     ]
+    ]
+   },
+   "b2_45": {
+    "plan": {
+     "source": "Bank"
+    },
+    "calls": [
+     [
+      "C",
+      18,
+      22
+     ]
+    ]
+   },
+   "b2_46": {
+    "plan": {},
+    "calls": [
+     [
+      "C",
+      18,
+      20
+     ]
+    ]
+   },
+   "b2_47": {
+    "plan": {
+     "action": "move",
+     "destination": "anderer Ordner"
+    },
+    "calls": [
+     [
+      "C",
+      19,
+      25
+     ]
+    ]
+   },
+   "b2_48": {
+    "plan": {
+     "action": "delete"
+    },
+    "calls": [
+     [
+      "C",
+      14,
+      20
+     ]
+    ]
+   },
+   "b2_49": {
+    "plan": {
+     "action": "copy",
+     "destination": "Steuersachen",
+     "name_contains": "Rechnung"
+    },
+    "calls": [
+     [
+      "C",
+      19,
+      28
+     ]
+    ]
+   },
+   "b2_50": {
+    "plan": {
+     "action": "delete"
+    },
+    "calls": [
+     [
+      "C",
+      16,
+      20
+     ]
+    ]
+   }
+  }
+ },
+ "system_tokens": {
+  "C": 464
+ }
+}
