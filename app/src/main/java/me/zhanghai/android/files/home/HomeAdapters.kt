@@ -5,6 +5,7 @@
 
 package me.zhanghai.android.files.home
 
+import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.core.view.isInvisible
@@ -173,16 +174,15 @@ class StorageAdapter(
             }
             // TalkBack reads the real value even before the bar has counted up.
             binding.percentText.contentDescription = storagePercentLabel(item.used, item.total)
-            // Aurora gradient like the analysis charts; amber to red once the storage is nearly full.
+            // The chosen accent, a lighter tone flowing into the full one; amber to red once the storage is nearly full.
+            val accent = context.getColorByAttr(androidx.appcompat.R.attr.colorPrimary)
             binding.usageBar.gradient = if (progress >= 900) {
                 intArrayOf(ContextCompat.getColor(context, R.color.chart_audio), ContextCompat.getColor(context, R.color.chart_video))
             } else {
-                intArrayOf(ContextCompat.getColor(context, R.color.ai_glow_1), ContextCompat.getColor(context, R.color.ai_glow_2))
+                intArrayOf(ColorUtils.blendARGB(accent, Color.WHITE, 0.35f), accent)
             }
             // Keyed by the volume: a recycled card that showed another volume grows in instead of moving from its number.
-            binding.usageBar.setParts(
-                listOf(ContextCompat.getColor(context, R.color.ai_accent) to item.used), item.total, item.path
-            )
+            binding.usageBar.setParts(listOf(accent to item.used), item.total, item.path)
             binding.analyzeButton.setOnClickListener { onAnalyze(item) }
             binding.root.setOnClickListener { onClick(item) }
             binding.openButton.setOnClickListener { onClick(item) }

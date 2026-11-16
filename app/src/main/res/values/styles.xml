@@ -155,7 +155,7 @@
         <item name="android:minHeight">72dp</item>
         <item name="android:padding">16dp</item>
         <item name="android:textAppearance">?textAppearanceBody1</item>
-        <item name="drawableTint">@color/ai_accent</item>
+        <item name="drawableTint">?attr/colorPrimary</item>
     </style>
 
     <style name="Widget.Ordo.DashboardCard" parent="">

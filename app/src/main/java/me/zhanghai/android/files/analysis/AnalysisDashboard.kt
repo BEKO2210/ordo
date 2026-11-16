@@ -23,6 +23,7 @@ import android.widget.TextView
 import androidx.annotation.ColorRes
 import androidx.annotation.DrawableRes
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.ColorUtils
 import androidx.core.widget.TextViewCompat
 import com.github.mikephil.charting.animation.Easing
 import com.github.mikephil.charting.components.MarkerView
@@ -63,6 +64,12 @@ class AnalysisDashboard(
     private val density = context.resources.displayMetrics.density
     private val text = MaterialColors.getColor(binding.root, android.R.attr.textColorPrimary)
     private val muted = MaterialColors.getColor(binding.root, android.R.attr.textColorSecondary)
+    // The user's accent, not the fixed brand colour of the AI: highlights follow ?colorPrimary of the theme.
+    private val accent = MaterialColors.getColor(binding.root, androidx.appcompat.R.attr.colorPrimary)
+    private val onAccent = MaterialColors.getColor(binding.root, com.google.android.material.R.attr.colorOnPrimary)
+    private val glow = ColorUtils.blendARGB(
+        accent, MaterialColors.getColor(binding.root, com.google.android.material.R.attr.colorSurface), 0.35f
+    )
     private val animate = me.zhanghai.android.files.ui.Motion.any
 
     private fun color(res: Int) = ContextCompat.getColor(context, res)
@@ -161,7 +168,7 @@ class AnalysisDashboard(
     private fun bindUsage(insights: StorageInsights) {
         val total = insights.total
         val system = insights.usage.toMap()[StorageInsights.KIND_SYSTEM] ?: 0L
-        val mine = color(R.color.ai_accent)
+        val mine = accent
         val gray = color(R.color.chart_system)
         val label = context.getString(R.string.analysis_usage_center_label)
         val final = StorageInsights.share(insights.used, total)
@@ -305,7 +312,7 @@ class AnalysisDashboard(
                 })
                 addView(StackedBarView(context).apply {
                     importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
-                    setParts(listOf(color(R.color.ai_accent) to bytes), whole)
+                    setParts(listOf(accent to bytes), whole)
                 }, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(6)).apply { topMargin = dp(8) })
             }, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
         }
@@ -463,7 +470,7 @@ class AnalysisDashboard(
             row.addView(MaterialButton(context, null, androidx.appcompat.R.attr.borderlessButtonStyle).apply {
                 text = context.getString(R.string.analysis_view)
                 isAllCaps = false
-                setTextColor(color(R.color.ai_accent))
+                setTextColor(accent)
                 minimumHeight = dp(48)
                 contentDescription = "${context.getString(R.string.analysis_view)}: $name"
                 setOnClickListener { if (type == "trash") onShow(type) else onOpen(AnalysisPage.Cleanup(type)) }
@@ -511,8 +518,8 @@ class AnalysisDashboard(
                     text = context.getString(R.string.analysis_preview)
                     isAllCaps = false
                     cornerRadius = dp(20)
-                    backgroundTintList = android.content.res.ColorStateList.valueOf(color(R.color.ai_accent))
-                    setTextColor(color(R.color.ai_on_accent))
+                    backgroundTintList = android.content.res.ColorStateList.valueOf(accent)
+                    setTextColor(onAccent)
                     minimumHeight = dp(48)
                     setOnClickListener { onPreview(suggestion) }
                 })
@@ -606,7 +613,7 @@ class AnalysisDashboard(
             return
         }
         val tile = insights.tiles[index]
-        val row = legendRow(color(R.color.ai_accent), tileLabel(tile, short = false), size(tile.size),
+        val row = legendRow(accent, tileLabel(tile, short = false), size(tile.size),
             StorageInsights.share(tile.size, insights.own))
         binding.folderPick.addView(row)
         row.clickable { openTile(tile.path) }
@@ -619,8 +626,6 @@ class AnalysisDashboard(
         val months = insights.months
         val names = DateFormatSymbols.getInstance(Locale.getDefault()).shortMonths
         val labels = months.map { names[it.first.substring(5).toInt() - 1].take(3) }
-        val accent = color(R.color.ai_accent)
-        val glow = color(R.color.ai_glow_1)
         val set = BarDataSet(months.mapIndexed { i, (_, bytes) -> BarEntry(i.toFloat(), bytes / 1e6f) }, "").apply {
             barCornerRadius = 7f
             isDrawValuesEnabled = false
