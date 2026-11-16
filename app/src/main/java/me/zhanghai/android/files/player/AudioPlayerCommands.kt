@@ -21,6 +21,7 @@ object AudioPlayerCommands {
     const val EXTRA_BASS_AVAILABLE = "bassBoostAvailable"
     const val EXTRA_VIRTUALIZER_AVAILABLE = "virtualizerAvailable"
     const val EXTRA_SLEEP_ACTIVE = "sleepActive"
+    const val EXTRA_SLEEP_REMAINING_MS = "sleepRemainingMs"
 
     val APPLY_SETTINGS = SessionCommand(ACTION_APPLY_SETTINGS, bundleOf())
     val GET_SOUND_STATUS = SessionCommand(ACTION_GET_SOUND_STATUS, bundleOf())

@@ -55,4 +55,7 @@
 
     <!-- Reduce fast scroll thumb touch target size because we have the popup menu beside it. -->
     <dimen name="afs_min_touch_target_size">24dp</dimen>
+
+    <dimen name="klang_curve_height">200dp</dimen>
+    <dimen name="klang_sheet_max_width">640dp</dimen>
 </resources>

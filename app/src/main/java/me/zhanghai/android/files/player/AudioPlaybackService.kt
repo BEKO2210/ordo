@@ -423,7 +423,10 @@ class AudioPlaybackService : MediaSessionService() {
                                 AudioPlayerCommands.EXTRA_SLEEP_ACTIVE to
                                     (sleepDeadlineElapsedMs != null || sleepAtEndOfTrack),
                                 AudioPlayerCommands.EXTRA_SLEEP_MINUTES to sleepSelectionMinutes,
-                                AudioPlayerCommands.EXTRA_END_OF_TRACK to sleepAtEndOfTrack
+                                AudioPlayerCommands.EXTRA_END_OF_TRACK to sleepAtEndOfTrack,
+                                AudioPlayerCommands.EXTRA_SLEEP_REMAINING_MS to
+                                    (sleepDeadlineElapsedMs?.let { it - SystemClock.elapsedRealtime() } ?: 0L)
+                                        .coerceAtLeast(0L)
                             )
                         )
                     )
