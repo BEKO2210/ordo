@@ -90,8 +90,11 @@ object CommandEngine {
         // The sheet only gets here after CommandModel.verify() checked the model and the adapter (size and hash).
         val adapter = design.adapter?.let { CommandModel.file(context.applicationContext, it) }
         val loadStarted = SystemClock.elapsedRealtime()
-        val loaded = LlamaEngine.load(file.path, threads, CONTEXT_SIZE, adapter?.path)
-            ?: throw IOException("model load failed")
+        val loaded = LlamaEngine.load(file.path, threads, CONTEXT_SIZE, adapter?.path) ?: run {
+            // The model loaded before this adapter was added; an adapter for another base model fails every load.
+            design.adapter?.let { CommandModel.rejectAdapter(context.applicationContext, it) }
+            throw IOException("model load failed")
+        }
         Log.i(TAG, "model loaded with $threads threads in ${SystemClock.elapsedRealtime() - loadStarted} ms" +
             (design.adapter?.let { ", adapter ${it.sha256}" } ?: ""))
         loadedThreads = threads

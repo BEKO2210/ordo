@@ -14,7 +14,7 @@ TARGET=/sdcard/Android/data/$PKG/files/models/qwen3.5-4b-q4_0.gguf
 STATE=no_backup/llm-state
 T=/sdcard/OrdoKiTest; Z=/sdcard/OrdoKiZiel; D=/sdcard/Download
 
-is_emulator || { echo "SKIP: not an emulator (the real model test needs the emulator's RAM override)"; exit 0; }
+is_emulator || { echo "SKIP: not an emulator (this test is for the emulator only)"; exit 0; }
 if a shell am start -W -n "$PKG/$DEBUG" --ez show_design false 2>&1 | grep -q "does not exist"; then
     echo "SKIP: not a debug build (no DebugAiActivity)"; exit 0
 fi
@@ -59,6 +59,8 @@ not_logged() { ! log | grep -qE "$1"; }
 
 wake; grant
 a shell cmd locale set-app-locales "$PKG" --locales de-DE >/dev/null 2>&1
+# Back to the system language at the end, also after an abort.
+trap 'a shell cmd locale set-app-locales "$PKG" --locales "" >/dev/null 2>&1' EXIT
 a shell "rm -rf $T $Z; rm -f $D/ordoai_*; mkdir -p $T $Z $D
     echo a > $T/ordoai_rechnung.pdf; echo b > $T/ordoai_vertrag.pdf; echo c > $T/ordoai_notiz.txt
     echo d > $D/ordoai_handbuch.pdf; echo e > $D/ordoai_spiel.apk; echo f > $D/ordoai_foto.jpg"

@@ -67,6 +67,20 @@ class CommandAdapterTest {
     }
 
     @Test
+    fun retryRestartsOnlyWhatFailed() {
+        val parts = listOf(CommandModel.MODEL, adapter)
+        val downloading = State.Downloading(1_000_000_000L, CommandModel.SIZE, false, false)
+        // The adapter failed while the model still downloads: the retry restarts the adapter, the model keeps its bytes.
+        assertEquals(listOf(adapter), CommandModel.toStart(listOf(downloading, State.Failed(false)), parts))
+        assertEquals(listOf(adapter), CommandModel.toStart(listOf(State.Verifying, State.Missing), parts))
+        assertEquals(listOf(adapter), CommandModel.toStart(listOf(State.Ready, State.Failed(true)), parts))
+        assertEquals(parts, CommandModel.toStart(listOf(State.Missing, State.Missing), parts))
+        // The shipped design alone: as before, a missing or failed model starts.
+        assertEquals(listOf(CommandModel.MODEL), CommandModel.toStart(listOf(State.Failed(false)), listOf(CommandModel.MODEL)))
+        assertEquals(emptyList<CommandModel.Part>(), CommandModel.toStart(listOf(State.Ready), listOf(CommandModel.MODEL)))
+    }
+
+    @Test
     fun spaceCountsTheAdapter() {
         val need = CommandModel.SIZE + adapter.size
         val check = CommandModel.DeviceCheck(12_000_000_000L, need + CommandModel.SPARE_SPACE - 1, true, true, need)

@@ -44,6 +44,7 @@ object CommandModel {
     private const val KEY_VERIFIED = "verified"
     private const val KEY_STAMP = "stamp"
     private const val KEY_DOWNLOAD_FOR = "download_for"
+    private const val KEY_BAD = "bad"
 
     // The 4B was only measured on 12 GB devices (Tab S9 Ultra: 4.3 GB app PSS with Q4_K_M). totalMem of 12 GB devices lies
     // above 10 GB, of "8 GB" phones below, so smaller phones stay off until one is measured (docs/KI-BEFEHLE.md).
@@ -135,6 +136,9 @@ object CommandModel {
     private fun key(part: Part, name: String) = if (part == MODEL) name else "$name:${part.fileName}:${part.sha256}"
 
     private fun partState(context: Context, part: Part): State {
+        if (part != MODEL && context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getBoolean(key(part, KEY_BAD), false)) {
+            return State.Failed(noSpace = false)
+        }
         val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
         val file = file(context, part)
         if (prefs.getBoolean(key(part, KEY_VERIFIED), false)) {
@@ -177,14 +181,31 @@ object CommandModel {
     }
 
     /** False when the system download service refused a job. Wi-Fi only unless [mobileData]. */
-    fun startDownload(context: Context, mobileData: Boolean, design: CommandDesign): Boolean =
-        parts(design).all { part -> partState(context, part) == State.Ready || startDownload(context, mobileData, part) }
+    fun startDownload(context: Context, mobileData: Boolean, design: CommandDesign): Boolean {
+        val parts = parts(design)
+        return toStart(parts.map { partState(context, it) }, parts).all { startDownload(context, mobileData, it) }
+    }
+
+    /** Only missing or failed parts start (again): a part still downloading or waiting for its check keeps its bytes. */
+    internal fun toStart(states: List<State>, parts: List<Part>): List<Part> =
+        parts.filterIndexed { i, _ -> states[i] == State.Missing || states[i] is State.Failed }
+
+    /**
+     * An adapter that passed its hash check but did not load on this model: deleted, and shown as a failed download
+     * until the user tries again, instead of failing every start with the same file. The model is not touched.
+     */
+    fun rejectAdapter(context: Context, part: Part) {
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
+            .putBoolean(key(part, KEY_BAD), true).remove(key(part, KEY_VERIFIED)).commit()
+        file(context, part).delete()
+    }
 
     private fun startDownload(context: Context, mobileData: Boolean, part: Part): Boolean {
         val manager = context.getSystemService(DownloadManager::class.java)
         val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
         prefs.getLong(key(part, KEY_DOWNLOAD), -1).takeIf { it != -1L }?.let { manager.remove(it) }
-        prefs.edit().remove(key(part, KEY_DOWNLOAD)).putBoolean(key(part, KEY_VERIFIED), false).commit()
+        prefs.edit().remove(key(part, KEY_DOWNLOAD)).remove(key(part, KEY_BAD)).putBoolean(key(part, KEY_VERIFIED), false)
+            .commit()
         val file = file(context, part)
         if (file.length() == part.size) {
             return true // complete already; state() sends it to the hash check
