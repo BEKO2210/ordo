@@ -48,14 +48,18 @@ object CommandEngine {
     }
 
     /** Null means the model answered with something that is not a plan. */
-    suspend fun plan(context: Context, text: String, design: CommandDesign): CommandPlan? = withContext(dispatcher) {
+    suspend fun plan(context: Context, text: String, design: CommandDesign): CommandPlan? =
+        CommandPlan.parse(answer(context, text, design))
+
+    /** The model's raw JSON answer, for the net designs (CommandDesign.decide). */
+    suspend fun answer(context: Context, text: String, design: CommandDesign): String = withContext(dispatcher) {
         val loaded = ensure(context, design)
         val started = SystemClock.elapsedRealtime()
         val answer = loaded.generate(CommandPlanner.suffix(text), design.grammar, 200)
         // e2e/ai-real.sh compares answers with and without the saved prompt state. Debug only: it holds the command.
         if (BuildConfig.DEBUG) Log.i(TAG, "answer in ${SystemClock.elapsedRealtime() - started} ms: $answer")
         scheduleUnload()
-        CommandPlan.parse(answer ?: throw IOException("generation cancelled or failed"))
+        answer ?: throw IOException("generation cancelled or failed")
     }
 
     /** Safe from any thread: stops a running generation at the next token. */

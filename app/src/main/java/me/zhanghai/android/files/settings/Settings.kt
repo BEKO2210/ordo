@@ -184,6 +184,10 @@ object Settings {
         )
 
     /** turbo, balanced or eco: threads and how long the AI model stays loaded. */
+    /** The new command understanding (CommandDesign.Guarded) as an opt-in preview; off by default. */
+    val AI_PREVIEW: SettingLiveData<Boolean> =
+        BooleanSettingLiveData(R.string.pref_key_ai_preview, R.bool.pref_default_value_ai_preview)
+
     val AI_SPEED: SettingLiveData<String> =
         StringSettingLiveData(R.string.pref_key_ai_speed, R.string.pref_default_value_ai_speed)
 

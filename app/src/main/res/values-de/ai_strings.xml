@@ -239,6 +239,14 @@
         <item quantity="one">Nur die größte</item>
         <item quantity="other">Nur die %d größten</item>
     </plurals>
+    <plurals name="ai_filter_limit_oldest">
+        <item quantity="one">Nur die älteste</item>
+        <item quantity="other">Nur die %d ältesten</item>
+    </plurals>
+    <plurals name="ai_filter_limit_smallest">
+        <item quantity="one">Nur die kleinste</item>
+        <item quantity="other">Nur die %d kleinsten</item>
+    </plurals>
     <plurals name="ai_filter_limit_newest">
         <item quantity="one">Nur die neueste</item>
         <item quantity="other">Nur die %d neuesten</item>
@@ -247,4 +255,45 @@
         <item quantity="one">%d seit der Vorschau geändert und nicht angefasst</item>
         <item quantity="other">%d seit der Vorschau geändert und nicht angefasst</item>
     </plurals>
+    <!-- Net designs (Guarded, Tuned): questions back, refusals, and the new filters in words -->
+    <string name="ai_net_ask_title">Kurz nachgefragt</string>
+    <string name="ai_net_ask_refine">Ändere deinen Befehl oben und schick ihn noch einmal.</string>
+    <string name="ai_net_ask_model">Welche Dateien meinst du? Sag mir zum Beispiel den Ordner oder einen Zeitraum.</string>
+    <string name="ai_net_ask_no_source">In welchem Ordner soll ich das machen? Nenn mir den Ordner, zum Beispiel „aus Download“.</string>
+    <string name="ai_net_ask_no_dest">Wohin sollen die Dateien? Sag mir den Zielordner, zum Beispiel „nach Dokumente“.</string>
+    <string name="ai_net_ask_ambiguous_folder">Dazu passen mehrere Ordner: %1$s. Welchen meinst du?</string>
+    <string name="ai_net_ask_unknown_folder">Einen Ordner „%1$s“ finde ich nicht. Wie heißt er genau?</string>
+    <string name="ai_net_ask_uncovered">Wie meinst du „%1$s“? Steht es im Dateinamen, schreib „mit %1$s im Namen“.</string>
+    <string name="ai_net_ask_no_reading">Zu „%1$s“ finde ich keine Datei. Steht es im Dateinamen? Sonst nenn mir den Ordner oder einen Zeitraum.</string>
+    <string name="ai_net_ask_vague_time">Was heißt „%1$s“ für dich? Sag es mir genauer, zum Beispiel „älter als ein Jahr“.</string>
+    <string name="ai_net_ask_vague_size">Ab welcher Größe ist es für dich „%1$s“? Zum Beispiel „größer als 100 MB“.</string>
+    <string name="ai_net_refuse_memory">Ich merke mir keine früheren Befehle oder Suchen. Sag mir bitte genau, welche Dateien du meinst.</string>
+    <string name="ai_net_refuse_archive">Dateien packen oder entpacken (ZIP) kann ich noch nicht.</string>
+    <string name="ai_net_refuse_convert">Dateien umwandeln oder zusammenfügen kann ich nicht.</string>
+    <string name="ai_net_refuse_rename">Umbenennen per Befehl geht noch nicht. Halte die Datei gedrückt und wähle „Umbenennen“.</string>
+    <string name="ai_net_refuse_share">Teilen und Senden geht per Befehl nicht. Halte die Datei gedrückt und wähle „Teilen“.</string>
+    <string name="ai_net_refuse_open">Öffnen, Abspielen und Drucken geht per Befehl nicht. Ich kann dir die Datei zeigen, dann tippst du sie an.</string>
+    <string name="ai_net_refuse_restore">Wiederherstellen geht per Befehl nicht. Was du gelöscht hast, liegt im Papierkorb – dort kannst du es zurückholen.</string>
+    <string name="ai_net_refuse_edit">Dateien bearbeiten kann ich nicht.</string>
+    <string name="ai_show_between">%1$s bis %2$s</string>
+    <string name="ai_show_since">seit %1$s</string>
+    <string name="ai_show_until">bis %1$s</string>
+    <string name="ai_show_min_size">ab %1$s</string>
+    <string name="ai_show_max_size">bis %1$s</string>
+    <string name="ai_show_terms">mit „%1$s“</string>
+    <string name="ai_show_without">ohne %1$s</string>
+    <string name="ai_show_oldest_first">älteste zuerst</string>
+    <string name="ai_show_smallest_first">kleinste zuerst</string>
+    <string name="ai_download_not_published">Der Zusatz für die KI-Befehle ist noch nicht verfügbar. Er kommt mit einem späteren Update.</string>
+    <string name="ai_net_none">Ordo kann Dateien finden und zeigen, verschieben, kopieren, aufräumen und in den Papierkorb legen.</string>
+    <string name="ai_net_quoted">„%1$s“</string>
+    <string name="ai_net_dropped">Mit %1$s zusammen habe ich nichts gefunden, darum habe ich nur nach %2$s gesucht.</string>
+    <string name="ai_net_dropped_all">Zu %1$s habe ich nichts gefunden. Ich zeige alles, was sonst passt.</string>
+    <string name="ai_net_count_warning">Du hast %1$d genannt, ich habe %2$d gefunden. Schau dir die Liste bitte genau an.</string>
+    <!-- Two new kinds of commands, shown first while the preview (Settings › AI assistant) is on -->
+    <string-array name="ai_examples_preview">
+        <item>Zeig mir die PDFs von letzter Woche</item>
+        <item>Wo ist meine Handyrechnung?</item>
+    </string-array>
+    <string name="ai_net_and">" und "</string>
 </resources>

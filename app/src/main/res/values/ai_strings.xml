@@ -240,6 +240,14 @@
         <item quantity="one">Only the largest</item>
         <item quantity="other">Only the %d largest</item>
     </plurals>
+    <plurals name="ai_filter_limit_oldest">
+        <item quantity="one">Only the oldest</item>
+        <item quantity="other">Only the %d oldest</item>
+    </plurals>
+    <plurals name="ai_filter_limit_smallest">
+        <item quantity="one">Only the smallest</item>
+        <item quantity="other">Only the %d smallest</item>
+    </plurals>
     <plurals name="ai_filter_limit_newest">
         <item quantity="one">Only the newest</item>
         <item quantity="other">Only the %d newest</item>
@@ -248,4 +256,45 @@
         <item quantity="one">%d changed since the preview and left alone</item>
         <item quantity="other">%d changed since the preview and left alone</item>
     </plurals>
+    <!-- Net designs (Guarded, Tuned): questions back, refusals, and the new filters in words -->
+    <string name="ai_net_ask_title">Quick question</string>
+    <string name="ai_net_ask_refine">Change your command above and send it again.</string>
+    <string name="ai_net_ask_model">Which files do you mean? Tell me the folder or a time span, for example.</string>
+    <string name="ai_net_ask_no_source">Which folder should I use? Name it, for example “from Download”.</string>
+    <string name="ai_net_ask_no_dest">Where should the files go? Tell me the folder, for example “to Documents”.</string>
+    <string name="ai_net_ask_ambiguous_folder">Several folders match: %1$s. Which one do you mean?</string>
+    <string name="ai_net_ask_unknown_folder">I can’t find a folder called “%1$s”. What’s it called exactly?</string>
+    <string name="ai_net_ask_uncovered">What do you mean by “%1$s”? If it’s in the file name, say “with %1$s in the name”.</string>
+    <string name="ai_net_ask_no_reading">I can’t find any file for “%1$s”. Is it in the file name? Otherwise tell me the folder or a time span.</string>
+    <string name="ai_net_ask_vague_time">What does “%1$s” mean to you? Be more specific, for example “older than a year”.</string>
+    <string name="ai_net_ask_vague_size">How big is “%1$s” for you? For example “larger than 100 MB”.</string>
+    <string name="ai_net_refuse_memory">I don’t remember earlier commands or searches. Please tell me exactly which files you mean.</string>
+    <string name="ai_net_refuse_archive">I can’t zip or unzip files yet.</string>
+    <string name="ai_net_refuse_convert">I can’t convert or merge files.</string>
+    <string name="ai_net_refuse_rename">I can’t rename by command yet. Press and hold the file and choose “Rename”.</string>
+    <string name="ai_net_refuse_share">I can’t share or send by command. Press and hold the file and choose “Share”.</string>
+    <string name="ai_net_refuse_open">I can’t open, play or print by command. I can show you the file, then just tap it.</string>
+    <string name="ai_net_refuse_restore">I can’t restore files by command. Anything you deleted is in the trash, and you can restore it there.</string>
+    <string name="ai_net_refuse_edit">I can’t edit files.</string>
+    <string name="ai_show_between">%1$s to %2$s</string>
+    <string name="ai_show_since">since %1$s</string>
+    <string name="ai_show_until">until %1$s</string>
+    <string name="ai_show_min_size">from %1$s</string>
+    <string name="ai_show_max_size">up to %1$s</string>
+    <string name="ai_show_terms">with “%1$s”</string>
+    <string name="ai_show_without">without %1$s</string>
+    <string name="ai_show_oldest_first">oldest first</string>
+    <string name="ai_show_smallest_first">smallest first</string>
+    <string name="ai_download_not_published">The add-on for AI commands isn’t available yet. It will come with a later update.</string>
+    <string name="ai_net_none">Ordo can find and show files, move, copy, tidy them up and put them in the trash.</string>
+    <string name="ai_net_quoted">“%1$s”</string>
+    <string name="ai_net_dropped">I found nothing with %1$s together, so I only searched for %2$s.</string>
+    <string name="ai_net_dropped_all">I found nothing for %1$s, so I’m showing everything else that matches.</string>
+    <string name="ai_net_count_warning">You said %1$d, but I found %2$d. Please check the list carefully.</string>
+    <!-- Two new kinds of commands, shown first while the preview (Settings › AI assistant) is on -->
+    <string-array name="ai_examples_preview">
+        <item>Show me last week’s PDFs</item>
+        <item>Where is my phone bill?</item>
+    </string-array>
+    <string name="ai_net_and">" and "</string>
 </resources>

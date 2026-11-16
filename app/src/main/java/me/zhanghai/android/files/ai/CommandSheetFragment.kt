@@ -9,6 +9,8 @@ import android.content.Context
 import android.content.res.ColorStateList
 import android.os.Build
 import android.os.Bundle
+import android.os.SystemClock
+import android.util.Log
 import android.os.Environment
 import android.text.format.Formatter
 import android.view.Gravity
@@ -59,6 +61,9 @@ import me.zhanghai.android.files.settings.Settings
 import me.zhanghai.android.files.trash.Trash
 import me.zhanghai.android.files.util.valueCompat
 import java.io.File
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 
 /**
  * The on-device AI: set up once (device check, download), then command in, plan preview out.
@@ -76,6 +81,8 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
     // Size and time of [files] when the preview was made: the runner skips a file that changed since.
     private var seen: Map<String, Pair<Long, Long>> = emptyMap()
     private lateinit var design: CommandDesign
+    // What the net left out or doubts about the current plan, said in the preview or under the list (net designs).
+    private var netNote: String? = null
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, state: Bundle?): View {
         _binding = CommandSheetBinding.inflate(inflater, container, false)
@@ -92,7 +99,9 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
                 )
             }
         }
-        resources.getStringArray(R.array.ai_examples).forEach { example ->
+        // While the preview is on, two of the new kinds of commands come first; otherwise the examples as before.
+        val preview = if (design === CommandDesign.Guarded) resources.getStringArray(R.array.ai_examples_preview).toList() else emptyList()
+        (preview + resources.getStringArray(R.array.ai_examples)).forEach { example ->
             binding.exampleChips.addView(glassChip(example).apply {
                 setOnClickListener {
                     binding.commandEdit.setText(example)
@@ -135,11 +144,12 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
         // lists and hints run without the model. BuildConfig.DEBUG is a constant, so release builds drop this.
         val injected = if (BuildConfig.DEBUG) arguments?.getString(ARG_MODEL_ANSWER) else null
         if (injected != null && state == null) {
-            design = CommandDesign.KR
+            // The net designs take the answer as it is; the older ones are tested with K+R as before.
+            if (design.decide("", null, emptyList(), LocalDateTime.now()) { 0 } == null) design = CommandDesign.KR
             text = arguments?.getString(ARG_TEXT).orEmpty()
             binding.commandEdit.setText(text)
             binding.removeModelButton.isVisible = false
-            answer { CommandPlan.parse(injected) }
+            answer { injected }
             return
         }
         // Opened with a ready plan (e.g. an analysis suggestion): no model needed, straight to the preview.
@@ -236,7 +246,11 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
         if (modelState is CommandModel.State.Failed) {
             binding.downloadText.isVisible = true
             binding.downloadText.setText(
-                if (modelState.noSpace) R.string.ai_download_no_space else R.string.ai_download_failed
+                when {
+                    modelState.noSpace -> R.string.ai_download_no_space
+                    modelState.notFound -> R.string.ai_download_not_published
+                    else -> R.string.ai_download_failed
+                }
             )
         }
         if (!check.ok) {
@@ -351,7 +365,11 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
                         return@launch
                     }
                     is CommandModel.State.Failed -> {
-                        downloadStopped(if (state.noSpace) R.string.ai_download_no_space else R.string.ai_download_failed)
+                        downloadStopped(when {
+                            state.noSpace -> R.string.ai_download_no_space
+                            state.notFound -> R.string.ai_download_not_published
+                            else -> R.string.ai_download_failed
+                        })
                         return@launch
                     }
                     CommandModel.State.Missing -> {
@@ -436,14 +454,15 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
             return
         }
         hideKeyboard()
+        netNote = null
         if (job?.isActive == true) CommandEngine.cancel()
         job?.cancel()
         val context = requireContext().applicationContext
-        answer { CommandEngine.plan(context, text, design) }
+        answer { CommandEngine.answer(context, text, design) }
     }
 
     /** Router first (no model), then the model's plan put right by the rules, then the usual checks. */
-    private fun answer(model: suspend () -> CommandPlan?) {
+    private fun answer(model: suspend () -> String) {
         design.route(text)?.let { route ->
             // Posted: this can run while the sheet is still being created, too early to open a screen or dismiss.
             binding.root.post { if (_binding != null) onRoute(route) }
@@ -453,6 +472,17 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
             show(binding.loadingLayout)
             binding.cancelButton.isVisible = true
             binding.thinkingOrb.thinking = true
+            // Net designs: what Ordo cannot do or cannot know is answered before the model.
+            val folders = if (design === CommandDesign.Today) emptyList() else withContext(Dispatchers.IO) { folderNames() }
+            val now = LocalDateTime.now()
+            // one count per decision: each source listed once, closing the sheet stops it
+            val running = currentCoroutineContext()[Job]
+            val counter = CommandNetCount(root, text, active = { running?.isActive != false })
+            val before = withContext(Dispatchers.IO) { netDecide(null, folders, now, counter) }
+            if (before is NetOutcome.Refuse) {
+                onNet(before)
+                return@launch
+            }
             val thinking = launch {
                 if (!CommandEngine.isLoaded) {
                     binding.loadingText.setText(getString(R.string.ai_starting))
@@ -463,13 +493,12 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
                     delay(2_200)
                 }
             }
+            var net: NetOutcome? = null
             val plan = try {
-                model()?.let { plan ->
-                    // The rules read folder names after "aus/nach"; the shipped design has no rules and needs none.
-                    val folders = if (design === CommandDesign.Today) emptyList()
-                    else withContext(Dispatchers.IO) { folderNames() }
-                    design.fix(text, plan, folders)
-                }
+                val answer = model()
+                net = withContext(Dispatchers.IO) { netDecide(answer, folders, now, counter) }
+                // The rules read folder names after "aus/nach"; the shipped design has no rules and needs none.
+                if (net == null) CommandPlan.parse(answer)?.let { design.fix(text, it, folders) } else null
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
@@ -479,20 +508,114 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
                 return@launch
             }
             thinking.cancel()
-            if (plan == null) {
-                showRefused(Reason.UNSUPPORTED)
-            } else {
-                evaluate(plan)
+            when {
+                net != null -> onNet(net)
+                plan == null -> showRefused(Reason.UNSUPPORTED)
+                else -> evaluate(plan)
             }
         }
     }
 
-    private suspend fun evaluate(plan: CommandPlan) {
+    /**
+     * The net design's answer (null for the older designs). A command the net cannot read at all (a date that does
+     * not exist, a number too large: the lab's Python stops there too) is asked back, never guessed.
+     */
+    private fun netDecide(answer: String?, folders: List<String>, now: LocalDateTime, counter: CommandNetCount): NetOutcome? = try {
+        val started = SystemClock.elapsedRealtime()
+        design.decide(text, answer, folders, now, counter::count).also {
+            // e2e/ai-guarded.sh reads the counting time; no command text in the log
+            if (BuildConfig.DEBUG && answer != null && it != null) {
+                Log.i(TAG, "net decision in ${SystemClock.elapsedRealtime() - started} ms, ${counter.listings} folders listed")
+            }
+        }
+    } catch (e: CancellationException) {
+        if (BuildConfig.DEBUG) Log.i(TAG, "net counting stopped: the sheet was closed")
+        throw e
+    } catch (e: RuntimeException) {
+        Log.w(TAG, "net could not read the command", e)
+        NetOutcome.Ask("model", emptyList())
+    }
+
+    private suspend fun onNet(outcome: NetOutcome) {
+        when (outcome) {
+            is NetOutcome.Plan -> {
+                if (outcome.warnings.isNotEmpty()) Log.i(TAG, "net warnings: ${outcome.warnings}")
+                netNote = netNote(outcome)
+                if (outcome.plan.action == "none") {
+                    // chat, or something no file command does: say what Ordo can do, "show" included
+                    showMessage(R.string.ai_refused_unsupported_title, getString(R.string.ai_net_none))
+                } else {
+                    evaluate(outcome.plan, paths = true)
+                }
+            }
+            is NetOutcome.Ask -> showNetAsk(outcome)
+            is NetOutcome.Refuse -> showNetRefusal(outcome.reason)
+        }
+    }
+
+    /** A filter word as the user typed it (the net keeps folded stems). */
+    private fun typed(term: String) = CommandNetPlan.typed(text, term)
+
+    /** Words the net left out and a count that does not fit, in words; null when there is nothing to say. */
+    private fun netNote(outcome: NetOutcome.Plan): String? {
+        val quote = { words: List<String> ->
+            val q = words.map { typed(it) }.distinct().map { getString(R.string.ai_net_quoted, it) }
+            // „Telekom“, „Vodafone“ und „Rechnung“
+            if (q.size < 2) q.joinToString() else q.dropLast(1).joinToString(", ") + getString(R.string.ai_net_and) + q.last()
+        }
+        val kept = outcome.plan.nameTerms + outcome.plan.textTerms
+        val dropped = outcome.dropped.takeIf { it.isNotEmpty() }?.let {
+            if (kept.isEmpty()) getString(R.string.ai_net_dropped_all, quote(it))
+            else getString(R.string.ai_net_dropped, quote(kept + it), quote(kept))
+        }
+        // rules2's warning reads "count 3 said, 5 matched"
+        val count = outcome.warnings.firstNotNullOfOrNull { Regex("count (\\d+) said, (\\d+) matched").find(it) }?.let {
+            getString(R.string.ai_net_count_warning, it.groupValues[1].toInt(), it.groupValues[2].toInt())
+        }
+        return listOfNotNull(dropped, count).joinToString("\n").ifEmpty { null }
+    }
+
+    /** A question back from the net: friendly, with the typed command kept above so it can be refined. */
+    private fun showNetAsk(outcome: NetOutcome.Ask) {
+        val arg = outcome.args.firstOrNull().orEmpty()
+        val question = when (outcome.reason) {
+            "no_source" -> getString(R.string.ai_net_ask_no_source)
+            "no_dest" -> getString(R.string.ai_net_ask_no_dest)
+            "ambiguous_folder" -> getString(R.string.ai_net_ask_ambiguous_folder, arg)
+            "unknown_folder" -> getString(R.string.ai_net_ask_unknown_folder, arg)
+            "uncovered" -> getString(R.string.ai_net_ask_uncovered, arg)
+            "no_reading" -> getString(R.string.ai_net_ask_no_reading, arg)
+            "vague_time" -> getString(R.string.ai_net_ask_vague_time, arg)
+            "vague_size" -> getString(R.string.ai_net_ask_vague_size, arg)
+            else -> getString(R.string.ai_net_ask_model)
+        }
+        showMessage(R.string.ai_net_ask_title, question + "\n\n" + getString(R.string.ai_net_ask_refine))
+        binding.messageIcon.setTintedCircleIcon(R.drawable.ai_hint_icon_white_24dp, R.color.ai_accent)
+        binding.messageIcon.isVisible = true
+        popIcon()
+    }
+
+    /** Something Ordo cannot do or cannot know: the hint style of the older designs. */
+    private fun showNetRefusal(reason: String) {
+        val title = if (reason == "memory") R.string.ai_hint_title else R.string.ai_refused_unsupported_title
+        hint(getString(when (reason) {
+            "memory" -> R.string.ai_net_refuse_memory
+            "archive" -> R.string.ai_net_refuse_archive
+            "convert" -> R.string.ai_net_refuse_convert
+            "rename" -> R.string.ai_net_refuse_rename
+            "share" -> R.string.ai_net_refuse_share
+            "open" -> R.string.ai_net_refuse_open
+            "restore" -> R.string.ai_net_refuse_restore
+            else -> R.string.ai_net_refuse_edit
+        }), title)
+    }
+
+    private suspend fun evaluate(plan: CommandPlan, paths: Boolean = false) {
         if (plan.action == "show") {
             showResults(plan)
             return
         }
-        when (val outcome = CommandCheck.check(text, plan, null, root)) {
+        when (val outcome = CommandCheck.check(text, plan, null, root, paths)) {
             is Outcome.Ready -> {
                 if (outcome.plan.action == "delete" && !Trash.isEnabled) {
                     showMessage(
@@ -611,13 +734,13 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
         } else {
             shown
         }
-        val note = when {
+        val note = listOfNotNull(netNote, when {
             plan.action == "delete" -> getString(
                 R.string.ai_note_trash, Settings.TRASH_RETENTION_DAYS.valueCompat.toIntOrNull() ?: 30
             )
             outcome.newDestination -> getString(R.string.ai_note_new_folder, outcome.destination!!.name)
             else -> null
-        }
+        }).joinToString("\n\n").ifEmpty { null }
         binding.noteText.isVisible = note != null
         binding.noteText.text = note
         val delete = plan.action == "delete"
@@ -644,6 +767,8 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
             binding.filterChips.addView(glassChip(label).apply {
                 isCloseIconVisible = true
                 setOnCloseIconClickListener {
+                    // the net's note was about the plan it made; after the user widened it, it may no longer apply
+                    netNote = null
                     viewLifecycleOwner.lifecycleScope.launch {
                         withContext(Dispatchers.IO) { collect(without, outcome.source) }
                         showPreview(outcome.copy(plan = without))
@@ -693,9 +818,15 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
             }
             chip(requireContext().quantity(plurals, plan.newerThan, plan.newerThan), plan.copy(newerThan = 0))
         }
+        plan.nameTerms.forEach { chip(getString(R.string.ai_filter_name, typed(it)), plan.copy(nameTerms = plan.nameTerms - it)) }
+        plan.textTerms.forEach { chip(getString(R.string.ai_filter_word, typed(it)), plan.copy(textTerms = plan.textTerms - it)) }
+        dateRange(plan)?.let { chip(it, plan.copy(dateFrom = "", dateTo = "")) }
+        sizeRange(plan)?.let { chip(it, plan.copy(minBytes = 0, maxBytes = 0)) }
+        exclusion(plan)?.let {
+            chip(it, plan.copy(excludeKinds = emptyList(), excludeExtensions = emptyList(), excludeTerms = emptyList()))
+        }
         if (plan.limit > 0) {
-            val plurals = if (plan.sort == "size") R.plurals.ai_filter_limit_size else R.plurals.ai_filter_limit_newest
-            chip(requireContext().quantity(plurals, plan.limit, plan.limit), plan.copy(limit = 0))
+            chip(requireContext().quantity(limitPlurals(plan.sort), plan.limit, plan.limit), plan.copy(limit = 0))
         }
         binding.filterChips.isVisible = binding.filterChips.childCount > 0
     }
@@ -855,16 +986,59 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
             R.plurals.ai_show_newer_months, R.plurals.ai_show_newer_years)
         if (plan.olderThan > 0) parts += age(plan.olderThan, R.plurals.ai_show_older_days, R.plurals.ai_show_older_weeks,
             R.plurals.ai_show_older_months, R.plurals.ai_show_older_years)
+        if (plan.nameTerms.isNotEmpty() || plan.textTerms.isNotEmpty()) {
+            parts += getString(R.string.ai_show_terms, (plan.nameTerms + plan.textTerms).map { typed(it) }.distinct().joinToString(" "))
+        }
+        dateRange(plan)?.let { parts += it }
+        sizeRange(plan)?.let { parts += it }
+        exclusion(plan)?.let { parts += it }
         if (sources.size == 1 && sources[0] != root) parts += getString(R.string.ai_show_in, sources[0].name)
         var title = parts.joinToString(" ")
         val order = when (plan.sort) {
             "size" -> getString(R.string.ai_show_largest_first)
             "newest" -> getString(R.string.ai_show_newest_first)
+            "oldest" -> getString(R.string.ai_show_oldest_first)
+            "smallest" -> getString(R.string.ai_show_smallest_first)
             else -> null
         }
         if (order != null) title += " · $order"
+        netNote?.let { title += " · $it" }
         if (plan.limit > 0) title += " · " + context.quantity(R.plurals.ai_show_top, plan.limit, plan.limit)
         return noun to title.removePrefix(" · ")
+    }
+
+    /** The net's date range in words; the end is exclusive, so a day range ends the day before. */
+    private fun dateRange(plan: CommandPlan): String? {
+        fun format(value: String, end: Boolean): String = runCatching {
+            if ('T' in value) {
+                java.time.LocalDateTime.parse(value).format(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.SHORT))
+            } else {
+                java.time.LocalDate.parse(value).let { if (end) it.minusDays(1) else it }
+                    .format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM))
+            }
+        }.getOrDefault(value)
+        val from = plan.dateFrom.trim()
+        val to = plan.dateTo.trim()
+        return when {
+            from.isNotEmpty() && to.isNotEmpty() -> getString(R.string.ai_show_between, format(from, false), format(to, true))
+            from.isNotEmpty() -> getString(R.string.ai_show_since, format(from, false))
+            to.isNotEmpty() -> getString(R.string.ai_show_until, format(to, true))
+            else -> null
+        }
+    }
+
+    private fun sizeRange(plan: CommandPlan): String? {
+        val size = { bytes: Long -> android.text.format.Formatter.formatShortFileSize(requireContext(), bytes) }
+        return listOfNotNull(
+            plan.minBytes.takeIf { it > 0 }?.let { getString(R.string.ai_show_min_size, size(it)) },
+            plan.maxBytes.takeIf { it > 0 }?.let { getString(R.string.ai_show_max_size, size(it)) }
+        ).joinToString(" ").ifEmpty { null }
+    }
+
+    private fun exclusion(plan: CommandPlan): String? {
+        val what = plan.excludeKinds.map { kindName(it) } + plan.excludeExtensions.map { it.uppercase() } +
+            plan.excludeTerms.map { typed(it) }
+        return if (what.isEmpty()) null else getString(R.string.ai_show_without, what.joinToString(", "))
     }
 
     private fun onRoute(route: CommandRules.Route) {
@@ -882,17 +1056,13 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
 
     /** Something Ordo cannot know without a memory: a friendly hint that pops in, never a guessed plan. */
     private fun showHint(reason: CommandRules.Refusal) {
-        showMessage(R.string.ai_hint_title, getString(when (reason) {
+        hint(getString(when (reason) {
             CommandRules.Refusal.OPENED -> R.string.ai_hint_opened
             CommandRules.Refusal.SEARCHED -> R.string.ai_hint_searched
             CommandRules.Refusal.HABIT -> R.string.ai_hint_habit
             CommandRules.Refusal.CONVERSATION -> R.string.ai_hint_conversation
             CommandRules.Refusal.WORK -> R.string.ai_hint_work
         }))
-        binding.messageIcon.setTintedCircleIcon(R.drawable.ai_hint_icon_white_24dp, R.color.home_assistant)
-        binding.messageIcon.isVisible = true
-        binding.hintDismissText.isVisible = true
-        binding.messageLayout.setOnClickListener { showInput() }
         if (reason == CommandRules.Refusal.OPENED) {
             binding.hintActionButton.setText(R.string.ai_hint_opened_action)
             binding.hintActionButton.isVisible = true
@@ -904,6 +1074,20 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
             }
             binding.hintActionButton.reveal(220)
         }
+    }
+
+    /** The hint card: a message that pops in with its icon; a tap anywhere goes back to the command. */
+    private fun hint(message: String, titleRes: Int = R.string.ai_hint_title) {
+        showMessage(titleRes, message)
+        binding.messageIcon.setTintedCircleIcon(R.drawable.ai_hint_icon_white_24dp, R.color.home_assistant)
+        binding.messageIcon.isVisible = true
+        binding.hintDismissText.isVisible = true
+        binding.messageLayout.setOnClickListener { showInput() }
+        popIcon()
+        binding.hintDismissText.reveal(320)
+    }
+
+    private fun popIcon() {
         if (me.zhanghai.android.files.ui.Motion.any) {
             binding.messageIcon.apply {
                 scaleX = 0.4f
@@ -913,7 +1097,6 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
                     .setInterpolator(android.view.animation.OvershootInterpolator(2.2f)).start()
             }
         }
-        binding.hintDismissText.reveal(320)
     }
 
     /** Folder paths below the storage, relative to it, for the rules' "aus X" / "nach Y" (hidden ones never). */
@@ -1010,6 +1193,14 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
         resources.getQuantityString(id, quantity, *args)
 
     companion object {
+        /** The limit chip's words for each sort ("Nur die 5 ältesten"); no sort means newest, as the list orders. */
+        internal fun limitPlurals(sort: String): Int = when (sort) {
+            "size" -> R.plurals.ai_filter_limit_size
+            "oldest" -> R.plurals.ai_filter_limit_oldest
+            "smallest" -> R.plurals.ai_filter_limit_smallest
+            else -> R.plurals.ai_filter_limit_newest
+        }
+
         const val TAG = "CommandSheet"
         private const val ARG_PLAN = "plan"
         private const val ARG_TEXT = "text"
