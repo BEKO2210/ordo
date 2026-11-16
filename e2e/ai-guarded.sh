@@ -37,6 +37,7 @@ not() { ! "$@"; }
 logged() { log | grep -qE "$1"; }
 not_logged() { ! log | grep -qE "$1"; }
 TIMES=()
+exec 3>&1
 
 cold() {
     a shell am force-stop "$PKG"; a logcat -c
@@ -78,8 +79,9 @@ ask() {
 answer_json() { echo "${ANSWER#*: }"; }
 in_list() {
     wait_on filelist.FileListActivity 30 && ui wait "$1" 30 && return 0
-    echo "    on $(top); screen: $(ui texts | cut -d'|' -f1 | grep -v '^$' | head -12 | tr '\n' ';')"
-    log | grep -E "net |W CommandSheet" | tail -3 | sed 's/^/    /'
+    # fd 3 is the script's output: check() silences its command's own output
+    echo "    on $(top); screen: $(ui texts | cut -d'|' -f1 | grep -v '^$' | head -12 | tr '\n' ';')" >&3
+    log | grep -E "net |W CommandSheet" | tail -3 | sed 's/^/    /' >&3
     return 1
 }
 
