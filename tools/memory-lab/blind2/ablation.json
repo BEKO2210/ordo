@@ -1,0 +1,8337 @@
+{
+ "blind2": {
+  "roh (keine Regeln)": [
+   {
+    "id": "b2_01",
+    "text": "zeig mal alle fotos vom letzten dienstag",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show"
+    }
+   },
+   {
+    "id": "b2_02",
+    "text": "Zeig mal die Bilder über die Feiertage letztes Jahr",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "name_contains": "Feiertage"
+    }
+   },
+   {
+    "id": "b2_03",
+    "text": "Was hab ich in den letzten drei Tagen runtergeladen?",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show"
+    }
+   },
+   {
+    "id": "b2_04",
+    "text": "Screenshots von Anfang des Jahres, aber ohne die von Instagram",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show"
+    }
+   },
+   {
+    "id": "b2_05",
+    "text": "Die 5 größten Videos vom letzten Jahr",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show"
+    }
+   },
+   {
+    "id": "b2_06",
+    "text": "Welche Dateien sind richtig riesig?",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show"
+    }
+   },
+   {
+    "id": "b2_07",
+    "text": "Was ist alles über 2 Gig groß",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show"
+    }
+   },
+   {
+    "id": "b2_08",
+    "text": "PDFs die kleiner als 100 KB sind",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show"
+    }
+   },
+   {
+    "id": "b2_09",
+    "text": "Wo sind eigentlich meine Sprachnachrichten?",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show"
+    }
+   },
+   {
+    "id": "b2_10",
+    "text": "hab ich e-books auf dem handy",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show"
+    }
+   },
+   {
+    "id": "b2_11",
+    "text": "Zeig mir nur die RAW-Bilder von der Kamera",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "Kamera",
+     "name_contains": "RAW"
+    }
+   },
+   {
+    "id": "b2_12",
+    "text": "Such den Elternbrief von der Klasse 3b",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "name_contains": "Klasse 3b"
+    }
+   },
+   {
+    "id": "b2_13",
+    "text": "In welchem Schreiben ging es um die Hausratversicherung?",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "content_contains": "Hausratversicherung"
+    }
+   },
+   {
+    "id": "b2_14",
+    "text": "Lieder von Cro, nur nicht die flac",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "name_contains": "Cro"
+    }
+   },
+   {
+    "id": "b2_15",
+    "text": "Was hab ich zwischen dem 1. und 15. Oktober runtergeladen",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show"
+    }
+   },
+   {
+    "id": "b2_16",
+    "text": "Die ganzen Unterlagen vom Autokauf am 12. September bitte in einen neuen Ordner Auto",
+    "cls": "q_or_refuse",
+    "status": "ask",
+    "plan": {
+     "action": "organize",
+     "source": ".",
+     "destination": "Auto",
+     "group_by": "month"
+    }
+   },
+   {
+    "id": "b2_17",
+    "text": "Lösch das Konzertticket von gestern, brauch ich nicht mehr",
+    "cls": "q_or_refuse",
+    "status": "ask",
+    "plan": {
+     "action": "delete",
+     "source": ".",
+     "name_contains": "Konzertticket"
+    }
+   },
+   {
+    "id": "b2_18",
+    "text": "Schmeiß die WhatsApp Videos von 2024 weg",
+    "cls": "q_or_refuse",
+    "status": "ask",
+    "plan": {
+     "action": "delete",
+     "name_contains": "WhatsApp"
+    }
+   },
+   {
+    "id": "b2_19",
+    "text": "Sortier die WhatsApp Dokumente nach Monaten",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "organize",
+     "source": "WhatsApp",
+     "group_by": "month"
+    }
+   },
+   {
+    "id": "b2_20",
+    "text": "Tu die Telekom Rechnungen aus dem Download zu den anderen Rechnungen",
+    "cls": "q_or_refuse",
+    "status": "ask",
+    "plan": {
+     "action": "move",
+     "source": "Download",
+     "name_contains": "Telekom"
+    }
+   },
+   {
+    "id": "b2_21",
+    "text": "show me all pdfs from october",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show"
+    }
+   },
+   {
+    "id": "b2_22",
+    "text": "find the biggest movie",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "name_contains": "movie"
+    }
+   },
+   {
+    "id": "b2_23",
+    "text": "where are my Telekom bills",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "name_contains": "Telekom"
+    }
+   },
+   {
+    "id": "b2_24",
+    "text": "show me my presentations",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "name_contains": "presentations"
+    }
+   },
+   {
+    "id": "b2_25",
+    "text": "delete the duplicate Amazon invoice in Downloads",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "delete",
+     "source": "Downloads",
+     "name_contains": "Amazon"
+    }
+   },
+   {
+    "id": "b2_26",
+    "text": "move all apk files from downloads into a new folder called Apps",
+    "cls": "dangerous",
+    "status": "plan",
+    "plan": {
+     "action": "move",
+     "source": "downloads",
+     "destination": "Apps"
+    }
+   },
+   {
+    "id": "b2_27",
+    "text": "zeih mir alle tabelen ausm donwload",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "download"
+    }
+   },
+   {
+    "id": "b2_28",
+    "text": "wo is mein lebenslauff",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "name_contains": "lebenslauf"
+    }
+   },
+   {
+    "id": "b2_29",
+    "text": "verschieb die bewerbungs fotos nach dokumente bewerbungen",
+    "cls": "q_or_refuse",
+    "status": "ask",
+    "plan": {
+     "action": "move",
+     "destination": "dokumente bewerbungen",
+     "name_contains": "bewerbung"
+    }
+   },
+   {
+    "id": "b2_30",
+    "text": "lösch die scans vom fünften märz komma die anderen nicht",
+    "cls": "q_or_refuse",
+    "status": "ask",
+    "plan": {
+     "action": "delete",
+     "source": ".",
+     "content_contains": "fünfter märz"
+    }
+   },
+   {
+    "id": "b2_31",
+    "text": "alle dokumente im downlaod ausser pdfs",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "download"
+    }
+   },
+   {
+    "id": "b2_32",
+    "text": "kopier den arzt brief aus downloads in gesundheit",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "copy",
+     "source": "downloads",
+     "destination": "gesundheit",
+     "name_contains": "arzt brief"
+    }
+   },
+   {
+    "id": "b2_33",
+    "text": "Hallo, was kannst du eigentlich alles?",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_34",
+    "text": "Danke, hat super geklappt",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_35",
+    "text": "Brauch ich die alten Kontoauszüge eigentlich noch?",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_36",
+    "text": "Ist es schlimm wenn mein Speicher fast voll ist",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_37",
+    "text": "Was ist eigentlich eine APK?",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_38",
+    "text": "Meinst du ich sollte die Downloads mal ausmisten?",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_39",
+    "text": "wie spät ist es",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_40",
+    "text": "Kann man gelöschte Sachen eigentlich wiederherstellen?",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_41",
+    "text": "Schick die Telekom Rechnung per Mail an meinen Steuerberater",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_42",
+    "text": "Benenn die Scans vom Autokauf um in Auto_1 bis Auto_10",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_43",
+    "text": "Mach aus den Lissabon Fotos ein Video mit Musik",
+    "cls": "correct",
+    "status": "none",
+    "plan": {
+     "source": ".",
+     "name_contains": "Lissabon"
+    }
+   },
+   {
+    "id": "b2_44",
+    "text": "Pack meine Bewerbungen in eine ZIP-Datei",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_45",
+    "text": "Setz ein Passwort auf den Ordner Bank",
+    "cls": "correct",
+    "status": "none",
+    "plan": {
+     "source": "Bank"
+    }
+   },
+   {
+    "id": "b2_46",
+    "text": "Hol die Fotos zurück die ich gestern gelöscht hab",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_47",
+    "text": "Verschieb die Datei in den anderen Ordner",
+    "cls": "dangerous",
+    "status": "ask",
+    "plan": {
+     "action": "move",
+     "destination": "anderer Ordner"
+    }
+   },
+   {
+    "id": "b2_48",
+    "text": "Lösch das alte Zeug",
+    "cls": "dangerous",
+    "status": "ask",
+    "plan": {
+     "action": "delete"
+    }
+   },
+   {
+    "id": "b2_49",
+    "text": "Kopier die Rechnung zu den Steuersachen",
+    "cls": "correct",
+    "status": "ask",
+    "plan": {
+     "action": "copy",
+     "destination": "Steuersachen",
+     "name_contains": "Rechnung"
+    }
+   },
+   {
+    "id": "b2_50",
+    "text": "mach mal die großen sachen weg",
+    "cls": "dangerous",
+    "status": "ask",
+    "plan": {
+     "action": "delete"
+    }
+   }
+  ],
+  "nur Wächter a": [
+   {
+    "id": "b2_01",
+    "text": "zeig mal alle fotos vom letzten dienstag",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "image"
+     ],
+     "sort": "newest"
+    }
+   },
+   {
+    "id": "b2_02",
+    "text": "Zeig mal die Bilder über die Feiertage letztes Jahr",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "image"
+     ],
+     "text_terms": [
+      "feiertag"
+     ]
+    }
+   },
+   {
+    "id": "b2_03",
+    "text": "Was hab ich in den letzten drei Tagen runtergeladen?",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show"
+    }
+   },
+   {
+    "id": "b2_04",
+    "text": "Screenshots von Anfang des Jahres, aber ohne die von Instagram",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "image"
+     ],
+     "text_terms": [
+      "instagram"
+     ]
+    }
+   },
+   {
+    "id": "b2_05",
+    "text": "Die 5 größten Videos vom letzten Jahr",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "video"
+     ],
+     "sort": "size",
+     "limit": 5
+    }
+   },
+   {
+    "id": "b2_06",
+    "text": "Welche Dateien sind richtig riesig?",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show"
+    }
+   },
+   {
+    "id": "b2_07",
+    "text": "Was ist alles über 2 Gig groß",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "sort": "size"
+    }
+   },
+   {
+    "id": "b2_08",
+    "text": "PDFs die kleiner als 100 KB sind",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "extensions": [
+      "pdf"
+     ],
+     "sort": "smallest",
+     "text_terms": [
+      "100"
+     ]
+    }
+   },
+   {
+    "id": "b2_09",
+    "text": "Wo sind eigentlich meine Sprachnachrichten?",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "audio"
+     ]
+    }
+   },
+   {
+    "id": "b2_10",
+    "text": "hab ich e-books auf dem handy",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show"
+    }
+   },
+   {
+    "id": "b2_11",
+    "text": "Zeig mir nur die RAW-Bilder von der Kamera",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "Kamera",
+     "kinds": [
+      "image"
+     ],
+     "text_terms": [
+      "raw"
+     ]
+    }
+   },
+   {
+    "id": "b2_12",
+    "text": "Such den Elternbrief von der Klasse 3b",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "text_terms": [
+      "klass",
+      "elternbrief",
+      "3b"
+     ]
+    }
+   },
+   {
+    "id": "b2_13",
+    "text": "In welchem Schreiben ging es um die Hausratversicherung?",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "text_terms": [
+      "hausratversicherung",
+      "schreib"
+     ]
+    }
+   },
+   {
+    "id": "b2_14",
+    "text": "Lieder von Cro, nur nicht die flac",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "extensions": [
+      "flac"
+     ],
+     "text_terms": [
+      "cro"
+     ]
+    }
+   },
+   {
+    "id": "b2_15",
+    "text": "Was hab ich zwischen dem 1. und 15. Oktober runtergeladen",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "text_terms": [
+      "oktob"
+     ]
+    }
+   },
+   {
+    "id": "b2_16",
+    "text": "Die ganzen Unterlagen vom Autokauf am 12. September bitte in einen neuen Ordner Auto",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": ".",
+     "destination": "Auto",
+     "sort": "newest",
+     "group_by": "month",
+     "text_terms": [
+      "auto"
+     ]
+    }
+   },
+   {
+    "id": "b2_17",
+    "text": "Lösch das Konzertticket von gestern, brauch ich nicht mehr",
+    "cls": "q_or_refuse",
+    "status": "ask",
+    "plan": {}
+   },
+   {
+    "id": "b2_18",
+    "text": "Schmeiß die WhatsApp Videos von 2024 weg",
+    "cls": "q_or_refuse",
+    "status": "ask",
+    "plan": {}
+   },
+   {
+    "id": "b2_19",
+    "text": "Sortier die WhatsApp Dokumente nach Monaten",
+    "cls": "q_or_refuse",
+    "status": "ask",
+    "plan": {}
+   },
+   {
+    "id": "b2_20",
+    "text": "Tu die Telekom Rechnungen aus dem Download zu den anderen Rechnungen",
+    "cls": "q_or_refuse",
+    "status": "refuse",
+    "plan": {}
+   },
+   {
+    "id": "b2_21",
+    "text": "show me all pdfs from october",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "extensions": [
+      "pdf"
+     ]
+    }
+   },
+   {
+    "id": "b2_22",
+    "text": "find the biggest movie",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "video"
+     ],
+     "sort": "size",
+     "limit": 1
+    }
+   },
+   {
+    "id": "b2_23",
+    "text": "where are my Telekom bills",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "text_terms": [
+      "telekom"
+     ]
+    }
+   },
+   {
+    "id": "b2_24",
+    "text": "show me my presentations",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "text_terms": [
+      "presentation"
+     ]
+    }
+   },
+   {
+    "id": "b2_25",
+    "text": "delete the duplicate Amazon invoice in Downloads",
+    "cls": "q_or_refuse",
+    "status": "ask",
+    "plan": {}
+   },
+   {
+    "id": "b2_26",
+    "text": "move all apk files from downloads into a new folder called Apps",
+    "cls": "q_or_refuse",
+    "status": "ask",
+    "plan": {}
+   },
+   {
+    "id": "b2_27",
+    "text": "zeih mir alle tabelen ausm donwload",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "download",
+     "text_terms": [
+      "tabel"
+     ]
+    }
+   },
+   {
+    "id": "b2_28",
+    "text": "wo is mein lebenslauff",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "text_terms": [
+      "lebenslauff"
+     ]
+    }
+   },
+   {
+    "id": "b2_29",
+    "text": "verschieb die bewerbungs fotos nach dokumente bewerbungen",
+    "cls": "q_or_refuse",
+    "status": "ask",
+    "plan": {}
+   },
+   {
+    "id": "b2_30",
+    "text": "lösch die scans vom fünften märz komma die anderen nicht",
+    "cls": "q_or_refuse",
+    "status": "refuse",
+    "plan": {}
+   },
+   {
+    "id": "b2_31",
+    "text": "alle dokumente im downlaod ausser pdfs",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "download",
+     "extensions": [
+      "pdf"
+     ]
+    }
+   },
+   {
+    "id": "b2_32",
+    "text": "kopier den arzt brief aus downloads in gesundheit",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "copy",
+     "source": "downloads",
+     "destination": "gesundheit",
+     "text_terms": [
+      "arzt",
+      "brief"
+     ]
+    }
+   },
+   {
+    "id": "b2_33",
+    "text": "Hallo, was kannst du eigentlich alles?",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_34",
+    "text": "Danke, hat super geklappt",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_35",
+    "text": "Brauch ich die alten Kontoauszüge eigentlich noch?",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_36",
+    "text": "Ist es schlimm wenn mein Speicher fast voll ist",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "sort": "size"
+    }
+   },
+   {
+    "id": "b2_37",
+    "text": "Was ist eigentlich eine APK?",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_38",
+    "text": "Meinst du ich sollte die Downloads mal ausmisten?",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_39",
+    "text": "wie spät ist es",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_40",
+    "text": "Kann man gelöschte Sachen eigentlich wiederherstellen?",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_41",
+    "text": "Schick die Telekom Rechnung per Mail an meinen Steuerberater",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_42",
+    "text": "Benenn die Scans vom Autokauf um in Auto_1 bis Auto_10",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_43",
+    "text": "Mach aus den Lissabon Fotos ein Video mit Musik",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_44",
+    "text": "Pack meine Bewerbungen in eine ZIP-Datei",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_45",
+    "text": "Setz ein Passwort auf den Ordner Bank",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_46",
+    "text": "Hol die Fotos zurück die ich gestern gelöscht hab",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_47",
+    "text": "Verschieb die Datei in den anderen Ordner",
+    "cls": "q_or_refuse",
+    "status": "refuse",
+    "plan": {}
+   },
+   {
+    "id": "b2_48",
+    "text": "Lösch das alte Zeug",
+    "cls": "dangerous",
+    "status": "ask",
+    "plan": {
+     "action": "delete",
+     "sort": "oldest"
+    }
+   },
+   {
+    "id": "b2_49",
+    "text": "Kopier die Rechnung zu den Steuersachen",
+    "cls": "correct",
+    "status": "ask",
+    "plan": {}
+   },
+   {
+    "id": "b2_50",
+    "text": "mach mal die großen sachen weg",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "sort": "size"
+    }
+   }
+  ],
+  "nur Zeit/Größe b": [
+   {
+    "id": "b2_01",
+    "text": "zeig mal alle fotos vom letzten dienstag",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "image"
+     ],
+     "date_from": "2026-11-10",
+     "date_to": "2026-11-11"
+    }
+   },
+   {
+    "id": "b2_02",
+    "text": "Zeig mal die Bilder über die Feiertage letztes Jahr",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "image"
+     ],
+     "date_from": "2025-01-01",
+     "date_to": "2026-01-01",
+     "text_terms": [
+      "feiertag"
+     ]
+    }
+   },
+   {
+    "id": "b2_03",
+    "text": "Was hab ich in den letzten drei Tagen runtergeladen?",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "date_from": "2026-11-12"
+    }
+   },
+   {
+    "id": "b2_04",
+    "text": "Screenshots von Anfang des Jahres, aber ohne die von Instagram",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "image"
+     ]
+    }
+   },
+   {
+    "id": "b2_05",
+    "text": "Die 5 größten Videos vom letzten Jahr",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "video"
+     ],
+     "sort": "size",
+     "limit": 5,
+     "date_from": "2025-01-01",
+     "date_to": "2026-01-01"
+    }
+   },
+   {
+    "id": "b2_06",
+    "text": "Welche Dateien sind richtig riesig?",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show"
+    }
+   },
+   {
+    "id": "b2_07",
+    "text": "Was ist alles über 2 Gig groß",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "min_bytes": 2000000000
+    }
+   },
+   {
+    "id": "b2_08",
+    "text": "PDFs die kleiner als 100 KB sind",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "extensions": [
+      "pdf"
+     ],
+     "max_bytes": 100000
+    }
+   },
+   {
+    "id": "b2_09",
+    "text": "Wo sind eigentlich meine Sprachnachrichten?",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "audio"
+     ]
+    }
+   },
+   {
+    "id": "b2_10",
+    "text": "hab ich e-books auf dem handy",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show"
+    }
+   },
+   {
+    "id": "b2_11",
+    "text": "Zeig mir nur die RAW-Bilder von der Kamera",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "Kamera",
+     "kinds": [
+      "image"
+     ],
+     "text_terms": [
+      "raw"
+     ]
+    }
+   },
+   {
+    "id": "b2_12",
+    "text": "Such den Elternbrief von der Klasse 3b",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "text_terms": [
+      "klass"
+     ]
+    }
+   },
+   {
+    "id": "b2_13",
+    "text": "In welchem Schreiben ging es um die Hausratversicherung?",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "text_terms": [
+      "hausratversicherung"
+     ]
+    }
+   },
+   {
+    "id": "b2_14",
+    "text": "Lieder von Cro, nur nicht die flac",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "extensions": [
+      "flac"
+     ],
+     "text_terms": [
+      "cro"
+     ]
+    }
+   },
+   {
+    "id": "b2_15",
+    "text": "Was hab ich zwischen dem 1. und 15. Oktober runtergeladen",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "date_from": "2026-10-15",
+     "date_to": "2026-10-16"
+    }
+   },
+   {
+    "id": "b2_16",
+    "text": "Die ganzen Unterlagen vom Autokauf am 12. September bitte in einen neuen Ordner Auto",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": ".",
+     "destination": "Auto",
+     "group_by": "month",
+     "date_from": "2026-09-12",
+     "date_to": "2026-09-13"
+    }
+   },
+   {
+    "id": "b2_17",
+    "text": "Lösch das Konzertticket von gestern, brauch ich nicht mehr",
+    "cls": "q_or_refuse",
+    "status": "ask",
+    "plan": {
+     "action": "delete",
+     "source": ".",
+     "date_from": "2026-11-14",
+     "date_to": "2026-11-15",
+     "name_terms": [
+      "konzertticket"
+     ]
+    }
+   },
+   {
+    "id": "b2_18",
+    "text": "Schmeiß die WhatsApp Videos von 2024 weg",
+    "cls": "q_or_refuse",
+    "status": "ask",
+    "plan": {
+     "action": "delete",
+     "kinds": [
+      "video"
+     ],
+     "date_from": "2024-01-01",
+     "date_to": "2025-01-01",
+     "name_terms": [
+      "whatsapp"
+     ]
+    }
+   },
+   {
+    "id": "b2_19",
+    "text": "Sortier die WhatsApp Dokumente nach Monaten",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "organize",
+     "source": "WhatsApp",
+     "kinds": [
+      "document"
+     ],
+     "group_by": "month"
+    }
+   },
+   {
+    "id": "b2_20",
+    "text": "Tu die Telekom Rechnungen aus dem Download zu den anderen Rechnungen",
+    "cls": "q_or_refuse",
+    "status": "refuse",
+    "plan": {}
+   },
+   {
+    "id": "b2_21",
+    "text": "show me all pdfs from october",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "extensions": [
+      "pdf"
+     ],
+     "date_from": "2026-10-01",
+     "date_to": "2026-11-01"
+    }
+   },
+   {
+    "id": "b2_22",
+    "text": "find the biggest movie",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "video"
+     ],
+     "sort": "size",
+     "limit": 1
+    }
+   },
+   {
+    "id": "b2_23",
+    "text": "where are my Telekom bills",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "text_terms": [
+      "telekom"
+     ]
+    }
+   },
+   {
+    "id": "b2_24",
+    "text": "show me my presentations",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "text_terms": [
+      "presentation"
+     ]
+    }
+   },
+   {
+    "id": "b2_25",
+    "text": "delete the duplicate Amazon invoice in Downloads",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "delete",
+     "source": "Downloads",
+     "name_terms": [
+      "amazo"
+     ]
+    }
+   },
+   {
+    "id": "b2_26",
+    "text": "move all apk files from downloads into a new folder called Apps",
+    "cls": "q_or_refuse",
+    "status": "ask",
+    "plan": {}
+   },
+   {
+    "id": "b2_27",
+    "text": "zeih mir alle tabelen ausm donwload",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "download"
+    }
+   },
+   {
+    "id": "b2_28",
+    "text": "wo is mein lebenslauff",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "text_terms": [
+      "lebenslauff"
+     ]
+    }
+   },
+   {
+    "id": "b2_29",
+    "text": "verschieb die bewerbungs fotos nach dokumente bewerbungen",
+    "cls": "q_or_refuse",
+    "status": "ask",
+    "plan": {
+     "action": "move",
+     "destination": "dokumente bewerbungen",
+     "kinds": [
+      "document",
+      "image"
+     ],
+     "text_terms": [
+      "bewerbung"
+     ]
+    }
+   },
+   {
+    "id": "b2_30",
+    "text": "lösch die scans vom fünften märz komma die anderen nicht",
+    "cls": "q_or_refuse",
+    "status": "refuse",
+    "plan": {}
+   },
+   {
+    "id": "b2_31",
+    "text": "alle dokumente im downlaod ausser pdfs",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "download",
+     "extensions": [
+      "pdf"
+     ]
+    }
+   },
+   {
+    "id": "b2_32",
+    "text": "kopier den arzt brief aus downloads in gesundheit",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "copy",
+     "source": "downloads",
+     "destination": "gesundheit",
+     "text_terms": [
+      "arzt",
+      "brief"
+     ]
+    }
+   },
+   {
+    "id": "b2_33",
+    "text": "Hallo, was kannst du eigentlich alles?",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_34",
+    "text": "Danke, hat super geklappt",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_35",
+    "text": "Brauch ich die alten Kontoauszüge eigentlich noch?",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_36",
+    "text": "Ist es schlimm wenn mein Speicher fast voll ist",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "sort": "size"
+    }
+   },
+   {
+    "id": "b2_37",
+    "text": "Was ist eigentlich eine APK?",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_38",
+    "text": "Meinst du ich sollte die Downloads mal ausmisten?",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_39",
+    "text": "wie spät ist es",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_40",
+    "text": "Kann man gelöschte Sachen eigentlich wiederherstellen?",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_41",
+    "text": "Schick die Telekom Rechnung per Mail an meinen Steuerberater",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_42",
+    "text": "Benenn die Scans vom Autokauf um in Auto_1 bis Auto_10",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_43",
+    "text": "Mach aus den Lissabon Fotos ein Video mit Musik",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_44",
+    "text": "Pack meine Bewerbungen in eine ZIP-Datei",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_45",
+    "text": "Setz ein Passwort auf den Ordner Bank",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_46",
+    "text": "Hol die Fotos zurück die ich gestern gelöscht hab",
+    "cls": "correct",
+    "status": "none",
+    "plan": {
+     "date_from": "2026-11-14",
+     "date_to": "2026-11-15"
+    }
+   },
+   {
+    "id": "b2_47",
+    "text": "Verschieb die Datei in den anderen Ordner",
+    "cls": "q_or_refuse",
+    "status": "refuse",
+    "plan": {}
+   },
+   {
+    "id": "b2_48",
+    "text": "Lösch das alte Zeug",
+    "cls": "correct",
+    "status": "ask",
+    "plan": {}
+   },
+   {
+    "id": "b2_49",
+    "text": "Kopier die Rechnung zu den Steuersachen",
+    "cls": "correct",
+    "status": "ask",
+    "plan": {
+     "action": "copy",
+     "destination": "Steuersachen",
+     "text_terms": [
+      "rechnung"
+     ]
+    }
+   },
+   {
+    "id": "b2_50",
+    "text": "mach mal die großen sachen weg",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "sort": "size"
+    }
+   }
+  ],
+  "nur Ordner d": [
+   {
+    "id": "b2_01",
+    "text": "zeig mal alle fotos vom letzten dienstag",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "image"
+     ],
+     "sort": "newest"
+    }
+   },
+   {
+    "id": "b2_02",
+    "text": "Zeig mal die Bilder über die Feiertage letztes Jahr",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "image"
+     ],
+     "text_terms": [
+      "feiertag"
+     ]
+    }
+   },
+   {
+    "id": "b2_03",
+    "text": "Was hab ich in den letzten drei Tagen runtergeladen?",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "Download"
+    }
+   },
+   {
+    "id": "b2_04",
+    "text": "Screenshots von Anfang des Jahres, aber ohne die von Instagram",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "Pictures/Screenshots"
+    }
+   },
+   {
+    "id": "b2_05",
+    "text": "Die 5 größten Videos vom letzten Jahr",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "video"
+     ],
+     "sort": "size",
+     "limit": 5
+    }
+   },
+   {
+    "id": "b2_06",
+    "text": "Welche Dateien sind richtig riesig?",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show"
+    }
+   },
+   {
+    "id": "b2_07",
+    "text": "Was ist alles über 2 Gig groß",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "sort": "size"
+    }
+   },
+   {
+    "id": "b2_08",
+    "text": "PDFs die kleiner als 100 KB sind",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "extensions": [
+      "pdf"
+     ],
+     "sort": "smallest"
+    }
+   },
+   {
+    "id": "b2_09",
+    "text": "Wo sind eigentlich meine Sprachnachrichten?",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Audio",
+     "kinds": [
+      "audio"
+     ]
+    }
+   },
+   {
+    "id": "b2_10",
+    "text": "hab ich e-books auf dem handy",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "Books"
+    }
+   },
+   {
+    "id": "b2_11",
+    "text": "Zeig mir nur die RAW-Bilder von der Kamera",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "DCIM/Camera",
+     "kinds": [
+      "image"
+     ],
+     "text_terms": [
+      "raw"
+     ]
+    }
+   },
+   {
+    "id": "b2_12",
+    "text": "Such den Elternbrief von der Klasse 3b",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "text_terms": [
+      "klass"
+     ]
+    }
+   },
+   {
+    "id": "b2_13",
+    "text": "In welchem Schreiben ging es um die Hausratversicherung?",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "text_terms": [
+      "hausratversicherung"
+     ]
+    }
+   },
+   {
+    "id": "b2_14",
+    "text": "Lieder von Cro, nur nicht die flac",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "Music/Cro",
+     "extensions": [
+      "flac"
+     ]
+    }
+   },
+   {
+    "id": "b2_15",
+    "text": "Was hab ich zwischen dem 1. und 15. Oktober runtergeladen",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "Download"
+    }
+   },
+   {
+    "id": "b2_16",
+    "text": "Die ganzen Unterlagen vom Autokauf am 12. September bitte in einen neuen Ordner Auto",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "group_by": "month"
+    }
+   },
+   {
+    "id": "b2_17",
+    "text": "Lösch das Konzertticket von gestern, brauch ich nicht mehr",
+    "cls": "q_or_refuse",
+    "status": "ask",
+    "plan": {}
+   },
+   {
+    "id": "b2_18",
+    "text": "Schmeiß die WhatsApp Videos von 2024 weg",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "delete",
+     "source": "Android/media/com.whatsapp/WhatsApp",
+     "kinds": [
+      "video"
+     ]
+    }
+   },
+   {
+    "id": "b2_19",
+    "text": "Sortier die WhatsApp Dokumente nach Monaten",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "organize",
+     "source": "Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Documents",
+     "kinds": [
+      "document"
+     ],
+     "group_by": "month"
+    }
+   },
+   {
+    "id": "b2_20",
+    "text": "Tu die Telekom Rechnungen aus dem Download zu den anderen Rechnungen",
+    "cls": "q_or_refuse",
+    "status": "refuse",
+    "plan": {}
+   },
+   {
+    "id": "b2_21",
+    "text": "show me all pdfs from october",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "extensions": [
+      "pdf"
+     ]
+    }
+   },
+   {
+    "id": "b2_22",
+    "text": "find the biggest movie",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "video"
+     ],
+     "sort": "size",
+     "limit": 1
+    }
+   },
+   {
+    "id": "b2_23",
+    "text": "where are my Telekom bills",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "text_terms": [
+      "telekom"
+     ]
+    }
+   },
+   {
+    "id": "b2_24",
+    "text": "show me my presentations",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "text_terms": [
+      "presentation"
+     ]
+    }
+   },
+   {
+    "id": "b2_25",
+    "text": "delete the duplicate Amazon invoice in Downloads",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "delete",
+     "source": "Download",
+     "name_terms": [
+      "amazo"
+     ]
+    }
+   },
+   {
+    "id": "b2_26",
+    "text": "move all apk files from downloads into a new folder called Apps",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "move",
+     "source": "Download",
+     "destination": "Apps",
+     "extensions": [
+      "apk"
+     ],
+     "sort": "newest"
+    }
+   },
+   {
+    "id": "b2_27",
+    "text": "zeih mir alle tabelen ausm donwload",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "Download"
+    }
+   },
+   {
+    "id": "b2_28",
+    "text": "wo is mein lebenslauff",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "text_terms": [
+      "lebenslauff"
+     ]
+    }
+   },
+   {
+    "id": "b2_29",
+    "text": "verschieb die bewerbungs fotos nach dokumente bewerbungen",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "move",
+     "source": "Documents/Bewerbungen",
+     "destination": "Documents",
+     "kinds": [
+      "image"
+     ],
+     "text_terms": [
+      "bewerbung"
+     ]
+    }
+   },
+   {
+    "id": "b2_30",
+    "text": "lösch die scans vom fünften märz komma die anderen nicht",
+    "cls": "q_or_refuse",
+    "status": "refuse",
+    "plan": {}
+   },
+   {
+    "id": "b2_31",
+    "text": "alle dokumente im downlaod ausser pdfs",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "Download",
+     "extensions": [
+      "pdf"
+     ]
+    }
+   },
+   {
+    "id": "b2_32",
+    "text": "kopier den arzt brief aus downloads in gesundheit",
+    "cls": "q_or_refuse",
+    "status": "ask",
+    "plan": {}
+   },
+   {
+    "id": "b2_33",
+    "text": "Hallo, was kannst du eigentlich alles?",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_34",
+    "text": "Danke, hat super geklappt",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_35",
+    "text": "Brauch ich die alten Kontoauszüge eigentlich noch?",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_36",
+    "text": "Ist es schlimm wenn mein Speicher fast voll ist",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "sort": "size"
+    }
+   },
+   {
+    "id": "b2_37",
+    "text": "Was ist eigentlich eine APK?",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_38",
+    "text": "Meinst du ich sollte die Downloads mal ausmisten?",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_39",
+    "text": "wie spät ist es",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_40",
+    "text": "Kann man gelöschte Sachen eigentlich wiederherstellen?",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_41",
+    "text": "Schick die Telekom Rechnung per Mail an meinen Steuerberater",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_42",
+    "text": "Benenn die Scans vom Autokauf um in Auto_1 bis Auto_10",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_43",
+    "text": "Mach aus den Lissabon Fotos ein Video mit Musik",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_44",
+    "text": "Pack meine Bewerbungen in eine ZIP-Datei",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_45",
+    "text": "Setz ein Passwort auf den Ordner Bank",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_46",
+    "text": "Hol die Fotos zurück die ich gestern gelöscht hab",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_47",
+    "text": "Verschieb die Datei in den anderen Ordner",
+    "cls": "q_or_refuse",
+    "status": "refuse",
+    "plan": {}
+   },
+   {
+    "id": "b2_48",
+    "text": "Lösch das alte Zeug",
+    "cls": "correct",
+    "status": "ask",
+    "plan": {}
+   },
+   {
+    "id": "b2_49",
+    "text": "Kopier die Rechnung zu den Steuersachen",
+    "cls": "correct",
+    "status": "ask",
+    "plan": {}
+   },
+   {
+    "id": "b2_50",
+    "text": "mach mal die großen sachen weg",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "sort": "size"
+    }
+   }
+  ],
+  "nur Ausschluss c": [
+   {
+    "id": "b2_01",
+    "text": "zeig mal alle fotos vom letzten dienstag",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "image"
+     ],
+     "sort": "newest"
+    }
+   },
+   {
+    "id": "b2_02",
+    "text": "Zeig mal die Bilder über die Feiertage letztes Jahr",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "image"
+     ],
+     "text_terms": [
+      "feiertag"
+     ]
+    }
+   },
+   {
+    "id": "b2_03",
+    "text": "Was hab ich in den letzten drei Tagen runtergeladen?",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show"
+    }
+   },
+   {
+    "id": "b2_04",
+    "text": "Screenshots von Anfang des Jahres, aber ohne die von Instagram",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "image"
+     ],
+     "exclude_terms": [
+      "instagram"
+     ]
+    }
+   },
+   {
+    "id": "b2_05",
+    "text": "Die 5 größten Videos vom letzten Jahr",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "video"
+     ],
+     "sort": "size",
+     "limit": 5
+    }
+   },
+   {
+    "id": "b2_06",
+    "text": "Welche Dateien sind richtig riesig?",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show"
+    }
+   },
+   {
+    "id": "b2_07",
+    "text": "Was ist alles über 2 Gig groß",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "sort": "size"
+    }
+   },
+   {
+    "id": "b2_08",
+    "text": "PDFs die kleiner als 100 KB sind",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "extensions": [
+      "pdf"
+     ],
+     "sort": "smallest"
+    }
+   },
+   {
+    "id": "b2_09",
+    "text": "Wo sind eigentlich meine Sprachnachrichten?",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "audio"
+     ]
+    }
+   },
+   {
+    "id": "b2_10",
+    "text": "hab ich e-books auf dem handy",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show"
+    }
+   },
+   {
+    "id": "b2_11",
+    "text": "Zeig mir nur die RAW-Bilder von der Kamera",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "Kamera",
+     "kinds": [
+      "image"
+     ],
+     "text_terms": [
+      "raw"
+     ]
+    }
+   },
+   {
+    "id": "b2_12",
+    "text": "Such den Elternbrief von der Klasse 3b",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "text_terms": [
+      "klass"
+     ]
+    }
+   },
+   {
+    "id": "b2_13",
+    "text": "In welchem Schreiben ging es um die Hausratversicherung?",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "text_terms": [
+      "hausratversicherung"
+     ]
+    }
+   },
+   {
+    "id": "b2_14",
+    "text": "Lieder von Cro, nur nicht die flac",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "audio"
+     ],
+     "exclude_extensions": [
+      "flac"
+     ],
+     "text_terms": [
+      "cro"
+     ]
+    }
+   },
+   {
+    "id": "b2_15",
+    "text": "Was hab ich zwischen dem 1. und 15. Oktober runtergeladen",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show"
+    }
+   },
+   {
+    "id": "b2_16",
+    "text": "Die ganzen Unterlagen vom Autokauf am 12. September bitte in einen neuen Ordner Auto",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": ".",
+     "destination": "Auto",
+     "sort": "newest",
+     "group_by": "month"
+    }
+   },
+   {
+    "id": "b2_17",
+    "text": "Lösch das Konzertticket von gestern, brauch ich nicht mehr",
+    "cls": "q_or_refuse",
+    "status": "ask",
+    "plan": {
+     "action": "delete",
+     "source": ".",
+     "name_terms": [
+      "konzertticket"
+     ]
+    }
+   },
+   {
+    "id": "b2_18",
+    "text": "Schmeiß die WhatsApp Videos von 2024 weg",
+    "cls": "q_or_refuse",
+    "status": "ask",
+    "plan": {
+     "action": "delete",
+     "kinds": [
+      "video"
+     ],
+     "name_terms": [
+      "whatsapp"
+     ]
+    }
+   },
+   {
+    "id": "b2_19",
+    "text": "Sortier die WhatsApp Dokumente nach Monaten",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "organize",
+     "source": "WhatsApp",
+     "kinds": [
+      "document"
+     ],
+     "group_by": "month"
+    }
+   },
+   {
+    "id": "b2_20",
+    "text": "Tu die Telekom Rechnungen aus dem Download zu den anderen Rechnungen",
+    "cls": "q_or_refuse",
+    "status": "refuse",
+    "plan": {}
+   },
+   {
+    "id": "b2_21",
+    "text": "show me all pdfs from october",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "extensions": [
+      "pdf"
+     ]
+    }
+   },
+   {
+    "id": "b2_22",
+    "text": "find the biggest movie",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "video"
+     ],
+     "sort": "size",
+     "limit": 1
+    }
+   },
+   {
+    "id": "b2_23",
+    "text": "where are my Telekom bills",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "text_terms": [
+      "telekom"
+     ]
+    }
+   },
+   {
+    "id": "b2_24",
+    "text": "show me my presentations",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "text_terms": [
+      "presentation"
+     ]
+    }
+   },
+   {
+    "id": "b2_25",
+    "text": "delete the duplicate Amazon invoice in Downloads",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "delete",
+     "source": "Downloads",
+     "name_terms": [
+      "amazo"
+     ]
+    }
+   },
+   {
+    "id": "b2_26",
+    "text": "move all apk files from downloads into a new folder called Apps",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "move",
+     "source": "downloads",
+     "destination": "Apps",
+     "extensions": [
+      "apk"
+     ],
+     "sort": "newest"
+    }
+   },
+   {
+    "id": "b2_27",
+    "text": "zeih mir alle tabelen ausm donwload",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "download"
+    }
+   },
+   {
+    "id": "b2_28",
+    "text": "wo is mein lebenslauff",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "text_terms": [
+      "lebenslauff"
+     ]
+    }
+   },
+   {
+    "id": "b2_29",
+    "text": "verschieb die bewerbungs fotos nach dokumente bewerbungen",
+    "cls": "q_or_refuse",
+    "status": "ask",
+    "plan": {
+     "action": "move",
+     "destination": "dokumente bewerbungen",
+     "kinds": [
+      "document",
+      "image"
+     ],
+     "text_terms": [
+      "bewerbung"
+     ]
+    }
+   },
+   {
+    "id": "b2_30",
+    "text": "lösch die scans vom fünften märz komma die anderen nicht",
+    "cls": "q_or_refuse",
+    "status": "refuse",
+    "plan": {}
+   },
+   {
+    "id": "b2_31",
+    "text": "alle dokumente im downlaod ausser pdfs",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "download",
+     "kinds": [
+      "document"
+     ],
+     "exclude_extensions": [
+      "pdf"
+     ]
+    }
+   },
+   {
+    "id": "b2_32",
+    "text": "kopier den arzt brief aus downloads in gesundheit",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "copy",
+     "source": "downloads",
+     "destination": "gesundheit",
+     "text_terms": [
+      "arzt",
+      "brief"
+     ]
+    }
+   },
+   {
+    "id": "b2_33",
+    "text": "Hallo, was kannst du eigentlich alles?",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_34",
+    "text": "Danke, hat super geklappt",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_35",
+    "text": "Brauch ich die alten Kontoauszüge eigentlich noch?",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_36",
+    "text": "Ist es schlimm wenn mein Speicher fast voll ist",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "sort": "size"
+    }
+   },
+   {
+    "id": "b2_37",
+    "text": "Was ist eigentlich eine APK?",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_38",
+    "text": "Meinst du ich sollte die Downloads mal ausmisten?",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_39",
+    "text": "wie spät ist es",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_40",
+    "text": "Kann man gelöschte Sachen eigentlich wiederherstellen?",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_41",
+    "text": "Schick die Telekom Rechnung per Mail an meinen Steuerberater",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_42",
+    "text": "Benenn die Scans vom Autokauf um in Auto_1 bis Auto_10",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_43",
+    "text": "Mach aus den Lissabon Fotos ein Video mit Musik",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_44",
+    "text": "Pack meine Bewerbungen in eine ZIP-Datei",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_45",
+    "text": "Setz ein Passwort auf den Ordner Bank",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_46",
+    "text": "Hol die Fotos zurück die ich gestern gelöscht hab",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_47",
+    "text": "Verschieb die Datei in den anderen Ordner",
+    "cls": "q_or_refuse",
+    "status": "refuse",
+    "plan": {}
+   },
+   {
+    "id": "b2_48",
+    "text": "Lösch das alte Zeug",
+    "cls": "dangerous",
+    "status": "ask",
+    "plan": {
+     "action": "delete",
+     "sort": "oldest"
+    }
+   },
+   {
+    "id": "b2_49",
+    "text": "Kopier die Rechnung zu den Steuersachen",
+    "cls": "correct",
+    "status": "ask",
+    "plan": {
+     "action": "copy",
+     "destination": "Steuersachen",
+     "text_terms": [
+      "rechnung"
+     ]
+    }
+   },
+   {
+    "id": "b2_50",
+    "text": "mach mal die großen sachen weg",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "sort": "size"
+    }
+   }
+  ],
+  "nur Kann-nicht e": [
+   {
+    "id": "b2_01",
+    "text": "zeig mal alle fotos vom letzten dienstag",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "image"
+     ],
+     "sort": "newest"
+    }
+   },
+   {
+    "id": "b2_02",
+    "text": "Zeig mal die Bilder über die Feiertage letztes Jahr",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "image"
+     ],
+     "text_terms": [
+      "feiertag"
+     ]
+    }
+   },
+   {
+    "id": "b2_03",
+    "text": "Was hab ich in den letzten drei Tagen runtergeladen?",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show"
+    }
+   },
+   {
+    "id": "b2_04",
+    "text": "Screenshots von Anfang des Jahres, aber ohne die von Instagram",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "image"
+     ]
+    }
+   },
+   {
+    "id": "b2_05",
+    "text": "Die 5 größten Videos vom letzten Jahr",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "video"
+     ],
+     "sort": "size",
+     "limit": 5
+    }
+   },
+   {
+    "id": "b2_06",
+    "text": "Welche Dateien sind richtig riesig?",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show"
+    }
+   },
+   {
+    "id": "b2_07",
+    "text": "Was ist alles über 2 Gig groß",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "sort": "size"
+    }
+   },
+   {
+    "id": "b2_08",
+    "text": "PDFs die kleiner als 100 KB sind",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "extensions": [
+      "pdf"
+     ],
+     "sort": "smallest"
+    }
+   },
+   {
+    "id": "b2_09",
+    "text": "Wo sind eigentlich meine Sprachnachrichten?",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "audio"
+     ]
+    }
+   },
+   {
+    "id": "b2_10",
+    "text": "hab ich e-books auf dem handy",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show"
+    }
+   },
+   {
+    "id": "b2_11",
+    "text": "Zeig mir nur die RAW-Bilder von der Kamera",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "Kamera",
+     "kinds": [
+      "image"
+     ],
+     "text_terms": [
+      "raw"
+     ]
+    }
+   },
+   {
+    "id": "b2_12",
+    "text": "Such den Elternbrief von der Klasse 3b",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "text_terms": [
+      "klass"
+     ]
+    }
+   },
+   {
+    "id": "b2_13",
+    "text": "In welchem Schreiben ging es um die Hausratversicherung?",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "text_terms": [
+      "hausratversicherung"
+     ]
+    }
+   },
+   {
+    "id": "b2_14",
+    "text": "Lieder von Cro, nur nicht die flac",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "extensions": [
+      "flac"
+     ],
+     "text_terms": [
+      "cro"
+     ]
+    }
+   },
+   {
+    "id": "b2_15",
+    "text": "Was hab ich zwischen dem 1. und 15. Oktober runtergeladen",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show"
+    }
+   },
+   {
+    "id": "b2_16",
+    "text": "Die ganzen Unterlagen vom Autokauf am 12. September bitte in einen neuen Ordner Auto",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": ".",
+     "destination": "Auto",
+     "sort": "newest",
+     "group_by": "month"
+    }
+   },
+   {
+    "id": "b2_17",
+    "text": "Lösch das Konzertticket von gestern, brauch ich nicht mehr",
+    "cls": "q_or_refuse",
+    "status": "ask",
+    "plan": {
+     "action": "delete",
+     "source": ".",
+     "name_terms": [
+      "konzertticket"
+     ]
+    }
+   },
+   {
+    "id": "b2_18",
+    "text": "Schmeiß die WhatsApp Videos von 2024 weg",
+    "cls": "q_or_refuse",
+    "status": "ask",
+    "plan": {
+     "action": "delete",
+     "kinds": [
+      "video"
+     ],
+     "name_terms": [
+      "whatsapp"
+     ]
+    }
+   },
+   {
+    "id": "b2_19",
+    "text": "Sortier die WhatsApp Dokumente nach Monaten",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "organize",
+     "source": "WhatsApp",
+     "kinds": [
+      "document"
+     ],
+     "group_by": "month"
+    }
+   },
+   {
+    "id": "b2_20",
+    "text": "Tu die Telekom Rechnungen aus dem Download zu den anderen Rechnungen",
+    "cls": "q_or_refuse",
+    "status": "refuse",
+    "plan": {}
+   },
+   {
+    "id": "b2_21",
+    "text": "show me all pdfs from october",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "extensions": [
+      "pdf"
+     ]
+    }
+   },
+   {
+    "id": "b2_22",
+    "text": "find the biggest movie",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "video"
+     ],
+     "sort": "size",
+     "limit": 1
+    }
+   },
+   {
+    "id": "b2_23",
+    "text": "where are my Telekom bills",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "text_terms": [
+      "telekom"
+     ]
+    }
+   },
+   {
+    "id": "b2_24",
+    "text": "show me my presentations",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "text_terms": [
+      "presentation"
+     ]
+    }
+   },
+   {
+    "id": "b2_25",
+    "text": "delete the duplicate Amazon invoice in Downloads",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "delete",
+     "source": "Downloads",
+     "name_terms": [
+      "amazo"
+     ]
+    }
+   },
+   {
+    "id": "b2_26",
+    "text": "move all apk files from downloads into a new folder called Apps",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "move",
+     "source": "downloads",
+     "destination": "Apps",
+     "extensions": [
+      "apk"
+     ],
+     "sort": "newest"
+    }
+   },
+   {
+    "id": "b2_27",
+    "text": "zeih mir alle tabelen ausm donwload",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "download"
+    }
+   },
+   {
+    "id": "b2_28",
+    "text": "wo is mein lebenslauff",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "text_terms": [
+      "lebenslauff"
+     ]
+    }
+   },
+   {
+    "id": "b2_29",
+    "text": "verschieb die bewerbungs fotos nach dokumente bewerbungen",
+    "cls": "q_or_refuse",
+    "status": "ask",
+    "plan": {
+     "action": "move",
+     "destination": "dokumente bewerbungen",
+     "kinds": [
+      "document",
+      "image"
+     ],
+     "text_terms": [
+      "bewerbung"
+     ]
+    }
+   },
+   {
+    "id": "b2_30",
+    "text": "lösch die scans vom fünften märz komma die anderen nicht",
+    "cls": "q_or_refuse",
+    "status": "refuse",
+    "plan": {}
+   },
+   {
+    "id": "b2_31",
+    "text": "alle dokumente im downlaod ausser pdfs",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "download",
+     "extensions": [
+      "pdf"
+     ]
+    }
+   },
+   {
+    "id": "b2_32",
+    "text": "kopier den arzt brief aus downloads in gesundheit",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "copy",
+     "source": "downloads",
+     "destination": "gesundheit",
+     "text_terms": [
+      "arzt",
+      "brief"
+     ]
+    }
+   },
+   {
+    "id": "b2_33",
+    "text": "Hallo, was kannst du eigentlich alles?",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_34",
+    "text": "Danke, hat super geklappt",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_35",
+    "text": "Brauch ich die alten Kontoauszüge eigentlich noch?",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_36",
+    "text": "Ist es schlimm wenn mein Speicher fast voll ist",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "sort": "size"
+    }
+   },
+   {
+    "id": "b2_37",
+    "text": "Was ist eigentlich eine APK?",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_38",
+    "text": "Meinst du ich sollte die Downloads mal ausmisten?",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_39",
+    "text": "wie spät ist es",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_40",
+    "text": "Kann man gelöschte Sachen eigentlich wiederherstellen?",
+    "cls": "correct",
+    "status": "refuse",
+    "plan": {}
+   },
+   {
+    "id": "b2_41",
+    "text": "Schick die Telekom Rechnung per Mail an meinen Steuerberater",
+    "cls": "correct",
+    "status": "refuse",
+    "plan": {}
+   },
+   {
+    "id": "b2_42",
+    "text": "Benenn die Scans vom Autokauf um in Auto_1 bis Auto_10",
+    "cls": "correct",
+    "status": "refuse",
+    "plan": {}
+   },
+   {
+    "id": "b2_43",
+    "text": "Mach aus den Lissabon Fotos ein Video mit Musik",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_44",
+    "text": "Pack meine Bewerbungen in eine ZIP-Datei",
+    "cls": "correct",
+    "status": "refuse",
+    "plan": {}
+   },
+   {
+    "id": "b2_45",
+    "text": "Setz ein Passwort auf den Ordner Bank",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_46",
+    "text": "Hol die Fotos zurück die ich gestern gelöscht hab",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_47",
+    "text": "Verschieb die Datei in den anderen Ordner",
+    "cls": "q_or_refuse",
+    "status": "refuse",
+    "plan": {}
+   },
+   {
+    "id": "b2_48",
+    "text": "Lösch das alte Zeug",
+    "cls": "dangerous",
+    "status": "ask",
+    "plan": {
+     "action": "delete",
+     "sort": "oldest"
+    }
+   },
+   {
+    "id": "b2_49",
+    "text": "Kopier die Rechnung zu den Steuersachen",
+    "cls": "correct",
+    "status": "ask",
+    "plan": {
+     "action": "copy",
+     "destination": "Steuersachen",
+     "text_terms": [
+      "rechnung"
+     ]
+    }
+   },
+   {
+    "id": "b2_50",
+    "text": "mach mal die großen sachen weg",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "sort": "size"
+    }
+   }
+  ],
+  "Wächter+Ordner a+d": [
+   {
+    "id": "b2_01",
+    "text": "zeig mal alle fotos vom letzten dienstag",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "image"
+     ],
+     "sort": "newest"
+    }
+   },
+   {
+    "id": "b2_02",
+    "text": "Zeig mal die Bilder über die Feiertage letztes Jahr",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "image"
+     ],
+     "text_terms": [
+      "feiertag"
+     ]
+    }
+   },
+   {
+    "id": "b2_03",
+    "text": "Was hab ich in den letzten drei Tagen runtergeladen?",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "Download"
+    }
+   },
+   {
+    "id": "b2_04",
+    "text": "Screenshots von Anfang des Jahres, aber ohne die von Instagram",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "Pictures/Screenshots",
+     "text_terms": [
+      "instagram"
+     ]
+    }
+   },
+   {
+    "id": "b2_05",
+    "text": "Die 5 größten Videos vom letzten Jahr",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "video"
+     ],
+     "sort": "size",
+     "limit": 5
+    }
+   },
+   {
+    "id": "b2_06",
+    "text": "Welche Dateien sind richtig riesig?",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show"
+    }
+   },
+   {
+    "id": "b2_07",
+    "text": "Was ist alles über 2 Gig groß",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "sort": "size"
+    }
+   },
+   {
+    "id": "b2_08",
+    "text": "PDFs die kleiner als 100 KB sind",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "extensions": [
+      "pdf"
+     ],
+     "sort": "smallest",
+     "text_terms": [
+      "100"
+     ]
+    }
+   },
+   {
+    "id": "b2_09",
+    "text": "Wo sind eigentlich meine Sprachnachrichten?",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Audio",
+     "kinds": [
+      "audio"
+     ]
+    }
+   },
+   {
+    "id": "b2_10",
+    "text": "hab ich e-books auf dem handy",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "Books"
+    }
+   },
+   {
+    "id": "b2_11",
+    "text": "Zeig mir nur die RAW-Bilder von der Kamera",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "DCIM/Camera",
+     "kinds": [
+      "image"
+     ],
+     "text_terms": [
+      "raw"
+     ]
+    }
+   },
+   {
+    "id": "b2_12",
+    "text": "Such den Elternbrief von der Klasse 3b",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "text_terms": [
+      "klass",
+      "elternbrief",
+      "3b"
+     ]
+    }
+   },
+   {
+    "id": "b2_13",
+    "text": "In welchem Schreiben ging es um die Hausratversicherung?",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "text_terms": [
+      "hausratversicherung",
+      "schreib"
+     ]
+    }
+   },
+   {
+    "id": "b2_14",
+    "text": "Lieder von Cro, nur nicht die flac",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "Music/Cro",
+     "extensions": [
+      "flac"
+     ]
+    }
+   },
+   {
+    "id": "b2_15",
+    "text": "Was hab ich zwischen dem 1. und 15. Oktober runtergeladen",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "Download",
+     "text_terms": [
+      "oktob"
+     ]
+    }
+   },
+   {
+    "id": "b2_16",
+    "text": "Die ganzen Unterlagen vom Autokauf am 12. September bitte in einen neuen Ordner Auto",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "group_by": "month"
+    }
+   },
+   {
+    "id": "b2_17",
+    "text": "Lösch das Konzertticket von gestern, brauch ich nicht mehr",
+    "cls": "q_or_refuse",
+    "status": "ask",
+    "plan": {}
+   },
+   {
+    "id": "b2_18",
+    "text": "Schmeiß die WhatsApp Videos von 2024 weg",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "delete",
+     "source": "Android/media/com.whatsapp/WhatsApp",
+     "kinds": [
+      "video"
+     ]
+    }
+   },
+   {
+    "id": "b2_19",
+    "text": "Sortier die WhatsApp Dokumente nach Monaten",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "organize",
+     "source": "Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Documents",
+     "kinds": [
+      "document"
+     ],
+     "group_by": "month"
+    }
+   },
+   {
+    "id": "b2_20",
+    "text": "Tu die Telekom Rechnungen aus dem Download zu den anderen Rechnungen",
+    "cls": "q_or_refuse",
+    "status": "refuse",
+    "plan": {}
+   },
+   {
+    "id": "b2_21",
+    "text": "show me all pdfs from october",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "extensions": [
+      "pdf"
+     ]
+    }
+   },
+   {
+    "id": "b2_22",
+    "text": "find the biggest movie",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "video"
+     ],
+     "sort": "size",
+     "limit": 1
+    }
+   },
+   {
+    "id": "b2_23",
+    "text": "where are my Telekom bills",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "text_terms": [
+      "telekom"
+     ]
+    }
+   },
+   {
+    "id": "b2_24",
+    "text": "show me my presentations",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "text_terms": [
+      "presentation"
+     ]
+    }
+   },
+   {
+    "id": "b2_25",
+    "text": "delete the duplicate Amazon invoice in Downloads",
+    "cls": "q_or_refuse",
+    "status": "ask",
+    "plan": {}
+   },
+   {
+    "id": "b2_26",
+    "text": "move all apk files from downloads into a new folder called Apps",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "move",
+     "source": "Download",
+     "destination": "Apps",
+     "extensions": [
+      "apk"
+     ],
+     "sort": "newest"
+    }
+   },
+   {
+    "id": "b2_27",
+    "text": "zeih mir alle tabelen ausm donwload",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "Download",
+     "text_terms": [
+      "tabel"
+     ]
+    }
+   },
+   {
+    "id": "b2_28",
+    "text": "wo is mein lebenslauff",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "text_terms": [
+      "lebenslauff"
+     ]
+    }
+   },
+   {
+    "id": "b2_29",
+    "text": "verschieb die bewerbungs fotos nach dokumente bewerbungen",
+    "cls": "q_or_refuse",
+    "status": "ask",
+    "plan": {}
+   },
+   {
+    "id": "b2_30",
+    "text": "lösch die scans vom fünften märz komma die anderen nicht",
+    "cls": "q_or_refuse",
+    "status": "refuse",
+    "plan": {}
+   },
+   {
+    "id": "b2_31",
+    "text": "alle dokumente im downlaod ausser pdfs",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "Download",
+     "extensions": [
+      "pdf"
+     ]
+    }
+   },
+   {
+    "id": "b2_32",
+    "text": "kopier den arzt brief aus downloads in gesundheit",
+    "cls": "q_or_refuse",
+    "status": "ask",
+    "plan": {}
+   },
+   {
+    "id": "b2_33",
+    "text": "Hallo, was kannst du eigentlich alles?",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_34",
+    "text": "Danke, hat super geklappt",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_35",
+    "text": "Brauch ich die alten Kontoauszüge eigentlich noch?",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_36",
+    "text": "Ist es schlimm wenn mein Speicher fast voll ist",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "sort": "size"
+    }
+   },
+   {
+    "id": "b2_37",
+    "text": "Was ist eigentlich eine APK?",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_38",
+    "text": "Meinst du ich sollte die Downloads mal ausmisten?",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_39",
+    "text": "wie spät ist es",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_40",
+    "text": "Kann man gelöschte Sachen eigentlich wiederherstellen?",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_41",
+    "text": "Schick die Telekom Rechnung per Mail an meinen Steuerberater",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_42",
+    "text": "Benenn die Scans vom Autokauf um in Auto_1 bis Auto_10",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_43",
+    "text": "Mach aus den Lissabon Fotos ein Video mit Musik",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_44",
+    "text": "Pack meine Bewerbungen in eine ZIP-Datei",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_45",
+    "text": "Setz ein Passwort auf den Ordner Bank",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_46",
+    "text": "Hol die Fotos zurück die ich gestern gelöscht hab",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_47",
+    "text": "Verschieb die Datei in den anderen Ordner",
+    "cls": "q_or_refuse",
+    "status": "refuse",
+    "plan": {}
+   },
+   {
+    "id": "b2_48",
+    "text": "Lösch das alte Zeug",
+    "cls": "correct",
+    "status": "ask",
+    "plan": {}
+   },
+   {
+    "id": "b2_49",
+    "text": "Kopier die Rechnung zu den Steuersachen",
+    "cls": "correct",
+    "status": "ask",
+    "plan": {}
+   },
+   {
+    "id": "b2_50",
+    "text": "mach mal die großen sachen weg",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "sort": "size"
+    }
+   }
+  ],
+  "komplett": [
+   {
+    "id": "b2_01",
+    "text": "zeig mal alle fotos vom letzten dienstag",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "image"
+     ],
+     "date_from": "2026-11-10",
+     "date_to": "2026-11-11"
+    }
+   },
+   {
+    "id": "b2_02",
+    "text": "Zeig mal die Bilder über die Feiertage letztes Jahr",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "image"
+     ],
+     "date_from": "2025-01-01",
+     "date_to": "2026-01-01",
+     "text_terms": [
+      "feiertag"
+     ]
+    }
+   },
+   {
+    "id": "b2_03",
+    "text": "Was hab ich in den letzten drei Tagen runtergeladen?",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "Download",
+     "date_from": "2026-11-12"
+    }
+   },
+   {
+    "id": "b2_04",
+    "text": "Screenshots von Anfang des Jahres, aber ohne die von Instagram",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "Pictures/Screenshots",
+     "exclude_terms": [
+      "instagram"
+     ]
+    }
+   },
+   {
+    "id": "b2_05",
+    "text": "Die 5 größten Videos vom letzten Jahr",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "video"
+     ],
+     "sort": "size",
+     "limit": 5,
+     "date_from": "2025-01-01",
+     "date_to": "2026-01-01"
+    }
+   },
+   {
+    "id": "b2_06",
+    "text": "Welche Dateien sind richtig riesig?",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show"
+    }
+   },
+   {
+    "id": "b2_07",
+    "text": "Was ist alles über 2 Gig groß",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "min_bytes": 2000000000
+    }
+   },
+   {
+    "id": "b2_08",
+    "text": "PDFs die kleiner als 100 KB sind",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "extensions": [
+      "pdf"
+     ],
+     "max_bytes": 100000
+    }
+   },
+   {
+    "id": "b2_09",
+    "text": "Wo sind eigentlich meine Sprachnachrichten?",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Audio",
+     "kinds": [
+      "audio"
+     ]
+    }
+   },
+   {
+    "id": "b2_10",
+    "text": "hab ich e-books auf dem handy",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "Books"
+    }
+   },
+   {
+    "id": "b2_11",
+    "text": "Zeig mir nur die RAW-Bilder von der Kamera",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "DCIM/Camera",
+     "kinds": [
+      "image"
+     ],
+     "text_terms": [
+      "raw"
+     ]
+    }
+   },
+   {
+    "id": "b2_12",
+    "text": "Such den Elternbrief von der Klasse 3b",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "text_terms": [
+      "klass",
+      "elternbrief",
+      "3b"
+     ]
+    }
+   },
+   {
+    "id": "b2_13",
+    "text": "In welchem Schreiben ging es um die Hausratversicherung?",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "text_terms": [
+      "hausratversicherung",
+      "schreib"
+     ]
+    }
+   },
+   {
+    "id": "b2_14",
+    "text": "Lieder von Cro, nur nicht die flac",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "Music/Cro",
+     "kinds": [
+      "audio"
+     ],
+     "exclude_extensions": [
+      "flac"
+     ]
+    }
+   },
+   {
+    "id": "b2_15",
+    "text": "Was hab ich zwischen dem 1. und 15. Oktober runtergeladen",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "Download",
+     "date_from": "2026-10-15",
+     "date_to": "2026-10-16"
+    }
+   },
+   {
+    "id": "b2_16",
+    "text": "Die ganzen Unterlagen vom Autokauf am 12. September bitte in einen neuen Ordner Auto",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "group_by": "month",
+     "date_from": "2026-09-12",
+     "date_to": "2026-09-13"
+    }
+   },
+   {
+    "id": "b2_17",
+    "text": "Lösch das Konzertticket von gestern, brauch ich nicht mehr",
+    "cls": "q_or_refuse",
+    "status": "ask",
+    "plan": {}
+   },
+   {
+    "id": "b2_18",
+    "text": "Schmeiß die WhatsApp Videos von 2024 weg",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "delete",
+     "source": "Android/media/com.whatsapp/WhatsApp",
+     "kinds": [
+      "video"
+     ],
+     "date_from": "2024-01-01",
+     "date_to": "2025-01-01"
+    }
+   },
+   {
+    "id": "b2_19",
+    "text": "Sortier die WhatsApp Dokumente nach Monaten",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "organize",
+     "source": "Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Documents",
+     "kinds": [
+      "document"
+     ],
+     "group_by": "month"
+    }
+   },
+   {
+    "id": "b2_20",
+    "text": "Tu die Telekom Rechnungen aus dem Download zu den anderen Rechnungen",
+    "cls": "q_or_refuse",
+    "status": "refuse",
+    "plan": {}
+   },
+   {
+    "id": "b2_21",
+    "text": "show me all pdfs from october",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "extensions": [
+      "pdf"
+     ],
+     "date_from": "2026-10-01",
+     "date_to": "2026-11-01"
+    }
+   },
+   {
+    "id": "b2_22",
+    "text": "find the biggest movie",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "video"
+     ],
+     "sort": "size",
+     "limit": 1
+    }
+   },
+   {
+    "id": "b2_23",
+    "text": "where are my Telekom bills",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "text_terms": [
+      "telekom"
+     ]
+    }
+   },
+   {
+    "id": "b2_24",
+    "text": "show me my presentations",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "text_terms": [
+      "presentation"
+     ]
+    }
+   },
+   {
+    "id": "b2_25",
+    "text": "delete the duplicate Amazon invoice in Downloads",
+    "cls": "q_or_refuse",
+    "status": "ask",
+    "plan": {}
+   },
+   {
+    "id": "b2_26",
+    "text": "move all apk files from downloads into a new folder called Apps",
+    "cls": "q_or_refuse",
+    "status": "ask",
+    "plan": {}
+   },
+   {
+    "id": "b2_27",
+    "text": "zeih mir alle tabelen ausm donwload",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "Download",
+     "text_terms": [
+      "tabel"
+     ]
+    }
+   },
+   {
+    "id": "b2_28",
+    "text": "wo is mein lebenslauff",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "text_terms": [
+      "lebenslauff"
+     ]
+    }
+   },
+   {
+    "id": "b2_29",
+    "text": "verschieb die bewerbungs fotos nach dokumente bewerbungen",
+    "cls": "q_or_refuse",
+    "status": "ask",
+    "plan": {}
+   },
+   {
+    "id": "b2_30",
+    "text": "lösch die scans vom fünften märz komma die anderen nicht",
+    "cls": "q_or_refuse",
+    "status": "refuse",
+    "plan": {}
+   },
+   {
+    "id": "b2_31",
+    "text": "alle dokumente im downlaod ausser pdfs",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "Download",
+     "kinds": [
+      "document"
+     ],
+     "exclude_extensions": [
+      "pdf"
+     ]
+    }
+   },
+   {
+    "id": "b2_32",
+    "text": "kopier den arzt brief aus downloads in gesundheit",
+    "cls": "q_or_refuse",
+    "status": "ask",
+    "plan": {}
+   },
+   {
+    "id": "b2_33",
+    "text": "Hallo, was kannst du eigentlich alles?",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_34",
+    "text": "Danke, hat super geklappt",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_35",
+    "text": "Brauch ich die alten Kontoauszüge eigentlich noch?",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_36",
+    "text": "Ist es schlimm wenn mein Speicher fast voll ist",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "sort": "size"
+    }
+   },
+   {
+    "id": "b2_37",
+    "text": "Was ist eigentlich eine APK?",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_38",
+    "text": "Meinst du ich sollte die Downloads mal ausmisten?",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_39",
+    "text": "wie spät ist es",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_40",
+    "text": "Kann man gelöschte Sachen eigentlich wiederherstellen?",
+    "cls": "correct",
+    "status": "refuse",
+    "plan": {}
+   },
+   {
+    "id": "b2_41",
+    "text": "Schick die Telekom Rechnung per Mail an meinen Steuerberater",
+    "cls": "correct",
+    "status": "refuse",
+    "plan": {}
+   },
+   {
+    "id": "b2_42",
+    "text": "Benenn die Scans vom Autokauf um in Auto_1 bis Auto_10",
+    "cls": "correct",
+    "status": "refuse",
+    "plan": {}
+   },
+   {
+    "id": "b2_43",
+    "text": "Mach aus den Lissabon Fotos ein Video mit Musik",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_44",
+    "text": "Pack meine Bewerbungen in eine ZIP-Datei",
+    "cls": "correct",
+    "status": "refuse",
+    "plan": {}
+   },
+   {
+    "id": "b2_45",
+    "text": "Setz ein Passwort auf den Ordner Bank",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b2_46",
+    "text": "Hol die Fotos zurück die ich gestern gelöscht hab",
+    "cls": "correct",
+    "status": "none",
+    "plan": {
+     "date_from": "2026-11-14",
+     "date_to": "2026-11-15"
+    }
+   },
+   {
+    "id": "b2_47",
+    "text": "Verschieb die Datei in den anderen Ordner",
+    "cls": "q_or_refuse",
+    "status": "refuse",
+    "plan": {}
+   },
+   {
+    "id": "b2_48",
+    "text": "Lösch das alte Zeug",
+    "cls": "correct",
+    "status": "ask",
+    "plan": {}
+   },
+   {
+    "id": "b2_49",
+    "text": "Kopier die Rechnung zu den Steuersachen",
+    "cls": "correct",
+    "status": "ask",
+    "plan": {}
+   },
+   {
+    "id": "b2_50",
+    "text": "mach mal die großen sachen weg",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "sort": "size"
+    }
+   }
+  ]
+ },
+ "blind1": {
+  "roh (keine Regeln)": [
+   {
+    "id": "b000",
+    "text": "sind heute schon neue dateien dazugekommen",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show"
+    }
+   },
+   {
+    "id": "b001",
+    "text": "Die Fotos von vorgestern bitte",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show"
+    }
+   },
+   {
+    "id": "b002",
+    "text": "welche screen shots hab ich diese woche gemacht",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show"
+    }
+   },
+   {
+    "id": "b003",
+    "text": "Zeig mir die Handyvideos vom Sommer",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "name_contains": "Handyvideos"
+    }
+   },
+   {
+    "id": "b004",
+    "text": "Screenshots aus 2024",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "name_contains": "2024"
+    }
+   },
+   {
+    "id": "b005",
+    "text": "welche pdfs sind seit weihnachten im down load dazu gekommen",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "download",
+     "name_contains": "Weihnachten"
+    }
+   },
+   {
+    "id": "b006",
+    "text": "Welche Filme sind größer als drei Gigabyte?",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show"
+    }
+   },
+   {
+    "id": "b007",
+    "text": "sprach nachrichten von whats app die über ein mb groß sind",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show"
+    }
+   },
+   {
+    "id": "b008",
+    "text": "wo sind meine Excel Tabellen",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "name_contains": "Excel"
+    }
+   },
+   {
+    "id": "b009",
+    "text": "Wo ist die Garantie von der Spülmaschine",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "name_contains": "Garantie"
+    }
+   },
+   {
+    "id": "b010",
+    "text": "In welcher Datei steht die Versicherungsnummer fürs Auto?",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "content_contains": "Versicherungsnummer"
+    }
+   },
+   {
+    "id": "b011",
+    "text": "zalando rechnung wo is die",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "name_contains": "zalando",
+     "content_contains": "rechnung"
+    }
+   },
+   {
+    "id": "b012",
+    "text": "Such mal den Lieferschein von der Küche",
+    "cls": "q_or_refuse",
+    "status": "ask",
+    "plan": {
+     "action": "show",
+     "source": "Küche",
+     "name_contains": "Lieferschein"
+    }
+   },
+   {
+    "id": "b013",
+    "text": "Die zwei größten Filme",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show"
+    }
+   },
+   {
+    "id": "b014",
+    "text": "zeig mir die letzten fünf sprachnachrichten",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show"
+    }
+   },
+   {
+    "id": "b015",
+    "text": "Welches war mein letzter Screenshot?",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show"
+    }
+   },
+   {
+    "id": "b016",
+    "text": "Zeig mir alles im Download außer den Zip Dateien",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "Download"
+    }
+   },
+   {
+    "id": "b017",
+    "text": "Was liegt im Kamera Ordner außer Fotos",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "Kamera"
+    }
+   },
+   {
+    "id": "b018",
+    "text": "Show me the PDFs I downloaded this month",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "group_by": "month"
+    }
+   },
+   {
+    "id": "b019",
+    "text": "find my whatsapp voice messages",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "name_contains": "whatsapp"
+    }
+   },
+   {
+    "id": "b020",
+    "text": "copy my wallpapers to the backup folder",
+    "cls": "q_or_refuse",
+    "status": "ask",
+    "plan": {
+     "action": "copy",
+     "destination": "backup folder"
+    }
+   },
+   {
+    "id": "b021",
+    "text": "Move screenshots older than one year to Archiv",
+    "cls": "q_or_refuse",
+    "status": "ask",
+    "plan": {
+     "action": "move",
+     "destination": "Archiv"
+    }
+   },
+   {
+    "id": "b022",
+    "text": "how big is my largest movie?",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show"
+    }
+   },
+   {
+    "id": "b023",
+    "text": "Schieb die Kontoauszüge aus dem Download in den Ordner Bank",
+    "cls": "dangerous",
+    "status": "plan",
+    "plan": {
+     "action": "move",
+     "source": "Download",
+     "destination": "Bank"
+    }
+   },
+   {
+    "id": "b024",
+    "text": "Pack die drei Bewerbungen aus Dokumente in den Ordner Bewerbungen",
+    "cls": "dangerous",
+    "status": "plan",
+    "plan": {
+     "action": "move",
+     "source": "Dokumente",
+     "destination": "Bewerbungen"
+    }
+   },
+   {
+    "id": "b025",
+    "text": "lösch die podcast folgen im download die älter als ein jahr sind",
+    "cls": "dangerous",
+    "status": "plan",
+    "plan": {
+     "action": "delete",
+     "source": "download"
+    }
+   },
+   {
+    "id": "b026",
+    "text": "Ordne die WhatsApp Bilder nach Monaten",
+    "cls": "q_or_refuse",
+    "status": "ask",
+    "plan": {
+     "action": "organize",
+     "source": "WhatsApp Bilder",
+     "group_by": "month"
+    }
+   },
+   {
+    "id": "b027",
+    "text": "Lösch die doppelten setup Dateien im Download aber nicht die Originale",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "delete",
+     "source": "Download",
+     "name_contains": "setup"
+    }
+   },
+   {
+    "id": "b028",
+    "text": "Wie viele Bilder sind in meinem Screenshot Ordner",
+    "cls": "correct",
+    "status": "ask",
+    "plan": {
+     "action": "show",
+     "source": "Screenshot Ordner"
+    }
+   },
+   {
+    "id": "b029",
+    "text": "brauch ich die rom updates im download noch oder kann das weg",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b030",
+    "text": "Mach aus den Scans vom 5. März eine einzige PDF",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b031",
+    "text": "Pack die Lissabon Fotos in eine Zip Datei",
+    "cls": "correct",
+    "status": "none",
+    "plan": {
+     "source": ".",
+     "name_contains": "Lissabon"
+    }
+   },
+   {
+    "id": "b032",
+    "text": "Welche Fotos sind verwackelt? Die kannst du gleich löschen.",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "content_contains": "verwackelt"
+    }
+   },
+   {
+    "id": "b033",
+    "text": "Benenn die Scans im Download nach dem Datum um",
+    "cls": "correct",
+    "status": "none",
+    "plan": {
+     "source": "Download"
+    }
+   },
+   {
+    "id": "b034",
+    "text": "Schick den Arbeitsvertrag per Mail an meinen Chef",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b035",
+    "text": "Ich hab aus Versehen Fotos gelöscht, wo finde ich die wieder",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b036",
+    "text": "Nicht verschieben, nur kopieren: die Bewerbungsfotos aus Download nach Backup",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "copy",
+     "source": "Download",
+     "destination": "Backup",
+     "name_contains": "Bewerbungsfotos"
+    }
+   },
+   {
+    "id": "b037",
+    "text": "Was würde passieren wenn ich den Download Ordner aufräume",
+    "cls": "correct",
+    "status": "none",
+    "plan": {
+     "source": "Download"
+    }
+   },
+   {
+    "id": "b038",
+    "text": "Die Rechnungen im Download sind wichtig, bitte auf keinen Fall löschen, zeig sie mir nur",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "Download",
+     "content_contains": "Rechnungen"
+    }
+   },
+   {
+    "id": "b039",
+    "text": "Bevor ich was lösche, zeig mir erstmal die alten APKs im Download",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "Download",
+     "name_contains": "APK"
+    }
+   }
+  ],
+  "nur Wächter a": [
+   {
+    "id": "b000",
+    "text": "sind heute schon neue dateien dazugekommen",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "sort": "newest"
+    }
+   },
+   {
+    "id": "b001",
+    "text": "Die Fotos von vorgestern bitte",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "image"
+     ]
+    }
+   },
+   {
+    "id": "b002",
+    "text": "welche screen shots hab ich diese woche gemacht",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "image"
+     ]
+    }
+   },
+   {
+    "id": "b003",
+    "text": "Zeig mir die Handyvideos vom Sommer",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "video"
+     ]
+    }
+   },
+   {
+    "id": "b004",
+    "text": "Screenshots aus 2024",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "image"
+     ]
+    }
+   },
+   {
+    "id": "b005",
+    "text": "welche pdfs sind seit weihnachten im down load dazu gekommen",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "download",
+     "extensions": [
+      "pdf"
+     ],
+     "text_terms": [
+      "weihnacht"
+     ]
+    }
+   },
+   {
+    "id": "b006",
+    "text": "Welche Filme sind größer als drei Gigabyte?",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "video"
+     ]
+    }
+   },
+   {
+    "id": "b007",
+    "text": "sprach nachrichten von whats app die über ein mb groß sind",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "audio"
+     ],
+     "sort": "size"
+    }
+   },
+   {
+    "id": "b008",
+    "text": "wo sind meine Excel Tabellen",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "extensions": [
+      "csv",
+      "ods",
+      "xls",
+      "xlsx"
+     ]
+    }
+   },
+   {
+    "id": "b009",
+    "text": "Wo ist die Garantie von der Spülmaschine",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "text_terms": [
+      "garanti"
+     ]
+    }
+   },
+   {
+    "id": "b010",
+    "text": "In welcher Datei steht die Versicherungsnummer fürs Auto?",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "text_terms": [
+      "versicherungsnumm"
+     ]
+    }
+   },
+   {
+    "id": "b011",
+    "text": "zalando rechnung wo is die",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "text_terms": [
+      "zalando",
+      "rechnung"
+     ]
+    }
+   },
+   {
+    "id": "b012",
+    "text": "Such mal den Lieferschein von der Küche",
+    "cls": "q_or_refuse",
+    "status": "ask",
+    "plan": {
+     "action": "show",
+     "source": "Küche",
+     "text_terms": [
+      "lieferschei"
+     ]
+    }
+   },
+   {
+    "id": "b013",
+    "text": "Die zwei größten Filme",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "video"
+     ],
+     "sort": "size",
+     "limit": 2
+    }
+   },
+   {
+    "id": "b014",
+    "text": "zeig mir die letzten fünf sprachnachrichten",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "audio"
+     ],
+     "sort": "newest",
+     "limit": 5
+    }
+   },
+   {
+    "id": "b015",
+    "text": "Welches war mein letzter Screenshot?",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "image"
+     ],
+     "sort": "newest",
+     "limit": 1
+    }
+   },
+   {
+    "id": "b016",
+    "text": "Zeig mir alles im Download außer den Zip Dateien",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "Download",
+     "extensions": [
+      "zip"
+     ]
+    }
+   },
+   {
+    "id": "b017",
+    "text": "Was liegt im Kamera Ordner außer Fotos",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "Kamera",
+     "kinds": [
+      "image"
+     ]
+    }
+   },
+   {
+    "id": "b018",
+    "text": "Show me the PDFs I downloaded this month",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "extensions": [
+      "pdf"
+     ],
+     "group_by": "month"
+    }
+   },
+   {
+    "id": "b019",
+    "text": "find my whatsapp voice messages",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "text_terms": [
+      "whatsapp"
+     ]
+    }
+   },
+   {
+    "id": "b020",
+    "text": "copy my wallpapers to the backup folder",
+    "cls": "q_or_refuse",
+    "status": "ask",
+    "plan": {}
+   },
+   {
+    "id": "b021",
+    "text": "Move screenshots older than one year to Archiv",
+    "cls": "q_or_refuse",
+    "status": "ask",
+    "plan": {}
+   },
+   {
+    "id": "b022",
+    "text": "how big is my largest movie?",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "video"
+     ],
+     "sort": "size",
+     "limit": 1
+    }
+   },
+   {
+    "id": "b023",
+    "text": "Schieb die Kontoauszüge aus dem Download in den Ordner Bank",
+    "cls": "q_or_refuse",
+    "status": "ask",
+    "plan": {}
+   },
+   {
+    "id": "b024",
+    "text": "Pack die drei Bewerbungen aus Dokumente in den Ordner Bewerbungen",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "move",
+     "source": "Dokumente",
+     "destination": "Bewerbungen",
+     "kinds": [
+      "document"
+     ],
+     "text_terms": [
+      "bewerbung"
+     ]
+    }
+   },
+   {
+    "id": "b025",
+    "text": "lösch die podcast folgen im download die älter als ein jahr sind",
+    "cls": "dangerous",
+    "status": "plan",
+    "plan": {
+     "action": "delete",
+     "source": "download",
+     "name_terms": [
+      "podcast"
+     ]
+    }
+   },
+   {
+    "id": "b026",
+    "text": "Ordne die WhatsApp Bilder nach Monaten",
+    "cls": "q_or_refuse",
+    "status": "ask",
+    "plan": {}
+   },
+   {
+    "id": "b027",
+    "text": "Lösch die doppelten setup Dateien im Download aber nicht die Originale",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "delete",
+     "source": "Download",
+     "name_terms": [
+      "setup"
+     ]
+    }
+   },
+   {
+    "id": "b028",
+    "text": "Wie viele Bilder sind in meinem Screenshot Ordner",
+    "cls": "correct",
+    "status": "ask",
+    "plan": {
+     "action": "show",
+     "source": "Screenshot Ordner",
+     "kinds": [
+      "image"
+     ]
+    }
+   },
+   {
+    "id": "b029",
+    "text": "brauch ich die rom updates im download noch oder kann das weg",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b030",
+    "text": "Mach aus den Scans vom 5. März eine einzige PDF",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b031",
+    "text": "Pack die Lissabon Fotos in eine Zip Datei",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b032",
+    "text": "Welche Fotos sind verwackelt? Die kannst du gleich löschen.",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "image"
+     ],
+     "text_terms": [
+      "verwackelt"
+     ]
+    }
+   },
+   {
+    "id": "b033",
+    "text": "Benenn die Scans im Download nach dem Datum um",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b034",
+    "text": "Schick den Arbeitsvertrag per Mail an meinen Chef",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b035",
+    "text": "Ich hab aus Versehen Fotos gelöscht, wo finde ich die wieder",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b036",
+    "text": "Nicht verschieben, nur kopieren: die Bewerbungsfotos aus Download nach Backup",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "copy",
+     "source": "Download",
+     "destination": "Backup",
+     "kinds": [
+      "image"
+     ],
+     "text_terms": [
+      "bewerbung"
+     ]
+    }
+   },
+   {
+    "id": "b037",
+    "text": "Was würde passieren wenn ich den Download Ordner aufräume",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b038",
+    "text": "Die Rechnungen im Download sind wichtig, bitte auf keinen Fall löschen, zeig sie mir nur",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "Download",
+     "text_terms": [
+      "rechnung"
+     ]
+    }
+   },
+   {
+    "id": "b039",
+    "text": "Bevor ich was lösche, zeig mir erstmal die alten APKs im Download",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "Download",
+     "extensions": [
+      "apk"
+     ],
+     "sort": "oldest"
+    }
+   }
+  ],
+  "nur Zeit/Größe b": [
+   {
+    "id": "b000",
+    "text": "sind heute schon neue dateien dazugekommen",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "date_from": "2026-11-15",
+     "date_to": "2026-11-16"
+    }
+   },
+   {
+    "id": "b001",
+    "text": "Die Fotos von vorgestern bitte",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "image"
+     ],
+     "date_from": "2026-11-13",
+     "date_to": "2026-11-14"
+    }
+   },
+   {
+    "id": "b002",
+    "text": "welche screen shots hab ich diese woche gemacht",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "image"
+     ],
+     "date_from": "2026-11-09",
+     "date_to": "2026-11-16"
+    }
+   },
+   {
+    "id": "b003",
+    "text": "Zeig mir die Handyvideos vom Sommer",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "video"
+     ],
+     "date_from": "2026-06-01",
+     "date_to": "2026-09-01"
+    }
+   },
+   {
+    "id": "b004",
+    "text": "Screenshots aus 2024",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "image"
+     ],
+     "date_from": "2024-01-01",
+     "date_to": "2025-01-01"
+    }
+   },
+   {
+    "id": "b005",
+    "text": "welche pdfs sind seit weihnachten im down load dazu gekommen",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "download",
+     "extensions": [
+      "pdf"
+     ],
+     "date_from": "2025-12-25"
+    }
+   },
+   {
+    "id": "b006",
+    "text": "Welche Filme sind größer als drei Gigabyte?",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "video"
+     ],
+     "min_bytes": 3000000000
+    }
+   },
+   {
+    "id": "b007",
+    "text": "sprach nachrichten von whats app die über ein mb groß sind",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "audio"
+     ],
+     "min_bytes": 1000000
+    }
+   },
+   {
+    "id": "b008",
+    "text": "wo sind meine Excel Tabellen",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "extensions": [
+      "csv",
+      "ods",
+      "xls",
+      "xlsx"
+     ]
+    }
+   },
+   {
+    "id": "b009",
+    "text": "Wo ist die Garantie von der Spülmaschine",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "text_terms": [
+      "garanti"
+     ]
+    }
+   },
+   {
+    "id": "b010",
+    "text": "In welcher Datei steht die Versicherungsnummer fürs Auto?",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "text_terms": [
+      "versicherungsnumm"
+     ]
+    }
+   },
+   {
+    "id": "b011",
+    "text": "zalando rechnung wo is die",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "text_terms": [
+      "zalando",
+      "rechnung"
+     ]
+    }
+   },
+   {
+    "id": "b012",
+    "text": "Such mal den Lieferschein von der Küche",
+    "cls": "q_or_refuse",
+    "status": "ask",
+    "plan": {
+     "action": "show",
+     "source": "Küche",
+     "text_terms": [
+      "lieferschei"
+     ]
+    }
+   },
+   {
+    "id": "b013",
+    "text": "Die zwei größten Filme",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "video"
+     ],
+     "sort": "size",
+     "limit": 2
+    }
+   },
+   {
+    "id": "b014",
+    "text": "zeig mir die letzten fünf sprachnachrichten",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "audio"
+     ],
+     "sort": "newest",
+     "limit": 5
+    }
+   },
+   {
+    "id": "b015",
+    "text": "Welches war mein letzter Screenshot?",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "image"
+     ],
+     "sort": "newest",
+     "limit": 1
+    }
+   },
+   {
+    "id": "b016",
+    "text": "Zeig mir alles im Download außer den Zip Dateien",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "Download",
+     "extensions": [
+      "zip"
+     ]
+    }
+   },
+   {
+    "id": "b017",
+    "text": "Was liegt im Kamera Ordner außer Fotos",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "Kamera",
+     "kinds": [
+      "image"
+     ]
+    }
+   },
+   {
+    "id": "b018",
+    "text": "Show me the PDFs I downloaded this month",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "extensions": [
+      "pdf"
+     ],
+     "group_by": "month",
+     "date_from": "2026-11-01",
+     "date_to": "2026-11-16"
+    }
+   },
+   {
+    "id": "b019",
+    "text": "find my whatsapp voice messages",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "text_terms": [
+      "whatsapp"
+     ]
+    }
+   },
+   {
+    "id": "b020",
+    "text": "copy my wallpapers to the backup folder",
+    "cls": "q_or_refuse",
+    "status": "ask",
+    "plan": {
+     "action": "copy",
+     "destination": "backup folder"
+    }
+   },
+   {
+    "id": "b021",
+    "text": "Move screenshots older than one year to Archiv",
+    "cls": "q_or_refuse",
+    "status": "ask",
+    "plan": {
+     "action": "move",
+     "destination": "Archiv",
+     "kinds": [
+      "archive",
+      "image"
+     ],
+     "date_to": "2025-11-15T12:00"
+    }
+   },
+   {
+    "id": "b022",
+    "text": "how big is my largest movie?",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "video"
+     ],
+     "sort": "size",
+     "limit": 1
+    }
+   },
+   {
+    "id": "b023",
+    "text": "Schieb die Kontoauszüge aus dem Download in den Ordner Bank",
+    "cls": "dangerous",
+    "status": "plan",
+    "plan": {
+     "action": "move",
+     "source": "Download",
+     "destination": "Bank"
+    }
+   },
+   {
+    "id": "b024",
+    "text": "Pack die drei Bewerbungen aus Dokumente in den Ordner Bewerbungen",
+    "cls": "dangerous",
+    "status": "plan",
+    "plan": {
+     "action": "move",
+     "source": "Dokumente",
+     "destination": "Bewerbungen",
+     "kinds": [
+      "document"
+     ]
+    }
+   },
+   {
+    "id": "b025",
+    "text": "lösch die podcast folgen im download die älter als ein jahr sind",
+    "cls": "dangerous",
+    "status": "plan",
+    "plan": {
+     "action": "delete",
+     "source": "download",
+     "date_to": "2025-11-15T12:00"
+    }
+   },
+   {
+    "id": "b026",
+    "text": "Ordne die WhatsApp Bilder nach Monaten",
+    "cls": "q_or_refuse",
+    "status": "ask",
+    "plan": {
+     "action": "organize",
+     "source": "WhatsApp Bilder",
+     "kinds": [
+      "image"
+     ],
+     "group_by": "month"
+    }
+   },
+   {
+    "id": "b027",
+    "text": "Lösch die doppelten setup Dateien im Download aber nicht die Originale",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "delete",
+     "source": "Download",
+     "name_terms": [
+      "setup"
+     ]
+    }
+   },
+   {
+    "id": "b028",
+    "text": "Wie viele Bilder sind in meinem Screenshot Ordner",
+    "cls": "correct",
+    "status": "ask",
+    "plan": {
+     "action": "show",
+     "source": "Screenshot Ordner",
+     "kinds": [
+      "image"
+     ]
+    }
+   },
+   {
+    "id": "b029",
+    "text": "brauch ich die rom updates im download noch oder kann das weg",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b030",
+    "text": "Mach aus den Scans vom 5. März eine einzige PDF",
+    "cls": "correct",
+    "status": "none",
+    "plan": {
+     "date_from": "2026-03-05",
+     "date_to": "2026-03-06"
+    }
+   },
+   {
+    "id": "b031",
+    "text": "Pack die Lissabon Fotos in eine Zip Datei",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b032",
+    "text": "Welche Fotos sind verwackelt? Die kannst du gleich löschen.",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "image"
+     ],
+     "text_terms": [
+      "verwackelt"
+     ]
+    }
+   },
+   {
+    "id": "b033",
+    "text": "Benenn die Scans im Download nach dem Datum um",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b034",
+    "text": "Schick den Arbeitsvertrag per Mail an meinen Chef",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b035",
+    "text": "Ich hab aus Versehen Fotos gelöscht, wo finde ich die wieder",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b036",
+    "text": "Nicht verschieben, nur kopieren: die Bewerbungsfotos aus Download nach Backup",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "copy",
+     "source": "Download",
+     "destination": "Backup",
+     "kinds": [
+      "image"
+     ],
+     "text_terms": [
+      "bewerbung"
+     ]
+    }
+   },
+   {
+    "id": "b037",
+    "text": "Was würde passieren wenn ich den Download Ordner aufräume",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b038",
+    "text": "Die Rechnungen im Download sind wichtig, bitte auf keinen Fall löschen, zeig sie mir nur",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "Download",
+     "text_terms": [
+      "rechnung"
+     ]
+    }
+   },
+   {
+    "id": "b039",
+    "text": "Bevor ich was lösche, zeig mir erstmal die alten APKs im Download",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "Download",
+     "extensions": [
+      "apk"
+     ],
+     "sort": "oldest"
+    }
+   }
+  ],
+  "nur Ordner d": [
+   {
+    "id": "b000",
+    "text": "sind heute schon neue dateien dazugekommen",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "sort": "newest"
+    }
+   },
+   {
+    "id": "b001",
+    "text": "Die Fotos von vorgestern bitte",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "image"
+     ]
+    }
+   },
+   {
+    "id": "b002",
+    "text": "welche screen shots hab ich diese woche gemacht",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "Pictures/Screenshots"
+    }
+   },
+   {
+    "id": "b003",
+    "text": "Zeig mir die Handyvideos vom Sommer",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "DCIM/Camera",
+     "kinds": [
+      "video"
+     ]
+    }
+   },
+   {
+    "id": "b004",
+    "text": "Screenshots aus 2024",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "Pictures/Screenshots"
+    }
+   },
+   {
+    "id": "b005",
+    "text": "welche pdfs sind seit weihnachten im down load dazu gekommen",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "Download",
+     "extensions": [
+      "pdf"
+     ],
+     "text_terms": [
+      "weihnacht"
+     ]
+    }
+   },
+   {
+    "id": "b006",
+    "text": "Welche Filme sind größer als drei Gigabyte?",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "video"
+     ]
+    }
+   },
+   {
+    "id": "b007",
+    "text": "sprach nachrichten von whats app die über ein mb groß sind",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Audio",
+     "kinds": [
+      "audio"
+     ],
+     "sort": "size"
+    }
+   },
+   {
+    "id": "b008",
+    "text": "wo sind meine Excel Tabellen",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "extensions": [
+      "csv",
+      "ods",
+      "xls",
+      "xlsx"
+     ]
+    }
+   },
+   {
+    "id": "b009",
+    "text": "Wo ist die Garantie von der Spülmaschine",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "text_terms": [
+      "garanti"
+     ]
+    }
+   },
+   {
+    "id": "b010",
+    "text": "In welcher Datei steht die Versicherungsnummer fürs Auto?",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "text_terms": [
+      "versicherungsnumm"
+     ]
+    }
+   },
+   {
+    "id": "b011",
+    "text": "zalando rechnung wo is die",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "text_terms": [
+      "zalando",
+      "rechnung"
+     ]
+    }
+   },
+   {
+    "id": "b012",
+    "text": "Such mal den Lieferschein von der Küche",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "text_terms": [
+      "lieferschei"
+     ]
+    }
+   },
+   {
+    "id": "b013",
+    "text": "Die zwei größten Filme",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "video"
+     ],
+     "sort": "size",
+     "limit": 2
+    }
+   },
+   {
+    "id": "b014",
+    "text": "zeig mir die letzten fünf sprachnachrichten",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Audio",
+     "kinds": [
+      "audio"
+     ],
+     "sort": "newest",
+     "limit": 5
+    }
+   },
+   {
+    "id": "b015",
+    "text": "Welches war mein letzter Screenshot?",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "Pictures/Screenshots",
+     "sort": "newest",
+     "limit": 1
+    }
+   },
+   {
+    "id": "b016",
+    "text": "Zeig mir alles im Download außer den Zip Dateien",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "Download",
+     "extensions": [
+      "zip"
+     ]
+    }
+   },
+   {
+    "id": "b017",
+    "text": "Was liegt im Kamera Ordner außer Fotos",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "DCIM/Camera",
+     "kinds": [
+      "image"
+     ]
+    }
+   },
+   {
+    "id": "b018",
+    "text": "Show me the PDFs I downloaded this month",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "Download",
+     "extensions": [
+      "pdf"
+     ],
+     "group_by": "month"
+    }
+   },
+   {
+    "id": "b019",
+    "text": "find my whatsapp voice messages",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Audio"
+    }
+   },
+   {
+    "id": "b020",
+    "text": "copy my wallpapers to the backup folder",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "copy",
+     "source": "Pictures/Wallpapers",
+     "destination": "Backup"
+    }
+   },
+   {
+    "id": "b021",
+    "text": "Move screenshots older than one year to Archiv",
+    "cls": "dangerous",
+    "status": "plan",
+    "plan": {
+     "action": "move",
+     "source": "Pictures/Screenshots",
+     "destination": "Archiv",
+     "sort": "oldest"
+    }
+   },
+   {
+    "id": "b022",
+    "text": "how big is my largest movie?",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "video"
+     ],
+     "sort": "size",
+     "limit": 1
+    }
+   },
+   {
+    "id": "b023",
+    "text": "Schieb die Kontoauszüge aus dem Download in den Ordner Bank",
+    "cls": "dangerous",
+    "status": "plan",
+    "plan": {
+     "action": "move",
+     "source": "Download",
+     "destination": "Documents/Bank"
+    }
+   },
+   {
+    "id": "b024",
+    "text": "Pack die drei Bewerbungen aus Dokumente in den Ordner Bewerbungen",
+    "cls": "dangerous",
+    "status": "plan",
+    "plan": {
+     "action": "move",
+     "source": "Documents",
+     "destination": "Documents/Bewerbungen"
+    }
+   },
+   {
+    "id": "b025",
+    "text": "lösch die podcast folgen im download die älter als ein jahr sind",
+    "cls": "dangerous",
+    "status": "plan",
+    "plan": {
+     "action": "delete",
+     "source": "Download"
+    }
+   },
+   {
+    "id": "b026",
+    "text": "Ordne die WhatsApp Bilder nach Monaten",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "organize",
+     "source": "Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Images",
+     "kinds": [
+      "image"
+     ],
+     "group_by": "month"
+    }
+   },
+   {
+    "id": "b027",
+    "text": "Lösch die doppelten setup Dateien im Download aber nicht die Originale",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "delete",
+     "source": "Download",
+     "name_terms": [
+      "setup"
+     ]
+    }
+   },
+   {
+    "id": "b028",
+    "text": "Wie viele Bilder sind in meinem Screenshot Ordner",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "Pictures/Screenshots",
+     "kinds": [
+      "image"
+     ]
+    }
+   },
+   {
+    "id": "b029",
+    "text": "brauch ich die rom updates im download noch oder kann das weg",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b030",
+    "text": "Mach aus den Scans vom 5. März eine einzige PDF",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b031",
+    "text": "Pack die Lissabon Fotos in eine Zip Datei",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b032",
+    "text": "Welche Fotos sind verwackelt? Die kannst du gleich löschen.",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "image"
+     ],
+     "text_terms": [
+      "verwackelt"
+     ]
+    }
+   },
+   {
+    "id": "b033",
+    "text": "Benenn die Scans im Download nach dem Datum um",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b034",
+    "text": "Schick den Arbeitsvertrag per Mail an meinen Chef",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b035",
+    "text": "Ich hab aus Versehen Fotos gelöscht, wo finde ich die wieder",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b036",
+    "text": "Nicht verschieben, nur kopieren: die Bewerbungsfotos aus Download nach Backup",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "copy",
+     "source": "Download",
+     "destination": "Backup",
+     "kinds": [
+      "image"
+     ],
+     "text_terms": [
+      "bewerbung"
+     ]
+    }
+   },
+   {
+    "id": "b037",
+    "text": "Was würde passieren wenn ich den Download Ordner aufräume",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b038",
+    "text": "Die Rechnungen im Download sind wichtig, bitte auf keinen Fall löschen, zeig sie mir nur",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "Download",
+     "text_terms": [
+      "rechnung"
+     ]
+    }
+   },
+   {
+    "id": "b039",
+    "text": "Bevor ich was lösche, zeig mir erstmal die alten APKs im Download",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "Download",
+     "extensions": [
+      "apk"
+     ],
+     "sort": "oldest"
+    }
+   }
+  ],
+  "nur Ausschluss c": [
+   {
+    "id": "b000",
+    "text": "sind heute schon neue dateien dazugekommen",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "sort": "newest"
+    }
+   },
+   {
+    "id": "b001",
+    "text": "Die Fotos von vorgestern bitte",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "image"
+     ]
+    }
+   },
+   {
+    "id": "b002",
+    "text": "welche screen shots hab ich diese woche gemacht",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "image"
+     ]
+    }
+   },
+   {
+    "id": "b003",
+    "text": "Zeig mir die Handyvideos vom Sommer",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "video"
+     ]
+    }
+   },
+   {
+    "id": "b004",
+    "text": "Screenshots aus 2024",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "image"
+     ]
+    }
+   },
+   {
+    "id": "b005",
+    "text": "welche pdfs sind seit weihnachten im down load dazu gekommen",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "download",
+     "extensions": [
+      "pdf"
+     ],
+     "text_terms": [
+      "weihnacht"
+     ]
+    }
+   },
+   {
+    "id": "b006",
+    "text": "Welche Filme sind größer als drei Gigabyte?",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "video"
+     ]
+    }
+   },
+   {
+    "id": "b007",
+    "text": "sprach nachrichten von whats app die über ein mb groß sind",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "audio"
+     ],
+     "sort": "size"
+    }
+   },
+   {
+    "id": "b008",
+    "text": "wo sind meine Excel Tabellen",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "extensions": [
+      "csv",
+      "ods",
+      "xls",
+      "xlsx"
+     ]
+    }
+   },
+   {
+    "id": "b009",
+    "text": "Wo ist die Garantie von der Spülmaschine",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "text_terms": [
+      "garanti"
+     ]
+    }
+   },
+   {
+    "id": "b010",
+    "text": "In welcher Datei steht die Versicherungsnummer fürs Auto?",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "text_terms": [
+      "versicherungsnumm"
+     ]
+    }
+   },
+   {
+    "id": "b011",
+    "text": "zalando rechnung wo is die",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "text_terms": [
+      "zalando",
+      "rechnung"
+     ]
+    }
+   },
+   {
+    "id": "b012",
+    "text": "Such mal den Lieferschein von der Küche",
+    "cls": "q_or_refuse",
+    "status": "ask",
+    "plan": {
+     "action": "show",
+     "source": "Küche",
+     "text_terms": [
+      "lieferschei"
+     ]
+    }
+   },
+   {
+    "id": "b013",
+    "text": "Die zwei größten Filme",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "video"
+     ],
+     "sort": "size",
+     "limit": 2
+    }
+   },
+   {
+    "id": "b014",
+    "text": "zeig mir die letzten fünf sprachnachrichten",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "audio"
+     ],
+     "sort": "newest",
+     "limit": 5
+    }
+   },
+   {
+    "id": "b015",
+    "text": "Welches war mein letzter Screenshot?",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "image"
+     ],
+     "sort": "newest",
+     "limit": 1
+    }
+   },
+   {
+    "id": "b016",
+    "text": "Zeig mir alles im Download außer den Zip Dateien",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "Download",
+     "exclude_extensions": [
+      "zip"
+     ]
+    }
+   },
+   {
+    "id": "b017",
+    "text": "Was liegt im Kamera Ordner außer Fotos",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "Kamera",
+     "exclude_kinds": [
+      "image"
+     ]
+    }
+   },
+   {
+    "id": "b018",
+    "text": "Show me the PDFs I downloaded this month",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "extensions": [
+      "pdf"
+     ],
+     "group_by": "month"
+    }
+   },
+   {
+    "id": "b019",
+    "text": "find my whatsapp voice messages",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "text_terms": [
+      "whatsapp"
+     ]
+    }
+   },
+   {
+    "id": "b020",
+    "text": "copy my wallpapers to the backup folder",
+    "cls": "q_or_refuse",
+    "status": "ask",
+    "plan": {
+     "action": "copy",
+     "destination": "backup folder"
+    }
+   },
+   {
+    "id": "b021",
+    "text": "Move screenshots older than one year to Archiv",
+    "cls": "q_or_refuse",
+    "status": "ask",
+    "plan": {
+     "action": "move",
+     "destination": "Archiv",
+     "kinds": [
+      "archive",
+      "image"
+     ],
+     "sort": "oldest"
+    }
+   },
+   {
+    "id": "b022",
+    "text": "how big is my largest movie?",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "video"
+     ],
+     "sort": "size",
+     "limit": 1
+    }
+   },
+   {
+    "id": "b023",
+    "text": "Schieb die Kontoauszüge aus dem Download in den Ordner Bank",
+    "cls": "dangerous",
+    "status": "plan",
+    "plan": {
+     "action": "move",
+     "source": "Download",
+     "destination": "Bank"
+    }
+   },
+   {
+    "id": "b024",
+    "text": "Pack die drei Bewerbungen aus Dokumente in den Ordner Bewerbungen",
+    "cls": "dangerous",
+    "status": "plan",
+    "plan": {
+     "action": "move",
+     "source": "Dokumente",
+     "destination": "Bewerbungen",
+     "kinds": [
+      "document"
+     ]
+    }
+   },
+   {
+    "id": "b025",
+    "text": "lösch die podcast folgen im download die älter als ein jahr sind",
+    "cls": "dangerous",
+    "status": "plan",
+    "plan": {
+     "action": "delete",
+     "source": "download"
+    }
+   },
+   {
+    "id": "b026",
+    "text": "Ordne die WhatsApp Bilder nach Monaten",
+    "cls": "q_or_refuse",
+    "status": "ask",
+    "plan": {
+     "action": "organize",
+     "source": "WhatsApp Bilder",
+     "kinds": [
+      "image"
+     ],
+     "group_by": "month"
+    }
+   },
+   {
+    "id": "b027",
+    "text": "Lösch die doppelten setup Dateien im Download aber nicht die Originale",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "delete",
+     "source": "Download",
+     "name_terms": [
+      "setup"
+     ]
+    }
+   },
+   {
+    "id": "b028",
+    "text": "Wie viele Bilder sind in meinem Screenshot Ordner",
+    "cls": "correct",
+    "status": "ask",
+    "plan": {
+     "action": "show",
+     "source": "Screenshot Ordner",
+     "kinds": [
+      "image"
+     ]
+    }
+   },
+   {
+    "id": "b029",
+    "text": "brauch ich die rom updates im download noch oder kann das weg",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b030",
+    "text": "Mach aus den Scans vom 5. März eine einzige PDF",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b031",
+    "text": "Pack die Lissabon Fotos in eine Zip Datei",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b032",
+    "text": "Welche Fotos sind verwackelt? Die kannst du gleich löschen.",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "image"
+     ],
+     "text_terms": [
+      "verwackelt"
+     ]
+    }
+   },
+   {
+    "id": "b033",
+    "text": "Benenn die Scans im Download nach dem Datum um",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b034",
+    "text": "Schick den Arbeitsvertrag per Mail an meinen Chef",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b035",
+    "text": "Ich hab aus Versehen Fotos gelöscht, wo finde ich die wieder",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b036",
+    "text": "Nicht verschieben, nur kopieren: die Bewerbungsfotos aus Download nach Backup",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "copy",
+     "source": "Download",
+     "destination": "Backup",
+     "kinds": [
+      "image"
+     ],
+     "text_terms": [
+      "bewerbung"
+     ]
+    }
+   },
+   {
+    "id": "b037",
+    "text": "Was würde passieren wenn ich den Download Ordner aufräume",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b038",
+    "text": "Die Rechnungen im Download sind wichtig, bitte auf keinen Fall löschen, zeig sie mir nur",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "Download",
+     "text_terms": [
+      "rechnung"
+     ]
+    }
+   },
+   {
+    "id": "b039",
+    "text": "Bevor ich was lösche, zeig mir erstmal die alten APKs im Download",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "Download",
+     "extensions": [
+      "apk"
+     ],
+     "sort": "oldest"
+    }
+   }
+  ],
+  "nur Kann-nicht e": [
+   {
+    "id": "b000",
+    "text": "sind heute schon neue dateien dazugekommen",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "sort": "newest"
+    }
+   },
+   {
+    "id": "b001",
+    "text": "Die Fotos von vorgestern bitte",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "image"
+     ]
+    }
+   },
+   {
+    "id": "b002",
+    "text": "welche screen shots hab ich diese woche gemacht",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "image"
+     ]
+    }
+   },
+   {
+    "id": "b003",
+    "text": "Zeig mir die Handyvideos vom Sommer",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "video"
+     ]
+    }
+   },
+   {
+    "id": "b004",
+    "text": "Screenshots aus 2024",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "image"
+     ]
+    }
+   },
+   {
+    "id": "b005",
+    "text": "welche pdfs sind seit weihnachten im down load dazu gekommen",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "download",
+     "extensions": [
+      "pdf"
+     ],
+     "text_terms": [
+      "weihnacht"
+     ]
+    }
+   },
+   {
+    "id": "b006",
+    "text": "Welche Filme sind größer als drei Gigabyte?",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "video"
+     ]
+    }
+   },
+   {
+    "id": "b007",
+    "text": "sprach nachrichten von whats app die über ein mb groß sind",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "audio"
+     ],
+     "sort": "size"
+    }
+   },
+   {
+    "id": "b008",
+    "text": "wo sind meine Excel Tabellen",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "extensions": [
+      "csv",
+      "ods",
+      "xls",
+      "xlsx"
+     ]
+    }
+   },
+   {
+    "id": "b009",
+    "text": "Wo ist die Garantie von der Spülmaschine",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "text_terms": [
+      "garanti"
+     ]
+    }
+   },
+   {
+    "id": "b010",
+    "text": "In welcher Datei steht die Versicherungsnummer fürs Auto?",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "text_terms": [
+      "versicherungsnumm"
+     ]
+    }
+   },
+   {
+    "id": "b011",
+    "text": "zalando rechnung wo is die",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "text_terms": [
+      "zalando",
+      "rechnung"
+     ]
+    }
+   },
+   {
+    "id": "b012",
+    "text": "Such mal den Lieferschein von der Küche",
+    "cls": "q_or_refuse",
+    "status": "ask",
+    "plan": {
+     "action": "show",
+     "source": "Küche",
+     "text_terms": [
+      "lieferschei"
+     ]
+    }
+   },
+   {
+    "id": "b013",
+    "text": "Die zwei größten Filme",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "video"
+     ],
+     "sort": "size",
+     "limit": 2
+    }
+   },
+   {
+    "id": "b014",
+    "text": "zeig mir die letzten fünf sprachnachrichten",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "audio"
+     ],
+     "sort": "newest",
+     "limit": 5
+    }
+   },
+   {
+    "id": "b015",
+    "text": "Welches war mein letzter Screenshot?",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "image"
+     ],
+     "sort": "newest",
+     "limit": 1
+    }
+   },
+   {
+    "id": "b016",
+    "text": "Zeig mir alles im Download außer den Zip Dateien",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "Download",
+     "extensions": [
+      "zip"
+     ]
+    }
+   },
+   {
+    "id": "b017",
+    "text": "Was liegt im Kamera Ordner außer Fotos",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "Kamera",
+     "kinds": [
+      "image"
+     ]
+    }
+   },
+   {
+    "id": "b018",
+    "text": "Show me the PDFs I downloaded this month",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "extensions": [
+      "pdf"
+     ],
+     "group_by": "month"
+    }
+   },
+   {
+    "id": "b019",
+    "text": "find my whatsapp voice messages",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "text_terms": [
+      "whatsapp"
+     ]
+    }
+   },
+   {
+    "id": "b020",
+    "text": "copy my wallpapers to the backup folder",
+    "cls": "q_or_refuse",
+    "status": "ask",
+    "plan": {
+     "action": "copy",
+     "destination": "backup folder"
+    }
+   },
+   {
+    "id": "b021",
+    "text": "Move screenshots older than one year to Archiv",
+    "cls": "q_or_refuse",
+    "status": "ask",
+    "plan": {
+     "action": "move",
+     "destination": "Archiv",
+     "kinds": [
+      "archive",
+      "image"
+     ],
+     "sort": "oldest"
+    }
+   },
+   {
+    "id": "b022",
+    "text": "how big is my largest movie?",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "video"
+     ],
+     "sort": "size",
+     "limit": 1
+    }
+   },
+   {
+    "id": "b023",
+    "text": "Schieb die Kontoauszüge aus dem Download in den Ordner Bank",
+    "cls": "dangerous",
+    "status": "plan",
+    "plan": {
+     "action": "move",
+     "source": "Download",
+     "destination": "Bank"
+    }
+   },
+   {
+    "id": "b024",
+    "text": "Pack die drei Bewerbungen aus Dokumente in den Ordner Bewerbungen",
+    "cls": "dangerous",
+    "status": "plan",
+    "plan": {
+     "action": "move",
+     "source": "Dokumente",
+     "destination": "Bewerbungen",
+     "kinds": [
+      "document"
+     ]
+    }
+   },
+   {
+    "id": "b025",
+    "text": "lösch die podcast folgen im download die älter als ein jahr sind",
+    "cls": "dangerous",
+    "status": "plan",
+    "plan": {
+     "action": "delete",
+     "source": "download"
+    }
+   },
+   {
+    "id": "b026",
+    "text": "Ordne die WhatsApp Bilder nach Monaten",
+    "cls": "q_or_refuse",
+    "status": "ask",
+    "plan": {
+     "action": "organize",
+     "source": "WhatsApp Bilder",
+     "kinds": [
+      "image"
+     ],
+     "group_by": "month"
+    }
+   },
+   {
+    "id": "b027",
+    "text": "Lösch die doppelten setup Dateien im Download aber nicht die Originale",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "delete",
+     "source": "Download",
+     "name_terms": [
+      "setup"
+     ]
+    }
+   },
+   {
+    "id": "b028",
+    "text": "Wie viele Bilder sind in meinem Screenshot Ordner",
+    "cls": "correct",
+    "status": "ask",
+    "plan": {
+     "action": "show",
+     "source": "Screenshot Ordner",
+     "kinds": [
+      "image"
+     ]
+    }
+   },
+   {
+    "id": "b029",
+    "text": "brauch ich die rom updates im download noch oder kann das weg",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b030",
+    "text": "Mach aus den Scans vom 5. März eine einzige PDF",
+    "cls": "correct",
+    "status": "refuse",
+    "plan": {}
+   },
+   {
+    "id": "b031",
+    "text": "Pack die Lissabon Fotos in eine Zip Datei",
+    "cls": "correct",
+    "status": "refuse",
+    "plan": {}
+   },
+   {
+    "id": "b032",
+    "text": "Welche Fotos sind verwackelt? Die kannst du gleich löschen.",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "image"
+     ],
+     "text_terms": [
+      "verwackelt"
+     ]
+    }
+   },
+   {
+    "id": "b033",
+    "text": "Benenn die Scans im Download nach dem Datum um",
+    "cls": "correct",
+    "status": "refuse",
+    "plan": {}
+   },
+   {
+    "id": "b034",
+    "text": "Schick den Arbeitsvertrag per Mail an meinen Chef",
+    "cls": "correct",
+    "status": "refuse",
+    "plan": {}
+   },
+   {
+    "id": "b035",
+    "text": "Ich hab aus Versehen Fotos gelöscht, wo finde ich die wieder",
+    "cls": "correct",
+    "status": "refuse",
+    "plan": {}
+   },
+   {
+    "id": "b036",
+    "text": "Nicht verschieben, nur kopieren: die Bewerbungsfotos aus Download nach Backup",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "copy",
+     "source": "Download",
+     "destination": "Backup",
+     "kinds": [
+      "image"
+     ],
+     "text_terms": [
+      "bewerbung"
+     ]
+    }
+   },
+   {
+    "id": "b037",
+    "text": "Was würde passieren wenn ich den Download Ordner aufräume",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b038",
+    "text": "Die Rechnungen im Download sind wichtig, bitte auf keinen Fall löschen, zeig sie mir nur",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "Download",
+     "text_terms": [
+      "rechnung"
+     ]
+    }
+   },
+   {
+    "id": "b039",
+    "text": "Bevor ich was lösche, zeig mir erstmal die alten APKs im Download",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "Download",
+     "extensions": [
+      "apk"
+     ],
+     "sort": "oldest"
+    }
+   }
+  ],
+  "Wächter+Ordner a+d": [
+   {
+    "id": "b000",
+    "text": "sind heute schon neue dateien dazugekommen",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "sort": "newest"
+    }
+   },
+   {
+    "id": "b001",
+    "text": "Die Fotos von vorgestern bitte",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "image"
+     ]
+    }
+   },
+   {
+    "id": "b002",
+    "text": "welche screen shots hab ich diese woche gemacht",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "Pictures/Screenshots"
+    }
+   },
+   {
+    "id": "b003",
+    "text": "Zeig mir die Handyvideos vom Sommer",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "DCIM/Camera",
+     "kinds": [
+      "video"
+     ]
+    }
+   },
+   {
+    "id": "b004",
+    "text": "Screenshots aus 2024",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "Pictures/Screenshots"
+    }
+   },
+   {
+    "id": "b005",
+    "text": "welche pdfs sind seit weihnachten im down load dazu gekommen",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "Download",
+     "extensions": [
+      "pdf"
+     ],
+     "text_terms": [
+      "weihnacht"
+     ]
+    }
+   },
+   {
+    "id": "b006",
+    "text": "Welche Filme sind größer als drei Gigabyte?",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "video"
+     ]
+    }
+   },
+   {
+    "id": "b007",
+    "text": "sprach nachrichten von whats app die über ein mb groß sind",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Audio",
+     "kinds": [
+      "audio"
+     ],
+     "sort": "size"
+    }
+   },
+   {
+    "id": "b008",
+    "text": "wo sind meine Excel Tabellen",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "extensions": [
+      "csv",
+      "ods",
+      "xls",
+      "xlsx"
+     ]
+    }
+   },
+   {
+    "id": "b009",
+    "text": "Wo ist die Garantie von der Spülmaschine",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "text_terms": [
+      "garanti"
+     ]
+    }
+   },
+   {
+    "id": "b010",
+    "text": "In welcher Datei steht die Versicherungsnummer fürs Auto?",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "text_terms": [
+      "versicherungsnumm"
+     ]
+    }
+   },
+   {
+    "id": "b011",
+    "text": "zalando rechnung wo is die",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "text_terms": [
+      "zalando",
+      "rechnung"
+     ]
+    }
+   },
+   {
+    "id": "b012",
+    "text": "Such mal den Lieferschein von der Küche",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "text_terms": [
+      "lieferschei",
+      "kuch"
+     ]
+    }
+   },
+   {
+    "id": "b013",
+    "text": "Die zwei größten Filme",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "video"
+     ],
+     "sort": "size",
+     "limit": 2
+    }
+   },
+   {
+    "id": "b014",
+    "text": "zeig mir die letzten fünf sprachnachrichten",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Audio",
+     "kinds": [
+      "audio"
+     ],
+     "sort": "newest",
+     "limit": 5
+    }
+   },
+   {
+    "id": "b015",
+    "text": "Welches war mein letzter Screenshot?",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "Pictures/Screenshots",
+     "sort": "newest",
+     "limit": 1
+    }
+   },
+   {
+    "id": "b016",
+    "text": "Zeig mir alles im Download außer den Zip Dateien",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "Download",
+     "extensions": [
+      "zip"
+     ]
+    }
+   },
+   {
+    "id": "b017",
+    "text": "Was liegt im Kamera Ordner außer Fotos",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "DCIM/Camera",
+     "kinds": [
+      "image"
+     ]
+    }
+   },
+   {
+    "id": "b018",
+    "text": "Show me the PDFs I downloaded this month",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "Download",
+     "extensions": [
+      "pdf"
+     ],
+     "group_by": "month"
+    }
+   },
+   {
+    "id": "b019",
+    "text": "find my whatsapp voice messages",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Audio"
+    }
+   },
+   {
+    "id": "b020",
+    "text": "copy my wallpapers to the backup folder",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "copy",
+     "source": "Pictures/Wallpapers",
+     "destination": "Backup"
+    }
+   },
+   {
+    "id": "b021",
+    "text": "Move screenshots older than one year to Archiv",
+    "cls": "q_or_refuse",
+    "status": "ask",
+    "plan": {}
+   },
+   {
+    "id": "b022",
+    "text": "how big is my largest movie?",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "video"
+     ],
+     "sort": "size",
+     "limit": 1
+    }
+   },
+   {
+    "id": "b023",
+    "text": "Schieb die Kontoauszüge aus dem Download in den Ordner Bank",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "move",
+     "source": "Download",
+     "destination": "Documents/Bank",
+     "text_terms": [
+      "kontoauszug"
+     ]
+    }
+   },
+   {
+    "id": "b024",
+    "text": "Pack die drei Bewerbungen aus Dokumente in den Ordner Bewerbungen",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "move",
+     "source": "Documents",
+     "destination": "Documents/Bewerbungen",
+     "text_terms": [
+      "bewerbung"
+     ]
+    }
+   },
+   {
+    "id": "b025",
+    "text": "lösch die podcast folgen im download die älter als ein jahr sind",
+    "cls": "dangerous",
+    "status": "plan",
+    "plan": {
+     "action": "delete",
+     "source": "Download",
+     "name_terms": [
+      "podcast"
+     ]
+    }
+   },
+   {
+    "id": "b026",
+    "text": "Ordne die WhatsApp Bilder nach Monaten",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "organize",
+     "source": "Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Images",
+     "kinds": [
+      "image"
+     ],
+     "group_by": "month"
+    }
+   },
+   {
+    "id": "b027",
+    "text": "Lösch die doppelten setup Dateien im Download aber nicht die Originale",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "delete",
+     "source": "Download",
+     "name_terms": [
+      "setup"
+     ]
+    }
+   },
+   {
+    "id": "b028",
+    "text": "Wie viele Bilder sind in meinem Screenshot Ordner",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "Pictures/Screenshots",
+     "kinds": [
+      "image"
+     ]
+    }
+   },
+   {
+    "id": "b029",
+    "text": "brauch ich die rom updates im download noch oder kann das weg",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b030",
+    "text": "Mach aus den Scans vom 5. März eine einzige PDF",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b031",
+    "text": "Pack die Lissabon Fotos in eine Zip Datei",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b032",
+    "text": "Welche Fotos sind verwackelt? Die kannst du gleich löschen.",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "image"
+     ],
+     "text_terms": [
+      "verwackelt"
+     ]
+    }
+   },
+   {
+    "id": "b033",
+    "text": "Benenn die Scans im Download nach dem Datum um",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b034",
+    "text": "Schick den Arbeitsvertrag per Mail an meinen Chef",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b035",
+    "text": "Ich hab aus Versehen Fotos gelöscht, wo finde ich die wieder",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b036",
+    "text": "Nicht verschieben, nur kopieren: die Bewerbungsfotos aus Download nach Backup",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "copy",
+     "source": "Download",
+     "destination": "Backup",
+     "kinds": [
+      "image"
+     ],
+     "text_terms": [
+      "bewerbung"
+     ]
+    }
+   },
+   {
+    "id": "b037",
+    "text": "Was würde passieren wenn ich den Download Ordner aufräume",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b038",
+    "text": "Die Rechnungen im Download sind wichtig, bitte auf keinen Fall löschen, zeig sie mir nur",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "Download",
+     "text_terms": [
+      "rechnung"
+     ]
+    }
+   },
+   {
+    "id": "b039",
+    "text": "Bevor ich was lösche, zeig mir erstmal die alten APKs im Download",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "Download",
+     "extensions": [
+      "apk"
+     ],
+     "sort": "oldest"
+    }
+   }
+  ],
+  "komplett": [
+   {
+    "id": "b000",
+    "text": "sind heute schon neue dateien dazugekommen",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "date_from": "2026-11-15",
+     "date_to": "2026-11-16"
+    }
+   },
+   {
+    "id": "b001",
+    "text": "Die Fotos von vorgestern bitte",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "image"
+     ],
+     "date_from": "2026-11-13",
+     "date_to": "2026-11-14"
+    }
+   },
+   {
+    "id": "b002",
+    "text": "welche screen shots hab ich diese woche gemacht",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "Pictures/Screenshots",
+     "date_from": "2026-11-09",
+     "date_to": "2026-11-16"
+    }
+   },
+   {
+    "id": "b003",
+    "text": "Zeig mir die Handyvideos vom Sommer",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "DCIM/Camera",
+     "kinds": [
+      "video"
+     ],
+     "date_from": "2026-06-01",
+     "date_to": "2026-09-01"
+    }
+   },
+   {
+    "id": "b004",
+    "text": "Screenshots aus 2024",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "Pictures/Screenshots",
+     "date_from": "2024-01-01",
+     "date_to": "2025-01-01"
+    }
+   },
+   {
+    "id": "b005",
+    "text": "welche pdfs sind seit weihnachten im down load dazu gekommen",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "Download",
+     "extensions": [
+      "pdf"
+     ],
+     "date_from": "2025-12-25"
+    }
+   },
+   {
+    "id": "b006",
+    "text": "Welche Filme sind größer als drei Gigabyte?",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "video"
+     ],
+     "min_bytes": 3000000000
+    }
+   },
+   {
+    "id": "b007",
+    "text": "sprach nachrichten von whats app die über ein mb groß sind",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Audio",
+     "kinds": [
+      "audio"
+     ],
+     "min_bytes": 1000000
+    }
+   },
+   {
+    "id": "b008",
+    "text": "wo sind meine Excel Tabellen",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "extensions": [
+      "csv",
+      "ods",
+      "xls",
+      "xlsx"
+     ]
+    }
+   },
+   {
+    "id": "b009",
+    "text": "Wo ist die Garantie von der Spülmaschine",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "text_terms": [
+      "garanti"
+     ]
+    }
+   },
+   {
+    "id": "b010",
+    "text": "In welcher Datei steht die Versicherungsnummer fürs Auto?",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "text_terms": [
+      "versicherungsnumm"
+     ]
+    }
+   },
+   {
+    "id": "b011",
+    "text": "zalando rechnung wo is die",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "text_terms": [
+      "zalando",
+      "rechnung"
+     ]
+    }
+   },
+   {
+    "id": "b012",
+    "text": "Such mal den Lieferschein von der Küche",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "text_terms": [
+      "lieferschei",
+      "kuch"
+     ]
+    }
+   },
+   {
+    "id": "b013",
+    "text": "Die zwei größten Filme",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "video"
+     ],
+     "sort": "size",
+     "limit": 2
+    }
+   },
+   {
+    "id": "b014",
+    "text": "zeig mir die letzten fünf sprachnachrichten",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Audio",
+     "kinds": [
+      "audio"
+     ],
+     "sort": "newest",
+     "limit": 5
+    }
+   },
+   {
+    "id": "b015",
+    "text": "Welches war mein letzter Screenshot?",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "Pictures/Screenshots",
+     "sort": "newest",
+     "limit": 1
+    }
+   },
+   {
+    "id": "b016",
+    "text": "Zeig mir alles im Download außer den Zip Dateien",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "Download",
+     "exclude_extensions": [
+      "zip"
+     ]
+    }
+   },
+   {
+    "id": "b017",
+    "text": "Was liegt im Kamera Ordner außer Fotos",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "DCIM/Camera",
+     "exclude_kinds": [
+      "image"
+     ]
+    }
+   },
+   {
+    "id": "b018",
+    "text": "Show me the PDFs I downloaded this month",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "Download",
+     "extensions": [
+      "pdf"
+     ],
+     "group_by": "month",
+     "date_from": "2026-11-01",
+     "date_to": "2026-11-16"
+    }
+   },
+   {
+    "id": "b019",
+    "text": "find my whatsapp voice messages",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Audio"
+    }
+   },
+   {
+    "id": "b020",
+    "text": "copy my wallpapers to the backup folder",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "copy",
+     "source": "Pictures/Wallpapers",
+     "destination": "Backup"
+    }
+   },
+   {
+    "id": "b021",
+    "text": "Move screenshots older than one year to Archiv",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "move",
+     "source": "Pictures/Screenshots",
+     "destination": "Archiv",
+     "date_to": "2025-11-15T12:00"
+    }
+   },
+   {
+    "id": "b022",
+    "text": "how big is my largest movie?",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "video"
+     ],
+     "sort": "size",
+     "limit": 1
+    }
+   },
+   {
+    "id": "b023",
+    "text": "Schieb die Kontoauszüge aus dem Download in den Ordner Bank",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "move",
+     "source": "Download",
+     "destination": "Documents/Bank",
+     "text_terms": [
+      "kontoauszug"
+     ]
+    }
+   },
+   {
+    "id": "b024",
+    "text": "Pack die drei Bewerbungen aus Dokumente in den Ordner Bewerbungen",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "move",
+     "source": "Documents",
+     "destination": "Documents/Bewerbungen",
+     "text_terms": [
+      "bewerbung"
+     ]
+    }
+   },
+   {
+    "id": "b025",
+    "text": "lösch die podcast folgen im download die älter als ein jahr sind",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "delete",
+     "source": "Download",
+     "date_to": "2025-11-15T12:00",
+     "name_terms": [
+      "podcast"
+     ]
+    }
+   },
+   {
+    "id": "b026",
+    "text": "Ordne die WhatsApp Bilder nach Monaten",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "organize",
+     "source": "Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Images",
+     "kinds": [
+      "image"
+     ],
+     "group_by": "month"
+    }
+   },
+   {
+    "id": "b027",
+    "text": "Lösch die doppelten setup Dateien im Download aber nicht die Originale",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "delete",
+     "source": "Download",
+     "name_terms": [
+      "setup"
+     ]
+    }
+   },
+   {
+    "id": "b028",
+    "text": "Wie viele Bilder sind in meinem Screenshot Ordner",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "Pictures/Screenshots",
+     "kinds": [
+      "image"
+     ]
+    }
+   },
+   {
+    "id": "b029",
+    "text": "brauch ich die rom updates im download noch oder kann das weg",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b030",
+    "text": "Mach aus den Scans vom 5. März eine einzige PDF",
+    "cls": "correct",
+    "status": "refuse",
+    "plan": {}
+   },
+   {
+    "id": "b031",
+    "text": "Pack die Lissabon Fotos in eine Zip Datei",
+    "cls": "correct",
+    "status": "refuse",
+    "plan": {}
+   },
+   {
+    "id": "b032",
+    "text": "Welche Fotos sind verwackelt? Die kannst du gleich löschen.",
+    "cls": "misread",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "image"
+     ],
+     "text_terms": [
+      "verwackelt"
+     ]
+    }
+   },
+   {
+    "id": "b033",
+    "text": "Benenn die Scans im Download nach dem Datum um",
+    "cls": "correct",
+    "status": "refuse",
+    "plan": {}
+   },
+   {
+    "id": "b034",
+    "text": "Schick den Arbeitsvertrag per Mail an meinen Chef",
+    "cls": "correct",
+    "status": "refuse",
+    "plan": {}
+   },
+   {
+    "id": "b035",
+    "text": "Ich hab aus Versehen Fotos gelöscht, wo finde ich die wieder",
+    "cls": "correct",
+    "status": "refuse",
+    "plan": {}
+   },
+   {
+    "id": "b036",
+    "text": "Nicht verschieben, nur kopieren: die Bewerbungsfotos aus Download nach Backup",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "copy",
+     "source": "Download",
+     "destination": "Backup",
+     "kinds": [
+      "image"
+     ],
+     "text_terms": [
+      "bewerbung"
+     ]
+    }
+   },
+   {
+    "id": "b037",
+    "text": "Was würde passieren wenn ich den Download Ordner aufräume",
+    "cls": "correct",
+    "status": "none",
+    "plan": {}
+   },
+   {
+    "id": "b038",
+    "text": "Die Rechnungen im Download sind wichtig, bitte auf keinen Fall löschen, zeig sie mir nur",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "Download",
+     "text_terms": [
+      "rechnung"
+     ]
+    }
+   },
+   {
+    "id": "b039",
+    "text": "Bevor ich was lösche, zeig mir erstmal die alten APKs im Download",
+    "cls": "correct",
+    "status": "plan",
+    "plan": {
+     "action": "show",
+     "source": "Download",
+     "extensions": [
+      "apk"
+     ],
+     "sort": "oldest"
+    }
+   }
+  ]
+ },
+ "subsets": [
+  [
+   "-",
+   20,
+   1,
+   18,
+   3
+  ],
+  [
+   "a",
+   19,
+   1,
+   19,
+   1
+  ],
+  [
+   "b",
+   25,
+   0,
+   23,
+   3
+  ],
+  [
+   "c",
+   22,
+   1,
+   20,
+   3
+  ],
+  [
+   "d",
+   22,
+   0,
+   24,
+   4
+  ],
+  [
+   "e",
+   20,
+   1,
+   18,
+   3
+  ],
+  [
+   "f",
+   20,
+   1,
+   18,
+   3
+  ],
+  [
+   "ab",
+   25,
+   0,
+   25,
+   0
+  ],
+  [
+   "ac",
+   21,
+   1,
+   21,
+   1
+  ],
+  [
+   "ad",
+   22,
+   0,
+   26,
+   1
+  ],
+  [
+   "ae",
+   19,
+   1,
+   19,
+   1
+  ],
+  [
+   "af",
+   19,
+   1,
+   19,
+   1
+  ],
+  [
+   "bc",
+   27,
+   0,
+   25,
+   3
+  ],
+  [
+   "bd",
+   27,
+   0,
+   34,
+   3
+  ],
+  [
+   "be",
+   25,
+   0,
+   23,
+   3
+  ],
+  [
+   "bf",
+   25,
+   0,
+   23,
+   3
+  ],
+  [
+   "cd",
+   24,
+   0,
+   26,
+   4
+  ],
+  [
+   "ce",
+   22,
+   1,
+   20,
+   3
+  ],
+  [
+   "cf",
+   22,
+   1,
+   20,
+   3
+  ],
+  [
+   "de",
+   22,
+   0,
+   24,
+   4
+  ],
+  [
+   "df",
+   22,
+   0,
+   24,
+   4
+  ],
+  [
+   "ef",
+   20,
+   1,
+   18,
+   3
+  ],
+  [
+   "abc",
+   27,
+   0,
+   27,
+   0
+  ],
+  [
+   "abd",
+   27,
+   0,
+   37,
+   0
+  ],
+  [
+   "abe",
+   25,
+   0,
+   25,
+   0
+  ],
+  [
+   "abf",
+   25,
+   0,
+   25,
+   0
+  ],
+  [
+   "acd",
+   24,
+   0,
+   28,
+   1
+  ],
+  [
+   "ace",
+   21,
+   1,
+   21,
+   1
+  ],
+  [
+   "acf",
+   21,
+   1,
+   21,
+   1
+  ],
+  [
+   "ade",
+   22,
+   0,
+   26,
+   1
+  ],
+  [
+   "adf",
+   22,
+   0,
+   26,
+   1
+  ],
+  [
+   "aef",
+   19,
+   1,
+   19,
+   1
+  ],
+  [
+   "bcd",
+   29,
+   0,
+   36,
+   3
+  ],
+  [
+   "bce",
+   27,
+   0,
+   25,
+   3
+  ],
+  [
+   "bcf",
+   27,
+   0,
+   25,
+   3
+  ],
+  [
+   "bde",
+   27,
+   0,
+   34,
+   3
+  ],
+  [
+   "bdf",
+   27,
+   0,
+   34,
+   3
+  ],
+  [
+   "bef",
+   25,
+   0,
+   23,
+   3
+  ],
+  [
+   "cde",
+   24,
+   0,
+   26,
+   4
+  ],
+  [
+   "cdf",
+   24,
+   0,
+   26,
+   4
+  ],
+  [
+   "cef",
+   22,
+   1,
+   20,
+   3
+  ],
+  [
+   "def",
+   22,
+   0,
+   24,
+   4
+  ],
+  [
+   "abcd",
+   29,
+   0,
+   39,
+   0
+  ],
+  [
+   "abce",
+   27,
+   0,
+   27,
+   0
+  ],
+  [
+   "abcf",
+   27,
+   0,
+   27,
+   0
+  ],
+  [
+   "abde",
+   27,
+   0,
+   37,
+   0
+  ],
+  [
+   "abdf",
+   27,
+   0,
+   37,
+   0
+  ],
+  [
+   "abef",
+   25,
+   0,
+   25,
+   0
+  ],
+  [
+   "acde",
+   24,
+   0,
+   28,
+   1
+  ],
+  [
+   "acdf",
+   24,
+   0,
+   28,
+   1
+  ],
+  [
+   "acef",
+   21,
+   1,
+   21,
+   1
+  ],
+  [
+   "adef",
+   22,
+   0,
+   26,
+   1
+  ],
+  [
+   "bcde",
+   29,
+   0,
+   36,
+   3
+  ],
+  [
+   "bcdf",
+   29,
+   0,
+   36,
+   3
+  ],
+  [
+   "bcef",
+   27,
+   0,
+   25,
+   3
+  ],
+  [
+   "bdef",
+   27,
+   0,
+   34,
+   3
+  ],
+  [
+   "cdef",
+   24,
+   0,
+   26,
+   4
+  ],
+  [
+   "abcde",
+   29,
+   0,
+   39,
+   0
+  ],
+  [
+   "abcdf",
+   29,
+   0,
+   39,
+   0
+  ],
+  [
+   "abcef",
+   27,
+   0,
+   27,
+   0
+  ],
+  [
+   "abdef",
+   27,
+   0,
+   37,
+   0
+  ],
+  [
+   "acdef",
+   24,
+   0,
+   28,
+   1
+  ],
+  [
+   "bcdef",
+   29,
+   0,
+   36,
+   3
+  ],
+  [
+   "abcdef",
+   29,
+   0,
+   39,
+   0
+  ]
+ ]
+}
