@@ -207,7 +207,7 @@
         <item quantity="one">nur die erste</item>
         <item quantity="other">die ersten %d</item>
     </plurals>
-    <string name="ai_show_text_note">Gesucht in Namen und reinem Text. Text in PDF- und Office-Dateien durchsucht Ordo noch nicht, die findet es nur über den Namen.</string>
+    <string name="ai_show_text_note">PDF- und Office-Dateien sucht Ordo vorerst nur im Namen.</string>
     <string name="ai_hint_title">Das kann Ordo noch nicht wissen</string>
     <string name="ai_hint_opened">Ich sehe nicht, wann du eine Datei zuletzt geöffnet hast. Ich kann dir Dateien zeigen, die sich seit einem Monat nicht geändert haben.</string>
     <string name="ai_hint_opened_action">Unveränderte Dateien zeigen</string>

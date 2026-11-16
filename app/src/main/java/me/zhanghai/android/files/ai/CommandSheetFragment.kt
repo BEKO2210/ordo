@@ -735,13 +735,15 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
                 else -> R.plurals.ai_done_organize
             }
             var message = context.quantity(done, journal.done, journal.done)
-            if (journal.skipped > 0) {
-                message += " · " + context.quantity(R.plurals.ai_skipped, journal.skipped, journal.skipped)
+            // Files changed since the preview are named on their own, not counted twice as "skipped".
+            val skipped = journal.skipped - journal.changed
+            if (skipped > 0) {
+                message += " · " + context.quantity(R.plurals.ai_skipped, skipped, skipped)
             }
             if (journal.changed > 0) {
                 message += " · " + context.quantity(R.plurals.ai_changed, journal.changed, journal.changed)
             }
-            val snackbar = Snackbar.make(anchor, message, UNDO_MILLIS)
+            val snackbar = Snackbar.make(anchor, message, UNDO_MILLIS).setTextMaxLines(3)
             if (journal.done > 0) {
                 snackbar.setAction(R.string.ai_undo) {
                     UNDO_SCOPE.launch {
@@ -812,7 +814,9 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
         }
         val activity = requireActivity()
         startActivity(
-            FileListActivity.createShowIntent(plan.toJson(), sources.map { it.path }, understood(plan, sources))
+            understood(plan, sources).let { (title, detail) ->
+                FileListActivity.createShowIntent(plan.toJson(), sources.map { it.path }, title, detail)
+            }
         )
         if (plan.contentContains.isNotBlank()) {
             Toast.makeText(activity, R.string.ai_show_text_note, Toast.LENGTH_LONG).show()
@@ -820,8 +824,11 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
         dismiss()
     }
 
-    /** What Ordo understood, in words, as the list's title: "Videos über 500 MB in Download · größte zuerst". */
-    private fun understood(plan: CommandPlan, sources: List<File>): String {
+    /**
+     * What Ordo understood, in words: the kind as the list's title ("Videos") and the filters for its subtitle, after
+     * the count ("über 500 MB in Download · größte zuerst").
+     */
+    private fun understood(plan: CommandPlan, sources: List<File>): Pair<String, String> {
         val context = requireContext()
         val noun = when {
             plan.cleanExtensions.isNotEmpty() -> getString(
@@ -830,7 +837,7 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
             plan.kinds.size == 1 -> kindName(plan.kinds[0])
             else -> getString(R.string.ai_show_files)
         }
-        val parts = mutableListOf(noun)
+        val parts = mutableListOf<String>()
         if (plan.nameContains.isNotBlank()) parts += getString(R.string.ai_show_named, plan.nameContains.trim())
         if (plan.contentContains.isNotBlank()) parts += getString(R.string.ai_show_word, plan.contentContains.trim())
         if (plan.largerThan > 0) parts += getString(R.string.ai_show_larger, plan.largerThan, plan.sizeUnit.uppercase())
@@ -851,7 +858,7 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
         }
         if (order != null) title += " · $order"
         if (plan.limit > 0) title += " · " + context.quantity(R.plurals.ai_show_top, plan.limit, plan.limit)
-        return title
+        return noun to title.removePrefix(" · ")
     }
 
     private fun onRoute(route: CommandRules.Route) {

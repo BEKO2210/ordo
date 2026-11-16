@@ -42,6 +42,13 @@ class DebugAiActivity : AppActivity() {
         }
     }
 
+    // Back from a result list or the analysis: this empty screen is not where the user was, so leave it too. (Not
+    // when the sheet closes: its snackbar with the result and Undo lives here.)
+    override fun onRestart() {
+        super.onRestart()
+        finish()
+    }
+
     private fun golden(json: String): String {
         val o = JSONObject(json)
         val sets = o.getJSONArray("folders")

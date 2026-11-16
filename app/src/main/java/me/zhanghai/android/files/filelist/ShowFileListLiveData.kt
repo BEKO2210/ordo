@@ -27,8 +27,8 @@ class ShowFileListLiveData(
     private val request: Request,
     private val query: String
 ) : CloseableLiveData<Stateful<List<FileItem>>>() {
-    /** What the command sheet understood: the plan, the folders it searches and a title saying it in words. */
-    class Request(val plan: CommandPlan, val sources: List<File>, val title: String) {
+    /** What the command sheet understood: the plan, the folders it searches, and in words a title and the filters. */
+    class Request(val plan: CommandPlan, val sources: List<File>, val title: String, val detail: String) {
         companion object {
             fun from(intent: Intent): Request? {
                 val plan = intent.getStringExtra(FileListActivity.EXTRA_SHOW_PLAN)?.let(CommandPlan::parse)
@@ -37,7 +37,8 @@ class ShowFileListLiveData(
                 if (plan.action != "show") return null
                 val sources = intent.getStringArrayExtra(FileListActivity.EXTRA_SHOW_SOURCES)?.map(::File)
                     ?: return null
-                return Request(plan, sources, intent.getStringExtra(FileListActivity.EXTRA_SHOW_TITLE).orEmpty())
+                return Request(plan, sources, intent.getStringExtra(FileListActivity.EXTRA_SHOW_TITLE).orEmpty(),
+                    intent.getStringExtra(FileListActivity.EXTRA_SHOW_DETAIL).orEmpty())
             }
         }
     }

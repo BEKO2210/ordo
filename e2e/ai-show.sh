@@ -10,16 +10,21 @@ DEBUG=me.zhanghai.android.files.ai.DebugAiActivity
 shot() { [ -n "${SHOTS:-}" ] && a exec-out screencap -p > "$SHOTS/$1.png"; return 0; }
 # ask TEXT ANSWER: the sheet with this command and this model answer.
 ask() {
-    a shell am start -W -n "$PKG/$DEBUG" --es text "'$1'" --es answer "'$2'" >/dev/null; sleep 3; guard
+    a shell am start -W --activity-clear-task -n "$PKG/$DEBUG" --es text "'$1'" --es answer "'$2'" >/dev/null; sleep 3; guard
 }
 exists() { a shell "[ -f '$DIR/$1' ]"; }
 not() { ! "$@"; }
 not_has() { ! ui has "$1"; }
+# on_screen REGEX: some text on screen contains it (a snackbar's text is long, ui.py matches whole texts).
+on_screen() { a shell uiautomator dump /sdcard/ordo-e2e-ui.xml >/dev/null 2>&1; a shell cat /sdcard/ordo-e2e-ui.xml | grep -qE "$1"; }
 
 wake
 a logcat -b crash -c
 a shell am force-stop "$PKG"
-if ! a shell pm dump "$PKG" | grep -q "$DEBUG"; then echo "SKIP: not a debug build (no DebugAiActivity)"; exit 0; fi
+# A release build has no DebugAiActivity: then there is nothing to test here.
+if a shell am start -W -n "$PKG/$DEBUG" --ez show_design false 2>&1 | grep -q "does not exist"; then
+    echo "SKIP: not a debug build (no DebugAiActivity)"; exit 0
+fi
 a shell "rm -rf $DIR; mkdir -p $DIR && dd if=/dev/zero of=$DIR/big_ordoe2e.mp4 bs=1024 count=2048 2>/dev/null &&
     dd if=/dev/zero of=$DIR/small_ordoe2e.mp4 bs=1024 count=10 2>/dev/null && echo note > $DIR/keep_ordoe2e.txt"
 
@@ -37,7 +42,8 @@ a shell rm -f "$FILES/rules-golden.json"
 ask "zeig mir die ordoe2e videos größer als 1 mb" \
     '{"action":"show","kinds":["video"],"larger_than":1,"size_unit":"mb","name_contains":"ordoe2e"}'
 check "show opens the result list" wait_on filelist.FileListActivity 8
-check "the title says what was understood" ui wait "Videos mit „ordoe2e“ über 1 MB|Videos with “ordoe2e” over 1 MB" 10
+check "the title names the kind" ui wait "Videos" 10
+check "the subtitle counts and says what was understood" on_screen "1 (Datei|file) · (mit „ordoe2e“ über 1 MB|with “ordoe2e” over 1 MB)"
 check "the big video is listed" ui has big_ordoe2e.mp4
 check "the small one is not" not_has small_ordoe2e.mp4
 shot ai-show-list
@@ -81,9 +87,10 @@ check "delete shows the preview with a confirm button" ui wait confirmButton 8
 check "nothing is deleted before the confirm" exists small_ordoe2e.mp4
 a shell "echo replaced >> $DIR/big_ordoe2e.mp4"; sleep 1
 ui tap confirmButton >/dev/null 2>&1; sleep 2
-check "the note names the changed file" ui wait "seit der Vorschau geändert|changed since the preview" 6
+check "the note names the changed file" on_screen "seit der Vorschau geändert|changed since the preview"
+shot ai-show-changed
 check "the replaced file is still there" exists big_ordoe2e.mp4
 check "the unchanged one went to the trash" not exists small_ordoe2e.mp4
 a shell "rm -f /sdcard/.OrdoTrash/files/*ordoe2e* /sdcard/.OrdoTrash/info/*ordoe2e*"
-a shell "rm -rf $DIR"
+a shell "rm -rf $DIR /sdcard/ordo-e2e-ui.xml"
 finish

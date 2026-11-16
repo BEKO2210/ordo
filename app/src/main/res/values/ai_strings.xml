@@ -208,7 +208,7 @@
         <item quantity="one">the top file</item>
         <item quantity="other">top %d</item>
     </plurals>
-    <string name="ai_show_text_note">Searched names and plain text. Text inside PDF and Office files isn’t searched yet, so those are found by name only.</string>
+    <string name="ai_show_text_note">PDF and Office files are searched by name only for now.</string>
     <string name="ai_hint_title">Ordo can’t know that yet</string>
     <string name="ai_hint_opened">I can’t see when you last opened a file. I can show you files that haven’t changed for a month.</string>
     <string name="ai_hint_opened_action">Show unchanged files</string>

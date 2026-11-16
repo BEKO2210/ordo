@@ -731,7 +731,9 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
             // A search inside a category starts loading without a list yet (files == null).
             stateful is Loading && (!isSearching || files == null) ->
                 binding.toolbar.setSubtitle(R.string.loading)
-            else -> binding.toolbar.subtitle = getSubtitle(files!!)
+            // An AI list: the count, then what was understood ("1 Datei · über 500 MB").
+            else -> binding.toolbar.subtitle = getSubtitle(files!!) +
+                (showRequest?.detail?.takeIf { it.isNotEmpty() }?.let { " · $it" } ?: "")
         }
         val hasFiles = !files.isNullOrEmpty()
         binding.swipeRefreshLayout.isRefreshing = stateful is Loading && (hasFiles || isSearching)
