@@ -559,7 +559,9 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
     /** Words the net left out and a count that does not fit, in words; null when there is nothing to say. */
     private fun netNote(outcome: NetOutcome.Plan): String? {
         val quote = { words: List<String> ->
-            words.map { typed(it) }.distinct().joinToString(", ") { getString(R.string.ai_net_quoted, it) }
+            val q = words.map { typed(it) }.distinct().map { getString(R.string.ai_net_quoted, it) }
+            // „Telekom“, „Vodafone“ und „Rechnung“
+            if (q.size < 2) q.joinToString() else q.dropLast(1).joinToString(", ") + getString(R.string.ai_net_and) + q.last()
         }
         val kept = outcome.plan.nameTerms + outcome.plan.textTerms
         val dropped = outcome.dropped.takeIf { it.isNotEmpty() }?.let {

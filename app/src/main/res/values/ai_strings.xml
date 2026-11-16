@@ -296,4 +296,5 @@
         <item>Show me last week’s PDFs</item>
         <item>Where is my phone bill?</item>
     </string-array>
+    <string name="ai_net_and">" and "</string>
 </resources>

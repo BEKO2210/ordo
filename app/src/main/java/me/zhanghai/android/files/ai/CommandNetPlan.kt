@@ -64,15 +64,24 @@ internal object CommandNetPlan {
 
     /**
      * A filter word as the user typed it, for everything shown: the net keeps folded stems ("steuererklarung"), the user
-     * wrote "Steuererklärung". The first word of [text] with that stem, else the first that contains it (a compound
-     * like "Bewerbungsfotos"), else the stem itself. Display only; the plan keeps the stem.
+     * wrote "Steuererklärung". The first word of [text] with that stem; else the part of a compound that is the word
+     * ("Rechnung" from "Handyrechnung", never the whole compound, which would read narrower than the filter), with the
+     * user's umlauts and a capital when the compound had one; else the stem itself. Display only; the plan keeps the stem.
      */
     fun typed(text: String, term: String): String {
         val words = Regex("[\\p{L}\\p{N}]+").findAll(text).map { it.value }.toList()
         val folded = CommandNet.fold(term)
-        return words.firstOrNull { CommandNet.stem(it) == folded || CommandNet.fold(it) == folded }
-            ?: words.firstOrNull { folded.length >= 3 && folded in CommandNet.fold(it) }
-            ?: term
+        words.firstOrNull { CommandNet.stem(it) == folded || CommandNet.fold(it) == folded }?.let { return it }
+        if (folded.length < 3) return term
+        for (w in words) {
+            // the tail of the compound with that stem ("rechnungen" in "Stromrechnungen"), else the shortest part
+            val part = (1 until w.length).map { w.substring(it) }.firstOrNull { CommandNet.stem(it) == folded }
+                ?: (0 until w.length).asSequence().flatMap { i -> (i + 1..w.length).asSequence().map { j -> w.substring(i, j) } }
+                    .firstOrNull { CommandNet.fold(it) == folded }
+                ?: continue
+            return if (w[0].isUpperCase() && part[0].isLowerCase()) part.replaceFirstChar { it.titlecase() } else part
+        }
+        return term
     }
 
     @Suppress("UNCHECKED_CAST")

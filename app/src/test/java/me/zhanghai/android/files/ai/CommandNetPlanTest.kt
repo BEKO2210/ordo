@@ -94,8 +94,34 @@ class CommandNetPlanTest {
         assertEquals("Straßenfest", CommandNetPlan.typed(text, CommandNet.stem("straßenfest")))
         assertEquals("Rechnug", CommandNetPlan.typed(text, CommandNet.stem("rechnug")))   // a typo stays the user's word
         assertEquals("Vertrag", CommandNetPlan.typed(text, CommandNet.stem("vertrag")))   // twice: the first
-        assertEquals("Bewerbungsfotos", CommandNetPlan.typed("zeig die Bewerbungsfotos", "bewerbung"))   // a compound
+        // a compound: the part that is the word, never the whole compound (that would read narrower than the filter)
+        assertEquals("Bewerbung", CommandNetPlan.typed("zeig die Bewerbungsfotos", "bewerbung"))
+        assertEquals("Rechnung", CommandNetPlan.typed("lösch die Handyrechnung", CommandNet.stem("rechnung")))
+        assertEquals("Rechnungen", CommandNetPlan.typed("zeig alle Stromrechnungen", CommandNet.stem("rechnungen")))
+        assertEquals("Rechnung", CommandNetPlan.typed("die Rechnung und noch eine Rechnung", "rechnung"))   // exact, twice
         assertEquals("xyz", CommandNetPlan.typed(text, "xyz"))
+    }
+
+    /** Three text words, one file: read and folded once; the budget is charged once per file, as in the count. */
+    @Test
+    fun aFileIsReadOnceForAllItsWords() {
+        val dir = tmp.newFolder("text")
+        File(dir, "a.txt").writeText("Steuer Versicherung Telekom")
+        val plan = CommandPlan("show", "", textTerms = listOf("steur", "versicherung", "telekom"))
+        val before = CommandFiles.textReads.get()
+        assertEquals(listOf("a.txt"), CommandFiles.collect(plan, dir).map { it.name })
+        assertEquals(1, CommandFiles.textReads.get() - before)
+    }
+
+    /** 4 x 18 MB of text with three words: within the 200 MB budget per file, over it if charged per word. */
+    @Test
+    fun previewAndCountAgreeOnTheTextBudget() {
+        val dir = tmp.newFolder("budget")
+        val body = ("Steuer Versicherung Telekom " + "x".repeat(1000) + "\n").repeat(18_000).toByteArray()
+        repeat(4) { File(dir, "n$it.txt").writeBytes(body) }
+        val plan = CommandPlan("delete", dir.path, textTerms = listOf("steur", "versicherung", "telekom"))
+        assertEquals(4, CommandFiles.collect(plan, dir).size)
+        assertEquals(4, CommandNetCount(dir.parentFile!!, "").count(plan))
     }
 
     @Test

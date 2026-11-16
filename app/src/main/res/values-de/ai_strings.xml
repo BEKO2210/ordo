@@ -295,4 +295,5 @@
         <item>Zeig mir die PDFs von letzter Woche</item>
         <item>Wo ist meine Handyrechnung?</item>
     </string-array>
+    <string name="ai_net_and">" und "</string>
 </resources>

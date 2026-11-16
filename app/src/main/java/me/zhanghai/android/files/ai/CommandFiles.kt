@@ -119,16 +119,25 @@ object CommandFiles {
          * Every word this plan looks for inside files, with its test on the file's bytes. The net's words are folded
          * stems ("steur" for "Steuer"), so the text is folded too (phase0.c_filters); the shipped word as before.
          */
-        val searches: Map<String, (java.io.InputStream) -> Boolean> = LinkedHashMap<String, (java.io.InputStream) -> Boolean>().also { m ->
+        val searches: Map<String, (FileText) -> Boolean> = LinkedHashMap<String, (FileText) -> Boolean>().also { m ->
             plan.textTerms.forEach { term ->
                 val folded = CommandNet.fold(term)
-                m[term] = { input -> folded in CommandNet.fold(input.readBytes().toString(Charsets.UTF_8)) }
+                m[term] = { text -> folded in text.folded }
             }
-            if (word.isNotEmpty()) ContentSearch(word, false, true).let { s -> m[word] = { input -> s.contentMatches(input) } }
+            if (word.isNotEmpty()) ContentSearch(word, false, true).let { s -> m[word] = { text -> s.contentMatches(text.stream()) } }
         }
 
-        fun matches(file: File): Boolean = matches(file.name, file.length(), file.lastModified()) {
-            containsText(file, searches.getValue(it))
+        /** The file is read (and folded) at most once, however many words the plan looks for; the budget once per file. */
+        fun matches(file: File): Boolean {
+            var read = false
+            var text: FileText? = null
+            return matches(file.name, file.length(), file.lastModified()) { w ->
+                if (!read) {
+                    read = true
+                    text = readText(file)
+                }
+                text?.let { searches.getValue(w)(it) } ?: false
+            }
         }
 
         /** [inText] answers whether the file's text holds a word of [searches] (only called when the name does not). */
@@ -157,18 +166,18 @@ object CommandFiles {
         var textCapped = false
         private var textLeft = MAX_TEXT_TOTAL
 
-        private fun containsText(file: File, search: (java.io.InputStream) -> Boolean): Boolean {
-            if (file.extension.lowercase(Locale.ROOT) !in TEXT_EXTENSIONS || file.length() > MAX_TEXT_SIZE) return false
+        private fun readText(file: File): FileText? {
+            if (file.extension.lowercase(Locale.ROOT) !in TEXT_EXTENSIONS || file.length() > MAX_TEXT_SIZE) return null
             if (textLeft < file.length()) {
                 textCapped = true
-                return false
+                return null
             }
             textLeft -= file.length()
             textReads.incrementAndGet()
             return try {
-                file.inputStream().use { search(it) }
+                FileText(file.readBytes())
             } catch (e: java.io.IOException) {
-                false
+                null
             }
         }
 
@@ -194,6 +203,12 @@ object CommandFiles {
                 format.parse(value.trim(), position)?.takeIf { position.index == value.trim().length }?.time
             }
         }
+    }
+
+    /** A file's text, read once; folded (ä = a) only when a net word asks, and then only once. */
+    class FileText(private val bytes: ByteArray) {
+        val folded: String by lazy(LazyThreadSafetyMode.NONE) { CommandNet.fold(bytes.toString(Charsets.UTF_8)) }
+        fun stream(): java.io.InputStream = bytes.inputStream()
     }
 
     /** Every file opened to read its text, counted for CommandShowTest. */
