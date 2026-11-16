@@ -157,7 +157,7 @@ RECHNUNG_ANY = [{"plan": P("move", "Download", name_contains="Rechnung")}, {"pla
 STALE = [   # (kind of staleness, changes, session, texts, gold, what counts as using the stale fact)
     ("moved", [{"op": "move_tag", "tag": "autokauf", "to": "Auto"}], [],
      ["Zeig mir die Unterlagen vom Autokauf", "Wo sind die Papiere vom Autokauf?"],
-     G("show", {"paths": "tag:autokauf"}), {"paths_missing": True}),
+     G("show", {"paths": "tag:autokauf"}), {"paths_missing": True, "folder": "Download"}),
     ("folder_gone", [{"op": "rename_folder", "from": "Documents/Wohnung", "to": "Documents/Miete"}], [],
      ["Leg die Vonovia-Briefe aus Download zu den anderen Vonovia-Schreiben",
       "Pack die Vonovia-Sachen aus Download dahin, wo die anderen Vonovia-Briefe liegen"],

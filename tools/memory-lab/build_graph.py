@@ -34,7 +34,7 @@ KINDS = {"image": {"jpg", "jpeg", "png", "heic", "webp", "gif"}, "video": {"mp4"
          "audio": {"mp3", "flac", "m4a", "opus", "ogg", "wav"}, "document": {"pdf", "docx", "doc", "xlsx", "pptx", "txt", "odt"},
          "archive": {"zip", "rar", "7z"}}
 BORING = {"img", "vid", "aud", "screenshot", "wallpaper", "track", "file", "image", "video", "document", "scan", "pdf"}
-HABIT_WORDS = {"immer", "üblich", "übliche", "üblichen", "sonst", "gewohnt", "hingehören", "gehören", "letztes",
+HABIT_WORDS = {"immer", "üblich", "übliche", "üblichen", "sonst", "normalerweise", "gewohnt", "hingehören", "gehören", "letztes",
                "wieder", "usual", "always", "anderen"}
 STOP = set("""der die das den dem des ein eine einen einem und oder in im ins nach aus von vom zu zum zur mit für auf
 an am bei bitte alle alles meine meinen meiner mein mir mich ich du wo wie was welche welcher hab habe
@@ -203,7 +203,7 @@ def build(files, history):
                  words(src) + [ext, "löschen", "aufräumen", "putz"], folder=src)
     orgs = Counter((h["from"], h["group_by"]) for h in history if h["op"] == "organize")
     for (src, g), n in orgs.items():
-        node("habit", f"habit: you tidy {src} into subfolders by {g} ({n}x)", words(src) + ["aufräumen", "räum"], folder=src)
+        node("habit", f"habit: you tidy {src} into subfolders by {g} ({n}x)", words(src) + ALIASES.get(src.split("/")[-1], "").split() + ["aufräumen", "räum", "sortieren", "sortier"], folder=src)
     # storage per month (for "what eats space")
     per_month = defaultdict(lambda: defaultdict(int))
     for f in files:
