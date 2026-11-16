@@ -1,0 +1,8546 @@
+{
+ "system_tokens": 75,
+ "raw": {
+  "m000": {
+   "plan": {
+    "action": "show",
+    "sort": "size"
+   },
+   "out": 10,
+   "cmd": 20
+  },
+  "m001": {
+   "plan": {
+    "action": "show",
+    "sort": "size"
+   },
+   "out": 10,
+   "cmd": 21
+  },
+  "h002": {
+   "plan": {
+    "action": "show",
+    "sort": "size"
+   },
+   "out": 10,
+   "cmd": 19
+  },
+  "m003": {
+   "plan": {
+    "action": "show",
+    "kinds": [
+     "image"
+    ],
+    "time": "gestern"
+   },
+   "out": 16,
+   "cmd": 22
+  },
+  "m004": {
+   "plan": {
+    "action": "show",
+    "source": "Download",
+    "kinds": [
+     "image"
+    ],
+    "time": "gestern"
+   },
+   "out": 20,
+   "cmd": 19
+  },
+  "h005": {
+   "plan": {
+    "action": "show",
+    "source": "Download",
+    "kinds": [
+     "image"
+    ],
+    "time": "gestern"
+   },
+   "out": 20,
+   "cmd": 21
+  },
+  "m006": {
+   "plan": {
+    "action": "show",
+    "extensions": [
+     "pdf"
+    ],
+    "content_contains": "Versicherung"
+   },
+   "out": 16,
+   "cmd": 23
+  },
+  "m007": {
+   "plan": {
+    "action": "show",
+    "extensions": [
+     "pdf"
+    ],
+    "content_contains": "Versicherungszeugnis"
+   },
+   "out": 19,
+   "cmd": 21
+  },
+  "h008": {
+   "plan": {
+    "action": "show",
+    "extensions": [
+     "pdf"
+    ],
+    "content_contains": "Versicherung"
+   },
+   "out": 16,
+   "cmd": 23
+  },
+  "m009": {
+   "plan": {
+    "action": "show"
+   },
+   "out": 6,
+   "cmd": 20
+  },
+  "m010": {
+   "plan": {
+    "action": "show"
+   },
+   "out": 6,
+   "cmd": 19
+  },
+  "h011": {
+   "plan": {
+    "action": "show"
+   },
+   "out": 6,
+   "cmd": 22
+  },
+  "m012": {
+   "plan": {
+    "action": "show",
+    "kinds": [
+     "video"
+    ],
+    "size": "über 500 MB"
+   },
+   "out": 20,
+   "cmd": 25
+  },
+  "m013": {
+   "plan": {
+    "action": "show",
+    "kinds": [
+     "video"
+    ],
+    "size": "über 500 MB"
+   },
+   "out": 20,
+   "cmd": 22
+  },
+  "h014": {
+   "plan": {
+    "action": "show",
+    "kinds": [
+     "video"
+    ],
+    "size": "über 500 MB"
+   },
+   "out": 20,
+   "cmd": 21
+  },
+  "m015": {
+   "plan": {
+    "action": "show",
+    "name_contains": "Rechnung"
+   },
+   "out": 13,
+   "cmd": 24
+  },
+  "m016": {
+   "plan": {
+    "action": "show",
+    "name_contains": "Rechnung"
+   },
+   "out": 13,
+   "cmd": 21
+  },
+  "h017": {
+   "plan": {
+    "action": "show",
+    "name_contains": "Rechnung"
+   },
+   "out": 13,
+   "cmd": 21
+  },
+  "m018": {
+   "plan": {
+    "action": "ask"
+   },
+   "out": 6,
+   "cmd": 25
+  },
+  "m019": {
+   "plan": {
+    "action": "organize",
+    "source": "Download"
+   },
+   "out": 11,
+   "cmd": 26
+  },
+  "h020": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 19
+  },
+  "m021": {
+   "plan": {
+    "action": "move",
+    "source": "Downloads",
+    "destination": "Rechnungen",
+    "name_contains": "Rechnung"
+   },
+   "out": 23,
+   "cmd": 23
+  },
+  "m022": {
+   "plan": {
+    "action": "move",
+    "source": "Downloads",
+    "destination": "Extra",
+    "name_contains": "Rechnung"
+   },
+   "out": 21,
+   "cmd": 21
+  },
+  "h023": {
+   "plan": {
+    "action": "move",
+    "source": "Download",
+    "destination": "Rechnungen",
+    "name_contains": "Rechnung"
+   },
+   "out": 23,
+   "cmd": 26
+  },
+  "m024": {
+   "plan": {
+    "action": "show",
+    "extensions": [
+     "apk"
+    ],
+    "sort": "newest",
+    "limit": 1
+   },
+   "out": 19,
+   "cmd": 22
+  },
+  "m025": {
+   "plan": {
+    "action": "show",
+    "extensions": [
+     "apk"
+    ]
+   },
+   "out": 10,
+   "cmd": 21
+  },
+  "h026": {
+   "plan": {
+    "action": "show",
+    "extensions": [
+     "apk"
+    ],
+    "sort": "newest",
+    "limit": 1
+   },
+   "out": 19,
+   "cmd": 22
+  },
+  "m027": {
+   "plan": {
+    "action": "show",
+    "source": "Screenshots",
+    "time": "letzten Monat"
+   },
+   "out": 17,
+   "cmd": 19
+  },
+  "m028": {
+   "plan": {
+    "action": "show",
+    "source": "Screenshots",
+    "time": "letzten Monat"
+   },
+   "out": 17,
+   "cmd": 15
+  },
+  "h029": {
+   "plan": {
+    "action": "show",
+    "source": "Screenshots",
+    "time": "letzten Monat"
+   },
+   "out": 17,
+   "cmd": 16
+  },
+  "m030": {
+   "plan": {
+    "action": "show",
+    "time": "jünger als 1 Wochen"
+   },
+   "out": 16,
+   "cmd": 21
+  },
+  "m031": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 21
+  },
+  "h032": {
+   "plan": {
+    "action": "show",
+    "time": "älter als 1 Wochen"
+   },
+   "out": 14,
+   "cmd": 23
+  },
+  "m033": {
+   "plan": {
+    "action": "organize",
+    "source": "Arbeit",
+    "kinds": [
+     "document"
+    ]
+   },
+   "out": 16,
+   "cmd": 28
+  },
+  "m034": {
+   "plan": {
+    "action": "move",
+    "source": "Arbeit",
+    "destination": "Arbeit"
+   },
+   "out": 14,
+   "cmd": 23
+  },
+  "h035": {
+   "plan": {
+    "action": "move",
+    "source": "Arbeit",
+    "destination": "Arbeit"
+   },
+   "out": 14,
+   "cmd": 24
+  },
+  "m036": {
+   "plan": {
+    "action": "show",
+    "kinds": [
+     "image"
+    ],
+    "time": "neulich"
+   },
+   "out": 16,
+   "cmd": 22
+  },
+  "m037": {
+   "plan": {
+    "action": "show",
+    "source": "Kamera",
+    "kinds": [
+     "image"
+    ],
+    "time": "neulich"
+   },
+   "out": 21,
+   "cmd": 21
+  },
+  "h038": {
+   "plan": {
+    "action": "show",
+    "kinds": [
+     "image"
+    ],
+    "time": "neulich"
+   },
+   "out": 16,
+   "cmd": 21
+  },
+  "m039": {
+   "plan": {
+    "action": "show",
+    "sort": "size"
+   },
+   "out": 10,
+   "cmd": 22
+  },
+  "m040": {
+   "plan": {
+    "action": "show",
+    "sort": "size"
+   },
+   "out": 10,
+   "cmd": 17
+  },
+  "h041": {
+   "plan": {
+    "action": "show",
+    "sort": "size"
+   },
+   "out": 10,
+   "cmd": 19
+  },
+  "m042": {
+   "plan": {
+    "action": "show",
+    "source": "WhatsApp Images",
+    "kinds": [
+     "image"
+    ]
+   },
+   "out": 16,
+   "cmd": 23
+  },
+  "m043": {
+   "plan": {
+    "action": "show",
+    "source": "WhatsApp Images"
+   },
+   "out": 11,
+   "cmd": 13
+  },
+  "h044": {
+   "plan": {
+    "action": "show",
+    "source": "WhatsApp Images"
+   },
+   "out": 11,
+   "cmd": 15
+  },
+  "m045": {
+   "plan": {
+    "action": "show",
+    "source": "Vorheriger Ordner"
+   },
+   "out": 14,
+   "cmd": 24
+  },
+  "m047": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 18
+  },
+  "h049": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 18
+  },
+  "m051": {
+   "plan": {
+    "action": "show",
+    "name_contains": "Rechnung"
+   },
+   "out": 13,
+   "cmd": 20
+  },
+  "m053": {
+   "plan": {
+    "action": "show",
+    "kinds": [
+     "document"
+    ],
+    "name_contains": "Rechnung"
+   },
+   "out": 18,
+   "cmd": 22
+  },
+  "h055": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 16
+  },
+  "m057": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 22
+  },
+  "m059": {
+   "plan": {
+    "action": "copy",
+    "source": "Bilder"
+   },
+   "out": 11,
+   "cmd": 15
+  },
+  "h061": {
+   "plan": {
+    "action": "copy",
+    "source": "Bilder"
+   },
+   "out": 11,
+   "cmd": 17
+  },
+  "m063": {
+   "plan": {
+    "action": "show",
+    "time": "gestern"
+   },
+   "out": 11,
+   "cmd": 23
+  },
+  "m064": {
+   "plan": {
+    "action": "show",
+    "time": "gestern"
+   },
+   "out": 11,
+   "cmd": 19
+  },
+  "h065": {
+   "plan": {
+    "action": "show",
+    "time": "gestern"
+   },
+   "out": 11,
+   "cmd": 20
+  },
+  "m066": {
+   "plan": {
+    "action": "organize",
+    "kinds": [
+     "document"
+    ]
+   },
+   "out": 12,
+   "cmd": 21
+  },
+  "m067": {
+   "plan": {
+    "action": "organize",
+    "kinds": [
+     "document"
+    ]
+   },
+   "out": 12,
+   "cmd": 16
+  },
+  "h068": {
+   "plan": {
+    "action": "organize",
+    "kinds": [
+     "document"
+    ]
+   },
+   "out": 12,
+   "cmd": 15
+  },
+  "m069": {
+   "plan": {
+    "action": "show",
+    "source": "WhatsApp"
+   },
+   "out": 10,
+   "cmd": 15
+  },
+  "m070": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 12
+  },
+  "m071": {
+   "plan": {
+    "action": "show",
+    "time": "vorhin"
+   },
+   "out": 11,
+   "cmd": 22
+  },
+  "h073": {
+   "plan": {
+    "action": "show",
+    "source": "Kamera"
+   },
+   "out": 11,
+   "cmd": 14
+  },
+  "h074": {
+   "plan": {
+    "action": "show",
+    "sort": "newest",
+    "limit": 1
+   },
+   "out": 15,
+   "cmd": 15
+  },
+  "h075": {
+   "plan": {
+    "action": "move",
+    "source": "Schule",
+    "destination": "Einrichtung"
+   },
+   "out": 16,
+   "cmd": 19
+  },
+  "m076": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 18
+  },
+  "m077": {
+   "plan": {
+    "action": "move",
+    "source": "Documents",
+    "destination": "Rechnungen"
+   },
+   "out": 16,
+   "cmd": 19
+  },
+  "m078": {
+   "plan": {
+    "action": "show"
+   },
+   "out": 6,
+   "cmd": 15
+  },
+  "m079": {
+   "plan": {
+    "action": "show",
+    "size": "über 20 MB"
+   },
+   "out": 14,
+   "cmd": 18
+  },
+  "h080": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 18
+  },
+  "h081": {
+   "plan": {
+    "action": "move",
+    "source": "Downloads",
+    "destination": "Documents/Rechnungen"
+   },
+   "out": 18,
+   "cmd": 19
+  },
+  "h082": {
+   "plan": {
+    "action": "show",
+    "source": "Kamera"
+   },
+   "out": 11,
+   "cmd": 16
+  },
+  "n000": {
+   "plan": {
+    "action": "show",
+    "kinds": [
+     "video"
+    ],
+    "sort": "size",
+    "limit": 5
+   },
+   "out": 19,
+   "cmd": 17
+  },
+  "n001": {
+   "plan": {
+    "action": "show",
+    "source": "Screenshots",
+    "time": "letzte Woche"
+   },
+   "out": 17,
+   "cmd": 17
+  },
+  "n002": {
+   "plan": {
+    "action": "show",
+    "extensions": [
+     "pdf"
+    ],
+    "time": "diese Woche"
+   },
+   "out": 16,
+   "cmd": 22
+  },
+  "n003": {
+   "plan": {
+    "action": "show",
+    "kinds": [
+     "audio"
+    ],
+    "size": "über 30 MB"
+   },
+   "out": 19,
+   "cmd": 23
+  },
+  "n004": {
+   "plan": {
+    "action": "show",
+    "source": "WhatsApp Video"
+   },
+   "out": 11,
+   "cmd": 15
+  },
+  "n005": {
+   "plan": {
+    "action": "show",
+    "name_contains": "Kaufvertrag"
+   },
+   "out": 13,
+   "cmd": 18
+  },
+  "n006": {
+   "plan": {
+    "action": "show",
+    "content_contains": "Kessler"
+   },
+   "out": 12,
+   "cmd": 16
+  },
+  "n007": {
+   "plan": {
+    "action": "show",
+    "kinds": [
+     "document"
+    ],
+    "content_contains": "Nobilia"
+   },
+   "out": 18,
+   "cmd": 19
+  },
+  "n008": {
+   "plan": {
+    "action": "show",
+    "source": "Kamera",
+    "kinds": [
+     "image"
+    ],
+    "sort": "newest",
+    "limit": 1
+   },
+   "out": 25,
+   "cmd": 19
+  },
+  "n009": {
+   "plan": {
+    "action": "show",
+    "source": "Download",
+    "sort": "size",
+    "limit": 1
+   },
+   "out": 18,
+   "cmd": 19
+  },
+  "n010": {
+   "plan": {
+    "action": "show",
+    "kinds": [
+     "image"
+    ],
+    "time": "letzten 3 Tage"
+   },
+   "out": 19,
+   "cmd": 15
+  },
+  "n011": {
+   "plan": {
+    "action": "show",
+    "extensions": [
+     "zip"
+    ],
+    "size": "über 1 GB"
+   },
+   "out": 17,
+   "cmd": 22
+  },
+  "n012": {
+   "plan": {
+    "action": "show",
+    "source": "Dokumente",
+    "extensions": [
+     "pdf"
+    ]
+   },
+   "out": 16,
+   "cmd": 18
+  },
+  "n013": {
+   "plan": {
+    "action": "show",
+    "extensions": [
+     "apk"
+    ],
+    "name_contains": "Signal"
+   },
+   "out": 15,
+   "cmd": 15
+  },
+  "n014": {
+   "plan": {
+    "action": "show",
+    "time": "heute"
+   },
+   "out": 11,
+   "cmd": 20
+  },
+  "n015": {
+   "plan": {
+    "action": "show",
+    "source": "Downloads",
+    "extensions": [
+     "pdf"
+    ],
+    "sort": "newest",
+    "limit": 1
+   },
+   "out": 23,
+   "cmd": 14
+  },
+  "n016": {
+   "plan": {
+    "action": "move",
+    "source": "Download",
+    "destination": "Dokumente",
+    "extensions": [
+     "pdf"
+    ]
+   },
+   "out": 20,
+   "cmd": 23
+  },
+  "n017": {
+   "plan": {
+    "action": "copy",
+    "source": "WhatsApp Images",
+    "destination": "Backup",
+    "kinds": [
+     "image"
+    ]
+   },
+   "out": 20,
+   "cmd": 18
+  },
+  "n018": {
+   "plan": {
+    "action": "delete",
+    "source": "Download",
+    "extensions": [
+     "apk"
+    ],
+    "time": "älter als 1 Jahre"
+   },
+   "out": 22,
+   "cmd": 23
+  },
+  "n019": {
+   "plan": {
+    "action": "organize",
+    "source": "Screenshots",
+    "group_by": "month"
+   },
+   "out": 17,
+   "cmd": 20
+  },
+  "n020": {
+   "plan": {
+    "action": "move",
+    "source": "Download",
+    "destination": "Music",
+    "extensions": [
+     "mp3"
+    ]
+   },
+   "out": 19,
+   "cmd": 18
+  },
+  "n021": {
+   "plan": {
+    "action": "delete",
+    "source": "Download",
+    "extensions": [
+     "zip"
+    ],
+    "size": "über 1 GB"
+   },
+   "out": 21,
+   "cmd": 24
+  },
+  "n022": {
+   "plan": {
+    "action": "copy",
+    "source": "Movies",
+    "destination": "Backup",
+    "kinds": [
+     "video"
+    ],
+    "size": "über 2 GB"
+   },
+   "out": 26,
+   "cmd": 21
+  },
+  "n023": {
+   "plan": {
+    "action": "organize",
+    "source": "Download",
+    "group_by": "type"
+   },
+   "out": 16,
+   "cmd": 19
+  },
+  "n024": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 17
+  },
+  "n025": {
+   "plan": {
+    "action": "show",
+    "source": "WhatsApp Video"
+   },
+   "out": 11,
+   "cmd": 18
+  },
+  "n026": {
+   "plan": {
+    "action": "show",
+    "source": "Download"
+   },
+   "out": 10,
+   "cmd": 17
+  },
+  "n027": {
+   "plan": {
+    "action": "organize",
+    "source": "Download"
+   },
+   "out": 11,
+   "cmd": 19
+  },
+  "n028": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 14
+  },
+  "n029": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 22
+  },
+  "n030": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 18
+  },
+  "n031": {
+   "plan": {
+    "action": "show",
+    "extensions": [
+     "apk"
+    ],
+    "name_contains": "Setup"
+   },
+   "out": 15,
+   "cmd": 17
+  },
+  "n032": {
+   "plan": {
+    "action": "show",
+    "sort": "oldest"
+   },
+   "out": 11,
+   "cmd": 20
+  },
+  "n033": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 16
+  },
+  "n034": {
+   "plan": {
+    "action": "organize",
+    "kinds": [
+     "image"
+    ]
+   },
+   "out": 12,
+   "cmd": 18
+  },
+  "n035": {
+   "plan": {
+    "action": "show",
+    "extensions": [
+     "pdf"
+    ],
+    "content_contains": "Hausrat"
+   },
+   "out": 17,
+   "cmd": 17
+  },
+  "n036": {
+   "plan": {
+    "action": "show",
+    "name_contains": "Rechnung MediaMarkt"
+   },
+   "out": 15,
+   "cmd": 27
+  },
+  "n037": {
+   "plan": {
+    "action": "show",
+    "kinds": [
+     "document"
+    ],
+    "name_contains": "Krankenversicherung"
+   },
+   "out": 18,
+   "cmd": 19
+  },
+  "n038": {
+   "plan": {
+    "action": "show",
+    "source": "Screenshots",
+    "sort": "newest",
+    "limit": 3
+   },
+   "out": 20,
+   "cmd": 16
+  },
+  "n039": {
+   "plan": {
+    "action": "show",
+    "kinds": [
+     "image"
+    ],
+    "sort": "size",
+    "limit": 10
+   },
+   "out": 20,
+   "cmd": 18
+  },
+  "n040": {
+   "plan": {
+    "action": "show",
+    "source": "Kamera",
+    "kinds": [
+     "image"
+    ],
+    "time": "letzten Monat"
+   },
+   "out": 22,
+   "cmd": 16
+  },
+  "rc00": {
+   "plan": {
+    "action": "move",
+    "source": "Download",
+    "destination": "Dokumente",
+    "extensions": [
+     "pdf"
+    ]
+   },
+   "out": 20,
+   "cmd": 19
+  },
+  "rc01": {
+   "plan": {
+    "action": "delete",
+    "source": "Download",
+    "extensions": [
+     "apk"
+    ]
+   },
+   "out": 14,
+   "cmd": 21
+  },
+  "rc02": {
+   "plan": {
+    "action": "ask"
+   },
+   "out": 6,
+   "cmd": 17
+  },
+  "rc03": {
+   "plan": {
+    "action": "delete",
+    "source": "WhatsApp Video",
+    "kinds": [
+     "video"
+    ],
+    "time": "älter als 6 Monate"
+   },
+   "out": 24,
+   "cmd": 25
+  },
+  "rc04": {
+   "plan": {
+    "action": "organize",
+    "source": "Screenshots",
+    "group_by": "month"
+   },
+   "out": 17,
+   "cmd": 16
+  },
+  "rc05": {
+   "plan": {
+    "action": "move",
+    "source": "Movies",
+    "destination": "Archiv",
+    "size": "über 2 GB"
+   },
+   "out": 22,
+   "cmd": 23
+  },
+  "rc06": {
+   "plan": {
+    "action": "move",
+    "source": "Download",
+    "destination": "Archiv",
+    "extensions": [
+     "zip"
+    ]
+   },
+   "out": 19,
+   "cmd": 21
+  },
+  "rc07": {
+   "plan": {
+    "action": "delete",
+    "source": "Screenshots",
+    "time": "älter als 1 Jahre"
+   },
+   "out": 19,
+   "cmd": 22
+  },
+  "rc08": {
+   "plan": {
+    "action": "copy",
+    "source": "Download",
+    "destination": "Musik",
+    "extensions": [
+     "mp3"
+    ]
+   },
+   "out": 20,
+   "cmd": 20
+  },
+  "rc09": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 20
+  },
+  "rc10": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 16
+  },
+  "rc11": {
+   "plan": {
+    "action": "move",
+    "source": "Dokumente",
+    "destination": "Bewerbungen",
+    "name_contains": "Bewerbung"
+   },
+   "out": 26,
+   "cmd": 23
+  },
+  "rc12": {
+   "plan": {
+    "action": "delete",
+    "source": "Movies",
+    "kinds": [
+     "video"
+    ],
+    "size": "über 3 GB"
+   },
+   "out": 22,
+   "cmd": 21
+  },
+  "rc13": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 16
+  },
+  "rc14": {
+   "plan": {
+    "action": "copy",
+    "source": "WhatsApp Images",
+    "destination": "Backup",
+    "kinds": [
+     "image"
+    ]
+   },
+   "out": 20,
+   "cmd": 19
+  },
+  "rc15": {
+   "plan": {
+    "action": "move",
+    "source": "WhatsApp Documents",
+    "destination": "Dokumente",
+    "extensions": [
+     "docx",
+     "doc",
+     "odt"
+    ]
+   },
+   "out": 27,
+   "cmd": 22
+  },
+  "rc16": {
+   "plan": {
+    "action": "move",
+    "source": "Rechnungen"
+   },
+   "out": 12,
+   "cmd": 18
+  },
+  "rc17": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 22
+  },
+  "rc18": {
+   "plan": {
+    "action": "move",
+    "source": "Stadtwerke",
+    "destination": "Rechnungen"
+   },
+   "out": 17,
+   "cmd": 25
+  },
+  "rc19": {
+   "plan": {
+    "action": "move",
+    "source": "Kontoauszüge"
+   },
+   "out": 13,
+   "cmd": 18
+  },
+  "rc20": {
+   "plan": {
+    "action": "move",
+    "source": "Gehaltsabrechnungen"
+   },
+   "out": 15,
+   "cmd": 21
+  },
+  "rc21": {
+   "plan": {
+    "action": "move",
+    "source": "Gesundheit",
+    "name_contains": "Arztbrief"
+   },
+   "out": 18,
+   "cmd": 20
+  },
+  "rc22": {
+   "plan": {
+    "action": "move",
+    "source": "Autokauf",
+    "destination": "Auto",
+    "kinds": [
+     "document"
+    ]
+   },
+   "out": 21,
+   "cmd": 21
+  },
+  "rc23": {
+   "plan": {
+    "action": "delete",
+    "source": "Scans",
+    "name_contains": "Autokauf"
+   },
+   "out": 18,
+   "cmd": 18
+  },
+  "rc24": {
+   "plan": {
+    "action": "move",
+    "source": "Urlaub",
+    "destination": "Lissabon",
+    "kinds": [
+     "image"
+    ],
+    "name_contains": "Lissabon"
+   },
+   "out": 31,
+   "cmd": 29
+  },
+  "rc25": {
+   "plan": {
+    "action": "copy",
+    "source": "Lissabon",
+    "destination": "Backup",
+    "kinds": [
+     "video"
+    ]
+   },
+   "out": 22,
+   "cmd": 21
+  },
+  "rc26": {
+   "plan": {
+    "action": "copy",
+    "source": "Hamburg",
+    "destination": "Backup",
+    "kinds": [
+     "image"
+    ],
+    "time": "am Wochenende"
+   },
+   "out": 25,
+   "cmd": 21
+  },
+  "rc27": {
+   "plan": {
+    "action": "move",
+    "source": "Hochzeit",
+    "destination": "Hochzeit",
+    "kinds": [
+     "image"
+    ]
+   },
+   "out": 23,
+   "cmd": 22
+  },
+  "rc28": {
+   "plan": {
+    "action": "delete",
+    "source": "Download"
+   },
+   "out": 10,
+   "cmd": 18
+  },
+  "rc29": {
+   "plan": {
+    "action": "move",
+    "source": "Download",
+    "destination": "Steuer",
+    "name_contains": "Steuer",
+    "time": "2025"
+   },
+   "out": 28,
+   "cmd": 29
+  },
+  "rc30": {
+   "plan": {
+    "action": "move",
+    "source": "Bewerbungen",
+    "destination": "Bewerbungen",
+    "kinds": [
+     "image"
+    ]
+   },
+   "out": 25,
+   "cmd": 21
+  },
+  "rc31": {
+   "plan": {
+    "action": "move",
+    "source": "Screenshots",
+    "destination": "Insta",
+    "name_contains": "Instagram"
+   },
+   "out": 21,
+   "cmd": 22
+  },
+  "rc32": {
+   "plan": {
+    "action": "delete",
+    "source": "WhatsApp Video",
+    "name_contains": "Übliches"
+   },
+   "out": 18,
+   "cmd": 18
+  },
+  "rc33": {
+   "plan": {
+    "action": "organize",
+    "source": "WhatsApp Documents"
+   },
+   "out": 12,
+   "cmd": 17
+  },
+  "rc34": {
+   "plan": {
+    "action": "move",
+    "source": "Vermieter",
+    "destination": "Wohnung",
+    "name_contains": "Post"
+   },
+   "out": 24,
+   "cmd": 22
+  },
+  "rc35": {
+   "plan": {
+    "action": "delete",
+    "source": "Download",
+    "extensions": [
+     "apk"
+    ]
+   },
+   "out": 14,
+   "cmd": 18
+  },
+  "rc36": {
+   "plan": {
+    "action": "show",
+    "sort": "size"
+   },
+   "out": 10,
+   "cmd": 18
+  },
+  "rc37": {
+   "plan": {
+    "action": "show",
+    "source": "Lissabon",
+    "kinds": [
+     "image"
+    ]
+   },
+   "out": 18,
+   "cmd": 21
+  },
+  "rh00": {
+   "plan": {
+    "action": "move",
+    "source": "Amazon",
+    "destination": "Rechnungen"
+   },
+   "out": 16,
+   "cmd": 19
+  },
+  "rh01": {
+   "plan": {
+    "action": "move",
+    "source": "Kontoauszüge",
+    "destination": "Kontoauszüge",
+    "name_contains": "Kontoauszug",
+    "time": "im Oktober"
+   },
+   "out": 33,
+   "cmd": 25
+  },
+  "rh02": {
+   "plan": {
+    "action": "copy",
+    "source": "Urlaub Portugal",
+    "destination": "Backup",
+    "kinds": [
+     "image"
+    ]
+   },
+   "out": 21,
+   "cmd": 22
+  },
+  "rh03": {
+   "plan": {
+    "action": "delete",
+    "source": "Hamburg-Trip",
+    "kinds": [
+     "video"
+    ]
+   },
+   "out": 18,
+   "cmd": 17
+  },
+  "rh04": {
+   "plan": {
+    "action": "move",
+    "source": "Spenden",
+    "destination": "Steuer",
+    "name_contains": "Quittung",
+    "time": "2025"
+   },
+   "out": 31,
+   "cmd": 28
+  },
+  "rh05": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 21
+  },
+  "rh06": {
+   "plan": {
+    "action": "ask"
+   },
+   "out": 6,
+   "cmd": 19
+  },
+  "rh07": {
+   "plan": {
+    "action": "move",
+    "source": "Autokauf",
+    "destination": "Documents/Auto",
+    "name_contains": "Fahrzeug"
+   },
+   "out": 24,
+   "cmd": 26
+  },
+  "rh08": {
+   "plan": {
+    "action": "move",
+    "source": "WhatsApp Screenshots",
+    "destination": "WhatsApp Screenshots"
+   },
+   "out": 18,
+   "cmd": 24
+  },
+  "rh09": {
+   "plan": {
+    "action": "show",
+    "kinds": [
+     "document"
+    ],
+    "name_contains": "Autokauf"
+   },
+   "out": 18,
+   "cmd": 18
+  },
+  "rh10": {
+   "plan": {
+    "action": "delete",
+    "source": "WhatsApp Video",
+    "group_by": "month"
+   },
+   "out": 16,
+   "cmd": 19
+  },
+  "rh11": {
+   "plan": {
+    "action": "show",
+    "name_contains": "Wohnung",
+    "content_contains": "Mieterhöhung"
+   },
+   "out": 20,
+   "cmd": 17
+  },
+  "rh12": {
+   "plan": {
+    "action": "move",
+    "source": "Download",
+    "destination": "Filme",
+    "kinds": [
+     "video"
+    ]
+   },
+   "out": 20,
+   "cmd": 18
+  },
+  "rh13": {
+   "plan": {
+    "action": "delete",
+    "source": "Download",
+    "time": "älter als 2 Jahre"
+   },
+   "out": 18,
+   "cmd": 24
+  },
+  "rh14": {
+   "plan": {
+    "action": "copy",
+    "source": "Cro",
+    "destination": "Backup",
+    "extensions": [
+     "mp3"
+    ]
+   },
+   "out": 19,
+   "cmd": 19
+  },
+  "rh15": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 17
+  },
+  "rh16": {
+   "plan": {
+    "action": "organize",
+    "source": "WhatsApp Images",
+    "group_by": "month"
+   },
+   "out": 17,
+   "cmd": 15
+  },
+  "rh17": {
+   "plan": {
+    "action": "move",
+    "source": "Download",
+    "destination": "Dokumente",
+    "extensions": [
+     "xlsx",
+     "xls",
+     "ods",
+     "csv"
+    ]
+   },
+   "out": 26,
+   "cmd": 21
+  },
+  "rg00": {
+   "plan": {
+    "action": "move",
+    "source": "Stadtwerke",
+    "destination": "Rechnungen"
+   },
+   "out": 17,
+   "cmd": 21
+  },
+  "rg01": {
+   "plan": {
+    "action": "copy",
+    "source": "Lissabon-Trip",
+    "destination": "Backup",
+    "kinds": [
+     "image"
+    ]
+   },
+   "out": 24,
+   "cmd": 26
+  },
+  "rg02": {
+   "plan": {
+    "action": "move",
+    "source": "Reisen",
+    "destination": "Filme",
+    "kinds": [
+     "video"
+    ],
+    "name_contains": "Hamburg"
+   },
+   "out": 27,
+   "cmd": 21
+  },
+  "rg03": {
+   "plan": {
+    "action": "delete",
+    "source": "Bewerbungen",
+    "kinds": [
+     "image"
+    ]
+   },
+   "out": 18,
+   "cmd": 15
+  },
+  "rg04": {
+   "plan": {
+    "action": "delete",
+    "source": "Verdienstnachweise"
+   },
+   "out": 13,
+   "cmd": 20
+  },
+  "rg05": {
+   "plan": {
+    "action": "copy",
+    "source": "Autokauf",
+    "destination": "Backup",
+    "kinds": [
+     "document"
+    ]
+   },
+   "out": 21,
+   "cmd": 21
+  },
+  "rg06": {
+   "plan": {
+    "action": "move",
+    "source": "Steuer",
+    "destination": "Riester",
+    "name_contains": "Bescheinigung",
+    "time": "2025"
+   },
+   "out": 31,
+   "cmd": 29
+  },
+  "rg07": {
+   "plan": {
+    "action": "delete",
+    "source": "Telekom",
+    "name_contains": "Rechnung",
+    "time": "im November"
+   },
+   "out": 23,
+   "cmd": 20
+  },
+  "rg08": {
+   "plan": {
+    "action": "show",
+    "kinds": [
+     "image"
+    ],
+    "name_contains": "Hamburg"
+   },
+   "out": 17,
+   "cmd": 16
+  },
+  "rg09": {
+   "plan": {
+    "action": "move",
+    "source": "WhatsApp Documents",
+    "destination": "Dokumente",
+    "extensions": [
+     "pdf"
+    ]
+   },
+   "out": 21,
+   "cmd": 20
+  },
+  "rg10": {
+   "plan": {
+    "action": "delete",
+    "source": "WhatsApp Audio",
+    "extensions": [
+     "opus"
+    ]
+   },
+   "out": 15,
+   "cmd": 20
+  },
+  "rg11": {
+   "plan": {
+    "action": "copy",
+    "source": "Wallpapers",
+    "destination": "Backup"
+   },
+   "out": 15,
+   "cmd": 17
+  },
+  "rg12": {
+   "plan": {
+    "action": "organize",
+    "source": "Movies",
+    "group_by": "month"
+   },
+   "out": 16,
+   "cmd": 18
+  },
+  "rg13": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 18
+  },
+  "b000": {
+   "plan": {
+    "action": "show",
+    "time": "heute"
+   },
+   "out": 11,
+   "cmd": 20
+  },
+  "b001": {
+   "plan": {
+    "action": "show",
+    "kinds": [
+     "image"
+    ],
+    "time": "vorgestern"
+   },
+   "out": 16,
+   "cmd": 15
+  },
+  "b002": {
+   "plan": {
+    "action": "show",
+    "source": "Screenshots",
+    "time": "diese Woche"
+   },
+   "out": 17,
+   "cmd": 19
+  },
+  "b003": {
+   "plan": {
+    "action": "show",
+    "kinds": [
+     "video"
+    ],
+    "time": "im Sommer"
+   },
+   "out": 16,
+   "cmd": 17
+  },
+  "b004": {
+   "plan": {
+    "action": "show",
+    "source": "Screenshots",
+    "time": "2024"
+   },
+   "out": 18,
+   "cmd": 17
+  },
+  "b005": {
+   "plan": {
+    "action": "show",
+    "source": "Download",
+    "extensions": [
+     "pdf"
+    ],
+    "time": "seit Weihnachten"
+   },
+   "out": 19,
+   "cmd": 23
+  },
+  "b006": {
+   "plan": {
+    "action": "show",
+    "kinds": [
+     "video"
+    ],
+    "size": "über 3 GB"
+   },
+   "out": 18,
+   "cmd": 19
+  },
+  "b007": {
+   "plan": {
+    "action": "show",
+    "source": "WhatsApp Messages",
+    "extensions": [
+     "txt"
+    ],
+    "size": "über 1 MB"
+   },
+   "out": 22,
+   "cmd": 21
+  },
+  "b008": {
+   "plan": {
+    "action": "show",
+    "extensions": [
+     "xlsx",
+     "xls",
+     "ods",
+     "csv"
+    ]
+   },
+   "out": 16,
+   "cmd": 14
+  },
+  "b009": {
+   "plan": {
+    "action": "show",
+    "name_contains": "Garantie Spülmaschine"
+   },
+   "out": 15,
+   "cmd": 18
+  },
+  "b010": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 19
+  },
+  "b011": {
+   "plan": {
+    "action": "show",
+    "name_contains": "Rechnung Zalando"
+   },
+   "out": 15,
+   "cmd": 16
+  },
+  "b012": {
+   "plan": {
+    "action": "show",
+    "source": "Küche",
+    "name_contains": "Lieferschein"
+   },
+   "out": 18,
+   "cmd": 18
+  },
+  "b013": {
+   "plan": {
+    "action": "show",
+    "kinds": [
+     "video"
+    ],
+    "sort": "size",
+    "limit": 2
+   },
+   "out": 19,
+   "cmd": 13
+  },
+  "b014": {
+   "plan": {
+    "action": "show",
+    "extensions": [
+     "opus"
+    ],
+    "sort": "newest",
+    "limit": 5
+   },
+   "out": 19,
+   "cmd": 18
+  },
+  "b015": {
+   "plan": {
+    "action": "show",
+    "source": "Screenshots",
+    "sort": "newest",
+    "limit": 1
+   },
+   "out": 20,
+   "cmd": 18
+  },
+  "b016": {
+   "plan": {
+    "action": "show",
+    "source": "Download",
+    "exclude": [
+     "zip"
+    ]
+   },
+   "out": 14,
+   "cmd": 19
+  },
+  "b017": {
+   "plan": {
+    "action": "show",
+    "source": "Kamera",
+    "exclude": [
+     "image"
+    ]
+   },
+   "out": 15,
+   "cmd": 17
+  },
+  "b018": {
+   "plan": {
+    "action": "show",
+    "extensions": [
+     "pdf"
+    ],
+    "time": "diesen Monat"
+   },
+   "out": 16,
+   "cmd": 18
+  },
+  "b019": {
+   "plan": {
+    "action": "show",
+    "source": "WhatsApp Voice Messages"
+   },
+   "out": 12,
+   "cmd": 14
+  },
+  "b020": {
+   "plan": {
+    "action": "copy",
+    "source": "Wallpapers",
+    "destination": "Backup"
+   },
+   "out": 15,
+   "cmd": 16
+  },
+  "b021": {
+   "plan": {
+    "action": "move",
+    "source": "Screenshots",
+    "destination": "Archiv",
+    "time": "älter als 1 Jahre"
+   },
+   "out": 24,
+   "cmd": 17
+  },
+  "b022": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 16
+  },
+  "b023": {
+   "plan": {
+    "action": "move",
+    "source": "Download",
+    "destination": "Bank",
+    "name_contains": "Kontoauszug"
+   },
+   "out": 22,
+   "cmd": 24
+  },
+  "b024": {
+   "plan": {
+    "action": "move",
+    "source": "Dokumente",
+    "destination": "Bewerbungen",
+    "name_contains": "Bewerbung",
+    "limit": 3
+   },
+   "out": 30,
+   "cmd": 22
+  },
+  "b025": {
+   "plan": {
+    "action": "delete",
+    "source": "Download",
+    "name_contains": "Podcasts",
+    "time": "älter als 1 Jahre"
+   },
+   "out": 24,
+   "cmd": 23
+  },
+  "b026": {
+   "plan": {
+    "action": "organize",
+    "source": "WhatsApp Images",
+    "group_by": "month"
+   },
+   "out": 17,
+   "cmd": 16
+  },
+  "b027": {
+   "plan": {
+    "action": "delete",
+    "source": "Download",
+    "name_contains": "Setup",
+    "exclude": [
+     "Originale"
+    ]
+   },
+   "out": 20,
+   "cmd": 24
+  },
+  "b028": {
+   "plan": {
+    "action": "show",
+    "source": "Screenshots",
+    "kinds": [
+     "image"
+    ]
+   },
+   "out": 16,
+   "cmd": 19
+  },
+  "b029": {
+   "plan": {
+    "action": "show",
+    "source": "Download",
+    "extensions": [
+     "apk"
+    ]
+   },
+   "out": 14,
+   "cmd": 21
+  },
+  "b030": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 23
+  },
+  "b031": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 20
+  },
+  "b032": {
+   "plan": {
+    "action": "delete",
+    "kinds": [
+     "image"
+    ]
+   },
+   "out": 11,
+   "cmd": 23
+  },
+  "b033": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 20
+  },
+  "b034": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 19
+  },
+  "b035": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 22
+  },
+  "b036": {
+   "plan": {
+    "action": "copy",
+    "source": "Download",
+    "destination": "Backup",
+    "kinds": [
+     "image"
+    ],
+    "name_contains": "Bewerbung"
+   },
+   "out": 26,
+   "cmd": 27
+  },
+  "b037": {
+   "plan": {
+    "action": "show",
+    "source": "Download"
+   },
+   "out": 10,
+   "cmd": 21
+  },
+  "b038": {
+   "plan": {
+    "action": "show",
+    "source": "Download",
+    "name_contains": "Rechnung"
+   },
+   "out": 17,
+   "cmd": 28
+  },
+  "b039": {
+   "plan": {
+    "action": "show",
+    "source": "Download",
+    "extensions": [
+     "apk"
+    ]
+   },
+   "out": 14,
+   "cmd": 26
+  },
+  "b2_01": {
+   "plan": {
+    "action": "show",
+    "kinds": [
+     "image"
+    ],
+    "time": "letzten Dienstag"
+   },
+   "out": 17,
+   "cmd": 18
+  },
+  "b2_02": {
+   "plan": {
+    "action": "show",
+    "kinds": [
+     "image"
+    ],
+    "time": "letztes Jahr"
+   },
+   "out": 17,
+   "cmd": 22
+  },
+  "b2_03": {
+   "plan": {
+    "action": "show",
+    "time": "letzten 3 Tage"
+   },
+   "out": 14,
+   "cmd": 22
+  },
+  "b2_04": {
+   "plan": {
+    "action": "show",
+    "source": "Screenshots",
+    "exclude": [
+     "Instagram"
+    ],
+    "time": "im Januar"
+   },
+   "out": 20,
+   "cmd": 21
+  },
+  "b2_05": {
+   "plan": {
+    "action": "show",
+    "kinds": [
+     "video"
+    ],
+    "time": "letztes Jahr",
+    "sort": "size",
+    "limit": 5
+   },
+   "out": 25,
+   "cmd": 17
+  },
+  "b2_06": {
+   "plan": {
+    "action": "show",
+    "sort": "size"
+   },
+   "out": 10,
+   "cmd": 17
+  },
+  "b2_07": {
+   "plan": {
+    "action": "show",
+    "size": "über 2 GB"
+   },
+   "out": 13,
+   "cmd": 17
+  },
+  "b2_08": {
+   "plan": {
+    "action": "show",
+    "extensions": [
+     "pdf"
+    ],
+    "size": "unter 100 KB"
+   },
+   "out": 19,
+   "cmd": 20
+  },
+  "b2_09": {
+   "plan": {
+    "action": "show",
+    "extensions": [
+     "opus"
+    ]
+   },
+   "out": 10,
+   "cmd": 17
+  },
+  "b2_10": {
+   "plan": {
+    "action": "show",
+    "extensions": [
+     "epub"
+    ]
+   },
+   "out": 11,
+   "cmd": 16
+  },
+  "b2_11": {
+   "plan": {
+    "action": "show",
+    "source": "Kamera",
+    "extensions": [
+     "raw"
+    ]
+   },
+   "out": 15,
+   "cmd": 20
+  },
+  "b2_12": {
+   "plan": {
+    "action": "show",
+    "name_contains": "Elternbrief",
+    "time": "Klasse 3b"
+   },
+   "out": 21,
+   "cmd": 19
+  },
+  "b2_13": {
+   "plan": {
+    "action": "show",
+    "name_contains": "Hausratversicherung"
+   },
+   "out": 14,
+   "cmd": 21
+  },
+  "b2_14": {
+   "plan": {
+    "action": "show",
+    "source": "Cro",
+    "exclude": [
+     "flac"
+    ]
+   },
+   "out": 15,
+   "cmd": 19
+  },
+  "b2_15": {
+   "plan": {
+    "action": "show",
+    "time": "zwischen 1. und 15.10."
+   },
+   "out": 21,
+   "cmd": 27
+  },
+  "b2_16": {
+   "plan": {
+    "action": "move",
+    "source": "Autokauf",
+    "destination": "Auto",
+    "kinds": [
+     "document"
+    ],
+    "time": "am 12.9."
+   },
+   "out": 31,
+   "cmd": 29
+  },
+  "b2_17": {
+   "plan": {
+    "action": "delete",
+    "name_contains": "Konzertticket",
+    "time": "gestern"
+   },
+   "out": 18,
+   "cmd": 21
+  },
+  "b2_18": {
+   "plan": {
+    "action": "delete",
+    "source": "WhatsApp Video",
+    "time": "2024"
+   },
+   "out": 18,
+   "cmd": 22
+  },
+  "b2_19": {
+   "plan": {
+    "action": "organize",
+    "source": "WhatsApp Documents",
+    "group_by": "month"
+   },
+   "out": 17,
+   "cmd": 16
+  },
+  "b2_20": {
+   "plan": {
+    "action": "move",
+    "source": "Download",
+    "destination": "Rechnungen",
+    "name_contains": "Telekom"
+   },
+   "out": 22,
+   "cmd": 22
+  },
+  "b2_21": {
+   "plan": {
+    "action": "show",
+    "extensions": [
+     "pdf"
+    ],
+    "time": "im Oktober"
+   },
+   "out": 15,
+   "cmd": 17
+  },
+  "b2_22": {
+   "plan": {
+    "action": "show",
+    "kinds": [
+     "video"
+    ],
+    "sort": "size",
+    "limit": 1
+   },
+   "out": 19,
+   "cmd": 13
+  },
+  "b2_23": {
+   "plan": {
+    "action": "show",
+    "name_contains": "Telekom"
+   },
+   "out": 12,
+   "cmd": 14
+  },
+  "b2_24": {
+   "plan": {
+    "action": "show",
+    "kinds": [
+     "document"
+    ]
+   },
+   "out": 11,
+   "cmd": 13
+  },
+  "b2_25": {
+   "plan": {
+    "action": "delete",
+    "source": "Downloads",
+    "name_contains": "Amazon Invoice"
+   },
+   "out": 16,
+   "cmd": 16
+  },
+  "b2_26": {
+   "plan": {
+    "action": "move",
+    "source": "Downloads",
+    "destination": "Apps",
+    "extensions": [
+     "apk"
+    ]
+   },
+   "out": 18,
+   "cmd": 21
+  },
+  "b2_27": {
+   "plan": {
+    "action": "show",
+    "source": "Download",
+    "extensions": [
+     "xlsx",
+     "xls",
+     "ods",
+     "csv"
+    ]
+   },
+   "out": 20,
+   "cmd": 20
+  },
+  "b2_28": {
+   "plan": {
+    "action": "show",
+    "name_contains": "Lebenslauf"
+   },
+   "out": 13,
+   "cmd": 15
+  },
+  "b2_29": {
+   "plan": {
+    "action": "move",
+    "source": "Bilder",
+    "destination": "Dokumente",
+    "name_contains": "Bewerbung"
+   },
+   "out": 24,
+   "cmd": 23
+  },
+  "b2_30": {
+   "plan": {
+    "action": "delete",
+    "source": "Scans",
+    "time": "am 5.3."
+   },
+   "out": 20,
+   "cmd": 22
+  },
+  "b2_31": {
+   "plan": {
+    "action": "show",
+    "source": "Download",
+    "kinds": [
+     "document"
+    ],
+    "exclude": [
+     "pdf"
+    ]
+   },
+   "out": 19,
+   "cmd": 20
+  },
+  "b2_32": {
+   "plan": {
+    "action": "copy",
+    "source": "Downloads",
+    "destination": "Gesundheit",
+    "name_contains": "Arztbrief"
+   },
+   "out": 22,
+   "cmd": 19
+  },
+  "b2_33": {
+   "plan": {
+    "action": "show"
+   },
+   "out": 6,
+   "cmd": 17
+  },
+  "b2_34": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 17
+  },
+  "b2_35": {
+   "plan": {
+    "action": "show",
+    "name_contains": "Kontoauszug"
+   },
+   "out": 14,
+   "cmd": 20
+  },
+  "b2_36": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 19
+  },
+  "b2_37": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 15
+  },
+  "b2_38": {
+   "plan": {
+    "action": "show",
+    "source": "Downloads"
+   },
+   "out": 10,
+   "cmd": 21
+  },
+  "b2_39": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 13
+  },
+  "b2_40": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 21
+  },
+  "b2_41": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 20
+  },
+  "b2_42": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 28
+  },
+  "b2_43": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 22
+  },
+  "b2_44": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 19
+  },
+  "b2_45": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 18
+  },
+  "b2_46": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 18
+  },
+  "b2_47": {
+   "plan": {
+    "action": "ask"
+   },
+   "out": 6,
+   "cmd": 19
+  },
+  "b2_48": {
+   "plan": {
+    "action": "ask"
+   },
+   "out": 6,
+   "cmd": 14
+  },
+  "b2_49": {
+   "plan": {
+    "action": "copy",
+    "source": "Steuer",
+    "destination": "Rechnungen",
+    "name_contains": "Rechnung"
+   },
+   "out": 24,
+   "cmd": 19
+  },
+  "b2_50": {
+   "plan": {
+    "action": "ask"
+   },
+   "out": 6,
+   "cmd": 16
+  },
+  "val0": {
+   "plan": {
+    "action": "move",
+    "source": "Download",
+    "destination": "Arzt",
+    "kinds": [
+     "document"
+    ],
+    "exclude": [
+     "zip"
+    ]
+   },
+   "out": 24,
+   "cmd": 24
+  },
+  "val1": {
+   "plan": {
+    "action": "move",
+    "source": "Download",
+    "destination": "Arzt",
+    "kinds": [
+     "document"
+    ],
+    "exclude": [
+     "zip"
+    ]
+   },
+   "out": 24,
+   "cmd": 23
+  },
+  "val2": {
+   "plan": {
+    "action": "ask"
+   },
+   "out": 6,
+   "cmd": 15
+  },
+  "val3": {
+   "plan": {
+    "action": "ask"
+   },
+   "out": 6,
+   "cmd": 18
+  },
+  "val4": {
+   "plan": {
+    "action": "ask"
+   },
+   "out": 6,
+   "cmd": 20
+  },
+  "val5": {
+   "plan": {
+    "action": "show"
+   },
+   "out": 6,
+   "cmd": 16
+  },
+  "val6": {
+   "plan": {
+    "action": "show"
+   },
+   "out": 6,
+   "cmd": 16
+  },
+  "val7": {
+   "plan": {
+    "action": "show"
+   },
+   "out": 6,
+   "cmd": 13
+  },
+  "val8": {
+   "plan": {
+    "action": "ask"
+   },
+   "out": 6,
+   "cmd": 16
+  },
+  "val9": {
+   "plan": {
+    "action": "ask"
+   },
+   "out": 6,
+   "cmd": 16
+  },
+  "val10": {
+   "plan": {
+    "action": "ask"
+   },
+   "out": 6,
+   "cmd": 14
+  },
+  "val11": {
+   "plan": {
+    "action": "show",
+    "source": "Kamera",
+    "kinds": [
+     "image"
+    ]
+   },
+   "out": 16,
+   "cmd": 16
+  },
+  "val12": {
+   "plan": {
+    "action": "show",
+    "kinds": [
+     "image"
+    ],
+    "name_contains": "Kamera"
+   },
+   "out": 17,
+   "cmd": 18
+  },
+  "val13": {
+   "plan": {
+    "action": "move",
+    "source": "Reisen",
+    "destination": "Tim Bendzko",
+    "name_contains": "Umzug"
+   },
+   "out": 24,
+   "cmd": 33
+  },
+  "val14": {
+   "plan": {
+    "action": "move",
+    "source": "Reisen",
+    "destination": "Tim Bendzko",
+    "name_contains": "Umzug"
+   },
+   "out": 24,
+   "cmd": 38
+  },
+  "val15": {
+   "plan": {
+    "action": "move",
+    "source": "Reisen",
+    "destination": "Tim Bendzko",
+    "name_contains": "Umzug"
+   },
+   "out": 24,
+   "cmd": 33
+  },
+  "val16": {
+   "plan": {
+    "action": "show",
+    "source": "Movies",
+    "extensions": [
+     "mp4"
+    ],
+    "time": "älter als 2 Jahre",
+    "sort": "newest"
+   },
+   "out": 28,
+   "cmd": 29
+  },
+  "val17": {
+   "plan": {
+    "action": "show",
+    "source": "Movies",
+    "extensions": [
+     "mp4"
+    ],
+    "time": "älter als 2 Jahre",
+    "sort": "newest"
+   },
+   "out": 28,
+   "cmd": 29
+  },
+  "val18": {
+   "plan": {
+    "action": "show",
+    "source": "Movies",
+    "extensions": [
+     "mp4"
+    ],
+    "time": "älter als 2 Jahre",
+    "sort": "newest"
+   },
+   "out": 28,
+   "cmd": 32
+  },
+  "val19": {
+   "plan": {
+    "action": "show",
+    "source": "WhatsApp Audio",
+    "kinds": [
+     "audio"
+    ]
+   },
+   "out": 16,
+   "cmd": 18
+  },
+  "val20": {
+   "plan": {
+    "action": "show",
+    "source": "WhatsApp Audio",
+    "kinds": [
+     "audio"
+    ]
+   },
+   "out": 16,
+   "cmd": 20
+  },
+  "val21": {
+   "plan": {
+    "action": "show",
+    "source": "WhatsApp Audio",
+    "kinds": [
+     "audio"
+    ]
+   },
+   "out": 16,
+   "cmd": 24
+  },
+  "val22": {
+   "plan": {
+    "action": "organize",
+    "source": "Kontoauszüge",
+    "group_by": "month"
+   },
+   "out": 19,
+   "cmd": 26
+  },
+  "val23": {
+   "plan": {
+    "action": "organize",
+    "source": "Kontoauszüge",
+    "group_by": "month"
+   },
+   "out": 19,
+   "cmd": 31
+  },
+  "val24": {
+   "plan": {
+    "action": "organize",
+    "source": "Kontoauszüge",
+    "group_by": "month"
+   },
+   "out": 19,
+   "cmd": 28
+  },
+  "val25": {
+   "plan": {
+    "action": "show",
+    "source": "Juju",
+    "extensions": [
+     "mp3"
+    ]
+   },
+   "out": 16,
+   "cmd": 22
+  },
+  "val26": {
+   "plan": {
+    "action": "show",
+    "source": "Juju",
+    "extensions": [
+     "mp3"
+    ]
+   },
+   "out": 16,
+   "cmd": 19
+  },
+  "val27": {
+   "plan": {
+    "action": "show",
+    "source": "Juju",
+    "extensions": [
+     "mp3"
+    ]
+   },
+   "out": 16,
+   "cmd": 20
+  },
+  "val28": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 15
+  },
+  "val29": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 16
+  },
+  "val30": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 16
+  },
+  "val31": {
+   "plan": {
+    "action": "show",
+    "kinds": [
+     "audio"
+    ],
+    "size": "unter 10 MB"
+   },
+   "out": 19,
+   "cmd": 21
+  },
+  "val32": {
+   "plan": {
+    "action": "show",
+    "kinds": [
+     "audio"
+    ],
+    "size": "unter 10 MB"
+   },
+   "out": 19,
+   "cmd": 21
+  },
+  "val33": {
+   "plan": {
+    "action": "show",
+    "kinds": [
+     "audio"
+    ],
+    "size": "unter 10 MB"
+   },
+   "out": 19,
+   "cmd": 19
+  },
+  "val34": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 16
+  },
+  "val35": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 16
+  },
+  "val36": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 16
+  },
+  "val37": {
+   "plan": {
+    "action": "ask"
+   },
+   "out": 6,
+   "cmd": 16
+  },
+  "val38": {
+   "plan": {
+    "action": "ask"
+   },
+   "out": 6,
+   "cmd": 13
+  },
+  "val39": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 20
+  },
+  "val40": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 22
+  },
+  "val41": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 21
+  },
+  "val42": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 22
+  },
+  "val43": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 20
+  },
+  "val44": {
+   "plan": {
+    "action": "show",
+    "source": "Kamera",
+    "kinds": [
+     "image"
+    ]
+   },
+   "out": 16,
+   "cmd": 21
+  },
+  "val45": {
+   "plan": {
+    "action": "show",
+    "source": "Kamera"
+   },
+   "out": 11,
+   "cmd": 19
+  },
+  "val46": {
+   "plan": {
+    "action": "show",
+    "source": "Kamera"
+   },
+   "out": 11,
+   "cmd": 18
+  },
+  "val47": {
+   "plan": {
+    "action": "show",
+    "source": "Hausaufgaben",
+    "name_contains": "Bewerbung",
+    "size": "unter 500 KB"
+   },
+   "out": 27,
+   "cmd": 25
+  },
+  "val48": {
+   "plan": {
+    "action": "show",
+    "source": "Bewerbungen",
+    "name_contains": "Zeugnis",
+    "size": "über 500 KB"
+   },
+   "out": 29,
+   "cmd": 30
+  },
+  "val49": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 19
+  },
+  "val50": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 21
+  },
+  "val51": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 19
+  },
+  "val52": {
+   "plan": {
+    "action": "organize",
+    "source": "Rechnungen",
+    "group_by": "type"
+   },
+   "out": 18,
+   "cmd": 26
+  },
+  "val53": {
+   "plan": {
+    "action": "organize",
+    "source": "Rechnungen",
+    "group_by": "type"
+   },
+   "out": 18,
+   "cmd": 25
+  },
+  "val54": {
+   "plan": {
+    "action": "organize",
+    "source": "Rechnungen",
+    "group_by": "type"
+   },
+   "out": 18,
+   "cmd": 27
+  },
+  "val55": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 30
+  },
+  "val56": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 29
+  },
+  "val57": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 29
+  },
+  "val58": {
+   "plan": {
+    "action": "move",
+    "source": "Zeugnisse",
+    "destination": "Auto",
+    "name_contains": "Urlaubsantrag"
+   },
+   "out": 25,
+   "cmd": 31
+  },
+  "val59": {
+   "plan": {
+    "action": "move",
+    "source": "Zeugnisse",
+    "destination": "Auto",
+    "kinds": [
+     "document"
+    ],
+    "name_contains": "Urlaubsantrag"
+   },
+   "out": 30,
+   "cmd": 29
+  },
+  "val60": {
+   "plan": {
+    "action": "move",
+    "source": "Zeugnisse",
+    "destination": "Auto",
+    "kinds": [
+     "document"
+    ],
+    "name_contains": "Urlaubsantrag"
+   },
+   "out": 30,
+   "cmd": 30
+  },
+  "val61": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 19
+  },
+  "val62": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 17
+  },
+  "val63": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 21
+  },
+  "val64": {
+   "plan": {
+    "action": "show",
+    "extensions": [
+     "pdf"
+    ],
+    "name_contains": "Lea"
+   },
+   "out": 16,
+   "cmd": 22
+  },
+  "val65": {
+   "plan": {
+    "action": "show",
+    "extensions": [
+     "pdf"
+    ],
+    "name_contains": "Lea"
+   },
+   "out": 16,
+   "cmd": 17
+  },
+  "val66": {
+   "plan": {
+    "action": "show",
+    "extensions": [
+     "pdf"
+    ],
+    "name_contains": "Lea"
+   },
+   "out": 16,
+   "cmd": 21
+  },
+  "val67": {
+   "plan": {
+    "action": "show",
+    "time": "jünger als 2 Wochen"
+   },
+   "out": 16,
+   "cmd": 22
+  },
+  "val68": {
+   "plan": {
+    "action": "show",
+    "time": "jünger als 2 Wochen"
+   },
+   "out": 16,
+   "cmd": 18
+  },
+  "val69": {
+   "plan": {
+    "action": "show",
+    "source": "Tim Bendzko",
+    "name_contains": "Tim",
+    "time": "älter als 2 Monate"
+   },
+   "out": 26,
+   "cmd": 27
+  },
+  "val70": {
+   "plan": {
+    "action": "show",
+    "source": "Tim Bendzko",
+    "name_contains": "Tim",
+    "time": "älter als 2 Monate"
+   },
+   "out": 26,
+   "cmd": 26
+  },
+  "val71": {
+   "plan": {
+    "action": "show",
+    "source": "Tim Bendzko",
+    "name_contains": "Tim",
+    "time": "älter als 2 Monate"
+   },
+   "out": 26,
+   "cmd": 27
+  },
+  "val72": {
+   "plan": {
+    "action": "delete",
+    "source": "WhatsApp Video",
+    "kinds": [
+     "video"
+    ]
+   },
+   "out": 16,
+   "cmd": 17
+  },
+  "val73": {
+   "plan": {
+    "action": "delete",
+    "source": "WhatsApp Video",
+    "kinds": [
+     "video"
+    ]
+   },
+   "out": 16,
+   "cmd": 21
+  },
+  "val74": {
+   "plan": {
+    "action": "delete",
+    "source": "WhatsApp Video",
+    "kinds": [
+     "video"
+    ]
+   },
+   "out": 16,
+   "cmd": 17
+  },
+  "val75": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 18
+  },
+  "val76": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 21
+  },
+  "val77": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 18
+  },
+  "val78": {
+   "plan": {
+    "action": "show",
+    "kinds": [
+     "document"
+    ],
+    "time": "diesen Monat"
+   },
+   "out": 17,
+   "cmd": 17
+  },
+  "val79": {
+   "plan": {
+    "action": "show",
+    "kinds": [
+     "document"
+    ],
+    "time": "diesen Monat"
+   },
+   "out": 17,
+   "cmd": 19
+  },
+  "val80": {
+   "plan": {
+    "action": "show",
+    "kinds": [
+     "document"
+    ],
+    "time": "diesen Monat"
+   },
+   "out": 17,
+   "cmd": 18
+  },
+  "val81": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 11
+  },
+  "val82": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 15
+  },
+  "val83": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 16
+  },
+  "val84": {
+   "plan": {
+    "action": "show",
+    "source": "WhatsApp Video",
+    "kinds": [
+     "video"
+    ],
+    "time": "seit 12.9.",
+    "sort": "newest"
+   },
+   "out": 30,
+   "cmd": 24
+  },
+  "val85": {
+   "plan": {
+    "action": "show",
+    "source": "WhatsApp Video",
+    "kinds": [
+     "video"
+    ],
+    "time": "seit 12.9.",
+    "sort": "newest"
+   },
+   "out": 30,
+   "cmd": 25
+  },
+  "val86": {
+   "plan": {
+    "action": "show",
+    "source": "WhatsApp Video",
+    "kinds": [
+     "video"
+    ],
+    "time": "seit 12.9.",
+    "sort": "newest"
+   },
+   "out": 30,
+   "cmd": 25
+  },
+  "val87": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 18
+  },
+  "val88": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 14
+  },
+  "val89": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 20
+  },
+  "val90": {
+   "plan": {
+    "action": "show",
+    "source": "Wincent Weiss",
+    "kinds": [
+     "audio"
+    ]
+   },
+   "out": 17,
+   "cmd": 21
+  },
+  "val91": {
+   "plan": {
+    "action": "show",
+    "source": "Wincent Weiss",
+    "kinds": [
+     "audio"
+    ]
+   },
+   "out": 17,
+   "cmd": 22
+  },
+  "val92": {
+   "plan": {
+    "action": "show",
+    "source": "Wincent Weiss",
+    "kinds": [
+     "audio"
+    ]
+   },
+   "out": 17,
+   "cmd": 20
+  },
+  "val93": {
+   "plan": {
+    "action": "show",
+    "source": "Aufnahmen",
+    "time": "letzten 3 Wochen"
+   },
+   "out": 19,
+   "cmd": 24
+  },
+  "val94": {
+   "plan": {
+    "action": "show",
+    "source": "Aufnahmen",
+    "time": "letzten 3 Wochen"
+   },
+   "out": 19,
+   "cmd": 24
+  },
+  "val95": {
+   "plan": {
+    "action": "show",
+    "source": "Aufnahmen",
+    "time": "letzten 3 Wochen"
+   },
+   "out": 19,
+   "cmd": 22
+  },
+  "val96": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 21
+  },
+  "val97": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 16
+  },
+  "val98": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 22
+  },
+  "val99": {
+   "plan": {
+    "action": "show",
+    "source": "Kamera",
+    "kinds": [
+     "image"
+    ],
+    "time": "im Oktober 2024"
+   },
+   "out": 26,
+   "cmd": 23
+  },
+  "val100": {
+   "plan": {
+    "action": "show",
+    "source": "Kamera",
+    "kinds": [
+     "image"
+    ],
+    "time": "im Oktober 2024"
+   },
+   "out": 26,
+   "cmd": 23
+  },
+  "val101": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 22
+  },
+  "val102": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 18
+  },
+  "val103": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 19
+  },
+  "val104": {
+   "plan": {
+    "action": "organize",
+    "source": "Archiv"
+   },
+   "out": 12,
+   "cmd": 31
+  },
+  "val105": {
+   "plan": {
+    "action": "organize",
+    "source": "Archiv"
+   },
+   "out": 12,
+   "cmd": 29
+  },
+  "val106": {
+   "plan": {
+    "action": "organize",
+    "source": "Archiv"
+   },
+   "out": 12,
+   "cmd": 30
+  },
+  "val107": {
+   "plan": {
+    "action": "show",
+    "source": "Clueso",
+    "extensions": [
+     "mp3"
+    ],
+    "time": "letzten 2 Monate"
+   },
+   "out": 25,
+   "cmd": 29
+  },
+  "val108": {
+   "plan": {
+    "action": "show",
+    "source": "Clueso",
+    "extensions": [
+     "mp3"
+    ],
+    "time": "letzten 2 Monate"
+   },
+   "out": 25,
+   "cmd": 26
+  },
+  "val109": {
+   "plan": {
+    "action": "delete",
+    "source": "Versicherungen",
+    "extensions": [
+     "pdf"
+    ],
+    "name_contains": "Angebot"
+   },
+   "out": 23,
+   "cmd": 24
+  },
+  "val110": {
+   "plan": {
+    "action": "delete",
+    "source": "Versicherungen",
+    "extensions": [
+     "pdf"
+    ],
+    "name_contains": "Angebot"
+   },
+   "out": 23,
+   "cmd": 24
+  },
+  "val111": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 22
+  },
+  "val112": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 20
+  },
+  "val113": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 20
+  },
+  "val114": {
+   "plan": {
+    "action": "ask"
+   },
+   "out": 6,
+   "cmd": 22
+  },
+  "val115": {
+   "plan": {
+    "action": "ask"
+   },
+   "out": 6,
+   "cmd": 25
+  },
+  "val116": {
+   "plan": {
+    "action": "ask"
+   },
+   "out": 6,
+   "cmd": 25
+  },
+  "val117": {
+   "plan": {
+    "action": "show",
+    "source": "Archiv",
+    "name_contains": "Hamburg"
+   },
+   "out": 17,
+   "cmd": 18
+  },
+  "val118": {
+   "plan": {
+    "action": "show",
+    "source": "Archiv",
+    "name_contains": "Hamburg"
+   },
+   "out": 17,
+   "cmd": 20
+  },
+  "val119": {
+   "plan": {
+    "action": "show",
+    "source": "Archiv",
+    "name_contains": "Hamburg"
+   },
+   "out": 17,
+   "cmd": 18
+  },
+  "val120": {
+   "plan": {
+    "action": "show",
+    "source": "Auto",
+    "content_contains": "Überstunden"
+   },
+   "out": 16,
+   "cmd": 23
+  },
+  "val121": {
+   "plan": {
+    "action": "show",
+    "source": "Auto",
+    "content_contains": "Überstunden"
+   },
+   "out": 16,
+   "cmd": 23
+  },
+  "val122": {
+   "plan": {
+    "action": "show",
+    "source": "Auto",
+    "content_contains": "Überstunden"
+   },
+   "out": 16,
+   "cmd": 24
+  },
+  "val123": {
+   "plan": {
+    "action": "show",
+    "source": "Udo Lindenberg",
+    "kinds": [
+     "audio"
+    ]
+   },
+   "out": 18,
+   "cmd": 26
+  },
+  "val124": {
+   "plan": {
+    "action": "show",
+    "source": "Udo Lindenberg",
+    "kinds": [
+     "audio"
+    ]
+   },
+   "out": 18,
+   "cmd": 24
+  },
+  "val125": {
+   "plan": {
+    "action": "organize",
+    "source": "Revolverheld"
+   },
+   "out": 13,
+   "cmd": 27
+  },
+  "val126": {
+   "plan": {
+    "action": "organize",
+    "source": "Revolverheld"
+   },
+   "out": 13,
+   "cmd": 22
+  },
+  "val127": {
+   "plan": {
+    "action": "organize",
+    "source": "Revolverheld"
+   },
+   "out": 13,
+   "cmd": 22
+  },
+  "val128": {
+   "plan": {
+    "action": "move",
+    "source": "Rechnungen",
+    "destination": "Präsentationen",
+    "kinds": [
+     "document"
+    ]
+   },
+   "out": 23,
+   "cmd": 18
+  },
+  "val129": {
+   "plan": {
+    "action": "move",
+    "source": "Rechnungen",
+    "destination": "Präsentationen",
+    "kinds": [
+     "document"
+    ]
+   },
+   "out": 23,
+   "cmd": 18
+  },
+  "val130": {
+   "plan": {
+    "action": "move",
+    "source": "Rechnungen",
+    "destination": "Präsentationen",
+    "kinds": [
+     "document"
+    ]
+   },
+   "out": 23,
+   "cmd": 20
+  },
+  "val131": {
+   "plan": {
+    "action": "show",
+    "source": "WhatsApp Voice Notes"
+   },
+   "out": 12,
+   "cmd": 15
+  },
+  "val132": {
+   "plan": {
+    "action": "show",
+    "source": "WhatsApp Voice Notes"
+   },
+   "out": 12,
+   "cmd": 16
+  },
+  "val133": {
+   "plan": {
+    "action": "show",
+    "source": "WhatsApp Voice Notes"
+   },
+   "out": 12,
+   "cmd": 17
+  },
+  "val134": {
+   "plan": {
+    "action": "show",
+    "extensions": [
+     "mp3"
+    ],
+    "sort": "oldest",
+    "limit": 5
+   },
+   "out": 20,
+   "cmd": 19
+  },
+  "val135": {
+   "plan": {
+    "action": "show",
+    "extensions": [
+     "mp3"
+    ],
+    "sort": "oldest",
+    "limit": 5
+   },
+   "out": 20,
+   "cmd": 22
+  },
+  "val136": {
+   "plan": {
+    "action": "show",
+    "extensions": [
+     "mp3"
+    ],
+    "sort": "oldest",
+    "limit": 5
+   },
+   "out": 20,
+   "cmd": 22
+  },
+  "val137": {
+   "plan": {
+    "action": "organize",
+    "source": "Aufnahmen"
+   },
+   "out": 12,
+   "cmd": 33
+  },
+  "val138": {
+   "plan": {
+    "action": "organize",
+    "source": "Aufnahmen"
+   },
+   "out": 12,
+   "cmd": 33
+  },
+  "val139": {
+   "plan": {
+    "action": "organize",
+    "source": "Aufnahmen"
+   },
+   "out": 12,
+   "cmd": 25
+  },
+  "val140": {
+   "plan": {
+    "action": "organize",
+    "source": "WhatsApp Documents",
+    "group_by": "type"
+   },
+   "out": 17,
+   "cmd": 35
+  },
+  "val141": {
+   "plan": {
+    "action": "organize",
+    "source": "WhatsApp Documents",
+    "group_by": "type"
+   },
+   "out": 17,
+   "cmd": 31
+  },
+  "val142": {
+   "plan": {
+    "action": "organize",
+    "source": "WhatsApp Documents",
+    "group_by": "type"
+   },
+   "out": 17,
+   "cmd": 32
+  },
+  "val143": {
+   "plan": {
+    "action": "show",
+    "source": "Movies",
+    "kinds": [
+     "video"
+    ],
+    "time": "dieses Jahr"
+   },
+   "out": 22,
+   "cmd": 21
+  },
+  "val144": {
+   "plan": {
+    "action": "show",
+    "source": "Movies",
+    "kinds": [
+     "video"
+    ],
+    "time": "dieses Jahr"
+   },
+   "out": 22,
+   "cmd": 26
+  },
+  "val145": {
+   "plan": {
+    "action": "show",
+    "source": "Movies",
+    "kinds": [
+     "video"
+    ],
+    "time": "dieses Jahr"
+   },
+   "out": 22,
+   "cmd": 24
+  },
+  "val146": {
+   "plan": {
+    "action": "show"
+   },
+   "out": 6,
+   "cmd": 15
+  },
+  "val147": {
+   "plan": {
+    "action": "show"
+   },
+   "out": 6,
+   "cmd": 18
+  },
+  "val148": {
+   "plan": {
+    "action": "show"
+   },
+   "out": 6,
+   "cmd": 19
+  },
+  "val149": {
+   "plan": {
+    "action": "copy",
+    "source": "Hund",
+    "destination": "Gesundheit",
+    "name_contains": "Prag"
+   },
+   "out": 22,
+   "cmd": 24
+  },
+  "val150": {
+   "plan": {
+    "action": "move",
+    "source": "Hund",
+    "destination": "Gesundheit",
+    "name_contains": "Prag"
+   },
+   "out": 22,
+   "cmd": 25
+  },
+  "val151": {
+   "plan": {
+    "action": "move",
+    "source": "Hund",
+    "destination": "Gesundheit",
+    "name_contains": "Prag"
+   },
+   "out": 22,
+   "cmd": 29
+  },
+  "val152": {
+   "plan": {
+    "action": "delete",
+    "source": "Kita",
+    "name_contains": "Lissabon"
+   },
+   "out": 18,
+   "cmd": 20
+  },
+  "val153": {
+   "plan": {
+    "action": "delete",
+    "source": "Kita",
+    "name_contains": "Lissabon"
+   },
+   "out": 18,
+   "cmd": 22
+  },
+  "val154": {
+   "plan": {
+    "action": "delete",
+    "source": "Kita",
+    "name_contains": "Lissabon"
+   },
+   "out": 18,
+   "cmd": 19
+  },
+  "val155": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 14
+  },
+  "val156": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 14
+  },
+  "val157": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 17
+  },
+  "val158": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 19
+  },
+  "val159": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 19
+  },
+  "val160": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 19
+  },
+  "val161": {
+   "plan": {
+    "action": "move",
+    "source": "WhatsApp Video",
+    "destination": "Privat",
+    "time": "älter als 1 Jahre"
+   },
+   "out": 24,
+   "cmd": 33
+  },
+  "val162": {
+   "plan": {
+    "action": "move",
+    "source": "WhatsApp Video",
+    "destination": "Privat",
+    "time": "älter als 1 Jahre"
+   },
+   "out": 24,
+   "cmd": 31
+  },
+  "val163": {
+   "plan": {
+    "action": "move",
+    "source": "WhatsApp Video",
+    "destination": "Privat",
+    "time": "älter als 1 Jahre"
+   },
+   "out": 24,
+   "cmd": 35
+  },
+  "val164": {
+   "plan": {
+    "action": "copy",
+    "source": "Backup",
+    "destination": "Steuerkram",
+    "extensions": [
+     "pdf"
+    ],
+    "name_contains": "Anschreiben",
+    "time": "dieses Jahr"
+   },
+   "out": 35,
+   "cmd": 42
+  },
+  "val165": {
+   "plan": {
+    "action": "copy",
+    "source": "Backup",
+    "destination": "Steuerkram",
+    "extensions": [
+     "pdf"
+    ],
+    "name_contains": "Anschreiben",
+    "time": "dieses Jahr"
+   },
+   "out": 35,
+   "cmd": 46
+  },
+  "val166": {
+   "plan": {
+    "action": "ask"
+   },
+   "out": 6,
+   "cmd": 16
+  },
+  "val167": {
+   "plan": {
+    "action": "ask"
+   },
+   "out": 6,
+   "cmd": 23
+  },
+  "val168": {
+   "plan": {
+    "action": "ask"
+   },
+   "out": 6,
+   "cmd": 22
+  },
+  "val169": {
+   "plan": {
+    "action": "show",
+    "source": "Arzt",
+    "content_contains": "Lastschrift"
+   },
+   "out": 17,
+   "cmd": 27
+  },
+  "val170": {
+   "plan": {
+    "action": "show",
+    "source": "Arzt",
+    "content_contains": "Lastschrift"
+   },
+   "out": 17,
+   "cmd": 25
+  },
+  "val171": {
+   "plan": {
+    "action": "show",
+    "source": "Arzt",
+    "content_contains": "Lastschrift"
+   },
+   "out": 17,
+   "cmd": 27
+  },
+  "val172": {
+   "plan": {
+    "action": "show",
+    "source": "Projekte",
+    "kinds": [
+     "document"
+    ]
+   },
+   "out": 16,
+   "cmd": 15
+  },
+  "val173": {
+   "plan": {
+    "action": "show",
+    "source": "Projekte",
+    "kinds": [
+     "document"
+    ]
+   },
+   "out": 16,
+   "cmd": 20
+  },
+  "val174": {
+   "plan": {
+    "action": "show",
+    "source": "Projekte",
+    "kinds": [
+     "document"
+    ]
+   },
+   "out": 16,
+   "cmd": 17
+  },
+  "val175": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 16
+  },
+  "val176": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 17
+  },
+  "val177": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 17
+  },
+  "val178": {
+   "plan": {
+    "action": "move",
+    "source": "WhatsApp Video",
+    "destination": "Steuerkram",
+    "kinds": [
+     "video"
+    ],
+    "time": "letztes Jahr"
+   },
+   "out": 29,
+   "cmd": 36
+  },
+  "val179": {
+   "plan": {
+    "action": "move",
+    "source": "WhatsApp Video",
+    "destination": "Steuerkram",
+    "kinds": [
+     "video"
+    ],
+    "time": "letztes Jahr"
+   },
+   "out": 29,
+   "cmd": 34
+  },
+  "val180": {
+   "plan": {
+    "action": "move",
+    "source": "WhatsApp Video",
+    "destination": "Steuerkram",
+    "kinds": [
+     "video"
+    ],
+    "time": "letztes Jahr"
+   },
+   "out": 29,
+   "cmd": 37
+  },
+  "val181": {
+   "plan": {
+    "action": "show",
+    "extensions": [
+     "jpg",
+     "jpeg"
+    ],
+    "content_contains": "Selbstbeteiligung"
+   },
+   "out": 20,
+   "cmd": 23
+  },
+  "val182": {
+   "plan": {
+    "action": "show",
+    "extensions": [
+     "jpg",
+     "jpeg"
+    ],
+    "content_contains": "Selbstbeteiligung"
+   },
+   "out": 20,
+   "cmd": 26
+  },
+  "val183": {
+   "plan": {
+    "action": "show",
+    "extensions": [
+     "jpg",
+     "jpeg"
+    ],
+    "content_contains": "Selbstbeteiligung"
+   },
+   "out": 20,
+   "cmd": 24
+  },
+  "val184": {
+   "plan": {
+    "action": "show"
+   },
+   "out": 6,
+   "cmd": 15
+  },
+  "val185": {
+   "plan": {
+    "action": "show"
+   },
+   "out": 6,
+   "cmd": 15
+  },
+  "val186": {
+   "plan": {
+    "action": "show"
+   },
+   "out": 6,
+   "cmd": 17
+  },
+  "val187": {
+   "plan": {
+    "action": "show",
+    "source": "Screenshots",
+    "extensions": [
+     "png"
+    ],
+    "time": "seit August"
+   },
+   "out": 20,
+   "cmd": 25
+  },
+  "val188": {
+   "plan": {
+    "action": "show",
+    "source": "Screenshots",
+    "extensions": [
+     "png"
+    ],
+    "time": "seit August"
+   },
+   "out": 20,
+   "cmd": 25
+  },
+  "val189": {
+   "plan": {
+    "action": "show",
+    "source": "Screenshots",
+    "extensions": [
+     "png"
+    ],
+    "time": "seit August"
+   },
+   "out": 20,
+   "cmd": 23
+  },
+  "val190": {
+   "plan": {
+    "action": "show",
+    "kinds": [
+     "audio"
+    ],
+    "time": "zwischen 13.10. und 21.10."
+   },
+   "out": 30,
+   "cmd": 38
+  },
+  "val191": {
+   "plan": {
+    "action": "show",
+    "source": "Liedle",
+    "time": "zwischen 13.10. und 21.10."
+   },
+   "out": 31,
+   "cmd": 30
+  },
+  "val192": {
+   "plan": {
+    "action": "show",
+    "name_contains": "Xiaomi"
+   },
+   "out": 13,
+   "cmd": 17
+  },
+  "val193": {
+   "plan": {
+    "action": "show",
+    "name_contains": "Xiaomi"
+   },
+   "out": 13,
+   "cmd": 15
+  },
+  "val194": {
+   "plan": {
+    "action": "show",
+    "name_contains": "Xiaomi"
+   },
+   "out": 13,
+   "cmd": 16
+  },
+  "val195": {
+   "plan": {
+    "action": "show",
+    "extensions": [
+     "jpg",
+     "jpeg"
+    ]
+   },
+   "out": 12,
+   "cmd": 21
+  },
+  "val196": {
+   "plan": {
+    "action": "show",
+    "extensions": [
+     "jpg",
+     "jpeg"
+    ]
+   },
+   "out": 12,
+   "cmd": 18
+  },
+  "val197": {
+   "plan": {
+    "action": "show",
+    "source": "Screenshots"
+   },
+   "out": 11,
+   "cmd": 17
+  },
+  "val198": {
+   "plan": {
+    "action": "show",
+    "source": "Screenshots"
+   },
+   "out": 11,
+   "cmd": 17
+  },
+  "val199": {
+   "plan": {
+    "action": "show",
+    "name_contains": "Tim"
+   },
+   "out": 11,
+   "cmd": 15
+  },
+  "val200": {
+   "plan": {
+    "action": "show",
+    "name_contains": "Tim"
+   },
+   "out": 11,
+   "cmd": 16
+  },
+  "val201": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 17
+  },
+  "val202": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 20
+  },
+  "val203": {
+   "plan": {
+    "action": "show",
+    "name_contains": "Pfannkuchen"
+   },
+   "out": 14,
+   "cmd": 18
+  },
+  "val204": {
+   "plan": {
+    "action": "show",
+    "source": "Download",
+    "kinds": [
+     "document"
+    ],
+    "exclude": [
+     "zip"
+    ]
+   },
+   "out": 19,
+   "cmd": 21
+  },
+  "val205": {
+   "plan": {
+    "action": "show",
+    "source": "Download",
+    "kinds": [
+     "document"
+    ],
+    "exclude": [
+     "zip"
+    ]
+   },
+   "out": 19,
+   "cmd": 23
+  },
+  "val206": {
+   "plan": {
+    "action": "show",
+    "kinds": [
+     "audio"
+    ],
+    "time": "letzte Woche"
+   },
+   "out": 17,
+   "cmd": 19
+  },
+  "val207": {
+   "plan": {
+    "action": "show",
+    "kinds": [
+     "audio"
+    ],
+    "time": "letzte Woche"
+   },
+   "out": 17,
+   "cmd": 21
+  },
+  "val208": {
+   "plan": {
+    "action": "show",
+    "kinds": [
+     "audio"
+    ],
+    "time": "letzte Woche"
+   },
+   "out": 17,
+   "cmd": 24
+  },
+  "val209": {
+   "plan": {
+    "action": "show",
+    "source": "WhatsApp Images"
+   },
+   "out": 11,
+   "cmd": 15
+  },
+  "val210": {
+   "plan": {
+    "action": "show",
+    "source": "WhatsApp Images"
+   },
+   "out": 11,
+   "cmd": 19
+  },
+  "val211": {
+   "plan": {
+    "action": "show",
+    "source": "WhatsApp Images"
+   },
+   "out": 11,
+   "cmd": 14
+  },
+  "val212": {
+   "plan": {
+    "action": "show",
+    "name_contains": "Leipzig"
+   },
+   "out": 12,
+   "cmd": 16
+  },
+  "val213": {
+   "plan": {
+    "action": "show",
+    "name_contains": "Leipzig"
+   },
+   "out": 12,
+   "cmd": 16
+  },
+  "val214": {
+   "plan": {
+    "action": "show",
+    "name_contains": "Leipzig"
+   },
+   "out": 12,
+   "cmd": 18
+  },
+  "val215": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 19
+  },
+  "val216": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 20
+  },
+  "val217": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 21
+  },
+  "val218": {
+   "plan": {
+    "action": "move",
+    "source": "Filme",
+    "destination": "Erledigt",
+    "kinds": [
+     "video"
+    ],
+    "size": "über 200 MB"
+   },
+   "out": 31,
+   "cmd": 31
+  },
+  "val219": {
+   "plan": {
+    "action": "move",
+    "source": "Filme",
+    "destination": "Erledigt",
+    "kinds": [
+     "video"
+    ],
+    "size": "über 200 MB"
+   },
+   "out": 31,
+   "cmd": 35
+  },
+  "val220": {
+   "plan": {
+    "action": "move",
+    "source": "Filme",
+    "destination": "Erledigt",
+    "kinds": [
+     "video"
+    ],
+    "size": "über 200 MB"
+   },
+   "out": 31,
+   "cmd": 40
+  },
+  "val221": {
+   "plan": {
+    "action": "show",
+    "time": "seit Weihnachten"
+   },
+   "out": 11,
+   "cmd": 16
+  },
+  "val222": {
+   "plan": {
+    "action": "show",
+    "time": "seit Weihnachten"
+   },
+   "out": 11,
+   "cmd": 20
+  },
+  "val223": {
+   "plan": {
+    "action": "show",
+    "source": "Belege",
+    "content_contains": "Lastschrift"
+   },
+   "out": 17,
+   "cmd": 24
+  },
+  "val224": {
+   "plan": {
+    "action": "show",
+    "source": "Belege",
+    "content_contains": "Lastschrift"
+   },
+   "out": 17,
+   "cmd": 22
+  },
+  "val225": {
+   "plan": {
+    "action": "show",
+    "source": "Belege",
+    "content_contains": "Lastschrift"
+   },
+   "out": 17,
+   "cmd": 26
+  },
+  "val226": {
+   "plan": {
+    "action": "show",
+    "source": "Projekte",
+    "extensions": [
+     "pdf"
+    ],
+    "name_contains": "Harz",
+    "exclude": [
+     "jpg"
+    ]
+   },
+   "out": 25,
+   "cmd": 36
+  },
+  "val227": {
+   "plan": {
+    "action": "delete",
+    "source": "WhatsApp Audio",
+    "kinds": [
+     "audio"
+    ]
+   },
+   "out": 16,
+   "cmd": 23
+  },
+  "val228": {
+   "plan": {
+    "action": "delete",
+    "source": "WhatsApp Audio",
+    "extensions": [
+     "opus"
+    ]
+   },
+   "out": 15,
+   "cmd": 21
+  },
+  "val229": {
+   "plan": {
+    "action": "show",
+    "source": "WhatsApp Audio",
+    "kinds": [
+     "audio"
+    ]
+   },
+   "out": 16,
+   "cmd": 23
+  },
+  "val230": {
+   "plan": {
+    "action": "move",
+    "source": "Arbeit",
+    "destination": "Tim Bendzko",
+    "name_contains": "1und1",
+    "time": "vor 21.7.2026"
+   },
+   "out": 38,
+   "cmd": 49
+  },
+  "val231": {
+   "plan": {
+    "action": "move",
+    "source": "Arbeit",
+    "destination": "Tim Bendzko",
+    "name_contains": "1und1",
+    "time": "vor 21.7.2026"
+   },
+   "out": 38,
+   "cmd": 46
+  },
+  "val232": {
+   "plan": {
+    "action": "move",
+    "source": "Arbeit",
+    "destination": "Tim Bendzko",
+    "name_contains": "1und1",
+    "time": "vor 21.7.2026"
+   },
+   "out": 38,
+   "cmd": 49
+  },
+  "val233": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 21
+  },
+  "val234": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 22
+  },
+  "val235": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 21
+  },
+  "val236": {
+   "plan": {
+    "action": "show",
+    "source": "WhatsApp Video",
+    "extensions": [
+     "mp4"
+    ]
+   },
+   "out": 16,
+   "cmd": 27
+  },
+  "val237": {
+   "plan": {
+    "action": "show",
+    "source": "WhatsApp Video",
+    "extensions": [
+     "mp4"
+    ]
+   },
+   "out": 16,
+   "cmd": 22
+  },
+  "val238": {
+   "plan": {
+    "action": "show",
+    "source": "WhatsApp Video",
+    "extensions": [
+     "mp4"
+    ]
+   },
+   "out": 16,
+   "cmd": 24
+  },
+  "val239": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 18
+  },
+  "val240": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 16
+  },
+  "val241": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 17
+  },
+  "val242": {
+   "plan": {
+    "action": "organize",
+    "source": "Sido",
+    "group_by": "type"
+   },
+   "out": 17,
+   "cmd": 29
+  },
+  "val243": {
+   "plan": {
+    "action": "organize",
+    "source": "Sido",
+    "group_by": "type"
+   },
+   "out": 17,
+   "cmd": 26
+  },
+  "val244": {
+   "plan": {
+    "action": "organize",
+    "source": "Sido",
+    "group_by": "type"
+   },
+   "out": 17,
+   "cmd": 24
+  },
+  "val245": {
+   "plan": {
+    "action": "show",
+    "time": "Ostern"
+   },
+   "out": 12,
+   "cmd": 17
+  },
+  "val246": {
+   "plan": {
+    "action": "show",
+    "time": "Ostern"
+   },
+   "out": 12,
+   "cmd": 20
+  },
+  "val247": {
+   "plan": {
+    "action": "show",
+    "time": "Ostern"
+   },
+   "out": 12,
+   "cmd": 18
+  },
+  "val248": {
+   "plan": {
+    "action": "move",
+    "source": "Sammlung",
+    "destination": "Books",
+    "name_contains": "Gardasee",
+    "time": "letzten Monat",
+    "size": "unter 2 MB"
+   },
+   "out": 36,
+   "cmd": 32
+  },
+  "val249": {
+   "plan": {
+    "action": "move",
+    "source": "Books",
+    "destination": "Sammlung",
+    "name_contains": "Gardasee",
+    "time": "letzten Monat",
+    "size": "unter 2 MB"
+   },
+   "out": 36,
+   "cmd": 34
+  },
+  "val250": {
+   "plan": {
+    "action": "move",
+    "source": "Books",
+    "destination": "Sammlung",
+    "name_contains": "Gardasee",
+    "time": "letzten Monat",
+    "size": "unter 2 MB"
+   },
+   "out": 36,
+   "cmd": 33
+  },
+  "val251": {
+   "plan": {
+    "action": "show",
+    "kinds": [
+     "image"
+    ],
+    "name_contains": "Lufthansa"
+   },
+   "out": 19,
+   "cmd": 17
+  },
+  "val252": {
+   "plan": {
+    "action": "show",
+    "kinds": [
+     "image"
+    ],
+    "name_contains": "Lufthansa"
+   },
+   "out": 19,
+   "cmd": 17
+  },
+  "val253": {
+   "plan": {
+    "action": "show",
+    "kinds": [
+     "image"
+    ],
+    "name_contains": "Lufthansa"
+   },
+   "out": 19,
+   "cmd": 17
+  },
+  "val254": {
+   "plan": {
+    "action": "show",
+    "source": "Silbermond",
+    "sort": "smallest",
+    "limit": 3
+   },
+   "out": 21,
+   "cmd": 22
+  },
+  "val255": {
+   "plan": {
+    "action": "show",
+    "source": "Silbermond",
+    "sort": "smallest",
+    "limit": 3
+   },
+   "out": 21,
+   "cmd": 24
+  },
+  "val256": {
+   "plan": {
+    "action": "show",
+    "source": "Silbermond",
+    "sort": "smallest",
+    "limit": 3
+   },
+   "out": 21,
+   "cmd": 21
+  },
+  "val257": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 19
+  },
+  "val258": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 17
+  },
+  "val259": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 21
+  },
+  "val260": {
+   "plan": {
+    "action": "delete",
+    "source": "Screenshots",
+    "kinds": [
+     "image"
+    ]
+   },
+   "out": 16,
+   "cmd": 21
+  },
+  "val261": {
+   "plan": {
+    "action": "delete",
+    "source": "Screenshots",
+    "kinds": [
+     "image"
+    ]
+   },
+   "out": 16,
+   "cmd": 18
+  },
+  "val262": {
+   "plan": {
+    "action": "delete",
+    "source": "Screenshots",
+    "kinds": [
+     "image"
+    ]
+   },
+   "out": 16,
+   "cmd": 18
+  },
+  "val263": {
+   "plan": {
+    "action": "show",
+    "source": "Kamera",
+    "extensions": [
+     "jpg",
+     "jpeg"
+    ],
+    "time": "letzten Monat"
+   },
+   "out": 23,
+   "cmd": 19
+  },
+  "val264": {
+   "plan": {
+    "action": "show",
+    "source": "Kamera",
+    "extensions": [
+     "jpg",
+     "jpeg"
+    ],
+    "time": "letzten Monate"
+   },
+   "out": 23,
+   "cmd": 21
+  },
+  "val265": {
+   "plan": {
+    "action": "show",
+    "extensions": [
+     "jpg",
+     "jpeg"
+    ],
+    "time": "letzten Monat"
+   },
+   "out": 18,
+   "cmd": 21
+  },
+  "val266": {
+   "plan": {
+    "action": "show",
+    "source": "Hörbücher",
+    "extensions": [
+     "xlsx",
+     "xls",
+     "ods",
+     "csv"
+    ],
+    "content_contains": "Überstunden"
+   },
+   "out": 28,
+   "cmd": 22
+  },
+  "val267": {
+   "plan": {
+    "action": "show",
+    "source": "Hörbücher",
+    "extensions": [
+     "xlsx",
+     "xls",
+     "ods",
+     "csv"
+    ],
+    "content_contains": "Überstunden"
+   },
+   "out": 28,
+   "cmd": 27
+  },
+  "val268": {
+   "plan": {
+    "action": "show",
+    "source": "Hörbücher",
+    "extensions": [
+     "xlsx",
+     "xls",
+     "ods",
+     "csv"
+    ],
+    "content_contains": "Überstunden"
+   },
+   "out": 28,
+   "cmd": 20
+  },
+  "val269": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 15
+  },
+  "val270": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 18
+  },
+  "val271": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 19
+  },
+  "val272": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 13
+  },
+  "val273": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 15
+  },
+  "val274": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 15
+  },
+  "val275": {
+   "plan": {
+    "action": "show",
+    "source": "Download",
+    "content_contains": "Widerruf"
+   },
+   "out": 18,
+   "cmd": 22
+  },
+  "val276": {
+   "plan": {
+    "action": "show",
+    "source": "Download",
+    "content_contains": "Widerruf"
+   },
+   "out": 18,
+   "cmd": 28
+  },
+  "val277": {
+   "plan": {
+    "action": "show",
+    "source": "Downloads",
+    "content_contains": "Widerruf"
+   },
+   "out": 18,
+   "cmd": 26
+  },
+  "val278": {
+   "plan": {
+    "action": "show",
+    "source": "Podcasts"
+   },
+   "out": 11,
+   "cmd": 21
+  },
+  "val279": {
+   "plan": {
+    "action": "show",
+    "source": "Podcasts"
+   },
+   "out": 11,
+   "cmd": 17
+  },
+  "val280": {
+   "plan": {
+    "action": "show",
+    "source": "Podcasts"
+   },
+   "out": 11,
+   "cmd": 21
+  },
+  "val281": {
+   "plan": {
+    "action": "show",
+    "kinds": [
+     "document"
+    ],
+    "time": "vorgestern"
+   },
+   "out": 16,
+   "cmd": 16
+  },
+  "val282": {
+   "plan": {
+    "action": "show",
+    "extensions": [
+     "pdf"
+    ],
+    "name_contains": "Rechnung"
+   },
+   "out": 17,
+   "cmd": 18
+  },
+  "val283": {
+   "plan": {
+    "action": "show",
+    "extensions": [
+     "pdf"
+    ],
+    "name_contains": "Rechnung"
+   },
+   "out": 17,
+   "cmd": 20
+  },
+  "val284": {
+   "plan": {
+    "action": "show",
+    "extensions": [
+     "pdf"
+    ],
+    "name_contains": "Rechnung"
+   },
+   "out": 17,
+   "cmd": 21
+  },
+  "val285": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 18
+  },
+  "val286": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 18
+  },
+  "val287": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 22
+  },
+  "val288": {
+   "plan": {
+    "action": "show",
+    "source": "Hörbücher",
+    "kinds": [
+     "image"
+    ]
+   },
+   "out": 17,
+   "cmd": 25
+  },
+  "val289": {
+   "plan": {
+    "action": "show",
+    "source": "Hörbücher",
+    "kinds": [
+     "image"
+    ]
+   },
+   "out": 17,
+   "cmd": 24
+  },
+  "val290": {
+   "plan": {
+    "action": "show",
+    "source": "Hörbücher",
+    "kinds": [
+     "image"
+    ]
+   },
+   "out": 17,
+   "cmd": 27
+  },
+  "val291": {
+   "plan": {
+    "action": "show",
+    "name_contains": "Notizen",
+    "time": "jünger als 2 Wochen"
+   },
+   "out": 22,
+   "cmd": 23
+  },
+  "val292": {
+   "plan": {
+    "action": "show",
+    "source": "Notizen",
+    "time": "jünger als 2 Wochen"
+   },
+   "out": 21,
+   "cmd": 24
+  },
+  "val293": {
+   "plan": {
+    "action": "show",
+    "source": "Notizen",
+    "time": "letzten 2 Wochen"
+   },
+   "out": 19,
+   "cmd": 22
+  },
+  "val294": {
+   "plan": {
+    "action": "copy",
+    "source": "Reisen",
+    "destination": "Archiv2",
+    "extensions": [
+     "jpg",
+     "jpeg"
+    ],
+    "name_contains": "Felix"
+   },
+   "out": 29,
+   "cmd": 32
+  },
+  "val295": {
+   "plan": {
+    "action": "copy",
+    "source": "Reisen",
+    "destination": "Archiv2",
+    "extensions": [
+     "jpg",
+     "jpeg"
+    ],
+    "name_contains": "Felix"
+   },
+   "out": 29,
+   "cmd": 31
+  },
+  "val296": {
+   "plan": {
+    "action": "copy",
+    "source": "Reisen",
+    "destination": "Archiv2",
+    "extensions": [
+     "jpg",
+     "jpeg"
+    ],
+    "name_contains": "Felix"
+   },
+   "out": 29,
+   "cmd": 29
+  },
+  "val297": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 21
+  },
+  "val298": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 18
+  },
+  "val299": {
+   "plan": {
+    "action": "show",
+    "source": "Reisen",
+    "name_contains": "Umzug"
+   },
+   "out": 17,
+   "cmd": 29
+  },
+  "val300": {
+   "plan": {
+    "action": "show",
+    "source": "Reisen",
+    "name_contains": "Umzug Tim Bendzko"
+   },
+   "out": 21,
+   "cmd": 32
+  },
+  "val301": {
+   "plan": {
+    "action": "copy",
+    "source": "Kita",
+    "destination": "Wichtig",
+    "kinds": [
+     "document"
+    ]
+   },
+   "out": 20,
+   "cmd": 26
+  },
+  "val302": {
+   "plan": {
+    "action": "copy",
+    "source": "Kita",
+    "destination": "Wichtig",
+    "kinds": [
+     "document"
+    ]
+   },
+   "out": 20,
+   "cmd": 22
+  },
+  "val303": {
+   "plan": {
+    "action": "copy",
+    "source": "Kita",
+    "destination": "Wichtig",
+    "kinds": [
+     "document"
+    ]
+   },
+   "out": 20,
+   "cmd": 28
+  },
+  "val304": {
+   "plan": {
+    "action": "organize",
+    "source": "WhatsApp Video"
+   },
+   "out": 12,
+   "cmd": 22
+  },
+  "val305": {
+   "plan": {
+    "action": "organize",
+    "source": "WhatsApp Video"
+   },
+   "out": 12,
+   "cmd": 21
+  },
+  "val306": {
+   "plan": {
+    "action": "organize",
+    "source": "WhatsApp Video"
+   },
+   "out": 12,
+   "cmd": 25
+  },
+  "val307": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 18
+  },
+  "val308": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 16
+  },
+  "val309": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 19
+  },
+  "val310": {
+   "plan": {
+    "action": "delete",
+    "source": "Familie",
+    "name_contains": "Clara",
+    "time": "seit Ostern",
+    "size": "unter 10 MB"
+   },
+   "out": 31,
+   "cmd": 32
+  },
+  "val311": {
+   "plan": {
+    "action": "delete",
+    "source": "Familie",
+    "name_contains": "Clara",
+    "time": "seit Ostern",
+    "size": "unter 10 MB"
+   },
+   "out": 31,
+   "cmd": 31
+  },
+  "val312": {
+   "plan": {
+    "action": "delete",
+    "source": "Familie",
+    "name_contains": "Clara",
+    "time": "seit Ostern",
+    "size": "unter 10 MB"
+   },
+   "out": 31,
+   "cmd": 32
+  },
+  "val313": {
+   "plan": {
+    "action": "show"
+   },
+   "out": 6,
+   "cmd": 17
+  },
+  "val314": {
+   "plan": {
+    "action": "show"
+   },
+   "out": 6,
+   "cmd": 16
+  },
+  "val315": {
+   "plan": {
+    "action": "show"
+   },
+   "out": 6,
+   "cmd": 16
+  },
+  "val316": {
+   "plan": {
+    "action": "delete",
+    "source": "Mark Forster",
+    "kinds": [
+     "audio"
+    ]
+   },
+   "out": 17,
+   "cmd": 22
+  },
+  "val317": {
+   "plan": {
+    "action": "delete",
+    "source": "Mark Forster",
+    "kinds": [
+     "audio"
+    ]
+   },
+   "out": 17,
+   "cmd": 21
+  },
+  "val318": {
+   "plan": {
+    "action": "delete",
+    "source": "Mark Forster",
+    "kinds": [
+     "audio"
+    ]
+   },
+   "out": 17,
+   "cmd": 23
+  },
+  "val319": {
+   "plan": {
+    "action": "show",
+    "source": "Kamera",
+    "kinds": [
+     "video"
+    ]
+   },
+   "out": 16,
+   "cmd": 20
+  },
+  "val320": {
+   "plan": {
+    "action": "show",
+    "source": "Kamera",
+    "kinds": [
+     "video"
+    ]
+   },
+   "out": 16,
+   "cmd": 19
+  },
+  "val321": {
+   "plan": {
+    "action": "show",
+    "source": "Kamera",
+    "kinds": [
+     "video"
+    ]
+   },
+   "out": 16,
+   "cmd": 19
+  },
+  "val322": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 21
+  },
+  "val323": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 16
+  },
+  "val324": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 18
+  },
+  "val325": {
+   "plan": {
+    "action": "show",
+    "time": "dieses Jahr",
+    "sort": "size"
+   },
+   "out": 17,
+   "cmd": 22
+  },
+  "val326": {
+   "plan": {
+    "action": "show",
+    "time": "dieses Jahr",
+    "sort": "size"
+   },
+   "out": 17,
+   "cmd": 22
+  },
+  "val327": {
+   "plan": {
+    "action": "copy",
+    "source": "Scans",
+    "destination": "Musiksammlung",
+    "name_contains": "Allianz",
+    "time": "seit Ostern"
+   },
+   "out": 31,
+   "cmd": 29
+  },
+  "val328": {
+   "plan": {
+    "action": "copy",
+    "source": "Scans",
+    "destination": "Musiksammlung",
+    "name_contains": "Allianz",
+    "time": "seit Ostern"
+   },
+   "out": 31,
+   "cmd": 36
+  },
+  "val329": {
+   "plan": {
+    "action": "copy",
+    "source": "Scans",
+    "destination": "Musiksammlung",
+    "name_contains": "Allianz",
+    "time": "seit Ostern"
+   },
+   "out": 31,
+   "cmd": 29
+  },
+  "val330": {
+   "plan": {
+    "action": "show",
+    "source": "WhatsApp Images",
+    "extensions": [
+     "jpg",
+     "jpeg"
+    ]
+   },
+   "out": 17,
+   "cmd": 29
+  },
+  "val331": {
+   "plan": {
+    "action": "show",
+    "source": "WhatsApp Images",
+    "extensions": [
+     "jpg",
+     "jpeg"
+    ]
+   },
+   "out": 17,
+   "cmd": 28
+  },
+  "val332": {
+   "plan": {
+    "action": "move",
+    "source": "Screenshots",
+    "destination": "Downloads",
+    "extensions": [
+     "png"
+    ]
+   },
+   "out": 19,
+   "cmd": 31
+  },
+  "val333": {
+   "plan": {
+    "action": "move",
+    "source": "Screenshots",
+    "destination": "Downloads",
+    "extensions": [
+     "png"
+    ]
+   },
+   "out": 19,
+   "cmd": 27
+  },
+  "val334": {
+   "plan": {
+    "action": "move",
+    "source": "Screenshots",
+    "destination": "Downloads",
+    "extensions": [
+     "png"
+    ]
+   },
+   "out": 19,
+   "cmd": 25
+  },
+  "val335": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 20
+  },
+  "val336": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 18
+  },
+  "val337": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 19
+  },
+  "val338": {
+   "plan": {
+    "action": "show",
+    "kinds": [
+     "audio"
+    ]
+   },
+   "out": 11,
+   "cmd": 14
+  },
+  "val339": {
+   "plan": {
+    "action": "show",
+    "kinds": [
+     "audio"
+    ]
+   },
+   "out": 11,
+   "cmd": 16
+  },
+  "val340": {
+   "plan": {
+    "action": "show",
+    "kinds": [
+     "audio"
+    ]
+   },
+   "out": 11,
+   "cmd": 13
+  },
+  "val341": {
+   "plan": {
+    "action": "show",
+    "source": "Movies",
+    "name_contains": "London"
+   },
+   "out": 15,
+   "cmd": 16
+  },
+  "val342": {
+   "plan": {
+    "action": "show",
+    "source": "Movies",
+    "name_contains": "London"
+   },
+   "out": 15,
+   "cmd": 18
+  },
+  "val343": {
+   "plan": {
+    "action": "show",
+    "source": "Movies",
+    "name_contains": "London"
+   },
+   "out": 15,
+   "cmd": 20
+  },
+  "val344": {
+   "plan": {
+    "action": "show",
+    "source": "WhatsApp Audio",
+    "kinds": [
+     "audio"
+    ]
+   },
+   "out": 16,
+   "cmd": 20
+  },
+  "val345": {
+   "plan": {
+    "action": "move",
+    "source": "WhatsApp Images",
+    "destination": "Belege2025",
+    "extensions": [
+     "jpg",
+     "jpeg"
+    ]
+   },
+   "out": 26,
+   "cmd": 26
+  },
+  "val346": {
+   "plan": {
+    "action": "move",
+    "source": "WhatsApp Images",
+    "destination": "Belege2025",
+    "extensions": [
+     "jpg",
+     "jpeg"
+    ]
+   },
+   "out": 26,
+   "cmd": 30
+  },
+  "val347": {
+   "plan": {
+    "action": "move",
+    "source": "WhatsApp Images",
+    "destination": "Belege2025",
+    "extensions": [
+     "jpg",
+     "jpeg"
+    ]
+   },
+   "out": 26,
+   "cmd": 32
+  },
+  "val348": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 19
+  },
+  "val349": {
+   "plan": {
+    "action": "ask"
+   },
+   "out": 6,
+   "cmd": 21
+  },
+  "val350": {
+   "plan": {
+    "action": "ask"
+   },
+   "out": 6,
+   "cmd": 24
+  },
+  "val351": {
+   "plan": {
+    "action": "show",
+    "source": "Mark Forster",
+    "kinds": [
+     "audio"
+    ]
+   },
+   "out": 17,
+   "cmd": 27
+  },
+  "val352": {
+   "plan": {
+    "action": "show",
+    "source": "Mark Forster",
+    "kinds": [
+     "audio"
+    ]
+   },
+   "out": 17,
+   "cmd": 28
+  },
+  "val353": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 19
+  },
+  "val354": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 22
+  },
+  "val355": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 22
+  },
+  "val356": {
+   "plan": {
+    "action": "show",
+    "source": "Fußball",
+    "name_contains": "Speiseplan",
+    "time": "seit September"
+   },
+   "out": 24,
+   "cmd": 30
+  },
+  "val357": {
+   "plan": {
+    "action": "show",
+    "source": "Arzt",
+    "kinds": [
+     "document"
+    ],
+    "content_contains": "Überstunden"
+   },
+   "out": 22,
+   "cmd": 24
+  },
+  "val358": {
+   "plan": {
+    "action": "show",
+    "source": "Arzt",
+    "kinds": [
+     "document"
+    ],
+    "content_contains": "Überstunden"
+   },
+   "out": 22,
+   "cmd": 24
+  },
+  "val359": {
+   "plan": {
+    "action": "show",
+    "source": "Arzt",
+    "kinds": [
+     "document"
+    ],
+    "content_contains": "Überstunden"
+   },
+   "out": 22,
+   "cmd": 25
+  },
+  "val360": {
+   "plan": {
+    "action": "show",
+    "source": "Uni",
+    "kinds": [
+     "document"
+    ],
+    "time": "jünger als 2 Wochen"
+   },
+   "out": 25,
+   "cmd": 20
+  },
+  "val361": {
+   "plan": {
+    "action": "show",
+    "source": "Uni",
+    "kinds": [
+     "document"
+    ],
+    "time": "jünger als 2 Wochen"
+   },
+   "out": 25,
+   "cmd": 25
+  },
+  "val362": {
+   "plan": {
+    "action": "show",
+    "extensions": [
+     "opus"
+    ],
+    "time": "gestern"
+   },
+   "out": 15,
+   "cmd": 19
+  },
+  "val363": {
+   "plan": {
+    "action": "show",
+    "extensions": [
+     "opus"
+    ],
+    "time": "gestern"
+   },
+   "out": 15,
+   "cmd": 20
+  },
+  "val364": {
+   "plan": {
+    "action": "show",
+    "kinds": [
+     "document"
+    ]
+   },
+   "out": 11,
+   "cmd": 17
+  },
+  "val365": {
+   "plan": {
+    "action": "show",
+    "kinds": [
+     "document"
+    ]
+   },
+   "out": 11,
+   "cmd": 18
+  },
+  "val366": {
+   "plan": {
+    "action": "show"
+   },
+   "out": 6,
+   "cmd": 14
+  },
+  "val367": {
+   "plan": {
+    "action": "show"
+   },
+   "out": 6,
+   "cmd": 17
+  },
+  "val368": {
+   "plan": {
+    "action": "show"
+   },
+   "out": 6,
+   "cmd": 15
+  },
+  "val369": {
+   "plan": {
+    "action": "organize",
+    "source": "Formulare",
+    "group_by": "type"
+   },
+   "out": 17,
+   "cmd": 25
+  },
+  "val370": {
+   "plan": {
+    "action": "organize",
+    "source": "Formulare",
+    "group_by": "type"
+   },
+   "out": 17,
+   "cmd": 22
+  },
+  "val371": {
+   "plan": {
+    "action": "organize",
+    "source": "Formulare",
+    "group_by": "type"
+   },
+   "out": 17,
+   "cmd": 32
+  },
+  "val372": {
+   "plan": {
+    "action": "show",
+    "extensions": [
+     "jpg",
+     "jpeg"
+    ],
+    "time": "Weihnachten"
+   },
+   "out": 18,
+   "cmd": 17
+  },
+  "val373": {
+   "plan": {
+    "action": "show",
+    "extensions": [
+     "jpg",
+     "jpeg"
+    ],
+    "time": "Weihnachten"
+   },
+   "out": 18,
+   "cmd": 14
+  },
+  "val374": {
+   "plan": {
+    "action": "show",
+    "extensions": [
+     "jpg",
+     "jpeg"
+    ],
+    "time": "Weihnachten"
+   },
+   "out": 18,
+   "cmd": 17
+  },
+  "val375": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 14
+  },
+  "val376": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 17
+  },
+  "val377": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 15
+  },
+  "val378": {
+   "plan": {
+    "action": "delete",
+    "source": "Rezepte",
+    "name_contains": "Bewerbung"
+   },
+   "out": 19,
+   "cmd": 22
+  },
+  "val379": {
+   "plan": {
+    "action": "delete",
+    "source": "Rezepte",
+    "name_contains": "Bewerbung"
+   },
+   "out": 19,
+   "cmd": 23
+  },
+  "val380": {
+   "plan": {
+    "action": "delete",
+    "source": "Rezepte",
+    "name_contains": "Bewerbung"
+   },
+   "out": 19,
+   "cmd": 25
+  },
+  "val381": {
+   "plan": {
+    "action": "show",
+    "kinds": [
+     "document"
+    ],
+    "name_contains": "Rom",
+    "time": "letzten 12 Monate"
+   },
+   "out": 25,
+   "cmd": 22
+  },
+  "val382": {
+   "plan": {
+    "action": "show",
+    "kinds": [
+     "document"
+    ],
+    "name_contains": "Rom",
+    "time": "letzten 12 Monate"
+   },
+   "out": 25,
+   "cmd": 28
+  },
+  "val383": {
+   "plan": {
+    "action": "show",
+    "kinds": [
+     "document"
+    ],
+    "name_contains": "Rom",
+    "time": "letzten 12 Monate"
+   },
+   "out": 25,
+   "cmd": 22
+  },
+  "val384": {
+   "plan": {
+    "action": "show",
+    "extensions": [
+     "mp3"
+    ]
+   },
+   "out": 11,
+   "cmd": 18
+  },
+  "val385": {
+   "plan": {
+    "action": "show",
+    "extensions": [
+     "mp3"
+    ]
+   },
+   "out": 11,
+   "cmd": 19
+  },
+  "val386": {
+   "plan": {
+    "action": "show",
+    "extensions": [
+     "mp3"
+    ]
+   },
+   "out": 11,
+   "cmd": 21
+  },
+  "val387": {
+   "plan": {
+    "action": "show",
+    "source": "Kontoauszüge",
+    "kinds": [
+     "document"
+    ],
+    "time": "seit 18.8."
+   },
+   "out": 28,
+   "cmd": 28
+  },
+  "val388": {
+   "plan": {
+    "action": "show",
+    "source": "Kontoauszüge",
+    "kinds": [
+     "document"
+    ],
+    "time": "seit 18.8."
+   },
+   "out": 28,
+   "cmd": 29
+  },
+  "val389": {
+   "plan": {
+    "action": "show",
+    "source": "Kontoauszüge",
+    "kinds": [
+     "document"
+    ],
+    "time": "seit 18.8."
+   },
+   "out": 28,
+   "cmd": 33
+  },
+  "val390": {
+   "plan": {
+    "action": "show",
+    "source": "Verein",
+    "name_contains": "Xiaomi",
+    "time": "letzten 6 Wochen",
+    "size": "zwischen 1 und 100 MB"
+   },
+   "out": 38,
+   "cmd": 39
+  },
+  "val391": {
+   "plan": {
+    "action": "show",
+    "source": "Verein",
+    "name_contains": "Xiaomi",
+    "time": "letzten 6 Wochen",
+    "size": "zwischen 1 und 100 MB"
+   },
+   "out": 38,
+   "cmd": 33
+  },
+  "val392": {
+   "plan": {
+    "action": "show",
+    "source": "Verein",
+    "name_contains": "Xiaomi",
+    "time": "letzten 6 Wochen",
+    "size": "zwischen 1 und 100 MB"
+   },
+   "out": 38,
+   "cmd": 36
+  },
+  "val393": {
+   "plan": {
+    "action": "show",
+    "source": "Screenshots",
+    "kinds": [
+     "image"
+    ]
+   },
+   "out": 16,
+   "cmd": 20
+  },
+  "val394": {
+   "plan": {
+    "action": "show",
+    "source": "Hörbücher",
+    "name_contains": "1und1"
+   },
+   "out": 19,
+   "cmd": 30
+  },
+  "val395": {
+   "plan": {
+    "action": "show",
+    "source": "Hörbücher",
+    "extensions": [
+     "mp3"
+    ],
+    "name_contains": "1und1"
+   },
+   "out": 24,
+   "cmd": 31
+  },
+  "val396": {
+   "plan": {
+    "action": "show",
+    "source": "Hörbücher",
+    "name_contains": "1und1"
+   },
+   "out": 19,
+   "cmd": 30
+  },
+  "val397": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 20
+  },
+  "val398": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 21
+  },
+  "val399": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 26
+  },
+  "val400": {
+   "plan": {
+    "action": "show",
+    "name_contains": "Onkel"
+   },
+   "out": 12,
+   "cmd": 20
+  },
+  "val401": {
+   "plan": {
+    "action": "show",
+    "name_contains": "Onkel"
+   },
+   "out": 12,
+   "cmd": 20
+  },
+  "val402": {
+   "plan": {
+    "action": "show",
+    "name_contains": "Onkel"
+   },
+   "out": 12,
+   "cmd": 22
+  },
+  "val403": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 19
+  },
+  "val404": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 26
+  },
+  "val405": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 21
+  },
+  "val406": {
+   "plan": {
+    "action": "show",
+    "time": "letzten 2 Tage",
+    "sort": "size",
+    "limit": 10
+   },
+   "out": 23,
+   "cmd": 22
+  },
+  "val407": {
+   "plan": {
+    "action": "show",
+    "time": "letzten 2 Tage",
+    "sort": "size",
+    "limit": 10
+   },
+   "out": 23,
+   "cmd": 29
+  },
+  "val408": {
+   "plan": {
+    "action": "show",
+    "time": "letzten 2 Tage",
+    "sort": "size",
+    "limit": 10
+   },
+   "out": 23,
+   "cmd": 25
+  },
+  "val409": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 15
+  },
+  "val410": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 17
+  },
+  "val411": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 15
+  },
+  "val412": {
+   "plan": {
+    "action": "show",
+    "source": "Movies",
+    "name_contains": "Kindergeburtstag"
+   },
+   "out": 18,
+   "cmd": 21
+  },
+  "val413": {
+   "plan": {
+    "action": "show",
+    "source": "Movies",
+    "kinds": [
+     "video"
+    ],
+    "name_contains": "Kindergeburtstag"
+   },
+   "out": 23,
+   "cmd": 27
+  },
+  "val414": {
+   "plan": {
+    "action": "ask"
+   },
+   "out": 6,
+   "cmd": 13
+  },
+  "val415": {
+   "plan": {
+    "action": "ask"
+   },
+   "out": 6,
+   "cmd": 13
+  },
+  "val416": {
+   "plan": {
+    "action": "ask"
+   },
+   "out": 6,
+   "cmd": 17
+  },
+  "val417": {
+   "plan": {
+    "action": "show",
+    "source": "Juju",
+    "extensions": [
+     "mp3"
+    ],
+    "time": "seit Ostern"
+   },
+   "out": 22,
+   "cmd": 19
+  },
+  "val418": {
+   "plan": {
+    "action": "show",
+    "source": "Juju",
+    "kinds": [
+     "audio"
+    ],
+    "time": "seit Ostern"
+   },
+   "out": 22,
+   "cmd": 17
+  },
+  "val419": {
+   "plan": {
+    "action": "show",
+    "source": "Juju",
+    "extensions": [
+     "mp3"
+    ],
+    "time": "seit Ostern"
+   },
+   "out": 22,
+   "cmd": 25
+  },
+  "val420": {
+   "plan": {
+    "action": "delete",
+    "source": "Uni",
+    "kinds": [
+     "document"
+    ],
+    "time": "jünger als 2 Wochen"
+   },
+   "out": 25,
+   "cmd": 21
+  },
+  "val421": {
+   "plan": {
+    "action": "delete",
+    "source": "Uni",
+    "kinds": [
+     "document"
+    ],
+    "time": "jünger als 2 Wochen"
+   },
+   "out": 25,
+   "cmd": 21
+  },
+  "val422": {
+   "plan": {
+    "action": "delete",
+    "source": "Uni",
+    "kinds": [
+     "document"
+    ],
+    "time": "jünger als 14 Tage"
+   },
+   "out": 26,
+   "cmd": 21
+  },
+  "val423": {
+   "plan": {
+    "action": "copy",
+    "source": "Helene Fischer",
+    "destination": "Ausweise",
+    "kinds": [
+     "audio"
+    ]
+   },
+   "out": 22,
+   "cmd": 28
+  },
+  "val424": {
+   "plan": {
+    "action": "copy",
+    "source": "Helene Fischer",
+    "destination": "Ausweise",
+    "kinds": [
+     "audio"
+    ]
+   },
+   "out": 22,
+   "cmd": 27
+  },
+  "val425": {
+   "plan": {
+    "action": "copy",
+    "source": "Helene Fischer",
+    "destination": "Ausweise",
+    "kinds": [
+     "audio"
+    ]
+   },
+   "out": 22,
+   "cmd": 24
+  },
+  "val426": {
+   "plan": {
+    "action": "show",
+    "extensions": [
+     "jpg",
+     "jpeg"
+    ],
+    "time": "zwischen 12.9. und 24.10."
+   },
+   "out": 30,
+   "cmd": 32
+  },
+  "val427": {
+   "plan": {
+    "action": "show",
+    "extensions": [
+     "jpg",
+     "jpeg"
+    ],
+    "time": "zwischen 12.9. und 24.10."
+   },
+   "out": 30,
+   "cmd": 30
+  },
+  "val428": {
+   "plan": {
+    "action": "show",
+    "extensions": [
+     "jpg",
+     "jpeg"
+    ],
+    "time": "zwischen 12.9. und 24.10."
+   },
+   "out": 30,
+   "cmd": 39
+  },
+  "val429": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 17
+  },
+  "val430": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 19
+  },
+  "val431": {
+   "plan": {
+    "action": "delete",
+    "source": "WhatsApp Audio",
+    "kinds": [
+     "audio"
+    ]
+   },
+   "out": 16,
+   "cmd": 17
+  },
+  "val432": {
+   "plan": {
+    "action": "delete",
+    "source": "WhatsApp Audio",
+    "kinds": [
+     "audio"
+    ]
+   },
+   "out": 16,
+   "cmd": 22
+  },
+  "val433": {
+   "plan": {
+    "action": "delete",
+    "source": "WhatsApp Audio",
+    "kinds": [
+     "audio"
+    ]
+   },
+   "out": 16,
+   "cmd": 19
+  },
+  "val434": {
+   "plan": {
+    "action": "show"
+   },
+   "out": 6,
+   "cmd": 16
+  },
+  "val435": {
+   "plan": {
+    "action": "show"
+   },
+   "out": 6,
+   "cmd": 13
+  },
+  "val436": {
+   "plan": {
+    "action": "move",
+    "source": "Aufnahmen",
+    "destination": "Downloads",
+    "kinds": [
+     "audio"
+    ]
+   },
+   "out": 20,
+   "cmd": 22
+  },
+  "val437": {
+   "plan": {
+    "action": "move",
+    "source": "Aufnahmen",
+    "destination": "Downloads",
+    "kinds": [
+     "audio"
+    ]
+   },
+   "out": 20,
+   "cmd": 26
+  },
+  "val438": {
+   "plan": {
+    "action": "move",
+    "source": "Aufnahmen",
+    "destination": "Download",
+    "kinds": [
+     "audio"
+    ]
+   },
+   "out": 20,
+   "cmd": 31
+  },
+  "val439": {
+   "plan": {
+    "action": "show",
+    "extensions": [
+     "pdf"
+    ]
+   },
+   "out": 10,
+   "cmd": 17
+  },
+  "val440": {
+   "plan": {
+    "action": "show",
+    "extensions": [
+     "pdf"
+    ]
+   },
+   "out": 10,
+   "cmd": 19
+  },
+  "val441": {
+   "plan": {
+    "action": "show",
+    "extensions": [
+     "pdf"
+    ]
+   },
+   "out": 10,
+   "cmd": 18
+  },
+  "val442": {
+   "plan": {
+    "action": "ask"
+   },
+   "out": 6,
+   "cmd": 19
+  },
+  "val443": {
+   "plan": {
+    "action": "ask"
+   },
+   "out": 6,
+   "cmd": 23
+  },
+  "val444": {
+   "plan": {
+    "action": "ask"
+   },
+   "out": 6,
+   "cmd": 25
+  },
+  "val445": {
+   "plan": {
+    "action": "move",
+    "source": "Reisen",
+    "destination": "Aussortiert",
+    "name_contains": "Anna"
+   },
+   "out": 23,
+   "cmd": 26
+  },
+  "val446": {
+   "plan": {
+    "action": "move",
+    "source": "Reisen",
+    "destination": "Aussortiert",
+    "name_contains": "Anna"
+   },
+   "out": 23,
+   "cmd": 26
+  },
+  "val447": {
+   "plan": {
+    "action": "show",
+    "source": "WhatsApp Video",
+    "extensions": [
+     "mp4"
+    ]
+   },
+   "out": 16,
+   "cmd": 22
+  },
+  "val448": {
+   "plan": {
+    "action": "show",
+    "source": "WhatsApp Video",
+    "extensions": [
+     "mp4"
+    ]
+   },
+   "out": 16,
+   "cmd": 19
+  },
+  "val449": {
+   "plan": {
+    "action": "show",
+    "source": "WhatsApp Video",
+    "extensions": [
+     "mp4"
+    ]
+   },
+   "out": 16,
+   "cmd": 23
+  },
+  "val450": {
+   "plan": {
+    "action": "move",
+    "source": "Familie",
+    "destination": "Filme",
+    "name_contains": "Max",
+    "content_contains": "Foto"
+   },
+   "out": 26,
+   "cmd": 20
+  },
+  "val451": {
+   "plan": {
+    "action": "move",
+    "source": "Familie",
+    "destination": "Filme",
+    "kinds": [
+     "image"
+    ],
+    "sort": "size",
+    "limit": 1
+   },
+   "out": 29,
+   "cmd": 23
+  },
+  "val452": {
+   "plan": {
+    "action": "move",
+    "source": "Familie",
+    "destination": "Filme",
+    "name_contains": "Max"
+   },
+   "out": 21,
+   "cmd": 21
+  },
+  "val453": {
+   "plan": {
+    "action": "show",
+    "kinds": [
+     "audio"
+    ],
+    "time": "Ostern"
+   },
+   "out": 17,
+   "cmd": 17
+  },
+  "val454": {
+   "plan": {
+    "action": "show",
+    "kinds": [
+     "audio"
+    ],
+    "time": "Ostern"
+   },
+   "out": 17,
+   "cmd": 20
+  },
+  "val455": {
+   "plan": {
+    "action": "show",
+    "kinds": [
+     "audio"
+    ],
+    "time": "Ostern"
+   },
+   "out": 17,
+   "cmd": 19
+  },
+  "val456": {
+   "plan": {
+    "action": "move",
+    "source": "Juju",
+    "destination": "Wincent Weiss",
+    "kinds": [
+     "audio"
+    ]
+   },
+   "out": 22,
+   "cmd": 25
+  },
+  "val457": {
+   "plan": {
+    "action": "move",
+    "source": "Juju",
+    "destination": "Wincent Weiss",
+    "kinds": [
+     "audio"
+    ]
+   },
+   "out": 22,
+   "cmd": 25
+  },
+  "val458": {
+   "plan": {
+    "action": "move",
+    "source": "Juju",
+    "destination": "Wincent Weiss",
+    "kinds": [
+     "audio"
+    ]
+   },
+   "out": 22,
+   "cmd": 27
+  },
+  "val459": {
+   "plan": {
+    "action": "move",
+    "source": "WhatsApp Audio",
+    "destination": "Downloads",
+    "kinds": [
+     "audio"
+    ]
+   },
+   "out": 20,
+   "cmd": 22
+  },
+  "val460": {
+   "plan": {
+    "action": "copy",
+    "source": "WhatsApp Voice Notes",
+    "destination": "Downloads",
+    "extensions": [
+     "opus"
+    ]
+   },
+   "out": 20,
+   "cmd": 25
+  },
+  "val461": {
+   "plan": {
+    "action": "move",
+    "source": "WhatsApp Audio",
+    "destination": "Download",
+    "kinds": [
+     "audio"
+    ]
+   },
+   "out": 20,
+   "cmd": 25
+  },
+  "val462": {
+   "plan": {
+    "action": "show",
+    "kinds": [
+     "image"
+    ],
+    "name_contains": "Allgäu",
+    "exclude": [
+     "pdf"
+    ],
+    "sort": "size",
+    "limit": 5
+   },
+   "out": 30,
+   "cmd": 24
+  },
+  "val463": {
+   "plan": {
+    "action": "show",
+    "source": "Allgäu",
+    "kinds": [
+     "image"
+    ],
+    "exclude": [
+     "pdf"
+    ],
+    "sort": "size",
+    "limit": 5
+   },
+   "out": 29,
+   "cmd": 24
+  },
+  "val464": {
+   "plan": {
+    "action": "show",
+    "extensions": [
+     "mp3"
+    ]
+   },
+   "out": 11,
+   "cmd": 21
+  },
+  "val465": {
+   "plan": {
+    "action": "show",
+    "extensions": [
+     "mp3"
+    ]
+   },
+   "out": 11,
+   "cmd": 19
+  },
+  "val466": {
+   "plan": {
+    "action": "show",
+    "extensions": [
+     "mp3"
+    ]
+   },
+   "out": 11,
+   "cmd": 21
+  },
+  "val467": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 16
+  },
+  "val468": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 17
+  },
+  "val469": {
+   "plan": {
+    "action": "show",
+    "source": "Gesundheit",
+    "kinds": [
+     "document"
+    ],
+    "content_contains": "Überstunden",
+    "time": "letzten 6 Monate"
+   },
+   "out": 30,
+   "cmd": 24
+  },
+  "val470": {
+   "plan": {
+    "action": "show",
+    "source": "Gesundheit",
+    "kinds": [
+     "document"
+    ],
+    "content_contains": "Überstunden",
+    "time": "letzten 6 Monate"
+   },
+   "out": 30,
+   "cmd": 27
+  },
+  "val471": {
+   "plan": {
+    "action": "show",
+    "source": "Gesundheit",
+    "kinds": [
+     "document"
+    ],
+    "name_contains": "Überstunden",
+    "time": "letzten 6 Monate"
+   },
+   "out": 30,
+   "cmd": 25
+  },
+  "val472": {
+   "plan": {
+    "action": "show",
+    "extensions": [
+     "mp3"
+    ],
+    "time": "seit Ostern"
+   },
+   "out": 17,
+   "cmd": 19
+  },
+  "val473": {
+   "plan": {
+    "action": "show",
+    "extensions": [
+     "mp3"
+    ],
+    "time": "seit Ostern"
+   },
+   "out": 17,
+   "cmd": 17
+  },
+  "val474": {
+   "plan": {
+    "action": "show",
+    "extensions": [
+     "mp3"
+    ],
+    "time": "seit Ostern"
+   },
+   "out": 17,
+   "cmd": 22
+  },
+  "val475": {
+   "plan": {
+    "action": "ask"
+   },
+   "out": 6,
+   "cmd": 21
+  },
+  "val476": {
+   "plan": {
+    "action": "ask"
+   },
+   "out": 6,
+   "cmd": 19
+  },
+  "val477": {
+   "plan": {
+    "action": "ask"
+   },
+   "out": 6,
+   "cmd": 23
+  },
+  "val478": {
+   "plan": {
+    "action": "show",
+    "kinds": [
+     "image"
+    ],
+    "time": "Weihnachten"
+   },
+   "out": 17,
+   "cmd": 18
+  },
+  "val479": {
+   "plan": {
+    "action": "show",
+    "kinds": [
+     "image"
+    ],
+    "name_contains": "Weihnachten"
+   },
+   "out": 18,
+   "cmd": 16
+  },
+  "val480": {
+   "plan": {
+    "action": "show",
+    "kinds": [
+     "image"
+    ],
+    "time": "Weihnachten"
+   },
+   "out": 17,
+   "cmd": 23
+  },
+  "val481": {
+   "plan": {
+    "action": "show",
+    "source": "WhatsApp Audio",
+    "extensions": [
+     "opus"
+    ]
+   },
+   "out": 15,
+   "cmd": 17
+  },
+  "val482": {
+   "plan": {
+    "action": "show",
+    "source": "WhatsApp Audio",
+    "extensions": [
+     "opus"
+    ]
+   },
+   "out": 15,
+   "cmd": 19
+  },
+  "val483": {
+   "plan": {
+    "action": "show",
+    "source": "WhatsApp Audio",
+    "extensions": [
+     "opus"
+    ]
+   },
+   "out": 15,
+   "cmd": 18
+  },
+  "val484": {
+   "plan": {
+    "action": "move",
+    "source": "Projekte",
+    "destination": "Screenshots",
+    "extensions": [
+     "pdf"
+    ],
+    "name_contains": "Harz",
+    "exclude": [
+     "jpg"
+    ]
+   },
+   "out": 30,
+   "cmd": 31
+  },
+  "val485": {
+   "plan": {
+    "action": "move",
+    "source": "Projekte",
+    "destination": "Screenshots",
+    "extensions": [
+     "pdf"
+    ],
+    "name_contains": "Harz",
+    "exclude": [
+     "jpg"
+    ]
+   },
+   "out": 30,
+   "cmd": 33
+  },
+  "val486": {
+   "plan": {
+    "action": "move",
+    "source": "Projekte",
+    "destination": "Screenshots",
+    "extensions": [
+     "pdf"
+    ],
+    "name_contains": "Harz",
+    "exclude": [
+     "jpg"
+    ]
+   },
+   "out": 30,
+   "cmd": 32
+  },
+  "val487": {
+   "plan": {
+    "action": "delete",
+    "source": "Udo Lindenberg",
+    "kinds": [
+     "audio"
+    ]
+   },
+   "out": 18,
+   "cmd": 19
+  },
+  "val488": {
+   "plan": {
+    "action": "delete",
+    "source": "Udo Lindenberg",
+    "kinds": [
+     "audio"
+    ]
+   },
+   "out": 18,
+   "cmd": 19
+  },
+  "val489": {
+   "plan": {
+    "action": "delete",
+    "source": "Udo Lindenberg",
+    "kinds": [
+     "audio"
+    ]
+   },
+   "out": 18,
+   "cmd": 22
+  },
+  "val490": {
+   "plan": {
+    "action": "show",
+    "source": "WhatsApp Audio",
+    "extensions": [
+     "opus"
+    ]
+   },
+   "out": 15,
+   "cmd": 19
+  },
+  "val491": {
+   "plan": {
+    "action": "show",
+    "source": "WhatsApp Audio",
+    "extensions": [
+     "opus"
+    ]
+   },
+   "out": 15,
+   "cmd": 18
+  },
+  "val492": {
+   "plan": {
+    "action": "show",
+    "source": "WhatsApp Audio",
+    "extensions": [
+     "opus"
+    ]
+   },
+   "out": 15,
+   "cmd": 20
+  },
+  "val493": {
+   "plan": {
+    "action": "move",
+    "source": "Projekte",
+    "destination": "Screenshots",
+    "extensions": [
+     "pdf"
+    ],
+    "name_contains": "Harz",
+    "exclude": [
+     "jpg"
+    ]
+   },
+   "out": 30,
+   "cmd": 32
+  },
+  "val494": {
+   "plan": {
+    "action": "show",
+    "source": "Urlaub",
+    "extensions": [
+     "jpg",
+     "jpeg"
+    ],
+    "time": "neulich"
+   },
+   "out": 22,
+   "cmd": 31
+  },
+  "val495": {
+   "plan": {
+    "action": "show",
+    "source": "Urlaub",
+    "extensions": [
+     "jpg",
+     "jpeg"
+    ],
+    "time": "neulich"
+   },
+   "out": 22,
+   "cmd": 27
+  },
+  "val496": {
+   "plan": {
+    "action": "show",
+    "source": "Urlaub",
+    "extensions": [
+     "jpg",
+     "jpeg"
+    ],
+    "time": "neulich"
+   },
+   "out": 22,
+   "cmd": 23
+  },
+  "val497": {
+   "plan": {
+    "action": "show",
+    "source": "Urlaub",
+    "extensions": [
+     "jpg",
+     "jpeg"
+    ],
+    "time": "neulich"
+   },
+   "out": 22,
+   "cmd": 27
+  },
+  "val498": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 20
+  },
+  "val499": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 18
+  },
+  "val500": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 24
+  },
+  "val501": {
+   "plan": {
+    "action": "show",
+    "kinds": [
+     "video"
+    ],
+    "sort": "smallest",
+    "limit": 5
+   },
+   "out": 20,
+   "cmd": 17
+  },
+  "val502": {
+   "plan": {
+    "action": "show",
+    "kinds": [
+     "video"
+    ],
+    "sort": "smallest",
+    "limit": 5
+   },
+   "out": 20,
+   "cmd": 21
+  },
+  "val503": {
+   "plan": {
+    "action": "show",
+    "kinds": [
+     "video"
+    ],
+    "sort": "smallest",
+    "limit": 5
+   },
+   "out": 20,
+   "cmd": 18
+  },
+  "val504": {
+   "plan": {
+    "action": "show",
+    "extensions": [
+     "png"
+    ],
+    "exclude": [
+     "jpg"
+    ],
+    "time": "letzten 6 Wochen"
+   },
+   "out": 22,
+   "cmd": 25
+  },
+  "val505": {
+   "plan": {
+    "action": "show",
+    "extensions": [
+     "png"
+    ],
+    "exclude": [
+     "jpg"
+    ],
+    "time": "letzten 6 Wochen"
+   },
+   "out": 22,
+   "cmd": 22
+  },
+  "val506": {
+   "plan": {
+    "action": "show",
+    "extensions": [
+     "png"
+    ],
+    "exclude": [
+     "jpg"
+    ],
+    "time": "6 Wochen"
+   },
+   "out": 19,
+   "cmd": 19
+  },
+  "val507": {
+   "plan": {
+    "action": "show"
+   },
+   "out": 6,
+   "cmd": 18
+  },
+  "val508": {
+   "plan": {
+    "action": "show"
+   },
+   "out": 6,
+   "cmd": 23
+  },
+  "val509": {
+   "plan": {
+    "action": "show"
+   },
+   "out": 6,
+   "cmd": 17
+  },
+  "val510": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 19
+  },
+  "val511": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 19
+  },
+  "val512": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 19
+  },
+  "val513": {
+   "plan": {
+    "action": "show",
+    "sort": "size"
+   },
+   "out": 10,
+   "cmd": 18
+  },
+  "val514": {
+   "plan": {
+    "action": "show",
+    "sort": "size"
+   },
+   "out": 10,
+   "cmd": 22
+  },
+  "val515": {
+   "plan": {
+    "action": "show",
+    "sort": "size"
+   },
+   "out": 10,
+   "cmd": 24
+  },
+  "val516": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 25
+  },
+  "val517": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 26
+  },
+  "val518": {
+   "plan": {
+    "action": "organize",
+    "source": "Verträge",
+    "group_by": "month"
+   },
+   "out": 17,
+   "cmd": 30
+  },
+  "val519": {
+   "plan": {
+    "action": "organize",
+    "source": "Verträge",
+    "group_by": "month"
+   },
+   "out": 17,
+   "cmd": 29
+  },
+  "val520": {
+   "plan": {
+    "action": "organize",
+    "source": "Verträge",
+    "group_by": "month"
+   },
+   "out": 17,
+   "cmd": 29
+  },
+  "val521": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 16
+  },
+  "val522": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 16
+  },
+  "val523": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 19
+  },
+  "val524": {
+   "plan": {
+    "action": "organize",
+    "source": "Screenshots",
+    "group_by": "type"
+   },
+   "out": 17,
+   "cmd": 25
+  },
+  "val525": {
+   "plan": {
+    "action": "organize",
+    "source": "Screenshots",
+    "group_by": "type"
+   },
+   "out": 17,
+   "cmd": 31
+  },
+  "val526": {
+   "plan": {
+    "action": "organize",
+    "source": "Screenshots",
+    "group_by": "type"
+   },
+   "out": 17,
+   "cmd": 27
+  },
+  "val527": {
+   "plan": {
+    "action": "organize",
+    "source": "Tim Bendzko",
+    "group_by": "type"
+   },
+   "out": 19,
+   "cmd": 28
+  },
+  "val528": {
+   "plan": {
+    "action": "organize",
+    "source": "Tim Bendzko",
+    "group_by": "type"
+   },
+   "out": 19,
+   "cmd": 28
+  },
+  "val529": {
+   "plan": {
+    "action": "organize",
+    "source": "Tim Bendzko",
+    "group_by": "type"
+   },
+   "out": 19,
+   "cmd": 31
+  },
+  "val530": {
+   "plan": {
+    "action": "organize",
+    "source": "Zeugnisse",
+    "group_by": "month"
+   },
+   "out": 18,
+   "cmd": 17
+  },
+  "val531": {
+   "plan": {
+    "action": "organize",
+    "source": "Zeugnisse",
+    "group_by": "month"
+   },
+   "out": 18,
+   "cmd": 18
+  },
+  "val532": {
+   "plan": {
+    "action": "organize",
+    "source": "Zeugnisse",
+    "group_by": "month"
+   },
+   "out": 18,
+   "cmd": 19
+  },
+  "val533": {
+   "plan": {
+    "action": "organize",
+    "source": "Aufnahmen"
+   },
+   "out": 12,
+   "cmd": 19
+  },
+  "val534": {
+   "plan": {
+    "action": "organize",
+    "source": "Aufnahmen"
+   },
+   "out": 12,
+   "cmd": 22
+  },
+  "val535": {
+   "plan": {
+    "action": "organize",
+    "source": "Aufnahmen"
+   },
+   "out": 12,
+   "cmd": 22
+  },
+  "val536": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 18
+  },
+  "val537": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 24
+  },
+  "val538": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 20
+  },
+  "val539": {
+   "plan": {
+    "action": "show",
+    "sort": "size"
+   },
+   "out": 10,
+   "cmd": 19
+  },
+  "val540": {
+   "plan": {
+    "action": "show",
+    "sort": "size"
+   },
+   "out": 10,
+   "cmd": 23
+  },
+  "val541": {
+   "plan": {
+    "action": "show",
+    "sort": "size"
+   },
+   "out": 10,
+   "cmd": 22
+  },
+  "val542": {
+   "plan": {
+    "action": "organize",
+    "source": "Verein",
+    "group_by": "type"
+   },
+   "out": 17,
+   "cmd": 24
+  },
+  "val543": {
+   "plan": {
+    "action": "organize",
+    "source": "Verein",
+    "group_by": "type"
+   },
+   "out": 17,
+   "cmd": 28
+  },
+  "val544": {
+   "plan": {
+    "action": "organize",
+    "source": "Verein",
+    "group_by": "type"
+   },
+   "out": 17,
+   "cmd": 31
+  },
+  "val545": {
+   "plan": {
+    "action": "organize",
+    "source": "Kita"
+   },
+   "out": 11,
+   "cmd": 26
+  },
+  "val546": {
+   "plan": {
+    "action": "organize",
+    "source": "Kita"
+   },
+   "out": 11,
+   "cmd": 28
+  },
+  "val547": {
+   "plan": {
+    "action": "organize",
+    "source": "Kita"
+   },
+   "out": 11,
+   "cmd": 24
+  },
+  "val548": {
+   "plan": {
+    "action": "organize",
+    "source": "Uni"
+   },
+   "out": 11,
+   "cmd": 24
+  },
+  "val549": {
+   "plan": {
+    "action": "organize",
+    "source": "Uni"
+   },
+   "out": 11,
+   "cmd": 24
+  },
+  "val550": {
+   "plan": {
+    "action": "organize",
+    "source": "Uni"
+   },
+   "out": 11,
+   "cmd": 25
+  },
+  "val551": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 18
+  },
+  "val552": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 19
+  },
+  "val553": {
+   "plan": {
+    "action": "organize",
+    "source": "Movies",
+    "group_by": "month"
+   },
+   "out": 16,
+   "cmd": 21
+  },
+  "val554": {
+   "plan": {
+    "action": "organize",
+    "source": "Movies",
+    "group_by": "month"
+   },
+   "out": 16,
+   "cmd": 21
+  },
+  "val555": {
+   "plan": {
+    "action": "organize",
+    "source": "Movies",
+    "group_by": "month"
+   },
+   "out": 16,
+   "cmd": 21
+  },
+  "val556": {
+   "plan": {
+    "action": "show",
+    "kinds": [
+     "image"
+    ]
+   },
+   "out": 11,
+   "cmd": 19
+  },
+  "val557": {
+   "plan": {
+    "action": "show",
+    "kinds": [
+     "image"
+    ]
+   },
+   "out": 11,
+   "cmd": 16
+  },
+  "val558": {
+   "plan": {
+    "action": "show",
+    "kinds": [
+     "image"
+    ]
+   },
+   "out": 11,
+   "cmd": 18
+  },
+  "val559": {
+   "plan": {
+    "action": "organize",
+    "source": "Revolverheld",
+    "group_by": "month"
+   },
+   "out": 18,
+   "cmd": 29
+  },
+  "val560": {
+   "plan": {
+    "action": "organize",
+    "source": "Revolverheld",
+    "group_by": "month"
+   },
+   "out": 18,
+   "cmd": 30
+  },
+  "val561": {
+   "plan": {
+    "action": "organize",
+    "source": "Revolverheld",
+    "group_by": "month"
+   },
+   "out": 18,
+   "cmd": 35
+  },
+  "val562": {
+   "plan": {
+    "action": "show",
+    "sort": "size"
+   },
+   "out": 10,
+   "cmd": 24
+  },
+  "val563": {
+   "plan": {
+    "action": "show",
+    "sort": "size"
+   },
+   "out": 10,
+   "cmd": 25
+  },
+  "val564": {
+   "plan": {
+    "action": "show",
+    "sort": "size"
+   },
+   "out": 10,
+   "cmd": 23
+  },
+  "val565": {
+   "plan": {
+    "action": "show",
+    "sort": "size"
+   },
+   "out": 10,
+   "cmd": 18
+  },
+  "val566": {
+   "plan": {
+    "action": "show",
+    "sort": "size"
+   },
+   "out": 10,
+   "cmd": 18
+  },
+  "val567": {
+   "plan": {
+    "action": "show",
+    "sort": "size"
+   },
+   "out": 10,
+   "cmd": 18
+  },
+  "val568": {
+   "plan": {
+    "action": "organize",
+    "source": "Garten",
+    "group_by": "month"
+   },
+   "out": 17,
+   "cmd": 26
+  },
+  "val569": {
+   "plan": {
+    "action": "organize",
+    "source": "Garten",
+    "group_by": "month"
+   },
+   "out": 17,
+   "cmd": 26
+  },
+  "val570": {
+   "plan": {
+    "action": "organize",
+    "source": "Garten",
+    "group_by": "month"
+   },
+   "out": 17,
+   "cmd": 26
+  },
+  "val571": {
+   "plan": {
+    "action": "organize",
+    "source": "Hörbücher"
+   },
+   "out": 13,
+   "cmd": 22
+  },
+  "val572": {
+   "plan": {
+    "action": "organize",
+    "source": "Hörbücher"
+   },
+   "out": 13,
+   "cmd": 21
+  },
+  "val573": {
+   "plan": {
+    "action": "show"
+   },
+   "out": 6,
+   "cmd": 16
+  },
+  "val574": {
+   "plan": {
+    "action": "show"
+   },
+   "out": 6,
+   "cmd": 18
+  },
+  "val575": {
+   "plan": {
+    "action": "show"
+   },
+   "out": 6,
+   "cmd": 19
+  },
+  "val576": {
+   "plan": {
+    "action": "organize",
+    "source": "WhatsApp Audio"
+   },
+   "out": 12,
+   "cmd": 26
+  },
+  "val577": {
+   "plan": {
+    "action": "organize",
+    "source": "WhatsApp Audio"
+   },
+   "out": 12,
+   "cmd": 26
+  },
+  "val578": {
+   "plan": {
+    "action": "organize",
+    "source": "WhatsApp Audio"
+   },
+   "out": 12,
+   "cmd": 22
+  },
+  "val579": {
+   "plan": {
+    "action": "organize",
+    "source": "Auto"
+   },
+   "out": 11,
+   "cmd": 19
+  },
+  "val580": {
+   "plan": {
+    "action": "organize",
+    "source": "Auto"
+   },
+   "out": 11,
+   "cmd": 18
+  },
+  "val581": {
+   "plan": {
+    "action": "organize",
+    "source": "Auto"
+   },
+   "out": 11,
+   "cmd": 18
+  },
+  "val582": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 21
+  },
+  "val583": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 18
+  },
+  "val584": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 16
+  },
+  "val585": {
+   "plan": {
+    "action": "organize",
+    "source": "Auto"
+   },
+   "out": 11,
+   "cmd": 17
+  },
+  "val586": {
+   "plan": {
+    "action": "organize",
+    "source": "Auto"
+   },
+   "out": 11,
+   "cmd": 16
+  },
+  "val587": {
+   "plan": {
+    "action": "organize",
+    "source": "Auto"
+   },
+   "out": 11,
+   "cmd": 18
+  },
+  "val588": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 20
+  },
+  "val589": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 25
+  },
+  "val590": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 20
+  },
+  "val591": {
+   "plan": {
+    "action": "show",
+    "source": "Downloads",
+    "extensions": [
+     "pdf"
+    ],
+    "content_contains": "Überstunden"
+   },
+   "out": 20,
+   "cmd": 25
+  },
+  "val592": {
+   "plan": {
+    "action": "show",
+    "source": "Downloads",
+    "extensions": [
+     "pdf"
+    ],
+    "content_contains": "Überstunden"
+   },
+   "out": 20,
+   "cmd": 26
+  },
+  "val593": {
+   "plan": {
+    "action": "show",
+    "source": "Downloads",
+    "extensions": [
+     "pdf"
+    ],
+    "content_contains": "Überstunden"
+   },
+   "out": 20,
+   "cmd": 27
+  },
+  "val594": {
+   "plan": {
+    "action": "show",
+    "source": "Belege",
+    "content_contains": "Kaution",
+    "time": "älter als 3 Tage"
+   },
+   "out": 25,
+   "cmd": 35
+  },
+  "val595": {
+   "plan": {
+    "action": "show",
+    "source": "Belege",
+    "content_contains": "Kaution",
+    "time": "älter als 3 Tage"
+   },
+   "out": 25,
+   "cmd": 36
+  },
+  "val596": {
+   "plan": {
+    "action": "show",
+    "source": "Belege",
+    "content_contains": "Kaution",
+    "time": "älter als 3 Tage"
+   },
+   "out": 25,
+   "cmd": 34
+  },
+  "val597": {
+   "plan": {
+    "action": "show",
+    "kinds": [
+     "document"
+    ],
+    "content_contains": "Ratenzahlung"
+   },
+   "out": 18,
+   "cmd": 22
+  },
+  "val598": {
+   "plan": {
+    "action": "show",
+    "kinds": [
+     "document"
+    ],
+    "content_contains": "Ratenzahlung"
+   },
+   "out": 18,
+   "cmd": 22
+  },
+  "val599": {
+   "plan": {
+    "action": "show",
+    "content_contains": "Ratenzahlung"
+   },
+   "out": 13,
+   "cmd": 24
+  },
+  "val600": {
+   "plan": {
+    "action": "copy",
+    "source": "Download",
+    "destination": "Favoriten",
+    "name_contains": "TÜV Papa",
+    "time": "letztes Jahr"
+   },
+   "out": 30,
+   "cmd": 34
+  },
+  "val601": {
+   "plan": {
+    "action": "copy",
+    "source": "Download",
+    "destination": "Favoriten",
+    "name_contains": "TÜV Papa",
+    "time": "letztes Jahr"
+   },
+   "out": 30,
+   "cmd": 38
+  },
+  "val602": {
+   "plan": {
+    "action": "copy",
+    "source": "Download",
+    "destination": "Favoriten",
+    "name_contains": "TÜV Papa",
+    "time": "letztes Jahr"
+   },
+   "out": 30,
+   "cmd": 37
+  },
+  "val603": {
+   "plan": {
+    "action": "show",
+    "source": "Download",
+    "kinds": [
+     "document"
+    ],
+    "name_contains": "Bedienungsanleitung Papa",
+    "sort": "size",
+    "limit": 5
+   },
+   "out": 32,
+   "cmd": 27
+  },
+  "val604": {
+   "plan": {
+    "action": "show",
+    "source": "Download",
+    "kinds": [
+     "document"
+    ],
+    "name_contains": "Bedienungsanleitung Papa",
+    "sort": "size",
+    "limit": 5
+   },
+   "out": 32,
+   "cmd": 37
+  },
+  "val605": {
+   "plan": {
+    "action": "show",
+    "source": "Download",
+    "kinds": [
+     "document"
+    ],
+    "name_contains": "Bedienungsanleitung Papa",
+    "sort": "size",
+    "limit": 5
+   },
+   "out": 32,
+   "cmd": 28
+  },
+  "val606": {
+   "plan": {
+    "action": "show",
+    "content_contains": "Impfung",
+    "time": "neulich"
+   },
+   "out": 17,
+   "cmd": 24
+  },
+  "val607": {
+   "plan": {
+    "action": "show",
+    "content_contains": "Impfung",
+    "time": "neulich"
+   },
+   "out": 17,
+   "cmd": 21
+  },
+  "val608": {
+   "plan": {
+    "action": "show",
+    "content_contains": "Impfung",
+    "time": "neulich"
+   },
+   "out": 17,
+   "cmd": 22
+  },
+  "val609": {
+   "plan": {
+    "action": "delete",
+    "source": "Download",
+    "name_contains": "Hotelbuchung Edeka",
+    "exclude": [
+     "png"
+    ]
+   },
+   "out": 23,
+   "cmd": 28
+  },
+  "val610": {
+   "plan": {
+    "action": "delete",
+    "source": "Download",
+    "name_contains": "Hotelbuchung Edeka",
+    "exclude": [
+     "png"
+    ]
+   },
+   "out": 23,
+   "cmd": 29
+  },
+  "val611": {
+   "plan": {
+    "action": "show",
+    "extensions": [
+     "docx",
+     "doc",
+     "odt"
+    ],
+    "content_contains": "Selbstbeteiligung",
+    "time": "diesen Monat",
+    "sort": "newest",
+    "limit": 1
+   },
+   "out": 39,
+   "cmd": 28
+  },
+  "val612": {
+   "plan": {
+    "action": "show",
+    "extensions": [
+     "docx",
+     "doc",
+     "odt"
+    ],
+    "content_contains": "Selbstbeteiligung",
+    "time": "diesen Monat",
+    "sort": "newest",
+    "limit": 1
+   },
+   "out": 39,
+   "cmd": 28
+  },
+  "val613": {
+   "plan": {
+    "action": "show",
+    "extensions": [
+     "docx",
+     "doc",
+     "odt"
+    ],
+    "content_contains": "Selbstbeteiligung",
+    "time": "diesen Monat",
+    "sort": "newest",
+    "limit": 1
+   },
+   "out": 39,
+   "cmd": 30
+  },
+  "val614": {
+   "plan": {
+    "action": "delete",
+    "source": "Download",
+    "name_contains": "Angebot Ben"
+   },
+   "out": 18,
+   "cmd": 15
+  },
+  "val615": {
+   "plan": {
+    "action": "delete",
+    "source": "Download",
+    "name_contains": "Angebot Ben"
+   },
+   "out": 18,
+   "cmd": 18
+  },
+  "val616": {
+   "plan": {
+    "action": "delete",
+    "source": "Download",
+    "name_contains": "Angebot Ben"
+   },
+   "out": 18,
+   "cmd": 22
+  },
+  "val617": {
+   "plan": {
+    "action": "show",
+    "content_contains": "Impfung",
+    "time": "neulich"
+   },
+   "out": 17,
+   "cmd": 24
+  },
+  "val618": {
+   "plan": {
+    "action": "show",
+    "name_contains": "Zeugnis",
+    "content_contains": "Impfung",
+    "time": "neulich"
+   },
+   "out": 24,
+   "cmd": 26
+  },
+  "val619": {
+   "plan": {
+    "action": "show",
+    "content_contains": "Impfung",
+    "time": "neulich"
+   },
+   "out": 17,
+   "cmd": 22
+  }
+ },
+ "seconds": 200.21593308448792
+}
