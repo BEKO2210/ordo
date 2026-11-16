@@ -21,8 +21,9 @@ import com.google.android.material.color.MaterialColors
 import me.zhanghai.android.files.ui.Motion
 import me.zhanghai.android.files.ui.onFirstSight
 import me.zhanghai.android.files.util.getColorByAttr
+import kotlin.math.min
 
-/** A tiny Ordo home screen that previews a color without adding another accessibility target. */
+/** An Ordo home screen miniature that previews a color without adding another accessibility target. */
 class ColorPreviewView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
@@ -125,72 +126,89 @@ class ColorPreviewView @JvmOverloads constructor(
         super.onDraw(canvas)
         if (width == 0 || height == 0) return
 
-        val inset = 5f * density
+        val availableWidth = width - paddingLeft - paddingRight
+        val availableHeight = height - paddingTop - paddingBottom
+        val scale = min(
+            availableWidth / (PREVIEW_WIDTH_DP * density),
+            availableHeight / (PREVIEW_HEIGHT_DP * density)
+        )
+        if (scale <= 0f) return
+        fun scaled(dp: Float) = dp * density * scale
+
+        val inset = scaled(6f)
         val left = paddingLeft + inset
         val right = width - paddingRight - inset
-        val top = paddingTop + 3f * density
-        val bottom = height - paddingBottom - 3f * density
+        val top = paddingTop + scaled(4f)
+        val bottom = height - paddingBottom - scaled(4f)
         if (right <= left || bottom <= top) return
 
         box.set(left, top, right, bottom)
         paint.color = surface
-        canvas.drawRoundRect(box, 18f * density, 18f * density, paint)
+        canvas.drawRoundRect(box, scaled(20f), scaled(20f), paint)
 
-        val contentLeft = left + 7f * density
-        val contentRight = right - 7f * density
+        val contentLeft = left + scaled(10f)
+        val contentRight = right - scaled(10f)
         val isRtl = layoutDirection == LAYOUT_DIRECTION_RTL
-        val searchTop = top + 4f * density
-        box.set(contentLeft, searchTop, contentRight, searchTop + 10f * density)
+        val searchTop = top + scaled(5f)
+        box.set(contentLeft, searchTop, contentRight, searchTop + scaled(13f))
         paint.color = raisedSurface
-        canvas.drawRoundRect(box, 5f * density, 5f * density, paint)
+        canvas.drawRoundRect(box, scaled(6.5f), scaled(6.5f), paint)
         paint.color = onSurfaceVariant
         paint.alpha = 105
-        val searchIconX = if (isRtl) contentRight - 7f * density else contentLeft + 7f * density
-        canvas.drawCircle(searchIconX, searchTop + 5f * density, 1.7f * density, paint)
-        val searchTextLeft = if (isRtl) contentLeft + 16f * density else contentLeft + 11f * density
-        val searchTextRight = if (isRtl) contentRight - 11f * density else contentRight - 16f * density
-        box.set(searchTextLeft, searchTop + 4.1f * density, searchTextRight, searchTop + 5.9f * density)
-        canvas.drawRoundRect(box, density, density, paint)
+        val searchCenterY = searchTop + scaled(6.5f)
+        val searchIconX = if (isRtl) contentRight - scaled(9f) else contentLeft + scaled(9f)
+        canvas.drawCircle(searchIconX, searchCenterY, scaled(2.2f), paint)
+        val searchTextLeft = if (isRtl) contentLeft + scaled(20f) else contentLeft + scaled(14f)
+        val searchTextRight = if (isRtl) contentRight - scaled(14f) else contentRight - scaled(20f)
+        box.set(
+            searchTextLeft, searchCenterY - scaled(1.2f),
+            searchTextRight, searchCenterY + scaled(1.2f)
+        )
+        canvas.drawRoundRect(box, scaled(1.2f), scaled(1.2f), paint)
         paint.alpha = 255
 
-        val tileTop = searchTop + 14f * density
-        val gap = 5f * density
+        val tileTop = searchTop + scaled(20f)
+        val gap = scaled(7f)
         val tileWidth = (contentRight - contentLeft - gap) / 2f
         val accentTileLeft = if (isRtl) contentRight - tileWidth else contentLeft
-        box.set(accentTileLeft, tileTop, accentTileLeft + tileWidth, tileTop + 20f * density)
-        drawAccentRoundRect(canvas, box, 7f * density)
+        box.set(accentTileLeft, tileTop, accentTileLeft + tileWidth, tileTop + scaled(26f))
+        drawAccentRoundRect(canvas, box, scaled(9f))
         box.offset(if (isRtl) -(tileWidth + gap) else tileWidth + gap, 0f)
         paint.color = raisedSurface
-        canvas.drawRoundRect(box, 7f * density, 7f * density, paint)
+        canvas.drawRoundRect(box, scaled(9f), scaled(9f), paint)
         paint.color = outline
         paint.alpha = 150
-        canvas.drawCircle(box.centerX(), box.centerY(), 3f * density, paint)
+        canvas.drawCircle(box.centerX(), box.centerY(), scaled(4f), paint)
         paint.alpha = 255
 
-        val barTop = tileTop + 27f * density
-        val fabRadius = 6f * density
+        val barTop = tileTop + scaled(36f)
+        val fabRadius = scaled(8f)
         val fabCenterX = if (isRtl) contentLeft + fabRadius else contentRight - fabRadius
-        val barLeft = if (isRtl) fabCenterX + fabRadius + 5f * density else contentLeft
-        val barRight = if (isRtl) contentRight else fabCenterX - fabRadius - 5f * density
-        box.set(barLeft, barTop, barRight, barTop + 4f * density)
+        val barLeft = if (isRtl) fabCenterX + fabRadius + scaled(7f) else contentLeft
+        val barRight = if (isRtl) contentRight else fabCenterX - fabRadius - scaled(7f)
+        box.set(barLeft, barTop, barRight, barTop + scaled(5f))
         paint.color = outline
-        canvas.drawRoundRect(box, 2f * density, 2f * density, paint)
+        canvas.drawRoundRect(box, scaled(2.5f), scaled(2.5f), paint)
         if (isRtl) {
             box.left = box.right - box.width() * storageFill
         } else {
             box.right = box.left + box.width() * storageFill
         }
-        drawAccentRoundRect(canvas, box, 2f * density)
-        drawAccentCircle(canvas, fabCenterX, barTop + 2f * density, fabRadius)
+        drawAccentRoundRect(canvas, box, scaled(2.5f))
+        val barCenterY = barTop + scaled(2.5f)
+        drawAccentCircle(canvas, fabCenterX, barCenterY, fabRadius)
 
-        paint.strokeWidth = 1.2f * density
+        paint.strokeWidth = scaled(1.8f)
         paint.strokeCap = Paint.Cap.ROUND
         drawAccentContrastCrossFade {
             canvas.drawLine(
-                fabCenterX - 2f * density, barTop + 2f * density,
-                fabCenterX + 2f * density, barTop + 2f * density, paint
+                fabCenterX - scaled(3f), barCenterY,
+                fabCenterX + scaled(3f), barCenterY, paint
             )
-            canvas.drawLine(fabCenterX, barTop, fabCenterX, barTop + 4f * density, paint)
+            canvas.drawLine(
+                fabCenterX, barCenterY - scaled(3f),
+                fabCenterX, barCenterY + scaled(3f), paint
+            )
         }
     }
 
@@ -236,6 +254,8 @@ class ColorPreviewView @JvmOverloads constructor(
     ) as Int
 
     companion object {
+        private const val PREVIEW_WIDTH_DP = 132f
+        private const val PREVIEW_HEIGHT_DP = 84f
         private const val STORAGE_FILL = 0.72f
         private val EMPHASIZED = PathInterpolator(0.2f, 0f, 0f, 1f)
     }
