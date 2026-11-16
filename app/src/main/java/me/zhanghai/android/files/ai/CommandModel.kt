@@ -183,12 +183,18 @@ object CommandModel {
     /** False when the system download service refused a job. Wi-Fi only unless [mobileData]. */
     fun startDownload(context: Context, mobileData: Boolean, design: CommandDesign): Boolean {
         val parts = parts(design)
-        return toStart(parts.map { partState(context, it) }, parts).all { startDownload(context, mobileData, it) }
+        return toStart(parts.map { partState(context, it) }, parts, mobileData).all { startDownload(context, mobileData, it) }
     }
 
-    /** Only missing or failed parts start (again): a part still downloading or waiting for its check keeps its bytes. */
-    internal fun toStart(states: List<State>, parts: List<Part>): List<Part> =
-        parts.filterIndexed { i, _ -> states[i] == State.Missing || states[i] is State.Failed }
+    /**
+     * Missing or failed parts start (again); with [mobileData] also a part queued for Wi-Fi, so "use mobile data"
+     * requeues it with mobile data allowed. A part downloading or waiting for its check keeps its bytes.
+     */
+    internal fun toStart(states: List<State>, parts: List<Part>, mobileData: Boolean): List<Part> =
+        parts.filterIndexed { i, _ ->
+            val state = states[i]
+            state == State.Missing || state is State.Failed || (mobileData && state is State.Downloading && state.waitingForWifi)
+        }
 
     /**
      * An adapter that passed its hash check but did not load on this model: deleted, and shown as a failed download

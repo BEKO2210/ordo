@@ -70,14 +70,33 @@ class CommandAdapterTest {
     fun retryRestartsOnlyWhatFailed() {
         val parts = listOf(CommandModel.MODEL, adapter)
         val downloading = State.Downloading(1_000_000_000L, CommandModel.SIZE, false, false)
-        // The adapter failed while the model still downloads: the retry restarts the adapter, the model keeps its bytes.
-        assertEquals(listOf(adapter), CommandModel.toStart(listOf(downloading, State.Failed(false)), parts))
-        assertEquals(listOf(adapter), CommandModel.toStart(listOf(State.Verifying, State.Missing), parts))
-        assertEquals(listOf(adapter), CommandModel.toStart(listOf(State.Ready, State.Failed(true)), parts))
-        assertEquals(parts, CommandModel.toStart(listOf(State.Missing, State.Missing), parts))
-        // The shipped design alone: as before, a missing or failed model starts.
-        assertEquals(listOf(CommandModel.MODEL), CommandModel.toStart(listOf(State.Failed(false)), listOf(CommandModel.MODEL)))
-        assertEquals(emptyList<CommandModel.Part>(), CommandModel.toStart(listOf(State.Ready), listOf(CommandModel.MODEL)))
+        for (mobile in listOf(false, true)) {
+            // The adapter failed while the model still downloads: the retry restarts the adapter, the model keeps its bytes.
+            assertEquals(listOf(adapter), CommandModel.toStart(listOf(downloading, State.Failed(false)), parts, mobile))
+            assertEquals(listOf(adapter), CommandModel.toStart(listOf(State.Verifying, State.Missing), parts, mobile))
+            assertEquals(listOf(adapter), CommandModel.toStart(listOf(State.Ready, State.Failed(true)), parts, mobile))
+            assertEquals(parts, CommandModel.toStart(listOf(State.Missing, State.Missing), parts, mobile))
+        }
+    }
+
+    @Test
+    fun theModelAloneAsOnMain() {
+        val model = listOf(CommandModel.MODEL)
+        val wifi = State.Downloading(5, CommandModel.SIZE, false, true)
+        val running = State.Downloading(5, CommandModel.SIZE, false, false)
+        // "Use mobile data" while queued for Wi-Fi requeues it with mobile data allowed.
+        assertEquals(model, CommandModel.toStart(listOf(wifi), model, mobileData = true))
+        // Without mobile data, or while it actually downloads, nothing is restarted.
+        assertEquals(emptyList<CommandModel.Part>(), CommandModel.toStart(listOf(wifi), model, mobileData = false))
+        assertEquals(emptyList<CommandModel.Part>(), CommandModel.toStart(listOf(running), model, mobileData = true))
+        assertEquals(emptyList<CommandModel.Part>(), CommandModel.toStart(listOf(State.Verifying), model, mobileData = true))
+        assertEquals(emptyList<CommandModel.Part>(), CommandModel.toStart(listOf(State.Ready), model, mobileData = true))
+        // Missing or failed: the setup and retry buttons start it, with or without mobile data.
+        for (mobile in listOf(false, true)) {
+            assertEquals(model, CommandModel.toStart(listOf(State.Missing), model, mobile))
+            assertEquals(model, CommandModel.toStart(listOf(State.Failed(false)), model, mobile))
+            assertEquals(model, CommandModel.toStart(listOf(State.Failed(true)), model, mobile))
+        }
     }
 
     @Test
