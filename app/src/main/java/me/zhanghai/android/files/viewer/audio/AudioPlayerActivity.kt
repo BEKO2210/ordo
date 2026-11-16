@@ -79,12 +79,16 @@ class AudioPlayerActivity : AppActivity() {
     private var userSeeking = false
     private val handler = Handler(Looper.getMainLooper())
 
+    private fun nextProgressDelay(): Long {
+        val position = controller?.currentPosition ?: 0L
+        val speed = controller?.playbackParameters?.speed?.takeIf { it > 0f } ?: 1f
+        return ((PROGRESS_UPDATE_INTERVAL_MS - position % PROGRESS_UPDATE_INTERVAL_MS) / speed).toLong().coerceIn(50L, 1_000L) + 20L
+    }
+
     private val progressUpdater = object : Runnable {
         override fun run() {
             updateProgress()
-            if (controller?.isPlaying == true) {
-                handler.postDelayed(this, PROGRESS_UPDATE_INTERVAL_MS)
-            }
+            if (controller?.isPlaying == true) handler.postDelayed(this, nextProgressDelay())
         }
     }
 
@@ -327,7 +331,7 @@ class AudioPlayerActivity : AppActivity() {
         )
         handler.removeCallbacks(progressUpdater)
         updateProgress()
-        if (player.isPlaying) handler.postDelayed(progressUpdater, PROGRESS_UPDATE_INTERVAL_MS)
+        if (player.isPlaying) handler.postDelayed(progressUpdater, nextProgressDelay())
         updateArtwork(item, metadata)
     }
 
@@ -564,7 +568,9 @@ class AudioPlayerActivity : AppActivity() {
             "me.zhanghai.android.files.viewer.audio.extra.QUEUE_TOKEN"
         private const val STATE_QUEUE_STARTED = "queueStarted"
         private const val SEEK_MAX = 1_000
-        private const val PROGRESS_UPDATE_INTERVAL_MS = 500L
+        // Once per displayed second, on the second: the times only change then, and a screen that redraws twice a
+        // second never goes idle for accessibility tools (uiautomator could not read the player while it played).
+        private const val PROGRESS_UPDATE_INTERVAL_MS = 1_000L
         private const val INACTIVE_CONTROL_ALPHA = 0.70f
         private const val DISABLED_CONTROL_ALPHA = 0.38f
         private const val ARTWORK_SAMPLE_SIZE = 24
