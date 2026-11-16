@@ -86,8 +86,12 @@ in_list() {
 }
 
 wake; grant
+# The emulator keyboard autocorrects typed commands ("Loesche" -> "Löschen"): type through the voice input method,
+# which leaves key events alone, and give the keyboard back at the end.
+KEYBOARD=$(a shell settings get secure default_input_method | tr -d '\r')
+a shell ime set com.google.android.tts/com.google.android.apps.speech.tts.googletts.settings.asr.voiceime.VoiceInputMethodService >/dev/null 2>&1
 a shell cmd locale set-app-locales "$PKG" --locales de-DE >/dev/null 2>&1
-trap 'a shell cmd locale set-app-locales "$PKG" --locales "" >/dev/null 2>&1; a shell am start -n "$PKG/$DEBUG" --es design "" >/dev/null 2>&1' EXIT
+trap 'a shell cmd locale set-app-locales "$PKG" --locales "" >/dev/null 2>&1; a shell am start -n "$PKG/$DEBUG" --es design "" >/dev/null 2>&1; [ -n "$KEYBOARD" ] && a shell ime set "$KEYBOARD" >/dev/null 2>&1' EXIT
 case $DESIGN in
     default) a shell am start -W -n "$PKG/$DEBUG" --es design "''" >/dev/null ;;
     *) a shell am start -W -n "$PKG/$DEBUG" --es design "$DESIGN" >/dev/null ;;
