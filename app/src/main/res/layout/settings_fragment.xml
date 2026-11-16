@@ -31,9 +31,8 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <fragment
-            android:id="@+id/preferenceFragment"
-            android:name="me.zhanghai.android.files.settings.SettingsPreferenceFragment"
+        <FrameLayout
+            android:id="@+id/preferenceContainer"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
     </me.zhanghai.android.files.ui.CoordinatorScrollingFrameLayout>

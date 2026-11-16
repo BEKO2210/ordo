@@ -83,6 +83,7 @@ Was als Nächstes kommt, steht in der [lebenden Roadmap](docs/ROADMAP-LIVE.md): 
   nebeneinander; die Coverfarbe tönt den Hintergrund sanft, ohne die Textfarben des Designs zu verändern; „Klang“
   gruppiert 10-Band-Equalizer, Geräteeffekte, ReplayGain/R128 und Wiedergabeoptionen in klare Bereiche. Die Kurve ist
   die Hauptsteuerung, genaue 48-dp-Tasten liegen unter „Genau einstellen“; dazu kommt ein ausblendender Einschlaf-Timer
+- Eigenes App-Symbol für den Musik-Player (Einstellungen › Eingebaute Apps): standardmäßig aus, nur du schaltest es ein und aus, siehe [docs/AUDIO-PLAYER.md](docs/AUDIO-PLAYER.md)
 
 **Dateien schützen**
 

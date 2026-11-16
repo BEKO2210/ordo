@@ -114,7 +114,10 @@ class SettingsActivity : AppActivity(), OnThemeChangedListener, OnNightModeChang
         const val SECTION_FILES = "files"
         const val SECTION_STORAGE = "storage"
         const val SECTION_TRASH = "trash"
-        val SECTIONS = listOf(SECTION_APPEARANCE, SECTION_AI, SECTION_FILES, SECTION_STORAGE, SECTION_TRASH)
+        const val SECTION_LAUNCHER_ICONS = "launcher_icons"
+        val SECTIONS = listOf(
+            SECTION_APPEARANCE, SECTION_AI, SECTION_LAUNCHER_ICONS, SECTION_FILES, SECTION_STORAGE, SECTION_TRASH
+        )
 
         private var restartState: Bundle? = null
 

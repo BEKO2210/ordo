@@ -82,6 +82,7 @@ What comes next is in the [living roadmap](docs/ROADMAP-LIVE.md): every goal has
   the cover softly colours the background without changing the theme’s text colours; Sound groups a 10-band EQ,
   device effects, ReplayGain/R128 normalisation and playback controls into clear sections, with the curve as the
   main EQ control and exact 48 dp steppers behind Fine-tune, plus a fading sleep timer
+- Optional own app icon for the music player (Settings › Built-in apps): off by default, switched on and off only by you, see [docs/AUDIO-PLAYER.md](docs/AUDIO-PLAYER.md)
 
 **Keep files safe**
 

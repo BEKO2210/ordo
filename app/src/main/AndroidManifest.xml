@@ -425,6 +425,32 @@
             </intent-filter>
         </activity>
 
+        <!--
+          Own entry in Recents (taskAffinity, documentLaunchMode). The alias is what the launcher shows, and it is
+          disabled here: only the user's switch in Settings > Built-in apps ever enables it.
+          -->
+        <activity
+            android:name="me.zhanghai.android.files.viewer.audio.MusicLauncherActivity"
+            android:documentLaunchMode="intoExisting"
+            android:exported="true"
+            android:label="@string/launcher_music_label"
+            android:taskAffinity="me.zhanghai.android.files.music"
+            android:theme="@style/Theme.MaterialFiles" />
+
+        <activity-alias
+            android:name="me.zhanghai.android.files.launcher.MusicAlias"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_music"
+            android:label="@string/launcher_music_label"
+            android:roundIcon="@mipmap/ic_launcher_music"
+            android:targetActivity="me.zhanghai.android.files.viewer.audio.MusicLauncherActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+
         <service
             android:name="me.zhanghai.android.files.filejob.FileJobService"
             android:foregroundServiceType="dataSync" />

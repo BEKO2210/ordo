@@ -97,13 +97,14 @@ class SettingsCategoryPreference @JvmOverloads constructor(
         private val ROW_INDEX = mapOf(
             "section_appearance" to 0,
             "section_ai" to 1,
-            "section_files" to 2,
-            "section_storage" to 3,
-            "section_trash" to 4,
-            "link_backup" to 5,
-            "link_ftp_server" to 6,
-            "link_legal" to 7,
-            "link_about" to 8
+            "section_launcher_icons" to 2,
+            "section_files" to 3,
+            "section_storage" to 4,
+            "section_trash" to 5,
+            "link_backup" to 6,
+            "link_ftp_server" to 7,
+            "link_legal" to 8,
+            "link_about" to 9
         )
     }
 }
