@@ -1,0 +1,6 @@
+Neu in dieser Testversion:
+• Startseite aktualisiert sich selbst, wenn sich Dateien ändern
+• Ziehen zum Aktualisieren nur noch bewusst, mit neuem animiertem Symbol
+• „Mehr“ bei ausgewählten Dateien öffnet direkt über der Leiste, beim Daumen
+• Behoben: Absturz auf Tablets im Querformat beim Auswählen einer Datei
+Feedback: nullmesh@protonmail.com
