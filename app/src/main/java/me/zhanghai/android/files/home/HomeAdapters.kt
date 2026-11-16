@@ -14,6 +14,7 @@ import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import android.content.res.ColorStateList
 import android.widget.ImageView
+import androidx.annotation.ColorInt
 import androidx.annotation.ColorRes
 import androidx.annotation.DrawableRes
 import androidx.core.content.ContextCompat
@@ -151,9 +152,10 @@ class StorageAdapter(
     inner class ViewHolder(private val binding: HomeStorageItemBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(item: StorageSummary) {
             val context = binding.root.context
-            binding.iconImage.setTintedCircleIcon(
+            // Storage belongs to no file type, so it wears the chosen accent like its bar.
+            binding.iconImage.setTintedCircleIconColor(
                 if (item.removable) R.drawable.sd_card_icon_white_24dp else R.drawable.device_icon_white_24dp,
-                R.color.home_analysis
+                context.getColorByAttr(androidx.appcompat.R.attr.colorPrimary)
             )
             binding.nameText.text = item.name
             binding.descriptionText.text = context.getString(
@@ -222,8 +224,10 @@ internal fun quickAccessColor(@DrawableRes iconRes: Int): Int = when (iconRes) {
 }
 
 // Icon in its category color on a 15 % tinted circle, the tonal look of Material 3.
-fun ImageView.setTintedCircleIcon(@DrawableRes iconRes: Int, @ColorRes colorRes: Int) {
-    val color = ContextCompat.getColor(context, colorRes)
+fun ImageView.setTintedCircleIcon(@DrawableRes iconRes: Int, @ColorRes colorRes: Int) =
+    setTintedCircleIconColor(iconRes, ContextCompat.getColor(context, colorRes))
+
+fun ImageView.setTintedCircleIconColor(@DrawableRes iconRes: Int, @ColorInt color: Int) {
     setImageResource(iconRes)
     imageTintList = ColorStateList.valueOf(color)
     backgroundTintList = ColorStateList.valueOf(ColorUtils.setAlphaComponent(color, 0x26))
