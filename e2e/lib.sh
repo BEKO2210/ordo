@@ -22,8 +22,18 @@ fail() { echo "FAIL $1"; FAILS=$((FAILS + 1)); }
 check() { local name=$1; shift; if "$@" >/dev/null 2>&1; then pass "$name"; else fail "$name"; fi; }
 
 # Stops the test the moment another app is in front: nothing outside Ordo is ever tapped.
+# A permission question in front names what is missing and the command the owner can run himself.
 guard() {
-    case "$(top)" in "$PKG"/*) ;; *) echo "ABORT: $(top) is in front, not Ordo"; exit 2 ;; esac
+    local t; t=$(top)
+    case "$t" in
+        "$PKG"/*) return ;;
+        *permissioncontroller*) echo "ABORT: $t is in front (Ordo asks for notifications). If you agree, run:" \
+            "adb -s $SERIAL shell pm grant $PKG android.permission.POST_NOTIFICATIONS" ;;
+        com.android.settings/*) echo "ABORT: $t is in front (all-files access). If you agree, run:" \
+            "adb -s $SERIAL shell appops set $PKG MANAGE_EXTERNAL_STORAGE allow" ;;
+        *) echo "ABORT: $t is in front, not Ordo" ;;
+    esac
+    exit 2
 }
 on() { [ "$(top)" = "$PKG/me.zhanghai.android.files.$1" ]; }
 # wait_on SCREEN [S]: polls until that screen is in front (up to S seconds, default 4) instead of a fixed sleep.
@@ -34,9 +44,11 @@ is_emulator() {
     case "$SERIAL" in emulator-*) return 0 ;; esac
     [ "$(a shell getprop ro.kernel.qemu | tr -d '\r')" = 1 ] || [ "$(a shell getprop ro.boot.qemu | tr -d '\r')" = 1 ]
 }
-# What adb may grant, so no system dialog comes to the front: notifications (Android 13+) and all-files access (an app
-# op since Android 11). Older platforms refuse quietly; a system dialog itself is never tapped.
+# On an emulator only, what adb may grant, so no system dialog comes to the front: notifications (Android 13+) and
+# all-files access (an app op since Android 11). A real device keeps its owner's choices; guard() then names what is
+# missing. Older platforms refuse quietly; a system dialog itself is never tapped.
 grant() {
+    is_emulator || return 0
     a shell pm grant "$PKG" android.permission.POST_NOTIFICATIONS >/dev/null 2>&1
     a shell appops set "$PKG" MANAGE_EXTERNAL_STORAGE allow >/dev/null 2>&1
 }
