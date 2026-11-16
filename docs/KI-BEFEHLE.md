@@ -214,8 +214,9 @@ selbst ein Löschen.
   Planfeld) mit Python: `CommandGuardedGoldenTest` (Fixture `export_guarded_golden.py`: alle aufgezeichneten
   Prompt-C-Pläne aus Dev-Sätzen, Blindtest 2 und 3, dazu jeder andere aufgezeichnete Rohplan und die Trainingsziele,
   mit dem Telefon von damals, weil rules2 Dateien zählt) und `CommandTunedGoldenTest` (Fixture
-  `export_tuned_golden.py`: alle Schema-L-Rohpläne der Läufe und die Trainings- und Validierungsziele).
-  Ergebnisse: GOLDEN_RESULTS. Auf dem Gerät (ICU-Regex) prüft `e2e/ai-show-guard.sh` dieselben Fixtures über
+  `export_tuned_golden.py`: alle Schema-L-Rohpläne der Läufe, Blindtest 3 mit dem eingefrorenen Adapter, die Trainings- und Validierungsziele).
+  Ergebnisse auf der JVM (16.11.2026): Guarded 12.071/12.071 (davon 334 aufgezeichnete Prompt-C-Pläne), Tuned
+  10.717/10.717 gleich. Auf dem Gerät (ICU-Regex) prüft `e2e/ai-show-guard.sh` dieselben Fixtures über
   `DebugAiActivity --es golden_guarded/golden_tuned`.
 - **Zählen auf dem Telefon:** rules2 wählt bei Wörtern, die kein Feld erklärt, die Lesart, die auf dem Telefon Dateien
   findet. In der App zählt `CommandFiles` (Text nur in reinen Textdateien, siehe oben); bei „Zeigen“ nur „keine oder

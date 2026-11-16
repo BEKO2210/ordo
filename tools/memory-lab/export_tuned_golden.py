@@ -5,7 +5,7 @@
 
 Rows: the command, the phone's folders at that moment (index into "folders"), the raw model plan (schema L) and what
 rules3.decide answered. Sources: the recorded raw outputs of every model run (lora/raw_*.json: the frozen adapter run2,
-the other runs and the base model) on every dev set, plus the target plans of the training and validation data
+the other runs and the base model) on every dev set and blind test 3 (frozen adapter), plus the target plans of the training and validation data
 (lora/train.jsonl, val.jsonl) on the lab phone. Clock: bench.NOW, as in the lab.
 """
 import gzip
@@ -78,6 +78,14 @@ for name in sorted(os.listdir("lora")):
             add(tag, cid, texts[cid], r["plan"], trees[cid])
         else:
             print("skipped", tag, cid, file=sys.stderr)
+
+# blind test 3 with the frozen adapter (blind3/raw_blind3.json), on its phone (lab phone + blind3_adapt.EXTRA)
+import blind3_adapt  # noqa: E402
+b3_tree = p0.Tree(eval3.b2_files(base, blind3_adapt.EXTRA))
+b3_text = {c["id"]: c["text"] for c in blind3_adapt.cases()}
+if os.path.exists("blind3/raw_blind3.json"):
+    for cid, r in json.load(open("blind3/raw_blind3.json", encoding="utf-8"))["raw"].items():
+        add("blind3", cid, b3_text[cid], r["plan"], b3_tree)
 
 for fname in ("train", "val"):
     for line in open(f"lora/{fname}.jsonl", encoding="utf-8"):
