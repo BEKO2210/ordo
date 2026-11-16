@@ -112,7 +112,7 @@ ICONS = {
     "usb_icon_white_24dp": "usb",
     "video_icon_white_24dp": "movie",
     "settings_wallpaper_icon_white_24dp": "wallpaper",
-    "settings_header_position_icon_white_24dp": "vertical_align_bottom",
+    "settings_header_position_icon_white_24dp": "search",
     "settings_motion_icon_white_24dp": "animation",
     "settings_list_motion_icon_white_24dp": "format_list_bulleted",
     "settings_language_icon_white_24dp": "translate",
