@@ -11,7 +11,7 @@ import java.io.IOException
 /**
  * Carries out a confirmed plan file by file and writes down exactly what happened, so undo only reverses
  * what this command did. Every file and folder is checked again right before it is touched: the preview
- * may be minutes old and another app may have changed things since.
+ * may be minutes old and another app may have changed or replaced things since.
  */
 class CommandRunner(
     private val root: File,
@@ -30,19 +30,33 @@ class CommandRunner(
         val action: String,
         val placed: List<Placed>,
         val trashed: List<Trashed>,
-        val skipped: Int
+        val skipped: Int,
+        /** Part of [skipped]: files with another size or time than in the preview, so maybe not the same file. */
+        val changed: Int = 0
     ) {
         val done: Int get() = placed.size + trashed.size
     }
 
-    fun run(plan: CommandPlan, source: File, destination: File?, files: List<File>, kindNames: Map<String, String>): Journal {
+    /** [seen] holds size and time of each file at preview time ([CommandFiles.snapshot]); a file not in it is skipped. */
+    fun run(
+        plan: CommandPlan, source: File, destination: File?, files: List<File>, kindNames: Map<String, String>,
+        seen: Map<String, Pair<Long, Long>>
+    ): Journal {
         val placed = mutableListOf<Placed>()
         val trashed = mutableListOf<Trashed>()
         var skipped = 0
+        var changed = 0
         val sourceOk = isSafeDir(source)
         for (file in files) {
             if (!sourceOk || !isSafeFile(file, source)) {
                 skipped++
+                continue
+            }
+            // Still there is not enough: a file replaced since the preview has the same name but is another file.
+            val before = seen[file.path]
+            if (before == null || file.length() != before.first || !sameTime(file.lastModified(), before.second)) {
+                skipped++
+                changed++
                 continue
             }
             val ok = when (plan.action) {
@@ -58,7 +72,7 @@ class CommandRunner(
             }
             if (!ok) skipped++
         }
-        return Journal(plan.action, placed, trashed, skipped)
+        return Journal(plan.action, placed, trashed, skipped, changed)
     }
 
     /** Reverses [journal]; files that changed since (other size or time) are left alone. Returns the count. */

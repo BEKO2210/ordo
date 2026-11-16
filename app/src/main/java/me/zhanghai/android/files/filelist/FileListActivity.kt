@@ -54,10 +54,21 @@ class FileListActivity : AppActivity() {
             FileListActivity::class.createIntent()
                 .putExtra(EXTRA_HOME_CATEGORY, category.name)
 
+        /** The result list of an AI "show" command: read-only, opened from the command sheet only. */
+        fun createShowIntent(plan: String, sources: List<String>, title: String): Intent =
+            FileListActivity::class.createIntent()
+                .putExtra(EXTRA_SHOW_PLAN, plan)
+                .putExtra(EXTRA_SHOW_SOURCES, sources.toTypedArray())
+                .putExtra(EXTRA_SHOW_TITLE, title)
+
         fun createSearchIntent(): Intent =
             FileListActivity::class.createIntent().putExtra(EXTRA_SEARCH, true)
 
         const val EXTRA_SEARCH = "me.zhanghai.android.files.extra.SEARCH"
+
+        const val EXTRA_SHOW_PLAN = "me.zhanghai.android.files.extra.SHOW_PLAN"
+        const val EXTRA_SHOW_SOURCES = "me.zhanghai.android.files.extra.SHOW_SOURCES"
+        const val EXTRA_SHOW_TITLE = "me.zhanghai.android.files.extra.SHOW_TITLE"
 
         const val EXTRA_HOME_CATEGORY = "me.zhanghai.android.files.extra.HOME_CATEGORY"
     }

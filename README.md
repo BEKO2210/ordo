@@ -142,7 +142,8 @@ then checks the plan itself before showing it:
 - “Delete the duplicates” only ever selects the extra copies (same content); the oldest copy of each stays.
 - Deleting a whole top-level folder such as Download, or more than 50 files, needs a second tap that shows the
   number of files and their size.
-- Every file is checked again right before it is touched; existing files are never overwritten.
+- Every file is checked again right before it is touched; existing files are never overwritten. A file that was
+  replaced since the preview (other size or time) is left alone, and the result says so.
 - Undo reverses exactly what the command did and leaves files alone that changed since.
 
 **Setup.** The feature is off until you open it with the wand in the search bar. Ordo checks the phone, then

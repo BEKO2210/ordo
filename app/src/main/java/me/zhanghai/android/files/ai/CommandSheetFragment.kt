@@ -22,6 +22,7 @@ import android.view.WindowManager
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.TextView
+import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.core.widget.TextViewCompat
@@ -42,7 +43,10 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import me.zhanghai.android.files.BuildConfig
 import me.zhanghai.android.files.R
+import me.zhanghai.android.files.analysis.AnalysisActivity
+import me.zhanghai.android.files.filelist.FileListActivity
 import me.zhanghai.android.files.ai.CommandCheck.Outcome
 import me.zhanghai.android.files.ai.CommandCheck.Reason
 import me.zhanghai.android.files.databinding.CommandSheetBinding
@@ -67,6 +71,8 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
     private var text = ""
     private var ready: Outcome.Ready? = null
     private var files: List<File> = emptyList()
+    // Size and time of [files] when the preview was made: the runner skips a file that changed since.
+    private var seen: Map<String, Pair<Long, Long>> = emptyMap()
     private lateinit var design: CommandDesign
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, state: Bundle?): View {
@@ -119,6 +125,17 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
             }
         }
         binding.retryButton.setOnClickListener { if (text.isNotEmpty()) submit() else showInput() }
+        // Debug builds only (DebugAiActivity, e2e tests): a model answer given from outside, so the rules, checks,
+        // lists and hints run without the model. BuildConfig.DEBUG is a constant, so release builds drop this.
+        val injected = if (BuildConfig.DEBUG) arguments?.getString(ARG_MODEL_ANSWER) else null
+        if (injected != null && state == null) {
+            design = CommandDesign.KR
+            text = arguments?.getString(ARG_TEXT).orEmpty()
+            binding.commandEdit.setText(text)
+            binding.removeModelButton.isVisible = false
+            answer { CommandPlan.parse(injected) }
+            return
+        }
         // Opened with a ready plan (e.g. an analysis suggestion): no model needed, straight to the preview.
         val presetPlan = arguments?.getString(ARG_PLAN)?.let(CommandPlan::parse)
         if (presetPlan != null && state == null) {
@@ -420,9 +437,14 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
         if (job?.isActive == true) CommandEngine.cancel()
         job?.cancel()
         val context = requireContext().applicationContext
-        // Package 1: the router's screens and hints follow with "show"; until then such a command is refused.
-        if (design.route(text) != null) {
-            showRefused(Reason.UNSUPPORTED)
+        answer { CommandEngine.plan(context, text, design) }
+    }
+
+    /** Router first (no model), then the model's plan put right by the rules, then the usual checks. */
+    private fun answer(model: suspend () -> CommandPlan?) {
+        design.route(text)?.let { route ->
+            // Posted: this can run while the sheet is still being created, too early to open a screen or dismiss.
+            binding.root.post { if (_binding != null) onRoute(route) }
             return
         }
         job = viewLifecycleOwner.lifecycleScope.launch {
@@ -440,7 +462,7 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
                 }
             }
             val plan = try {
-                CommandEngine.plan(context, text, design)?.let { plan ->
+                model()?.let { plan ->
                     // The rules read folder names after "aus/nach"; the shipped design has no rules and needs none.
                     val folders = if (design === CommandDesign.Today) emptyList()
                     else withContext(Dispatchers.IO) { folderNames() }
@@ -464,6 +486,10 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
     }
 
     private suspend fun evaluate(plan: CommandPlan) {
+        if (plan.action == "show") {
+            showResults(plan)
+            return
+        }
         when (val outcome = CommandCheck.check(text, plan, null, root)) {
             is Outcome.Ready -> {
                 if (outcome.plan.action == "delete" && !Trash.isEnabled) {
@@ -474,7 +500,7 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
                 }
                 show(binding.loadingLayout)
                 binding.loadingText.setText(getString(R.string.ai_finding_files))
-                files = withContext(Dispatchers.IO) { CommandFiles.collect(outcome.plan, outcome.source) }
+                withContext(Dispatchers.IO) { collect(outcome.plan, outcome.source) }
                 if (files.isEmpty()) {
                     showMessage(
                         R.string.ai_no_files_title, getString(R.string.ai_no_files_text, display(outcome.source))
@@ -529,9 +555,20 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
         }
     }
 
+    private fun collect(plan: CommandPlan, source: File) {
+        val found = CommandFiles.collect(plan, source)
+        seen = CommandFiles.snapshot(found)
+        files = found
+    }
+
     private fun showMessage(titleRes: Int, message: String, retry: Boolean = false) {
         ready = null
         binding.folderChips.removeAllViews()
+        binding.messageIcon.isVisible = false
+        binding.hintActionButton.isVisible = false
+        binding.hintDismissText.isVisible = false
+        binding.messageLayout.setOnClickListener(null)
+        binding.messageLayout.isClickable = false
         binding.messageTitle.setText(titleRes)
         binding.messageText.text = message
         binding.retryButton.isVisible = retry
@@ -606,7 +643,7 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
                 isCloseIconVisible = true
                 setOnCloseIconClickListener {
                     viewLifecycleOwner.lifecycleScope.launch {
-                        files = withContext(Dispatchers.IO) { CommandFiles.collect(without, outcome.source) }
+                        withContext(Dispatchers.IO) { collect(without, outcome.source) }
                         showPreview(outcome.copy(plan = without))
                     }
                 }
@@ -639,6 +676,25 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
             chip(getString(R.string.ai_filter_larger, plan.largerThan, plan.sizeUnit.uppercase()),
                 plan.copy(largerThan = 0))
         }
+        if (plan.contentContains.isNotBlank()) {
+            chip(getString(R.string.ai_filter_word, plan.contentContains.trim()), plan.copy(contentContains = ""))
+        }
+        if (plan.today) {
+            chip(getString(R.string.ai_filter_today), plan.copy(today = false))
+        }
+        if (plan.newerThan > 0) {
+            val plurals = when (plan.ageUnit) {
+                "weeks" -> R.plurals.ai_filter_newer_weeks
+                "months" -> R.plurals.ai_filter_newer_months
+                "years" -> R.plurals.ai_filter_newer_years
+                else -> R.plurals.ai_filter_newer_days
+            }
+            chip(requireContext().quantity(plurals, plan.newerThan, plan.newerThan), plan.copy(newerThan = 0))
+        }
+        if (plan.limit > 0) {
+            val plurals = if (plan.sort == "size") R.plurals.ai_filter_limit_size else R.plurals.ai_filter_limit_newest
+            chip(requireContext().quantity(plurals, plan.limit, plan.limit), plan.copy(limit = 0))
+        }
         binding.filterChips.isVisible = binding.filterChips.childCount > 0
     }
 
@@ -660,6 +716,7 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
         val context = requireContext().applicationContext
         val anchor = requireActivity().findViewById<View>(android.R.id.content)
         val chosen = files
+        val chosenSeen = seen
         val kindNames = KINDS.associateWith { kindName(it) }
         val runner = runner(context, outcome)
         job?.cancel()
@@ -668,7 +725,7 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
             binding.cancelButton.isVisible = false
             binding.loadingText.setText(getString(R.string.ai_running))
             val journal = withContext(Dispatchers.IO) {
-                runner.run(plan, outcome.source, outcome.destination, chosen, kindNames)
+                runner.run(plan, outcome.source, outcome.destination, chosen, kindNames, chosenSeen)
             }
             scan(context, journal)
             val done = when (plan.action) {
@@ -680,6 +737,9 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
             var message = context.quantity(done, journal.done, journal.done)
             if (journal.skipped > 0) {
                 message += " · " + context.quantity(R.plurals.ai_skipped, journal.skipped, journal.skipped)
+            }
+            if (journal.changed > 0) {
+                message += " · " + context.quantity(R.plurals.ai_changed, journal.changed, journal.changed)
             }
             val snackbar = Snackbar.make(anchor, message, UNDO_MILLIS)
             if (journal.done > 0) {
@@ -731,6 +791,116 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
         if (paths.isNotEmpty()) {
             android.media.MediaScannerConnection.scanFile(context, paths.toTypedArray(), null, null)
         }
+    }
+
+    // ---- Show, screens and hints -------------------------------------------------------------
+
+    /** Read-only: finds the files and opens them in the app's own list, sorted as asked. Nothing to confirm. */
+    private suspend fun showResults(plan: CommandPlan) {
+        val sources = CommandCheck.showSources(plan.source, root)
+        if (sources == null) {
+            showAsk(Outcome.AskFolder(plan, forDestination = false))
+            return
+        }
+        show(binding.loadingLayout)
+        binding.loadingText.setText(getString(R.string.ai_finding_files))
+        val found = withContext(Dispatchers.IO) { CommandFiles.show(plan, sources, root) }
+        if (found.isEmpty()) {
+            val where = if (sources.size == 1) display(sources[0]) else plan.source
+            showMessage(R.string.ai_no_files_title, getString(R.string.ai_no_files_text, where))
+            return
+        }
+        val activity = requireActivity()
+        startActivity(
+            FileListActivity.createShowIntent(plan.toJson(), sources.map { it.path }, understood(plan, sources))
+        )
+        if (plan.contentContains.isNotBlank()) {
+            Toast.makeText(activity, R.string.ai_show_text_note, Toast.LENGTH_LONG).show()
+        }
+        dismiss()
+    }
+
+    /** What Ordo understood, in words, as the list's title: "Videos über 500 MB in Download · größte zuerst". */
+    private fun understood(plan: CommandPlan, sources: List<File>): String {
+        val context = requireContext()
+        val noun = when {
+            plan.cleanExtensions.isNotEmpty() -> getString(
+                R.string.ai_show_extension, plan.cleanExtensions.joinToString("/") { it.uppercase() }
+            )
+            plan.kinds.size == 1 -> kindName(plan.kinds[0])
+            else -> getString(R.string.ai_show_files)
+        }
+        val parts = mutableListOf(noun)
+        if (plan.nameContains.isNotBlank()) parts += getString(R.string.ai_show_named, plan.nameContains.trim())
+        if (plan.contentContains.isNotBlank()) parts += getString(R.string.ai_show_word, plan.contentContains.trim())
+        if (plan.largerThan > 0) parts += getString(R.string.ai_show_larger, plan.largerThan, plan.sizeUnit.uppercase())
+        if (plan.today) parts += getString(R.string.ai_show_today)
+        fun age(count: Int, days: Int, weeks: Int, months: Int, years: Int) = context.quantity(
+            when (plan.ageUnit) { "weeks" -> weeks; "months" -> months; "years" -> years; else -> days }, count, count
+        )
+        if (plan.newerThan > 0) parts += age(plan.newerThan, R.plurals.ai_show_newer_days, R.plurals.ai_show_newer_weeks,
+            R.plurals.ai_show_newer_months, R.plurals.ai_show_newer_years)
+        if (plan.olderThan > 0) parts += age(plan.olderThan, R.plurals.ai_show_older_days, R.plurals.ai_show_older_weeks,
+            R.plurals.ai_show_older_months, R.plurals.ai_show_older_years)
+        if (sources.size == 1 && sources[0] != root) parts += getString(R.string.ai_show_in, sources[0].name)
+        var title = parts.joinToString(" ")
+        val order = when (plan.sort) {
+            "size" -> getString(R.string.ai_show_largest_first)
+            "newest" -> getString(R.string.ai_show_newest_first)
+            else -> null
+        }
+        if (order != null) title += " · $order"
+        if (plan.limit > 0) title += " · " + context.quantity(R.plurals.ai_show_top, plan.limit, plan.limit)
+        return title
+    }
+
+    private fun onRoute(route: CommandRules.Route) {
+        when (route) {
+            is CommandRules.Route.Refuse -> showHint(route.reason)
+            is CommandRules.Route.Screen -> {
+                // Storage questions and "the biggest files" open the analysis on its largest files, duplicates
+                // on its duplicates page; back from there leads to the analysis overview.
+                val page = if (route.screen == CommandRules.Kind.DUPLICATES) "duplicates" else "large"
+                startActivity(AnalysisActivity.createIntent(requireContext(), root.path, page))
+                dismiss()
+            }
+        }
+    }
+
+    /** Something Ordo cannot know without a memory: a friendly hint that pops in, never a guessed plan. */
+    private fun showHint(reason: CommandRules.Refusal) {
+        showMessage(R.string.ai_hint_title, getString(when (reason) {
+            CommandRules.Refusal.OPENED -> R.string.ai_hint_opened
+            CommandRules.Refusal.SEARCHED -> R.string.ai_hint_searched
+            CommandRules.Refusal.HABIT -> R.string.ai_hint_habit
+            CommandRules.Refusal.CONVERSATION -> R.string.ai_hint_conversation
+            CommandRules.Refusal.WORK -> R.string.ai_hint_work
+        }))
+        binding.messageIcon.setTintedCircleIcon(R.drawable.ai_hint_icon_white_24dp, R.color.home_assistant)
+        binding.messageIcon.isVisible = true
+        binding.hintDismissText.isVisible = true
+        binding.messageLayout.setOnClickListener { showInput() }
+        if (reason == CommandRules.Refusal.OPENED) {
+            binding.hintActionButton.setText(R.string.ai_hint_opened_action)
+            binding.hintActionButton.isVisible = true
+            binding.hintActionButton.setOnClickListener {
+                // Offered, never done on its own: files unchanged for a month, the closest thing Ordo can see.
+                viewLifecycleOwner.lifecycleScope.launch {
+                    evaluate(CommandPlan("show", "", olderThan = 1, ageUnit = "months", sort = "newest"))
+                }
+            }
+            binding.hintActionButton.reveal(220)
+        }
+        if (me.zhanghai.android.files.ui.Motion.any) {
+            binding.messageIcon.apply {
+                scaleX = 0.4f
+                scaleY = 0.4f
+                rotation = -20f
+                animate().scaleX(1f).scaleY(1f).rotation(0f).setStartDelay(80).setDuration(520)
+                    .setInterpolator(android.view.animation.OvershootInterpolator(2.2f)).start()
+            }
+        }
+        binding.hintDismissText.reveal(320)
     }
 
     /** Folder paths below the storage, relative to it, for the rules' "aus X" / "nach Y" (hidden ones never). */
@@ -830,6 +1000,16 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
         const val TAG = "CommandSheet"
         private const val ARG_PLAN = "plan"
         private const val ARG_TEXT = "text"
+        private const val ARG_MODEL_ANSWER = "model_answer"
+
+        /** Debug builds only: [answer] stands in for the model's JSON answer to [text] (see DebugAiActivity). */
+        fun withModelAnswer(text: String, answer: String) = CommandSheetFragment().apply {
+            check(BuildConfig.DEBUG)
+            arguments = Bundle().apply {
+                putString(ARG_TEXT, text)
+                putString(ARG_MODEL_ANSWER, answer)
+            }
+        }
 
         /** [text] is shown as the command and is what the delete rule reads, so it must say what [plan] does. */
         fun withPlan(text: String, plan: CommandPlan) = CommandSheetFragment().apply {

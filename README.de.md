@@ -143,7 +143,8 @@ Grammatik erzwungen). Ordo prüft diesen Plan selbst, bevor es ihn zeigt:
 - „Lösche die doppelten Dateien“ wählt nur die überzähligen Kopien (gleicher Inhalt); die älteste bleibt jeweils.
 - Einen ganzen Hauptordner wie Download oder mehr als 50 Dateien zu löschen, braucht eine zweite Bestätigung mit
   Anzahl und Größe.
-- Jede Datei wird direkt vor der Aktion noch einmal geprüft; vorhandene Dateien werden nie überschrieben.
+- Jede Datei wird direkt vor der Aktion noch einmal geprüft; vorhandene Dateien werden nie überschrieben. Eine
+  Datei, die seit der Vorschau ersetzt wurde (andere Größe oder Zeit), bleibt unberührt, und das Ergebnis sagt es.
 - Rückgängig macht genau das rückgängig, was der Befehl getan hat, und lässt Dateien in Ruhe, die sich seitdem
   geändert haben.
 
