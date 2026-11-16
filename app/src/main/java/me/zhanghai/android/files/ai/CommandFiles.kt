@@ -67,8 +67,10 @@ object CommandFiles {
                 if (child.name.startsWith(".")) continue
                 if (child.isDirectory) {
                     walk(child)
-                } else if (child.isFile && filter.matches(child) &&
-                    runCatching { child.canonicalPath.startsWith("$rootPath/") }.getOrDefault(false)) {
+                } else if (child.isFile &&
+                    // inside the storage first: a link to a file outside is never opened, not even to read its text
+                    runCatching { child.canonicalPath.startsWith("$rootPath/") }.getOrDefault(false) &&
+                    filter.matches(child)) {
                     found[child.path] = child
                     if (found.size >= stopAfter) stopped = true
                 }
@@ -137,6 +139,7 @@ object CommandFiles {
                 return false
             }
             textLeft -= file.length()
+            textReads.incrementAndGet()
             return try {
                 file.inputStream().use { text!!.contentMatches(it) }
             } catch (e: java.io.IOException) {
@@ -167,6 +170,9 @@ object CommandFiles {
             }
         }
     }
+
+    /** Every file opened to read its text, counted for CommandShowTest. */
+    internal val textReads = java.util.concurrent.atomic.AtomicInteger()
 
     /** Endings whose text Ordo can search today. */
     val TEXT_EXTENSIONS = setOf("txt", "md", "csv", "log", "json", "xml", "html", "htm", "rtf", "ics", "vcf")

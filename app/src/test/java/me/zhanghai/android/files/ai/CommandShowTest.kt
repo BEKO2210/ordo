@@ -180,4 +180,17 @@ class CommandShowTest {
         assertEquals(CommandFiles.MAX_RESULTS, many.files.size)
         assertTrue(many.capped)
     }
+
+    // Re-review of #51: a link inside the storage to a file outside is never opened, not even for a word search.
+    @Test
+    fun linkOutsideIsNeverOpened() {
+        val outside = temp.newFolder("outside")
+        val secret = File(outside, "secret.txt").apply { writeText("Rechnung") }
+        java.nio.file.Files.createSymbolicLink(File(root, "notes.txt").toPath(), secret.toPath())
+        file("own.txt", text = "nichts")
+        val before = CommandFiles.textReads.get()
+        assertEquals(emptyList<String>(), show(CommandPlan("show", "", contentContains = "rechnung")))
+        // own.txt was read, the link was not
+        assertEquals(1, CommandFiles.textReads.get() - before)
+    }
 }

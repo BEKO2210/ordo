@@ -207,7 +207,12 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
     private val isVirtualList: Boolean
         get() = homeCategory != null || showRequest != null
 
-    private val viewModel by viewModels { { FileListViewModel(homeCategory, showRequest) } }
+    private val viewModel by viewModels {
+        {
+            val intent = args.intent
+            FileListViewModel(homeCategory, showRequest) { ShowFileListLiveData.Request.release(intent) }
+        }
+    }
 
     private lateinit var binding: Binding
 

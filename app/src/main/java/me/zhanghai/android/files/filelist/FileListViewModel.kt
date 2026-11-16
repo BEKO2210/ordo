@@ -27,7 +27,9 @@ import java.io.Closeable
 // TODO: Use SavedStateHandle to save state.
 class FileListViewModel(
     private val homeCategory: HomeCategory? = null,
-    private val showRequest: ShowFileListLiveData.Request? = null
+    private val showRequest: ShowFileListLiveData.Request? = null,
+    /** Runs when the list is gone for good (not on rotation), e.g. to drop the show list's token. */
+    private val onGone: () -> Unit = {}
 ) : ViewModel() {
     private val trailLiveData = TrailLiveData()
     val hasTrail: Boolean
@@ -248,6 +250,7 @@ class FileListViewModel(
 
     override fun onCleared() {
         _fileListLiveData.close()
+        onGone()
     }
 
     companion object {

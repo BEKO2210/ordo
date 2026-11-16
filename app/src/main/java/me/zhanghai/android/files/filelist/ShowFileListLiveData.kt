@@ -47,6 +47,11 @@ class ShowFileListLiveData(
             fun register(request: Request): String =
                 UUID.randomUUID().toString().also { pending[it] = request }
 
+            /** The list is gone for good (its view model is cleared): its token is void. */
+            fun release(intent: Intent) {
+                intent.getStringExtra(FileListActivity.EXTRA_SHOW_TOKEN)?.let { pending.remove(it) }
+            }
+
             fun from(intent: Intent): Request? =
                 intent.getStringExtra(FileListActivity.EXTRA_SHOW_TOKEN)?.let { pending[it] }
                     ?.takeIf { it.plan.action == "show" }
