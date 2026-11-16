@@ -1,6 +1,4 @@
 Neu in dieser Testversion:
-• KI-Befehle starten schneller: Ordo merkt sich die eingelesenen Anweisungen des Modells auf dem Gerät
-• Sicherer: Wurde eine Datei seit der Vorschau ersetzt, bleibt sie unberührt, und Ordo sagt es
-• Behoben: „Mobile Daten nutzen“ beim Modell-Download reagierte nach erneutem Öffnen nicht
-• Ein zweiter Tipp wirft den Fortschritt eines laufenden Downloads nicht mehr weg
-Feedback: nullmesh@protonmail.com
+• Zum Ausprobieren (Einstellungen › KI-Assistent › „Neue Befehle ausprobieren“, standardmäßig aus): Ordo findet und zeigt Dateien („Zeig mir die PDFs von letzter Woche“, „Wo ist meine Rechnung?“), versteht Zeit und Größe und fragt nach, wenn es unsicher ist
+• Es ist eine Vorschau und kann sich irren. Nichts ändert sich ohne deine Bestätigung
+Wir freuen uns über Sätze, die Ordo falsch versteht: nullmesh@protonmail.com
