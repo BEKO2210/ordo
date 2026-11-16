@@ -49,8 +49,16 @@ check "shuffle keeps its 48 dp touch target" touch_target shuffle
 check "repeat keeps its 48 dp touch target" touch_target repeat
 check "Sound opens from the player toolbar" paused_ui tap actionSound
 check "the equalizer and deliberate-drag guidance are visible" paused_ui wait "Equalizer" 5
-check "the curve explains its 150 ms hold" paused_ui has "150 ms"
+check "the curve explains its 150 ms hold" paused_ui has "Hold a handle for 150 ms, then drag.|Einen Griff 150 ms halten, dann ziehen."
 check "the fine-tune controls start collapsed" paused_ui has "Fine-tune|Genau einstellen"
+# The equalizer is off by default and its controls are disabled until it is switched on.
+check "the equalizer switches on" paused_ui tap equalizerEnabled
+check "the Bass preset tile can be selected" paused_ui tap "Bass"
+check "the status names the selected preset" paused_ui has Bass effectStatus
+check "Fine-tune opens its band rows" paused_ui tap fineTuneToggle
+check "a band row shows its gain" paused_ui wait "31 Hz" 5
+check "the Flat preset tile restores the curve" paused_ui tap "Flat|Neutral"
+check "the equalizer switches off again" paused_ui tap equalizerEnabled
 check "the playback section reaches skip silence and mono" paused_ui has "Skip silence|Stille überspringen"
 check "the sleep timer offers end of track" paused_ui has "End of track|Titelende"
 back 1

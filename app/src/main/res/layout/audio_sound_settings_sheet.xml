@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- The curve is the primary EQ control; exact steppers are progressively disclosed. -->
+<!-- Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- Sound sheet (docs/KLANG-DESIGN.md): the stage and the preset tiles are the two hero moments. -->
 <androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
@@ -12,23 +13,47 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:paddingStart="24dp"
+        android:paddingStart="20dp"
         android:paddingTop="12dp"
-        android:paddingEnd="24dp"
+        android:paddingEnd="20dp"
         android:paddingBottom="40dp">
+
+        <View
+            android:layout_width="32dp"
+            android:layout_height="4dp"
+            android:layout_gravity="center_horizontal"
+            android:alpha="0.4"
+            android:background="@drawable/klang_handle"
+            android:backgroundTint="?colorOnSurface"
+            android:importantForAccessibility="no" />
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="56dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
             android:gravity="center_vertical"
+            android:minHeight="56dp"
             android:orientation="horizontal">
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_marginEnd="12dp"
+                android:importantForAccessibility="no"
+                android:src="@drawable/audio_equalizer_icon_24dp"
+                app:tint="?colorPrimary" />
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:accessibilityHeading="true"
                 android:text="@string/audio_sound_title"
-                android:textAppearance="?textAppearanceHeadline6" />
+                android:textAppearance="@style/TextAppearance.Ordo.Klang.Title" />
+            <com.google.android.material.materialswitch.MaterialSwitch
+                android:id="@+id/equalizerEnabled"
+                android:layout_width="wrap_content"
+                android:layout_height="48dp"
+                android:contentDescription="@string/audio_sound_equalizer"
+                android:gravity="center" />
             <ImageButton
                 android:id="@+id/close"
                 android:layout_width="48dp"
@@ -39,108 +64,152 @@
                 android:src="@drawable/close_icon_control_normal_24dp"
                 app:tint="?colorOnSurface" />
         </LinearLayout>
-
         <TextView
+            android:id="@+id/effectStatus"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:layout_marginBottom="8dp"
-            android:accessibilityHeading="true"
-            android:text="@string/audio_sound_equalizer"
-            android:textAppearance="?attr/textAppearanceLabelLarge"
-            android:textColor="?attr/colorPrimary" />
+            android:layout_marginStart="36dp"
+            android:layout_marginBottom="12dp"
+            android:accessibilityLiveRegion="polite"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="@string/audio_sound_checking"
+            android:textAppearance="@style/TextAppearance.Ordo.Klang.Secondary" />
 
-        <LinearLayout
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/equalizerStage"
+            style="@style/Widget.Ordo.Klang.Stage"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:minHeight="64dp"
-            android:orientation="horizontal">
+            android:layout_height="wrap_content">
             <LinearLayout
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:orientation="vertical"
-                android:paddingEnd="16dp">
-                <TextView
+                android:padding="20dp">
+                <me.zhanghai.android.files.viewer.audio.EqualizerCurveView
+                    android:id="@+id/equalizerCurve"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/klang_curve_height" />
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:labelFor="@id/equalizerEnabled"
-                    android:text="@string/audio_sound_equalizer"
-                    android:textAppearance="?attr/textAppearanceBodyLarge" />
-                <TextView
-                    android:id="@+id/effectStatus"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
-                    android:accessibilityLiveRegion="polite"
-                    android:ellipsize="end"
-                    android:maxLines="1"
-                    android:text="@string/audio_sound_checking"
-                    android:textAppearance="?attr/textAppearanceBodyMedium"
-                    android:textColor="?android:textColorSecondary" />
+                    android:layout_marginTop="4dp"
+                    android:gravity="center_vertical"
+                    android:minHeight="48dp"
+                    android:orientation="horizontal">
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:paddingEnd="8dp"
+                        android:text="@string/audio_sound_curve_hint"
+                        android:textAppearance="@style/TextAppearance.Ordo.Klang.Small" />
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/equalizerReset"
+                        style="@style/Widget.Ordo.Klang.TextButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/audio_sound_reset"
+                        android:visibility="invisible" />
+                </LinearLayout>
             </LinearLayout>
-            <com.google.android.material.materialswitch.MaterialSwitch
-                android:id="@+id/equalizerEnabled"
-                android:layout_width="wrap_content"
-                android:layout_height="48dp"
-                android:contentDescription="@string/audio_sound_equalizer"
-                android:gravity="center" />
-        </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
 
         <LinearLayout
             android:id="@+id/equalizerControls"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
-            <com.google.android.material.chip.ChipGroup
-                android:id="@+id/presets"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                app:chipSpacingHorizontal="8dp"
-                app:chipSpacingVertical="4dp"
-                app:selectionRequired="true"
-                app:singleSelection="true" />
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:text="@string/audio_sound_curve_hint"
-                android:textAppearance="?attr/textAppearanceBodySmall"
-                android:textColor="?android:textColorSecondary" />
-            <me.zhanghai.android.files.viewer.audio.EqualizerCurveView
-                android:id="@+id/equalizerCurve"
-                android:layout_width="match_parent"
-                android:layout_height="220dp" />
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/fineTuneToggle"
-                style="@style/Widget.Material3.Button.TextButton"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:gravity="center_vertical"
-                android:text="@string/audio_sound_fine_tune"
-                android:textAlignment="viewStart"
-                app:icon="@drawable/expand_more_icon_24dp"
-                app:iconGravity="end"
-                app:iconPadding="8dp" />
-            <LinearLayout
-                android:id="@+id/fineTuneContent"
+                android:layout_marginTop="24dp"
+                android:layout_marginBottom="8dp"
+                android:accessibilityHeading="true"
+                android:text="@string/audio_sound_presets"
+                android:textAppearance="@style/TextAppearance.Ordo.Klang.Section" />
+            <HorizontalScrollView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:visibility="gone">
+                android:layout_marginStart="-20dp"
+                android:layout_marginEnd="-20dp"
+                android:clipToPadding="false"
+                android:overScrollMode="never"
+                android:paddingStart="20dp"
+                android:paddingEnd="12dp"
+                android:scrollbars="none">
                 <LinearLayout
-                    android:id="@+id/bandSteppers"
+                    android:id="@+id/presets"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal" />
+            </HorizontalScrollView>
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/fineTuneCard"
+                style="@style/Widget.Ordo.Klang.Card"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp">
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical" />
-                <LinearLayout
-                    android:id="@+id/preGainRow"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical" />
-            </LinearLayout>
+                    android:orientation="vertical">
+                    <LinearLayout
+                        android:id="@+id/fineTuneToggle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="?attr/selectableItemBackground"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:gravity="center_vertical"
+                        android:minHeight="56dp"
+                        android:orientation="horizontal"
+                        android:paddingStart="16dp"
+                        android:paddingEnd="16dp">
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:layout_marginEnd="16dp"
+                            android:importantForAccessibility="no"
+                            android:src="@drawable/audio_tune_icon_24dp"
+                            app:tint="?colorPrimary" />
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/audio_sound_fine_tune"
+                            android:textAppearance="@style/TextAppearance.Ordo.Klang.Body" />
+                        <ImageView
+                            android:id="@+id/fineTuneChevron"
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:importantForAccessibility="no"
+                            android:src="@drawable/expand_more_icon_24dp"
+                            app:tint="?colorOnSurface" />
+                    </LinearLayout>
+                    <LinearLayout
+                        android:id="@+id/fineTuneContent"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:paddingStart="16dp"
+                        android:paddingEnd="16dp"
+                        android:paddingBottom="8dp"
+                        android:visibility="gone">
+                        <LinearLayout
+                            android:id="@+id/bandSteppers"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical" />
+                        <include
+                            android:id="@+id/preGain"
+                            layout="@layout/klang_stepper_row"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content" />
+                    </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
         </LinearLayout>
 
         <LinearLayout
@@ -156,100 +225,47 @@
                 android:layout_marginBottom="8dp"
                 android:accessibilityHeading="true"
                 android:text="@string/audio_sound_effects_heading"
-                android:textAppearance="?attr/textAppearanceLabelLarge"
-                android:textColor="?attr/colorPrimary" />
-
-            <LinearLayout
-                android:id="@+id/bassSection"
+                android:textAppearance="@style/TextAppearance.Ordo.Klang.Section" />
+            <GridLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical">
-                <LinearLayout
-                    android:layout_width="match_parent"
+                android:layout_marginStart="-4dp"
+                android:layout_marginEnd="-4dp"
+                android:columnCount="@integer/klang_columns">
+                <include
+                    android:id="@+id/bassCard"
+                    layout="@layout/klang_effect_card"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:minHeight="64dp"
-                    android:orientation="horizontal">
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical"
-                        android:paddingEnd="16dp">
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:labelFor="@id/bassEnabled"
-                            android:text="@string/audio_sound_bass_boost"
-                            android:textAppearance="?attr/textAppearanceBodyLarge" />
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="2dp"
-                            android:ellipsize="end"
-                            android:maxLines="1"
-                            android:text="@string/audio_sound_bass_summary"
-                            android:textAppearance="?attr/textAppearanceBodyMedium"
-                            android:textColor="?android:textColorSecondary" />
-                    </LinearLayout>
-                    <com.google.android.material.materialswitch.MaterialSwitch
-                        android:id="@+id/bassEnabled"
-                        android:layout_width="wrap_content"
-                        android:layout_height="48dp"
-                        android:contentDescription="@string/audio_sound_bass_boost" />
-                </LinearLayout>
-                <LinearLayout
-                    android:id="@+id/bassStrengthRow"
-                    android:layout_width="match_parent"
+                    android:layout_columnWeight="1"
+                    android:layout_gravity="fill"
+                    android:layout_margin="4dp" />
+                <include
+                    android:id="@+id/virtualizerCard"
+                    layout="@layout/klang_effect_card"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/virtualizerSection"
+                    android:layout_columnWeight="1"
+                    android:layout_gravity="fill"
+                    android:layout_margin="4dp" />
+            </GridLayout>
+            <TextView
+                android:id="@+id/bassUnavailable"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical">
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:minHeight="64dp"
-                    android:orientation="horizontal">
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical"
-                        android:paddingEnd="16dp">
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:labelFor="@id/virtualizerEnabled"
-                            android:text="@string/audio_sound_virtualizer"
-                            android:textAppearance="?attr/textAppearanceBodyLarge" />
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="2dp"
-                            android:ellipsize="end"
-                            android:maxLines="1"
-                            android:text="@string/audio_sound_virtualizer_summary"
-                            android:textAppearance="?attr/textAppearanceBodyMedium"
-                            android:textColor="?android:textColorSecondary" />
-                    </LinearLayout>
-                    <com.google.android.material.materialswitch.MaterialSwitch
-                        android:id="@+id/virtualizerEnabled"
-                        android:layout_width="wrap_content"
-                        android:layout_height="48dp"
-                        android:contentDescription="@string/audio_sound_virtualizer" />
-                </LinearLayout>
-                <LinearLayout
-                    android:id="@+id/virtualizerStrengthRow"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical" />
-            </LinearLayout>
+                android:layout_marginTop="4dp"
+                android:minHeight="40dp"
+                android:gravity="center_vertical"
+                android:textAppearance="@style/TextAppearance.Ordo.Klang.Secondary"
+                android:visibility="gone" />
+            <TextView
+                android:id="@+id/virtualizerUnavailable"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="40dp"
+                android:gravity="center_vertical"
+                android:textAppearance="@style/TextAppearance.Ordo.Klang.Secondary"
+                android:visibility="gone" />
         </LinearLayout>
 
         <TextView
@@ -259,88 +275,125 @@
             android:layout_marginBottom="8dp"
             android:accessibilityHeading="true"
             android:text="@string/audio_sound_normalization_heading"
-            android:textAppearance="?attr/textAppearanceLabelLarge"
-            android:textColor="?attr/colorPrimary" />
-
-        <LinearLayout
+            android:textAppearance="@style/TextAppearance.Ordo.Klang.Section" />
+        <GridLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:minHeight="64dp"
-            android:orientation="horizontal">
-            <LinearLayout
+            android:layout_marginStart="-4dp"
+            android:layout_marginEnd="-4dp"
+            android:columnCount="@integer/klang_columns">
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/normalizationCard"
+                style="@style/Widget.Ordo.Klang.Card"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical"
-                android:paddingEnd="16dp">
-                <TextView
+                android:layout_columnWeight="1"
+                android:layout_gravity="fill"
+                android:layout_margin="4dp">
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:labelFor="@id/normalizationEnabled"
-                    android:text="@string/audio_sound_normalization"
-                    android:textAppearance="?attr/textAppearanceBodyLarge" />
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
-                    android:ellipsize="end"
-                    android:maxLines="1"
-                    android:text="@string/audio_sound_normalization_summary"
-                    android:textAppearance="?attr/textAppearanceBodyMedium"
-                    android:textColor="?android:textColorSecondary" />
-            </LinearLayout>
-            <com.google.android.material.materialswitch.MaterialSwitch
-                android:id="@+id/normalizationEnabled"
-                android:layout_width="wrap_content"
-                android:layout_height="48dp"
-                android:contentDescription="@string/audio_sound_normalization" />
-        </LinearLayout>
-        <LinearLayout
-            android:id="@+id/normalizationPreampRow"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical" />
-        <LinearLayout
-            android:id="@+id/balanceRow"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical" />
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:minHeight="64dp"
-            android:orientation="horizontal">
-            <LinearLayout
+                    android:orientation="vertical"
+                    android:padding="16dp">
+                    <include
+                        android:id="@+id/normalizationRow"
+                        layout="@layout/klang_switch_row"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
+                    <include
+                        android:id="@+id/normalizationPreamp"
+                        layout="@layout/klang_stepper_row"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/balanceCard"
+                style="@style/Widget.Ordo.Klang.Card"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical"
-                android:paddingEnd="16dp">
-                <TextView
+                android:layout_columnWeight="1"
+                android:layout_gravity="fill"
+                android:layout_margin="4dp">
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:labelFor="@id/mono"
-                    android:text="@string/audio_sound_mono"
-                    android:textAppearance="?attr/textAppearanceBodyLarge" />
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
-                    android:ellipsize="end"
-                    android:maxLines="1"
-                    android:text="@string/audio_sound_mono_summary"
-                    android:textAppearance="?attr/textAppearanceBodyMedium"
-                    android:textColor="?android:textColorSecondary" />
-            </LinearLayout>
-            <com.google.android.material.materialswitch.MaterialSwitch
-                android:id="@+id/mono"
-                android:layout_width="wrap_content"
-                android:layout_height="48dp"
-                android:contentDescription="@string/audio_sound_mono" />
-        </LinearLayout>
+                    android:orientation="vertical"
+                    android:padding="16dp">
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:minHeight="48dp"
+                        android:orientation="horizontal">
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:layout_marginEnd="16dp"
+                            android:importantForAccessibility="no"
+                            android:src="@drawable/audio_balance_icon_24dp"
+                            app:tint="?colorPrimary" />
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/audio_sound_balance"
+                            android:textAppearance="@style/TextAppearance.Ordo.Klang.Body" />
+                        <TextView
+                            android:id="@+id/balanceValue"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:gravity="center"
+                            android:minWidth="72dp"
+                            android:paddingStart="12dp"
+                            android:paddingTop="6dp"
+                            android:paddingEnd="12dp"
+                            android:paddingBottom="6dp"
+                            android:textAppearance="@style/TextAppearance.Ordo.Klang.Label" />
+                    </LinearLayout>
+                    <me.zhanghai.android.files.viewer.audio.BalanceView
+                        android:id="@+id/balanceView"
+                        android:layout_width="match_parent"
+                        android:layout_height="56dp"
+                        android:contentDescription="@string/audio_sound_balance_picture" />
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+                        <include
+                            android:id="@+id/balanceSteps"
+                            layout="@layout/klang_step_buttons"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content" />
+                        <Space
+                            android:layout_width="0dp"
+                            android:layout_height="0dp"
+                            android:layout_weight="1" />
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/balanceCenter"
+                            style="@style/Widget.Ordo.Klang.TextButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/audio_sound_balance_center" />
+                    </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+        </GridLayout>
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/monoCard"
+            style="@style/Widget.Ordo.Klang.Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp">
+            <include
+                android:id="@+id/monoRow"
+                layout="@layout/klang_switch_row"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp" />
+        </com.google.android.material.card.MaterialCardView>
 
         <TextView
             android:layout_width="match_parent"
@@ -349,145 +402,299 @@
             android:layout_marginBottom="8dp"
             android:accessibilityHeading="true"
             android:text="@string/audio_sound_playback_heading"
-            android:textAppearance="?attr/textAppearanceLabelLarge"
-            android:textColor="?attr/colorPrimary" />
-        <LinearLayout
-            android:id="@+id/speedRow"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical" />
+            android:textAppearance="@style/TextAppearance.Ordo.Klang.Section" />
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:minHeight="64dp"
-            android:orientation="horizontal">
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical"
-                android:paddingEnd="16dp">
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:labelFor="@id/skipSilence"
-                    android:text="@string/audio_sound_skip_silence"
-                    android:textAppearance="?attr/textAppearanceBodyLarge" />
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
-                    android:ellipsize="end"
-                    android:maxLines="1"
-                    android:text="@string/audio_sound_skip_silence_summary"
-                    android:textAppearance="?attr/textAppearanceBodyMedium"
-                    android:textColor="?android:textColorSecondary" />
-            </LinearLayout>
-            <com.google.android.material.materialswitch.MaterialSwitch
-                android:id="@+id/skipSilence"
-                android:layout_width="wrap_content"
-                android:layout_height="48dp"
-                android:contentDescription="@string/audio_sound_skip_silence" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:paddingTop="8dp"
-            android:paddingBottom="8dp">
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/audio_sound_sleep_heading"
-                android:textAppearance="?attr/textAppearanceBodyLarge" />
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
-                android:ellipsize="end"
-                android:maxLines="1"
-                android:text="@string/audio_sound_sleep_summary"
-                android:textAppearance="?attr/textAppearanceBodyMedium"
-                android:textColor="?android:textColorSecondary" />
-            <com.google.android.material.chip.ChipGroup
-                android:id="@+id/sleepOptions"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                app:chipSpacingHorizontal="8dp"
-                app:chipSpacingVertical="4dp"
-                app:singleSelection="true" />
-        </LinearLayout>
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="@string/audio_sound_focus_title"
-            android:textAppearance="?attr/textAppearanceBodyLarge" />
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
-            android:ellipsize="end"
-            android:maxLines="1"
-            android:text="@string/audio_sound_focus_summary"
-            android:textAppearance="?attr/textAppearanceBodyMedium"
-            android:textColor="?android:textColorSecondary" />
-        <RadioGroup
-            android:id="@+id/focusBehavior"
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/speedCard"
+            style="@style/Widget.Ordo.Klang.Card"
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
-            <RadioButton
-                android:id="@+id/focusDuck"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:minHeight="48dp"
-                android:text="@string/audio_sound_focus_duck" />
-            <RadioButton
-                android:id="@+id/focusPause"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:minHeight="48dp"
-                android:text="@string/audio_sound_focus_pause" />
-        </RadioGroup>
+                android:orientation="vertical"
+                android:padding="16dp">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:minHeight="48dp"
+                    android:orientation="horizontal">
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_marginEnd="16dp"
+                        android:importantForAccessibility="no"
+                        android:src="@drawable/audio_speed_icon_24dp"
+                        app:tint="?colorPrimary" />
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/audio_sound_speed"
+                        android:textAppearance="@style/TextAppearance.Ordo.Klang.Body" />
+                    <TextView
+                        android:id="@+id/speedValue"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:accessibilityLiveRegion="polite"
+                        android:textAppearance="@style/TextAppearance.Ordo.Klang.Headline" />
+                </LinearLayout>
+                <com.google.android.material.button.MaterialButtonToggleGroup
+                    android:id="@+id/speedGroup"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:spacing="2dp"
+                    app:innerCornerSize="6dp"
+                    app:singleSelection="true">
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/speedOption0"
+                        style="@style/Widget.Ordo.Klang.Segment"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1" />
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/speedOption1"
+                        style="@style/Widget.Ordo.Klang.Segment"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1" />
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/speedOption2"
+                        style="@style/Widget.Ordo.Klang.Segment"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1" />
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/speedOption3"
+                        style="@style/Widget.Ordo.Klang.Segment"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1" />
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/speedOption4"
+                        style="@style/Widget.Ordo.Klang.Segment"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1" />
+                </com.google.android.material.button.MaterialButtonToggleGroup>
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:paddingEnd="8dp"
+                        android:text="@string/audio_sound_speed_hint"
+                        android:textAppearance="@style/TextAppearance.Ordo.Klang.Small" />
+                    <include
+                        android:id="@+id/speedSteps"
+                        layout="@layout/klang_step_buttons"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
 
-        <LinearLayout
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/sleepCard"
+            style="@style/Widget.Ordo.Klang.Card"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:minHeight="64dp"
-            android:orientation="horizontal">
+            android:layout_marginTop="8dp">
             <LinearLayout
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:orientation="vertical"
-                android:paddingEnd="16dp">
-                <TextView
+                android:padding="16dp">
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:labelFor="@id/resumeHeadphones"
-                    android:text="@string/audio_sound_resume_headphones"
-                    android:textAppearance="?attr/textAppearanceBodyLarge" />
-                <TextView
+                    android:gravity="center_vertical"
+                    android:minHeight="48dp"
+                    android:orientation="horizontal">
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_marginEnd="16dp"
+                        android:importantForAccessibility="no"
+                        android:src="@drawable/audio_timer_icon_24dp"
+                        app:tint="?colorPrimary" />
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/audio_sound_sleep_heading"
+                            android:textAppearance="@style/TextAppearance.Ordo.Klang.Body" />
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:text="@string/audio_sound_sleep_summary"
+                            android:textAppearance="@style/TextAppearance.Ordo.Klang.Secondary" />
+                    </LinearLayout>
+                </LinearLayout>
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/sleepRemaining"
+                    style="@style/Widget.MaterialComponents.Chip.Action"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:accessibilityLiveRegion="polite"
+                    android:visibility="gone"
+                    app:closeIcon="@drawable/close_icon_control_normal_24dp"
+                    app:closeIconVisible="true" />
+                <HorizontalScrollView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
-                    android:ellipsize="end"
-                    android:maxLines="1"
-                    android:text="@string/audio_sound_headphones_summary"
-                    android:textAppearance="?attr/textAppearanceBodyMedium"
-                    android:textColor="?android:textColorSecondary" />
+                    android:layout_marginTop="8dp"
+                    android:overScrollMode="never"
+                    android:scrollbars="none">
+                    <com.google.android.material.button.MaterialButtonToggleGroup
+                        android:id="@+id/sleepOptions"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:spacing="2dp"
+                        app:innerCornerSize="6dp"
+                        app:singleSelection="true">
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/sleepOption0"
+                            style="@style/Widget.Ordo.Klang.Segment"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:minWidth="56dp" />
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/sleepOption1"
+                            style="@style/Widget.Ordo.Klang.Segment"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:minWidth="56dp" />
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/sleepOption2"
+                            style="@style/Widget.Ordo.Klang.Segment"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:minWidth="56dp" />
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/sleepOption3"
+                            style="@style/Widget.Ordo.Klang.Segment"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:minWidth="56dp" />
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/sleepOption4"
+                            style="@style/Widget.Ordo.Klang.Segment"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:minWidth="56dp" />
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/sleepOption5"
+                            style="@style/Widget.Ordo.Klang.Segment"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:minWidth="56dp" />
+                    </com.google.android.material.button.MaterialButtonToggleGroup>
+                </HorizontalScrollView>
             </LinearLayout>
-            <com.google.android.material.materialswitch.MaterialSwitch
-                android:id="@+id/resumeHeadphones"
-                android:layout_width="wrap_content"
-                android:layout_height="48dp"
-                android:contentDescription="@string/audio_sound_resume_headphones" />
-        </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/optionsCard"
+            style="@style/Widget.Ordo.Klang.Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingStart="16dp"
+                android:paddingTop="8dp"
+                android:paddingEnd="16dp"
+                android:paddingBottom="8dp">
+                <include
+                    android:id="@+id/skipRow"
+                    layout="@layout/klang_switch_row"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:paddingTop="8dp"
+                    android:paddingBottom="8dp">
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:layout_marginEnd="16dp"
+                            android:importantForAccessibility="no"
+                            android:src="@drawable/audio_speaker_icon_24dp"
+                            app:tint="?colorPrimary" />
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="@string/audio_sound_focus_title"
+                                android:textAppearance="@style/TextAppearance.Ordo.Klang.Body" />
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp"
+                                android:text="@string/audio_sound_focus_summary"
+                                android:textAppearance="@style/TextAppearance.Ordo.Klang.Secondary" />
+                        </LinearLayout>
+                    </LinearLayout>
+                    <com.google.android.material.button.MaterialButtonToggleGroup
+                        android:id="@+id/focusBehavior"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:spacing="2dp"
+                        app:innerCornerSize="6dp"
+                        app:selectionRequired="true"
+                        app:singleSelection="true">
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/focusPause"
+                            style="@style/Widget.Ordo.Klang.Segment"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:contentDescription="@string/audio_sound_focus_pause"
+                            android:text="@string/audio_sound_focus_pause_short" />
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/focusDuck"
+                            style="@style/Widget.Ordo.Klang.Segment"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:contentDescription="@string/audio_sound_focus_duck"
+                            android:text="@string/audio_sound_focus_duck_short" />
+                    </com.google.android.material.button.MaterialButtonToggleGroup>
+                </LinearLayout>
+                <include
+                    android:id="@+id/headphonesRow"
+                    layout="@layout/klang_switch_row"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>

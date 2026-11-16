@@ -522,7 +522,8 @@ class AudioPlayerActivity : AppActivity() {
                     extras.getBoolean(AudioPlayerCommands.EXTRA_VIRTUALIZER_AVAILABLE),
                     extras.getBoolean(AudioPlayerCommands.EXTRA_SLEEP_ACTIVE),
                     extras.getInt(AudioPlayerCommands.EXTRA_SLEEP_MINUTES),
-                    extras.getBoolean(AudioPlayerCommands.EXTRA_END_OF_TRACK)
+                    extras.getBoolean(AudioPlayerCommands.EXTRA_END_OF_TRACK),
+                    extras.getLong(AudioPlayerCommands.EXTRA_SLEEP_REMAINING_MS)
                 )
             )
         }, ContextCompat.getMainExecutor(this))
@@ -549,7 +550,8 @@ class AudioPlayerActivity : AppActivity() {
         val virtualizerAvailable: Boolean = false,
         val sleepActive: Boolean = false,
         val sleepMinutes: Int = 0,
-        val sleepAtEndOfTrack: Boolean = false
+        val sleepAtEndOfTrack: Boolean = false,
+        val sleepRemainingMs: Long = 0L
     )
 
     private fun formatTime(milliseconds: Long): String {

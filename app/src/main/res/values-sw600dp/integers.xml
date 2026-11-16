@@ -8,4 +8,6 @@
 <resources>
 
     <integer name="file_list_toolbar_scroll_flags">@integer/scrollFlags_noScroll</integer>
+
+    <integer name="klang_columns">2</integer>
 </resources>
