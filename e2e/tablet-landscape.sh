@@ -10,10 +10,6 @@ export E2E_FAST=0
 # Current screen in its present rotation, e.g. "2560 1600", and density.
 cur_size() { a shell dumpsys window displays | grep -o -m1 'cur=[0-9]*x[0-9]*' | sed 's/cur=//; s/x/ /'; }
 cur_dpi() { a shell wm density | tail -1 | sed 's/.*: //' | tr -d '\r'; }
-is_emulator() {
-    case "$SERIAL" in emulator-*) return 0 ;; esac
-    [ "$(a shell getprop ro.kernel.qemu | tr -d '\r')" = 1 ] || [ "$(a shell getprop ro.boot.qemu | tr -d '\r')" = 1 ]
-}
 if is_emulator; then
     # Only an emulator is resized, and it gets back exactly the overrides it had (none, or e.g. a capture setup).
     old_size=$(a shell wm size | sed -n 's/^Override size: //p' | tr -d '\r')

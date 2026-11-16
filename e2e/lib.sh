@@ -30,18 +30,52 @@ on() { [ "$(top)" = "$PKG/me.zhanghai.android.files.$1" ]; }
 wait_on() { local end=$((SECONDS + ${2:-4})); until on "$1"; do [ $SECONDS -ge "$end" ] && return 1; sleep 0.3; done; }
 
 wake() { a shell input keyevent KEYCODE_WAKEUP; a shell wm dismiss-keyguard; sleep 1; }
-# Fresh start on the home screen with an empty crash log.
-launch() {
+is_emulator() {
+    case "$SERIAL" in emulator-*) return 0 ;; esac
+    [ "$(a shell getprop ro.kernel.qemu | tr -d '\r')" = 1 ] || [ "$(a shell getprop ro.boot.qemu | tr -d '\r')" = 1 ]
+}
+# What adb may grant, so no system dialog comes to the front: notifications (Android 13+) and all-files access (an app
+# op since Android 11). Older platforms refuse quietly; a system dialog itself is never tapped.
+grant() {
+    a shell pm grant "$PKG" android.permission.POST_NOTIFICATIONS >/dev/null 2>&1
+    a shell appops set "$PKG" MANAGE_EXTERNAL_STORAGE allow >/dev/null 2>&1
+}
+# Cold start with an empty crash log, without touching the first-run welcome pages.
+open_app() {
     wake
+    grant
     a logcat -b crash -c
     a shell am force-stop "$PKG"
     a shell monkey -p "$PKG" -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1
     sleep "${1:-6}"
+}
+# After a fresh install or cleared data Ordo first shows its welcome pages; they are skipped through their own button.
+skip_onboarding() {
+    on home.OnboardingActivity || return 0
+    ui tap "Überspringen|Skip" >/dev/null; sleep 3
+    on home.OnboardingActivity && { echo "first run: onboarding did not close"; return 1; }
+    echo "first run: onboarding skipped"
+}
+# Fresh start on the home screen with an empty crash log.
+launch() {
+    open_app "${1:-6}"
+    skip_onboarding
     guard
 }
 screen_size() { a shell wm size | tail -1 | sed 's/.*: //; s/x/ /'; }
 swipe_up() { read -r W H < <(screen_size); a shell input swipe $((W / 2)) $((H * 3 / 4)) $((W / 2)) $((H / 3)) 500; sleep 1.5; }
 swipe_down() { read -r W H < <(screen_size); a shell input swipe $((W / 2)) $((H / 3)) $((W / 2)) $((H * 3 / 4)) 500; sleep 1.5; }
+
+# The wand opens the command sheet. Below the model's RAM floor (CommandModel.MIN_RAM, 10 GB, compared with the
+# device's own MemTotal) it opens the setup page that says the AI can't run here: SKIP. Anything else is FAIL.
+check_wand() {
+    local name="the wand opens the command sheet" kb
+    kb=$(a shell cat /proc/meminfo | awk '/^MemTotal/ { print $2 }')
+    if ui has headerOrb; then pass "$name"
+    elif [ "${kb:-0}" -lt 9765625 ] && ui has "Auf diesem Gerät läuft die Ordo-KI nicht|This phone can’t run Ordo AI"; then
+        echo "SKIP $name (not enough RAM for the model on this device)"
+    else fail "$name"; fi
+}
 
 finish() {
     check "no crash" test "$(crashes)" = 0
