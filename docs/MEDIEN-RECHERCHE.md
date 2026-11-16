@@ -111,6 +111,18 @@ Kürzel: RN = https://raw.githubusercontent.com/androidx/media/release/RELEASENO
 - Barrierefreiheit: Tippflächen ≥ 48×48 dp, `contentDescription` für Icon-Tasten (https://developer.android.com/guide/topics/ui/accessibility/apps).
 - ReplayGain-2.0-Spezifikation (hydrogenaudio) und AES77: Abruf scheiterte an Cloudflare-403 → **nicht belegt**. Perzeptuelles Audio: nichts Belastbares gefunden.
 
+#### 9. Eingebaute Player-Oberfläche
+- Die XML-Layouts wählen nach verfügbarer Fensterbreite und -höhe: kompakt als Spalte, ab 600 dp in einem hohen
+  Fenster als auf 560 dp begrenzte Spalte und im kurzen bzw. ab 840 dp breiten Querformat mit Cover und Steuerung
+  nebeneinander. So bleibt ein Tablet im Hochformat eine großzügige Spalte statt eines gestreckten Querformats.
+- Play/Pause misst 64 dp, ab 600 dp 80 dp; Vor/Zurück messen 56 dp, Shuffle/Wiederholen 48 dp. Aktive
+  Shuffle-/Wiederholmodi tragen Primärfarbe und einen 4-dp-Punkt. Das Cover hat 28-dp-Ecken.
+- Für den Hintergrund wird das Cover auf 24 × 24 Pixel verkleinert, der Mittelwert der deckenden Pixel gebildet
+  und mit höchstens 8 % in `colorSurface` gemischt; die Stärke sinkt automatisch, falls `colorOnSurface` sonst
+  weniger als 4,5:1 Kontrast hätte. Der Wechsel dauert 300 ms, wenn Ordos Bewegungseinstellung und die
+  Systemeinstellung Animationen erlauben. Diese Werte stammen aus dem Code; die Wirkung auf Geräten ist noch
+  nicht neu gemessen.
+
 #### Empfehlung für Ordo
 Stack: Media3 1.11.1 (exoplayer, session, ui, inspector) + `MediaLibraryService`; Plattform-Decoder, dazu selbst gebaute FFmpeg-Erweiterung (LGPL-Konfiguration, `alac` + `flac` für API 24–26); TagLib für Tags/ReplayGain/Liedtexte; ReplayGain als eigener AudioProcessor; Crossfade erst später (Eigenbau).
 1. `PlaybackService` mit Fokus, Noisy, mediaPlayback-FGS, `MediaButtonReceiver` + `onPlaybackResumption` (Queue persistieren); FGS-Erklärung samt Video in der Play Console.

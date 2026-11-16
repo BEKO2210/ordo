@@ -77,7 +77,9 @@ What comes next is in the [living roadmap](docs/ROADMAP-LIVE.md): every goal has
 - Rename many files at once using a pattern
 - Create and extract ZIP, TAR and 7z archives
 - Built-in viewers for images, PDF and text
-- Play music in Ordo, with a queue, cover art and background controls
+- Play music in Ordo, with a queue, cover art and background controls. The player uses a generous centred
+  composition on phones and portrait tablets, and puts the cover beside the controls in a wide landscape window;
+  the cover softly colours the background without changing the theme’s text colours
 
 **Keep files safe**
 

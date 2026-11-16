@@ -1082,6 +1082,7 @@
     <string name="audio_player_title">Music player</string>
     <string name="audio_player_unknown_title">Unknown title</string>
     <string name="audio_player_unknown_artist">Unknown artist</string>
+    <string name="audio_player_artist_album_format">%1$s · %2$s</string>
     <string name="audio_player_play">Play</string>
     <string name="audio_player_pause">Pause</string>
     <string name="audio_player_previous">Previous</string>

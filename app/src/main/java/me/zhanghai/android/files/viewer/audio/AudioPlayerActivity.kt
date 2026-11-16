@@ -5,21 +5,29 @@
 
 package me.zhanghai.android.files.viewer.audio
 
+import android.animation.ValueAnimator
 import android.content.ComponentName
 import android.content.ContentResolver
 import android.content.Context
 import android.content.Intent
+import android.content.res.ColorStateList
+import android.graphics.Bitmap
+import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.util.TypedValue
+import android.view.Gravity
 import android.widget.ImageView
 import android.widget.SeekBar
 import android.widget.Toast
 import androidx.annotation.OptIn
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.drawable.toBitmap
 import androidx.core.view.ViewCompat
 import androidx.core.view.isVisible
+import androidx.core.widget.ImageViewCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
@@ -32,6 +40,7 @@ import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import coil.dispose
 import coil.load
+import com.google.android.material.color.MaterialColors
 import com.google.android.material.snackbar.Snackbar
 import com.google.common.util.concurrent.ListenableFuture
 import java8.nio.file.Path
@@ -60,6 +69,8 @@ class AudioPlayerActivity : AppActivity() {
     private var controller: MediaController? = null
     private var artworkJob: Job? = null
     private var artworkKey: String? = null
+    private var backgroundAnimator: ValueAnimator? = null
+    private var backgroundColor = 0
     private var queueStarted = false
     private var launchQueue: LaunchQueue? = null
     private var progressDescription: String? = null
@@ -101,6 +112,9 @@ class AudioPlayerActivity : AppActivity() {
         super.onCreate(savedInstanceState)
         binding = AudioPlayerActivityBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        backgroundColor = themeColor(com.google.android.material.R.attr.colorSurface)
+        binding.root.setBackgroundColor(backgroundColor)
+        binding.root.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> updateArtworkSize() }
         binding.toolbar.setNavigationOnClickListener { finish() }
         binding.previous.setOnClickListener { controller?.seekToPreviousMediaItem() }
         binding.playPause.setOnClickListener {
@@ -165,6 +179,7 @@ class AudioPlayerActivity : AppActivity() {
     override fun onStop() {
         handler.removeCallbacks(progressUpdater)
         artworkJob?.cancel()
+        backgroundAnimator?.cancel()
         artworkKey = null
         controller?.removeListener(playerListener)
         controller = null
@@ -255,10 +270,13 @@ class AudioPlayerActivity : AppActivity() {
             ?: metadata.displayTitle?.takeIf { it.isNotBlank() }
             ?: item?.mediaMetadata?.displayTitle
             ?: getString(R.string.audio_player_unknown_title)
-        binding.artist.text = metadata.artist?.takeIf { it.isNotBlank() }
+        val artist = metadata.artist?.takeIf { it.isNotBlank() }
             ?: getString(R.string.audio_player_unknown_artist)
-        binding.album.text = metadata.albumTitle
-        binding.album.isVisible = !metadata.albumTitle.isNullOrBlank()
+        binding.artist.text = metadata.albumTitle?.takeIf { it.isNotBlank() }?.let {
+            getString(R.string.audio_player_artist_album_format, artist, it)
+        } ?: artist
+        // Kept in every layout for stable view binding; artist and album read as one calm line.
+        binding.album.isVisible = false
         val showPlay = Util.shouldShowPlayButton(player)
         binding.playPause.setImageResource(
             if (showPlay) R.drawable.play_icon_24dp else R.drawable.pause_icon_24dp
@@ -268,16 +286,19 @@ class AudioPlayerActivity : AppActivity() {
         )
         binding.previous.isEnabled = player.hasPreviousMediaItem()
         binding.next.isEnabled = player.hasNextMediaItem()
+        binding.previous.alpha = if (binding.previous.isEnabled) 1f else DISABLED_CONTROL_ALPHA
+        binding.next.alpha = if (binding.next.isEnabled) 1f else DISABLED_CONTROL_ALPHA
         binding.seekBar.isEnabled = player.isCommandAvailable(Player.COMMAND_SEEK_IN_CURRENT_MEDIA_ITEM)
             && player.duration != C.TIME_UNSET
         binding.shuffle.isActivated = player.shuffleModeEnabled
         binding.shuffle.contentDescription = getString(
             if (player.shuffleModeEnabled) R.string.audio_player_shuffle_on else R.string.audio_player_shuffle_off
         )
-        binding.shuffle.alpha = if (player.shuffleModeEnabled) 1f else INACTIVE_CONTROL_ALPHA
+        setToggleAppearance(binding.shuffle, binding.shuffleIndicator, player.shuffleModeEnabled)
         binding.repeat.isActivated = player.repeatMode != Player.REPEAT_MODE_OFF
-        binding.repeat.alpha =
-            if (player.repeatMode != Player.REPEAT_MODE_OFF) 1f else INACTIVE_CONTROL_ALPHA
+        setToggleAppearance(
+            binding.repeat, binding.repeatIndicator, player.repeatMode != Player.REPEAT_MODE_OFF
+        )
         binding.repeat.setImageResource(
             if (player.repeatMode == Player.REPEAT_MODE_ONE) {
                 R.drawable.repeat_one_icon_24dp
@@ -346,22 +367,112 @@ class AudioPlayerActivity : AppActivity() {
         binding.artwork.apply {
             setPadding(0, 0, 0, 0)
             scaleType = ImageView.ScaleType.CENTER_CROP
+            ImageViewCompat.setImageTintList(this, null)
             load(data) {
                 crossfade(Motion.any)
                 error(R.drawable.file_audio_icon)
-                listener(onError = { _, _ -> showPlaceholder() })
+                listener(
+                    onSuccess = { _, result -> updateArtworkWash(result.drawable) },
+                    onError = { _, _ -> showPlaceholder() }
+                )
             }
         }
     }
 
     private fun showPlaceholder() {
+        updateBackgroundWash(null)
+        binding.artworkCard.setCardBackgroundColor(
+            themeColor(
+                com.google.android.material.R.attr.colorSurfaceContainerHigh,
+                com.google.android.material.R.attr.colorSurfaceVariant
+            )
+        )
         binding.artwork.apply {
             dispose()
             scaleType = ImageView.ScaleType.CENTER_INSIDE
             val padding = resources.getDimensionPixelSize(R.dimen.audio_player_artwork_padding)
             setPadding(padding, padding, padding, padding)
             setImageResource(R.drawable.file_audio_icon)
+            ImageViewCompat.setImageTintList(
+                this,
+                ColorStateList.valueOf(
+                    themeColor(
+                        com.google.android.material.R.attr.colorOnSurfaceVariant,
+                        android.R.attr.textColorSecondary
+                    )
+                )
+            )
         }
+    }
+
+    private fun updateArtworkWash(drawable: Drawable) {
+        val bitmap = drawable.toBitmap(ARTWORK_SAMPLE_SIZE, ARTWORK_SAMPLE_SIZE, Bitmap.Config.ARGB_8888)
+        val pixels = IntArray(bitmap.width * bitmap.height)
+        bitmap.getPixels(pixels, 0, bitmap.width, 0, 0, bitmap.width, bitmap.height)
+        updateBackgroundWash(AudioPlayerColorWash.averageArgb(pixels))
+    }
+
+    private fun updateBackgroundWash(artworkColor: Int?) {
+        val surface = themeColor(com.google.android.material.R.attr.colorSurface)
+        val onSurface = themeColor(com.google.android.material.R.attr.colorOnSurface)
+        val target = artworkColor?.let {
+            AudioPlayerColorWash.blendWithSurface(surface, it, onSurface)
+        } ?: surface
+        backgroundAnimator?.cancel()
+        if (!Motion.any || backgroundColor == target) {
+            backgroundColor = target
+            binding.root.setBackgroundColor(target)
+            return
+        }
+        backgroundAnimator = ValueAnimator.ofArgb(backgroundColor, target).apply {
+            duration = BACKGROUND_CROSSFADE_DURATION_MS
+            addUpdateListener {
+                backgroundColor = it.animatedValue as Int
+                binding.root.setBackgroundColor(backgroundColor)
+            }
+            start()
+        }
+    }
+
+    private fun setToggleAppearance(button: ImageView, indicator: android.view.View, active: Boolean) {
+        button.alpha = if (active) 1f else INACTIVE_CONTROL_ALPHA
+        ImageViewCompat.setImageTintList(
+            button,
+            ColorStateList.valueOf(
+                themeColor(
+                    if (active) com.google.android.material.R.attr.colorPrimary
+                    else com.google.android.material.R.attr.colorOnSurface
+                )
+            )
+        )
+        indicator.isVisible = active
+    }
+
+    private fun themeColor(attribute: Int, fallback: Int? = null): Int {
+        val value = TypedValue()
+        if (!theme.resolveAttribute(attribute, value, true)) {
+            return MaterialColors.getColor(binding.root, checkNotNull(fallback))
+        }
+        return if (value.resourceId != 0) ContextCompat.getColor(this, value.resourceId) else value.data
+    }
+
+    private fun updateArtworkSize() {
+        val container = binding.artworkContainer
+        val parent = container.parent as? android.view.View ?: return
+        if (parent.width == 0 || parent.height == 0) return
+        val size = if (container.tag == ARTWORK_LAYOUT_SPLIT) {
+            val inset = resources.getDimensionPixelSize(R.dimen.audio_player_split_artwork_inset)
+            minOf(parent.width - inset, parent.height - inset)
+        } else {
+            val contentHeight = binding.root.height - binding.toolbar.height
+            minOf(parent.width, (contentHeight * MAX_COLUMN_ARTWORK_HEIGHT_FRACTION).toInt())
+        }.coerceAtLeast(resources.getDimensionPixelSize(R.dimen.audio_player_artwork_min_size))
+        val params = container.layoutParams
+        if (params.width == size && params.height == size) return
+        params.width = size
+        params.height = size
+        if (params is android.widget.LinearLayout.LayoutParams) params.gravity = Gravity.CENTER_HORIZONTAL
+        container.layoutParams = params
     }
 
     private fun cycleRepeatMode() {
@@ -391,7 +502,12 @@ class AudioPlayerActivity : AppActivity() {
         private const val STATE_QUEUE_STARTED = "queueStarted"
         private const val SEEK_MAX = 1_000
         private const val PROGRESS_UPDATE_INTERVAL_MS = 500L
-        private const val INACTIVE_CONTROL_ALPHA = 0.62f
+        private const val INACTIVE_CONTROL_ALPHA = 0.70f
+        private const val DISABLED_CONTROL_ALPHA = 0.38f
+        private const val ARTWORK_SAMPLE_SIZE = 24
+        private const val BACKGROUND_CROSSFADE_DURATION_MS = 300L
+        private const val MAX_COLUMN_ARTWORK_HEIGHT_FRACTION = 0.60f
+        private const val ARTWORK_LAYOUT_SPLIT = "split"
 
         /** The queue stays in this process; the intent only carries the token to take it over. */
         fun putExtras(intent: Intent, paths: List<Path>, position: Int) {

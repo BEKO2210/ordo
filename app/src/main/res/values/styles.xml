@@ -145,6 +145,61 @@
         <item name="android:textColor">?android:textColorSecondary</item>
     </style>
 
+    <style name="Widget.Ordo.AudioPlayer.Title" parent="">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:ellipsize">end</item>
+        <item name="android:gravity">center</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:textAppearance">?textAppearanceHeadline5</item>
+        <item name="android:textColor">?colorOnSurface</item>
+    </style>
+
+    <style name="Widget.Ordo.AudioPlayer.Subtitle" parent="">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:ellipsize">end</item>
+        <item name="android:gravity">center</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:textAppearance">?textAppearanceBody1</item>
+        <item name="android:textColor">?android:textColorSecondary</item>
+    </style>
+
+    <style name="Widget.Ordo.AudioPlayer.Time" parent="">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:fontFeatureSettings">tnum</item>
+        <item name="android:importantForAccessibility">no</item>
+        <item name="android:textAppearance">?textAppearanceCaption</item>
+        <item name="android:textColor">?android:textColorSecondary</item>
+    </style>
+
+    <style name="Widget.Ordo.AudioPlayer.SecondaryControl" parent="">
+        <item name="android:layout_width">48dp</item>
+        <item name="android:layout_height">48dp</item>
+        <item name="android:background">?attr/selectableItemBackgroundBorderless</item>
+        <item name="android:padding">12dp</item>
+        <item name="android:tint">?colorOnSurface</item>
+    </style>
+
+    <style name="Widget.Ordo.AudioPlayer.SkipControl" parent="">
+        <item name="android:layout_width">56dp</item>
+        <item name="android:layout_height">56dp</item>
+        <item name="android:background">?attr/selectableItemBackgroundBorderless</item>
+        <item name="android:padding">16dp</item>
+        <item name="android:tint">?colorOnSurface</item>
+    </style>
+
+    <style name="Widget.Ordo.AudioPlayer.PrimaryControl" parent="">
+        <item name="android:layout_width">@dimen/audio_player_play_control_size</item>
+        <item name="android:layout_height">@dimen/audio_player_play_control_size</item>
+        <item name="android:background">@drawable/audio_player_primary_control_background</item>
+        <item name="android:padding">20dp</item>
+        <item name="android:tint">?colorOnPrimary</item>
+    </style>
+
     <style name="Widget.Ordo.OnboardingFeature" parent="">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>

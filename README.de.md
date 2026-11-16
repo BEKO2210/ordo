@@ -78,7 +78,9 @@ Was als Nächstes kommt, steht in der [lebenden Roadmap](docs/ROADMAP-LIVE.md): 
 - Viele Dateien auf einmal nach Muster umbenennen
 - ZIP-, TAR- und 7z-Archive erstellen und entpacken
 - Eingebaute Ansicht für Bilder, PDF und Text
-- Musik direkt in Ordo abspielen – mit Warteschlange, Cover und Steuerung im Hintergrund
+- Musik direkt in Ordo abspielen – mit Warteschlange, Cover und Steuerung im Hintergrund. Auf Handys und Tablets
+  im Hochformat steht der Player großzügig in der Mitte, in einem breiten Querformat liegen Cover und Steuerung
+  nebeneinander; die Coverfarbe tönt den Hintergrund sanft, ohne die Textfarben des Designs zu verändern
 
 **Dateien schützen**
 

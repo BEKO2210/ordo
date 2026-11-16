@@ -5,7 +5,8 @@
 # then opens the controller without a new queue and checks that it reconnected to the second title.
 # Finally an external file:// VIEW intent must be refused.
 . "$(dirname "$0")/lib.sh" "$@"
-DIR=/sdcard/ordo-e2e-audio
+# /storage/emulated/0, not /sdcard: on real devices Ordo cannot list through the /sdcard link ("Root isn't available").
+DIR=/storage/emulated/0/ordo-e2e-audio
 PLAYER=me.zhanghai.android.files.viewer.audio.AudioPlayerActivity
 tmp=$(mktemp -d); trap 'a shell "rm -rf $DIR"; rm -rf "$tmp"' EXIT
 
@@ -28,6 +29,15 @@ check "the test folder opens" ui wait 01-one.wav 10
 ui tap 01-one.wav >/dev/null; sleep 3; guard
 check "audio opens Ordo's player" on viewer.audio.AudioPlayerActivity
 check "the tapped title is shown" ui has 01-one.wav
+check "the complete transport row is visible" ui visible playPause
+touch_target() {
+    local l t r b dpi
+    read -r l t r b < <(ui bounds "$1" | head -1) || return 1
+    dpi=$(a shell wm density | tail -1 | sed 's/.*: //' | tr -d '\r')
+    [ $((r - l)) -ge $((48 * dpi / 160)) ] && [ $((b - t)) -ge $((48 * dpi / 160)) ]
+}
+check "shuffle keeps its 48 dp touch target" touch_target shuffle
+check "repeat keeps its 48 dp touch target" touch_target repeat
 back 2
 check "closing the player returns to the file list" on filelist.FileListActivity
 not_on() { ! on "$@"; }
