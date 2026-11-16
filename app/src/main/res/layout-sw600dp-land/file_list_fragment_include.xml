@@ -34,12 +34,18 @@
                     android:layout_gravity="start"
                     android:background="?colorSurface" />
 
-                <include layout="@layout/file_list_fragment_content_include" />
-            </me.zhanghai.android.files.ui.PersistentDrawerLayout>
+                <!-- One content child: PersistentDrawerLayout takes only start/end drawers besides it, so the
+                     bar at the bottom crashed on a tablet in landscape as soon as a file was selected. Here it
+                     floats over the list, as on the phone, and stays clear of the navigation pane. -->
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
 
-            <!-- Below the drawer, not in it: PersistentDrawerLayout only takes start/end children, and a bottom one
-                 crashed every folder on a tablet in landscape. -->
-            <include layout="@layout/file_list_fragment_selection_bar_include" />
+                    <include layout="@layout/file_list_fragment_content_include" />
+
+                    <include layout="@layout/file_list_fragment_selection_bar_include" />
+                </FrameLayout>
+            </me.zhanghai.android.files.ui.PersistentDrawerLayout>
         </LinearLayout>
 
         <include layout="@layout/file_list_fragment_bottom_bar_include" />
