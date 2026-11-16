@@ -40,6 +40,8 @@
         <item>Aus</item>
     </string-array>
 
+    <string name="settings_ai_preview_title">Neue Befehle ausprobieren (Vorschau)</string>
+    <string name="settings_ai_preview_summary">Findet und zeigt Dateien („Zeig mir …“, „Wo ist …“), versteht Zeit und Größe und fragt nach, wenn es unsicher ist. Noch eine Vorschau, die sich irren kann. Ohne deine Bestätigung ändert sich nichts. Gilt ab dem nächsten Öffnen der KI-Befehle.</string>
     <string name="settings_ai_speed_title">Tempo</string>
     <string-array name="settings_ai_speed_entries">
         <item>Turbo – am schnellsten, bleibt länger bereit</item>

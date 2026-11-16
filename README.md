@@ -34,7 +34,7 @@
 
 ## Status
 
-Ordo is in development (version 0.10.0). A closed test runs on Google Play; test builds are also published as
+Ordo is in development (version 0.11.0). A closed test runs on Google Play; test builds are also published as
 [pre-releases](https://github.com/BEKO2210/ordo/releases); you can also [build it from source](#build).
 What comes next is in the [living roadmap](docs/ROADMAP-LIVE.md): every goal has a check command and closes itself.
 
@@ -167,6 +167,7 @@ ready.
 | Requirements | 64-bit phone with a recent Arm chip (dot product, Armv8.2), at least 10.0 GB RAM (phones sold with 12 GB), about 3.1 GB free space |
 | Speed | about 14 s per command on a Galaxy Tab S9 Ultra (Snapdragon 8 Gen 2), download and check about 2 minutes |
 | Speed setting | Turbo, Balanced or Gentle in Settings › AI assistant: how many fast cores it uses and how long the model stays loaded |
+| Preview (off by default) | Settings › AI assistant › Try new commands: also finds and shows files ("Show me …", "Where is …"), reads dates and sizes from your words and asks back when unsure. Blind tests on a synthetic test phone, not your own sentences: 29 of 50 and 45 of 60 right, no dangerous plan (today's commands on the same sets: 16 of 50 and 11 of 60, with 8 and 15 dangerous plans). Speed on a phone not measured yet. Nothing changes without your confirmation |
 
 ## Security
 

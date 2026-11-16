@@ -4,7 +4,8 @@
 # - Another app cannot open a "show" list: FileListActivity is exported, so an explicit intent with the list's
 #   extras (and a made-up token) must open the normal file list, never Ordo's private folder. Holds in every build.
 # - Debug builds: the rules on the device's regex engine (ICU) give what rules.py gives for every recorded lab case
-#   (the unit test checks the JVM engine). Skipped on a release build, which has no DebugAiActivity.
+#   (the unit test checks the JVM engine), and so does the net of the designs Guarded (rules2.py) and Tuned
+#   (rules3.py) for their fixtures. Skipped on a release build, which has no DebugAiActivity.
 . "$(dirname "$0")/lib.sh" "$@"
 not() { ! "$@"; }
 wake
@@ -41,4 +42,24 @@ else
     check "rules on the device equal rules.py ($total cases)" grep -q " $total/$total equal" <<< "$line"
 fi
 a shell rm -f "$FILES/rules-golden.json"
+
+# --- the net designs on ICU (debug builds only): rules2.decide (Guarded) and rules3.decide (Tuned)
+for NET in guarded tuned; do
+    FIXTURE="$HERE/../app/src/test/resources/ai/$NET-golden.json.gz"
+    # Same decision as above, by the package flag: a build without DebugAiActivity never answers, and waiting for
+    # it cost 15 minutes per net and ended in a false FAIL.
+    if ! a shell dumpsys package "$PKG" | grep -q "flags=\[.*DEBUGGABLE"; then
+        echo "SKIP $NET net on ICU: not a debug build"
+    else
+        a push "$FIXTURE" "$FILES/" >/dev/null
+        a logcat -c
+        a shell am start -n "$PKG/$DEBUG" --es golden_$NET $NET-golden.json.gz >/dev/null 2>&1
+        # thousands of cases on an emulator CPU: give it time
+        for _ in $(seq 900); do line=$(a logcat -d -s OrdoGolden:I | grep -m1 -E "$NET .*(equal|failed)"); [ -n "$line" ] && break; sleep 1; done
+        echo "   ${line:-no answer}"
+        total=$(python3 -c "import gzip,json,sys; print(len(json.load(gzip.open(sys.argv[1],'rt'))['rows']))" "$FIXTURE")
+        check "$NET net on the device equals the lab ($total cases)" grep -q " $total/$total equal" <<< "$line"
+    fi
+    a shell rm -f "$FILES/$NET-golden.json.gz"
+done
 finish

@@ -189,6 +189,69 @@ Infrastruktur gebaut; Nutzer bekommen weiter den bisherigen Entwurf.
   `--ez show_design true` schaltet K+R für echte Modellbefehle in einem Debug-Build ein. **Der Modellpfad selbst
   lief auf keinem Gerät** (dem Emulator fehlt der Speicher).
 
+## Zwei neue Entwürfe mit Sicherheitsnetz: „Guarded“ und „Tuned“ (16.11.2026)
+
+Beide Entwürfe lassen das Modell nur einen Rohplan schreiben; ein festes Netz aus Wortregeln (Python im Labor,
+`tools/memory-lab/rules2.py` und `rules3.py`, eingefroren) liest Zeit, Größe, Ausschlüsse und Ordner selbst, füllt
+Lücken und **fragt zurück, wenn es unsicher ist**, statt zu raten. Es macht nie aus einer Frage eine Änderung und nie
+selbst ein Löschen.
+
+- **Guarded** = Prompt C (`phase0c.py`, 464 Token statt 754 beim heutigen Prompt) + `rules2.decide` (alle Regeln,
+  Labor-Stand 430da086), mit „Zeigen“. Kein Zusatz-Download. Blindtests auf dem synthetischen Labor-Telefon (keine
+  Sätze des Besitzers): Blindtest 2 29/50 richtig, Blindtest 3 45/60, **0 gefährliche Pläne** in beiden; der heutige
+  Entwurf kam auf 16/50 (8 gefährlich) und 11/60 (15 gefährlich). **Für Nutzer eine Vorschau zum Einschalten:**
+  Einstellungen › KI-Assistent › „Neue Befehle ausprobieren (Vorschau)“, standardmäßig aus (`Settings.AI_PREVIEW`).
+  Aus: unverändert `Today`. An: `Guarded` ab dem nächsten Befehl, ohne Neustart; die Beispiele im Blatt zeigen dann
+  zwei der neuen Befehlsarten zuerst. Es bleibt immer nur ein gespeicherter Prompt-Zustand (rund 68 MB für Prompt C,
+  gemessen im Emulator): Beim Wechsel löscht der erste Befehl den alten und liest den neuen Prompt einmal ein
+  (Emulator ~60 s, Handy ungemessen). Tempo auf einem echten Handy ungemessen; die Blindtest-Sätze stammen nicht
+  vom Besitzer, das Test-Handy ist synthetisch.
+- **Tuned** = nachtrainiertes Modell (LoRA-Adapter `ordo-commands-1.gguf`, 42.485.408 Byte, SHA-256 30ac6052…,
+  Schema L, Prompt 75 Token) + `rules3.decide` (Regeln a–d, Labor-Stand 13bfbed9). **Nur im Entwickler-Build, wartet
+  auf den Blindtest:** Blindtest 3 ergab 44/60, 0 gefährlich, unter den geforderten 80 %. Der Adapter ist nicht
+  veröffentlicht; der Download unter `releases/download/ai-adapter-1/` antwortet 404, das Blatt sagt dann, dass der Zusatz für
+  die KI-Befehle noch nicht verfügbar ist (nur beim Zusatz; das Modell behält die bisherige Meldung). Ein neu trainierter Adapter ändert nur Name, Größe und Hash in `CommandDesign.Tuned`.
+- **Port statt Neuschreiben:** `CommandNet.kt` (Wortlesungen aus rules2.py) und `CommandNetDecide.kt` (die beiden
+  Entscheidungen) sind Zeile für Zeile portiert, reines Kotlin. Alle Wortlisten, Muster, Prompts und Grammatiken
+  erzeugt `tools/memory-lab/export_tuned_lexicon.py` als `CommandNetLexicon.kt` aus dem eingefrorenen Labor, niemand
+  tippt sie ab. Golden-Tests vergleichen jede Entscheidung (Status, Grund, Text, übrige Wörter, Warnungen, jedes
+  Planfeld) mit Python: `CommandGuardedGoldenTest` (Fixture `export_guarded_golden.py`: alle aufgezeichneten
+  Prompt-C-Pläne aus Dev-Sätzen, Blindtest 2 und 3, dazu jeder andere aufgezeichnete Rohplan und die Trainingsziele,
+  mit dem Telefon von damals, weil rules2 Dateien zählt) und `CommandTunedGoldenTest` (Fixture
+  `export_tuned_golden.py`: alle Schema-L-Rohpläne der Läufe, Blindtest 3 mit dem eingefrorenen Adapter, die Trainings- und Validierungsziele).
+  Ergebnisse auf der JVM (16.11.2026): Guarded 12.071/12.071 (davon 334 aufgezeichnete Prompt-C-Pläne), Tuned
+  10.717/10.717 gleich. Auf dem Gerät (ICU-Regex) prüft `e2e/ai-show-guard.sh` dieselben Fixtures über
+  `DebugAiActivity --es golden_guarded/golden_tuned`.
+- **Zählen auf dem Telefon:** rules2 wählt bei Wörtern, die kein Feld erklärt, die Lesart, die auf dem Telefon Dateien
+  findet (bis zu 2^n − 1 Wort-Teilmengen). `CommandNetCount` liest dafür jede Quelle einmal je Entscheidung, filtert im
+  Speicher, liest den Text jeder Datei höchstens einmal (gleiche Grenzen wie die Suche), zählt gleiche Pläne einmal und
+  bricht ab, wenn das Blatt schließt. Über 10 Wörtern sucht es keine Teilmengen mehr (eine Änderung fragt dann
+  zurück); 10 ist das Größte, was die Labor-Fälle brauchen. Wie die App zählt: eine Änderung nur im Ordner selbst
+  (auch das Labor zählt dort nicht rekursiv, `phase0.execute`: `tree.by_folder`), „Zeigen“ darunter, ohne versteckte
+  Ordner und `Android/` außer `media`, Text nur in reinen Textdateien, Duplikate nur bei Änderungen. Gemessen mit
+  dieser App-Zählweise auf dem Labor-Telefon weichen von den 334 Prompt-C-Fällen 5 ab (Dev 3/224, Blindtest 2 1/50,
+  Blindtest 3 1/60), alle „Zeigen“ mit einem Inhaltswort, das im Labor nur im Text eines PDFs oder Office-Dokuments stand (die App liest dort nur den Namen); keine
+  Änderung weicht ab.
+  Lässt das Netz Wörter weg, steht das in der Vorschau („Mit „telekom“, „rechnung“ zusammen habe ich nichts
+  gefunden …“) bzw. unter der Liste, ebenso eine Anzahl, die nicht passt („Du hast 3 genannt, ich habe 5 gefunden“).
+  Gezeigt werden die Wörter so, wie der Nutzer sie getippt hat (das Netz rechnet mit gefalteten Wortstämmen);
+  entfernt der Nutzer einen Filter-Chip, verschwindet der Hinweis. Bekannte Grenze: Die 200 MB Text gelten für alle
+  Zählungen einer Entscheidung zusammen, die Vorschau danach bekommt neue 200 MB.
+- **Rückfrage:** freundliche Frage im Blatt („Wohin sollen die Dateien? …“), der getippte Befehl bleibt stehen und
+  kann ergänzt werden. **Absage:** Hinweis-Karte wie bei den Gedächtnis-Sätzen (ZIP, Umwandeln, Umbenennen, Teilen,
+  Öffnen, Wiederherstellen, Bearbeiten, frühere Befehle). Ändernde Pläne gehen durch dieselbe Prüfung, Vorschau und
+  Bestätigung wie bisher (Lösch-Wort, geschützte Ordner, zweite Bestätigung); Ordner kommen als Pfad aus dem Netz
+  (`CommandCheck.check(paths = true)`).
+- **Kalender** (Labor-Uhr Sonntag 15.11.2026): „letzte Woche“ = 02.–08.11. (Mo–So der Vorwoche), „diese Woche“ ab
+  Montag, „diesen Monat“ ab dem 1., „letzten Monat“ = Oktober: wie festgelegt. Abweichungen der eingefrorenen Regeln,
+  nicht geändert: „in den letzten 7 Tagen“ beginnt am 08.11. 0 Uhr (7 Tage plus heute); „letzte 7 Tage“ ohne „den“
+  liest der Code gar nicht.
+- **Auffälligkeiten der Python-Referenz, nicht „verbessert“:** Ein unlesbares Datum („vom 31.2.“) bricht rules2/3 mit
+  einem Fehler ab; die App fragt dann zurück. Eine unlesbare Größe des Modells („über viel“) fragt mit dem Text für
+  Zeitangaben nach (Grund `vague_time`).
+- **Entwickler-Build:** `DebugAiActivity --es design today|kr|guarded|tuned` wählt den Entwurf für echte Befehle;
+  eingegebene Modellantworten (`--es answer`) laufen durch Guarded/Tuned, wenn einer davon gewählt ist.
+
 ## Offen
 
 - Älteres Gerät (S21/Exynos 2100) nicht gemessen: Gerät ist gerade nicht verfügbar.

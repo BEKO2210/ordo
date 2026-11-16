@@ -22,6 +22,9 @@ import me.zhanghai.android.files.app.AppActivity
  * size and hash like the model); `--es adapter ""` removes it again.
  * `--es golden <file in the app's external files dir>` runs CommandRulesGoldenTest's fixture through the rules on
  * the device (Android's regex engine is ICU, not the JVM's) and logs "OrdoGolden: n/m equal".
+ * `--es golden_guarded <file>` / `--es golden_tuned <file>` do the same with the net designs' fixtures (.json.gz) and
+ * log "OrdoGolden: guarded n/m equal" / "OrdoGolden: tuned n/m equal".
+ * `--es design today|kr|guarded|tuned` picks the design for real model commands (`--es design ""`: the default).
  */
 class DebugAiActivity : AppActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -30,6 +33,27 @@ class DebugAiActivity : AppActivity() {
             CommandDesign.setShowEnabled(this, intent.getBooleanExtra(EXTRA_SHOW_DESIGN, false))
             finish()
             return
+        }
+        intent.getStringExtra(EXTRA_DESIGN)?.let {
+            CommandDesign.setDesign(this, it)
+            finish()
+            return
+        }
+        for ((extra, name) in listOf(EXTRA_GOLDEN_GUARDED to "guarded", EXTRA_GOLDEN_TUNED to "tuned")) {
+            intent.getStringExtra(extra)?.let { file ->
+                val path = java.io.File(getExternalFilesDir(null), file)
+                Thread {
+                    val result = runCatching {
+                        val o = path.inputStream().use { CommandNetGolden.read(it) }
+                        if (name == "guarded") CommandNetGolden.guarded(o) else CommandNetGolden.tuned(o)
+                    }
+                    Log.i("OrdoGolden", "$name " + result.getOrElse { "failed: $it" })
+                    runOnUiThread { finish() }
+                }.start()
+                // stays open (blank) until the result: Android freezes a cached background app, which would stop the
+                // thousands of cases halfway
+                return
+            }
         }
         intent.getStringExtra(EXTRA_ADAPTER)?.let {
             CommandDesign.setAdapter(this, it)
@@ -84,5 +108,8 @@ class DebugAiActivity : AppActivity() {
         const val EXTRA_ANSWER = "answer"
         const val EXTRA_SHOW_DESIGN = "show_design"
         const val EXTRA_ADAPTER = "adapter"
+        const val EXTRA_DESIGN = "design"
+        const val EXTRA_GOLDEN_GUARDED = "golden_guarded"
+        const val EXTRA_GOLDEN_TUNED = "golden_tuned"
     }
 }
