@@ -48,8 +48,10 @@ class DebugAiActivity : AppActivity() {
                         if (name == "guarded") CommandNetGolden.guarded(o) else CommandNetGolden.tuned(o)
                     }
                     Log.i("OrdoGolden", "$name " + result.getOrElse { "failed: $it" })
+                    runOnUiThread { finish() }
                 }.start()
-                finish()
+                // stays open (blank) until the result: Android freezes a cached background app, which would stop the
+                // thousands of cases halfway
                 return
             }
         }
