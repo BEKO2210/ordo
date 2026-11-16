@@ -25,6 +25,9 @@ für die nächste – vor 1.0.0 und danach.
 - [ ] Markdown lesen und schreiben
 - [ ] Dokumente bearbeiten: Entscheidung für Office-Formate
 - [ ] Nach v0.11.0: neue Version veröffentlicht
+- [ ] Bildbetrachter auf Spitzenniveau
+- [ ] PDF bearbeiten: markieren, kommentieren, Formulare, Seiten ordnen
+- [ ] Jede gängige Datei öffnen, lesen und schreiben – und es sieht gut aus
 
 ## Erledigt
 
@@ -78,6 +81,9 @@ flowchart TD
   nc_1a4306["Markdown lesen und schreiben [active]"]
   nc_68ddf4["Dokumente bearbeiten: Entscheidung für Office-Formate [active]"]
   nc_c4674b["Nach v0.11.0: neue Version veröffentlicht [active]"]
+  nc_b21f77["Bildbetrachter auf Spitzenniveau [active]"]
+  nc_cb28c1["PDF bearbeiten: markieren, kommentieren, Formulare, Seiten ordnen [active]"]
+  nc_b6159e["Jede gängige Datei öffnen, lesen und schreiben – und es sieht gut aus [active]"]
   nc_0f8ddc --> nc_69a218
   nc_27e99c --> nc_69a218
   nc_a0a8b8 --> nc_69a218
@@ -93,4 +99,7 @@ flowchart TD
   nc_b6ad07 --> nc_323570
   nc_b6ad07 --> nc_1a4306
   nc_1a4306 --> nc_68ddf4
+  nc_b6ad07 --> nc_b21f77
+  nc_323570 --> nc_cb28c1
+  nc_1a4306 --> nc_b6159e
 ```

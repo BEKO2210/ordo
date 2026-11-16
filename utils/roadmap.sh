@@ -126,6 +126,18 @@ cell "Markdown lesen und schreiben" \
     "ls app/src/main/java/me/zhanghai/android/files/viewer/markdown/*.kt >/dev/null 2>&1" \
     "MD-Dateien schön gesetzt lesen (Tabellen, Aufgabenlisten, Code) und mit Vorschau bearbeiten." \
     "Stand der Technik für Medien belegt"
+cell "Bildbetrachter auf Spitzenniveau" \
+    "grep -rqi 'ultrahdr\\|gainmap\\|Gainmap' app/src/main/java/me/zhanghai/android/files/viewer/image/ && test -f e2e/image-viewer.sh" \
+    "Der vorhandene Bildbetrachter wird neu gemessen und ausgebaut: alle aktuellen Formate (HEIC, AVIF, WebP, Ultra HDR, RAW soweit belegt), flüssiges Zoomen auch bei riesigen Bildern, Bildinfos, Drehen und Zuschneiden ohne Qualitätsverlust, schöne Übergänge. Auf Pixel und Tab geprüft." \
+    "Stand der Technik für Medien belegt"
+cell "PDF bearbeiten: markieren, kommentieren, Formulare, Seiten ordnen" \
+    "test -s docs/PDF-BEARBEITEN.md && grep -rq 'fun save' app/src/main/java/me/zhanghai/android/files/viewer/pdf/" \
+    "Nach dem Leser: Text markieren und kommentieren, Formulare ausfüllen, Seiten drehen, löschen und zusammenfügen. Bibliothek mit verträglicher Lizenz aus der Recherche; Entscheidung und Grenzen in docs/PDF-BEARBEITEN.md." \
+    "PDF-Leser: suchen, markieren, Nachtmodus"
+cell "Jede gängige Datei öffnen, lesen und schreiben – und es sieht gut aus" \
+    "test -s docs/DATEITYPEN.md && ls app/src/main/java/me/zhanghai/android/files/viewer/data/*.kt >/dev/null 2>&1" \
+    "Liste aller Dateitypen, die auf einem Handy heute vorkommen (JSON, YAML, XML, CSV, TOML, Logs, Code, Markdown, Untertitel, E-Books …), in docs/DATEITYPEN.md: was Ordo heute damit tut und was es können soll. Dann je Gruppe ein eigener, schöner Betrachter und Editor (Baumansicht für JSON, Tabelle für CSV, farbiger Code), kein nackter Text." \
+    "Markdown lesen und schreiben"
 cell "Dokumente bearbeiten: Entscheidung für Office-Formate" \
     "test -s docs/OFFICE-ENTSCHEIDUNG.md" \
     "DOCX, XLSX, PPTX und ODT: ehrlich klären, was auf dem Gerät ohne Cloud in Spitzenqualität geht (ansehen, bearbeiten, gar nicht), mit Größe und Lizenz. Entscheidung von Belkis in docs/OFFICE-ENTSCHEIDUNG.md." \
