@@ -12,6 +12,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.os.Environment
 import android.os.Handler
@@ -24,6 +25,7 @@ import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
 import android.graphics.Rect
+import android.view.Gravity
 import android.view.View
 import android.view.animation.DecelerateInterpolator
 import android.view.ViewGroup
@@ -34,6 +36,8 @@ import androidx.activity.result.contract.ActivityResultContract
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.view.menu.MenuBuilder
+import androidx.appcompat.view.menu.MenuPopupHelper
 import androidx.appcompat.widget.SearchView
 import androidx.appcompat.widget.Toolbar
 import androidx.core.content.pm.ShortcutInfoCompat
@@ -1101,7 +1105,24 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
         selectionBar.findViewById<MaterialButton>(R.id.selectionMoreButton).apply {
             setText(R.string.file_list_selection_more)
             setIconResource(R.drawable.more_vertical_icon_white_24dp)
-            setOnClickListener { binding.overlayToolbar.showOverflowMenu() }
+            setOnClickListener { showSelectionMoreMenu(it) }
+        }
+    }
+
+    // The toolbar's own overflow would open at the top of the screen, far from the thumb that tapped "More" at the
+    // bottom. The same menu (and the same click handling) opens anchored to the button instead and grows upwards.
+    @SuppressLint("RestrictedApi")
+    private fun showSelectionMoreMenu(anchor: View) {
+        val menu = binding.overlayToolbar.menu as? MenuBuilder ?: return
+        MenuPopupHelper(
+            requireContext(), menu, anchor, true, androidx.appcompat.R.attr.actionOverflowMenuStyle
+        ).apply {
+            gravity = Gravity.END
+            // The overflow style nudges the menu 4 dp to the left, which in RTL pushes it against the screen edge.
+            // Explicit offsets: the menu sits 4 dp inside the button's outer edge in both directions.
+            val inset = (4 * resources.displayMetrics.density).toInt()
+            val isRtl = anchor.layoutDirection == View.LAYOUT_DIRECTION_RTL
+            show(if (isRtl) inset else anchor.width - inset, 0)
         }
     }
 
