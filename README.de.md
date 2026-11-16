@@ -34,7 +34,7 @@
 
 ## Stand
 
-Ordo ist in Entwicklung (Version 0.10.0). Bei Google Play läuft ein geschlossener Test; Testversionen erscheinen auch als
+Ordo ist in Entwicklung (Version 0.11.0). Bei Google Play läuft ein geschlossener Test; Testversionen erscheinen auch als
 [Pre-Releases](https://github.com/BEKO2210/ordo/releases); du kannst Ordo auch [selbst bauen](#bauen).
 Was als Nächstes kommt, steht in der [lebenden Roadmap](docs/ROADMAP-LIVE.md): Jedes Ziel hat einen Prüfbefehl und schließt sich selbst.
 
@@ -169,6 +169,7 @@ jederzeit wieder entfernen; unter Einstellungen › KI-Assistent siehst du, ob e
 | Voraussetzungen | 64-Bit-Handy mit neuerem Arm-Chip (Dot-Product, Armv8.2), mindestens 10,0 GB RAM (Handys mit 12 GB), rund 3,1 GB freier Speicher |
 | Tempo | rund 14 s pro Befehl auf einem Galaxy Tab S9 Ultra (Snapdragon 8 Gen 2), Download und Prüfung rund 2 Minuten |
 | Tempo-Einstellung | Turbo, Ausgewogen oder Sanft unter Einstellungen › KI-Assistent: wie viele schnelle Kerne es nutzt und wie lange das Modell geladen bleibt |
+| Vorschau (standardmäßig aus) | Einstellungen › KI-Assistent › Neue Befehle ausprobieren: findet und zeigt auch Dateien („Zeig mir …“, „Wo ist …“), liest Zeit und Größe aus deinen Worten und fragt nach, wenn es unsicher ist. Blindtests auf einem synthetischen Test-Handy, nicht mit deinen eigenen Sätzen: 29 von 50 und 45 von 60 richtig, kein gefährlicher Plan (die heutigen Befehle auf denselben Sätzen: 16 von 50 und 11 von 60, mit 8 und 15 gefährlichen Plänen). Tempo auf einem Handy noch nicht gemessen. Ohne deine Bestätigung ändert sich nichts |
 
 ## Sicherheit
 

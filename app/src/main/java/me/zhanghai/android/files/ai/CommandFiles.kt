@@ -85,6 +85,8 @@ object CommandFiles {
     private fun ordered(files: List<File>, plan: CommandPlan, byName: Boolean): List<File> {
         val sorted = when {
             plan.sort == "size" -> files.sortedByDescending { it.length() }
+            plan.sort == "smallest" -> files.sortedBy { it.length() }
+            plan.sort == "oldest" -> files.sortedBy { it.lastModified() }
             plan.sort == "newest" || !byName -> files.sortedByDescending { it.lastModified() }
             else -> files
         }
@@ -96,7 +98,7 @@ object CommandFiles {
         files.associate { it.path to (it.length() to it.lastModified()) }
 
     /** The plan's filters: ending or kind, name, word, age, size. */
-    private class Filter(
+    internal class Filter(
         private val plan: CommandPlan, private val extensions: Set<String>, private val excluded: Set<String>,
         private val from: Long, private val to: Long, now: Long
     ) {
@@ -110,21 +112,53 @@ object CommandFiles {
             set(java.util.Calendar.MILLISECOND, 0)
         }.timeInMillis
         private val word = plan.contentContains.trim()
-        private val text = if (word.isEmpty()) null else ContentSearch(word, false, true)
+        private val nameTerms = plan.nameTerms.map { CommandNet.fold(it) }
+        private val textTerms = plan.textTerms.map { CommandNet.fold(it) to it }
+        private val excludeTerms = plan.excludeTerms.filter { it.isNotBlank() }.map { CommandNet.fold(it.trim()) }
+        /**
+         * Every word this plan looks for inside files, with its test on the file's bytes. The net's words are folded
+         * stems ("steur" for "Steuer"), so the text is folded too (phase0.c_filters); the shipped word as before.
+         */
+        val searches: Map<String, (FileText) -> Boolean> = LinkedHashMap<String, (FileText) -> Boolean>().also { m ->
+            plan.textTerms.forEach { term ->
+                val folded = CommandNet.fold(term)
+                m[term] = { text -> folded in text.folded }
+            }
+            if (word.isNotEmpty()) ContentSearch(word, false, true).let { s -> m[word] = { text -> s.contentMatches(text.stream()) } }
+        }
 
-        fun matches(file: File): Boolean =
-            (extensions.isEmpty() || file.extension.lowercase(Locale.ROOT) in extensions) &&
-                (plan.nameContains.isBlank() || file.name.contains(plan.nameContains.trim(), true)) &&
-                (plan.olderThanDays == 0 || file.lastModified() < olderLimit) &&
-                (plan.newerThanDays == 0 || file.lastModified() >= newerLimit) &&
-                (!plan.today || file.lastModified() >= midnight) &&
-                (plan.largerThanBytes == 0L || file.length() > plan.largerThanBytes) &&
-                (text == null || file.name.contains(word, true) || containsText(file)) &&
-                file.extension.lowercase(Locale.ROOT) !in excluded &&
-                plan.excludeTerms.none { it.isNotBlank() && file.name.contains(it.trim(), true) } &&
-                (from == 0L || file.lastModified() >= from) && (to == 0L || file.lastModified() < to) &&
-                (plan.minBytes == 0L || file.length() >= plan.minBytes) &&
-                (plan.maxBytes == 0L || file.length() <= plan.maxBytes)
+        /** The file is read (and folded) at most once, however many words the plan looks for; the budget once per file. */
+        fun matches(file: File): Boolean {
+            var read = false
+            var text: FileText? = null
+            return matches(file.name, file.length(), file.lastModified()) { w ->
+                if (!read) {
+                    read = true
+                    text = readText(file)
+                }
+                text?.let { searches.getValue(w)(it) } ?: false
+            }
+        }
+
+        /** [inText] answers whether the file's text holds a word of [searches] (only called when the name does not). */
+        fun matches(name: String, length: Long, modified: Long, inText: (String) -> Boolean): Boolean {
+            val extension = name.substringAfterLast('.', "").lowercase(Locale.ROOT)
+            return (extensions.isEmpty() || extension in extensions) &&
+                (plan.nameContains.isBlank() || name.contains(plan.nameContains.trim(), true)) &&
+                (plan.olderThanDays == 0 || modified < olderLimit) &&
+                (plan.newerThanDays == 0 || modified >= newerLimit) &&
+                (!plan.today || modified >= midnight) &&
+                (plan.largerThanBytes == 0L || length > plan.largerThanBytes) &&
+                (word.isEmpty() || name.contains(word, true) || inText(word)) &&
+                extension !in excluded &&
+                // ä = a, ß = ss, as the lab matched (phase0.c_filters); only the net designs set terms
+                (excludeTerms.isEmpty() || CommandNet.fold(name).let { n -> excludeTerms.none { it in n } }) &&
+                (nameTerms.isEmpty() || CommandNet.fold(name).let { n -> nameTerms.all { it in n } }) &&
+                (textTerms.isEmpty() || CommandNet.fold(name).let { n -> textTerms.all { (term, raw) -> term in n || inText(raw) } }) &&
+                (from == 0L || modified >= from) && (to == 0L || modified < to) &&
+                (plan.minBytes == 0L || length >= plan.minBytes) &&
+                (plan.maxBytes == 0L || length <= plan.maxBytes)
+        }
 
         // Only plain text is read: PDF and Office files need a text extraction Ordo does not have yet, so for
         // them the word is found in the name only (docs/KI-ZEIGEN-PHASE0B.md, 6.5).
@@ -132,18 +166,18 @@ object CommandFiles {
         var textCapped = false
         private var textLeft = MAX_TEXT_TOTAL
 
-        private fun containsText(file: File): Boolean {
-            if (file.extension.lowercase(Locale.ROOT) !in TEXT_EXTENSIONS || file.length() > MAX_TEXT_SIZE) return false
+        private fun readText(file: File): FileText? {
+            if (file.extension.lowercase(Locale.ROOT) !in TEXT_EXTENSIONS || file.length() > MAX_TEXT_SIZE) return null
             if (textLeft < file.length()) {
                 textCapped = true
-                return false
+                return null
             }
             textLeft -= file.length()
             textReads.incrementAndGet()
             return try {
-                file.inputStream().use { text!!.contentMatches(it) }
+                FileText(file.readBytes())
             } catch (e: java.io.IOException) {
-                false
+                null
             }
         }
 
@@ -171,17 +205,23 @@ object CommandFiles {
         }
     }
 
+    /** A file's text, read once; folded (ä = a) only when a net word asks, and then only once. */
+    class FileText(private val bytes: ByteArray) {
+        val folded: String by lazy(LazyThreadSafetyMode.NONE) { CommandNet.fold(bytes.toString(Charsets.UTF_8)) }
+        fun stream(): java.io.InputStream = bytes.inputStream()
+    }
+
     /** Every file opened to read its text, counted for CommandShowTest. */
     internal val textReads = java.util.concurrent.atomic.AtomicInteger()
 
     /** Endings whose text Ordo can search today. */
     val TEXT_EXTENSIONS = setOf("txt", "md", "csv", "log", "json", "xml", "html", "htm", "rtf", "ics", "vcf")
-    private const val MAX_TEXT_SIZE = 20L * 1024 * 1024
+    internal const val MAX_TEXT_SIZE = 20L * 1024 * 1024
     // A list to scroll through, not an export: 2,000 rows load in seconds; past that the list says it stopped early.
     const val MAX_RESULTS = 2_000
     // Text read per search: enough for every note and document of a normal phone, small enough that a word search
     // over the whole storage cannot read gigabytes of logs.
-    private const val MAX_TEXT_TOTAL = 200L * 1024 * 1024
+    internal const val MAX_TEXT_TOTAL = 200L * 1024 * 1024
     private const val DAY = 86_400_000L
 
     /**

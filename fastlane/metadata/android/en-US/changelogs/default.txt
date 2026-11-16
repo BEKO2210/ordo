@@ -1,6 +1,4 @@
 New in this test build:
-• AI commands start faster: Ordo keeps the model's instructions, once read, on the device
-• Safer: a file replaced since the preview stays untouched, and Ordo tells you
-• Fixed: "Use mobile data" for the model download did not react after reopening the sheet
-• A second tap no longer throws away the progress of a running download
-Feedback: nullmesh@protonmail.com
+• To try (Settings › AI assistant › "Try new commands", off by default): Ordo finds and shows files ("Show me the PDFs from last week", "Where is my invoice?"), understands time and size and asks back when unsure
+• It is a preview and can be wrong. Nothing changes without your confirmation
+Please send us sentences Ordo gets wrong: nullmesh@protonmail.com

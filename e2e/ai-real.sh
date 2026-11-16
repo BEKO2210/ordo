@@ -43,7 +43,11 @@ ask() {
     # Select all, then type over it: the field wraps, so END and DEL alone can leave words of the last command.
     a shell input keycombination KEYCODE_CTRL_LEFT KEYCODE_A; a shell input keyevent KEYCODE_DEL
     a shell input text "'${1// /%s}'"
-    ui texts | grep -qF "$1|commandEdit|" || { echo "  typed text differs from: $1"; return 1; }
+    # The emulator keyboard may autocorrect ("Loesche" -> "Löschen"): the command then runs as it stands on screen,
+    # and the change is printed (same handling as ai-guarded.sh). Breaking off here left the check without a model call.
+    ui texts | sed 's/ä/ae/g; s/ö/oe/g; s/ü/ue/g; s/Ä/Ae/g; s/Ö/Oe/g; s/Ü/Ue/g; s/ß/ss/g' | grep -qF "$1|commandEdit|" ||
+        { echo "  the keyboard changed the command (autocorrect); it runs as typed on screen:"
+          ui texts | grep commandEdit | sed 's/^/    field: /'; }
     a shell input keyevent KEYCODE_ENTER
     wait_log "answer in" 900 || return 1
     sleep 3
