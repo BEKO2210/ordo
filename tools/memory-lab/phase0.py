@@ -179,6 +179,7 @@ def filt(pool, plan, text, history=()):
            and (not mb or f["size"] > mb * 1_000_000)
            and (not plan.get("_today") or f["mtime"] >= datetime.fromtimestamp(NOW).replace(hour=0, minute=0).timestamp())
            and (not plan.get("_month") or datetime.fromtimestamp(f["mtime"]).strftime("%Y-%m") == plan["_month"])]
+    out = [f for f in out if c_filters(f, plan)]
     if plan.get("_opened_before"):
         last = {}
         for h in history:
@@ -198,7 +199,43 @@ def filt(pool, plan, text, history=()):
         out.sort(key=lambda f: -f["size"])
     elif plan.get("sort") == "newest":
         out.sort(key=lambda f: -f["mtime"])
+    elif plan.get("sort") in ("oldest", "smallest"):   # Phase 0c values
+        out.sort(key=lambda f: f["mtime"] if plan["sort"] == "oldest" else f["size"])
     return out[:plan["limit"]] if plan.get("limit") else out
+
+
+def fold(s):
+    """Phase 0c name matching: case and umlaut tolerant (ä/ae -> a, ö/oe -> o, ü/ue -> u, ß -> ss)."""
+    s = s.lower().replace("ß", "ss")
+    for a, b in (("ä", "a"), ("ö", "o"), ("ü", "u"), ("ae", "a"), ("oe", "o"), ("ue", "u")):
+        s = s.replace(a, b)
+    return s
+
+
+def c_filters(f, plan):
+    """Phase-0c fields, all optional (old plans never set them, so old scores stay identical):
+    date_from/date_to ISO days (from inclusive, to exclusive, local midnight), min_bytes/max_bytes,
+    name_terms (each in the file name), text_terms (each in name or extracted text), exclude_kinds/_extensions/_terms."""
+    ts = lambda d: datetime.fromisoformat(d).timestamp()
+    name = fold(f["path"].rsplit("/", 1)[-1])
+    ext = f["path"].rsplit(".", 1)[-1].lower()
+    text = fold(f.get("text", ""))
+    if plan.get("date_from") and f["mtime"] < ts(plan["date_from"]):
+        return False
+    if plan.get("date_to") and f["mtime"] >= ts(plan["date_to"]):
+        return False
+    if plan.get("min_bytes") and f["size"] < plan["min_bytes"]:
+        return False
+    if plan.get("max_bytes") and f["size"] > plan["max_bytes"]:
+        return False
+    if any(fold(t) not in name for t in plan.get("name_terms", [])):
+        return False
+    if any(fold(t) not in name and fold(t) not in text for t in plan.get("text_terms", [])):
+        return False
+    ex = set(plan.get("exclude_extensions", [])).union(*[bench.KINDS.get(k, set()) for k in plan.get("exclude_kinds", [])])
+    if ext in ex or any(fold(t) in name for t in plan.get("exclude_terms", [])):
+        return False
+    return True
 
 
 def execute(tree, plan, text, groups=None, history=()):
