@@ -70,10 +70,10 @@ import me.zhanghai.android.files.file.FileItem
 import me.zhanghai.android.files.file.MimeType
 import me.zhanghai.android.files.file.asFileSize
 import me.zhanghai.android.files.file.fileProviderUri
-import me.zhanghai.android.files.file.isAudio
 import me.zhanghai.android.files.file.loadFileItem
 import me.zhanghai.android.files.filelist.OpenFileAsDialogActivity
 import me.zhanghai.android.files.filelist.OpenFileAsDialogFragment
+import me.zhanghai.android.files.player.isPlayableAudio
 import me.zhanghai.android.files.provider.archive.archiveFile
 import me.zhanghai.android.files.provider.archive.archiver.ArchiveWriter
 import me.zhanghai.android.files.provider.archive.archiver.ReadArchive
@@ -1631,7 +1631,7 @@ class OpenFileJob(
                 .addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
                 .apply {
                     extraPath = file
-                    if (!withChooser && mimeType.isAudio) {
+                    if (!withChooser && mimeType.isPlayableAudio) {
                         setClass(service, AudioPlayerActivity::class.java)
                         AudioPlayerActivity.putExtras(this, listOf(file), 0)
                     }

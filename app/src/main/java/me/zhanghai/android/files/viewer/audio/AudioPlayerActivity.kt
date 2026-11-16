@@ -6,14 +6,19 @@
 package me.zhanghai.android.files.viewer.audio
 
 import android.content.ComponentName
+import android.content.ContentResolver
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.widget.ImageView
 import android.widget.SeekBar
+import android.widget.Toast
+import androidx.annotation.OptIn
 import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.C
@@ -22,6 +27,7 @@ import androidx.media3.common.MediaMetadata
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.common.util.Util
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import coil.dispose
@@ -34,29 +40,38 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import me.zhanghai.android.files.BuildConfig
 import me.zhanghai.android.files.R
 import me.zhanghai.android.files.app.AppActivity
 import me.zhanghai.android.files.databinding.AudioPlayerActivityBinding
 import me.zhanghai.android.files.player.AudioPlaybackService
+import me.zhanghai.android.files.player.AudioQueueRequests
 import me.zhanghai.android.files.provider.common.readAttributes
 import me.zhanghai.android.files.ui.Motion
-import me.zhanghai.android.files.util.extraPathList
 
-@UnstableApi
+/**
+ * Exported for ACTION_VIEW audio/*. Ordo's own screens pass a queue through [AudioQueueRequests] and only a token in
+ * the intent; from any other caller only a `content://` URI with a read grant is played, and every path extra is ignored.
+ */
+@OptIn(UnstableApi::class)
 class AudioPlayerActivity : AppActivity() {
     private lateinit var binding: AudioPlayerActivityBinding
     private var controllerFuture: ListenableFuture<MediaController>? = null
     private var controller: MediaController? = null
     private var artworkJob: Job? = null
     private var artworkKey: String? = null
-    private var shouldStartIntentQueue = false
+    private var queueStarted = false
+    private var launchQueue: LaunchQueue? = null
+    private var progressDescription: String? = null
     private var userSeeking = false
     private val handler = Handler(Looper.getMainLooper())
 
     private val progressUpdater = object : Runnable {
         override fun run() {
             updateProgress()
-            handler.postDelayed(this, PROGRESS_UPDATE_INTERVAL_MS)
+            if (controller?.isPlaying == true) {
+                handler.postDelayed(this, PROGRESS_UPDATE_INTERVAL_MS)
+            }
         }
     }
 
@@ -67,6 +82,8 @@ class AudioPlayerActivity : AppActivity() {
                     Player.EVENT_MEDIA_ITEM_TRANSITION,
                     Player.EVENT_PLAYBACK_STATE_CHANGED,
                     Player.EVENT_PLAY_WHEN_READY_CHANGED,
+                    Player.EVENT_IS_PLAYING_CHANGED,
+                    Player.EVENT_PLAYBACK_SUPPRESSION_REASON_CHANGED,
                     Player.EVENT_REPEAT_MODE_CHANGED,
                     Player.EVENT_SHUFFLE_MODE_ENABLED_CHANGED,
                     Player.EVENT_AVAILABLE_COMMANDS_CHANGED
@@ -87,20 +104,11 @@ class AudioPlayerActivity : AppActivity() {
         binding.toolbar.setNavigationOnClickListener { finish() }
         binding.previous.setOnClickListener { controller?.seekToPreviousMediaItem() }
         binding.playPause.setOnClickListener {
-            controller?.let { if (it.playWhenReady) it.pause() else it.play() }
+            controller?.let { Util.handlePlayPauseButtonAction(it) }
         }
         binding.next.setOnClickListener { controller?.seekToNextMediaItem() }
-        binding.shuffle.setOnClickListener { player ->
+        binding.shuffle.setOnClickListener {
             controller?.let { it.shuffleModeEnabled = !it.shuffleModeEnabled }
-            player.announceForAccessibility(
-                getString(
-                    if (controller?.shuffleModeEnabled == true) {
-                        R.string.audio_player_shuffle_on
-                    } else {
-                        R.string.audio_player_shuffle_off
-                    }
-                )
-            )
         }
         binding.repeat.setOnClickListener { cycleRepeatMode() }
         binding.seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
@@ -125,14 +133,33 @@ class AudioPlayerActivity : AppActivity() {
                 userSeeking = false
             }
         })
-        shouldStartIntentQueue = savedInstanceState == null && hasPlayableIntent()
+        queueStarted = savedInstanceState?.getBoolean(STATE_QUEUE_STARTED) == true
+        if (!queueStarted) {
+            launchQueue = resolveLaunchQueue()
+            if (launchQueue == null && hasLaunchContent()) {
+                Toast.makeText(this, R.string.audio_player_external_refused, Toast.LENGTH_LONG).show()
+                finish()
+                return
+            }
+        }
         showPlaceholder()
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putBoolean(STATE_QUEUE_STARTED, queueStarted)
+    }
+
+    override fun onDestroy() {
+        if (isFinishing && !queueStarted) {
+            AudioQueueRequests.release(intent.getStringExtra(EXTRA_QUEUE_TOKEN))
+        }
+        super.onDestroy()
     }
 
     override fun onStart() {
         super.onStart()
         connectController()
-        handler.post(progressUpdater)
     }
 
     override fun onStop() {
@@ -164,29 +191,59 @@ class AudioPlayerActivity : AppActivity() {
             }
             controller = newController
             newController.addListener(playerListener)
-            if (shouldStartIntentQueue) {
-                shouldStartIntentQueue = false
-                startIntentQueue(newController)
-            }
+            startLaunchQueue(newController)
             updateUi(newController)
         }, ContextCompat.getMainExecutor(this))
     }
 
-    private fun hasPlayableIntent(): Boolean = intent.extraPathList.isNotEmpty() || intent.data != null
+    private class LaunchQueue(val items: List<MediaItem>, val startIndex: Int)
 
-    private fun startIntentQueue(player: MediaController) {
-        val paths = intent.extraPathList
-        val items: List<MediaItem>
-        val startIndex: Int
-        if (paths.isNotEmpty()) {
-            items = paths.map { AudioPlaybackService.mediaItem(it.toUri().toString()) }
-            startIndex = intent.getIntExtra(EXTRA_POSITION, 0).coerceIn(items.indices)
-        } else {
-            val uri = intent.data ?: return
-            items = listOf(AudioPlaybackService.mediaItem(uri.toString()))
-            startIndex = 0
+    private fun hasLaunchContent(): Boolean =
+        intent.getStringExtra(EXTRA_QUEUE_TOKEN) != null || intent.data != null
+
+    /**
+     * Ordo's own queue comes through its token. Anything else is an external caller: only a `content://` URI that
+     * carries a read grant counts, and the path extras (which another app could point at any Ordo file) are ignored.
+     */
+    private fun resolveLaunchQueue(): LaunchQueue? =
+        try {
+            val request = AudioQueueRequests.from(intent.getStringExtra(EXTRA_QUEUE_TOKEN))
+            if (request != null) {
+                LaunchQueue(
+                    request.paths.map { AudioPlaybackService.mediaItem(it.toUri().toString()) },
+                    request.startIndex
+                ).takeIf { it.items.isNotEmpty() }
+                    ?.let { LaunchQueue(it.items, it.startIndex.coerceIn(it.items.indices)) }
+            } else {
+                intent.data?.takeIf(::isAllowedExternalUri)
+                    ?.let { LaunchQueue(listOf(AudioPlaybackService.mediaItem(it.toString())), 0) }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
         }
-        player.setMediaItems(items, startIndex, 0L)
+
+    private fun isAllowedExternalUri(uri: Uri): Boolean {
+        val authority = uri.authority
+        return uri.scheme == ContentResolver.SCHEME_CONTENT
+            && !authority.isNullOrEmpty()
+            && !isOwnAuthority(authority)
+            && intent.flags and Intent.FLAG_GRANT_READ_URI_PERMISSION != 0
+    }
+
+    // Ordo's own providers read with Ordo's access; a caller must never be able to point at them.
+    private fun isOwnAuthority(authority: String): Boolean =
+        authority.startsWith(BuildConfig.APPLICATION_ID)
+            || authority.startsWith(packageName)
+            || authority == getString(R.string.file_provider_authority)
+            || authority == getString(R.string.app_provider_authority)
+
+    private fun startLaunchQueue(player: MediaController) {
+        val queue = launchQueue ?: return
+        launchQueue = null
+        queueStarted = true
+        AudioQueueRequests.release(intent.getStringExtra(EXTRA_QUEUE_TOKEN))
+        player.setMediaItems(queue.items, queue.startIndex, 0L)
         player.prepare()
         player.play()
     }
@@ -202,17 +259,21 @@ class AudioPlayerActivity : AppActivity() {
             ?: getString(R.string.audio_player_unknown_artist)
         binding.album.text = metadata.albumTitle
         binding.album.isVisible = !metadata.albumTitle.isNullOrBlank()
+        val showPlay = Util.shouldShowPlayButton(player)
         binding.playPause.setImageResource(
-            if (player.playWhenReady) R.drawable.pause_icon_24dp else R.drawable.play_icon_24dp
+            if (showPlay) R.drawable.play_icon_24dp else R.drawable.pause_icon_24dp
         )
         binding.playPause.contentDescription = getString(
-            if (player.playWhenReady) R.string.audio_player_pause else R.string.audio_player_play
+            if (showPlay) R.string.audio_player_play else R.string.audio_player_pause
         )
         binding.previous.isEnabled = player.hasPreviousMediaItem()
         binding.next.isEnabled = player.hasNextMediaItem()
         binding.seekBar.isEnabled = player.isCommandAvailable(Player.COMMAND_SEEK_IN_CURRENT_MEDIA_ITEM)
             && player.duration != C.TIME_UNSET
         binding.shuffle.isActivated = player.shuffleModeEnabled
+        binding.shuffle.contentDescription = getString(
+            if (player.shuffleModeEnabled) R.string.audio_player_shuffle_on else R.string.audio_player_shuffle_off
+        )
         binding.shuffle.alpha = if (player.shuffleModeEnabled) 1f else INACTIVE_CONTROL_ALPHA
         binding.repeat.isActivated = player.repeatMode != Player.REPEAT_MODE_OFF
         binding.repeat.alpha =
@@ -231,7 +292,9 @@ class AudioPlayerActivity : AppActivity() {
                 else -> R.string.audio_player_repeat_off
             }
         )
+        handler.removeCallbacks(progressUpdater)
         updateProgress()
+        if (player.isPlaying) handler.postDelayed(progressUpdater, PROGRESS_UPDATE_INTERVAL_MS)
         updateArtwork(item, metadata)
     }
 
@@ -243,6 +306,13 @@ class AudioPlayerActivity : AppActivity() {
         binding.seekBar.progress = if (duration > 0) (position * SEEK_MAX / duration).toInt() else 0
         binding.elapsed.text = formatTime(position)
         binding.remaining.text = formatRemaining(duration - position)
+        val description = getString(
+            R.string.audio_player_progress_format, formatTime(position), formatTime(duration)
+        )
+        if (description != progressDescription) {
+            progressDescription = description
+            ViewCompat.setStateDescription(binding.seekBar, description)
+        }
     }
 
     private fun updateArtwork(item: MediaItem?, metadata: MediaMetadata) {
@@ -301,7 +371,6 @@ class AudioPlayerActivity : AppActivity() {
                 Player.REPEAT_MODE_ALL -> Player.REPEAT_MODE_ONE
                 else -> Player.REPEAT_MODE_OFF
             }
-            binding.repeat.announceForAccessibility(binding.repeat.contentDescription)
         }
     }
 
@@ -317,15 +386,19 @@ class AudioPlayerActivity : AppActivity() {
     private fun formatRemaining(milliseconds: Long): String = "−${formatTime(milliseconds)}"
 
     companion object {
-        private const val EXTRA_POSITION =
-            "me.zhanghai.android.files.viewer.audio.extra.POSITION"
+        private const val EXTRA_QUEUE_TOKEN =
+            "me.zhanghai.android.files.viewer.audio.extra.QUEUE_TOKEN"
+        private const val STATE_QUEUE_STARTED = "queueStarted"
         private const val SEEK_MAX = 1_000
         private const val PROGRESS_UPDATE_INTERVAL_MS = 500L
         private const val INACTIVE_CONTROL_ALPHA = 0.62f
 
+        /** The queue stays in this process; the intent only carries the token to take it over. */
         fun putExtras(intent: Intent, paths: List<Path>, position: Int) {
-            intent.extraPathList = paths
-            intent.putExtra(EXTRA_POSITION, position)
+            intent.putExtra(
+                EXTRA_QUEUE_TOKEN,
+                AudioQueueRequests.register(AudioQueueRequests.Request(paths, position))
+            )
         }
 
         fun createSessionIntent(context: Context): Intent =

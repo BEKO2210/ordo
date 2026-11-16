@@ -17,6 +17,7 @@ import androidx.media3.datasource.DataSource
 import androidx.media3.datasource.DataSourceException
 import androidx.media3.datasource.DataSpec
 import androidx.media3.datasource.TransferListener
+import java.io.EOFException
 import java.io.IOException
 import java.net.URI
 import java.nio.ByteBuffer
@@ -28,9 +29,13 @@ import me.zhanghai.android.files.provider.common.newByteChannel
 
 /** Reads any Ordo NIO path with positional, bounded reads. The factory routes `content://` to Media3. */
 @UnstableApi
-class PathDataSource : BaseDataSource(false) {
+class PathDataSource(isNetwork: Boolean = false) : BaseDataSource(isNetwork) {
+    // close() may come from another thread than read().
+    @Volatile
     private var channel: SeekableByteChannel? = null
     private var opened = false
+
+    @Volatile
     private var bytesRemaining = 0L
     private var currentUri: Uri? = null
 
@@ -102,8 +107,7 @@ class PathDataSource : BaseDataSource(false) {
             if (canceled) throw IOException("Read canceled", e) else throw e
         }
         if (read == -1) {
-            bytesRemaining = 0L
-            return C.RESULT_END_OF_INPUT
+            throw EOFException("Unexpected end of file, $bytesRemaining bytes missing")
         }
         bytesRemaining -= read.toLong()
         if (opened) {
@@ -135,6 +139,10 @@ class PathDataSource : BaseDataSource(false) {
         override fun createDataSource(): DataSource = RoutingDataSource(context)
     }
 
+    private companion object {
+        val NETWORK_SCHEMES = setOf("sftp", "smb", "ftp", "ftps", "ftpes", "dav", "davs")
+    }
+
     private class RoutingDataSource(private val context: Context) : DataSource {
         private val transferListeners = mutableListOf<TransferListener>()
         private var delegate: DataSource? = null
@@ -148,7 +156,7 @@ class PathDataSource : BaseDataSource(false) {
             val dataSource = if (dataSpec.uri.scheme == ContentResolver.SCHEME_CONTENT) {
                 ContentDataSource(context)
             } else {
-                PathDataSource()
+                PathDataSource(dataSpec.uri.scheme in NETWORK_SCHEMES)
             }
             transferListeners.forEach(dataSource::addTransferListener)
             delegate = dataSource

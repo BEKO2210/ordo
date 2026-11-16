@@ -3,6 +3,7 @@
 # Music player, WRITES: creates /sdcard/ordo-e2e-audio with two tiny WAV files and removes it afterwards.
 # Opens the first from the folder list, closes the controller screen while playback continues, sends Media Next,
 # then opens the controller without a new queue and checks that it reconnected to the second title.
+# Finally an external file:// VIEW intent must be refused.
 . "$(dirname "$0")/lib.sh" "$@"
 DIR=/sdcard/ordo-e2e-audio
 PLAYER=me.zhanghai.android.files.viewer.audio.AudioPlayerActivity
@@ -29,6 +30,7 @@ check "audio opens Ordo's player" on viewer.audio.AudioPlayerActivity
 check "the tapped title is shown" ui has 01-one.wav
 back 2
 check "closing the player returns to the file list" on filelist.FileListActivity
+not_on() { ! on "$@"; }
 playing() { a shell dumpsys activity services "$PKG" | grep -q AudioPlaybackService; }
 check "playback service stays alive" playing
 a shell input keyevent KEYCODE_MEDIA_NEXT; sleep 2
@@ -36,5 +38,9 @@ a shell am start -W -n "$PKG/$PLAYER" >/dev/null; sleep 2; guard
 check "the player reconnects" on viewer.audio.AudioPlayerActivity
 check "media Next selected the second title" ui has 02-two.wav
 back 1
+# The player is exported: another app may only hand it content:// URIs, never file:// paths (nor Ordo path extras).
+a shell am start -W -a android.intent.action.VIEW -d "file://$DIR/01-one.wav" -t audio/x-wav \
+    --es me.zhanghai.android.files.extra.PATH_URI "file://$DIR/02-two.wav" -n "$PKG/$PLAYER" >/dev/null; sleep 2
+check "an external file:// intent is refused and the player closes" not_on viewer.audio.AudioPlayerActivity
 a shell am force-stop "$PKG"
 finish

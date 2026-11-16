@@ -13,7 +13,7 @@ import me.zhanghai.android.files.app.application
 import me.zhanghai.android.files.file.MimeType
 import me.zhanghai.android.files.file.asMimeTypeOrNull
 import me.zhanghai.android.files.file.fileProviderUri
-import me.zhanghai.android.files.file.isAudio
+import me.zhanghai.android.files.player.isPlayableAudio
 import me.zhanghai.android.files.provider.archive.isArchivePath
 import me.zhanghai.android.files.provider.linux.isLinuxPath
 import me.zhanghai.android.files.trash.Trash
@@ -55,7 +55,7 @@ class OpenFileActivity : AppActivity() {
         val intent = path.fileProviderUri.createViewIntent(mimeType)
             .apply {
                 extraPath = path
-                if (mimeType.isAudio) {
+                if (mimeType.isPlayableAudio) {
                     setClass(this@OpenFileActivity, AudioPlayerActivity::class.java)
                     AudioPlayerActivity.putExtras(this, listOf(path), 0)
                 }

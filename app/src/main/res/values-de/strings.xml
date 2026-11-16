@@ -960,8 +960,9 @@
     <string name="audio_player_repeat_off">Wiederholen aus</string>
     <string name="audio_player_repeat_all">Alle wiederholen</string>
     <string name="audio_player_repeat_one">Diesen Titel wiederholen</string>
-    <string name="audio_player_elapsed">Vergangene Zeit</string>
-    <string name="audio_player_remaining">Verbleibende Zeit</string>
+    <string name="audio_player_position">Position</string>
+    <string name="audio_player_progress_format">%1$s von %2$s</string>
+    <string name="audio_player_external_refused">Ordo spielt von anderen Apps nur freigegebene Audiodateien ab.</string>
     <string name="audio_player_error">Dieser Titel lässt sich nicht abspielen.</string>
     <string name="audio_player_connection_error">Der Player ließ sich nicht öffnen.</string>
 </resources>

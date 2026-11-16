@@ -12,21 +12,24 @@ import org.junit.Test
 
 class PlaybackStateStoreTest {
     @Test
-    fun roundTripPreservesQueueAndPosition() {
-        val state = PlaybackStateStore.State(
-            listOf("file:///Music/One.mp3", "smb://server/Music/Two.ogg"),
-            1,
-            42_000L,
-            true,
-            Player.REPEAT_MODE_ALL
-        )
-        assertEquals(state, PlaybackStateStore.decode(PlaybackStateStore.encode(state)))
+    fun queueRoundTrips() {
+        val paths = listOf("file:///Music/One.mp3", "smb://server/Music/Two.ogg")
+        assertEquals(paths, PlaybackStateStore.decodeQueue(PlaybackStateStore.encodeQueue(paths)))
+    }
+
+    @Test
+    fun positionAndModesRoundTrip() {
+        assertEquals(1 to 42_000L, PlaybackStateStore.decodePosition(PlaybackStateStore.encodePosition(1, 42_000L)))
+        val modes = PlaybackStateStore.Modes(true, Player.REPEAT_MODE_ALL)
+        assertEquals(modes, PlaybackStateStore.decodeModes(PlaybackStateStore.encodeModes(modes)))
     }
 
     @Test
     fun corruptOrEmptyStateIsIgnored() {
-        assertNull(PlaybackStateStore.decode(null))
-        assertNull(PlaybackStateStore.decode("not json"))
-        assertNull(PlaybackStateStore.decode("{\"paths\":[]}"))
+        assertNull(PlaybackStateStore.decodeQueue(null))
+        assertNull(PlaybackStateStore.decodeQueue("not json"))
+        assertNull(PlaybackStateStore.decodeQueue("[]"))
+        assertEquals(0 to 0L, PlaybackStateStore.decodePosition("not json"))
+        assertEquals(PlaybackStateStore.Modes(), PlaybackStateStore.decodeModes("not json"))
     }
 }

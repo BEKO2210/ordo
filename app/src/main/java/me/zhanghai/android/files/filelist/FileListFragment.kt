@@ -82,7 +82,6 @@ import me.zhanghai.android.files.file.asMimeTypeOrNull
 import me.zhanghai.android.files.file.extension
 import me.zhanghai.android.files.file.fileProviderUri
 import me.zhanghai.android.files.file.isApk
-import me.zhanghai.android.files.file.isAudio
 import me.zhanghai.android.files.file.isImage
 import me.zhanghai.android.files.filejob.FileJobService
 import me.zhanghai.android.files.home.HomeCategory
@@ -97,6 +96,7 @@ import me.zhanghai.android.files.provider.archive.createArchiveRootPath
 import me.zhanghai.android.files.provider.archive.isArchivePath
 import me.zhanghai.android.files.provider.linux.isLinuxPath
 import me.zhanghai.android.files.player.audioQueue
+import me.zhanghai.android.files.player.isPlayableAudio
 import me.zhanghai.android.files.settings.Settings
 import me.zhanghai.android.files.terminal.Terminal
 import me.zhanghai.android.files.ui.AppBarLayoutExpandHackListener
@@ -1566,8 +1566,7 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
     private fun openFileWithIntent(file: FileItem, withChooser: Boolean) {
         val path = file.path
         val mimeType = file.mimeType
-        // Audio archive entries can be streamed through PathDataSource; other viewers still need a cache copy.
-        if (path.isArchivePath && (withChooser || !mimeType.isAudio)) {
+        if (path.isArchivePath) {
             FileJobService.open(path, mimeType, withChooser, requireContext())
         } else {
             val intent = path.fileProviderUri.createViewIntent(mimeType)
@@ -1579,7 +1578,7 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
                     // PDFs open in Ordo's own viewer; "Open with" still offers every other app.
                     if (!withChooser && mimeType.value == "application/pdf") {
                         setClass(requireContext(), PdfViewerActivity::class.java)
-                    } else if (!withChooser && mimeType.isAudio) {
+                    } else if (!withChooser && mimeType.isPlayableAudio) {
                         setClass(requireContext(), AudioPlayerActivity::class.java)
                     }
                 }
@@ -1627,11 +1626,11 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
     }
 
     private fun maybeAddAudioPlayerActivityExtras(intent: Intent, path: Path, mimeType: MimeType) {
-        if (!mimeType.isAudio) return
+        if (!mimeType.isPlayableAudio) return
         val audioPaths = buildList {
             for (index in 0..<adapter.itemCount) {
                 val file = adapter.getItem(index)
-                if (file.mimeType.isAudio) add(file.path)
+                if (file.mimeType.isPlayableAudio) add(file.path)
             }
         }
         val queue = audioQueue(audioPaths, path) ?: return

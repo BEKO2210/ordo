@@ -66,6 +66,17 @@ class PathDataSourceTest {
         }
     }
 
+    @Test
+    fun fileShorterThanAnnouncedIsAnErrorNotATruncatedTrack() {
+        source.open(Paths.get(file.path))
+        java.io.RandomAccessFile(file, "rw").use { it.setLength(4L) }
+        assertThrows(java.io.EOFException::class.java) {
+            while (source.read(ByteArray(3), 0, 3) != C.RESULT_END_OF_INPUT) {
+                // Drains what is left before the file's end.
+            }
+        }
+    }
+
     private fun readAll(): ByteArray {
         val result = ArrayList<Byte>()
         val buffer = ByteArray(3)
