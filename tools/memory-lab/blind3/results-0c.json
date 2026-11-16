@@ -1,0 +1,763 @@
+{
+ "raw": {
+  "C": {
+   "b3-01": {
+    "plan": {
+     "action": "show",
+     "name_contains": "telekom"
+    },
+    "calls": [
+     [
+      "C",
+      20,
+      23
+     ]
+    ]
+   },
+   "b3-02": {
+    "plan": {
+     "action": "show",
+     "name_contains": "mietvertrag"
+    },
+    "calls": [
+     [
+      "C",
+      15,
+      23
+     ]
+    ]
+   },
+   "b3-03": {
+    "plan": {
+     "action": "show",
+     "content_contains": "Versicherungsnummer"
+    },
+    "calls": [
+     [
+      "C",
+      19,
+      25
+     ]
+    ]
+   },
+   "b3-04": {
+    "plan": {
+     "action": "show",
+     "name_contains": "Kopfhörer"
+    },
+    "calls": [
+     [
+      "C",
+      26,
+      25
+     ]
+    ]
+   },
+   "b3-05": {
+    "plan": {
+     "action": "show",
+     "content_contains": "Garantie"
+    },
+    "calls": [
+     [
+      "C",
+      17,
+      23
+     ]
+    ]
+   },
+   "b3-06": {
+    "plan": {
+     "action": "show"
+    },
+    "calls": [
+     [
+      "C",
+      15,
+      20
+     ]
+    ]
+   },
+   "b3-07": {
+    "plan": {
+     "action": "show"
+    },
+    "calls": [
+     [
+      "C",
+      18,
+      20
+     ]
+    ]
+   },
+   "b3-08": {
+    "plan": {
+     "action": "show"
+    },
+    "calls": [
+     [
+      "C",
+      21,
+      20
+     ]
+    ]
+   },
+   "b3-09": {
+    "plan": {
+     "action": "show",
+     "name_contains": "gestern"
+    },
+    "calls": [
+     [
+      "C",
+      13,
+      23
+     ]
+    ]
+   },
+   "b3-10": {
+    "plan": {
+     "action": "show",
+     "name_contains": "whatsapp",
+     "group_by": "month"
+    },
+    "calls": [
+     [
+      "C",
+      16,
+      24
+     ]
+    ]
+   },
+   "b3-11": {
+    "plan": {
+     "action": "show",
+     "name_contains": "Rechnungen"
+    },
+    "calls": [
+     [
+      "C",
+      14,
+      24
+     ]
+    ]
+   },
+   "b3-12": {
+    "plan": {
+     "action": "show",
+     "name_contains": "Kontoauszüge"
+    },
+    "calls": [
+     [
+      "C",
+      19,
+      25
+     ]
+    ]
+   },
+   "b3-13": {
+    "plan": {
+     "action": "show"
+    },
+    "calls": [
+     [
+      "C",
+      22,
+      20
+     ]
+    ]
+   },
+   "b3-14": {
+    "plan": {
+     "action": "show",
+     "name_contains": "Peter Fox",
+     "content_contains": "flac"
+    },
+    "calls": [
+     [
+      "C",
+      19,
+      26
+     ]
+    ]
+   },
+   "b3-15": {
+    "plan": {
+     "action": "show",
+     "name_contains": "whatsapp"
+    },
+    "calls": [
+     [
+      "C",
+      15,
+      23
+     ]
+    ]
+   },
+   "b3-16": {
+    "plan": {
+     "action": "show",
+     "name_contains": "Reisepass"
+    },
+    "calls": [
+     [
+      "C",
+      18,
+      24
+     ]
+    ]
+   },
+   "b3-17": {
+    "plan": {
+     "action": "show"
+    },
+    "calls": [
+     [
+      "C",
+      27,
+      20
+     ]
+    ]
+   },
+   "b3-18": {
+    "plan": {
+     "action": "show"
+    },
+    "calls": [
+     [
+      "C",
+      15,
+      20
+     ]
+    ]
+   },
+   "b3-19": {
+    "plan": {
+     "action": "show",
+     "source": "Küche"
+    },
+    "calls": [
+     [
+      "C",
+      16,
+      23
+     ]
+    ]
+   },
+   "b3-20": {
+    "plan": {
+     "action": "show"
+    },
+    "calls": [
+     [
+      "C",
+      23,
+      20
+     ]
+    ]
+   },
+   "b3-21": {
+    "plan": {
+     "action": "show",
+     "source": "Download"
+    },
+    "calls": [
+     [
+      "C",
+      20,
+      22
+     ]
+    ]
+   },
+   "b3-22": {
+    "plan": {
+     "action": "show",
+     "name_contains": "whatsapp",
+     "group_by": "month"
+    },
+    "calls": [
+     [
+      "C",
+      20,
+      24
+     ]
+    ]
+   },
+   "b3-23": {
+    "plan": {
+     "action": "show"
+    },
+    "calls": [
+     [
+      "C",
+      19,
+      20
+     ]
+    ]
+   },
+   "b3-24": {
+    "plan": {
+     "action": "show",
+     "name_contains": "Vonovia"
+    },
+    "calls": [
+     [
+      "C",
+      16,
+      23
+     ]
+    ]
+   },
+   "b3-25": {
+    "plan": {
+     "action": "show",
+     "content_contains": "Montageanleitung"
+    },
+    "calls": [
+     [
+      "C",
+      19,
+      24
+     ]
+    ]
+   },
+   "b3-26": {
+    "plan": {
+     "action": "show",
+     "source": "Dokumente"
+    },
+    "calls": [
+     [
+      "C",
+      22,
+      24
+     ]
+    ]
+   },
+   "b3-27": {
+    "plan": {
+     "action": "show",
+     "name_contains": "Instagram Screenshots"
+    },
+    "calls": [
+     [
+      "C",
+      16,
+      24
+     ]
+    ]
+   },
+   "b3-28": {
+    "plan": {},
+    "calls": [
+     [
+      "C",
+      18,
+      20
+     ]
+    ]
+   },
+   "b3-29": {
+    "plan": {
+     "action": "move",
+     "source": "Downloads",
+     "destination": "Rechnungen",
+     "name_contains": "Telekom"
+    },
+    "calls": [
+     [
+      "C",
+      24,
+      29
+     ]
+    ]
+   },
+   "b3-30": {
+    "plan": {
+     "action": "delete",
+     "source": "download",
+     "name_contains": "amazon"
+    },
+    "calls": [
+     [
+      "C",
+      20,
+      24
+     ]
+    ]
+   },
+   "b3-31": {
+    "plan": {
+     "action": "copy",
+     "destination": "Bewerbungen",
+     "name_contains": "Bewerbung"
+    },
+    "calls": [
+     [
+      "C",
+      20,
+      29
+     ]
+    ]
+   },
+   "b3-32": {
+    "plan": {
+     "action": "move",
+     "source": ".",
+     "destination": "auto",
+     "name_contains": "scans",
+     "content_contains": "autokauf"
+    },
+    "calls": [
+     [
+      "C",
+      24,
+      30
+     ]
+    ]
+   },
+   "b3-33": {
+    "plan": {
+     "action": "delete"
+    },
+    "calls": [
+     [
+      "C",
+      22,
+      20
+     ]
+    ]
+   },
+   "b3-34": {
+    "plan": {
+     "action": "move",
+     "source": "Download",
+     "destination": "Bilder",
+     "content_contains": "gestern"
+    },
+    "calls": [
+     [
+      "C",
+      21,
+      28
+     ]
+    ]
+   },
+   "b3-35": {
+    "plan": {
+     "action": "copy",
+     "destination": "Documents/Arbeit",
+     "name_contains": "Kessler Logistik"
+    },
+    "calls": [
+     [
+      "C",
+      25,
+      28
+     ]
+    ]
+   },
+   "b3-36": {
+    "plan": {
+     "action": "organize",
+     "source": "WhatsApp",
+     "group_by": "month"
+    },
+    "calls": [
+     [
+      "C",
+      16,
+      24
+     ]
+    ]
+   },
+   "b3-37": {
+    "plan": {
+     "action": "move",
+     "destination": "steuer 2025",
+     "name_contains": "lohnsteuer",
+     "content_contains": "spendenquittung riester"
+    },
+    "calls": [
+     [
+      "C",
+      39,
+      39
+     ]
+    ]
+   },
+   "b3-38": {
+    "plan": {
+     "action": "delete",
+     "name_contains": "Sparkasse Screenshots"
+    },
+    "calls": [
+     [
+      "C",
+      19,
+      25
+     ]
+    ]
+   },
+   "b3-39": {
+    "plan": {
+     "action": "copy",
+     "source": "Download",
+     "destination": "Bank"
+    },
+    "calls": [
+     [
+      "C",
+      23,
+      24
+     ]
+    ]
+   },
+   "b3-40": {
+    "plan": {
+     "action": "delete"
+    },
+    "calls": [
+     [
+      "C",
+      21,
+      20
+     ]
+    ]
+   },
+   "b3-41": {
+    "plan": {},
+    "calls": [
+     [
+      "C",
+      13,
+      20
+     ]
+    ]
+   },
+   "b3-42": {
+    "plan": {},
+    "calls": [
+     [
+      "C",
+      14,
+      20
+     ]
+    ]
+   },
+   "b3-43": {
+    "plan": {},
+    "calls": [
+     [
+      "C",
+      20,
+      20
+     ]
+    ]
+   },
+   "b3-44": {
+    "plan": {},
+    "calls": [
+     [
+      "C",
+      21,
+      20
+     ]
+    ]
+   },
+   "b3-45": {
+    "plan": {},
+    "calls": [
+     [
+      "C",
+      12,
+      20
+     ]
+    ]
+   },
+   "b3-46": {
+    "plan": {},
+    "calls": [
+     [
+      "C",
+      16,
+      20
+     ]
+    ]
+   },
+   "b3-47": {
+    "plan": {},
+    "calls": [
+     [
+      "C",
+      19,
+      20
+     ]
+    ]
+   },
+   "b3-48": {
+    "plan": {},
+    "calls": [
+     [
+      "C",
+      18,
+      20
+     ]
+    ]
+   },
+   "b3-49": {
+    "plan": {
+     "name_contains": "Zalando"
+    },
+    "calls": [
+     [
+      "C",
+      21,
+      24
+     ]
+    ]
+   },
+   "b3-50": {
+    "plan": {
+     "action": "show",
+     "name_contains": "Mietvertrag"
+    },
+    "calls": [
+     [
+      "C",
+      16,
+      24
+     ]
+    ]
+   },
+   "b3-51": {
+    "plan": {},
+    "calls": [
+     [
+      "C",
+      17,
+      20
+     ]
+    ]
+   },
+   "b3-52": {
+    "plan": {
+     "action": "delete"
+    },
+    "calls": [
+     [
+      "C",
+      14,
+      20
+     ]
+    ]
+   },
+   "b3-53": {
+    "plan": {
+     "action": "move",
+     "destination": "der andere ordner"
+    },
+    "calls": [
+     [
+      "C",
+      18,
+      25
+     ]
+    ]
+   },
+   "b3-54": {
+    "plan": {
+     "action": "organize"
+    },
+    "calls": [
+     [
+      "C",
+      13,
+      21
+     ]
+    ]
+   },
+   "b3-55": {
+    "plan": {
+     "action": "delete"
+    },
+    "calls": [
+     [
+      "C",
+      14,
+      20
+     ]
+    ]
+   },
+   "b3-56": {
+    "plan": {
+     "action": "show",
+     "source": "downloads"
+    },
+    "calls": [
+     [
+      "C",
+      16,
+      22
+     ]
+    ]
+   },
+   "b3-57": {
+    "plan": {
+     "action": "show",
+     "name_contains": "lisbon"
+    },
+    "calls": [
+     [
+      "C",
+      16,
+      23
+     ]
+    ]
+   },
+   "b3-58": {
+    "plan": {
+     "action": "move",
+     "destination": "documents"
+    },
+    "calls": [
+     [
+      "C",
+      20,
+      22
+     ]
+    ]
+   },
+   "b3-59": {
+    "plan": {
+     "action": "delete",
+     "source": "Downloads",
+     "name_contains": "logo"
+    },
+    "calls": [
+     [
+      "C",
+      19,
+      24
+     ]
+    ]
+   },
+   "b3-60": {
+    "plan": {
+     "action": "show",
+     "content_contains": "hausrat"
+    },
+    "calls": [
+     [
+      "C",
+      15,
+      24
+     ]
+    ]
+   }
+  }
+ },
+ "system_tokens": {
+  "C": 464
+ }
+}

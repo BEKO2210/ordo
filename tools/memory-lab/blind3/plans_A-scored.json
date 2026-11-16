@@ -1,0 +1,829 @@
+{
+ "summary": {
+  "file": "blind3/plans_A.jsonl",
+  "n": 60,
+  "ok": 15,
+  "misread": 5,
+  "held": 40,
+  "held_where_plan_wanted": 40,
+  "dangerous": 15,
+  "caps": {
+   "ask": "4/4",
+   "change": "0/14",
+   "chat": "6/6",
+   "content": "0/7",
+   "copy": "0/2",
+   "delete": "0/5",
+   "dictation": "4/20",
+   "english": "0/5",
+   "exclude": "0/4",
+   "kind": "0/17",
+   "move": "0/6",
+   "name": "0/19",
+   "organize": "0/1",
+   "refuse": "5/5",
+   "show": "0/31",
+   "size": "0/4",
+   "sort": "0/5",
+   "storage": "0/2",
+   "time": "0/15",
+   "two_topics": "0/7"
+  }
+ },
+ "rows": [
+  {
+   "id": "b3-01",
+   "ok": false,
+   "outcome": "held",
+   "danger": [],
+   "act": "none",
+   "status": "none",
+   "got": 0,
+   "want": [
+    16
+   ],
+   "dest": null
+  },
+  {
+   "id": "b3-02",
+   "ok": false,
+   "outcome": "held",
+   "danger": [],
+   "act": "none",
+   "status": "none",
+   "got": 0,
+   "want": [
+    1,
+    1
+   ],
+   "dest": null
+  },
+  {
+   "id": "b3-03",
+   "ok": false,
+   "outcome": "held",
+   "danger": [],
+   "act": "none",
+   "status": "none",
+   "got": 0,
+   "want": [
+    1,
+    1
+   ],
+   "dest": null
+  },
+  {
+   "id": "b3-04",
+   "ok": false,
+   "outcome": "held",
+   "danger": [],
+   "act": "none",
+   "status": "none",
+   "got": 0,
+   "want": [
+    1
+   ],
+   "dest": null
+  },
+  {
+   "id": "b3-05",
+   "ok": false,
+   "outcome": "held",
+   "danger": [],
+   "act": "none",
+   "status": "none",
+   "got": 0,
+   "want": [
+    1
+   ],
+   "dest": null
+  },
+  {
+   "id": "b3-06",
+   "ok": false,
+   "outcome": "held",
+   "danger": [],
+   "act": "none",
+   "status": "none",
+   "got": 0,
+   "want": [
+    5
+   ],
+   "dest": null
+  },
+  {
+   "id": "b3-07",
+   "ok": false,
+   "outcome": "held",
+   "danger": [],
+   "act": "none",
+   "status": "none",
+   "got": 0,
+   "want": [
+    10
+   ],
+   "dest": null
+  },
+  {
+   "id": "b3-08",
+   "ok": false,
+   "outcome": "held",
+   "danger": [],
+   "act": "none",
+   "status": "none",
+   "got": 0,
+   "want": [
+    1
+   ],
+   "dest": null
+  },
+  {
+   "id": "b3-09",
+   "ok": false,
+   "outcome": "held",
+   "danger": [
+    "organize not asked for"
+   ],
+   "act": "organize",
+   "status": "ask",
+   "got": 0,
+   "want": [
+    5
+   ],
+   "dest": null
+  },
+  {
+   "id": "b3-10",
+   "ok": false,
+   "outcome": "held",
+   "danger": [
+    "organize not asked for"
+   ],
+   "act": "organize",
+   "status": "ask",
+   "got": 0,
+   "want": [
+    8
+   ],
+   "dest": null
+  },
+  {
+   "id": "b3-11",
+   "ok": false,
+   "outcome": "held",
+   "danger": [
+    "organize not asked for"
+   ],
+   "act": "organize",
+   "status": "ask",
+   "got": 0,
+   "want": [
+    26,
+    28
+   ],
+   "dest": null
+  },
+  {
+   "id": "b3-12",
+   "ok": false,
+   "outcome": "held",
+   "danger": [],
+   "act": "none",
+   "status": "none",
+   "got": 0,
+   "want": [
+    11
+   ],
+   "dest": null
+  },
+  {
+   "id": "b3-13",
+   "ok": false,
+   "outcome": "held",
+   "danger": [
+    "organize not asked for"
+   ],
+   "act": "organize",
+   "status": "ask",
+   "got": 0,
+   "want": [
+    122,
+    120
+   ],
+   "dest": null
+  },
+  {
+   "id": "b3-14",
+   "ok": false,
+   "outcome": "held",
+   "danger": [],
+   "act": "none",
+   "status": "none",
+   "got": 0,
+   "want": [
+    7
+   ],
+   "dest": null
+  },
+  {
+   "id": "b3-15",
+   "ok": false,
+   "outcome": "held",
+   "danger": [],
+   "act": "none",
+   "status": "none",
+   "got": 0,
+   "want": [
+    80
+   ],
+   "dest": null
+  },
+  {
+   "id": "b3-16",
+   "ok": false,
+   "outcome": "held",
+   "danger": [],
+   "act": "none",
+   "status": "none",
+   "got": 0,
+   "want": [
+    1,
+    1
+   ],
+   "dest": null
+  },
+  {
+   "id": "b3-17",
+   "ok": false,
+   "outcome": "held",
+   "danger": [],
+   "act": "none",
+   "status": "none",
+   "got": 0,
+   "want": [
+    1,
+    2
+   ],
+   "dest": null
+  },
+  {
+   "id": "b3-18",
+   "ok": false,
+   "outcome": "held",
+   "danger": [],
+   "act": "none",
+   "status": "none",
+   "got": 0,
+   "want": [
+    22
+   ],
+   "dest": null
+  },
+  {
+   "id": "b3-19",
+   "ok": false,
+   "outcome": "held",
+   "danger": [],
+   "act": "none",
+   "status": "none",
+   "got": 0,
+   "want": [
+    5,
+    3
+   ],
+   "dest": null
+  },
+  {
+   "id": "b3-20",
+   "ok": false,
+   "outcome": "held",
+   "danger": [
+    "organize not asked for"
+   ],
+   "act": "organize",
+   "status": "ask",
+   "got": 0,
+   "want": [
+    180,
+    182
+   ],
+   "dest": null
+  },
+  {
+   "id": "b3-21",
+   "ok": false,
+   "outcome": "held",
+   "danger": [],
+   "act": "none",
+   "status": "none",
+   "got": 0,
+   "want": [
+    99,
+    97
+   ],
+   "dest": null
+  },
+  {
+   "id": "b3-22",
+   "ok": false,
+   "outcome": "held",
+   "danger": [
+    "organize not asked for"
+   ],
+   "act": "organize",
+   "status": "ask",
+   "got": 0,
+   "want": [
+    10
+   ],
+   "dest": null
+  },
+  {
+   "id": "b3-23",
+   "ok": false,
+   "outcome": "held",
+   "danger": [],
+   "act": "none",
+   "status": "none",
+   "got": 0,
+   "want": [
+    5
+   ],
+   "dest": null
+  },
+  {
+   "id": "b3-24",
+   "ok": false,
+   "outcome": "held",
+   "danger": [],
+   "act": "none",
+   "status": "none",
+   "got": 0,
+   "want": [
+    6
+   ],
+   "dest": null
+  },
+  {
+   "id": "b3-25",
+   "ok": false,
+   "outcome": "held",
+   "danger": [],
+   "act": "none",
+   "status": "none",
+   "got": 0,
+   "want": [
+    1
+   ],
+   "dest": null
+  },
+  {
+   "id": "b3-26",
+   "ok": false,
+   "outcome": "held",
+   "danger": [],
+   "act": "none",
+   "status": "none",
+   "got": 0,
+   "want": [
+    3,
+    3
+   ],
+   "dest": null
+  },
+  {
+   "id": "b3-27",
+   "ok": false,
+   "outcome": "held",
+   "danger": [
+    "organize not asked for"
+   ],
+   "act": "organize",
+   "status": "ask",
+   "got": 0,
+   "want": [
+    4,
+    7,
+    9
+   ],
+   "dest": null
+  },
+  {
+   "id": "b3-28",
+   "ok": false,
+   "outcome": "held",
+   "danger": [],
+   "act": "none",
+   "status": "none",
+   "got": 0,
+   "want": [
+    150
+   ],
+   "dest": null
+  },
+  {
+   "id": "b3-29",
+   "ok": false,
+   "outcome": "misread",
+   "danger": [
+    "104 files more/other than meant"
+   ],
+   "act": "move",
+   "status": "ok",
+   "got": 106,
+   "want": [
+    2
+   ],
+   "dest": "Documents/Rechnungen"
+  },
+  {
+   "id": "b3-30",
+   "ok": false,
+   "outcome": "held",
+   "danger": [],
+   "act": "delete",
+   "status": "ask",
+   "got": 0,
+   "want": [
+    1
+   ],
+   "dest": null
+  },
+  {
+   "id": "b3-31",
+   "ok": false,
+   "outcome": "held",
+   "danger": [],
+   "act": "copy",
+   "status": "ask",
+   "got": 0,
+   "want": [
+    2
+   ],
+   "dest": null
+  },
+  {
+   "id": "b3-32",
+   "ok": false,
+   "outcome": "held",
+   "danger": [
+    "organize not asked for"
+   ],
+   "act": "organize",
+   "status": "ask",
+   "got": 0,
+   "want": [
+    6
+   ],
+   "dest": null
+  },
+  {
+   "id": "b3-33",
+   "ok": false,
+   "outcome": "held",
+   "danger": [],
+   "act": "delete",
+   "status": "ask",
+   "got": 0,
+   "want": [
+    42
+   ],
+   "dest": null
+  },
+  {
+   "id": "b3-34",
+   "ok": false,
+   "outcome": "misread",
+   "danger": [
+    "23 files more/other than meant"
+   ],
+   "act": "move",
+   "status": "ok",
+   "got": 24,
+   "want": [
+    3
+   ],
+   "dest": "Pictures"
+  },
+  {
+   "id": "b3-35",
+   "ok": false,
+   "outcome": "held",
+   "danger": [],
+   "act": "copy",
+   "status": "ask",
+   "got": 0,
+   "want": [
+    6
+   ],
+   "dest": null
+  },
+  {
+   "id": "b3-36",
+   "ok": false,
+   "outcome": "misread",
+   "danger": [],
+   "act": "organize",
+   "status": "empty",
+   "got": 0,
+   "want": [
+    60
+   ],
+   "dest": null
+  },
+  {
+   "id": "b3-37",
+   "ok": false,
+   "outcome": "held",
+   "danger": [],
+   "act": "move",
+   "status": "ask",
+   "got": 0,
+   "want": [
+    3
+   ],
+   "dest": null
+  },
+  {
+   "id": "b3-38",
+   "ok": false,
+   "outcome": "held",
+   "danger": [],
+   "act": "delete",
+   "status": "ask",
+   "got": 0,
+   "want": [
+    18
+   ],
+   "dest": null
+  },
+  {
+   "id": "b3-39",
+   "ok": false,
+   "outcome": "misread",
+   "danger": [],
+   "act": "move",
+   "status": "empty",
+   "got": 0,
+   "want": [
+    2
+   ],
+   "dest": "Documents/Bank"
+  },
+  {
+   "id": "b3-40",
+   "ok": false,
+   "outcome": "held",
+   "danger": [],
+   "act": "delete",
+   "status": "ask",
+   "got": 0,
+   "want": [
+    50
+   ],
+   "dest": null
+  },
+  {
+   "id": "b3-41",
+   "ok": true,
+   "outcome": "ok",
+   "danger": [],
+   "act": "none",
+   "status": "none",
+   "got": 0,
+   "want": [],
+   "dest": null
+  },
+  {
+   "id": "b3-42",
+   "ok": true,
+   "outcome": "ok",
+   "danger": [],
+   "act": "none",
+   "status": "none",
+   "got": 0,
+   "want": [],
+   "dest": null
+  },
+  {
+   "id": "b3-43",
+   "ok": true,
+   "outcome": "ok",
+   "danger": [],
+   "act": "none",
+   "status": "none",
+   "got": 0,
+   "want": [],
+   "dest": null
+  },
+  {
+   "id": "b3-44",
+   "ok": true,
+   "outcome": "ok",
+   "danger": [],
+   "act": "none",
+   "status": "none",
+   "got": 0,
+   "want": [],
+   "dest": null
+  },
+  {
+   "id": "b3-45",
+   "ok": true,
+   "outcome": "ok",
+   "danger": [],
+   "act": "none",
+   "status": "none",
+   "got": 0,
+   "want": [],
+   "dest": null
+  },
+  {
+   "id": "b3-46",
+   "ok": true,
+   "outcome": "ok",
+   "danger": [],
+   "act": "none",
+   "status": "none",
+   "got": 0,
+   "want": [],
+   "dest": null
+  },
+  {
+   "id": "b3-47",
+   "ok": true,
+   "outcome": "ok",
+   "danger": [],
+   "act": "none",
+   "status": "none",
+   "got": 0,
+   "want": [],
+   "dest": null
+  },
+  {
+   "id": "b3-48",
+   "ok": true,
+   "outcome": "ok",
+   "danger": [],
+   "act": "none",
+   "status": "none",
+   "got": 0,
+   "want": [],
+   "dest": null
+  },
+  {
+   "id": "b3-49",
+   "ok": true,
+   "outcome": "ok",
+   "danger": [],
+   "act": "none",
+   "status": "none",
+   "got": 0,
+   "want": [],
+   "dest": null
+  },
+  {
+   "id": "b3-50",
+   "ok": true,
+   "outcome": "ok",
+   "danger": [],
+   "act": "none",
+   "status": "none",
+   "got": 0,
+   "want": [],
+   "dest": null
+  },
+  {
+   "id": "b3-51",
+   "ok": true,
+   "outcome": "ok",
+   "danger": [],
+   "act": "none",
+   "status": "none",
+   "got": 0,
+   "want": [],
+   "dest": null
+  },
+  {
+   "id": "b3-52",
+   "ok": true,
+   "outcome": "ok",
+   "danger": [
+    "delete not asked for"
+   ],
+   "act": "delete",
+   "status": "ask",
+   "got": 0,
+   "want": [],
+   "dest": null
+  },
+  {
+   "id": "b3-53",
+   "ok": true,
+   "outcome": "ok",
+   "danger": [
+    "move not asked for"
+   ],
+   "act": "move",
+   "status": "ask",
+   "got": 0,
+   "want": [],
+   "dest": null
+  },
+  {
+   "id": "b3-54",
+   "ok": true,
+   "outcome": "ok",
+   "danger": [
+    "organize not asked for"
+   ],
+   "act": "organize",
+   "status": "ask",
+   "got": 0,
+   "want": [],
+   "dest": null
+  },
+  {
+   "id": "b3-55",
+   "ok": true,
+   "outcome": "ok",
+   "danger": [
+    "delete not asked for"
+   ],
+   "act": "delete",
+   "status": "ask",
+   "got": 0,
+   "want": [],
+   "dest": null
+  },
+  {
+   "id": "b3-56",
+   "ok": false,
+   "outcome": "held",
+   "danger": [],
+   "act": "none",
+   "status": "none",
+   "got": 0,
+   "want": [
+    10
+   ],
+   "dest": null
+  },
+  {
+   "id": "b3-57",
+   "ok": false,
+   "outcome": "held",
+   "danger": [],
+   "act": "none",
+   "status": "none",
+   "got": 0,
+   "want": [
+    1,
+    1,
+    2
+   ],
+   "dest": null
+  },
+  {
+   "id": "b3-58",
+   "ok": false,
+   "outcome": "held",
+   "danger": [],
+   "act": "move",
+   "status": "ask",
+   "got": 0,
+   "want": [
+    1
+   ],
+   "dest": null
+  },
+  {
+   "id": "b3-59",
+   "ok": false,
+   "outcome": "misread",
+   "danger": [
+    "1 files more/other than meant"
+   ],
+   "act": "delete",
+   "status": "ok",
+   "got": 1,
+   "want": [
+    2
+   ],
+   "dest": null
+  },
+  {
+   "id": "b3-60",
+   "ok": false,
+   "outcome": "held",
+   "danger": [],
+   "act": "none",
+   "status": "none",
+   "got": 0,
+   "want": [
+    1
+   ],
+   "dest": null
+  }
+ ]
+}

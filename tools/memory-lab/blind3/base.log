@@ -1,0 +1,125 @@
+               gesamt       benutzt     frei      gemns.  Puffer/Cache verfügbar
+Speicher:         15           3           7           0           5          12
+C b3-01 zeig mir mal alle pdfs von der telekom -> {'action': 'show', 'name_contains': 'telekom'}
+C b3-02 Wo is der mietvertrag -> {'action': 'show', 'name_contains': 'mietvertrag'}
+C b3-03 in welcher datei steht meine versicherungsnummer -> {'action': 'show', 'content_contains': 'Versicherungsnummer'}
+C b3-04 Welche Datei war das nochmal mit den Kopfhörern vo -> {'action': 'show', 'name_contains': 'Kopfhörer'}
+C b3-05 Die Garantie vom Geschirrspüler bitte -> {'action': 'show', 'content_contains': 'Garantie'}
+C b3-06 Zeig die fünf größten Videos -> {'action': 'show'}
+C b3-07 was nimmt am meisten platz weg auf dem handy -> {'action': 'show'}
+C b3-08 Was ist das neueste Foto, das ich gemacht hab? -> {'action': 'show'}
+C b3-09 Bilder von gestern -> {'action': 'show', 'name_contains': 'gestern'}
+C b3-10 screenshots aus whatsapp vom letzten monat -> {'action': 'show', 'name_contains': 'whatsapp', 'group_by': 'month'}
+C b3-11 Alle Rechnungen außer Amazon -> {'action': 'show', 'name_contains': 'Rechnungen'}
+C b3-12 zeig mir die Kontoauszüge von diesem Jahr -> {'action': 'show', 'name_contains': 'Kontoauszüge'}
+C b3-13 Fotos vom 21. Juni 2025 -> {'action': 'show'}
+C b3-14 Musik von Peter Fox aber nur die flac -> {'action': 'show', 'name_contains': 'Peter Fox', 'content_contains': 'flac'}
+C b3-15 alle sprachnachrichten von whatsapp -> {'action': 'show', 'name_contains': 'whatsapp'}
+C b3-16 Hab ich irgendwo nen Scan vom Reisepass -> {'action': 'show', 'name_contains': 'Reisepass'}
+C b3-17 Zeig mir die Dokumente, die ich in den letzten dre -> {'action': 'show'}
+C b3-18 Videos größer als 1 GB -> {'action': 'show'}
+C b3-19 zeig mir alles von der Küche -> {'action': 'show', 'source': 'Küche'}
+C b3-20 Fotos zwischen dem 14. und 19. Juli -> {'action': 'show'}
+C b3-21 zeig alle PDFs im Download ohne die Rechnungen -> {'action': 'show', 'source': 'Download'}
+C b3-22 whatsapp bilder aber nicht die alten nur von diese -> {'action': 'show', 'name_contains': 'whatsapp', 'group_by': 'month'}
+C b3-23 Was hab ich letzte Woche runtergeladen? -> {'action': 'show'}
+C b3-24 Gibts was von Vonovia -> {'action': 'show', 'name_contains': 'Vonovia'}
+C b3-25 die datei wo die montageanleitung drin is -> {'action': 'show', 'content_contains': 'Montageanleitung'}
+C b3-26 Zeig mir die drei ältesten Dateien im Ordner Dokum -> {'action': 'show', 'source': 'Dokumente'}
+C b3-27 Instagram Screenshots von Anfang des Jahres -> {'action': 'show', 'name_contains': 'Instagram Screenshots'}
+C b3-28 Wie viel Platz brauchen eigentlich meine WhatsApp  -> {}
+C b3-29 Verschieb die Telekom Rechnungen aus Downloads in  -> {'action': 'move', 'source': 'Downloads', 'destination': 'Rechnungen', 'name_contains': 'Telekom'}
+C b3-30 lösch die doppelte amazon rechnung im download -> {'action': 'delete', 'source': 'download', 'name_contains': 'amazon'}
+C b3-31 Kopier die Bewerbungsfotos zu den Bewerbungen -> {'action': 'copy', 'destination': 'Bewerbungen', 'name_contains': 'Bewerbung'}
+C b3-32 die ganzen scans vom autokauf im september bitte i -> {'action': 'move', 'source': '.', 'destination': 'auto', 'name_contains': 'scans', 'content_contains': 'autokauf'}
+C b3-33 Lösche die APKs, die älter als einen Monat sind -> {'action': 'delete'}
+C b3-34 Schieb die Bilder von gestern aus dem Download nac -> {'action': 'move', 'source': 'Download', 'destination': 'Bilder', 'content_contains': 'gestern'}
+C b3-35 Kopier alles was mit Kessler Logistik zu tun hat n -> {'action': 'copy', 'destination': 'Documents/Arbeit', 'name_contains': 'Kessler Logistik'}
+C b3-36 Sortier die WhatsApp Dokumente nach Monaten -> {'action': 'organize', 'source': 'WhatsApp', 'group_by': 'month'}
+C b3-37 verschieb die lohnsteuer und die spendenquittung u -> {'action': 'move', 'destination': 'steuer 2025', 'name_contains': 'lohnsteuer', 'content_contains': 'spendenquittung riester'}
+C b3-38 Lösch die Sparkasse Screenshots vom letzten Jahr -> {'action': 'delete', 'name_contains': 'Sparkasse Screenshots'}
+C b3-39 Mach die Kontoauszüge aus dem Download zu den ande -> {'action': 'copy', 'source': 'Download', 'destination': 'Bank'}
+C b3-40 lösch die whatsapp videos die über 50 mb sind -> {'action': 'delete'}
+C b3-41 Danke dir! -> {}
+C b3-42 was kannst du eigentlich alles -> {}
+C b3-43 Ist es schlimm wenn ich den Cache lösche? -> {}
+C b3-44 Soll ich die alten WhatsApp Videos löschen oder li -> {}
+C b3-45 Guten Morgen -> {}
+C b3-46 warum ist mein handy so langsam -> {}
+C b3-47 Lad die Urlaubsfotos in meine Google Drive hoch -> {}
+C b3-48 mach das bewerbungsfoto ein bisschen heller -> {}
+C b3-49 Schick die Zalando Rechnung per Mail an meinen Ste -> {'name_contains': 'Zalando'}
+C b3-50 Druck mir den Mietvertrag aus -> {'action': 'show', 'name_contains': 'Mietvertrag'}
+C b3-51 Wandel die Word Dateien in PDF um -> {}
+C b3-52 Lösch die alten Sachen -> {'action': 'delete'}
+C b3-53 verschieb das in den anderen ordner -> {'action': 'move', 'destination': 'der andere ordner'}
+C b3-54 Räum mal auf -> {'action': 'organize'}
+C b3-55 Mach die Bilder weg -> {'action': 'delete'}
+C b3-56 show me the biggest files in downloads -> {'action': 'show', 'source': 'downloads'}
+C b3-57 find my boarding pass for lisbon -> {'action': 'show', 'name_contains': 'lisbon'}
+C b3-58 move the pdfs i downloaded last tuesday to documen -> {'action': 'move', 'destination': 'documents'}
+C b3-59 delete the png files in my downloads except the lo -> {'action': 'delete', 'source': 'Downloads', 'name_contains': 'logo'}
+C b3-60 which pdf mentions hausrat -> {'action': 'show', 'content_contains': 'hausrat'}
+A b3-01 zeig mir mal alle pdfs von der telekom -> {'source': '.', 'extensions': ['pdf'], 'name_contains': 'telekom'}
+A b3-02 Wo is der mietvertrag -> {}
+A b3-03 in welcher datei steht meine versicherungsnummer -> {}
+A b3-04 Welche Datei war das nochmal mit den Kopfhörern vo -> {}
+A b3-05 Die Garantie vom Geschirrspüler bitte -> {}
+A b3-06 Zeig die fünf größten Videos -> {'kinds': ['video']}
+A b3-07 was nimmt am meisten platz weg auf dem handy -> {}
+A b3-08 Was ist das neueste Foto, das ich gemacht hab? -> {'kinds': ['image']}
+A b3-09 Bilder von gestern -> {'action': 'organize', 'source': '.', 'kinds': ['image'], 'older_than': 1, 'group_by': 'month'}
+A b3-10 screenshots aus whatsapp vom letzten monat -> {'action': 'organize', 'source': '.', 'kinds': ['image'], 'extensions': ['png', 'jpg', 'jpeg'], 'older_than': 30, 'group_by': 'month'}
+A b3-11 Alle Rechnungen außer Amazon -> {'action': 'organize', 'source': '.', 'name_contains': 'Amazon', 'group_by': 'type'}
+A b3-12 zeig mir die Kontoauszüge von diesem Jahr -> {}
+A b3-13 Fotos vom 21. Juni 2025 -> {'action': 'organize', 'source': '.', 'kinds': ['image'], 'group_by': 'month'}
+A b3-14 Musik von Peter Fox aber nur die flac -> {'extensions': ['flac']}
+A b3-15 alle sprachnachrichten von whatsapp -> {}
+A b3-16 Hab ich irgendwo nen Scan vom Reisepass -> {}
+A b3-17 Zeig mir die Dokumente, die ich in den letzten dre -> {'source': '.', 'kinds': ['document']}
+A b3-18 Videos größer als 1 GB -> {'kinds': ['video'], 'larger_than': 1, 'size_unit': 'gb'}
+A b3-19 zeig mir alles von der Küche -> {'source': 'Küche'}
+A b3-20 Fotos zwischen dem 14. und 19. Juli -> {'action': 'organize', 'source': '.', 'kinds': ['image']}
+A b3-21 zeig alle PDFs im Download ohne die Rechnungen -> {'source': '.', 'extensions': ['pdf']}
+A b3-22 whatsapp bilder aber nicht die alten nur von diese -> {'action': 'organize', 'source': '.', 'kinds': ['image'], 'group_by': 'month'}
+A b3-23 Was hab ich letzte Woche runtergeladen? -> {}
+A b3-24 Gibts was von Vonovia -> {}
+A b3-25 die datei wo die montageanleitung drin is -> {'source': '.', 'name_contains': 'montageanleitung'}
+A b3-26 Zeig mir die drei ältesten Dateien im Ordner Dokum -> {'source': 'Dokumente'}
+A b3-27 Instagram Screenshots von Anfang des Jahres -> {'action': 'organize', 'source': '.', 'kinds': ['image'], 'group_by': 'month'}
+A b3-28 Wie viel Platz brauchen eigentlich meine WhatsApp  -> {}
+A b3-29 Verschieb die Telekom Rechnungen aus Downloads in  -> {'action': 'move', 'source': 'Downloads', 'destination': 'Rechnungen', 'extensions': ['pdf']}
+A b3-30 lösch die doppelte amazon rechnung im download -> {'action': 'delete', 'source': '.', 'extensions': ['pdf'], 'name_contains': 'amazon'}
+A b3-31 Kopier die Bewerbungsfotos zu den Bewerbungen -> {'action': 'copy', 'source': '.', 'destination': 'Bewerbungen', 'kinds': ['image']}
+A b3-32 die ganzen scans vom autokauf im september bitte i -> {'action': 'organize', 'source': '.', 'destination': 'auto', 'name_contains': 'autokauf', 'group_by': 'month'}
+A b3-33 Lösche die APKs, die älter als einen Monat sind -> {'action': 'delete', 'source': '.', 'extensions': ['apk'], 'older_than': 30}
+A b3-34 Schieb die Bilder von gestern aus dem Download nac -> {'action': 'move', 'source': 'Download', 'destination': 'Bilder', 'kinds': ['image'], 'older_than': 1}
+A b3-35 Kopier alles was mit Kessler Logistik zu tun hat n -> {'action': 'copy', 'source': '.', 'destination': 'Documents/Arbeit', 'name_contains': 'Kessler Logistik'}
+A b3-36 Sortier die WhatsApp Dokumente nach Monaten -> {'action': 'organize', 'source': 'WhatsApp', 'group_by': 'month'}
+A b3-37 verschieb die lohnsteuer und die spendenquittung u -> {'action': 'move', 'source': '.', 'destination': 'steuer 2025', 'extensions': ['lohnsteuer', 'spendenquittung', 'riester']}
+A b3-38 Lösch die Sparkasse Screenshots vom letzten Jahr -> {'action': 'delete', 'source': '.', 'kinds': ['image'], 'extensions': ['png', 'jpg', 'jpeg'], 'older_than': 365}
+A b3-39 Mach die Kontoauszüge aus dem Download zu den ande -> {'action': 'move', 'source': 'Download', 'destination': 'Bank', 'name_contains': 'Kontoauszüge'}
+A b3-40 lösch die whatsapp videos die über 50 mb sind -> {'action': 'delete', 'source': '.', 'kinds': ['video'], 'larger_than': 50}
+A b3-41 Danke dir! -> {}
+A b3-42 was kannst du eigentlich alles -> {}
+A b3-43 Ist es schlimm wenn ich den Cache lösche? -> {}
+A b3-44 Soll ich die alten WhatsApp Videos löschen oder li -> {}
+A b3-45 Guten Morgen -> {}
+A b3-46 warum ist mein handy so langsam -> {}
+A b3-47 Lad die Urlaubsfotos in meine Google Drive hoch -> {'source': '.', 'kinds': ['image']}
+A b3-48 mach das bewerbungsfoto ein bisschen heller -> {}
+A b3-49 Schick die Zalando Rechnung per Mail an meinen Ste -> {}
+A b3-50 Druck mir den Mietvertrag aus -> {}
+A b3-51 Wandel die Word Dateien in PDF um -> {'source': '.'}
+A b3-52 Lösch die alten Sachen -> {'action': 'delete', 'source': '.'}
+A b3-53 verschieb das in den anderen ordner -> {'action': 'move', 'source': '.', 'destination': 'der andere ordner'}
+A b3-54 Räum mal auf -> {'action': 'organize', 'source': '.', 'group_by': 'type'}
+A b3-55 Mach die Bilder weg -> {'action': 'delete', 'source': '.', 'kinds': ['image']}
+A b3-56 show me the biggest files in downloads -> {'source': 'downloads'}
+A b3-57 find my boarding pass for lisbon -> {'name_contains': 'lisbon'}
+A b3-58 move the pdfs i downloaded last tuesday to documen -> {'action': 'move', 'source': '.', 'destination': 'documents', 'extensions': ['pdf']}
+A b3-59 delete the png files in my downloads except the lo -> {'action': 'delete', 'source': 'downloads', 'kinds': ['image'], 'extensions': ['png'], 'name_contains': 'logo'}
+A b3-60 which pdf mentions hausrat -> {'extensions': ['pdf'], 'name_contains': 'hausrat'}
+A author count: {'correct': 11, 'misread': 2, 'q_or_refuse': 33, 'dangerous': 14}
+C+R2 author count: {'correct': 44, 'misread': 8, 'q_or_refuse': 8, 'dangerous': 0}
+no llama-server left

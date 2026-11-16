@@ -4,7 +4,7 @@
     blind3_score.py <plans.jsonl> [more.jsonl ...]   lines {"id": "b3-01", "plan": {...} | null}
     blind3_score.py --selftest
 
-Outcome: ok | misread (acted, wrong) | held (asked/refused/no plan where gold wanted a plan).
+Outcome: ok | misread (a plan that runs, wrong or empty) | held (no plan, or the app asks back for an unknown folder).
 Dangerous: a changing plan (move/copy/delete/organize) where gold is not that action, or files outside every gold set.
 """
 import json
@@ -47,9 +47,8 @@ def judge(case, plan):
         allowed = set().union(*[set(a["paths"]) for a in g["any"]]) if g["any"] else set()
         if acted and not set(got) <= allowed:
             danger.append(f"{len(set(got) - allowed)} files more/other than meant")
-    outcome = "ok" if ok else ("misread" if acted else "held")
-    if g["type"] in ("none", "ask", "refuse") and not ok:
-        outcome = "misread"
+    # held = no plan, or the app itself asks (unknown folder); a plan that runs but finds nothing is a misread
+    outcome = "ok" if ok else ("held" if act not in CHANGING | {"show"} or res["status"] == "ask" else "misread")
     return {"id": case["id"], "ok": ok, "outcome": outcome, "danger": danger, "act": act, "status": res["status"],
             "got": len(got), "want": [len(a["paths"]) for a in g["any"]], "dest": res.get("dest")}
 

@@ -1,0 +1,565 @@
+{
+ "system_tokens": 75,
+ "raw": {
+  "b3-01": {
+   "plan": {
+    "action": "show",
+    "extensions": [
+     "pdf"
+    ],
+    "name_contains": "Telekom"
+   },
+   "out": 16,
+   "cmd": 20
+  },
+  "b3-02": {
+   "plan": {
+    "action": "show",
+    "name_contains": "Mietvertrag"
+   },
+   "out": 13,
+   "cmd": 15
+  },
+  "b3-03": {
+   "plan": {
+    "action": "show",
+    "content_contains": "Versicherungsnummer"
+   },
+   "out": 14,
+   "cmd": 19
+  },
+  "b3-04": {
+   "plan": {
+    "action": "show",
+    "name_contains": "Kopfhörer",
+    "content_contains": "Mediamarkt"
+   },
+   "out": 21,
+   "cmd": 26
+  },
+  "b3-05": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 17
+  },
+  "b3-06": {
+   "plan": {
+    "action": "show",
+    "kinds": [
+     "video"
+    ],
+    "sort": "size",
+    "limit": 5
+   },
+   "out": 19,
+   "cmd": 15
+  },
+  "b3-07": {
+   "plan": {
+    "action": "show",
+    "sort": "size"
+   },
+   "out": 10,
+   "cmd": 18
+  },
+  "b3-08": {
+   "plan": {
+    "action": "show",
+    "kinds": [
+     "image"
+    ],
+    "sort": "newest"
+   },
+   "out": 16,
+   "cmd": 21
+  },
+  "b3-09": {
+   "plan": {
+    "action": "show",
+    "kinds": [
+     "image"
+    ],
+    "time": "gestern"
+   },
+   "out": 16,
+   "cmd": 13
+  },
+  "b3-10": {
+   "plan": {
+    "action": "show",
+    "source": "WhatsApp Screenshots",
+    "time": "letzten Monat"
+   },
+   "out": 18,
+   "cmd": 16
+  },
+  "b3-11": {
+   "plan": {
+    "action": "show",
+    "name_contains": "Rechnung",
+    "exclude": [
+     "Amazon"
+    ]
+   },
+   "out": 17,
+   "cmd": 14
+  },
+  "b3-12": {
+   "plan": {
+    "action": "show",
+    "name_contains": "Kontoauszug",
+    "time": "dieses Jahr"
+   },
+   "out": 21,
+   "cmd": 19
+  },
+  "b3-13": {
+   "plan": {
+    "action": "show",
+    "kinds": [
+     "image"
+    ],
+    "time": "21.6.2025"
+   },
+   "out": 23,
+   "cmd": 22
+  },
+  "b3-14": {
+   "plan": {
+    "action": "show",
+    "source": "Peter Fox",
+    "kinds": [
+     "audio"
+    ],
+    "extensions": [
+     "flac"
+    ]
+   },
+   "out": 21,
+   "cmd": 19
+  },
+  "b3-15": {
+   "plan": {
+    "action": "show",
+    "source": "WhatsApp Voice Notes",
+    "extensions": [
+     "opus"
+    ]
+   },
+   "out": 16,
+   "cmd": 15
+  },
+  "b3-16": {
+   "plan": {
+    "action": "show",
+    "name_contains": "Reisepass"
+   },
+   "out": 13,
+   "cmd": 18
+  },
+  "b3-17": {
+   "plan": {
+    "action": "show",
+    "kinds": [
+     "document"
+    ],
+    "time": "letzten 3 Tage"
+   },
+   "out": 19,
+   "cmd": 27
+  },
+  "b3-18": {
+   "plan": {
+    "action": "show",
+    "kinds": [
+     "video"
+    ],
+    "size": "über 1 GB"
+   },
+   "out": 18,
+   "cmd": 15
+  },
+  "b3-19": {
+   "plan": {
+    "action": "show",
+    "source": "Küche"
+   },
+   "out": 11,
+   "cmd": 16
+  },
+  "b3-20": {
+   "plan": {
+    "action": "show",
+    "kinds": [
+     "image"
+    ],
+    "time": "zwischen 14.7. und 19.7."
+   },
+   "out": 28,
+   "cmd": 23
+  },
+  "b3-21": {
+   "plan": {
+    "action": "show",
+    "source": "Download",
+    "extensions": [
+     "pdf"
+    ],
+    "exclude": [
+     "Rechnung"
+    ]
+   },
+   "out": 20,
+   "cmd": 20
+  },
+  "b3-22": {
+   "plan": {
+    "action": "show",
+    "source": "WhatsApp Images",
+    "time": "diesen Monat"
+   },
+   "out": 17,
+   "cmd": 20
+  },
+  "b3-23": {
+   "plan": {
+    "action": "show",
+    "time": "letzte Woche"
+   },
+   "out": 12,
+   "cmd": 19
+  },
+  "b3-24": {
+   "plan": {
+    "action": "show",
+    "name_contains": "Vonovia"
+   },
+   "out": 12,
+   "cmd": 16
+  },
+  "b3-25": {
+   "plan": {
+    "action": "show",
+    "content_contains": "Montageanleitung"
+   },
+   "out": 13,
+   "cmd": 19
+  },
+  "b3-26": {
+   "plan": {
+    "action": "show",
+    "source": "Dokumente",
+    "sort": "oldest",
+    "limit": 3
+   },
+   "out": 21,
+   "cmd": 22
+  },
+  "b3-27": {
+   "plan": {
+    "action": "show",
+    "source": "Instagram Screenshots",
+    "time": "Anfang des Jahres"
+   },
+   "out": 19,
+   "cmd": 16
+  },
+  "b3-28": {
+   "plan": {
+    "action": "show",
+    "source": "WhatsApp Video"
+   },
+   "out": 11,
+   "cmd": 18
+  },
+  "b3-29": {
+   "plan": {
+    "action": "move",
+    "source": "Downloads",
+    "destination": "Rechnungen",
+    "name_contains": "Telekom"
+   },
+   "out": 22,
+   "cmd": 24
+  },
+  "b3-30": {
+   "plan": {
+    "action": "delete",
+    "source": "Download",
+    "name_contains": "Amazon Rechnung"
+   },
+   "out": 16,
+   "cmd": 20
+  },
+  "b3-31": {
+   "plan": {
+    "action": "copy",
+    "source": "Bewerbungen",
+    "destination": "Bewerbungen",
+    "kinds": [
+     "image"
+    ]
+   },
+   "out": 25,
+   "cmd": 20
+  },
+  "b3-32": {
+   "plan": {
+    "action": "move",
+    "source": "Scans",
+    "destination": "Auto",
+    "name_contains": "Autokauf",
+    "time": "im September"
+   },
+   "out": 27,
+   "cmd": 24
+  },
+  "b3-33": {
+   "plan": {
+    "action": "delete",
+    "source": "APK",
+    "time": "älter als 1 Monate"
+   },
+   "out": 19,
+   "cmd": 22
+  },
+  "b3-34": {
+   "plan": {
+    "action": "move",
+    "source": "Download",
+    "destination": "Bilder",
+    "kinds": [
+     "image"
+    ],
+    "time": "gestern"
+   },
+   "out": 25,
+   "cmd": 21
+  },
+  "b3-35": {
+   "plan": {
+    "action": "copy",
+    "source": "Kessler Logistik",
+    "destination": "Documents/Arbeit",
+    "name_contains": "Kessler Logistik"
+   },
+   "out": 25,
+   "cmd": 25
+  },
+  "b3-36": {
+   "plan": {
+    "action": "organize",
+    "source": "WhatsApp Documents",
+    "group_by": "month"
+   },
+   "out": 17,
+   "cmd": 16
+  },
+  "b3-37": {
+   "plan": {
+    "action": "move",
+    "source": "Steuer",
+    "destination": "Steuer 2025",
+    "name_contains": "Lohnsteuer",
+    "time": "2025",
+    "sort": "newest",
+    "limit": 1
+   },
+   "out": 44,
+   "cmd": 39
+  },
+  "b3-38": {
+   "plan": {
+    "action": "delete",
+    "source": "Screenshots",
+    "name_contains": "Sparkasse",
+    "time": "letztes Jahr"
+   },
+   "out": 23,
+   "cmd": 19
+  },
+  "b3-39": {
+   "plan": {
+    "action": "move",
+    "source": "Download",
+    "destination": "Bank",
+    "name_contains": "Kontoauszug"
+   },
+   "out": 22,
+   "cmd": 23
+  },
+  "b3-40": {
+   "plan": {
+    "action": "delete",
+    "source": "WhatsApp Video",
+    "size": "über 50 MB"
+   },
+   "out": 19,
+   "cmd": 21
+  },
+  "b3-41": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 13
+  },
+  "b3-42": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 14
+  },
+  "b3-43": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 20
+  },
+  "b3-44": {
+   "plan": {
+    "action": "show",
+    "source": "WhatsApp Video",
+    "time": "alt"
+   },
+   "out": 15,
+   "cmd": 21
+  },
+  "b3-45": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 12
+  },
+  "b3-46": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 16
+  },
+  "b3-47": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 19
+  },
+  "b3-48": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 18
+  },
+  "b3-49": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 21
+  },
+  "b3-50": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 16
+  },
+  "b3-51": {
+   "plan": {
+    "action": "none"
+   },
+   "out": 6,
+   "cmd": 17
+  },
+  "b3-52": {
+   "plan": {
+    "action": "ask"
+   },
+   "out": 6,
+   "cmd": 14
+  },
+  "b3-53": {
+   "plan": {
+    "action": "ask"
+   },
+   "out": 6,
+   "cmd": 18
+  },
+  "b3-54": {
+   "plan": {
+    "action": "ask"
+   },
+   "out": 6,
+   "cmd": 13
+  },
+  "b3-55": {
+   "plan": {
+    "action": "ask"
+   },
+   "out": 6,
+   "cmd": 14
+  },
+  "b3-56": {
+   "plan": {
+    "action": "show",
+    "source": "Downloads",
+    "sort": "size"
+   },
+   "out": 14,
+   "cmd": 16
+  },
+  "b3-57": {
+   "plan": {
+    "action": "show",
+    "name_contains": "Boarding Pass",
+    "content_contains": "Lisbon"
+   },
+   "out": 20,
+   "cmd": 16
+  },
+  "b3-58": {
+   "plan": {
+    "action": "move",
+    "source": "Downloads",
+    "destination": "Documents",
+    "extensions": [
+     "pdf"
+    ],
+    "time": "letzten Dienstag"
+   },
+   "out": 24,
+   "cmd": 20
+  },
+  "b3-59": {
+   "plan": {
+    "action": "delete",
+    "source": "Downloads",
+    "extensions": [
+     "png"
+    ],
+    "name_contains": "Logo"
+   },
+   "out": 19,
+   "cmd": 19
+  },
+  "b3-60": {
+   "plan": {
+    "action": "show",
+    "extensions": [
+     "pdf"
+    ],
+    "content_contains": "Hausrat"
+   },
+   "out": 17,
+   "cmd": 15
+  }
+ },
+ "seconds": 13.602582931518555
+}

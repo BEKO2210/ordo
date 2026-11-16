@@ -1,0 +1,846 @@
+{
+ "raw": {
+  "A": {
+   "b3-01": {
+    "plan": {
+     "source": ".",
+     "extensions": [
+      "pdf"
+     ],
+     "name_contains": "telekom"
+    },
+    "calls": [
+     [
+      "A",
+      20,
+      50
+     ]
+    ]
+   },
+   "b3-02": {
+    "plan": {},
+    "calls": [
+     [
+      "A",
+      15,
+      45
+     ]
+    ]
+   },
+   "b3-03": {
+    "plan": {},
+    "calls": [
+     [
+      "A",
+      19,
+      45
+     ]
+    ]
+   },
+   "b3-04": {
+    "plan": {},
+    "calls": [
+     [
+      "A",
+      26,
+      45
+     ]
+    ]
+   },
+   "b3-05": {
+    "plan": {},
+    "calls": [
+     [
+      "A",
+      17,
+      45
+     ]
+    ]
+   },
+   "b3-06": {
+    "plan": {
+     "kinds": [
+      "video"
+     ]
+    },
+    "calls": [
+     [
+      "A",
+      15,
+      46
+     ]
+    ]
+   },
+   "b3-07": {
+    "plan": {},
+    "calls": [
+     [
+      "A",
+      18,
+      45
+     ]
+    ]
+   },
+   "b3-08": {
+    "plan": {
+     "kinds": [
+      "image"
+     ]
+    },
+    "calls": [
+     [
+      "A",
+      21,
+      46
+     ]
+    ]
+   },
+   "b3-09": {
+    "plan": {
+     "action": "organize",
+     "source": ".",
+     "kinds": [
+      "image"
+     ],
+     "older_than": 1,
+     "group_by": "month"
+    },
+    "calls": [
+     [
+      "A",
+      13,
+      49
+     ]
+    ]
+   },
+   "b3-10": {
+    "plan": {
+     "action": "organize",
+     "source": ".",
+     "kinds": [
+      "image"
+     ],
+     "extensions": [
+      "png",
+      "jpg",
+      "jpeg"
+     ],
+     "older_than": 30,
+     "group_by": "month"
+    },
+    "calls": [
+     [
+      "A",
+      16,
+      55
+     ]
+    ]
+   },
+   "b3-11": {
+    "plan": {
+     "action": "organize",
+     "source": ".",
+     "name_contains": "Amazon",
+     "group_by": "type"
+    },
+    "calls": [
+     [
+      "A",
+      14,
+      50
+     ]
+    ]
+   },
+   "b3-12": {
+    "plan": {},
+    "calls": [
+     [
+      "A",
+      19,
+      45
+     ]
+    ]
+   },
+   "b3-13": {
+    "plan": {
+     "action": "organize",
+     "source": ".",
+     "kinds": [
+      "image"
+     ],
+     "group_by": "month"
+    },
+    "calls": [
+     [
+      "A",
+      22,
+      49
+     ]
+    ]
+   },
+   "b3-14": {
+    "plan": {
+     "extensions": [
+      "flac"
+     ]
+    },
+    "calls": [
+     [
+      "A",
+      19,
+      47
+     ]
+    ]
+   },
+   "b3-15": {
+    "plan": {},
+    "calls": [
+     [
+      "A",
+      15,
+      45
+     ]
+    ]
+   },
+   "b3-16": {
+    "plan": {},
+    "calls": [
+     [
+      "A",
+      18,
+      45
+     ]
+    ]
+   },
+   "b3-17": {
+    "plan": {
+     "source": ".",
+     "kinds": [
+      "document"
+     ]
+    },
+    "calls": [
+     [
+      "A",
+      27,
+      47
+     ]
+    ]
+   },
+   "b3-18": {
+    "plan": {
+     "kinds": [
+      "video"
+     ],
+     "larger_than": 1,
+     "size_unit": "gb"
+    },
+    "calls": [
+     [
+      "A",
+      15,
+      46
+     ]
+    ]
+   },
+   "b3-19": {
+    "plan": {
+     "source": "Küche"
+    },
+    "calls": [
+     [
+      "A",
+      16,
+      48
+     ]
+    ]
+   },
+   "b3-20": {
+    "plan": {
+     "action": "organize",
+     "source": ".",
+     "kinds": [
+      "image"
+     ]
+    },
+    "calls": [
+     [
+      "A",
+      23,
+      48
+     ]
+    ]
+   },
+   "b3-21": {
+    "plan": {
+     "source": ".",
+     "extensions": [
+      "pdf"
+     ]
+    },
+    "calls": [
+     [
+      "A",
+      20,
+      47
+     ]
+    ]
+   },
+   "b3-22": {
+    "plan": {
+     "action": "organize",
+     "source": ".",
+     "kinds": [
+      "image"
+     ],
+     "group_by": "month"
+    },
+    "calls": [
+     [
+      "A",
+      20,
+      49
+     ]
+    ]
+   },
+   "b3-23": {
+    "plan": {},
+    "calls": [
+     [
+      "A",
+      19,
+      45
+     ]
+    ]
+   },
+   "b3-24": {
+    "plan": {},
+    "calls": [
+     [
+      "A",
+      16,
+      45
+     ]
+    ]
+   },
+   "b3-25": {
+    "plan": {
+     "source": ".",
+     "name_contains": "montageanleitung"
+    },
+    "calls": [
+     [
+      "A",
+      19,
+      50
+     ]
+    ]
+   },
+   "b3-26": {
+    "plan": {
+     "source": "Dokumente"
+    },
+    "calls": [
+     [
+      "A",
+      22,
+      49
+     ]
+    ]
+   },
+   "b3-27": {
+    "plan": {
+     "action": "organize",
+     "source": ".",
+     "kinds": [
+      "image"
+     ],
+     "group_by": "month"
+    },
+    "calls": [
+     [
+      "A",
+      16,
+      49
+     ]
+    ]
+   },
+   "b3-28": {
+    "plan": {},
+    "calls": [
+     [
+      "A",
+      18,
+      45
+     ]
+    ]
+   },
+   "b3-29": {
+    "plan": {
+     "action": "move",
+     "source": "Downloads",
+     "destination": "Rechnungen",
+     "extensions": [
+      "pdf"
+     ]
+    },
+    "calls": [
+     [
+      "A",
+      24,
+      52
+     ]
+    ]
+   },
+   "b3-30": {
+    "plan": {
+     "action": "delete",
+     "source": ".",
+     "extensions": [
+      "pdf"
+     ],
+     "name_contains": "amazon"
+    },
+    "calls": [
+     [
+      "A",
+      20,
+      49
+     ]
+    ]
+   },
+   "b3-31": {
+    "plan": {
+     "action": "copy",
+     "source": ".",
+     "destination": "Bewerbungen",
+     "kinds": [
+      "image"
+     ]
+    },
+    "calls": [
+     [
+      "A",
+      20,
+      52
+     ]
+    ]
+   },
+   "b3-32": {
+    "plan": {
+     "action": "organize",
+     "source": ".",
+     "destination": "auto",
+     "name_contains": "autokauf",
+     "group_by": "month"
+    },
+    "calls": [
+     [
+      "A",
+      24,
+      54
+     ]
+    ]
+   },
+   "b3-33": {
+    "plan": {
+     "action": "delete",
+     "source": ".",
+     "extensions": [
+      "apk"
+     ],
+     "older_than": 30
+    },
+    "calls": [
+     [
+      "A",
+      22,
+      48
+     ]
+    ]
+   },
+   "b3-34": {
+    "plan": {
+     "action": "move",
+     "source": "Download",
+     "destination": "Bilder",
+     "kinds": [
+      "image"
+     ],
+     "older_than": 1
+    },
+    "calls": [
+     [
+      "A",
+      21,
+      51
+     ]
+    ]
+   },
+   "b3-35": {
+    "plan": {
+     "action": "copy",
+     "source": ".",
+     "destination": "Documents/Arbeit",
+     "name_contains": "Kessler Logistik"
+    },
+    "calls": [
+     [
+      "A",
+      25,
+      54
+     ]
+    ]
+   },
+   "b3-36": {
+    "plan": {
+     "action": "organize",
+     "source": "WhatsApp",
+     "group_by": "month"
+    },
+    "calls": [
+     [
+      "A",
+      16,
+      49
+     ]
+    ]
+   },
+   "b3-37": {
+    "plan": {
+     "action": "move",
+     "source": ".",
+     "destination": "steuer 2025",
+     "extensions": [
+      "lohnsteuer",
+      "spendenquittung",
+      "riester"
+     ]
+    },
+    "calls": [
+     [
+      "A",
+      39,
+      65
+     ]
+    ]
+   },
+   "b3-38": {
+    "plan": {
+     "action": "delete",
+     "source": ".",
+     "kinds": [
+      "image"
+     ],
+     "extensions": [
+      "png",
+      "jpg",
+      "jpeg"
+     ],
+     "older_than": 365
+    },
+    "calls": [
+     [
+      "A",
+      19,
+      54
+     ]
+    ]
+   },
+   "b3-39": {
+    "plan": {
+     "action": "move",
+     "source": "Download",
+     "destination": "Bank",
+     "name_contains": "Kontoauszüge"
+    },
+    "calls": [
+     [
+      "A",
+      23,
+      54
+     ]
+    ]
+   },
+   "b3-40": {
+    "plan": {
+     "action": "delete",
+     "source": ".",
+     "kinds": [
+      "video"
+     ],
+     "larger_than": 50
+    },
+    "calls": [
+     [
+      "A",
+      21,
+      48
+     ]
+    ]
+   },
+   "b3-41": {
+    "plan": {},
+    "calls": [
+     [
+      "A",
+      13,
+      45
+     ]
+    ]
+   },
+   "b3-42": {
+    "plan": {},
+    "calls": [
+     [
+      "A",
+      14,
+      45
+     ]
+    ]
+   },
+   "b3-43": {
+    "plan": {},
+    "calls": [
+     [
+      "A",
+      20,
+      45
+     ]
+    ]
+   },
+   "b3-44": {
+    "plan": {},
+    "calls": [
+     [
+      "A",
+      21,
+      45
+     ]
+    ]
+   },
+   "b3-45": {
+    "plan": {},
+    "calls": [
+     [
+      "A",
+      12,
+      45
+     ]
+    ]
+   },
+   "b3-46": {
+    "plan": {},
+    "calls": [
+     [
+      "A",
+      16,
+      45
+     ]
+    ]
+   },
+   "b3-47": {
+    "plan": {
+     "source": ".",
+     "kinds": [
+      "image"
+     ]
+    },
+    "calls": [
+     [
+      "A",
+      19,
+      47
+     ]
+    ]
+   },
+   "b3-48": {
+    "plan": {},
+    "calls": [
+     [
+      "A",
+      18,
+      45
+     ]
+    ]
+   },
+   "b3-49": {
+    "plan": {},
+    "calls": [
+     [
+      "A",
+      21,
+      45
+     ]
+    ]
+   },
+   "b3-50": {
+    "plan": {},
+    "calls": [
+     [
+      "A",
+      16,
+      45
+     ]
+    ]
+   },
+   "b3-51": {
+    "plan": {
+     "source": "."
+    },
+    "calls": [
+     [
+      "A",
+      17,
+      46
+     ]
+    ]
+   },
+   "b3-52": {
+    "plan": {
+     "action": "delete",
+     "source": "."
+    },
+    "calls": [
+     [
+      "A",
+      14,
+      46
+     ]
+    ]
+   },
+   "b3-53": {
+    "plan": {
+     "action": "move",
+     "source": ".",
+     "destination": "der andere ordner"
+    },
+    "calls": [
+     [
+      "A",
+      18,
+      51
+     ]
+    ]
+   },
+   "b3-54": {
+    "plan": {
+     "action": "organize",
+     "source": ".",
+     "group_by": "type"
+    },
+    "calls": [
+     [
+      "A",
+      13,
+      48
+     ]
+    ]
+   },
+   "b3-55": {
+    "plan": {
+     "action": "delete",
+     "source": ".",
+     "kinds": [
+      "image"
+     ]
+    },
+    "calls": [
+     [
+      "A",
+      14,
+      47
+     ]
+    ]
+   },
+   "b3-56": {
+    "plan": {
+     "source": "downloads"
+    },
+    "calls": [
+     [
+      "A",
+      16,
+      47
+     ]
+    ]
+   },
+   "b3-57": {
+    "plan": {
+     "name_contains": "lisbon"
+    },
+    "calls": [
+     [
+      "A",
+      16,
+      48
+     ]
+    ]
+   },
+   "b3-58": {
+    "plan": {
+     "action": "move",
+     "source": ".",
+     "destination": "documents",
+     "extensions": [
+      "pdf"
+     ]
+    },
+    "calls": [
+     [
+      "A",
+      20,
+      49
+     ]
+    ]
+   },
+   "b3-59": {
+    "plan": {
+     "action": "delete",
+     "source": "downloads",
+     "kinds": [
+      "image"
+     ],
+     "extensions": [
+      "png"
+     ],
+     "name_contains": "logo"
+    },
+    "calls": [
+     [
+      "A",
+      19,
+      51
+     ]
+    ]
+   },
+   "b3-60": {
+    "plan": {
+     "extensions": [
+      "pdf"
+     ],
+     "name_contains": "hausrat"
+    },
+    "calls": [
+     [
+      "A",
+      15,
+      50
+     ]
+    ]
+   }
+  }
+ },
+ "system_tokens": {
+  "A": 754,
+  "S": 1440,
+  "K": 798,
+  "KS": 607,
+  "T1": 155,
+  "T2show": 406,
+  "T2move": 346,
+  "T2copy": 296,
+  "T2delete": 320,
+  "T2organize": 225
+ }
+}
