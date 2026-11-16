@@ -56,7 +56,7 @@ class TreemapView @JvmOverloads constructor(context: Context, attrs: AttributeSe
     private val gap = 3 * density
     private val radius = 10 * density
     private val pad = 9 * density
-    private val hue = ContextCompat.getColor(context, R.color.ai_accent)
+    private val hue = MaterialColors.getColor(this, androidx.appcompat.R.attr.colorPrimary)
     private val surface by lazy { MaterialColors.getColor(this, com.google.android.material.R.attr.colorSurface) }
     private val fill = Paint(Paint.ANTI_ALIAS_FLAG)
     private fun sp(value: Float) = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, value, resources.displayMetrics)

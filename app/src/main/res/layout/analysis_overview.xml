@@ -144,7 +144,7 @@
                 android:drawablePadding="8dp"
                 android:text="@string/analysis_suggestions_title"
                 app:drawableStartCompat="@drawable/assistant_icon_white_24dp"
-                app:drawableTint="@color/ai_accent" />
+                app:drawableTint="?attr/colorPrimary" />
 
             <LinearLayout
                 android:id="@+id/suggestionList"

@@ -118,7 +118,7 @@ class DonutView @JvmOverloads constructor(context: Context, attrs: AttributeSet?
         textSize = sp(13f)
         textAlign = Paint.Align.CENTER
         isFakeBoldText = true
-        color = ContextCompat.getColor(context, R.color.ai_accent)
+        color = MaterialColors.getColor(this@DonutView, androidx.appcompat.R.attr.colorPrimary)
     }
 
     private var slices: List<Slice> = emptyList()
