@@ -34,7 +34,7 @@
 
 ## Stand
 
-Ordo ist in Entwicklung (Version 0.9.1). Bei Google Play läuft ein geschlossener Test; Testversionen erscheinen auch als
+Ordo ist in Entwicklung (Version 0.10.0). Bei Google Play läuft ein geschlossener Test; Testversionen erscheinen auch als
 [Pre-Releases](https://github.com/BEKO2210/ordo/releases); du kannst Ordo auch [selbst bauen](#bauen).
 Was als Nächstes kommt, steht in der [lebenden Roadmap](docs/ROADMAP-LIVE.md): Jedes Ziel hat einen Prüfbefehl und schließt sich selbst.
 
@@ -150,13 +150,16 @@ Grammatik erzwungen). Ordo prüft diesen Plan selbst, bevor es ihn zeigt:
 - „Lösche die doppelten Dateien“ wählt nur die überzähligen Kopien (gleicher Inhalt); die älteste bleibt jeweils.
 - Einen ganzen Hauptordner wie Download oder mehr als 50 Dateien zu löschen, braucht eine zweite Bestätigung mit
   Anzahl und Größe.
-- Jede Datei wird direkt vor der Aktion noch einmal geprüft; vorhandene Dateien werden nie überschrieben.
+- Jede Datei wird direkt vor der Aktion noch einmal geprüft; vorhandene Dateien werden nie überschrieben. Eine
+  Datei, die seit der Vorschau ersetzt wurde (andere Größe oder Zeit), bleibt unberührt, und das Ergebnis sagt es.
 - Rückgängig macht genau das rückgängig, was der Befehl getan hat, und lässt Dateien in Ruhe, die sich seitdem
   geändert haben.
 
 **Einrichtung.** Die Funktion ist aus, bis du sie über den Zauberstab in der Suchleiste öffnest. Ordo prüft das
 Handy und lädt das Modell einmalig herunter (rund 2,6 GB, standardmäßig nur über WLAN) – von einer festen
-Version bei Hugging Face, geprüft per SHA-256. Danach läuft alles offline. Das Modell lässt sich im KI-Blatt
+Version bei Hugging Face, geprüft per SHA-256. Danach läuft alles offline. Nach dem ersten Start speichert Ordo
+die eingelesenen Anweisungen des Modells in seinem privaten Speicher (nie in Backups, bei knappem Platz nicht), so
+sparen spätere Kaltstarts diesen Schritt; sie werden mit dem Modell gelöscht. Das Modell lässt sich im KI-Blatt
 jederzeit wieder entfernen; unter Einstellungen › KI-Assistent siehst du, ob es bereit ist.
 
 | | |

@@ -1,0 +1,2 @@
+{"type": "personal", "text": "Lösche die doppelten Dateien im Download", "gold": {"action": "delete", "tag": "dup"}}
+{"type": "personal", "text": "Lösch die doppelt heruntergeladenen Sachen", "gold": {"action": "delete", "tag": "dup"}}

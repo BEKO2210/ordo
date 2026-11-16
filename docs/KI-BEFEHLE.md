@@ -121,6 +121,74 @@ Tab S9 Ultra (Snapdragon 8 Gen 2, 12 GB), App-Build mit KleidiAI, 4 Threads:
   x86_64 (Emulator) hat kein `asimddp` und bekommt das Modell nur für Tests per Hand. Eine kleinere Stufe (z. B.
   Qwen3.5-2B Q4_0, 35/54) braucht vorher feste Datei, Hash und Messung auf einem Handy.
 
+## Zeigen/Suchen: Infrastruktur (16.11.2026, für Nutzer aus)
+
+Spezifikation: `docs/KI-ZEIGEN-PHASE0B.md` (Entwurf K+R). **Der Entwurf fiel im Blindtest durch**
+(`tools/memory-lab/blind/results.md`: 22/40, 2 gefährliche Pläne). Auch die Überarbeitung (rules2.py + Prompt C)
+kam im Blindtest 2 nur auf 29/50, ohne Gefahr, aber mit zu vielen Absagen. Darum ist in der App nur die
+Infrastruktur gebaut; Nutzer bekommen weiter den bisherigen Entwurf.
+
+- **Austauschbar:** Prompt, Grammatik und Wortregeln stecken zusammen in `CommandDesign` (`Today` = ausgeliefert,
+  `KR` = Prompt K + `CommandRules`). Alles danach (Prüfung, Vorschau, Liste, Runner) liest nur den Plan.
+  `CommandDesign.current` liefert in Release-Builds immer `Today`: Der Schalter hängt an `BuildConfig.DEBUG`, einer
+  Konstanten, und wird im Release wegoptimiert.
+- **Regeln R als Kotlin-Port** (`CommandRules.kt`) von `tools/memory-lab/rules.py`, Zeile für Zeile. Golden-Test
+  `CommandRulesGoldenTest`: alle 816 aufgezeichneten Rohpläne (S, K, KS, T über Dev, Originale, Holdout, Regression;
+  S und K über die 40 Blindfälle) durch die Kotlin-Regeln, Ergebnis muss dem Python-Ergebnis gleichen. Er vergleicht
+  Port gegen Referenz, nicht gegen Gold. Fixture neu erzeugen: `python3 tools/memory-lab/export_golden.py`.
+  Zwei spät gefundene Regelfehler (Abschnitt 4 der Spezifikation) stehen als `@Ignore`-Tests drin, ungelöst.
+  Auf dem Emulator (Android 16, Regex über ICU statt JVM) gibt `DebugAiActivity --es golden` ebenfalls 816/816
+  (16.11.2026, `e2e/ai-show.sh`).
+- **Vorrat für den nächsten Regelsatz:** Der Plan trägt schon die Felder von rules2.py (`exclude_kinds`,
+  `exclude_extensions`, `exclude_terms`, `date_from`/`date_to` als ISO-Tag oder -Minute, `min_bytes`/`max_bytes`),
+  und die Suche filtert danach; ein unlesbares Datum wählt nichts. Die heutigen Regeln setzen sie nie; Chips in der
+  Vorschau und Titel der Liste zeigen sie noch nicht.
+- **Plan K** hat 15 Felder: dazu `show`, `content_contains`, `newer_than`, `sort`, `limit`; `today` setzt nur der Code.
+  Die gemeinsamen Filter in `CommandFiles` gelten auch für Verschieben/Löschen: „heute“, „letzte Woche“ und ein Wort
+  engen ein, nie aus. Sie zählen als Filter bei der zweiten Bestätigung.
+- **show** ändert nie etwas. Es sucht rekursiv unter dem Ordner (ohne versteckte Ordner und `Android/data`, mit
+  `Android/media` für WhatsApp), sortiert wie verlangt (sonst neueste zuerst), kürzt auf `limit` und öffnet die
+  normale Dateiliste mit dem Verstandenen als Titel. Antippen öffnet, langes Drücken wählt aus wie überall.
+  Der Auftrag reist nicht im Intent (FileListActivity ist exportiert), sondern als zufälliges Token für eine
+  Anfrage im selben Prozess; ein fremder Intent landet in der normalen Dateiliste. Quellen und Ordner, die über
+  Links oder „..“ aus dem Speicher führen, werden nie gelesen. Das Schließen des Blatts beendet die Suche; das
+  Blatt sucht nur bis zum ersten Treffer. Höchstens 2.000 Treffer und 200 MB gelesener Text je Suche, sonst sagt die
+  Liste, dass sie früh aufgehört hat.
+- **Weiche ohne Modell:** Speicherfragen und „die größten Dateien“ öffnen die Speicheranalyse auf „Große Dateien“,
+  „doppelt“ auf „Duplikate“; Zurück führt zur Übersicht. Sätze, die ein Gedächtnis bräuchten, bekommen einen
+  animierten Hinweis (Glühbirne, Antippen = neuer Befehl), bei „nicht geöffnet“ mit Knopf „Unveränderte Dateien
+  zeigen“ (älter als ein Monat), nie automatisch.
+- **Inhaltssuche:** `ContentSearch` liest nur reinen Text (txt, md, csv, log, json, xml, html, rtf, ics, vcf; bis
+  20 MB). PDF und Office werden nur über den Namen gefunden; die Liste sagt das. Optionen für später, ungebaut:
+  | Weg | Lizenz | Größe | Anmerkung |
+  |---|---|---|---|
+  | Android `PdfRenderer` Text (`PdfPageTextContent`) | Plattform | 0 | ab API 35 bzw. S Extensions 13, ältere Geräte nicht |
+  | PdfBox-Android 2.0.27.0 | Apache-2.0 (mit GPL-3.0 vereinbar) | AAR 3,25 MB (Maven Central, gemessen) | reines Java, Schriftdaten nötig, letzter Push 03/2024 |
+  | MuPDF | AGPL-3.0 | native, je ABI mehrere MB (nicht gemessen) | Lizenz strenger als die App |
+  | docx/xlsx/odt | – | 0 | ZIP + XML mit `java.util.zip`, ohne Bibliothek |
+- **Gleiche Datei wie in der Vorschau:** Die Vorschau merkt sich Größe und Zeit jeder Datei
+  (`CommandFiles.snapshot`). Der Runner überspringt eine Datei, die seitdem eine andere Größe oder Zeit hat (2 s
+  Toleranz für FUSE), und die Meldung nennt die Zahl („seit der Vorschau geändert und nicht angefasst“). Das schließt
+  die Lücke aus `docs/GEDAECHTNIS-PHASE0.md`, Abschnitt 7.
+- **Gespeicherter Prompt-Zustand:** Nach dem ersten Einlesen schreibt `LlamaEngine.saveState` den Zustand nach dem
+  System-Prompt in `noBackupFilesDir/llm-state` (nie in Backups), atomar über eine Temp-Datei mit `fsync` von Datei
+  und Ordner, mit CRC-32 der Daten im Kopf (vor dem Laden geprüft). Höchstens 256 MB (S maß 205 MB auf dem Tab, K
+  geschätzt ~160 MB); lädt eine selbst geschriebene Datei nicht, wird sie für diesen Schlüssel nicht neu geschrieben. Schlüssel: SHA-256 aus
+  Modell-Hash, Prompt, Grammatik, Kontextgröße und App-Version; nur eine Datei wird behalten. Gespeichert wird nur,
+  wenn danach noch 1 GB frei ist. `restoreState` lehnt fehlende, gekürzte oder unpassende Dateien ab, dann liest die
+  App den Prompt wie bisher. Gelöscht mit dem Modell. Gilt auch für den ausgelieferten Entwurf.
+  Gemessen nur mit dem Testmodell (Qwen3.5-0.8B Q4_K_M, kurzer Test-Prompt, Emulator x86_64, 16.11.2026):
+  Datei 20,4 MB, Speichern 179 ms (mit fsync), Wiederherstellen 15 ms statt 312 ms Einlesen, gleiche Antwort; ein
+  gekipptes Byte (CRC) und eine halbierte
+  Datei werden abgelehnt (`LlamaEngineTest`). **Für das 4B-Modell mit Prompt K ist die Größe ungemessen**
+  (Labor-Schätzung ~160 MB auf dem Tab).
+- **Ohne Modell testen (nur Debug):** `DebugAiActivity` liegt in `app/src/debug` und existiert im Release nicht;
+  sie verlangt `android.permission.DUMP`, die nur die adb-Shell hat, keine installierte App.
+  `e2e/ai-show.sh` gibt damit Modellantworten vor und prüft Liste, Frage→Liste, Hinweis, Analyse-Weiche, Vorschau
+  und die Identitätsprüfung: 24/24 auf Deutsch und 24/24 auf Englisch (emulator-5580, 16.11.2026).
+  `--ez show_design true` schaltet K+R für echte Modellbefehle in einem Debug-Build ein. **Der Modellpfad selbst
+  lief auf keinem Gerät** (dem Emulator fehlt der Speicher).
+
 ## Offen
 
 - Älteres Gerät (S21/Exynos 2100) nicht gemessen: Gerät ist gerade nicht verfügbar.

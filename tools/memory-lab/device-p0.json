@@ -1,0 +1,456 @@
+{
+ "S": {
+  "system_tokens": 1440,
+  "load_s": 4.4,
+  "prepare_s": 49.8,
+  "rows": [
+   {
+    "cmd": 1,
+    "warm_s": 10.0,
+    "cold_s": 64.3,
+    "cache_n": 1440,
+    "prompt_n": 54,
+    "prompt_tps": 20.7,
+    "predicted_n": 64,
+    "gen_tps": 8.5,
+    "plan": "{\"action\":\"show\",\"source\":\"\",\"destination\":\"\",\"kinds\":[],\"extensions\":[],\"name_contains\":\"\",\"content_contains\":\"\",\"older_than\":0,\"newer_than\":0,\"age_unit\":\"days\",\"larger_than\":0,\"size_unit\":\"mb\",\"sort\":\"size\",\"limit\":0,\"group_by\":\"\",\"group\":\"\"}"
+   },
+   {
+    "cmd": 2,
+    "warm_s": 9.5,
+    "cold_s": null,
+    "cache_n": 1440,
+    "prompt_n": 56,
+    "prompt_tps": 22.0,
+    "predicted_n": 65,
+    "gen_tps": 9.3,
+    "plan": "{\"action\":\"show\",\"source\":\"Download\",\"destination\":\"\",\"kinds\":[\"image\"],\"extensions\":[],\"name_contains\":\"\",\"content_contains\":\"\",\"older_than\":0,\"newer_than\":1,\"age_unit\":\"days\",\"larger_than\":0,\"size_unit\":\"mb\",\"sort\":\"\",\"limit\":0,\"group_by\":\"\",\"group\":\"\"}"
+   },
+   {
+    "cmd": 3,
+    "warm_s": 9.7,
+    "cold_s": null,
+    "cache_n": 1440,
+    "prompt_n": 57,
+    "prompt_tps": 22.2,
+    "predicted_n": 66,
+    "gen_tps": 9.2,
+    "plan": "{\"action\":\"show\",\"source\":\"\",\"destination\":\"\",\"kinds\":[],\"extensions\":[\"pdf\"],\"name_contains\":\"\",\"content_contains\":\"Versicherung\",\"older_than\":0,\"newer_than\":0,\"age_unit\":\"days\",\"larger_than\":0,\"size_unit\":\"mb\",\"sort\":\"\",\"limit\":0,\"group_by\":\"\",\"group\":\"\"}"
+   },
+   {
+    "cmd": 4,
+    "warm_s": 9.1,
+    "cold_s": null,
+    "cache_n": 1440,
+    "prompt_n": 53,
+    "prompt_tps": 22.1,
+    "predicted_n": 62,
+    "gen_tps": 9.2,
+    "plan": "{\"action\":\"show\",\"source\":\"\",\"destination\":\"\",\"kinds\":[],\"extensions\":[],\"name_contains\":\"\",\"content_contains\":\"\",\"older_than\":0,\"newer_than\":0,\"age_unit\":\"days\",\"larger_than\":0,\"size_unit\":\"mb\",\"sort\":\"\",\"limit\":0,\"group_by\":\"\",\"group\":\"\"}"
+   },
+   {
+    "cmd": 5,
+    "warm_s": 9.6,
+    "cold_s": null,
+    "cache_n": 1440,
+    "prompt_n": 59,
+    "prompt_tps": 22.3,
+    "predicted_n": 65,
+    "gen_tps": 9.2,
+    "plan": "{\"action\":\"show\",\"source\":\"\",\"destination\":\"\",\"kinds\":[\"video\"],\"extensions\":[],\"name_contains\":\"\",\"content_contains\":\"\",\"older_than\":0,\"newer_than\":0,\"age_unit\":\"days\",\"larger_than\":500,\"size_unit\":\"mb\",\"sort\":\"\",\"limit\":0,\"group_by\":\"\",\"group\":\"\"}"
+   },
+   {
+    "cmd": 6,
+    "warm_s": 9.8,
+    "cold_s": null,
+    "cache_n": 1440,
+    "prompt_n": 58,
+    "prompt_tps": 22.1,
+    "predicted_n": 66,
+    "gen_tps": 9.1,
+    "plan": "{\"action\":\"show\",\"source\":\"\",\"destination\":\"\",\"kinds\":[],\"extensions\":[],\"name_contains\":\"\",\"content_contains\":\"Rechnung\",\"older_than\":0,\"newer_than\":0,\"age_unit\":\"days\",\"larger_than\":0,\"size_unit\":\"mb\",\"sort\":\"\",\"limit\":0,\"group_by\":\"\",\"group\":\"\"}"
+   },
+   {
+    "cmd": 7,
+    "warm_s": 9.9,
+    "cold_s": null,
+    "cache_n": 1440,
+    "prompt_n": 59,
+    "prompt_tps": 22.4,
+    "predicted_n": 67,
+    "gen_tps": 9.2,
+    "plan": "{\"action\":\"organize\",\"source\":\"Download\",\"destination\":\"\",\"kinds\":[],\"extensions\":[],\"name_contains\":\"\",\"content_contains\":\"\",\"older_than\":0,\"newer_than\":0,\"age_unit\":\"days\",\"larger_than\":0,\"size_unit\":\"mb\",\"sort\":\"\",\"limit\":0,\"group_by\":\"type\",\"group\":\"\"}"
+   },
+   {
+    "cmd": 8,
+    "warm_s": 10.0,
+    "cold_s": null,
+    "cache_n": 1440,
+    "prompt_n": 57,
+    "prompt_tps": 22.0,
+    "predicted_n": 68,
+    "gen_tps": 9.1,
+    "plan": "{\"action\":\"move\",\"source\":\"Downloads\",\"destination\":\"\",\"kinds\":[],\"extensions\":[],\"name_contains\":\"Rechnung\",\"content_contains\":\"\",\"older_than\":0,\"newer_than\":0,\"age_unit\":\"days\",\"larger_than\":0,\"size_unit\":\"mb\",\"sort\":\"\",\"limit\":0,\"group_by\":\"\",\"group\":\"\"}"
+   },
+   {
+    "cmd": 9,
+    "warm_s": 9.6,
+    "cold_s": null,
+    "cache_n": 1440,
+    "prompt_n": 56,
+    "prompt_tps": 22.4,
+    "predicted_n": 65,
+    "gen_tps": 9.2,
+    "plan": "{\"action\":\"show\",\"source\":\"Download\",\"destination\":\"\",\"kinds\":[],\"extensions\":[\"apk\"],\"name_contains\":\"\",\"content_contains\":\"\",\"older_than\":0,\"newer_than\":0,\"age_unit\":\"days\",\"larger_than\":0,\"size_unit\":\"mb\",\"sort\":\"\",\"limit\":0,\"group_by\":\"\",\"group\":\"\"}"
+   },
+   {
+    "cmd": 10,
+    "warm_s": 9.5,
+    "cold_s": null,
+    "cache_n": 1440,
+    "prompt_n": 53,
+    "prompt_tps": 21.8,
+    "predicted_n": 65,
+    "gen_tps": 9.1,
+    "plan": "{\"action\":\"show\",\"source\":\"Screenshots\",\"destination\":\"\",\"kinds\":[],\"extensions\":[],\"name_contains\":\"\",\"content_contains\":\"\",\"older_than\":0,\"newer_than\":1,\"age_unit\":\"months\",\"larger_than\":0,\"size_unit\":\"mb\",\"sort\":\"\",\"limit\":0,\"group_by\":\"\",\"group\":\"\"}"
+   },
+   {
+    "cmd": 11,
+    "warm_s": 9.2,
+    "cold_s": null,
+    "cache_n": 1440,
+    "prompt_n": 54,
+    "prompt_tps": 21.9,
+    "predicted_n": 62,
+    "gen_tps": 9.1,
+    "plan": "{\"action\":\"show\",\"source\":\"\",\"destination\":\"\",\"kinds\":[],\"extensions\":[],\"name_contains\":\"\",\"content_contains\":\"\",\"older_than\":7,\"newer_than\":0,\"age_unit\":\"days\",\"larger_than\":0,\"size_unit\":\"mb\",\"sort\":\"\",\"limit\":0,\"group_by\":\"\",\"group\":\"\"}"
+   },
+   {
+    "cmd": 12,
+    "warm_s": 10.1,
+    "cold_s": null,
+    "cache_n": 1440,
+    "prompt_n": 61,
+    "prompt_tps": 21.9,
+    "predicted_n": 67,
+    "gen_tps": 9.1,
+    "plan": "{\"action\":\"organize\",\"source\":\".\",\"destination\":\"\",\"kinds\":[\"document\"],\"extensions\":[],\"name_contains\":\"\",\"content_contains\":\"\",\"older_than\":0,\"newer_than\":0,\"age_unit\":\"days\",\"larger_than\":0,\"size_unit\":\"mb\",\"sort\":\"\",\"limit\":0,\"group_by\":\"type\",\"group\":\"\"}"
+   },
+   {
+    "cmd": 13,
+    "warm_s": 9.4,
+    "cold_s": null,
+    "cache_n": 1440,
+    "prompt_n": 56,
+    "prompt_tps": 22.3,
+    "predicted_n": 63,
+    "gen_tps": 9.1,
+    "plan": "{\"action\":\"show\",\"source\":\"\",\"destination\":\"\",\"kinds\":[\"image\"],\"extensions\":[],\"name_contains\":\"\",\"content_contains\":\"\",\"older_than\":0,\"newer_than\":7,\"age_unit\":\"days\",\"larger_than\":0,\"size_unit\":\"mb\",\"sort\":\"\",\"limit\":0,\"group_by\":\"\",\"group\":\"\"}"
+   },
+   {
+    "cmd": 14,
+    "warm_s": 9.3,
+    "cold_s": null,
+    "cache_n": 1440,
+    "prompt_n": 56,
+    "prompt_tps": 22.2,
+    "predicted_n": 62,
+    "gen_tps": 9.1,
+    "plan": "{\"action\":\"none\",\"source\":\"\",\"destination\":\"\",\"kinds\":[],\"extensions\":[],\"name_contains\":\"\",\"content_contains\":\"\",\"older_than\":0,\"newer_than\":0,\"age_unit\":\"days\",\"larger_than\":0,\"size_unit\":\"mb\",\"sort\":\"\",\"limit\":0,\"group_by\":\"\",\"group\":\"\"}"
+   },
+   {
+    "cmd": 15,
+    "warm_s": 9.8,
+    "cold_s": null,
+    "cache_n": 1440,
+    "prompt_n": 57,
+    "prompt_tps": 21.7,
+    "predicted_n": 66,
+    "gen_tps": 9.1,
+    "plan": "{\"action\":\"show\",\"source\":\"WhatsApp Images\",\"destination\":\"\",\"kinds\":[\"image\"],\"extensions\":[],\"name_contains\":\"\",\"content_contains\":\"\",\"older_than\":0,\"newer_than\":0,\"age_unit\":\"days\",\"larger_than\":0,\"size_unit\":\"mb\",\"sort\":\"\",\"limit\":0,\"group_by\":\"\",\"group\":\"\"}"
+   },
+   {
+    "cmd": 16,
+    "warm_s": 9.4,
+    "cold_s": null,
+    "cache_n": 1440,
+    "prompt_n": 57,
+    "prompt_tps": 21.7,
+    "predicted_n": 62,
+    "gen_tps": 9.1,
+    "plan": "{\"action\":\"show\",\"source\":\"\",\"destination\":\"\",\"kinds\":[],\"extensions\":[],\"name_contains\":\"\",\"content_contains\":\"\",\"older_than\":0,\"newer_than\":0,\"age_unit\":\"days\",\"larger_than\":0,\"size_unit\":\"mb\",\"sort\":\"\",\"limit\":0,\"group_by\":\"\",\"group\":\"\"}"
+   },
+   {
+    "cmd": 17,
+    "warm_s": 9.7,
+    "cold_s": null,
+    "cache_n": 1440,
+    "prompt_n": 54,
+    "prompt_tps": 21.8,
+    "predicted_n": 66,
+    "gen_tps": 9.1,
+    "plan": "{\"action\":\"show\",\"source\":\"\",\"destination\":\"\",\"kinds\":[],\"extensions\":[],\"name_contains\":\"\",\"content_contains\":\"Rechnung\",\"older_than\":0,\"newer_than\":0,\"age_unit\":\"days\",\"larger_than\":0,\"size_unit\":\"mb\",\"sort\":\"\",\"limit\":0,\"group_by\":\"\",\"group\":\"\"}"
+   },
+   {
+    "cmd": 18,
+    "warm_s": 9.9,
+    "cold_s": null,
+    "cache_n": 1440,
+    "prompt_n": 55,
+    "prompt_tps": 21.9,
+    "predicted_n": 67,
+    "gen_tps": 9.0,
+    "plan": "{\"action\":\"organize\",\"source\":\".\",\"destination\":\"\",\"kinds\":[\"image\"],\"extensions\":[],\"name_contains\":\"\",\"content_contains\":\"\",\"older_than\":0,\"newer_than\":0,\"age_unit\":\"days\",\"larger_than\":0,\"size_unit\":\"mb\",\"sort\":\"\",\"limit\":0,\"group_by\":\"type\",\"group\":\"\"}"
+   },
+   {
+    "cmd": 19,
+    "warm_s": 9.4,
+    "cold_s": null,
+    "cache_n": 1440,
+    "prompt_n": 57,
+    "prompt_tps": 21.7,
+    "predicted_n": 62,
+    "gen_tps": 9.1,
+    "plan": "{\"action\":\"show\",\"source\":\"\",\"destination\":\"\",\"kinds\":[],\"extensions\":[],\"name_contains\":\"\",\"content_contains\":\"\",\"older_than\":0,\"newer_than\":1,\"age_unit\":\"days\",\"larger_than\":0,\"size_unit\":\"mb\",\"sort\":\"\",\"limit\":0,\"group_by\":\"\",\"group\":\"\"}"
+   },
+   {
+    "cmd": 20,
+    "warm_s": 9.7,
+    "cold_s": null,
+    "cache_n": 1440,
+    "prompt_n": 55,
+    "prompt_tps": 21.9,
+    "predicted_n": 66,
+    "gen_tps": 9.1,
+    "plan": "{\"action\":\"organize\",\"source\":\".\",\"destination\":\"\",\"kinds\":[],\"extensions\":[],\"name_contains\":\"\",\"content_contains\":\"\",\"older_than\":0,\"newer_than\":0,\"age_unit\":\"days\",\"larger_than\":0,\"size_unit\":\"mb\",\"sort\":\"\",\"limit\":0,\"group_by\":\"type\",\"group\":\"\"}"
+   }
+  ]
+ },
+ "M": {
+  "system_tokens": 1440,
+  "load_s": 4.9,
+  "prepare_s": 48.7,
+  "rows": [
+   {
+    "cmd": 1,
+    "warm_s": 13.4,
+    "cold_s": 67.0,
+    "cache_n": 1440,
+    "prompt_n": 184,
+    "prompt_tps": 28.2,
+    "predicted_n": 64,
+    "gen_tps": 9.3,
+    "plan": "{\"action\":\"show\",\"source\":\"\",\"destination\":\"\",\"kinds\":[],\"extensions\":[],\"name_contains\":\"\",\"content_contains\":\"\",\"older_than\":0,\"newer_than\":0,\"age_unit\":\"days\",\"larger_than\":0,\"size_unit\":\"mb\",\"sort\":\"size\",\"limit\":0,\"group_by\":\"\",\"group\":\"\"}"
+   },
+   {
+    "cmd": 2,
+    "warm_s": 10.9,
+    "cold_s": null,
+    "cache_n": 1440,
+    "prompt_n": 97,
+    "prompt_tps": 25.3,
+    "predicted_n": 65,
+    "gen_tps": 9.1,
+    "plan": "{\"action\":\"show\",\"source\":\"Download\",\"destination\":\"\",\"kinds\":[\"image\"],\"extensions\":[],\"name_contains\":\"\",\"content_contains\":\"\",\"older_than\":0,\"newer_than\":1,\"age_unit\":\"days\",\"larger_than\":0,\"size_unit\":\"mb\",\"sort\":\"\",\"limit\":0,\"group_by\":\"\",\"group\":\"\"}"
+   },
+   {
+    "cmd": 3,
+    "warm_s": 11.9,
+    "cold_s": null,
+    "cache_n": 1440,
+    "prompt_n": 124,
+    "prompt_tps": 26.2,
+    "predicted_n": 66,
+    "gen_tps": 9.1,
+    "plan": "{\"action\":\"show\",\"source\":\"\",\"destination\":\"\",\"kinds\":[],\"extensions\":[\"pdf\"],\"name_contains\":\"\",\"content_contains\":\"Versicherung\",\"older_than\":0,\"newer_than\":0,\"age_unit\":\"days\",\"larger_than\":0,\"size_unit\":\"mb\",\"sort\":\"\",\"limit\":0,\"group_by\":\"\",\"group\":\"\"}"
+   },
+   {
+    "cmd": 4,
+    "warm_s": 10.1,
+    "cold_s": null,
+    "cache_n": 1440,
+    "prompt_n": 73,
+    "prompt_tps": 23.9,
+    "predicted_n": 64,
+    "gen_tps": 9.0,
+    "plan": "{\"action\":\"show\",\"source\":\"Download\",\"destination\":\"\",\"kinds\":[],\"extensions\":[],\"name_contains\":\"\",\"content_contains\":\"\",\"older_than\":0,\"newer_than\":0,\"age_unit\":\"days\",\"larger_than\":0,\"size_unit\":\"mb\",\"sort\":\"\",\"limit\":0,\"group_by\":\"\",\"group\":\"\"}"
+   },
+   {
+    "cmd": 5,
+    "warm_s": 20.3,
+    "cold_s": null,
+    "cache_n": 1440,
+    "prompt_n": 353,
+    "prompt_tps": 26.9,
+    "predicted_n": 65,
+    "gen_tps": 9.1,
+    "plan": "{\"action\":\"show\",\"source\":\"\",\"destination\":\"\",\"kinds\":[\"video\"],\"extensions\":[],\"name_contains\":\"\",\"content_contains\":\"\",\"older_than\":0,\"newer_than\":0,\"age_unit\":\"days\",\"larger_than\":500,\"size_unit\":\"mb\",\"sort\":\"\",\"limit\":0,\"group_by\":\"\",\"group\":\"\"}"
+   },
+   {
+    "cmd": 6,
+    "warm_s": 13.8,
+    "cold_s": null,
+    "cache_n": 1440,
+    "prompt_n": 169,
+    "prompt_tps": 26.3,
+    "predicted_n": 68,
+    "gen_tps": 9.1,
+    "plan": "{\"action\":\"show\",\"source\":\"Download\",\"destination\":\"\",\"kinds\":[],\"extensions\":[],\"name_contains\":\"Rechnung\",\"content_contains\":\"\",\"older_than\":0,\"newer_than\":0,\"age_unit\":\"days\",\"larger_than\":0,\"size_unit\":\"mb\",\"sort\":\"\",\"limit\":0,\"group_by\":\"\",\"group\":\"\"}"
+   },
+   {
+    "cmd": 7,
+    "warm_s": 11.7,
+    "cold_s": null,
+    "cache_n": 1440,
+    "prompt_n": 111,
+    "prompt_tps": 25.6,
+    "predicted_n": 67,
+    "gen_tps": 9.0,
+    "plan": "{\"action\":\"organize\",\"source\":\"Download\",\"destination\":\"\",\"kinds\":[],\"extensions\":[],\"name_contains\":\"\",\"content_contains\":\"\",\"older_than\":0,\"newer_than\":0,\"age_unit\":\"days\",\"larger_than\":0,\"size_unit\":\"mb\",\"sort\":\"\",\"limit\":0,\"group_by\":\"type\",\"group\":\"\"}"
+   },
+   {
+    "cmd": 8,
+    "warm_s": 15.9,
+    "cold_s": null,
+    "cache_n": 1440,
+    "prompt_n": 224,
+    "prompt_tps": 26.6,
+    "predicted_n": 68,
+    "gen_tps": 9.1,
+    "plan": "{\"action\":\"move\",\"source\":\"Downloads\",\"destination\":\"\",\"kinds\":[],\"extensions\":[],\"name_contains\":\"Rechnung\",\"content_contains\":\"\",\"older_than\":0,\"newer_than\":0,\"age_unit\":\"days\",\"larger_than\":0,\"size_unit\":\"mb\",\"sort\":\"\",\"limit\":0,\"group_by\":\"\",\"group\":\"\"}"
+   },
+   {
+    "cmd": 9,
+    "warm_s": 9.7,
+    "cold_s": null,
+    "cache_n": 1440,
+    "prompt_n": 56,
+    "prompt_tps": 22.1,
+    "predicted_n": 65,
+    "gen_tps": 9.1,
+    "plan": "{\"action\":\"show\",\"source\":\"Download\",\"destination\":\"\",\"kinds\":[],\"extensions\":[\"apk\"],\"name_contains\":\"\",\"content_contains\":\"\",\"older_than\":0,\"newer_than\":0,\"age_unit\":\"days\",\"larger_than\":0,\"size_unit\":\"mb\",\"sort\":\"\",\"limit\":0,\"group_by\":\"\",\"group\":\"\"}"
+   },
+   {
+    "cmd": 10,
+    "warm_s": 14.0,
+    "cold_s": null,
+    "cache_n": 1440,
+    "prompt_n": 175,
+    "prompt_tps": 26.3,
+    "predicted_n": 67,
+    "gen_tps": 9.1,
+    "plan": "{\"action\":\"show\",\"source\":\"Screenshots\",\"destination\":\"\",\"kinds\":[\"image\"],\"extensions\":[],\"name_contains\":\"\",\"content_contains\":\"\",\"older_than\":0,\"newer_than\":30,\"age_unit\":\"days\",\"larger_than\":0,\"size_unit\":\"mb\",\"sort\":\"\",\"limit\":0,\"group_by\":\"\",\"group\":\"\"}"
+   },
+   {
+    "cmd": 11,
+    "warm_s": 14.5,
+    "cold_s": null,
+    "cache_n": 1440,
+    "prompt_n": 203,
+    "prompt_tps": 26.1,
+    "predicted_n": 62,
+    "gen_tps": 9.1,
+    "plan": "{\"action\":\"show\",\"source\":\"\",\"destination\":\"\",\"kinds\":[],\"extensions\":[],\"name_contains\":\"\",\"content_contains\":\"\",\"older_than\":7,\"newer_than\":0,\"age_unit\":\"days\",\"larger_than\":0,\"size_unit\":\"mb\",\"sort\":\"\",\"limit\":0,\"group_by\":\"\",\"group\":\"\"}"
+   },
+   {
+    "cmd": 12,
+    "warm_s": 10.2,
+    "cold_s": null,
+    "cache_n": 1440,
+    "prompt_n": 61,
+    "prompt_tps": 21.7,
+    "predicted_n": 67,
+    "gen_tps": 9.0,
+    "plan": "{\"action\":\"organize\",\"source\":\".\",\"destination\":\"\",\"kinds\":[\"document\"],\"extensions\":[],\"name_contains\":\"\",\"content_contains\":\"\",\"older_than\":0,\"newer_than\":0,\"age_unit\":\"days\",\"larger_than\":0,\"size_unit\":\"mb\",\"sort\":\"\",\"limit\":0,\"group_by\":\"type\",\"group\":\"\"}"
+   },
+   {
+    "cmd": 13,
+    "warm_s": 9.5,
+    "cold_s": null,
+    "cache_n": 1440,
+    "prompt_n": 56,
+    "prompt_tps": 22.0,
+    "predicted_n": 63,
+    "gen_tps": 9.0,
+    "plan": "{\"action\":\"show\",\"source\":\"\",\"destination\":\"\",\"kinds\":[\"image\"],\"extensions\":[],\"name_contains\":\"\",\"content_contains\":\"\",\"older_than\":0,\"newer_than\":7,\"age_unit\":\"days\",\"larger_than\":0,\"size_unit\":\"mb\",\"sort\":\"\",\"limit\":0,\"group_by\":\"\",\"group\":\"\"}"
+   },
+   {
+    "cmd": 14,
+    "warm_s": 13.0,
+    "cold_s": null,
+    "cache_n": 1440,
+    "prompt_n": 154,
+    "prompt_tps": 25.6,
+    "predicted_n": 63,
+    "gen_tps": 9.0,
+    "plan": "{\"action\":\"delete\",\"source\":\".\",\"destination\":\"\",\"kinds\":[],\"extensions\":[],\"name_contains\":\"\",\"content_contains\":\"\",\"older_than\":0,\"newer_than\":0,\"age_unit\":\"days\",\"larger_than\":0,\"size_unit\":\"mb\",\"sort\":\"\",\"limit\":0,\"group_by\":\"\",\"group\":\"\"}"
+   },
+   {
+    "cmd": 15,
+    "warm_s": 14.9,
+    "cold_s": null,
+    "cache_n": 1440,
+    "prompt_n": 200,
+    "prompt_tps": 26.1,
+    "predicted_n": 66,
+    "gen_tps": 9.0,
+    "plan": "{\"action\":\"show\",\"source\":\"WhatsApp Images\",\"destination\":\"\",\"kinds\":[\"image\"],\"extensions\":[],\"name_contains\":\"\",\"content_contains\":\"\",\"older_than\":0,\"newer_than\":0,\"age_unit\":\"days\",\"larger_than\":0,\"size_unit\":\"mb\",\"sort\":\"\",\"limit\":0,\"group_by\":\"\",\"group\":\"\"}"
+   },
+   {
+    "cmd": 16,
+    "warm_s": 25.0,
+    "cold_s": null,
+    "cache_n": 1440,
+    "prompt_n": 459,
+    "prompt_tps": 26.8,
+    "predicted_n": 71,
+    "gen_tps": 9.0,
+    "plan": "{\"action\":\"show\",\"source\":\"Documents/Rechnungen\",\"destination\":\"\",\"kinds\":[],\"extensions\":[],\"name_contains\":\"\",\"content_contains\":\"\",\"older_than\":0,\"newer_than\":0,\"age_unit\":\"days\",\"larger_than\":0,\"size_unit\":\"mb\",\"sort\":\"\",\"limit\":0,\"group_by\":\"\",\"group\":\"#r1\"}"
+   },
+   {
+    "cmd": 17,
+    "warm_s": 15.8,
+    "cold_s": null,
+    "cache_n": 1440,
+    "prompt_n": 219,
+    "prompt_tps": 26.3,
+    "predicted_n": 68,
+    "gen_tps": 9.0,
+    "plan": "{\"action\":\"show\",\"source\":\"Download\",\"destination\":\"\",\"kinds\":[],\"extensions\":[\"pdf\"],\"name_contains\":\"\",\"content_contains\":\"\",\"older_than\":0,\"newer_than\":0,\"age_unit\":\"days\",\"larger_than\":0,\"size_unit\":\"mb\",\"sort\":\"\",\"limit\":0,\"group_by\":\"\",\"group\":\"#80\"}"
+   },
+   {
+    "cmd": 18,
+    "warm_s": 17.2,
+    "cold_s": null,
+    "cache_n": 1440,
+    "prompt_n": 233,
+    "prompt_tps": 26.4,
+    "predicted_n": 74,
+    "gen_tps": 8.8,
+    "plan": "{\"action\":\"move\",\"source\":\"Download\",\"destination\":\"Pictures/Gespeichert\",\"kinds\":[],\"extensions\":[\"png\"],\"name_contains\":\"\",\"content_contains\":\"\",\"older_than\":0,\"newer_than\":0,\"age_unit\":\"days\",\"larger_than\":0,\"size_unit\":\"mb\",\"sort\":\"\",\"limit\":0,\"group_by\":\"\",\"group\":\"#r1\"}"
+   },
+   {
+    "cmd": 19,
+    "warm_s": 9.5,
+    "cold_s": null,
+    "cache_n": 1440,
+    "prompt_n": 57,
+    "prompt_tps": 21.5,
+    "predicted_n": 62,
+    "gen_tps": 9.0,
+    "plan": "{\"action\":\"show\",\"source\":\"\",\"destination\":\"\",\"kinds\":[],\"extensions\":[],\"name_contains\":\"\",\"content_contains\":\"\",\"older_than\":0,\"newer_than\":1,\"age_unit\":\"days\",\"larger_than\":0,\"size_unit\":\"mb\",\"sort\":\"\",\"limit\":0,\"group_by\":\"\",\"group\":\"\"}"
+   },
+   {
+    "cmd": 20,
+    "warm_s": 13.4,
+    "cold_s": null,
+    "cache_n": 1440,
+    "prompt_n": 157,
+    "prompt_tps": 25.6,
+    "predicted_n": 66,
+    "gen_tps": 9.0,
+    "plan": "{\"action\":\"organize\",\"source\":\".\",\"destination\":\"\",\"kinds\":[],\"extensions\":[],\"name_contains\":\"\",\"content_contains\":\"\",\"older_than\":0,\"newer_than\":0,\"age_unit\":\"days\",\"larger_than\":0,\"size_unit\":\"mb\",\"sort\":\"\",\"limit\":0,\"group_by\":\"type\",\"group\":\"\"}"
+   }
+  ]
+ }
+}

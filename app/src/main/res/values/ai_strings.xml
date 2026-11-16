@@ -161,4 +161,91 @@
     <string name="ai_remove_text">This frees %s. You can download it again at any time.</string>
     <string name="ai_remove_confirm">Remove</string>
     <string name="ai_removed">AI model removed</string>
+
+    <!-- "Show" (K+R design, debug builds only for now) -->
+    <string name="ai_show_files">Files</string>
+    <string name="ai_show_extension">%s files</string>
+    <string name="ai_show_larger">over %1$d %2$s</string>
+    <string name="ai_show_today">from today</string>
+    <plurals name="ai_show_newer_days">
+        <item quantity="one">since yesterday</item>
+        <item quantity="other">from the last %d days</item>
+    </plurals>
+    <plurals name="ai_show_newer_weeks">
+        <item quantity="one">from the last week</item>
+        <item quantity="other">from the last %d weeks</item>
+    </plurals>
+    <plurals name="ai_show_newer_months">
+        <item quantity="one">from the last month</item>
+        <item quantity="other">from the last %d months</item>
+    </plurals>
+    <plurals name="ai_show_newer_years">
+        <item quantity="one">from the last year</item>
+        <item quantity="other">from the last %d years</item>
+    </plurals>
+    <plurals name="ai_show_older_days">
+        <item quantity="one">older than %d day</item>
+        <item quantity="other">older than %d days</item>
+    </plurals>
+    <plurals name="ai_show_older_weeks">
+        <item quantity="one">older than %d week</item>
+        <item quantity="other">older than %d weeks</item>
+    </plurals>
+    <plurals name="ai_show_older_months">
+        <item quantity="one">older than %d month</item>
+        <item quantity="other">older than %d months</item>
+    </plurals>
+    <plurals name="ai_show_older_years">
+        <item quantity="one">older than %d year</item>
+        <item quantity="other">older than %d years</item>
+    </plurals>
+    <string name="ai_show_named">named “%s”</string>
+    <string name="ai_show_word">with “%s”</string>
+    <string name="ai_show_in">in %s</string>
+    <string name="ai_show_largest_first">largest first</string>
+    <string name="ai_show_newest_first">newest first</string>
+    <plurals name="ai_show_top">
+        <item quantity="one">the top file</item>
+        <item quantity="other">top %d</item>
+    </plurals>
+    <string name="ai_show_text_note">PDF and Office files are searched by name only for now.</string>
+    <string name="ai_show_capped">Lots of files: Ordo stopped early and shows only part of the results.</string>
+    <string name="ai_hint_title">Ordo can’t know that yet</string>
+    <string name="ai_hint_opened">I can’t see when you last opened a file. I can show you files that haven’t changed for a month.</string>
+    <string name="ai_hint_opened_action">Show unchanged files</string>
+    <string name="ai_hint_work">I don’t know which files are for work. Tell me a word from the name or text, like the company name.</string>
+    <string name="ai_hint_conversation">I don’t remember earlier commands yet. Say exactly which files you mean.</string>
+    <string name="ai_hint_searched">I don’t keep a search history. Tell me a word from the file name.</string>
+    <string name="ai_hint_habit">I don’t learn habits yet. Tell me how to sort, for example by type or by month.</string>
+    <string name="ai_hint_dismiss">Tap to write a new command</string>
+    <string name="ai_filter_word">Contains “%s”</string>
+    <string name="ai_filter_today">Changed today</string>
+    <plurals name="ai_filter_newer_days">
+        <item quantity="one">Changed in the last day</item>
+        <item quantity="other">Changed in the last %d days</item>
+    </plurals>
+    <plurals name="ai_filter_newer_weeks">
+        <item quantity="one">Changed in the last week</item>
+        <item quantity="other">Changed in the last %d weeks</item>
+    </plurals>
+    <plurals name="ai_filter_newer_months">
+        <item quantity="one">Changed in the last month</item>
+        <item quantity="other">Changed in the last %d months</item>
+    </plurals>
+    <plurals name="ai_filter_newer_years">
+        <item quantity="one">Changed in the last year</item>
+        <item quantity="other">Changed in the last %d years</item>
+    </plurals>
+    <plurals name="ai_filter_limit_size">
+        <item quantity="one">Only the largest</item>
+        <item quantity="other">Only the %d largest</item>
+    </plurals>
+    <plurals name="ai_filter_limit_newest">
+        <item quantity="one">Only the newest</item>
+        <item quantity="other">Only the %d newest</item>
+    </plurals>
+    <plurals name="ai_changed">
+        <item quantity="one">%d changed since the preview and left alone</item>
+        <item quantity="other">%d changed since the preview and left alone</item>
+    </plurals>
 </resources>

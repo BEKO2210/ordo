@@ -1,0 +1,1791 @@
+{
+ "raw": {
+  "A": {
+   "b000": {
+    "plan": {},
+    "calls": [
+     [
+      "A",
+      20,
+      45
+     ]
+    ]
+   },
+   "b001": {
+    "plan": {
+     "source": "."
+    },
+    "calls": [
+     [
+      "A",
+      15,
+      46
+     ]
+    ]
+   },
+   "b002": {
+    "plan": {
+     "kinds": [
+      "image"
+     ],
+     "older_than": 7
+    },
+    "calls": [
+     [
+      "A",
+      19,
+      46
+     ]
+    ]
+   },
+   "b003": {
+    "plan": {
+     "source": ".",
+     "kinds": [
+      "video"
+     ]
+    },
+    "calls": [
+     [
+      "A",
+      17,
+      47
+     ]
+    ]
+   },
+   "b004": {
+    "plan": {
+     "action": "organize",
+     "source": ".",
+     "kinds": [
+      "image"
+     ],
+     "group_by": "month"
+    },
+    "calls": [
+     [
+      "A",
+      17,
+      49
+     ]
+    ]
+   },
+   "b005": {
+    "plan": {
+     "source": ".",
+     "extensions": [
+      "pdf"
+     ]
+    },
+    "calls": [
+     [
+      "A",
+      23,
+      47
+     ]
+    ]
+   },
+   "b006": {
+    "plan": {
+     "kinds": [
+      "video"
+     ],
+     "larger_than": 3,
+     "size_unit": "gb"
+    },
+    "calls": [
+     [
+      "A",
+      19,
+      46
+     ]
+    ]
+   },
+   "b007": {
+    "plan": {
+     "action": "organize",
+     "source": ".",
+     "extensions": [
+      "msg"
+     ],
+     "larger_than": 1
+    },
+    "calls": [
+     [
+      "A",
+      21,
+      48
+     ]
+    ]
+   },
+   "b008": {
+    "plan": {
+     "extensions": [
+      "xlsx",
+      "xls"
+     ]
+    },
+    "calls": [
+     [
+      "A",
+      14,
+      48
+     ]
+    ]
+   },
+   "b009": {
+    "plan": {},
+    "calls": [
+     [
+      "A",
+      18,
+      45
+     ]
+    ]
+   },
+   "b010": {
+    "plan": {},
+    "calls": [
+     [
+      "A",
+      19,
+      45
+     ]
+    ]
+   },
+   "b011": {
+    "plan": {},
+    "calls": [
+     [
+      "A",
+      16,
+      45
+     ]
+    ]
+   },
+   "b012": {
+    "plan": {
+     "source": ".",
+     "name_contains": "Lieferschein"
+    },
+    "calls": [
+     [
+      "A",
+      18,
+      50
+     ]
+    ]
+   },
+   "b013": {
+    "plan": {
+     "kinds": [
+      "video"
+     ]
+    },
+    "calls": [
+     [
+      "A",
+      13,
+      46
+     ]
+    ]
+   },
+   "b014": {
+    "plan": {},
+    "calls": [
+     [
+      "A",
+      18,
+      45
+     ]
+    ]
+   },
+   "b015": {
+    "plan": {
+     "kinds": [
+      "image"
+     ]
+    },
+    "calls": [
+     [
+      "A",
+      18,
+      46
+     ]
+    ]
+   },
+   "b016": {
+    "plan": {
+     "source": "."
+    },
+    "calls": [
+     [
+      "A",
+      19,
+      46
+     ]
+    ]
+   },
+   "b017": {
+    "plan": {
+     "source": "Kamera"
+    },
+    "calls": [
+     [
+      "A",
+      17,
+      48
+     ]
+    ]
+   },
+   "b018": {
+    "plan": {
+     "source": ".",
+     "extensions": [
+      "pdf"
+     ]
+    },
+    "calls": [
+     [
+      "A",
+      18,
+      47
+     ]
+    ]
+   },
+   "b019": {
+    "plan": {},
+    "calls": [
+     [
+      "A",
+      14,
+      45
+     ]
+    ]
+   },
+   "b020": {
+    "plan": {
+     "action": "copy",
+     "source": ".",
+     "destination": "backup folder",
+     "kinds": [
+      "image"
+     ]
+    },
+    "calls": [
+     [
+      "A",
+      16,
+      50
+     ]
+    ]
+   },
+   "b021": {
+    "plan": {
+     "action": "move",
+     "source": ".",
+     "destination": "Archiv",
+     "kinds": [
+      "image"
+     ],
+     "older_than": 365
+    },
+    "calls": [
+     [
+      "A",
+      17,
+      52
+     ]
+    ]
+   },
+   "b022": {
+    "plan": {
+     "kinds": [
+      "video"
+     ]
+    },
+    "calls": [
+     [
+      "A",
+      16,
+      46
+     ]
+    ]
+   },
+   "b023": {
+    "plan": {
+     "action": "move",
+     "source": "Download",
+     "destination": "Bank"
+    },
+    "calls": [
+     [
+      "A",
+      24,
+      49
+     ]
+    ]
+   },
+   "b024": {
+    "plan": {
+     "action": "move",
+     "source": "Dokumente",
+     "destination": "Bewerbungen",
+     "name_contains": "Bewerbung"
+    },
+    "calls": [
+     [
+      "A",
+      22,
+      58
+     ]
+    ]
+   },
+   "b025": {
+    "plan": {
+     "action": "delete",
+     "source": "download",
+     "older_than": 365
+    },
+    "calls": [
+     [
+      "A",
+      23,
+      49
+     ]
+    ]
+   },
+   "b026": {
+    "plan": {
+     "action": "organize",
+     "source": ".",
+     "kinds": [
+      "image"
+     ],
+     "group_by": "month"
+    },
+    "calls": [
+     [
+      "A",
+      16,
+      49
+     ]
+    ]
+   },
+   "b027": {
+    "plan": {
+     "action": "delete",
+     "source": "Download",
+     "extensions": [
+      "setup"
+     ]
+    },
+    "calls": [
+     [
+      "A",
+      24,
+      48
+     ]
+    ]
+   },
+   "b028": {
+    "plan": {
+     "source": "Screenshot Ordner",
+     "kinds": [
+      "image"
+     ]
+    },
+    "calls": [
+     [
+      "A",
+      19,
+      50
+     ]
+    ]
+   },
+   "b029": {
+    "plan": {},
+    "calls": [
+     [
+      "A",
+      21,
+      45
+     ]
+    ]
+   },
+   "b030": {
+    "plan": {
+     "source": "Scans",
+     "extensions": [
+      "pdf"
+     ]
+    },
+    "calls": [
+     [
+      "A",
+      23,
+      49
+     ]
+    ]
+   },
+   "b031": {
+    "plan": {
+     "action": "organize",
+     "source": "Lissabon Fotos",
+     "kinds": [
+      "image"
+     ],
+     "extensions": [
+      "zip"
+     ]
+    },
+    "calls": [
+     [
+      "A",
+      20,
+      54
+     ]
+    ]
+   },
+   "b032": {
+    "plan": {
+     "kinds": [
+      "image"
+     ]
+    },
+    "calls": [
+     [
+      "A",
+      23,
+      46
+     ]
+    ]
+   },
+   "b033": {
+    "plan": {
+     "source": "Download"
+    },
+    "calls": [
+     [
+      "A",
+      20,
+      47
+     ]
+    ]
+   },
+   "b034": {
+    "plan": {},
+    "calls": [
+     [
+      "A",
+      19,
+      45
+     ]
+    ]
+   },
+   "b035": {
+    "plan": {},
+    "calls": [
+     [
+      "A",
+      22,
+      45
+     ]
+    ]
+   },
+   "b036": {
+    "plan": {
+     "action": "copy",
+     "source": "Download",
+     "destination": "Backup",
+     "kinds": [
+      "image"
+     ]
+    },
+    "calls": [
+     [
+      "A",
+      27,
+      50
+     ]
+    ]
+   },
+   "b037": {
+    "plan": {
+     "source": "."
+    },
+    "calls": [
+     [
+      "A",
+      21,
+      46
+     ]
+    ]
+   },
+   "b038": {
+    "plan": {
+     "source": "Download"
+    },
+    "calls": [
+     [
+      "A",
+      28,
+      47
+     ]
+    ]
+   },
+   "b039": {
+    "plan": {
+     "source": ".",
+     "extensions": [
+      "apk"
+     ]
+    },
+    "calls": [
+     [
+      "A",
+      26,
+      47
+     ]
+    ]
+   }
+  },
+  "S": {
+   "b000": {
+    "plan": {
+     "action": "show",
+     "sort": "newest"
+    },
+    "calls": [
+     [
+      "S",
+      53,
+      65
+     ]
+    ]
+   },
+   "b001": {
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "image"
+     ],
+     "newer_than": 2
+    },
+    "calls": [
+     [
+      "S",
+      49,
+      63
+     ]
+    ]
+   },
+   "b002": {
+    "plan": {
+     "action": "show",
+     "source": "Screenshots",
+     "newer_than": 7
+    },
+    "calls": [
+     [
+      "S",
+      52,
+      65
+     ]
+    ]
+   },
+   "b003": {
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "video"
+     ]
+    },
+    "calls": [
+     [
+      "S",
+      51,
+      63
+     ]
+    ]
+   },
+   "b004": {
+    "plan": {
+     "action": "show",
+     "source": "Screenshots",
+     "newer_than": 365
+    },
+    "calls": [
+     [
+      "S",
+      51,
+      67
+     ]
+    ]
+   },
+   "b005": {
+    "plan": {
+     "action": "show",
+     "source": "Download",
+     "extensions": [
+      "pdf"
+     ]
+    },
+    "calls": [
+     [
+      "S",
+      56,
+      65
+     ]
+    ]
+   },
+   "b006": {
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "video"
+     ],
+     "larger_than": 3,
+     "size_unit": "gb"
+    },
+    "calls": [
+     [
+      "S",
+      52,
+      63
+     ]
+    ]
+   },
+   "b007": {
+    "plan": {
+     "action": "show",
+     "source": "WhatsApp Images",
+     "kinds": [
+      "image"
+     ],
+     "larger_than": 1
+    },
+    "calls": [
+     [
+      "S",
+      55,
+      66
+     ]
+    ]
+   },
+   "b008": {
+    "plan": {
+     "action": "show",
+     "extensions": [
+      "xlsx",
+      "xls"
+     ]
+    },
+    "calls": [
+     [
+      "S",
+      48,
+      65
+     ]
+    ]
+   },
+   "b009": {
+    "plan": {
+     "action": "show",
+     "name_contains": "Garantie",
+     "content_contains": "Spülmaschine"
+    },
+    "calls": [
+     [
+      "S",
+      52,
+      69
+     ]
+    ]
+   },
+   "b010": {
+    "plan": {
+     "action": "show",
+     "content_contains": "Versicherungsnummer fürs Auto"
+    },
+    "calls": [
+     [
+      "S",
+      53,
+      69
+     ]
+    ]
+   },
+   "b011": {
+    "plan": {
+     "action": "show",
+     "name_contains": "zalando rechnung"
+    },
+    "calls": [
+     [
+      "S",
+      50,
+      67
+     ]
+    ]
+   },
+   "b012": {
+    "plan": {
+     "action": "show",
+     "source": "Küche",
+     "name_contains": "Lieferschein"
+    },
+    "calls": [
+     [
+      "S",
+      52,
+      69
+     ]
+    ]
+   },
+   "b013": {
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "video"
+     ],
+     "sort": "size",
+     "limit": 2
+    },
+    "calls": [
+     [
+      "S",
+      47,
+      65
+     ]
+    ]
+   },
+   "b014": {
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "audio"
+     ],
+     "sort": "newest",
+     "limit": 5
+    },
+    "calls": [
+     [
+      "S",
+      52,
+      66
+     ]
+    ]
+   },
+   "b015": {
+    "plan": {
+     "action": "show",
+     "source": "Screenshots",
+     "sort": "newest",
+     "limit": 1
+    },
+    "calls": [
+     [
+      "S",
+      52,
+      68
+     ]
+    ]
+   },
+   "b016": {
+    "plan": {
+     "action": "show",
+     "source": "Download",
+     "extensions": [
+      "zip"
+     ]
+    },
+    "calls": [
+     [
+      "S",
+      53,
+      65
+     ]
+    ]
+   },
+   "b017": {
+    "plan": {
+     "action": "show",
+     "source": "Kamera",
+     "kinds": [
+      "image"
+     ]
+    },
+    "calls": [
+     [
+      "S",
+      51,
+      66
+     ]
+    ]
+   },
+   "b018": {
+    "plan": {
+     "action": "show",
+     "source": "Download",
+     "extensions": [
+      "pdf"
+     ],
+     "newer_than": 1,
+     "age_unit": "months"
+    },
+    "calls": [
+     [
+      "S",
+      52,
+      65
+     ]
+    ]
+   },
+   "b019": {
+    "plan": {
+     "action": "show",
+     "source": "WhatsApp Images",
+     "kinds": [
+      "audio"
+     ]
+    },
+    "calls": [
+     [
+      "S",
+      48,
+      66
+     ]
+    ]
+   },
+   "b020": {
+    "plan": {
+     "action": "copy",
+     "source": ".",
+     "destination": "Backup",
+     "kinds": [
+      "image"
+     ]
+    },
+    "calls": [
+     [
+      "S",
+      50,
+      66
+     ]
+    ]
+   },
+   "b021": {
+    "plan": {
+     "action": "move",
+     "source": "Screenshots",
+     "destination": "Archiv",
+     "older_than": 365
+    },
+    "calls": [
+     [
+      "S",
+      51,
+      70
+     ]
+    ]
+   },
+   "b022": {
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "video"
+     ],
+     "sort": "size",
+     "limit": 1
+    },
+    "calls": [
+     [
+      "S",
+      50,
+      65
+     ]
+    ]
+   },
+   "b023": {
+    "plan": {
+     "action": "move",
+     "source": "Download",
+     "destination": "Bank"
+    },
+    "calls": [
+     [
+      "S",
+      57,
+      66
+     ]
+    ]
+   },
+   "b024": {
+    "plan": {
+     "action": "copy",
+     "source": "Dokumente",
+     "destination": "Bewerbungen",
+     "name_contains": "Bewerbung",
+     "limit": 3
+    },
+    "calls": [
+     [
+      "S",
+      56,
+      75
+     ]
+    ]
+   },
+   "b025": {
+    "plan": {
+     "action": "delete",
+     "source": "Download",
+     "name_contains": "podcast folgen",
+     "older_than": 365
+    },
+    "calls": [
+     [
+      "S",
+      57,
+      70
+     ]
+    ]
+   },
+   "b026": {
+    "plan": {
+     "action": "organize",
+     "source": "WhatsApp Images",
+     "group_by": "month"
+    },
+    "calls": [
+     [
+      "S",
+      50,
+      68
+     ]
+    ]
+   },
+   "b027": {
+    "plan": {
+     "action": "delete",
+     "source": "Download",
+     "name_contains": "setup"
+    },
+    "calls": [
+     [
+      "S",
+      58,
+      66
+     ]
+    ]
+   },
+   "b028": {
+    "plan": {
+     "action": "show",
+     "source": "Screenshots",
+     "kinds": [
+      "image"
+     ]
+    },
+    "calls": [
+     [
+      "S",
+      53,
+      66
+     ]
+    ]
+   },
+   "b029": {
+    "plan": {
+     "source": "Download"
+    },
+    "calls": [
+     [
+      "S",
+      55,
+      64
+     ]
+    ]
+   },
+   "b030": {
+    "plan": {
+     "action": "organize",
+     "source": "Scans",
+     "extensions": [
+      "pdf"
+     ],
+     "group_by": "month"
+    },
+    "calls": [
+     [
+      "S",
+      56,
+      69
+     ]
+    ]
+   },
+   "b031": {
+    "plan": {
+     "action": "organize",
+     "source": "Kamera",
+     "kinds": [
+      "image"
+     ],
+     "extensions": [
+      "zip"
+     ]
+    },
+    "calls": [
+     [
+      "S",
+      54,
+      68
+     ]
+    ]
+   },
+   "b032": {
+    "plan": {
+     "action": "delete",
+     "source": "Kamera",
+     "kinds": [
+      "image"
+     ],
+     "content_contains": "verwackelt"
+    },
+    "calls": [
+     [
+      "S",
+      56,
+      71
+     ]
+    ]
+   },
+   "b033": {
+    "plan": {
+     "source": "Download"
+    },
+    "calls": [
+     [
+      "S",
+      54,
+      64
+     ]
+    ]
+   },
+   "b034": {
+    "plan": {},
+    "calls": [
+     [
+      "S",
+      53,
+      62
+     ]
+    ]
+   },
+   "b035": {
+    "plan": {},
+    "calls": [
+     [
+      "S",
+      56,
+      62
+     ]
+    ]
+   },
+   "b036": {
+    "plan": {
+     "action": "copy",
+     "source": "Download",
+     "destination": "Backup",
+     "kinds": [
+      "image"
+     ]
+    },
+    "calls": [
+     [
+      "S",
+      60,
+      67
+     ]
+    ]
+   },
+   "b037": {
+    "plan": {
+     "source": "Download"
+    },
+    "calls": [
+     [
+      "S",
+      55,
+      64
+     ]
+    ]
+   },
+   "b038": {
+    "plan": {
+     "action": "show",
+     "source": "Download",
+     "content_contains": "Rechnung"
+    },
+    "calls": [
+     [
+      "S",
+      62,
+      68
+     ]
+    ]
+   },
+   "b039": {
+    "plan": {
+     "action": "show",
+     "source": "Download",
+     "extensions": [
+      "apk"
+     ]
+    },
+    "calls": [
+     [
+      "S",
+      59,
+      65
+     ]
+    ]
+   }
+  },
+  "K": {
+   "b000": {
+    "plan": {
+     "action": "show"
+    },
+    "calls": [
+     [
+      "K",
+      20,
+      60
+     ]
+    ]
+   },
+   "b001": {
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "image"
+     ],
+     "older_than": 2
+    },
+    "calls": [
+     [
+      "K",
+      15,
+      61
+     ]
+    ]
+   },
+   "b002": {
+    "plan": {
+     "action": "show",
+     "source": "Screenshots",
+     "newer_than": 7
+    },
+    "calls": [
+     [
+      "K",
+      19,
+      63
+     ]
+    ]
+   },
+   "b003": {
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "video"
+     ],
+     "name_contains": "Sommer"
+    },
+    "calls": [
+     [
+      "K",
+      17,
+      64
+     ]
+    ]
+   },
+   "b004": {
+    "plan": {
+     "action": "show",
+     "source": "Screenshots",
+     "newer_than": 1,
+     "age_unit": "years"
+    },
+    "calls": [
+     [
+      "K",
+      17,
+      63
+     ]
+    ]
+   },
+   "b005": {
+    "plan": {
+     "action": "show",
+     "source": "Downloads",
+     "kinds": [
+      "document"
+     ],
+     "extensions": [
+      "pdf"
+     ],
+     "newer_than": 2,
+     "age_unit": "weeks"
+    },
+    "calls": [
+     [
+      "K",
+      23,
+      64
+     ]
+    ]
+   },
+   "b006": {
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "video"
+     ],
+     "larger_than": 3,
+     "size_unit": "gb"
+    },
+    "calls": [
+     [
+      "K",
+      19,
+      61
+     ]
+    ]
+   },
+   "b007": {
+    "plan": {
+     "action": "show",
+     "source": "WhatsApp Images",
+     "kinds": [
+      "image"
+     ],
+     "larger_than": 1
+    },
+    "calls": [
+     [
+      "K",
+      21,
+      64
+     ]
+    ]
+   },
+   "b008": {
+    "plan": {
+     "action": "show",
+     "extensions": [
+      "xlsx",
+      "xls"
+     ]
+    },
+    "calls": [
+     [
+      "K",
+      14,
+      63
+     ]
+    ]
+   },
+   "b009": {
+    "plan": {
+     "action": "show",
+     "name_contains": "Garantie",
+     "content_contains": "Spülmaschine"
+    },
+    "calls": [
+     [
+      "K",
+      18,
+      67
+     ]
+    ]
+   },
+   "b010": {
+    "plan": {
+     "action": "show",
+     "extensions": [
+      "pdf"
+     ],
+     "content_contains": "Versicherungsnummer"
+    },
+    "calls": [
+     [
+      "K",
+      19,
+      66
+     ]
+    ]
+   },
+   "b011": {
+    "plan": {
+     "action": "show",
+     "extensions": [
+      "pdf"
+     ],
+     "name_contains": "zalando",
+     "content_contains": "rechnung"
+    },
+    "calls": [
+     [
+      "K",
+      16,
+      66
+     ]
+    ]
+   },
+   "b012": {
+    "plan": {
+     "action": "show",
+     "source": "Küche",
+     "name_contains": "Lieferschein"
+    },
+    "calls": [
+     [
+      "K",
+      18,
+      67
+     ]
+    ]
+   },
+   "b013": {
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "video"
+     ],
+     "sort": "size",
+     "limit": 2
+    },
+    "calls": [
+     [
+      "K",
+      13,
+      63
+     ]
+    ]
+   },
+   "b014": {
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "audio"
+     ],
+     "extensions": [
+      "3gp",
+      "4ga",
+      "3g2",
+      "wav",
+      "mp3",
+      "m4a"
+     ],
+     "sort": "newest",
+     "limit": 5
+    },
+    "calls": [
+     [
+      "K",
+      18,
+      82
+     ]
+    ]
+   },
+   "b015": {
+    "plan": {
+     "action": "show",
+     "source": "Screenshots",
+     "kinds": [
+      "image"
+     ],
+     "newer_than": 1,
+     "sort": "newest",
+     "limit": 1
+    },
+    "calls": [
+     [
+      "K",
+      18,
+      67
+     ]
+    ]
+   },
+   "b016": {
+    "plan": {
+     "action": "show",
+     "source": "Download",
+     "extensions": [
+      "zip"
+     ]
+    },
+    "calls": [
+     [
+      "K",
+      19,
+      63
+     ]
+    ]
+   },
+   "b017": {
+    "plan": {
+     "action": "show",
+     "source": "Kamera",
+     "kinds": [
+      "image"
+     ],
+     "content_contains": "außer Fotos"
+    },
+    "calls": [
+     [
+      "K",
+      17,
+      68
+     ]
+    ]
+   },
+   "b018": {
+    "plan": {
+     "action": "show",
+     "source": "Downloads",
+     "extensions": [
+      "pdf"
+     ],
+     "newer_than": 1,
+     "age_unit": "months"
+    },
+    "calls": [
+     [
+      "K",
+      18,
+      63
+     ]
+    ]
+   },
+   "b019": {
+    "plan": {
+     "action": "show",
+     "source": "WhatsApp Images",
+     "kinds": [
+      "audio"
+     ]
+    },
+    "calls": [
+     [
+      "K",
+      14,
+      64
+     ]
+    ]
+   },
+   "b020": {
+    "plan": {
+     "action": "copy",
+     "source": ".",
+     "destination": "backup",
+     "kinds": [
+      "image"
+     ]
+    },
+    "calls": [
+     [
+      "K",
+      16,
+      64
+     ]
+    ]
+   },
+   "b021": {
+    "plan": {
+     "action": "move",
+     "source": "Screenshots",
+     "destination": "Archiv",
+     "older_than": 365
+    },
+    "calls": [
+     [
+      "K",
+      17,
+      68
+     ]
+    ]
+   },
+   "b022": {
+    "plan": {
+     "action": "show",
+     "kinds": [
+      "video"
+     ],
+     "sort": "size",
+     "limit": 1
+    },
+    "calls": [
+     [
+      "K",
+      16,
+      63
+     ]
+    ]
+   },
+   "b023": {
+    "plan": {
+     "action": "move",
+     "source": "Download",
+     "destination": "Bank"
+    },
+    "calls": [
+     [
+      "K",
+      24,
+      64
+     ]
+    ]
+   },
+   "b024": {
+    "plan": {
+     "action": "move",
+     "source": "Dokumente",
+     "destination": "Bewerbungen",
+     "name_contains": "Bewerbung",
+     "limit": 3
+    },
+    "calls": [
+     [
+      "K",
+      22,
+      73
+     ]
+    ]
+   },
+   "b025": {
+    "plan": {
+     "action": "delete",
+     "source": "Downloads",
+     "older_than": 365
+    },
+    "calls": [
+     [
+      "K",
+      23,
+      64
+     ]
+    ]
+   },
+   "b026": {
+    "plan": {
+     "action": "organize",
+     "source": "WhatsApp Images",
+     "group_by": "month"
+    },
+    "calls": [
+     [
+      "K",
+      16,
+      65
+     ]
+    ]
+   },
+   "b027": {
+    "plan": {
+     "action": "delete",
+     "source": "Download",
+     "name_contains": "setup"
+    },
+    "calls": [
+     [
+      "K",
+      24,
+      64
+     ]
+    ]
+   },
+   "b028": {
+    "plan": {
+     "action": "show",
+     "source": "Screenshots",
+     "kinds": [
+      "image"
+     ]
+    },
+    "calls": [
+     [
+      "K",
+      19,
+      64
+     ]
+    ]
+   },
+   "b029": {
+    "plan": {
+     "source": "Download"
+    },
+    "calls": [
+     [
+      "K",
+      21,
+      62
+     ]
+    ]
+   },
+   "b030": {
+    "plan": {},
+    "calls": [
+     [
+      "K",
+      23,
+      60
+     ]
+    ]
+   },
+   "b031": {
+    "plan": {
+     "action": "organize",
+     "source": "Kamera",
+     "kinds": [
+      "image"
+     ],
+     "name_contains": "Lissabon"
+    },
+    "calls": [
+     [
+      "K",
+      20,
+      70
+     ]
+    ]
+   },
+   "b032": {
+    "plan": {
+     "action": "delete",
+     "source": "Kamera",
+     "kinds": [
+      "image"
+     ],
+     "content_contains": "verwackelt"
+    },
+    "calls": [
+     [
+      "K",
+      23,
+      69
+     ]
+    ]
+   },
+   "b033": {
+    "plan": {
+     "source": "Download"
+    },
+    "calls": [
+     [
+      "K",
+      20,
+      62
+     ]
+    ]
+   },
+   "b034": {
+    "plan": {},
+    "calls": [
+     [
+      "K",
+      19,
+      60
+     ]
+    ]
+   },
+   "b035": {
+    "plan": {},
+    "calls": [
+     [
+      "K",
+      22,
+      60
+     ]
+    ]
+   },
+   "b036": {
+    "plan": {
+     "action": "copy",
+     "source": "Download",
+     "destination": "Backup",
+     "kinds": [
+      "image"
+     ]
+    },
+    "calls": [
+     [
+      "K",
+      27,
+      65
+     ]
+    ]
+   },
+   "b037": {
+    "plan": {
+     "source": "Downloads"
+    },
+    "calls": [
+     [
+      "K",
+      21,
+      62
+     ]
+    ]
+   },
+   "b038": {
+    "plan": {
+     "action": "show",
+     "source": "Download",
+     "content_contains": "Rechnung"
+    },
+    "calls": [
+     [
+      "K",
+      28,
+      66
+     ]
+    ]
+   },
+   "b039": {
+    "plan": {
+     "action": "show",
+     "source": "Download",
+     "kinds": [
+      "archive"
+     ],
+     "extensions": [
+      "apk"
+     ]
+    },
+    "calls": [
+     [
+      "K",
+      26,
+      64
+     ]
+    ]
+   }
+  }
+ },
+ "system_tokens": {
+  "A": 754,
+  "S": 1440,
+  "K": 798,
+  "KS": 607,
+  "T1": 155,
+  "T2show": 406,
+  "T2move": 346,
+  "T2copy": 296,
+  "T2delete": 320,
+  "T2organize": 225
+ }
+}

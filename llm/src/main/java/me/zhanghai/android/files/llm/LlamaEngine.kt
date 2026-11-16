@@ -17,6 +17,19 @@ class LlamaEngine private constructor(@Volatile private var handle: Long) : Clos
 
     fun prepare(prefix: String): Boolean = nativePrepare(checkOpen(), prefix.utf8())
 
+    /** Bytes of the state [prepare] or [restoreState] left, 0 when there is none. */
+    val stateSize: Long
+        get() = nativeStateSize(checkOpen())
+
+    /** Writes the prompt state to [path] (atomically); false on any write error, nothing half-written stays. */
+    fun saveState(path: String): Boolean = nativeSaveState(checkOpen(), path.utf8())
+
+    /**
+     * Loads a state saved by [saveState] in place of [prepare]. False when the file is missing, damaged or does not
+     * fit this model; then call [prepare]. The caller keys the file by model, prompt and context size.
+     */
+    fun restoreState(path: String): Boolean = nativeRestoreState(checkOpen(), path.utf8())
+
     /** The answer, or null when cancelled or when the native side failed. */
     fun generate(suffix: String, grammar: String, maxTokens: Int): String? =
         nativeGenerate(checkOpen(), suffix.utf8(), grammar.utf8(), maxTokens)?.toString(Charsets.UTF_8)
@@ -53,22 +66,33 @@ class LlamaEngine private constructor(@Volatile private var handle: Long) : Clos
             }
         }
 
-        fun load(path: String, threads: Int, contextSize: Int): LlamaEngine? {
+        /** [adapterPath]: an optional LoRA adapter for this model, applied at scale 1; null when it does not load. */
+        fun load(path: String, threads: Int, contextSize: Int, adapterPath: String? = null): LlamaEngine? {
             if (!isSupported) {
                 return null
             }
-            val handle = nativeLoad(path.toByteArray(Charsets.UTF_8), threads, contextSize)
+            val handle = nativeLoad(path.toByteArray(Charsets.UTF_8), threads, contextSize,
+                adapterPath?.toByteArray(Charsets.UTF_8))
             return if (handle != 0L) LlamaEngine(handle) else null
         }
 
         @JvmStatic
-        private external fun nativeLoad(path: ByteArray, threads: Int, contextSize: Int): Long
+        private external fun nativeLoad(path: ByteArray, threads: Int, contextSize: Int, adapterPath: ByteArray?): Long
 
         @JvmStatic
         private external fun nativePrepare(handle: Long, prefix: ByteArray): Boolean
 
         @JvmStatic
         private external fun nativeGenerate(handle: Long, suffix: ByteArray, grammar: ByteArray, maxTokens: Int): ByteArray?
+
+        @JvmStatic
+        private external fun nativeStateSize(handle: Long): Long
+
+        @JvmStatic
+        private external fun nativeSaveState(handle: Long, path: ByteArray): Boolean
+
+        @JvmStatic
+        private external fun nativeRestoreState(handle: Long, path: ByteArray): Boolean
 
         @JvmStatic
         private external fun nativeCancel(handle: Long)

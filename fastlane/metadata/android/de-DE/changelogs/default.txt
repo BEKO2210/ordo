@@ -1,6 +1,6 @@
 Neu in dieser Testversion:
-• Behoben: Die Speicheranzeige der Startseite sprang bei jeder automatischen Aktualisierung auf 0 % und zählte neu hoch – sie bleibt jetzt ruhig
-• Die Prozentzahl stimmt jetzt mit der Speicheranalyse überein
-• Ruhiger bei langen Kopiervorgängen: Pause zwischen automatischen Aktualisierungen
-Aus 0.9.0: Startseite aktualisiert sich selbst, bewusstes Ziehen, „Mehr“ beim Daumen, Tablet-Absturz behoben
+• KI-Befehle starten schneller: Ordo merkt sich die eingelesenen Anweisungen des Modells auf dem Gerät
+• Sicherer: Wurde eine Datei seit der Vorschau ersetzt, bleibt sie unberührt, und Ordo sagt es
+• Behoben: „Mobile Daten nutzen“ beim Modell-Download reagierte nach erneutem Öffnen nicht
+• Ein zweiter Tipp wirft den Fortschritt eines laufenden Downloads nicht mehr weg
 Feedback: nullmesh@protonmail.com

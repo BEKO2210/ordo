@@ -198,7 +198,21 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
             ?.let { name -> HomeCategory.entries.firstOrNull { it.name == name } }
     }
 
-    private val viewModel by viewModels { { FileListViewModel(homeCategory) } }
+    // An AI "show" list (FileListActivity.createShowIntent), internal launches only like a category.
+    private val showRequest by lazy {
+        if (args.intent.action != null) null else ShowFileListLiveData.Request.from(args.intent)
+    }
+
+    // A list that is not a folder (a category or an AI result): no breadcrumbs, opening a folder opens a new screen.
+    private val isVirtualList: Boolean
+        get() = homeCategory != null || showRequest != null
+
+    private val viewModel by viewModels {
+        {
+            val intent = args.intent
+            FileListViewModel(homeCategory, showRequest) { ShowFileListLiveData.Request.release(intent) }
+        }
+    }
 
     private lateinit var binding: Binding
 
@@ -275,7 +289,7 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
         }
         navigationFragment.listener = this
         val activity = requireActivity() as AppCompatActivity
-        activity.title = getString(homeCategory?.titleRes ?: R.string.file_list_title)
+        activity.title = showRequest?.title ?: getString(homeCategory?.titleRes ?: R.string.file_list_title)
         activity.setSupportActionBar(binding.toolbar)
         overlayActionMode = OverlayToolbarActionMode(binding.overlayToolbar, binding.toolbar)
         bottomActionMode = PersistentBarLayoutToolbarActionMode(
@@ -303,7 +317,7 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
         }
         binding.appBarLayout.syncBackgroundColorTo(binding.overlayToolbar)
         binding.breadcrumbLayout.setListener(this)
-        if (homeCategory != null) {
+        if (isVirtualList) {
             binding.breadcrumbLayout.isVisible = false
             binding.speedDialView.isVisible = false
         }
@@ -726,7 +740,9 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
             // A search inside a category starts loading without a list yet (files == null).
             stateful is Loading && (!isSearching || files == null) ->
                 binding.toolbar.setSubtitle(R.string.loading)
-            else -> binding.toolbar.subtitle = getSubtitle(files!!)
+            // An AI list: the count, then what was understood ("1 Datei · über 500 MB").
+            else -> binding.toolbar.subtitle = getSubtitle(files!!) +
+                (showRequest?.detail?.takeIf { it.isNotEmpty() }?.let { " · $it" } ?: "")
         }
         val hasFiles = !files.isNullOrEmpty()
         binding.swipeRefreshLayout.isRefreshing = stateful is Loading && (hasFiles || isSearching)
@@ -883,7 +899,8 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
         if (!Settings.FILE_LIST_SHOW_HIDDEN_FILES.valueCompat) {
             files = files.filterNot { it.isHidden }
         }
-        adapter.replaceListAndIsSearching(files, viewModel.searchState.isSearching)
+        // An AI list keeps its own order (largest or newest first), like search results.
+        adapter.replaceListAndIsSearching(files, viewModel.searchState.isSearching || showRequest != null)
     }
 
     private fun updateShowHiddenFilesMenuItem() {
@@ -912,7 +929,7 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
     }
 
     override fun navigateTo(path: Path) {
-        if (homeCategory != null) {
+        if (isVirtualList) {
             startActivity(FileListActivity.createViewIntent(path))
             requireActivity().finish()
             return
@@ -934,7 +951,7 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
 
     private fun onPickOptionsChanged(pickOptions: PickOptions?) {
         val title = if (pickOptions == null) {
-            getString(homeCategory?.titleRes ?: R.string.file_list_title)
+            showRequest?.title ?: getString(homeCategory?.titleRes ?: R.string.file_list_title)
         } else {
             val count = if (pickOptions.allowMultiple) Int.MAX_VALUE else 1
             when (pickOptions.mode) {
@@ -1088,7 +1105,7 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
                 .setInterpolator(DecelerateInterpolator()).start()
         }
         selectionBar.isVisible = menu != null
-        binding.speedDialView.isVisible = menu == null && homeCategory == null
+        binding.speedDialView.isVisible = menu == null && !isVirtualList
         if (menu == null) {
             return
         }
@@ -1532,7 +1549,7 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
 
     // From a home category the file list opens on top of it, so back returns to the category list.
     private fun openListable(path: Path) {
-        if (homeCategory != null) {
+        if (isVirtualList) {
             startActivity(FileListActivity.createViewIntent(path))
         } else {
             navigateTo(path)
@@ -1744,7 +1761,7 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
         get() = viewModel.currentPath
 
     override fun navigateToRoot(path: Path) {
-        if (homeCategory != null) {
+        if (isVirtualList) {
             startActivity(FileListActivity.createViewIntent(path))
             requireActivity().finish()
             return

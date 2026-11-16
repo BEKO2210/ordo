@@ -23,6 +23,7 @@ ICONS = {
     "add_icon_white_24dp": "add",
     "ai_check_icon_white_24dp": "check_circle",
     "ai_cross_icon_white_24dp": "cancel",
+    "ai_hint_icon_white_24dp": "lightbulb",
     "ai_memory_icon_white_24dp": "memory",
     "ai_phone_icon_white_24dp": "smartphone",
     "ai_privacy_icon_white_24dp": "shield_lock",

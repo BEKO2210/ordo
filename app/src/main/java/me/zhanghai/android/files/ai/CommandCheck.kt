@@ -118,10 +118,46 @@ object CommandCheck {
     fun needsSecondConfirm(plan: CommandPlan, source: File, root: File, count: Int): Boolean {
         if (plan.action != "delete") return false
         val unfiltered = plan.extensions.isEmpty() && plan.kinds.isEmpty() && plan.nameContains.isBlank() &&
-            plan.olderThanDays == 0 && plan.largerThanBytes == 0L && !plan.duplicates
+            plan.contentContains.isBlank() && plan.olderThanDays == 0 && plan.newerThanDays == 0 && !plan.today &&
+            plan.largerThanBytes == 0L && !plan.duplicates && plan.limit == 0 && plan.excludeKinds.isEmpty() &&
+            plan.excludeExtensions.isEmpty() && plan.excludeTerms.isEmpty() && plan.dateFrom.isBlank() &&
+            plan.dateTo.isBlank() && plan.minBytes == 0L && plan.maxBytes == 0L
         val dir = source.canonicalFile
         val top = dir == root.canonicalFile || dir.parentFile == root.canonicalFile
         return count > MANY_FILES || unfiltered && top
+    }
+
+    // Places a "show" may read although a change there is refused: Android/media (WhatsApp) and the camera.
+    private val SHOW_PLACES = mapOf(
+        "screenshots" to listOf("Pictures/Screenshots", "DCIM/Screenshots"),
+        "whatsapp images" to listOf(
+            "Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Images", "WhatsApp/Media/WhatsApp Images"
+        ),
+        "whatsapp video" to listOf(
+            "Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Video", "WhatsApp/Media/WhatsApp Video"
+        )
+    )
+
+    /**
+     * The folders a "show" searches (with every folder below them): the whole storage when none is named, else
+     * every existing folder of that name. Null when the name fits no folder, so the user is asked. Never a folder
+     * outside [root].
+     */
+    fun showSources(name: String, root: File): List<File>? {
+        val key = normalize(name)
+        if (key in HERE) return listOf(root)
+        val rootPath = root.canonicalPath
+        fun inside(dir: File) = dir.isDirectory && dir.canonicalPath.let { it == rootPath || it.startsWith("$rootPath/") }
+        SHOW_PLACES[key]?.let { places ->
+            return places.map { File(root, it) }.filter(::inside).ifEmpty { null }
+        }
+        val clean = name.trim().removeFolderWord()
+        // A path as the rules give it ("Pictures/Wallpapers"), relative to the storage
+        if ('/' in clean) {
+            val dir = if (clean.startsWith("/")) File(clean) else File(root, clean)
+            return listOf(dir).filter(::inside).ifEmpty { null }
+        }
+        return resolveAll(name, null, root).ifEmpty { null }
     }
 
     /** An existing folder for a spoken name, or null. "." means [here]. */
