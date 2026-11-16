@@ -19,6 +19,7 @@ import me.zhanghai.android.files.compat.setThemeCompat
 import me.zhanghai.android.files.compat.themeResIdCompat
 import me.zhanghai.android.files.settings.Settings
 import me.zhanghai.android.files.theme.night.NightModeHelper
+import me.zhanghai.android.files.ui.Motion
 import me.zhanghai.android.files.util.SimpleActivityLifecycleCallbacks
 import me.zhanghai.android.files.util.valueCompat
 
@@ -48,6 +49,14 @@ object CustomThemeHelper {
         val customThemeRes = getCustomThemeRes(baseThemeRes, activity)
         activity.setThemeCompat(customThemeRes)
         applyOverlays(activity)
+        if (!Motion.any) {
+            val noMotionOverlay = if (Settings.MATERIAL_DESIGN_3.valueCompat) {
+                R.style.ThemeOverlay_Ordo_Material3_NoMotion
+            } else {
+                R.style.ThemeOverlay_Ordo_MaterialComponents_NoMotion
+            }
+            activity.theme.applyStyle(noMotionOverlay, true)
+        }
     }
 
     private fun overlaySignature(): String =
