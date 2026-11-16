@@ -32,22 +32,28 @@ class ColorPaletteAdapter(private val colors: IntArray) : BaseAdapter() {
                 )
             }
         return swatchView.apply {
-            animate().cancel()
+            prepareForBinding()
             setColor(getItem(position))
+            setSelectionImmediately(isChecked)
             if (!Motion.any || revealed[position]) {
+                alpha = 1f
                 scaleX = 1f
                 scaleY = 1f
             } else {
-                scaleX = 0.6f
-                scaleY = 0.6f
+                alpha = 0f
+                scaleX = 0.85f
+                scaleY = 0.85f
                 onFirstSight {
                     revealed[position] = true
-                    val delay = (position * 25L).coerceAtMost(300L)
+                    // Four quiet waves preserve the 25 ms rhythm without letting a 20-color palette
+                    // keep moving long after the dialog has opened.
+                    val delay = (position * 25L).coerceAtMost(MAX_REVEAL_DELAY_MS)
                     animate()
+                        .alpha(1f)
                         .scaleX(1f)
                         .scaleY(1f)
                         .setStartDelay(delay)
-                        .setDuration(250)
+                        .setDuration(REVEAL_BUDGET_MS - delay)
                         .setInterpolator(EMPHASIZED)
                         .start()
                     revealSelection(delay)
@@ -57,6 +63,8 @@ class ColorPaletteAdapter(private val colors: IntArray) : BaseAdapter() {
     }
 
     companion object {
+        private const val MAX_REVEAL_DELAY_MS = 75L
+        private const val REVEAL_BUDGET_MS = 240L
         private val EMPHASIZED = PathInterpolator(0.2f, 0f, 0f, 1f)
     }
 }

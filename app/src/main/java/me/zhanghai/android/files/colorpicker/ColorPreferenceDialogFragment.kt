@@ -8,6 +8,8 @@ package me.zhanghai.android.files.colorpicker
 import android.app.Dialog
 import android.content.Context
 import android.os.Bundle
+import android.os.Build
+import android.view.HapticFeedbackConstants
 import android.view.View
 import android.widget.GridView
 import androidx.appcompat.app.AlertDialog
@@ -69,7 +71,15 @@ class ColorPreferenceDialogFragment : MaterialPreferenceDialogFragmentCompat() {
             paletteGrid.setItemChecked(checkedPosition, true)
         }
         preview.setAccent(if (checkedPosition != -1) checkedColor else colors.first(), false)
-        paletteGrid.setOnItemClickListener { _, _, position, _ ->
+        preview.revealStorage()
+        paletteGrid.setOnItemClickListener { _, itemView, position, _ ->
+            itemView.performHapticFeedback(
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    HapticFeedbackConstants.CONFIRM
+                } else {
+                    HapticFeedbackConstants.CLOCK_TICK
+                }
+            )
             preview.setAccent(colors[position])
         }
     }
