@@ -26,7 +26,11 @@ import java.time.LocalDateTime
  */
 internal class NetDecision(
     val status: String, val reason: String = "", val args: List<String> = emptyList(),
-    val plan: Map<String, Any>? = null, val unaccounted: List<String> = emptyList(), val warn: List<String> = emptyList()
+    val plan: Map<String, Any>? = null, val unaccounted: List<String> = emptyList(), val warn: List<String> = emptyList(),
+    /** Not in the lab's answer: words the coverage check left out because together they found nothing. */
+    val dropped: List<String> = emptyList(),
+    /** Not in the lab's answer: how many words the subset search tried (0: none), for the cap below. */
+    val subsetTerms: Int = 0
 )
 
 /**
@@ -37,6 +41,12 @@ internal class NetDecision(
  */
 internal object CommandNetDecide {
     private val DESTRUCTIVE = listOf("move", "delete", "organize")
+
+    /**
+     * Word subsets rules2 tries are 2^n - 1; above this many words it tries none (a change asks back, a show keeps the
+     * model's words). The lab's cases never reach it: CommandGuardedGoldenTest checks the largest search it saw.
+     */
+    const val MAX_SUBSET_TERMS = 10
     private val CHANGES = DESTRUCTIVE + "copy"
 
     /** p0_cases.DEFAULT */
@@ -79,9 +89,10 @@ internal object CommandNetDecide {
         val today = now.toLocalDate()
         val folders = folders0.sorted()
         var unaccounted = emptyList<String>()
+        var subsetTerms = 0
         val warn = mutableListOf<String>()
         fun ask(reason: String, plan: Map<String, Any>?, vararg a: String) =
-            NetDecision("ask", reason, a.toList(), plan?.toMap(), unaccounted)
+            NetDecision("ask", reason, a.toList(), plan?.toMap(), unaccounted, subsetTerms = subsetTerms)
         val (t, leaves) = CommandNet.prepare(text, folders)
         for ((cat, pat, _) in X.UNSUPPORTED) if (search(pat, t) != null) return NetDecision("refuse", cat)
         for (pat in X.MEMORY) if (search(pat, t) != null) return NetDecision("refuse", "memory")
@@ -194,7 +205,8 @@ internal object CommandNetDecide {
         var chosen: List<String>? = terms
         if (terms.isNotEmpty() && nFiles(terms) == 0) {
             chosen = null
-            for (k in terms.size - 1 downTo 1) {
+            subsetTerms = terms.size
+            for (k in (if (terms.size <= MAX_SUBSET_TERMS) terms.size - 1 else 0) downTo 1) {
                 val ok = combinations(terms, k).filter { nFiles(it) != 0 }
                 if (ok.isNotEmpty()) {
                     chosen = if (ok.size == 1 || !changes) ok[0] else null
@@ -219,7 +231,8 @@ internal object CommandNetDecide {
             val n = count(plan.toMap())
             if (n != said_count) warn += "count $said_count said, $n matched"
         }
-        return NetDecision("plan", plan = plan, unaccounted = unacc, warn = warn)
+        return NetDecision("plan", plan = plan, unaccounted = unacc, warn = warn, dropped = terms - picked.toSet(),
+            subsetTerms = subsetTerms)
     }
 
     /** str.capitalize(): first character title case, the rest lower case. */

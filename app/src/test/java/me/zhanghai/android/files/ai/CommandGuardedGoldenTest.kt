@@ -21,7 +21,8 @@ class CommandGuardedGoldenTest {
     @Test
     fun everyLabPlanGivesThePythonDecision() {
         val result = CommandNetGolden.guarded(golden)
-        println("guarded golden: $result")
+        println("guarded golden: $result, largest subset search ${CommandNetGolden.maxSubsetTerms} words")
+        assertTrue("the subset cap changes a lab decision", CommandNetGolden.maxSubsetTerms <= CommandNetDecide.MAX_SUBSET_TERMS)
         assertTrue(result.toString(), result.equal == result.total && result.total > 0)
     }
 

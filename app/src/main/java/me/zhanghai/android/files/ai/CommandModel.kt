@@ -136,6 +136,11 @@ object CommandModel {
     // keys name its expected hash too: a new adapter under the same file name is hashed again, never taken as checked.
     private fun key(part: Part, name: String) = if (part == MODEL) name else "$name:${part.fileName}:${part.sha256}"
 
+    /** A failed download; "not found" (HTTP 404) only for an add-on such as an adapter, never for the model itself. */
+    internal fun failed(part: Part, reason: Int) = State.Failed(
+        reason == DownloadManager.ERROR_INSUFFICIENT_SPACE, notFound = part != MODEL && reason == 404
+    )
+
     private fun partState(context: Context, part: Part): State {
         if (part != MODEL && context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getBoolean(key(part, KEY_BAD), false)) {
             return State.Failed(noSpace = false)
@@ -169,7 +174,7 @@ object CommandModel {
                 return when (status) {
                     DownloadManager.STATUS_SUCCESSFUL -> State.Verifying
                     DownloadManager.STATUS_FAILED ->
-                        State.Failed(reason == DownloadManager.ERROR_INSUFFICIENT_SPACE, notFound = reason == 404)
+                        failed(part, reason)
                     else -> State.Downloading(
                         bytes, part.size, status == DownloadManager.STATUS_PAUSED,
                         reason == DownloadManager.PAUSED_QUEUED_FOR_WIFI

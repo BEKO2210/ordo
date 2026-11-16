@@ -70,7 +70,7 @@ object CommandCheck {
         }
         val words = intentWords(text, model, withoutFolders = true)
         // The plan schema has no field for duplicates, so the model answers with the whole folder; the app narrows it.
-        val plan = model.copy(duplicates = said(words, DUPLICATE_WORDS))
+        val plan = model.copy(duplicates = duplicatesSaid(text, model))
         if (plan.action == "delete" && !said(words, DELETE_WORDS)) {
             return Outcome.Refused(Reason.UNSURE_DELETE)
         }
@@ -111,6 +111,10 @@ object CommandCheck {
         }
         return Outcome.Ready(plan, source, destination, found == null)
     }
+
+    /** Whether [check] narrows this change to extra copies ("doppelt", "duplicates"). */
+    fun duplicatesSaid(text: String, plan: CommandPlan): Boolean =
+        said(intentWords(text, plan, withoutFolders = true), DUPLICATE_WORDS)
 
     /**
      * True for a delete that sweeps a whole top-level folder (or the storage itself) without a filter, or more

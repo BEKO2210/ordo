@@ -11,8 +11,12 @@ import java.time.LocalDateTime
 
 /** What a net design (Guarded, Tuned) answers for one command, in the app's terms. */
 sealed interface NetOutcome {
-    /** A plan for the usual checks, preview or result list. [warnings]: rules2's count check, for the log only. */
-    data class Plan(val plan: CommandPlan, val warnings: List<String> = emptyList()) : NetOutcome
+    /**
+     * A plan for the usual checks, preview or result list. [warnings]: rules2's count check; [dropped]: words left out
+     * because together with the others they found nothing. Both are said in the preview or under the list.
+     */
+    data class Plan(val plan: CommandPlan, val warnings: List<String> = emptyList(), val dropped: List<String> = emptyList()) :
+        NetOutcome
 
     /** The net is unsure and asks back; [args] fill the question (a folder, a word). The typed command stays. */
     data class Ask(val reason: String, val args: List<String>) : NetOutcome
@@ -32,9 +36,10 @@ internal object CommandNetPlan {
         }
     }
 
-    private fun json(o: JSONObject): Map<String, Any?> = o.keySet().associateWith { value(o.get(it)) }
+    // Android's org.json has no keySet()
+    fun json(o: JSONObject): Map<String, Any?> = o.keys().asSequence().toList().associateWith { value(o.get(it)) }
 
-    private fun value(v: Any?): Any? = when (v) {
+    fun value(v: Any?): Any? = when (v) {
         JSONObject.NULL, null -> null
         is JSONObject -> json(v)
         is JSONArray -> (0 until v.length()).map { value(v.get(it)) }
@@ -54,7 +59,7 @@ internal object CommandNetPlan {
     private fun outcome(d: NetDecision): NetOutcome = when (d.status) {
         "refuse" -> NetOutcome.Refuse(d.reason)
         "ask" -> NetOutcome.Ask(d.reason, d.args)
-        else -> NetOutcome.Plan(plan(d.plan!!), d.warn)
+        else -> NetOutcome.Plan(plan(d.plan!!), d.warn, d.dropped)
     }
 
     @Suppress("UNCHECKED_CAST")

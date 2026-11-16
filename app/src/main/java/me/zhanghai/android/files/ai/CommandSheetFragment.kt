@@ -80,6 +80,8 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
     // Size and time of [files] when the preview was made: the runner skips a file that changed since.
     private var seen: Map<String, Pair<Long, Long>> = emptyMap()
     private lateinit var design: CommandDesign
+    // What the net left out or doubts about the current plan, said in the preview or under the list (net designs).
+    private var netNote: String? = null
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, state: Bundle?): View {
         _binding = CommandSheetBinding.inflate(inflater, container, false)
@@ -449,6 +451,7 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
             return
         }
         hideKeyboard()
+        netNote = null
         if (job?.isActive == true) CommandEngine.cancel()
         job?.cancel()
         val context = requireContext().applicationContext
@@ -469,7 +472,10 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
             // Net designs: what Ordo cannot do or cannot know is answered before the model.
             val folders = if (design === CommandDesign.Today) emptyList() else withContext(Dispatchers.IO) { folderNames() }
             val now = LocalDateTime.now()
-            val before = withContext(Dispatchers.IO) { netDecide(null, folders, now) }
+            // one count per decision: each source listed once, closing the sheet stops it
+            val running = currentCoroutineContext()[Job]
+            val counter = CommandNetCount(root, text, active = { running?.isActive != false })
+            val before = withContext(Dispatchers.IO) { netDecide(null, folders, now, counter) }
             if (before is NetOutcome.Refuse) {
                 onNet(before)
                 return@launch
@@ -487,7 +493,7 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
             var net: NetOutcome? = null
             val plan = try {
                 val answer = model()
-                net = withContext(Dispatchers.IO) { netDecide(answer, folders, now) }
+                net = withContext(Dispatchers.IO) { netDecide(answer, folders, now, counter) }
                 // The rules read folder names after "aus/nach"; the shipped design has no rules and needs none.
                 if (net == null) CommandPlan.parse(answer)?.let { design.fix(text, it, folders) } else null
             } catch (e: CancellationException) {
@@ -511,27 +517,20 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
      * The net design's answer (null for the older designs). A command the net cannot read at all (a date that does
      * not exist, a number too large: the lab's Python stops there too) is asked back, never guessed.
      */
-    private fun netDecide(answer: String?, folders: List<String>, now: LocalDateTime): NetOutcome? = try {
-        design.decide(text, answer, folders, now, ::countFiles)
+    private fun netDecide(answer: String?, folders: List<String>, now: LocalDateTime, counter: CommandNetCount): NetOutcome? = try {
+        design.decide(text, answer, folders, now, counter::count)
+    } catch (e: CancellationException) {
+        throw e
     } catch (e: RuntimeException) {
         Log.w(TAG, "net could not read the command", e)
         NetOutcome.Ask("model", emptyList())
-    }
-
-    /**
-     * How many files a plan finds, for the net's coverage check (only "none or some" matters there).
-     * shortcut: a "show" stops at the first match, so its count is 0 or 1; upgrade when a count is shown to the user.
-     */
-    private fun countFiles(plan: CommandPlan): Int = if (plan.action == "show") {
-        CommandCheck.showSources(plan.source, root)?.let { CommandFiles.show(plan, it, root, stopAfter = 1).files.size } ?: 0
-    } else {
-        CommandCheck.resolveAll(plan.source, null, root, paths = true).singleOrNull()?.let { CommandFiles.collect(plan, it).size } ?: 0
     }
 
     private suspend fun onNet(outcome: NetOutcome) {
         when (outcome) {
             is NetOutcome.Plan -> {
                 if (outcome.warnings.isNotEmpty()) Log.i(TAG, "net warnings: ${outcome.warnings}")
+                netNote = netNote(outcome)
                 if (outcome.plan.action == "none") {
                     // chat, or something no file command does: say what Ordo can do, "show" included
                     showMessage(R.string.ai_refused_unsupported_title, getString(R.string.ai_net_none))
@@ -542,6 +541,21 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
             is NetOutcome.Ask -> showNetAsk(outcome)
             is NetOutcome.Refuse -> showNetRefusal(outcome.reason)
         }
+    }
+
+    /** Words the net left out and a count that does not fit, in words; null when there is nothing to say. */
+    private fun netNote(outcome: NetOutcome.Plan): String? {
+        val quote = { words: List<String> -> words.joinToString(", ") { getString(R.string.ai_net_quoted, it) } }
+        val kept = outcome.plan.nameTerms + outcome.plan.textTerms
+        val dropped = outcome.dropped.takeIf { it.isNotEmpty() }?.let {
+            if (kept.isEmpty()) getString(R.string.ai_net_dropped_all, quote(it))
+            else getString(R.string.ai_net_dropped, quote(kept + it), quote(kept))
+        }
+        // rules2's warning reads "count 3 said, 5 matched"
+        val count = outcome.warnings.firstNotNullOfOrNull { Regex("count (\\d+) said, (\\d+) matched").find(it) }?.let {
+            getString(R.string.ai_net_count_warning, it.groupValues[1].toInt(), it.groupValues[2].toInt())
+        }
+        return listOfNotNull(dropped, count).joinToString("\n").ifEmpty { null }
     }
 
     /** A question back from the net: friendly, with the typed command kept above so it can be refined. */
@@ -703,13 +717,13 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
         } else {
             shown
         }
-        val note = when {
+        val note = listOfNotNull(netNote, when {
             plan.action == "delete" -> getString(
                 R.string.ai_note_trash, Settings.TRASH_RETENTION_DAYS.valueCompat.toIntOrNull() ?: 30
             )
             outcome.newDestination -> getString(R.string.ai_note_new_folder, outcome.destination!!.name)
             else -> null
-        }
+        }).joinToString("\n\n").ifEmpty { null }
         binding.noteText.isVisible = note != null
         binding.noteText.text = note
         val delete = plan.action == "delete"
@@ -793,8 +807,7 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
             chip(it, plan.copy(excludeKinds = emptyList(), excludeExtensions = emptyList(), excludeTerms = emptyList()))
         }
         if (plan.limit > 0) {
-            val plurals = if (plan.sort == "size") R.plurals.ai_filter_limit_size else R.plurals.ai_filter_limit_newest
-            chip(requireContext().quantity(plurals, plan.limit, plan.limit), plan.copy(limit = 0))
+            chip(requireContext().quantity(limitPlurals(plan.sort), plan.limit, plan.limit), plan.copy(limit = 0))
         }
         binding.filterChips.isVisible = binding.filterChips.childCount > 0
     }
@@ -970,6 +983,7 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
             else -> null
         }
         if (order != null) title += " · $order"
+        netNote?.let { title += " · $it" }
         if (plan.limit > 0) title += " · " + context.quantity(R.plurals.ai_show_top, plan.limit, plan.limit)
         return noun to title.removePrefix(" · ")
     }
@@ -1159,6 +1173,14 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
         resources.getQuantityString(id, quantity, *args)
 
     companion object {
+        /** The limit chip's words for each sort ("Nur die 5 ältesten"); no sort means newest, as the list orders. */
+        internal fun limitPlurals(sort: String): Int = when (sort) {
+            "size" -> R.plurals.ai_filter_limit_size
+            "oldest" -> R.plurals.ai_filter_limit_oldest
+            "smallest" -> R.plurals.ai_filter_limit_smallest
+            else -> R.plurals.ai_filter_limit_newest
+        }
+
         const val TAG = "CommandSheet"
         private const val ARG_PLAN = "plan"
         private const val ARG_TEXT = "text"

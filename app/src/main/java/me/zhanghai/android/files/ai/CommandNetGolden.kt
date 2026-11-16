@@ -14,7 +14,8 @@ import java.util.Locale
 import java.util.zip.GZIPInputStream
 
 /**
- * Debug builds and unit tests only: runs a lab fixture (tools/memory-lab/export_guarded_golden.py,
+ * Unit tests and debug builds (DebugAiActivity) only; release builds never reach it and R8 drops it. In main so the
+ * tests of every variant compile. runs a lab fixture (tools/memory-lab/export_guarded_golden.py,
  * export_tuned_golden.py) through the Kotlin net and counts the rows where every part of the decision equals the
  * Python one (status, reason, text, words left over, warnings, every plan field). The JVM test and the device check
  * (DebugAiActivity, Android's ICU regex engine) share it, so both compare the same thing.
@@ -27,7 +28,11 @@ internal object CommandNetGolden {
     fun read(stream: InputStream): JSONObject = JSONObject(GZIPInputStream(stream).bufferedReader().readText())
 
     /** rules2.decide with prompt C plans; the file counts come from [LabPhone], a port of the lab's executor. */
-    fun guarded(o: JSONObject): Result {
+    /**
+     * [appLike]: count like the app instead of like the lab (text only in plain text files, hidden folders and
+     * Android/ except media skipped, no duplicate narrowing), to measure how often that changes a decision.
+     */
+    fun guarded(o: JSONObject, appLike: Boolean = false, only: (JSONObject) -> Boolean = { true }): Result {
         val now = LocalDateTime.parse(o.getString("now"))
         val zone = ZoneId.of(o.getString("zone"))
         val table = o.getJSONArray("files")
@@ -36,10 +41,12 @@ internal object CommandNetGolden {
                 val ids = a.getJSONArray(i)
                 LabPhone((0 until ids.length()).map { table.getJSONArray(ids.getInt(it)) }.map { f ->
                     LabPhone.File(f.getString(0), f.getLong(1), f.getLong(2), f.getString(3))
-                }, zone)
+                }, zone, appLike)
             }
         }
-        return compare(o, o.getJSONArray("rows")) { row ->
+        val all = o.getJSONArray("rows")
+        val rows = JSONArray().also { a -> for (i in 0 until all.length()) all.getJSONObject(i).takeIf(only)?.let { a.put(it) } }
+        return compare(o, rows) { row ->
             val phone = phones[row.getInt("phone")]
             val text = row.getString("text")
             CommandNetDecide.guarded(text, map(row.getJSONObject("raw")), phone.folders, now) { phone.count(it, text) }
@@ -75,16 +82,16 @@ internal object CommandNetGolden {
                     .let { t -> d.args.foldIndexed(t) { n, s, a -> s.replace("{$n}", a) } }
                 else -> ""
             }
-            val got = JSONObject().put("status", d.status).put("reason", d.reason).put("say", say)
-                .put("unaccounted", JSONArray(d.unaccounted)).put("plan", d.plan?.let { nonDefault(it) } ?: JSONObject.NULL)
-            val want = JSONObject().put("status", row.getString("status")).put("reason", row.getString("reason"))
-                .put("say", row.getString("say")).put("unaccounted", row.getJSONArray("unaccounted"))
-                .put("plan", row.opt("plan") ?: JSONObject.NULL)
+            maxSubsetTerms = maxOf(maxSubsetTerms, d.subsetTerms)
+            val got = mutableMapOf<String, Any?>("status" to d.status, "reason" to d.reason, "say" to say,
+                "unaccounted" to d.unaccounted, "plan" to d.plan?.let { nonDefault(it) })
+            val want = mutableMapOf<String, Any?>("status" to row.getString("status"), "reason" to row.getString("reason"),
+                "say" to row.getString("say"), "unaccounted" to value(row.get("unaccounted")), "plan" to value(row.opt("plan")))
             if (row.has("warn")) {
-                got.put("warn", JSONArray(d.warn))
-                want.put("warn", row.getJSONArray("warn"))
+                got["warn"] = d.warn
+                want["warn"] = value(row.get("warn"))
             }
-            if (got.similar(want)) equal++ else differs += "${row.getString("src")} ${row.getString("id")} " +
+            if (got == want) equal++ else differs += "${row.getString("src")} ${row.getString("id")} " +
                 "${row.getString("text")}\n    kotlin $got\n    python $want"
         }
         return Result(equal, rows.length(), differs)
@@ -96,29 +103,27 @@ internal object CommandNetGolden {
         "name_terms" to emptyList<String>(), "text_terms" to emptyList<String>()
     )
 
-    private fun nonDefault(plan: Map<String, Any>): JSONObject {
-        val out = JSONObject()
-        for ((k, v) in plan) {
-            require(k in PLAN_DEFAULT) { "unknown plan field $k" }
-            if (v != PLAN_DEFAULT[k]) out.put(k, if (v is List<*>) JSONArray(v) else v)
-        }
-        return out
+    private fun nonDefault(plan: Map<String, Any>): Map<String, Any> {
+        for (k in plan.keys) require(k in PLAN_DEFAULT) { "unknown plan field $k" }
+        return plan.filter { (k, v) -> v != PLAN_DEFAULT[k] }.mapValues { (_, v) -> if (v is Int) v.toLong() else v }
     }
 
-    fun map(o: JSONObject): Map<String, Any?> = o.keySet().associateWith { value(o.get(it)) }
+    /** The largest word count the guarded subset search saw in the last run (the cap must stay above it). */
+    @Volatile
+    var maxSubsetTerms = 0
 
-    private fun value(v: Any?): Any? = when (v) {
-        JSONObject.NULL, null -> null
-        is JSONObject -> map(v)
-        is JSONArray -> (0 until v.length()).map { value(v.get(it)) }
-        is Number -> if (v.toDouble() == Math.floor(v.toDouble())) v.toLong() else v.toDouble()
-        else -> v
-    }
+    fun map(o: JSONObject): Map<String, Any?> = CommandNetPlan.json(o)
+
+    private fun value(v: Any?): Any? = if (v == null) null else CommandNetPlan.value(v)
 
     private fun strings(a: JSONArray) = (0 until a.length()).map { a.getString(it) }
 
     /** The lab's phone and executor (phase0.execute/filt/c_filters, bench.Phone.resolve), as far as rules2 counts files. */
-    class LabPhone(private val files: List<File>, private val zone: ZoneId) {
+    class LabPhone(files0: List<File>, private val zone: ZoneId, private val appLike: Boolean = false) {
+        private val files = if (!appLike) files0 else files0.filter { f ->
+            val parts = f.path.split('/')
+            parts.none { it.startsWith(".") } && !(parts[0] == "Android" && parts.getOrNull(1) != "media")
+        }
         class File(val path: String, val size: Long, val mtime: Long, val text: String)
 
         val folders: Set<String> = HashSet<String>().also { set ->
@@ -168,7 +173,8 @@ internal object CommandNetGolden {
             if (exts.isEmpty() && (plan["kinds"] as List<String>).isNotEmpty() &&
                 (plan["extensions"] as List<String>).none { it.trim().trimStart('.').isNotEmpty() }) return 0
             var out = pool.filter { f -> (exts.isEmpty() || ext(f) in exts) && cFilters(f, plan) }
-            if (said(text, DUP_WORDS)) {
+            // the app narrows changes only (CommandCheck.check), the lab every plan
+            if (said(text, DUP_WORDS) && !(appLike && act == "show")) {
                 val groups = LinkedHashMap<Pair<Long, String>, MutableList<File>>()
                 for (f in out) {
                     groups.getOrPut(f.size to lower(Regex(" \\(\\d+\\)(?=\\.)").replace(f.path.substringAfterLast('/'), ""))) {
@@ -190,7 +196,7 @@ internal object CommandNetGolden {
         @Suppress("UNCHECKED_CAST")
         private fun cFilters(f: File, plan: Map<String, Any>): Boolean {
             val name = CommandNet.fold(f.path.substringAfterLast('/'))
-            val text = CommandNet.fold(f.text)
+            val text = if (appLike && ext(f) !in TEXT_EXTENSIONS) "" else CommandNet.fold(f.text)
             val from = plan["date_from"] as? String ?: ""
             val to = plan["date_to"] as? String ?: ""
             if (from.isNotEmpty() && f.mtime < ts(from)) return false
@@ -214,13 +220,15 @@ internal object CommandNetGolden {
             }
         }
 
-        private companion object {
+        companion object {
             val ALIASES = mapOf("download" to "Download", "downloads" to "Download", "musik" to "Music", "music" to "Music",
                 "dokumente" to "Documents", "documents" to "Documents", "bilder" to "Pictures", "pictures" to "Pictures",
                 "filme" to "Movies", "movies" to "Movies", "kamera" to "DCIM/Camera", "camera" to "DCIM/Camera", "dcim" to "DCIM")
             val NEGATIONS = setOf("ausser", "außer", "don't", "dont", "except", "kein", "keine", "keinen", "keiner", "never",
                 "nicht", "nichts", "no", "not", "ohne", "without")
             val DUP_WORDS = listOf("doppel", "duplikat", "duplicat", "dupe", "mehrfach")
+            // = CommandFiles.TEXT_EXTENSIONS (CommandNetPlanTest checks it); CommandFiles itself needs Android classes
+            val TEXT_EXTENSIONS = setOf("txt", "md", "csv", "log", "json", "xml", "html", "htm", "rtf", "ics", "vcf")
         }
     }
 }

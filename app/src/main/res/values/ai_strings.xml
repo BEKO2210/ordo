@@ -240,6 +240,14 @@
         <item quantity="one">Only the largest</item>
         <item quantity="other">Only the %d largest</item>
     </plurals>
+    <plurals name="ai_filter_limit_oldest">
+        <item quantity="one">Only the oldest</item>
+        <item quantity="other">Only the %d oldest</item>
+    </plurals>
+    <plurals name="ai_filter_limit_smallest">
+        <item quantity="one">Only the smallest</item>
+        <item quantity="other">Only the %d smallest</item>
+    </plurals>
     <plurals name="ai_filter_limit_newest">
         <item quantity="one">Only the newest</item>
         <item quantity="other">Only the %d newest</item>
@@ -266,7 +274,7 @@
     <string name="ai_net_refuse_rename">I can’t rename by command yet. Press and hold the file and choose “Rename”.</string>
     <string name="ai_net_refuse_share">I can’t share or send by command. Press and hold the file and choose “Share”.</string>
     <string name="ai_net_refuse_open">I can’t open, play or print by command. I can show you the file, then just tap it.</string>
-    <string name="ai_net_refuse_restore">I can’t bring back deleted files.</string>
+    <string name="ai_net_refuse_restore">I can’t restore files by command. Anything you deleted is in the trash, and you can restore it there.</string>
     <string name="ai_net_refuse_edit">I can’t edit files.</string>
     <string name="ai_show_between">%1$s to %2$s</string>
     <string name="ai_show_since">since %1$s</string>
@@ -277,6 +285,10 @@
     <string name="ai_show_without">without %1$s</string>
     <string name="ai_show_oldest_first">oldest first</string>
     <string name="ai_show_smallest_first">smallest first</string>
-    <string name="ai_download_not_published">This language pack isn’t published yet. It will come with a later update.</string>
+    <string name="ai_download_not_published">The add-on for AI commands isn’t available yet. It will come with a later update.</string>
     <string name="ai_net_none">Ordo can find and show files, move, copy, tidy them up and put them in the trash.</string>
+    <string name="ai_net_quoted">“%1$s”</string>
+    <string name="ai_net_dropped">I found nothing with %1$s together, so I only searched for %2$s.</string>
+    <string name="ai_net_dropped_all">I found nothing for %1$s, so I’m showing everything else that matches.</string>
+    <string name="ai_net_count_warning">You said %1$d, but I found %2$d. Please check the list carefully.</string>
 </resources>

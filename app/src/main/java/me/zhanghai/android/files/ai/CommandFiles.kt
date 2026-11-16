@@ -98,7 +98,7 @@ object CommandFiles {
         files.associate { it.path to (it.length() to it.lastModified()) }
 
     /** The plan's filters: ending or kind, name, word, age, size. */
-    private class Filter(
+    internal class Filter(
         private val plan: CommandPlan, private val extensions: Set<String>, private val excluded: Set<String>,
         private val from: Long, private val to: Long, now: Long
     ) {
@@ -112,29 +112,36 @@ object CommandFiles {
             set(java.util.Calendar.MILLISECOND, 0)
         }.timeInMillis
         private val word = plan.contentContains.trim()
-        private val text = if (word.isEmpty()) null else ContentSearch(word, false, true)
         private val nameTerms = plan.nameTerms.map { CommandNet.fold(it) }
-        private val textTerms = plan.textTerms.map { CommandNet.fold(it) to ContentSearch(it, false, true) }
+        private val textTerms = plan.textTerms.map { CommandNet.fold(it) to it }
         private val excludeTerms = plan.excludeTerms.filter { it.isNotBlank() }.map { CommandNet.fold(it.trim()) }
+        /** Every word this plan looks for inside files, with its search. */
+        val searches: Map<String, ContentSearch> = (listOf(word).filter { it.isNotEmpty() } + plan.textTerms)
+            .distinct().associateWith { ContentSearch(it, false, true) }
 
-        fun matches(file: File): Boolean =
-            (extensions.isEmpty() || file.extension.lowercase(Locale.ROOT) in extensions) &&
-                (plan.nameContains.isBlank() || file.name.contains(plan.nameContains.trim(), true)) &&
-                (plan.olderThanDays == 0 || file.lastModified() < olderLimit) &&
-                (plan.newerThanDays == 0 || file.lastModified() >= newerLimit) &&
-                (!plan.today || file.lastModified() >= midnight) &&
-                (plan.largerThanBytes == 0L || file.length() > plan.largerThanBytes) &&
-                (text == null || file.name.contains(word, true) || containsText(file, text)) &&
-                file.extension.lowercase(Locale.ROOT) !in excluded &&
+        fun matches(file: File): Boolean = matches(file.name, file.length(), file.lastModified()) {
+            containsText(file, searches.getValue(it))
+        }
+
+        /** [inText] answers whether the file's text holds a word of [searches] (only called when the name does not). */
+        fun matches(name: String, length: Long, modified: Long, inText: (String) -> Boolean): Boolean {
+            val extension = name.substringAfterLast('.', "").lowercase(Locale.ROOT)
+            return (extensions.isEmpty() || extension in extensions) &&
+                (plan.nameContains.isBlank() || name.contains(plan.nameContains.trim(), true)) &&
+                (plan.olderThanDays == 0 || modified < olderLimit) &&
+                (plan.newerThanDays == 0 || modified >= newerLimit) &&
+                (!plan.today || modified >= midnight) &&
+                (plan.largerThanBytes == 0L || length > plan.largerThanBytes) &&
+                (word.isEmpty() || name.contains(word, true) || inText(word)) &&
+                extension !in excluded &&
                 // ä = a, ß = ss, as the lab matched (phase0.c_filters); only the net designs set terms
-                (excludeTerms.isEmpty() || CommandNet.fold(file.name).let { name -> excludeTerms.none { it in name } }) &&
-                (nameTerms.isEmpty() || CommandNet.fold(file.name).let { name -> nameTerms.all { it in name } }) &&
-                (textTerms.isEmpty() || CommandNet.fold(file.name).let { name ->
-                    textTerms.all { (term, search) -> term in name || containsText(file, search) }
-                }) &&
-                (from == 0L || file.lastModified() >= from) && (to == 0L || file.lastModified() < to) &&
-                (plan.minBytes == 0L || file.length() >= plan.minBytes) &&
-                (plan.maxBytes == 0L || file.length() <= plan.maxBytes)
+                (excludeTerms.isEmpty() || CommandNet.fold(name).let { n -> excludeTerms.none { it in n } }) &&
+                (nameTerms.isEmpty() || CommandNet.fold(name).let { n -> nameTerms.all { it in n } }) &&
+                (textTerms.isEmpty() || CommandNet.fold(name).let { n -> textTerms.all { (term, raw) -> term in n || inText(raw) } }) &&
+                (from == 0L || modified >= from) && (to == 0L || modified < to) &&
+                (plan.minBytes == 0L || length >= plan.minBytes) &&
+                (plan.maxBytes == 0L || length <= plan.maxBytes)
+        }
 
         // Only plain text is read: PDF and Office files need a text extraction Ordo does not have yet, so for
         // them the word is found in the name only (docs/KI-ZEIGEN-PHASE0B.md, 6.5).
@@ -186,12 +193,12 @@ object CommandFiles {
 
     /** Endings whose text Ordo can search today. */
     val TEXT_EXTENSIONS = setOf("txt", "md", "csv", "log", "json", "xml", "html", "htm", "rtf", "ics", "vcf")
-    private const val MAX_TEXT_SIZE = 20L * 1024 * 1024
+    internal const val MAX_TEXT_SIZE = 20L * 1024 * 1024
     // A list to scroll through, not an export: 2,000 rows load in seconds; past that the list says it stopped early.
     const val MAX_RESULTS = 2_000
     // Text read per search: enough for every note and document of a normal phone, small enough that a word search
     // over the whole storage cannot read gigabytes of logs.
-    private const val MAX_TEXT_TOTAL = 200L * 1024 * 1024
+    internal const val MAX_TEXT_TOTAL = 200L * 1024 * 1024
     private const val DAY = 86_400_000L
 
     /**

@@ -61,6 +61,79 @@ class CommandNetPlanTest {
     }
 
     @Test
+    fun notFoundOnlyForAnAddOn() {
+        val adapter = CommandDesign.Tuned.adapter
+        assertTrue(CommandModel.failed(adapter, 404).notFound)
+        // the model keeps today's error text, whatever the server answers
+        assertTrue(!CommandModel.failed(CommandModel.parts(CommandDesign.Today).single(), 404).notFound)
+        assertTrue(!CommandModel.failed(adapter, 500).notFound)
+    }
+
+    @Test
+    fun limitChipNamesTheSort() {
+        assertEquals(me.zhanghai.android.files.R.plurals.ai_filter_limit_oldest, CommandSheetFragment.limitPlurals("oldest"))
+        assertEquals(me.zhanghai.android.files.R.plurals.ai_filter_limit_smallest, CommandSheetFragment.limitPlurals("smallest"))
+        assertEquals(me.zhanghai.android.files.R.plurals.ai_filter_limit_size, CommandSheetFragment.limitPlurals("size"))
+        assertEquals(me.zhanghai.android.files.R.plurals.ai_filter_limit_newest, CommandSheetFragment.limitPlurals("newest"))
+        assertEquals(me.zhanghai.android.files.R.plurals.ai_filter_limit_newest, CommandSheetFragment.limitPlurals(""))
+        // and the words say it, in both languages
+        val res = File(System.getProperty("user.dir")!!).let { if (File(it, "src").isDirectory) it else File(it, "app") }
+        for ((dir, words) in listOf("values" to listOf("largest", "oldest", "smallest", "newest"),
+                "values-de" to listOf("größte", "älteste", "kleinste", "neueste"))) {
+            val xml = File(res, "src/main/res/$dir/ai_strings.xml").readText()
+            for ((sort, word) in listOf("size", "oldest", "smallest", "newest").zip(words)) {
+                val name = if (sort == "size") "size" else sort
+                val block = Regex("<plurals name=\"ai_filter_limit_$name\">(.*?)</plurals>", RegexOption.DOT_MATCHES_ALL)
+                    .find(xml)!!.groupValues[1]
+                assertTrue("$dir $sort: $block", block.contains(word))
+            }
+        }
+    }
+
+    @Test
+    fun goldenCounterReadsTextLikeTheApp() {
+        assertEquals(CommandFiles.TEXT_EXTENSIONS, CommandNetGolden.LabPhone.TEXT_EXTENSIONS)
+    }
+
+    /** A show whose four words find nothing together: rules2 counts every subset (15), the folders are read once. */
+    @Test
+    fun eachFolderIsListedOncePerDecision() {
+        val root = tmp.newFolder("root")
+        File(root, "Download").mkdirs()
+        File(root, "Documents/Arbeit").mkdirs()
+        File(root, "Download/telekom_rechnung.pdf").writeText("x")
+        File(root, "Documents/Arbeit/vertrag.txt").writeText("steuer")
+        val counter = CommandNetCount(root, "zeig mir telekom rechnung vertrag steuer")
+        val outcome = CommandNetPlan.guarded("zeig mir telekom rechnung vertrag steuer", """{"action":"show"}""",
+            listOf("Download", "Documents", "Documents/Arbeit"), now, counter::count)
+        assertTrue(outcome.toString(), outcome is NetOutcome.Plan)
+        assertEquals("root, Download, Documents, Documents/Arbeit: each read once", 4, counter.listings)
+        // a change reads its one folder once
+        val change = CommandNetCount(root, "verschieb die telekom rechnung vertrag aus download nach documents")
+        CommandNetPlan.guarded("verschieb die telekom rechnung vertrag aus download nach documents",
+            """{"action":"move","source":"Download","destination":"Documents"}""", listOf("Download", "Documents"), now,
+            change::count)
+        assertEquals(1, change.listings)
+    }
+
+    @Test
+    fun aSubsetSearchOver50000FilesIsQuick() {
+        val root = tmp.newFolder("big")
+        for (d in 0 until 50) {
+            val dir = File(root, "Ordner$d").apply { mkdirs() }
+            for (f in 0 until 1000) File(dir, "datei_${d}_$f.txt").createNewFile()
+        }
+        val text = "zeig mir telekom rechnung vertrag steuer versicherung"
+        val counter = CommandNetCount(root, text)
+        val started = System.nanoTime()
+        val outcome = CommandNetPlan.guarded(text, """{"action":"show"}""", (0 until 50).map { "Ordner$it" }, now, counter::count)
+        val ms = (System.nanoTime() - started) / 1_000_000
+        println("subset search over 50,000 files: $ms ms, ${counter.listings} listings, $outcome")
+        assertEquals(51, counter.listings)
+        assertTrue("took $ms ms", ms < 60_000)
+    }
+
+    @Test
     fun termsAreFoldedAndSortsWork() {
         val dir = tmp.newFolder("d")
         fun file(name: String, bytes: Int, time: Long) = File(dir, name).apply { writeBytes(ByteArray(bytes)); setLastModified(time) }

@@ -239,6 +239,14 @@
         <item quantity="one">Nur die größte</item>
         <item quantity="other">Nur die %d größten</item>
     </plurals>
+    <plurals name="ai_filter_limit_oldest">
+        <item quantity="one">Nur die älteste</item>
+        <item quantity="other">Nur die %d ältesten</item>
+    </plurals>
+    <plurals name="ai_filter_limit_smallest">
+        <item quantity="one">Nur die kleinste</item>
+        <item quantity="other">Nur die %d kleinsten</item>
+    </plurals>
     <plurals name="ai_filter_limit_newest">
         <item quantity="one">Nur die neueste</item>
         <item quantity="other">Nur die %d neuesten</item>
@@ -265,7 +273,7 @@
     <string name="ai_net_refuse_rename">Umbenennen per Befehl geht noch nicht. Halte die Datei gedrückt und wähle „Umbenennen“.</string>
     <string name="ai_net_refuse_share">Teilen und Senden geht per Befehl nicht. Halte die Datei gedrückt und wähle „Teilen“.</string>
     <string name="ai_net_refuse_open">Öffnen, Abspielen und Drucken geht per Befehl nicht. Ich kann dir die Datei zeigen, dann tippst du sie an.</string>
-    <string name="ai_net_refuse_restore">Gelöschte Dateien kann ich nicht zurückholen.</string>
+    <string name="ai_net_refuse_restore">Wiederherstellen geht per Befehl nicht. Was du gelöscht hast, liegt im Papierkorb – dort kannst du es zurückholen.</string>
     <string name="ai_net_refuse_edit">Dateien bearbeiten kann ich nicht.</string>
     <string name="ai_show_between">%1$s bis %2$s</string>
     <string name="ai_show_since">seit %1$s</string>
@@ -276,6 +284,10 @@
     <string name="ai_show_without">ohne %1$s</string>
     <string name="ai_show_oldest_first">älteste zuerst</string>
     <string name="ai_show_smallest_first">kleinste zuerst</string>
-    <string name="ai_download_not_published">Dieses Sprachpaket ist noch nicht veröffentlicht. Es kommt mit einem späteren Update.</string>
+    <string name="ai_download_not_published">Der Zusatz für die KI-Befehle ist noch nicht verfügbar. Er kommt mit einem späteren Update.</string>
     <string name="ai_net_none">Ordo kann Dateien finden und zeigen, verschieben, kopieren, aufräumen und in den Papierkorb legen.</string>
+    <string name="ai_net_quoted">„%1$s“</string>
+    <string name="ai_net_dropped">Mit %1$s zusammen habe ich nichts gefunden, darum habe ich nur nach %2$s gesucht.</string>
+    <string name="ai_net_dropped_all">Zu %1$s habe ich nichts gefunden. Ich zeige alles, was sonst passt.</string>
+    <string name="ai_net_count_warning">Du hast %1$d genannt, ich habe %2$d gefunden. Schau dir die Liste bitte genau an.</string>
 </resources>
