@@ -180,7 +180,7 @@ Infrastruktur gebaut; Nutzer bekommen weiter den bisherigen Entwurf.
   Gemessen nur mit dem Testmodell (Qwen3.5-0.8B Q4_K_M, kurzer Test-Prompt, Emulator x86_64, 16.11.2026):
   Datei 20,4 MB, Speichern 179 ms (mit fsync), Wiederherstellen 15 ms statt 312 ms Einlesen, gleiche Antwort; ein
   gekipptes Byte (CRC) und eine halbierte
-  Datei wird abgelehnt (`LlamaEngineTest`). **Für das 4B-Modell mit Prompt K ist die Größe ungemessen**
+  Datei werden abgelehnt (`LlamaEngineTest`). **Für das 4B-Modell mit Prompt K ist die Größe ungemessen**
   (Labor-Schätzung ~160 MB auf dem Tab).
 - **Ohne Modell testen (nur Debug):** `DebugAiActivity` liegt in `app/src/debug` und existiert im Release nicht;
   sie verlangt `android.permission.DUMP`, die nur die adb-Shell hat, keine installierte App.
