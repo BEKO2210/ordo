@@ -1,6 +1,6 @@
 New in this test build:
-• Fixed: the storage figure on the home screen dropped to 0 % and counted up again on every automatic update – it now stays calm
-• The percentage now matches the storage analysis
-• Calmer during long copies: a pause between automatic updates
-From 0.9.0: home updates itself, deliberate pull to refresh, "More" at the thumb, tablet crash fixed
+• AI commands start faster: Ordo keeps the model's instructions, once read, on the device
+• Safer: a file replaced since the preview stays untouched, and Ordo tells you
+• Fixed: "Use mobile data" for the model download did not react after reopening the sheet
+• A second tap no longer throws away the progress of a running download
 Feedback: nullmesh@protonmail.com
