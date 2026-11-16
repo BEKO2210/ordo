@@ -20,6 +20,6 @@
             android:exported="true"
             android:permission="android.permission.DUMP"
             android:excludeFromRecents="true"
-            android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen" />
+            android:theme="@style/Theme.MaterialFiles" />
     </application>
 </manifest>
