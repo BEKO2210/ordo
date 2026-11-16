@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later -->
+<set xmlns:android="http://schemas.android.com/apk/res/android" android:interpolator="@interpolator/ordo_emphasized">
+    <scale android:duration="160" android:fromXScale="0.94" android:toXScale="1" android:fromYScale="0.94" android:toYScale="1"
+        android:pivotX="50%" android:pivotY="50%" />
+    <alpha android:duration="160" android:fromAlpha="0" android:toAlpha="1" />
+</set>

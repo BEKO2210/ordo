@@ -189,4 +189,40 @@
         <item name="android:fontFamily">sans-serif-medium</item>
         <item name="fontFamily">sans-serif-medium</item>
     </style>
+
+    <!-- Window animations of Ordo's popup menus and dialogs. The android: item names are the platform's. -->
+    <style name="Animation.Ordo.PopupMenu" parent="">
+        <item name="android:windowEnterAnimation">@anim/ordo_popup_enter</item>
+        <item name="android:windowExitAnimation">@anim/ordo_popup_exit</item>
+    </style>
+    <style name="Animation.Ordo.Dialog" parent="">
+        <item name="android:windowEnterAnimation">@anim/ordo_dialog_enter</item>
+        <item name="android:windowExitAnimation">@anim/ordo_dialog_exit</item>
+    </style>
+
+    <style name="Widget.Ordo.Material3.PopupMenu" parent="Widget.Material3.PopupMenu">
+        <item name="android:popupAnimationStyle">@style/Animation.Ordo.PopupMenu</item>
+    </style>
+    <style name="Widget.Ordo.Material3.PopupMenu.Overflow" parent="Widget.Material3.PopupMenu.Overflow">
+        <item name="android:popupAnimationStyle">@style/Animation.Ordo.PopupMenu</item>
+    </style>
+    <style name="Widget.Ordo.MaterialComponents.PopupMenu" parent="Widget.MaterialComponents.PopupMenu">
+        <item name="android:popupAnimationStyle">@style/Animation.Ordo.PopupMenu</item>
+    </style>
+    <style name="Widget.Ordo.MaterialComponents.PopupMenu.Overflow" parent="Widget.MaterialComponents.PopupMenu.Overflow">
+        <item name="android:popupAnimationStyle">@style/Animation.Ordo.PopupMenu</item>
+    </style>
+
+    <style name="ThemeOverlay.Ordo.Material3.Dialog.Alert" parent="ThemeOverlay.Material3.Dialog.Alert">
+        <item name="android:windowAnimationStyle">@style/Animation.Ordo.Dialog</item>
+    </style>
+    <style name="ThemeOverlay.Ordo.MaterialComponents.Dialog.Alert" parent="ThemeOverlay.MaterialComponents.Dialog.Alert">
+        <item name="android:windowAnimationStyle">@style/Animation.Ordo.Dialog</item>
+    </style>
+    <style name="ThemeOverlay.Ordo.Material3.MaterialAlertDialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">
+        <item name="android:windowAnimationStyle">@style/Animation.Ordo.Dialog</item>
+    </style>
+    <style name="ThemeOverlay.Ordo.MaterialComponents.MaterialAlertDialog" parent="ThemeOverlay.MaterialComponents.MaterialAlertDialog">
+        <item name="android:windowAnimationStyle">@style/Animation.Ordo.Dialog</item>
+    </style>
 </resources>

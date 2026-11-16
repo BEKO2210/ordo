@@ -11,7 +11,8 @@
     android:layout_width="match_parent"
     android:layout_height="?listPreferredItemHeightSmall"
     android:gravity="center_vertical"
-    android:orientation="horizontal">
+    android:orientation="horizontal"
+    android:stateListAnimator="@animator/ordo_row_press">
 
     <ImageView
         android:id="@+id/iconImage"
