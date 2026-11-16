@@ -440,7 +440,7 @@ class AudioPlayerActivity : AppActivity() {
             button,
             ColorStateList.valueOf(
                 themeColor(
-                    if (active) com.google.android.material.R.attr.colorPrimary
+                    if (active) androidx.appcompat.R.attr.colorPrimary
                     else com.google.android.material.R.attr.colorOnSurface
                 )
             )
