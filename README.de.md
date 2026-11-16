@@ -34,7 +34,7 @@
 
 ## Stand
 
-Ordo ist in Entwicklung (Version 0.8.1) und noch nicht bei Google Play. Testversionen erscheinen als
+Ordo ist in Entwicklung (Version 0.9.0). Bei Google Play läuft ein geschlossener Test; Testversionen erscheinen auch als
 [Pre-Releases](https://github.com/BEKO2210/ordo/releases); du kannst Ordo auch [selbst bauen](#bauen).
 Was als Nächstes kommt, steht in der [lebenden Roadmap](docs/ROADMAP-LIVE.md): Jedes Ziel hat einen Prüfbefehl und schließt sich selbst.
 
@@ -44,6 +44,11 @@ Was als Nächstes kommt, steht in der [lebenden Roadmap](docs/ROADMAP-LIVE.md): 
 
 - Startseite mit zuletzt verwendeten Dateien, Kategorien (Bilder, Videos, Audio, Dokumente, Downloads, APKs,
   Archive) und Speicher auf einen Blick
+- Die Startseite hält sich selbst aktuell: neue, geänderte oder gelöschte Dateien erscheinen von allein, 50 neue
+  Dateien auf einmal laden sie einmal neu (gemessen im Emulator, 16.11.2026), und im Hintergrund läuft nichts.
+  Herunterziehen aktualisiert weiterhin, aber nur gewollt: vom Seitenanfang aus und 120 dp weit (vorher reichten
+  64 dp, auch beim Zurückscrollen). Ein Ordner-Piktogramm folgt dem Finger, füllt sich, sobald Loslassen
+  aktualisiert, dreht sich beim Laden und endet mit einem Haken; „Aktualisieren“ im Menü geht auch ohne Geste
 - Eine schlanke Glas-Leiste: Seitenmenü, Suche, KI-Befehl und Optionen in einer Zeile, oben oder unten
 - Dasselbe Seitenmenü auf der Startseite und in der Dateiliste: Speicher, Ordner, Lesezeichen und alle Werkzeuge
 - Suche nach Namen oder nach Text in Dateien, auf Wunsch mit regulären Ausdrücken
@@ -95,6 +100,7 @@ Was als Nächstes kommt, steht in der [lebenden Roadmap](docs/ROADMAP-LIVE.md): 
 - Ordos eigene Farben auf jedem Handy, in fünf Akzenten, oder die Farben deines Hintergrundbilds (ab Android 12)
 - Hell, dunkel und echtes Schwarz; Animationen voll, dezent oder aus
 - Die Suchleiste der Startseite oben oder unten, mit dem Daumen erreichbar
+- Bei ausgewählten Dateien liegen die Aktionen in einer Leiste unten; ihr „Mehr“-Menü öffnet direkt darüber, beim Daumen
 
 ## KI-Befehle
 

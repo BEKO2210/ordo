@@ -1,0 +1,6 @@
+New in this test build:
+• The home screen updates itself when files change
+• Pull to refresh only when you mean it, with a new animated symbol
+• "More" for selected files opens right above the bar, next to your thumb
+• Fixed: crash on tablets in landscape when selecting a file
+Feedback: nullmesh@protonmail.com

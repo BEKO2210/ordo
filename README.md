@@ -34,7 +34,7 @@
 
 ## Status
 
-Ordo is in development (version 0.8.1). It is not on Google Play yet. Test builds are published as
+Ordo is in development (version 0.9.0). A closed test runs on Google Play; test builds are also published as
 [pre-releases](https://github.com/BEKO2210/ordo/releases); you can also [build it from source](#build).
 What comes next is in the [living roadmap](docs/ROADMAP-LIVE.md): every goal has a check command and closes itself.
 
@@ -44,6 +44,11 @@ What comes next is in the [living roadmap](docs/ROADMAP-LIVE.md): every goal has
 
 - Home screen with recent files, categories (images, videos, audio, documents, downloads, APKs, archives) and
   storage at a glance
+- The home screen keeps itself up to date: new, changed or deleted files show up on their own, a burst of 50 new
+  files reloads it once (measured on the emulator, 16.11.2026), and nothing runs while it is hidden. Pulling down
+  still refreshes, but only on purpose: from the top of the page and 120 dp far (the stock gesture fired after 64 dp,
+  also when scrolling back up). A folder pictogram follows the finger, fills when letting go would refresh, spins
+  while loading and ends with a check; "Refresh" in the menu does the same without the gesture
 - One slim glass bar: side menu, search, AI command and options in a single row, at the top or at the bottom
 - The same side menu on the home screen and in the file list: storage, folders, bookmarks and all tools
 - Search by name or by text inside files, with regular expressions if you need them
@@ -94,6 +99,7 @@ What comes next is in the [living roadmap](docs/ROADMAP-LIVE.md): every goal has
 - Ordo's own colours on every phone, in five accents, or your wallpaper's colours (Android 12 and later)
 - Light, dark and true black; motion full, subtle or off
 - The home search bar at the top or at the bottom, within thumb reach
+- With files selected, the actions sit in a bar at the bottom; its "More" menu opens right above it, next to the thumb
 
 ## AI commands
 

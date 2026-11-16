@@ -31,6 +31,7 @@ import androidx.core.view.updateLayoutParams
 import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.commit
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -162,6 +163,11 @@ class HomeFragment : Fragment(), ShowRequestAllFilesAccessRationaleDialogFragmen
                 }
                 R.id.action_show_quick_access ->
                     Settings.HOME_SHOW_QUICK_ACCESS.putValue(!it.isChecked)
+                R.id.action_refresh -> {
+                    binding.swipeRefreshLayout.isRefreshing = true
+                    replayBars = true
+                    viewModel.reload()
+                }
                 R.id.action_settings -> startActivity(SettingsActivity::class.createIntent())
                 R.id.action_legal -> startActivity(LegalActivity::class.createIntent())
                 else -> return@setOnMenuItemClickListener false
@@ -194,6 +200,8 @@ class HomeFragment : Fragment(), ShowRequestAllFilesAccessRationaleDialogFragmen
             updateMenu()
         }
         binding.permissionButton.setOnClickListener { requestStorageAccess() }
+        // The home screen updates itself (onStart, onResume); pulling down is only for when someone means it.
+        binding.swipeRefreshLayout.useDeliberatePull((PULL_TRIGGER_DP * resources.displayMetrics.density).toInt())
         binding.swipeRefreshLayout.setOnRefreshListener {
             replayBars = true
             viewModel.reload()
@@ -210,7 +218,8 @@ class HomeFragment : Fragment(), ShowRequestAllFilesAccessRationaleDialogFragmen
             quickAccessAdapter.items = homeState.quickAccess
             applyHomeLayout()
             updateRecentEmpty()
-            binding.swipeRefreshLayout.isRefreshing = homeState.isLoading
+            // Only a pull (or the menu entry) shows the pictogram; updates on their own stay silent.
+            if (!homeState.isLoading) binding.swipeRefreshLayout.finishRefreshing()
             // After a pull to refresh the storage bars grow in again, also when the numbers did not change.
             if (replayBars && !homeState.isLoading) {
                 replayBars = false
@@ -415,6 +424,16 @@ class HomeFragment : Fragment(), ShowRequestAllFilesAccessRationaleDialogFragmen
         )
     }
 
+    override fun onStart() {
+        super.onStart()
+        viewModel.watchChanges(hasStorageAccess())
+    }
+
+    override fun onStop() {
+        super.onStop()
+        viewModel.watchChanges(false)
+    }
+
     override fun onResume() {
         super.onResume()
         binding.permissionCard.isVisible = !hasStorageAccess()
@@ -482,6 +501,8 @@ class HomeFragment : Fragment(), ShowRequestAllFilesAccessRationaleDialogFragmen
     private fun onStorageAccessResult() {
         binding.permissionCard.isVisible = !hasStorageAccess()
         if (hasStorageAccess()) viewModel.reload()
+        // Android 7 to 10 only pause the screen for the permission dialog: onStart does not run again.
+        if (lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) viewModel.watchChanges(hasStorageAccess())
     }
 
     override fun onDestroyView() {
@@ -495,5 +516,7 @@ class HomeFragment : Fragment(), ShowRequestAllFilesAccessRationaleDialogFragmen
         private const val RECENT_VIEW_ROW = "row"
         private const val RECENT_VIEW_HIDDEN = "hidden"
         private const val HEADER_POSITION_BOTTOM = "bottom"
+        // Finger travel before letting go refreshes; the stock 64 dp fired by accident while scrolling.
+        private const val PULL_TRIGGER_DP = 120
     }
 }
