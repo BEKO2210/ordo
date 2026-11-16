@@ -46,11 +46,14 @@ a shell rm -f "$FILES/rules-golden.json"
 # --- the net designs on ICU (debug builds only): rules2.decide (Guarded) and rules3.decide (Tuned)
 for NET in guarded tuned; do
     FIXTURE="$HERE/../app/src/test/resources/ai/$NET-golden.json.gz"
-    a push "$FIXTURE" "$FILES/" >/dev/null
-    a logcat -c
-    if a shell am start -n "$PKG/$DEBUG" --es golden_$NET $NET-golden.json.gz 2>&1 | grep -q "does not exist"; then
+    # Same decision as above, by the package flag: a build without DebugAiActivity never answers, and waiting for
+    # it cost 15 minutes per net and ended in a false FAIL.
+    if ! a shell dumpsys package "$PKG" | grep -q "flags=\[.*DEBUGGABLE"; then
         echo "SKIP $NET net on ICU: not a debug build"
     else
+        a push "$FIXTURE" "$FILES/" >/dev/null
+        a logcat -c
+        a shell am start -n "$PKG/$DEBUG" --es golden_$NET $NET-golden.json.gz >/dev/null 2>&1
         # thousands of cases on an emulator CPU: give it time
         for _ in $(seq 900); do line=$(a logcat -d -s OrdoGolden:I | grep -m1 -E "$NET .*(equal|failed)"); [ -n "$line" ] && break; sleep 1; done
         echo "   ${line:-no answer}"
