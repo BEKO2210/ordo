@@ -176,6 +176,7 @@ def filt(pool, plan, text, history=()):
            and (not older or f["mtime"] < NOW - older * DAY)
            and (not newer or f["mtime"] >= since)
            and (not mb or f["size"] > mb * 1_000_000)
+           and (not plan.get("_today") or f["mtime"] >= datetime.fromtimestamp(NOW).replace(hour=0, minute=0).timestamp())
            and (not plan.get("_month") or datetime.fromtimestamp(f["mtime"]).strftime("%Y-%m") == plan["_month"])]
     if plan.get("_opened_before"):
         last = {}
@@ -251,6 +252,9 @@ def gold_paths(spec, tree, history, session_results, text):
     if kind == "tag":
         tag, _, minus = arg.partition("-")
         return sorted(f["path"] for f in tree.files if tag in f["tags"] and f["path"] != minus)
+    if kind == "tags":   # all of several ground-truth tags (old lab: "lissabon" + "photo")
+        need = arg.split("+")
+        return sorted(f["path"] for f in tree.files if all(t in f["tags"] for t in need))
     if kind == "name":
         word, _, minus = arg.partition("-")
         return sorted(f["path"] for f in tree.files if word in f["path"].rsplit("/", 1)[-1] and f["path"] != minus)
@@ -293,6 +297,8 @@ def judge(case, plan, res, tree, history, session_results):
     ok = False
     if gold.get("none_ok"):
         ok = not acted
+    elif gold.get("none_too") and not acted:
+        ok = True
     elif act == gold["action"] and acted:
         for how, w in want:
             if how == "set" and set(got) == set(w) and w:
