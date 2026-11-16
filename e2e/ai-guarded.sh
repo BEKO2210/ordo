@@ -45,13 +45,14 @@ cold() {
     ui wait commandEdit 900 >/dev/null || return 1
     wait_log "prompt (read|state restored)" 1800
 }
-# Opens the sheet again after a result list or an answer (the model stays loaded).
+# A fresh sheet for every command, whatever the last one left open (a list, a preview, a hint): the app is restarted
+# and the model loads from its saved prompt state (seconds), so no step depends on the screen before it.
 reopen() {
-    on filelist.FileListActivity && back
-    ui has commandEdit && return 0
-    ui has editButton && { ui tap editButton >/dev/null; sleep 1; return 0; }
-    ui has assistantButton || { back; sleep 1; }
-    ui tap assistantButton >/dev/null; ui wait commandEdit 60 >/dev/null
+    a shell am force-stop "$PKG"; a logcat -c
+    launch
+    ui tap assistantButton >/dev/null
+    ui wait commandEdit 120 >/dev/null
+    wait_log "prompt (read|state restored)" 600
 }
 # ask TEXT [model]: types the command (ASCII: adb cannot type umlauts). With "model" it waits for the model's answer;
 # without, it only waits for the sheet to react (a refusal before the model).
