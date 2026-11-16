@@ -193,10 +193,14 @@ check "dropped words: preview with confirm" ui wait confirmButton 20
 check "dropped words: the note says what was left out" on_screen "zusammen habe ich nichts gefunden|together, so I only searched"
 shot guarded-dropped-de
 
-# --- one decision over the whole storage with three content words: the counting time (emulator CPU)
+# --- one decision over the whole storage with three content words: the counting time (emulator CPU). A phone has
+# thousands of files: 18,000 of the script's own (180 folders, every tenth a text file), removed at the end.
+a shell 'M=/sdcard/OrdoKiMasse; mkdir -p $M; for d in $(seq 1 180); do mkdir -p $M/o$d; cd $M/o$d;
+    for f in $(seq 1 100); do if [ $((f % 10)) = 0 ]; then echo "Notiz $d $f Einkauf Urlaub" > n$f.txt; else : > b$f.jpg; fi; done; done'
 ask "Zeig mir alles mit Steuer Versicherung Telekom"
+wait_log "net decision in" 600
 COUNTING=$(log | grep -oE 'net decision in [0-9]+ ms, [0-9]+ folders listed' | tail -1)
-echo "  whole storage, 3 words: ${COUNTING:-not logged}; files on the device: $(a shell 'find /sdcard -type f 2>/dev/null | wc -l' | tr -d '\r')"
+echo "  whole storage, 3 words: ${COUNTING:-not logged}; files on the device: $(a shell 'find /sdcard/ -type f 2>/dev/null | wc -l' | tr -d '\r')"
 check "whole storage: the counting time is logged" test -n "$COUNTING"
 # closing the sheet while the net counts stops the walk
 reopen; a logcat -c
@@ -246,5 +250,5 @@ echo "  answer times (emulator CPU): ${TIMES[*]}"
 
 a shell am force-stop "$PKG"
 run_as rm -rf "$STATE"
-a shell "rm -rf $T $Z /sdcard/ordoai-ui.xml; rm -f $D/ordoai_* $MODELS/ordo-commands-1.gguf"
+a shell "rm -rf $T $Z /sdcard/OrdoKiMasse /sdcard/ordoai-ui.xml; rm -f $D/ordoai_* $MODELS/ordo-commands-1.gguf"
 finish
