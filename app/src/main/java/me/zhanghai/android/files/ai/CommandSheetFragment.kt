@@ -7,6 +7,7 @@ package me.zhanghai.android.files.ai
 
 import android.content.Context
 import android.content.res.ColorStateList
+import android.graphics.drawable.GradientDrawable
 import android.os.Build
 import android.os.Bundle
 import android.os.SystemClock
@@ -26,6 +27,7 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.TextView
 import android.widget.Toast
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.ColorUtils
 import androidx.core.view.isVisible
 import androidx.core.widget.TextViewCompat
 import androidx.lifecycle.lifecycleScope
@@ -38,6 +40,7 @@ import com.google.android.material.color.MaterialColors
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.transition.MaterialFadeThrough
 import java8.nio.file.Paths
+import java.util.function.Consumer
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -188,6 +191,8 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
         }
     }
 
+    private var blurListener: Consumer<Boolean>? = null
+
     override fun onStart() {
         super.onStart()
         val dialog = dialog as BottomSheetDialog
@@ -195,14 +200,39 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
         dialog.behavior.state = BottomSheetBehavior.STATE_EXPANDED
         dialog.findViewById<View>(com.google.android.material.R.id.design_bottom_sheet)
             ?.setBackgroundResource(R.drawable.ai_sheet_background)
-        dialog.window?.apply {
-            setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                addFlags(WindowManager.LayoutParams.FLAG_BLUR_BEHIND)
-                attributes = attributes.apply {
-                    blurBehindRadius = (28 * resources.displayMetrics.density).toInt()
-                }
-            }
+        dialog.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val windowManager = requireContext().getSystemService(WindowManager::class.java)
+            applyBlur(windowManager.isCrossWindowBlurEnabled)
+            // Blur can go away while the sheet is open, e.g. when battery saver turns on.
+            val listener = Consumer<Boolean> { applyBlur(it) }
+            windowManager.addCrossWindowBlurEnabledListener(listener)
+            blurListener = listener
+        } else {
+            applyBlur(false)
+        }
+    }
+
+    override fun onStop() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            blurListener?.let { requireContext().getSystemService(WindowManager::class.java).removeCrossWindowBlurEnabledListener(it) }
+            blurListener = null
+        }
+        super.onStop()
+    }
+
+    /** Glass with blur behind it; opaque without, because the glass alone lets the text below shine through sharp. */
+    private fun applyBlur(blur: Boolean) {
+        val dialog = dialog ?: return
+        val glass = ContextCompat.getColor(requireContext(), R.color.ai_sheet_glass)
+        (dialog.findViewById<View>(com.google.android.material.R.id.design_bottom_sheet)?.background?.mutate() as? GradientDrawable)
+            ?.setColor(if (blur) glass else ColorUtils.setAlphaComponent(glass, 255))
+        val window = dialog.window ?: return
+        if (blur && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            window.addFlags(WindowManager.LayoutParams.FLAG_BLUR_BEHIND)
+            window.attributes = window.attributes.apply { blurBehindRadius = (28 * resources.displayMetrics.density).toInt() }
+        } else {
+            window.clearFlags(WindowManager.LayoutParams.FLAG_BLUR_BEHIND)
         }
     }
 

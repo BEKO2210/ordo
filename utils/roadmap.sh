@@ -84,6 +84,69 @@ cell "Version 1.0.0 im Play Store" \
     "Produktion bei Google Play, Tag v1.0.0." \
     "Geschlossener Test bei Google Play bestanden" "Name endgültig"
 
+# ---- Quality after the first release ----------------------------------------------------------------------------
+cell "KI: neue Befehle als Vorschau zum Einschalten" \
+    "grep -q 'AI_PREVIEW' app/src/main/java/me/zhanghai/android/files/settings/Settings.kt" \
+    "Das neue Befehlsverständnis (Zeigen, Suchen, Rückfragen) als Schalter in den Einstellungen, standardmäßig aus."
+cell "KI-Vorschau mit eigenen Sätzen aus dem Alltag geprüft" \
+    "test -s docs/KI-VORSCHAU-PRAXIS.md" \
+    "20 bis 30 eigene Sätze von Belkis auf Pixel und Tab; Treffer, Fehlgriffe und Zeiten mit Datum in docs/KI-VORSCHAU-PRAXIS.md. Erst danach entscheiden, ob die Vorschau Standard wird." \
+    "KI: neue Befehle als Vorschau zum Einschalten"
+cell "KI-Blatt lesbar ohne Unschärfe-Effekt" \
+    "grep -q 'isCrossWindowBlurEnabled' app/src/main/java/me/zhanghai/android/files/ai/CommandSheetFragment.kt" \
+    "Auf Geräten ohne Fenster-Unschärfe (Galaxy Tab S9 Ultra) ist das KI-Blatt deckend; der Griff ist schmal mit runder Markierung."
+cell "Einstellungen bildlich: Symbol an jedem Eintrag, Auswahl mit Bildern" \
+    "test -f app/src/main/java/me/zhanghai/android/files/settings/VisualListPreference.kt && test -f e2e/settings-visual.sh" \
+    "Jeder Eintrag der Einstellungen hat ein Symbol; Nachtmodus, Animationen und die übrigen Listen zeigen Bilder statt Text (Sonne, Mond, Vorschau). Auf dem echten Tablet gefilmt und geprüft."
+cell "Bewegung aus einem Guss: Menüs, Dialoge, Piktogramme" \
+    "grep -q 'ThemeOverlay.Ordo.Material3.NoMotion' app/src/main/res/values/styles.xml && ls app/src/main/res/drawable/settings_pictogram_*.xml >/dev/null 2>&1" \
+    "Menüs, Dialoge und Seitenmenü öffnen und schließen einheitlich; Piktogramme der Einstellungen bewegen sich ruhig. Alles folgt Einstellungen > Aussehen > Animationen und dem Systemschalter."
+
+# ---- Everything opens and can be edited inside Ordo, one building block at a time --------------------------------
+cell "Stand der Technik für Medien belegt" \
+    "test -s docs/MEDIEN-RECHERCHE.md" \
+    "Für Musik, Video, PDF, Markdown und Office je Baustein: beste Bibliothek, Version, Lizenz (verträglich mit GPL-3.0), 16-KB-Seiten, Quelle an der Originalstelle geprüft. Keine Blogs. Ergebnis in docs/MEDIEN-RECHERCHE.md."
+cell "Musik-Player: Audio direkt in Ordo abspielen" \
+    "ls app/src/main/java/me/zhanghai/android/files/viewer/audio/*.kt >/dev/null 2>&1 && grep -q 'mediaPlayback' app/src/main/AndroidManifest.xml" \
+    "MP3 und alle gängigen Formate, Wiedergabe im Hintergrund mit Benachrichtigung, Sperrbildschirm und Kopfhörertasten, Warteschlange, lückenlos, Titelbild und Texte. Auf Pixel und Tab geprüft." \
+    "Stand der Technik für Medien belegt"
+cell "Musik-Player als eigenes App-Symbol zum Einschalten" \
+    "grep -q 'activity-alias' app/src/main/AndroidManifest.xml && grep -rq 'setComponentEnabledSetting' app/src/main/java/me/zhanghai/android/files/" \
+    "Schalter in den Einstellungen: Ordo Musik bekommt ein eigenes Symbol auf dem Startbildschirm und lässt sich dort wieder ausschalten. Verhalten auf Pixel und Samsung gemessen." \
+    "Musik-Player: Audio direkt in Ordo abspielen"
+cell "Video-Player: Filme direkt in Ordo ansehen" \
+    "ls app/src/main/java/me/zhanghai/android/files/viewer/video/*.kt >/dev/null 2>&1" \
+    "Alle gängigen Formate, Untertitel, Tonspur-Wahl, Bild-im-Bild, Tempo, Gesten für Helligkeit und Lautstärke; als eigenes Symbol einschaltbar wie der Musik-Player." \
+    "Stand der Technik für Medien belegt" "Musik-Player als eigenes App-Symbol zum Einschalten"
+cell "PDF-Leser: suchen, markieren, Nachtmodus" \
+    "grep -rq 'fun search' app/src/main/java/me/zhanghai/android/files/viewer/pdf/" \
+    "Der vorhandene PDF-Betrachter wird ein Leser: Textsuche, Text markieren und kopieren, Lesezeichen, Nachtmodus, zuletzt gelesene Seite." \
+    "Stand der Technik für Medien belegt"
+cell "Markdown lesen und schreiben" \
+    "ls app/src/main/java/me/zhanghai/android/files/viewer/markdown/*.kt >/dev/null 2>&1" \
+    "MD-Dateien schön gesetzt lesen (Tabellen, Aufgabenlisten, Code) und mit Vorschau bearbeiten." \
+    "Stand der Technik für Medien belegt"
+cell "Bildbetrachter auf Spitzenniveau" \
+    "grep -rqi 'ultrahdr\\|gainmap\\|Gainmap' app/src/main/java/me/zhanghai/android/files/viewer/image/ && test -f e2e/image-viewer.sh" \
+    "Der vorhandene Bildbetrachter wird neu gemessen und ausgebaut: alle aktuellen Formate (HEIC, AVIF, WebP, Ultra HDR, RAW soweit belegt), flüssiges Zoomen auch bei riesigen Bildern, Bildinfos, Drehen und Zuschneiden ohne Qualitätsverlust, schöne Übergänge. Auf Pixel und Tab geprüft." \
+    "Stand der Technik für Medien belegt"
+cell "PDF bearbeiten: markieren, kommentieren, Formulare, Seiten ordnen" \
+    "test -s docs/PDF-BEARBEITEN.md && grep -rq 'fun save' app/src/main/java/me/zhanghai/android/files/viewer/pdf/" \
+    "Nach dem Leser: Text markieren und kommentieren, Formulare ausfüllen, Seiten drehen, löschen und zusammenfügen. Bibliothek mit verträglicher Lizenz aus der Recherche; Entscheidung und Grenzen in docs/PDF-BEARBEITEN.md." \
+    "PDF-Leser: suchen, markieren, Nachtmodus"
+cell "Jede gängige Datei öffnen, lesen und schreiben – und es sieht gut aus" \
+    "test -s docs/DATEITYPEN.md && ls app/src/main/java/me/zhanghai/android/files/viewer/data/*.kt >/dev/null 2>&1" \
+    "Liste aller Dateitypen, die auf einem Handy heute vorkommen (JSON, YAML, XML, CSV, TOML, Logs, Code, Markdown, Untertitel, E-Books …), in docs/DATEITYPEN.md: was Ordo heute damit tut und was es können soll. Dann je Gruppe ein eigener, schöner Betrachter und Editor (Baumansicht für JSON, Tabelle für CSV, farbiger Code), kein nackter Text." \
+    "Markdown lesen und schreiben"
+cell "Eingebaute Apps entkoppeln: jede als eigenes App-Symbol, einzeln schaltbar" \
+    "test -f app/src/main/java/me/zhanghai/android/files/settings/LauncherIconsPreferenceFragment.kt && [ \"\$(grep -c '<activity-alias' app/src/main/AndroidManifest.xml)\" -ge 3 ]" \
+    "Eine Seite in den Einstellungen mit einem Schalter je eingebauter App (Musik, Video, Bilder, PDF, Notizen): eingeschaltet bekommt sie ein eigenes Symbol und einen eigenen Namen auf dem Startbildschirm und öffnet direkt ihre Ansicht. Erst freischalten, wenn die jeweilige App gut genug ist. Ein Mechanismus für alle, auf Pixel und Samsung gemessen." \
+    "Musik-Player als eigenes App-Symbol zum Einschalten" "Video-Player: Filme direkt in Ordo ansehen"
+cell "Dokumente bearbeiten: Entscheidung für Office-Formate" \
+    "test -s docs/OFFICE-ENTSCHEIDUNG.md" \
+    "DOCX, XLSX, PPTX und ODT: ehrlich klären, was auf dem Gerät ohne Cloud in Spitzenqualität geht (ansehen, bearbeiten, gar nicht), mit Größe und Lizenz. Entscheidung von Belkis in docs/OFFICE-ENTSCHEIDUNG.md." \
+    "Markdown lesen und schreiben"
+
 # ---- The release cycle: opens again after every release, for ever -----------------------------------------------
 LAST=$($TAG 'refs/tags/v[0-9]*' | sed -n 's|.*refs/tags/v\([0-9.]*\)$|\1|p' | sort -V | tail -1)
 if [ -n "$LAST" ]; then

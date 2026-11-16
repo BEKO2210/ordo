@@ -18,9 +18,15 @@
         android:paddingHorizontal="24dp"
         android:paddingBottom="24dp">
 
+        <!-- Only as wide as its touch target, with the rounded house highlight: with a keyboard the default focus
+             highlight was a pale band across the sheet. -->
         <com.google.android.material.bottomsheet.BottomSheetDragHandleView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:id="@+id/dragHandle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:background="@drawable/ordo_row_ripple"
+            android:minWidth="48dp" />
 
         <LinearLayout
             android:id="@+id/headerLayout"
