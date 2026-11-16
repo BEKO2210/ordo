@@ -55,7 +55,12 @@ class CommandNetPlanTest {
 
     @Test
     fun releaseBuildsKeepTodayUntilTheSwitch() {
-        assertTrue("the release switch ships off", !CommandDesign.RELEASE_GUARDED)
+        // release: the preview setting decides (off by default); debug: DebugAiActivity may override it
+        assertEquals(CommandDesign.Today, CommandDesign.select(preview = false, pick = null, showKr = false))
+        assertEquals(CommandDesign.Guarded, CommandDesign.select(preview = true, pick = null, showKr = false))
+        assertEquals(CommandDesign.Today, CommandDesign.select(preview = true, pick = "today", showKr = false))
+        assertEquals(CommandDesign.Tuned, CommandDesign.select(preview = false, pick = "tuned", showKr = false))
+        assertEquals(CommandDesign.KR, CommandDesign.select(preview = true, pick = null, showKr = true))
         assertNull(CommandDesign.Today.decide("x", "{}", folders, now) { 0 })
         assertEquals(42_485_408L, CommandDesign.Tuned.adapter.size)
     }

@@ -290,4 +290,9 @@
     <string name="ai_net_dropped">Mit %1$s zusammen habe ich nichts gefunden, darum habe ich nur nach %2$s gesucht.</string>
     <string name="ai_net_dropped_all">Zu %1$s habe ich nichts gefunden. Ich zeige alles, was sonst passt.</string>
     <string name="ai_net_count_warning">Du hast %1$d genannt, ich habe %2$d gefunden. Schau dir die Liste bitte genau an.</string>
+    <!-- Two new kinds of commands, shown first while the preview (Settings › AI assistant) is on -->
+    <string-array name="ai_examples_preview">
+        <item>Zeig mir die PDFs von letzter Woche</item>
+        <item>Wo ist meine Handyrechnung?</item>
+    </string-array>
 </resources>

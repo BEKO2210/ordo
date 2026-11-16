@@ -7,6 +7,8 @@ package me.zhanghai.android.files.ai
 
 import android.content.Context
 import me.zhanghai.android.files.BuildConfig
+import me.zhanghai.android.files.settings.Settings
+import me.zhanghai.android.files.util.valueCompat
 import java.time.LocalDateTime
 
 /**
@@ -56,7 +58,7 @@ interface CommandDesign {
     /**
      * Prompt C + the frozen net rules2.decide (lab 430da086), with "show". Blind tests on the lab phone: 29/50 (blind 2)
      * and 45/60 (blind 3) correct, 0 dangerous; today's design 16/50 and 11/60 with 8 and 15 dangerous plans.
-     * Debug builds only until [RELEASE_GUARDED] is switched on.
+     * Users get it only when they turn on the preview in the settings (off by default).
      */
     object Guarded : CommandDesign {
         override val system = CommandNetLexicon.SYSTEM_C
@@ -96,24 +98,25 @@ interface CommandDesign {
         private const val KEY_DESIGN = "design"
 
         /**
-         * THE release switch: true makes [Guarded] (prompt C + net, with "show") the design of release builds. Off until
-         * the review; with it off, release builds run [Today] exactly as before. A debug build follows it too, unless
-         * DebugAiActivity picked a design.
+         * The design for the next command: [Guarded] when the user turned on the preview (Settings › AI assistant,
+         * off by default), else [Today]. Debug builds may override it through DebugAiActivity.
          */
-        const val RELEASE_GUARDED = false
-
-        // BuildConfig.DEBUG is a constant: in a release build only the switch above counts, the rest is compiled out.
         fun current(context: Context): CommandDesign {
-            if (!BuildConfig.DEBUG) return if (RELEASE_GUARDED) Guarded else Today
+            val preview = Settings.AI_PREVIEW.valueCompat
+            // BuildConfig.DEBUG is a constant: in a release build the debug override is compiled out.
+            if (!BuildConfig.DEBUG) return select(preview, null, false)
             val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-            val base = when (prefs.getString(KEY_DESIGN, null)) {
-                "today" -> Today
-                "kr" -> KR
-                "guarded" -> Guarded
-                "tuned" -> Tuned
-                else -> if (prefs.getBoolean(KEY_SHOW, false)) KR else if (RELEASE_GUARDED) Guarded else Today
-            }
+            val base = select(preview, prefs.getString(KEY_DESIGN, null), prefs.getBoolean(KEY_SHOW, false))
             return prefs.getString(KEY_ADAPTER, null)?.let { parseAdapter(it) }?.let { WithAdapter(base, it) } ?: base
+        }
+
+        /** [pick] and [showKr]: the debug overrides (DebugAiActivity), null and false in a release build. */
+        internal fun select(preview: Boolean, pick: String?, showKr: Boolean): CommandDesign = when (pick) {
+            "today" -> Today
+            "kr" -> KR
+            "guarded" -> Guarded
+            "tuned" -> Tuned
+            else -> if (showKr) KR else if (preview) Guarded else Today
         }
 
         /** "file name,size,sha256[,url]", as DebugAiActivity takes it; null when malformed. */

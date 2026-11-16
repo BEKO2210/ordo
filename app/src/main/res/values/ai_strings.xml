@@ -291,4 +291,9 @@
     <string name="ai_net_dropped">I found nothing with %1$s together, so I only searched for %2$s.</string>
     <string name="ai_net_dropped_all">I found nothing for %1$s, so I’m showing everything else that matches.</string>
     <string name="ai_net_count_warning">You said %1$d, but I found %2$d. Please check the list carefully.</string>
+    <!-- Two new kinds of commands, shown first while the preview (Settings › AI assistant) is on -->
+    <string-array name="ai_examples_preview">
+        <item>Show me last week’s PDFs</item>
+        <item>Where is my phone bill?</item>
+    </string-array>
 </resources>

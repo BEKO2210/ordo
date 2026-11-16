@@ -40,6 +40,8 @@
         <item>Off</item>
     </string-array>
 
+    <string name="settings_ai_preview_title">Try new commands (preview)</string>
+    <string name="settings_ai_preview_summary">Finds and shows files (“Show me …”, “Where is …”), understands dates and sizes, and asks when it isn’t sure. It’s a preview and can be wrong. Nothing changes without your confirmation.</string>
     <string name="settings_ai_speed_title">Speed</string>
     <string-array name="settings_ai_speed_entries">
         <item>Turbo – fastest, stays ready longer</item>

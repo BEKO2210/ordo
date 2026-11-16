@@ -99,7 +99,9 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
                 )
             }
         }
-        resources.getStringArray(R.array.ai_examples).forEach { example ->
+        // While the preview is on, two of the new kinds of commands come first; otherwise the examples as before.
+        val preview = if (design === CommandDesign.Guarded) resources.getStringArray(R.array.ai_examples_preview).toList() else emptyList()
+        (preview + resources.getStringArray(R.array.ai_examples)).forEach { example ->
             binding.exampleChips.addView(glassChip(example).apply {
                 setOnClickListener {
                     binding.commandEdit.setText(example)

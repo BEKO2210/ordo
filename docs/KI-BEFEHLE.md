@@ -199,9 +199,13 @@ selbst ein Löschen.
 - **Guarded** = Prompt C (`phase0c.py`, 464 Token statt 754 beim heutigen Prompt) + `rules2.decide` (alle Regeln,
   Labor-Stand 430da086), mit „Zeigen“. Kein Zusatz-Download. Blindtests auf dem synthetischen Labor-Telefon (keine
   Sätze des Besitzers): Blindtest 2 29/50 richtig, Blindtest 3 45/60, **0 gefährliche Pläne** in beiden; der heutige
-  Entwurf kam auf 16/50 (8 gefährlich) und 11/60 (15 gefährlich). **Für Nutzer noch aus:** Der Schalter
-  `CommandDesign.RELEASE_GUARDED` (eine Konstante, steht auf `false`) macht ihn zum Entwurf der Release-Builds; mit
-  `false` laufen Release-Builds unverändert mit `Today`.
+  Entwurf kam auf 16/50 (8 gefährlich) und 11/60 (15 gefährlich). **Für Nutzer eine Vorschau zum Einschalten:**
+  Einstellungen › KI-Assistent › „Neue Befehle ausprobieren (Vorschau)“, standardmäßig aus (`Settings.AI_PREVIEW`).
+  Aus: unverändert `Today`. An: `Guarded` ab dem nächsten Befehl, ohne Neustart; die Beispiele im Blatt zeigen dann
+  zwei der neuen Befehlsarten zuerst. Es bleibt immer nur ein gespeicherter Prompt-Zustand (rund 68 MB für Prompt C,
+  gemessen im Emulator): Beim Wechsel löscht der erste Befehl den alten und liest den neuen Prompt einmal ein
+  (Emulator ~60 s, Handy ungemessen). Tempo auf einem echten Handy ungemessen; die Blindtest-Sätze stammen nicht
+  vom Besitzer, das Test-Handy ist synthetisch.
 - **Tuned** = nachtrainiertes Modell (LoRA-Adapter `ordo-commands-1.gguf`, 42.485.408 Byte, SHA-256 30ac6052…,
   Schema L, Prompt 75 Token) + `rules3.decide` (Regeln a–d, Labor-Stand 13bfbed9). **Nur im Entwickler-Build, wartet
   auf den Blindtest:** Blindtest 3 ergab 44/60, 0 gefährlich, unter den geforderten 80 %. Der Adapter ist nicht

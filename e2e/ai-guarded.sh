@@ -6,8 +6,8 @@
 # ai-real.sh as regression and the saved prompt state of the new prompt. Checks every list and preview against
 # files this script creates, and that nothing changes without a confirm. Emulator + debug build only; times are
 # emulator CPU times and say nothing about a phone.
-# DESIGN=guarded (default) picks the design through DebugAiActivity; DESIGN=default leaves the pick empty, so a debug
-# build follows CommandDesign.RELEASE_GUARDED (the run with the release switch on). DESIGN=tuned with ADAPTER=<gguf>
+# DESIGN=guarded (default) picks the design through DebugAiActivity; DESIGN=settings leaves that empty and turns on
+# the preview switch in Settings › AI assistant, the way a user does (and turns it off again at the end). DESIGN=tuned with ADAPTER=<gguf>
 # runs the same commands with the tuned model (adapter pushed under the name the design expects).
 # usage: MODEL=<Qwen3.5-4B-Q4_0.gguf> [DESIGN=guarded|default|tuned] [SHOTS=<dir>] e2e/ai-guarded.sh <emulator serial>
 . "$(dirname "$0")/lib.sh" "$@"
@@ -94,8 +94,18 @@ a shell ime set com.google.android.tts/com.google.android.apps.speech.tts.google
 [ -n "$KEYBOARD" ] && a shell ime disable "$KEYBOARD" >/dev/null 2>&1   # else an input field brings it back
 a shell cmd locale set-app-locales "$PKG" --locales de-DE >/dev/null 2>&1
 trap 'a shell cmd locale set-app-locales "$PKG" --locales "" >/dev/null 2>&1; a shell am start -n "$PKG/$DEBUG" --es design "" >/dev/null 2>&1; [ -n "$KEYBOARD" ] && { a shell ime enable "$KEYBOARD"; a shell ime set "$KEYBOARD"; } >/dev/null 2>&1' EXIT
+PREVIEW="Neue Befehle ausprobieren (Vorschau)|Try new commands (preview)"
+preview_switch() {   # opens Settings › AI assistant and taps the preview switch
+    a shell am start -W -n "$PKG/me.zhanghai.android.files.settings.SettingsActivity" >/dev/null; sleep 2
+    ui tap "KI-Assistent|AI assistant" >/dev/null; sleep 1
+    ui tap "$PREVIEW" >/dev/null; sleep 1
+}
 case $DESIGN in
-    default) a shell am start -W -n "$PKG/$DEBUG" --es design "''" >/dev/null ;;
+    settings)
+        a shell am start -W -n "$PKG/$DEBUG" --es design "''" >/dev/null
+        launch; preview_switch
+        check "the preview switch is on" ui checked "$PREVIEW"
+        a shell am force-stop "$PKG" ;;
     *) a shell am start -W -n "$PKG/$DEBUG" --es design "$DESIGN" >/dev/null ;;
 esac
 a shell am start -W -n "$PKG/$DEBUG" --es adapter "''" >/dev/null
@@ -249,6 +259,7 @@ check "same answer with and without the state" test -n "$with" -a "$with" = "$wi
 check "same answer as earlier in the run" test "$with" = "$first"
 echo "  answer times (emulator CPU): ${TIMES[*]}"
 
+[ "$DESIGN" = settings ] && { a shell am force-stop "$PKG"; launch; preview_switch; check "the preview switch is off again" not ui checked "$PREVIEW"; }
 a shell am force-stop "$PKG"
 run_as rm -rf "$STATE"
 a shell "rm -rf $T $Z /sdcard/OrdoKiMasse /sdcard/ordoai-ui.xml; rm -f $D/ordoai_* $MODELS/ordo-commands-1.gguf"
