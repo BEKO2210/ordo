@@ -118,6 +118,10 @@ cell "Ordo Musik: eigene Musiksammlung mit Titeln, Alben, Interpreten und Ordner
     "test -s app/src/main/java/me/zhanghai/android/files/viewer/audio/MusicLibrary.kt && test -s $TESTS/viewer/audio/MusicLibraryTest.kt && test -x e2e/music-library.sh && grep -q music-library e2e/run.sh" \
     "Ordo Musik zeigt immer die Sammlung statt in den Player zu springen: Titel, Alben (Raster), Interpreten und Ordner aus MediaStore, Suche, „Alle zufällig“, Albumseiten in Titelreihenfolge, Mini-Player unten. Aussehen nach dem Vorbild Samsung Music (großer Titel, Reiter), Goldener Schnitt, hell und dunkel, Telefon und Tablet; e2e/music-library.sh auf dem Emulator und dem Tab bestanden." \
     "Musik-Player als eigenes App-Symbol zum Einschalten"
+cell "Ordo Musik: Infos bearbeiten (Tag-Editor)" \
+    "test -s app/src/main/java/me/zhanghai/android/files/viewer/audio/SongTags.kt && test -s $TESTS/viewer/audio/SongTagsTest.kt && grep -q 'net.jthink:jaudiotagger' app/build.gradle && grep -q 'edit_title' e2e/music-library.sh" \
+    "Titel, Interpret, Album, Album-Interpret, Nummern, Jahr, Genre, Songtext und Cover für MP3, FLAC, Ogg Vorbis und M4A ändern, einzeln oder für ein ganzes Album; Vorschau, Schreiben über eine geprüfte Kopie, Rückgängig; MediaStore und Player zeigen es sofort, die Datei spielt danach weiter. Auf Tab, S21 und Pixel geprüft." \
+    "Ordo Musik: eigene Musiksammlung mit Titeln, Alben, Interpreten und Ordnern"
 cell "Video-Player: Filme direkt in Ordo ansehen" \
     "ls app/src/main/java/me/zhanghai/android/files/viewer/video/*.kt >/dev/null 2>&1" \
     "Alle gängigen Formate, Untertitel, Tonspur-Wahl, Bild-im-Bild, Tempo, Gesten für Helligkeit und Lautstärke; als eigenes Symbol einschaltbar wie der Musik-Player." \

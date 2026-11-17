@@ -101,7 +101,9 @@ Was als Nächstes kommt, steht in der [lebenden Roadmap](docs/ROADMAP-LIVE.md): 
   Mini-Player mit Play/Pause und Weiter unten und Ordos Seitenmenü mit Bibliothek, Zuletzt gespielt, Meistgespielt
   (nur auf dem Gerät gezählt), Klang, Einschlaf-Timer, Einstellungen und dem Weg zurück zum Dateimanager. Die Titel
   kommen aus Androids Mediensammlung (nur was der Player abspielt; versteckte Ordner nur, wenn du versteckte Dateien
-  zeigst)
+  zeigst) Infos eines Titels bearbeiten (Titel, Interpret, Album, Nummern, Jahr, Genre, Songtext, Cover) bei MP3,
+  FLAC, Ogg Vorbis und M4A, für einen Titel oder ein ganzes Album, mit Vorschau vor dem Speichern und „Rückgängig“
+  danach; die Datei wird erst ersetzt, wenn die neuen Angaben richtig zurückgelesen sind.
 - Eigenes App-Symbol für Ordo Musik (Einstellungen › Eingebaute Apps): standardmäßig aus, nur du schaltest es ein und aus, siehe [docs/AUDIO-PLAYER.md](docs/AUDIO-PLAYER.md)
 
 **Dateien schützen**

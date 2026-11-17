@@ -441,6 +441,14 @@
             android:taskAffinity="me.zhanghai.android.files.music"
             android:theme="@style/Theme.MaterialFiles" />
 
+        <!-- Ordo Music's tag editor: not exported, it only takes paths from Ordo's own screens. -->
+        <activity
+            android:name="me.zhanghai.android.files.viewer.audio.MusicTagEditorActivity"
+            android:exported="false"
+            android:label="@string/music_edit_tags"
+            android:theme="@style/Theme.MaterialFiles"
+            android:windowSoftInputMode="adjustResize" />
+
         <activity-alias
             android:name="me.zhanghai.android.files.launcher.MusicAlias"
             android:enabled="false"

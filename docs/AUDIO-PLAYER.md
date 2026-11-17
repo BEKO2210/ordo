@@ -57,6 +57,30 @@ Stand: 17.11.2026. Aussehen nach dem Vorbild Samsung Music (One UI), nicht desse
 - **Aussehen:** Farben aus dem hellen oder dunklen Theme, Abstände aus der φ-Reihe (Rand 21 dp, Zeilen 8 dp), Zeilen mindestens 55 dp, Tasten mindestens 48 dp, keine Silbentrennung. Auf Tablets stehen Titel-, Interpreten- und Ordnerlisten sowie Seiten höchstens 610 dp breit in der Mitte (`phi_content_max`), das Albumraster nutzt die ganze Breite. Einblenden des Mini-Players und Cover-Überblendung nur, wenn Ordos Bewegungseinstellung es erlaubt (`Motion.any`). TalkBack liest Zeilen als Ganzes und den Mini-Player als „Läuft gerade: Titel, Interpret“.
 - **Tests:** `MusicLibraryTest` (Sortierung mit Collator, Formatfilter, versteckte Dateien, doppelte Zeilen, Gruppen nach Album/Interpret/Ordner, Titelreihenfolge im Album, Suche, Zufall enthält jeden Titel genau einmal, Warteschlangenfenster, Initialen und feste Platzhalterfarbe je Name), `PlayHistoryStore`-Test (Zählen, Reihenfolge, Grenze, Kodierung); auf dem Gerät `e2e/music-library.sh` (auch: eigene Aufgabe in `dumpsys activity recents`, „Zurück“ verlässt die App).
 
+### Infos bearbeiten (Tag-Editor)
+
+Stand: 17.11.2026. Wunsch von Belkis: „am besten noch ein ID3-Editor integriert … aber denke immer an Benutzerfreundlichkeit.“
+
+**Bibliothek, an der Quelle geprüft:**
+
+| Kandidat | Lizenz | Stand | Android | Entscheidung |
+|---|---|---|---|---|
+| jaudiotagger 3.0.1 (`net.jthink:jaudiotagger`) | LGPL-2.1 oder später ([license.txt](https://bitbucket.org/ijabz/jaudiotagger/raw/master/license.txt)), mit GPL-3.0 verträglich | letzte Ausgabe 14.10.2021 ([Maven Central](https://repo1.maven.org/maven2/net/jthink/jaudiotagger/maven-metadata.xml)) | reines Java (keine 16-KB-Frage), nutzt `java.nio.file` (ab Android 8), AWT/ImageIO nur in `StandardArtwork`/`StandardImageHandler`, die der Android-Modus (`TagOptionSingleton.setAndroid(true)`) umgeht | **gewählt**: MP3 (ID3v2, Ordo schreibt v2.3), FLAC und Ogg Vorbis (Vorbis-Kommentare), M4A/MP4 (Atome) |
+| TagLib über JNI | LGPL-2.1/MPL-1.1 | aktiv | eigene native Bibliothek je ABI, 16-KB-Ausrichtung, längerer Build | verworfen: Aufwand und Risiko für dasselbe Ergebnis |
+| eigener Schreiber | – | – | – | verworfen: ein Fehler zerstört Dateien |
+
+Opus-Dateien liest Ordo, schreibt sie aber nicht: jaudiotagger 3.0.1 hat keinen Opus-Schreiber (im JAR gibt es kein `audio/opus`). Die Bibliothek bleibt bei R8 ganz erhalten (`-keep class org.jaudiotagger.**`), weil sie ID3-Rahmen über Klassennamen anlegt; das JAR ist 1,17 MB groß.
+
+**So arbeitet er:**
+
+- Aufruf: ⋮ eines Titels („Infos bearbeiten“), „Alle bearbeiten“ in der Leiste einer Album-, Interpreten- oder Ordnerseite (alle Titel der Seite) und das Überlaufmenü des Players (nur für Ordos eigene Dateien; ein `content://`-Titel einer anderen App bleibt unberührt). Eine Mehrfachauswahl per langem Druck gibt es noch nicht.
+- Vollbild im Stil der Sammlung: großes Cover mit „Cover ändern“ (Systemauswahl für Bilder, höchstens 10 MB) und „Entfernen“, darunter drei Karten mit Symbol je Feld: Titel, Interpret, Album, Album-Interpret · Titelnummer von Anzahl, CD, Jahr, Genre · Songtext (ohne Zeitmarken). Bei mehreren Dateien zeigt ein Feld mit verschiedenen Werten „Mehrere Werte“ und wird nur geschrieben, wenn etwas Neues darin steht.
+- Prüfung vor dem Speichern: Jahr vier Ziffern, Nummern 1–999, Titelnummer nicht über der Anzahl. Danach eine Vorschau aller Änderungen („Titel: alt → neu“, „In N Dateien“).
+- Speichern (`SongTagIo.write`): Kopie der Datei im selben Ordner, neue Angaben in die Kopie, Kopie neu einlesen und jede Änderung vergleichen, erst dann ersetzt die Kopie das Original per Umbenennen; vorher wird das Original in Ordos Cache gesichert. Schlägt etwas fehl, bleibt das Original unverändert; bei mehreren Dateien bekommen schon geschriebene ihre Originale zurück (alles oder nichts). Danach liest MediaStore die Dateien neu (`MediaScannerConnection`), Sammlung und Player zeigen die neuen Angaben.
+- „Infos gespeichert · Rückgängig“ steht 10 Sekunden da; „Rückgängig“ legt die gesicherten Originale zurück. Sonst werden die Sicherungen gelöscht (übrig gebliebene nach einem Tag).
+- Nur lesen, freundlich erklärt (`TagEditRules`, Test `TagEditRulesTest`): auf Android 7 öffnen alle Einträge den Editor mit dem Hinweis „Infos bearbeiten geht ab Android 8“, ohne jaudiotagger zu laden; bei anderen Formaten (Opus, WAV …) nennt er das Format, ohne „Kopie bearbeiten“ (eine Kopie hätte dasselbe Format); bei Dateien, die Ordo am Ort nicht ändern darf (SD-Karte ohne Freigabe, geschützte Ordner), bietet er „Kopie bearbeiten“ (Kopie im Musikordner).
+- Tests: `SongTagsTest` schreibt und liest in MP3, FLAC, Ogg Vorbis und M4A alle Felder mit Unicode, Cover hin und zurück und entfernt, leert Felder, schreibt bei mehreren Dateien nur Geändertes, prüft Jahr und Nummern und zeigt, dass ein simulierter Fehler vor dem Ersetzen das Original Byte für Byte lässt; `e2e/music-library.sh` gibt einem MP3 und einem FLAC einen neuen Titel, findet ihn in der Sammlung und spielt die Datei danach ab.
+
 Noch nicht geprüft: Bibliotheken mit Tausenden Titeln (Ladezeit, Speicher), Albumbilder von Android 7–9 (`albumart`), SD-Karten, TalkBack auf einem Gerät.
 
 Noch nicht geprüft: wie Pixel Launcher und One UI das Symbol anzeigen und wie schnell sie es nach dem Umschalten aktualisieren (Quellen belegen es für beide nicht, siehe `docs/MEDIEN-RECHERCHE.md`), ob „Ordo Musik“ in den Letzten Apps wirklich einen eigenen Eintrag bekommt, sowie Kompilierung und Tests (kein Gradle in dieser Umgebung).

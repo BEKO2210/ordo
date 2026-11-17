@@ -119,7 +119,7 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
     // A page on a wide window: header and buttons on the left, songs on the right.
     private var twoPane = false
     // The song in the session (by path) and whether it plays: its row shows the moving bars.
-    private var currentPath: String? = null
+    private var playingPath: String? = null
     private var currentPlaying = false
     private var saved: PlaybackStateStore.State? = null
     private var controllerFuture: ListenableFuture<MediaController>? = null
@@ -157,6 +157,13 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { load() }
     private val permissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { load() }
+    // The tag editor: after a save the library reloads and offers undo for 10 s.
+    private val editTagsLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == RESULT_OK) {
+                TagEditUndo.offer(this, binding.content.root, lifecycleScope, result.data) { load() }
+            }
+        }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -196,6 +203,13 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
         }
         setUpSearch()
         setUpNavigation()
+        binding.content.toolbar.setOnMenuItemClickListener { item ->
+            val group = shownGroup
+            if (item.itemId == R.id.actionEditAll && group != null) {
+                editTagsLauncher.launch(MusicTagEditorActivity.createIntent(this, group.songs.map { it.path }))
+                true
+            } else false
+        }
         binding.content.accessButton.setOnClickListener { requestAccess() }
         binding.content.miniPlayer.root.setOnClickListener {
             startActivitySafe(AudioPlayerActivity.createResumeIntent(this))
@@ -422,6 +436,7 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
         updateTitle()
         binding.content.tabs.isVisible = group == null && section == SECTION_LIBRARY
         backInLibrary.isEnabled = group != null || section != SECTION_LIBRARY || searchItem.isActionViewExpanded
+        binding.content.toolbar.menu.findItem(R.id.actionEditAll).isVisible = group != null
         // A page goes back; otherwise the button opens the side menu, as in Ordo's file list.
         if (group != null) {
             binding.content.toolbar.setNavigationIcon(androidx.appcompat.R.drawable.abc_ic_ab_back_material)
@@ -537,6 +552,8 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
                     player.addMediaItem(mediaItem)
                     confirm(R.string.music_added_to_queue)
                 }
+                R.id.actionEditTags ->
+                    editTagsLauncher.launch(MusicTagEditorActivity.createIntent(this, listOf(song.path)))
                 R.id.actionShowFile -> Paths.get(song.path).parent?.let {
                     startActivitySafe(FileListActivity.createViewIntent(it))
                 }
@@ -827,8 +844,8 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
         val showPlay: Boolean
         val path = item?.mediaId?.let { runCatching { URI.create(it).path }.getOrNull() }
         val isPlaying = player?.isPlaying == true
-        if (path != currentPath || isPlaying != currentPlaying) {
-            currentPath = path
+        if (path != playingPath || isPlaying != currentPlaying) {
+            playingPath = path
             currentPlaying = isPlaying
             adapter.notifyItemRangeChanged(0, adapter.itemCount)
         }
@@ -952,7 +969,7 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
                 is Row.Header -> bindHeader(binding as MusicLibraryHeaderBinding, row.group)
                 is Row.Song -> (binding as MusicLibraryRowBinding).apply {
                     val song = row.song
-                    val current = song.path == currentPath
+                    val current = song.path == playingPath
                     title.text = song.title
                     title.setTextColor(if (current) accentColor else rowTitleColor)
                     info.text = row.info

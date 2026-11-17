@@ -99,7 +99,9 @@ What comes next is in the [living roadmap](docs/ROADMAP-LIVE.md): every goal has
   covers (a calm colour with initials where a cover is missing), a mini player with play/pause and next at the
   bottom, and Ordo’s side menu with Library, Recently played, Most played (counted on the device only), Sound, Sleep
   timer, Settings and a way back to the file manager. Songs come from Android’s media library (only what the player
-  plays; hidden folders only when you show hidden files)
+  plays; hidden folders only when you show hidden files) Edit a song’s info (title, artist, album, numbers, year,
+  genre, lyrics, cover) for MP3, FLAC, Ogg Vorbis and M4A, one song or a whole album at once, with a preview before
+  saving and undo afterwards; the file is only replaced once the new info reads back right.
 - Optional own app icon for Ordo Music (Settings › Built-in apps): off by default, switched on and off only by you, see [docs/AUDIO-PLAYER.md](docs/AUDIO-PLAYER.md)
 
 **Keep files safe**

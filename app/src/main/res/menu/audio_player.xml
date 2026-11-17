@@ -11,4 +11,11 @@
         android:icon="@drawable/equalizer_icon_24dp"
         android:title="@string/audio_sound_title"
         app:showAsAction="always" />
+    <!-- Only for Ordo's own files: a content:// song of another app is read-only. -->
+    <item
+        android:id="@+id/actionEditTags"
+        android:icon="@drawable/tag_edit_icon_white_24dp"
+        android:title="@string/music_edit_tags"
+        android:visible="false"
+        app:showAsAction="never" />
 </menu>

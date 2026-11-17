@@ -8,8 +8,9 @@
 ROOT=/storage/emulated/0
 ROCK=$ROOT/Music/OrdoE2E-Rock
 JAZZ=$ROOT/Download/OrdoE2E-Jazz
+EDIT=$ROOT/Music/OrdoE2E-Edit
 LIBRARY=me.zhanghai.android.files.viewer.audio.MusicLauncherActivity
-tmp=$(mktemp -d); trap 'a shell "rm -rf $ROCK $JAZZ"; rm -rf "$tmp"' EXIT
+tmp=$(mktemp -d); trap 'a shell "rm -rf $ROCK $JAZZ $EDIT"; rm -rf "$tmp"' EXIT
 
 python3 - "$tmp" <<'PY'
 import pathlib, struct, sys, wave
@@ -39,6 +40,12 @@ PY
 a shell "rm -rf $ROCK $JAZZ; mkdir -p $ROCK $JAZZ"
 a push "$tmp/rock-1.mp3" "$tmp/rock-2.mp3" "$ROCK/" >/dev/null
 a push "$tmp/jazz-1.mp3" "$tmp/Ordoe2e Delta.wav" "$JAZZ/" >/dev/null
+# The tag editor's test songs: the unit tests' 1 s stereo MP3 and FLAC, both titled "Fixture".
+a shell "rm -rf $EDIT; mkdir -p $EDIT"
+a push "$HERE/../app/src/test/resources/tags/song.mp3" "$EDIT/edit-me.mp3" >/dev/null
+a push "$HERE/../app/src/test/resources/tags/song.flac" "$EDIT/edit-me.flac" >/dev/null
+a shell am broadcast -a android.intent.action.MEDIA_SCANNER_SCAN_FILE -d "file://$EDIT/edit-me.mp3" >/dev/null 2>&1
+a shell am broadcast -a android.intent.action.MEDIA_SCANNER_SCAN_FILE -d "file://$EDIT/edit-me.flac" >/dev/null 2>&1
 # adb push leaves new files pending in MediaStore (no tags, not counted as music) until a scan: ask for one per file.
 for f in "$ROCK/rock-1.mp3" "$ROCK/rock-2.mp3" "$JAZZ/jazz-1.mp3" "$JAZZ/Ordoe2e Delta.wav"; do
     a shell am broadcast -a android.intent.action.MEDIA_SCANNER_SCAN_FILE -d "file://${f// /%20}" >/dev/null 2>&1
@@ -111,6 +118,37 @@ check "Sound opens from the side menu" eval 'ui tap "Navigationsmenü öffnen|Op
 check "the Sound sheet opens over the player" ui wait "Equalizer" 8
 back 1.5; back 2
 check "back from the player returns to the library" on viewer.audio.MusicLauncherActivity
+
+# The tag editor: a new title for the MP3 and the FLAC; the library shows it and the song still plays.
+edit_title() {
+    local new=$1
+    search Fixture || return 1
+    ui tap "Weitere Optionen für Fixture|More options for Fixture" || return 1
+    ui wait "Infos bearbeiten|Edit info" 5 && ui tap "Infos bearbeiten|Edit info" || return 1
+    wait_on viewer.audio.MusicTagEditorActivity 8 || return 1
+    ui wait Fixture 8 && ui tap Fixture || return 1
+    a shell input keycombination 113 29; sleep 0.5   # Ctrl+A: the new title replaces the old one
+    a shell input text "${new// /%s}"; sleep 1
+    a shell input keyevent KEYCODE_BACK; sleep 1      # hide the keyboard
+    ui tap "Speichern|Save" || return 1               # the toolbar's Save opens the preview
+    ui wait "Diese Änderungen speichern?|Save these changes?" 5 || return 1
+    ui tap "Speichern|Save" || return 1               # the preview's Save
+    wait_on viewer.audio.MusicLauncherActivity 10
+}
+listed() { local i; for i in 1 2 3 4 5 6; do close_search >/dev/null 2>&1; search "$1" && ui has "$1" && return 0; sleep 2; done; return 1; }
+check "the MP3 gets a new title in the editor" edit_title "Ordoe2e Edited Mp"
+check "Undo is offered after saving" ui wait "Rückgängig|Undo" 5
+check "the library shows the edited MP3" listed "Ordoe2e Edited Mp"
+check "the edited MP3 opens the player" ui tap "Ordoe2e Edited Mp"
+check "the edited MP3 plays" playing
+back 2
+close_search
+check "the FLAC gets a new title in the editor" edit_title "Ordoe2e Edited Flac"
+check "the library shows the edited FLAC" listed "Ordoe2e Edited Flac"
+check "the edited FLAC opens the player" ui tap "Ordoe2e Edited Flac"
+check "the edited FLAC plays" playing
+back 2
+close_search
 
 check "the Folders tab opens" ui tap "Ordner|Folders"
 search OrdoE2E

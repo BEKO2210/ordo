@@ -84,6 +84,10 @@ class AudioPlayerActivity : AppActivity() {
     private var progressDescription: String? = null
     private var userSeeking = false
     private val handler = Handler(Looper.getMainLooper())
+    private val editTagsLauncher =
+        registerForActivityResult(androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult()) {
+            if (it.resultCode == RESULT_OK) TagEditUndo.offer(this, binding.root, lifecycleScope, it.data) {}
+        }
 
     private fun nextProgressDelay(): Long {
         val position = controller?.currentPosition ?: 0L
@@ -131,6 +135,11 @@ class AudioPlayerActivity : AppActivity() {
         binding.toolbar.setOnMenuItemClickListener { item ->
             if (item.itemId == R.id.actionSound) {
                 AudioSoundSettingsSheet().show(supportFragmentManager, AudioSoundSettingsSheet.TAG)
+                true
+            } else if (item.itemId == R.id.actionEditTags) {
+                currentFilePath()?.let {
+                    editTagsLauncher.launch(MusicTagEditorActivity.createIntent(this, listOf(it)))
+                }
                 true
             } else if (item.itemId == R.id.actionOutput) {
                 // Android 6–10 has no system output picker; connecting a Bluetooth speaker is the next best thing.
@@ -325,7 +334,14 @@ class AudioPlayerActivity : AppActivity() {
         }
     }
 
+    /** The playing song as a local file of Ordo's own; null for a content:// song of another app. */
+    private fun currentFilePath(): String? =
+        controller?.currentMediaItem?.mediaId
+            ?.let { runCatching { java.net.URI.create(it) }.getOrNull() }
+            ?.takeIf { it.scheme == "file" }?.path
+
     private fun updateUi(player: Player) {
+        binding.toolbar.menu.findItem(R.id.actionEditTags)?.isVisible = currentFilePath() != null
         val metadata = player.mediaMetadata
         val item = player.currentMediaItem
         binding.title.text = metadata.title?.takeIf { it.isNotBlank() }

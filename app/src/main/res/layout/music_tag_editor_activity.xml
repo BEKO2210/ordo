@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- Ordo Music's tag editor, in the library's look: the big cover with "Change cover", then the fields in three
+     cards, each with its icon. At most 610 dp wide and centred on tablets. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?colorSurface"
+    android:fitsSystemWindows="true"
+    android:orientation="vertical">
+
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?actionBarSize"
+        android:theme="?actionBarTheme"
+        app:menu="@menu/music_tag_editor"
+        app:navigationContentDescription="@string/close"
+        app:navigationIcon="@drawable/close_icon_control_normal_24dp"
+        app:popupTheme="?actionBarPopupTheme"
+        app:title="@string/music_edit_tags" />
+
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/scrollView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:clipToPadding="false">
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <LinearLayout
+                android:id="@+id/content"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:orientation="vertical"
+                android:paddingStart="@dimen/space_gutter"
+                android:paddingTop="@dimen/phi_13"
+                android:paddingEnd="@dimen/space_gutter"
+                android:paddingBottom="@dimen/space_section">
+
+                <!-- Why nothing can be saved (format, storage, Android version), with a way out where there is one. -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/notice"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/space_card_h"
+                    android:visibility="gone"
+                    app:cardBackgroundColor="?colorSurfaceVariant"
+                    app:cardCornerRadius="@dimen/phi_radius_l"
+                    app:cardElevation="0dp"
+                    app:strokeWidth="0dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:paddingStart="@dimen/space_card_h"
+                        android:paddingTop="@dimen/space_card_v"
+                        android:paddingEnd="@dimen/space_card_h"
+                        android:paddingBottom="@dimen/space_card_v">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <ImageView
+                                android:layout_width="@dimen/phi_34"
+                                android:layout_height="@dimen/phi_34"
+                                android:importantForAccessibility="no"
+                                android:padding="@dimen/phi_5"
+                                android:src="@drawable/tag_edit_icon_white_24dp"
+                                app:tint="?colorPrimary" />
+
+                            <TextView
+                                android:id="@+id/noticeText"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="@dimen/space_card_v"
+                                android:layout_weight="1"
+                                android:hyphenationFrequency="none"
+                                android:textAppearance="?textAppearanceBody2"
+                                android:textColor="?colorOnSurface" />
+                        </LinearLayout>
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/editCopy"
+                            style="?materialButtonOutlinedStyle"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="end"
+                            android:layout_marginTop="@dimen/phi_8"
+                            android:minHeight="48dp"
+                            android:text="@string/music_tag_edit_copy"
+                            android:visibility="gone" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <include
+                    android:id="@+id/art"
+                    layout="@layout/music_art" />
+
+                <TextView
+                    android:id="@+id/fileInfo"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/phi_13"
+                    android:ellipsize="middle"
+                    android:gravity="center"
+                    android:maxLines="1"
+                    android:textAppearance="?textAppearanceCaption"
+                    android:textColor="?android:textColorSecondary" />
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="@dimen/phi_8"
+                    android:orientation="horizontal">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/changeCover"
+                        style="?materialButtonOutlinedStyle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:minHeight="48dp"
+                        android:text="@string/music_tag_change_cover"
+                        app:icon="@drawable/image_icon_white_24dp"
+                        app:iconGravity="textStart" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/removeCover"
+                        style="?materialButtonOutlinedStyle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/phi_8"
+                        android:minHeight="48dp"
+                        android:text="@string/music_tag_remove_cover"
+                        app:icon="@drawable/close_icon_control_normal_24dp"
+                        app:iconGravity="textStart" />
+                </LinearLayout>
+
+                <!-- The fields are added by the code into these three cards, each with its icon. -->
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/space_card_h"
+                    app:cardBackgroundColor="?colorSurfaceVariant"
+                    app:cardCornerRadius="@dimen/phi_radius_l"
+                    app:cardElevation="0dp"
+                    app:strokeWidth="0dp">
+
+                    <LinearLayout
+                        android:id="@+id/groupSong"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:paddingStart="@dimen/space_card_h"
+                        android:paddingTop="@dimen/space_card_v"
+                        android:paddingEnd="@dimen/space_card_h"
+                        android:paddingBottom="@dimen/space_card_v" />
+                </com.google.android.material.card.MaterialCardView>
+
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/space_card_v"
+                    app:cardBackgroundColor="?colorSurfaceVariant"
+                    app:cardCornerRadius="@dimen/phi_radius_l"
+                    app:cardElevation="0dp"
+                    app:strokeWidth="0dp">
+
+                    <LinearLayout
+                        android:id="@+id/groupNumbers"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:paddingStart="@dimen/space_card_h"
+                        android:paddingTop="@dimen/space_card_v"
+                        android:paddingEnd="@dimen/space_card_h"
+                        android:paddingBottom="@dimen/space_card_v" />
+                </com.google.android.material.card.MaterialCardView>
+
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/space_card_v"
+                    app:cardBackgroundColor="?colorSurfaceVariant"
+                    app:cardCornerRadius="@dimen/phi_radius_l"
+                    app:cardElevation="0dp"
+                    app:strokeWidth="0dp">
+
+                    <LinearLayout
+                        android:id="@+id/groupLyrics"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:paddingStart="@dimen/space_card_h"
+                        android:paddingTop="@dimen/space_card_v"
+                        android:paddingEnd="@dimen/space_card_h"
+                        android:paddingBottom="@dimen/space_card_v" />
+                </com.google.android.material.card.MaterialCardView>
+            </LinearLayout>
+        </FrameLayout>
+    </androidx.core.widget.NestedScrollView>
+</LinearLayout>

@@ -44,6 +44,11 @@
     public <init>();
 }
 
+# jaudiotagger: frame bodies and fields are created by class name; AWT/ImageIO are never used on Android
+-keep class org.jaudiotagger.** { *; }
+-dontwarn java.awt.**
+-dontwarn javax.imageio.**
+
 # Bouncy Castle
 -keep class org.bouncycastle.jcajce.provider.** { *; }
 -keep class org.bouncycastle.jce.provider.** { *; }

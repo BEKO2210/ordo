@@ -14,6 +14,11 @@
         android:title="@string/music_add_to_queue" />
 
     <item
+        android:id="@+id/actionEditTags"
+        android:icon="@drawable/tag_edit_icon_white_24dp"
+        android:title="@string/music_edit_tags" />
+
+    <item
         android:id="@+id/actionShowFile"
         android:icon="@drawable/directory_icon_white_24dp"
         android:title="@string/music_show_file" />
