@@ -1,0 +1,54 @@
+# Ordo – Maßsystem: der Goldene Schnitt
+
+Stand: 17.11.2026, Vorgabe von Belkis: „Der goldene Schnitt soll sich über alles ziehen – ganz Ordo.“
+
+Ordo misst alle eigenen Abstände, Größen, Proportionen und Rundungen mit dem Goldenen Schnitt φ ≈ 1,618. Praktisch
+heißt das: die Fibonacci-Reihe in dp, in der jeder Schritt etwa das φ-fache des vorigen ist. Die Werte stehen als
+Ressourcen in `app/src/main/res/values/dimens_phi.xml`; Layouts nutzen nur diese, keine freien Zahlen.
+
+## Die Reihe
+
+| Ressource | dp | Rolle |
+|---|---|---|
+| `phi_3` | 3 | Haarabstände (Indikator unter einem Knopf) |
+| `phi_5` / `space_related` | 5 | Zusammengehöriges: Symbol und Beschriftung, Titel und Info-Text |
+| `phi_8` / `space_item` | 8 | Zeilen und Bedienelemente einer Gruppe |
+| `phi_13` / `space_card_v` | 13 | Innenabstand von Karten senkrecht |
+| `phi_21` / `space_card_h`, `space_gutter` | 21 | Innenabstand waagrecht, Abstand zwischen Karten, Bildschirmrand |
+| `phi_34` / `space_section` | 34 | Abstand zwischen Abschnitten; Symbolfeld einer Zeile |
+| `phi_55` | 55 | Mindesthöhe einer Zeile, Kachelhöhe |
+| `phi_89` | 89 | Kachelbreite, Mindesthöhe einer Karte |
+| `phi_144` … `phi_610` | 144–610 | große Flächen; `phi_610` = Inhaltsbreite auf großen Bildschirmen (377 × φ) |
+
+Rundungen: 8 · 13 · 21 · 34 dp (klein, mittel, groß, sehr groß).
+
+## Proportionen
+
+- Kacheln, Vorschaubilder und Bühnen (z. B. die Equalizer-Bühne) haben das Seitenverhältnis φ : 1.
+- Zweispaltige Ansichten auf Tablets teilen 61,8 % : 38,2 % (Hauptinhalt : Nebeninhalt), nicht 50 : 50.
+- Eine Karte, die neben einer zweiten steht, ist entweder gleich breit (Raster) oder φ-mal so breit – nie beliebig.
+
+## Schrift
+
+Die Schriftgrößen bleiben die von Material 3 (12, 14, 16, 22, 24, 28 sp …): Nutzer stellen sie in Android größer,
+und die Barrierefreiheit hängt an diesen Stufen. Ihr Verhältnis zueinander liegt nahe √φ ≈ 1,27 (12 → 16 → 22 → 28).
+In jeder Zeile gibt es genau zwei Ebenen: Titel 16 sp (bodyLarge), Info-Text 12 sp (bodySmall, gedämpfte Farbe)
+direkt darunter, höchstens zwei Zeilen, nie unter einem Bedienelement. Silbentrennung ist aus; ein Wort wird nie geteilt.
+
+## Grenzen
+
+- Fremde Bausteine (Android-Systemdialoge, Material-Standardzeilen der Einstellungen) behalten ihre Maße, solange sie
+  nicht durch eigene ersetzt werden.
+- Tippflächen bleiben mindestens 48 dp, auch wenn das sichtbare Element auf der Reihe 34 dp groß ist.
+
+## Umstellung, Bildschirm für Bildschirm
+
+1. Musik-Player und Klang-Blatt
+2. Startseite
+3. Einstellungen (eigene Zeilen, Auswahl-Dialoge)
+4. KI-Blatt
+5. Dateiliste und Seitenmenü
+6. Speicheranalyse, Tresor, Sicherung
+
+Jeder Schritt: Abstände auf die Reihe umstellen, auf Telefon (412 dp) und Tablet hochkant und quer messen
+(Symbol-Text-Versatz, Kanten), die automatischen Prüfungen laufen lassen, Bilder vorher/nachher.
