@@ -53,7 +53,15 @@ sleep 1 # the sheet is still sliding up: a tap now would land where the switch i
 check "the curve explains its 150 ms hold" paused_ui has "Hold a handle for 150 ms, then drag.|Einen Griff 150 ms halten, dann ziehen."
 check "the fine-tune controls start collapsed" paused_ui has "Fine-tune|Genau einstellen"
 # The equalizer is off by default and its controls are disabled until it is switched on.
-check "the equalizer switches on" paused_ui tap equalizerEnabled
+# The switch is set to a state, not toggled: the setting is remembered between runs.
+equalizer() {
+    local i; for i in 1 2 3; do
+        if paused_ui checked Equalizer; then [ "$1" = on ] && return 0; else [ "$1" = off ] && return 0; fi
+        paused_ui tap equalizerEnabled
+    done
+    return 1
+}
+check "the equalizer switches on" equalizer on
 check "the Bass preset tile can be selected" paused_ui tap "Bass"
 # The status follows the player service's answer: give it a moment.
 settled() { local i; for i in 1 2 3 4 5 6; do paused_ui has "$@" && return 0; sleep 0.5; done; return 1; }
@@ -61,7 +69,7 @@ check "the status names the selected preset" settled Bass effectStatus
 check "Fine-tune opens its band rows" paused_ui tap fineTuneToggle
 # Everything at the top first: on a phone the band rows push the rest below the screen.
 check "the Flat preset tile restores the curve" paused_ui tap "Flat|Neutral"
-check "the equalizer switches off again" paused_ui tap equalizerEnabled
+check "the equalizer switches off again" equalizer off
 # The sheet is long: scroll down until the row appears (at most five swipes).
 scrolled_to() { local i; for i in 1 2 3 4 5 6; do paused_ui has "$1" && return 0; swipe_up; done; return 1; }
 check "a band row shows its gain" scrolled_to "31 Hz"
