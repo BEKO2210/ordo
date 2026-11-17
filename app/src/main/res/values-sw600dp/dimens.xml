@@ -25,6 +25,4 @@
     <dimen name="file_list_toolbar_padding_start">16dp</dimen>
     <dimen name="file_list_toolbar_padding_end_no_overflow">22dp</dimen>
     <dimen name="file_list_toolbar_padding_end_with_overflow">14dp</dimen>
-
-    <dimen name="klang_curve_height">260dp</dimen>
 </resources>

@@ -1119,8 +1119,8 @@
     <string name="audio_sound_virtualizer_summary">Widens the perceived sound stage</string>
     <string name="audio_sound_strength">Strength</string>
     <string name="audio_sound_normalization_heading">Volume</string>
-    <string name="audio_sound_normalization">Even out volume (ReplayGain / R128)</string>
-    <string name="audio_sound_normalization_summary">Evens out loudness between tracks</string>
+    <string name="audio_sound_normalization">Even out volume</string>
+    <string name="audio_sound_normalization_summary">ReplayGain / R128 from the file tags</string>
     <string name="audio_sound_normalization_preamp">Pre-amp</string>
     <string name="audio_sound_playback_heading">Playback</string>
     <string name="audio_sound_speed">Tempo</string>
@@ -1159,7 +1159,7 @@
     <string name="audio_preset_pop">Pop</string>
     <string name="audio_preset_jazz">Jazz</string>
     <string name="audio_preset_classical">Classical</string>
-    <string name="audio_preset_night">Loudness at night</string>
+    <string name="audio_preset_night">Night</string>
     <string name="audio_preset_custom">Custom</string>
     <string name="audio_sound_presets">Presets</string>
     <string name="audio_sound_status_custom">Custom setting</string>
