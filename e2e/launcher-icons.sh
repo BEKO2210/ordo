@@ -79,7 +79,9 @@ set_alias enable
 check "the alias can be started" wait_alias on
 a shell am start -W -n "$PKG/$ALIAS" --ez me.zhanghai.android.files.viewer.audio.extra.SHOW_START true >/dev/null
 sleep 3; guard
-check "the music icon opens its own screen" on viewer.audio.MusicLauncherActivity
+# Samsung names the alias as the front screen, the emulator its target: both are the music start screen.
+music_screen() { on viewer.audio.MusicLauncherActivity || on launcher.MusicAlias; }
+check "the music icon opens its own screen" music_screen
 check "the start screen offers to choose a folder" ui has "Ordner wählen|Choose folder"
 a shell am force-stop "$PKG"
 finish
