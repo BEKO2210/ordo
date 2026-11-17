@@ -686,6 +686,8 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment() {
         options.forEachIndexed { index, (label, timer) ->
             val button = buttons[index]
             button.text = label
+            // Two lines rather than "End of t…" in a narrow cell; the cells are 55 dp high for that.
+            button.maxLines = 2
             button.setOnClickListener {
                 (activity as? AudioPlayerActivity)?.setSleepTimer(timer.first, timer.second, ::refreshStatus)
             }

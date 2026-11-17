@@ -460,11 +460,16 @@ class KlangPictureView @JvmOverloads constructor(
         val cx = (l + r) / 2
         val cy = (t + b) / 2
         val icon = minOf(dp(28f), (b - t) * 0.6f)
+        // Wide pulse ovals: in a 55 dp picture round rings would have no room to run out.
+        val reachX = minOf((r - l) / 2, icon * 4f)
         for (i in 0 until RINGS) {
             val step = (i + phase) % RINGS
-            val radius = icon * 0.6f + ((b - t) / 2 - icon * 0.6f) * (step + 1) / RINGS
-            stroke.color = accent((1f - (step + 1) / RINGS) * (0.25f + 0.75f * onness))
-            canvas.drawCircle(cx, cy, radius, stroke)
+            val fraction = (step + 1) / RINGS
+            val radiusX = icon * 0.7f + (reachX - icon * 0.7f) * fraction
+            val radiusY = icon * 0.7f + ((b - t) / 2 - dp(2f) - icon * 0.7f) * fraction
+            stroke.color = accent((1f - fraction) * (0.3f + 0.7f * onness))
+            oval.set(cx - radiusX, cy - radiusY, cx + radiusX, cy + radiusY)
+            canvas.drawOval(oval, stroke)
         }
         headphones.setTint(accent())
         headphones.setBounds(
