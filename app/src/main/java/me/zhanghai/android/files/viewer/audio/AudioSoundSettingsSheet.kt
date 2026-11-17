@@ -72,6 +72,7 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment() {
     private var fineTuneExpanded = false
     private var firstRender = true
     private var soundStatus: AudioPlayerActivity.SoundStatus? = null
+    private var highsRenderer: (() -> Unit)? = null
     private lateinit var palette: Palette
 
     private class Palette(
@@ -233,7 +234,7 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment() {
         binding.equalizerStage.setCardBackgroundColor(palette.stage)
         listOf(
             binding.fineTuneCard, binding.bassCard.root, binding.crossfeedCard.root, binding.widthCard.root,
-            binding.reverbCard.root, binding.warmthCard.root, binding.clarityCard.root,
+            binding.reverbCard.root, binding.warmthCard.root, binding.clarityCard.root, binding.highsCard.root,
             binding.normalizationCard, binding.balanceCard, binding.monoCard,
             binding.speedCard, binding.sleepCard, binding.skipCard, binding.focusCard, binding.headphonesCard
         ).forEach { it.setCardBackgroundColor(palette.card) }
@@ -245,7 +246,8 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment() {
         )
         listOf(
             binding.bassCard.root, binding.crossfeedCard.root, binding.widthCard.root, binding.reverbCard.root,
-            binding.warmthCard.root, binding.clarityCard.root, binding.normalizationCard, binding.balanceCard,
+            binding.warmthCard.root, binding.clarityCard.root, binding.highsCard.root, binding.normalizationCard,
+            binding.balanceCard,
             binding.monoCard, binding.speedCard, binding.sleepCard, binding.skipCard, binding.focusCard,
             binding.headphonesCard
         ).forEach {
@@ -502,6 +504,29 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment() {
             { update { copy(clarityLevel = clarityLevel - 1) } },
             { update { copy(clarityLevel = clarityLevel + 1) } }
         )
+        highsRenderer = bindEffectCard(
+            binding.highsCard, R.drawable.audio_highs_icon_24dp, R.string.audio_sound_highs,
+            R.string.audio_sound_highs_summary, Kind.HIGHS, level, { settings.highsEnabled },
+            { enabled ->
+                update { copy(highsEnabled = enabled) }
+                // The detector needs about two seconds of music before it can say what it found.
+                if (enabled) handler.postDelayed({ refreshStatus() }, HIGHS_REFRESH_MS)
+            },
+            { settings.highsLevel / AudioSettings.HIGHS_LEVELS.toFloat() },
+            {
+                getString(
+                    if (settings.highsLevel <= 1) R.string.audio_sound_level_light else R.string.audio_sound_level_medium
+                )
+            },
+            { update { copy(highsLevel = highsLevel - 1) } },
+            { update { copy(highsLevel = highsLevel + 1) } },
+            note = {
+                soundStatus?.let {
+                    if (it.highsCutoffHz > 0) getString(R.string.audio_sound_highs_found, it.highsCutoffHz / 1_000f)
+                    else getString(R.string.audio_sound_highs_none)
+                }
+            }
+        )
     }
 
     /** Values are clamped by [AudioSettings.sanitized] in [update], so the steps never leave their range. */
@@ -519,8 +544,9 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment() {
         onMinus: () -> Unit,
         onPlus: () -> Unit,
         greyedByMono: Boolean = false,
-        pictureValue: () -> Float = fraction
-    ) {
+        pictureValue: () -> Float = fraction,
+        note: (() -> String?)? = null
+    ): () -> Unit {
         card.icon.setImageResource(icon)
         card.title.text = getString(title)
         card.summary.text = getString(summary)
@@ -531,7 +557,7 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment() {
         }
         val label = getString(stepLabel)
         bindValueStepper(card.stepper, label, onMinus, onPlus)
-        renderers += {
+        val renderer = {
             // Crossfeed and width have nothing to work on after the mono mix; the service skips them too.
             val greyed = greyedByMono && settings.mono
             val active = enabled() && !greyed
@@ -539,14 +565,17 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment() {
             card.toggle.isChecked = enabled()
             card.ring.setProgressCompat((fraction() * 100).roundToInt(), Motion.any && !firstRender)
             card.ring.alpha = if (active) 1f else DISABLED_ALPHA
-            card.state.isVisible = greyed
-            card.state.text = getString(R.string.audio_sound_mono_greyed)
+            val noteText = if (active) note?.invoke() else null
+            card.state.isVisible = greyed || noteText != null
+            card.state.text = if (greyed) getString(R.string.audio_sound_mono_greyed) else noteText
             showStepperValue(card.stepper, label, stateText())
             setControlsActive(card.stepper.root, active)
             setControlsActive(card.extra, active)
             card.picture.setState(active, pictureValue())
             card.picture.contentDescription = describe(title, if (active) stateText() else onOff(false))
         }
+        renderers += renderer
+        return renderer
     }
 
     private fun bindReverbRooms() {
@@ -761,6 +790,8 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment() {
         showEffect(
             binding.clarityCard.root, binding.clarityUnavailable, status.clarityAvailable, R.string.audio_sound_clarity
         )
+        // What the highs detector found arrives with the status.
+        highsRenderer?.invoke()
         val activeTimer = if (status.sleepActive) status.sleepMinutes to status.sleepAtEndOfTrack else 0 to false
         sleepButtons.forEach { (button, timer) -> button.isChecked = timer == activeTimer }
         val chip = binding.sleepRemaining
@@ -874,6 +905,7 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment() {
         private const val STRENGTH_STEP = 50
         private const val WIDTH_STEP = 10
         private const val MIX_STEP = 5
+        private const val HIGHS_REFRESH_MS = 2_500L
         private const val SLEEP_REFRESH_MS = 30_000L
     }
 }

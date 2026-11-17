@@ -1201,4 +1201,8 @@
     <string name="audio_sound_picture">%1$s: %2$s</string>
     <string name="audio_sound_percent">%1$d %%</string>
     <string name="audio_sleep_end_track_short">Track end</string>
+    <string name="audio_sound_highs">Fill in missing highs</string>
+    <string name="audio_sound_highs_summary">Adds missing highs to heavily compressed files, quietly and only above their cut</string>
+    <string name="audio_sound_highs_found">Cut at %1$.1f kHz found, filled in above it</string>
+    <string name="audio_sound_highs_none">No missing highs found, nothing is added</string>
 </resources>

@@ -41,6 +41,8 @@ class AudioSettingsTest {
             warmthLevel = 1,
             clarityEnabled = true,
             clarityLevel = 3,
+            highsEnabled = true,
+            highsLevel = 2,
             normalizationEnabled = true,
             normalizationPreampDb = -2f,
             speed = 1.25f,

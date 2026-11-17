@@ -324,14 +324,18 @@ class WarmthStage : KlangStage() {
     }
 }
 
-/** Ordo's own effects in the order the research chose: Mono → crossfeed → width → warmth → reverb. */
+/**
+ * Ordo's own effects in the order the research chose: Mono → crossfeed → width → warmth → reverb, with the highs
+ * right after mono, so its cut detector hears the file before any other stage adds overtones.
+ */
 class KlangProcessors(dither: Boolean = true) {
     val mono = MonoStage()
+    val highs = HighsStage()
     val crossfeed = CrossfeedStage()
     val width = WidthStage()
     val warmth = WarmthStage()
     val reverb = ReverbStage()
-    val processor = KlangAudioProcessor(arrayOf(mono, crossfeed, width, warmth, reverb), dither)
+    val processor = KlangAudioProcessor(arrayOf(mono, highs, crossfeed, width, warmth, reverb), dither)
 
     val chain: Array<AudioProcessor> get() = arrayOf(processor)
 
@@ -340,6 +344,8 @@ class KlangProcessors(dither: Boolean = true) {
      */
     fun apply(settings: AudioSettings, headphones: Boolean) {
         mono.effectEnabled = settings.mono
+        highs.level = settings.highsLevel
+        highs.effectEnabled = settings.highsEnabled
         crossfeed.level = settings.crossfeedLevel
         crossfeed.effectEnabled = settings.crossfeedEnabled && headphones && !settings.mono
         width.widthPercent = settings.widthPercent
