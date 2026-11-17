@@ -100,7 +100,9 @@
     <dimen name="klang_curve_max_height">300dp</dimen>
     <!-- 610 dp ≈ 377 × φ. -->
     <dimen name="klang_sheet_max_width">@dimen/phi_610</dimen>
-    <!-- Music library: the large title's area (taller where the screen has room), the narrowest album column. -->
+    <!-- Music library: the large title's area, the narrowest album column. -->
     <dimen name="music_header_height">@dimen/phi_144</dimen>
     <dimen name="music_album_min_width">@dimen/phi_144</dimen>
+    <!-- Covers in list rows and the mini player (a 48 dp touch-sized square). -->
+    <dimen name="music_row_art_size">48dp</dimen>
 </resources>

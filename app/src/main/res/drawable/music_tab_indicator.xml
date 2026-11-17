@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- The music tabs' selection: a One UI pill behind icon and label, 5 dp inside the tab; TabLayout tints it. -->
+<inset xmlns:android="http://schemas.android.com/apk/res/android"
+    android:insetBottom="@dimen/phi_5"
+    android:insetLeft="@dimen/phi_5"
+    android:insetRight="@dimen/phi_5"
+    android:insetTop="@dimen/phi_5">
+    <shape android:shape="rectangle">
+        <corners android:radius="@dimen/phi_34" />
+        <solid android:color="@android:color/white" />
+    </shape>
+</inset>

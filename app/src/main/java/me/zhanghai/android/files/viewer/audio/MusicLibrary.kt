@@ -74,6 +74,14 @@ class MusicLibrary(songs: List<MusicSong>, showHiddenFiles: Boolean, private val
             query.isBlank() || listOfNotNull(group.name, group.artist, group.key.takeIf { it.startsWith('/') })
                 .any { it.contains(query.trim(), true) }
 
+        /** Up to two letters for a placeholder cover: the first letter of the first two words ("Blue Hour" → "BH"). */
+        fun initials(name: String?): String =
+            name.orEmpty().split(' ', '-', '_', '.').mapNotNull { word -> word.firstOrNull { it.isLetterOrDigit() } }
+                .take(2).joinToString("").uppercase()
+
+        /** The same name always picks the same of [size] colours (String.hashCode is fixed by the language). */
+        fun paletteIndex(name: String?, size: Int): Int = Math.floorMod(name.orEmpty().hashCode(), size)
+
         /** Every song exactly once, in random order. */
         fun shuffled(songs: List<MusicSong>, random: Random = Random.Default): List<MusicSong> = songs.shuffled(random)
     }
