@@ -52,8 +52,9 @@ is_emulator() {
 # On an emulator only, what adb may grant, so no system dialog comes to the front: notifications (Android 13+) and
 # all-files access (an app op since Android 11). A real device keeps its owner's choices; guard() then names what is
 # missing. Older platforms refuse quietly; a system dialog itself is never tapped.
+# Real phones are left alone unless E2E_GRANT=1 marks them as test devices that may be granted access for the run.
 grant() {
-    is_emulator || return 0
+    is_emulator || [ "${E2E_GRANT:-}" = 1 ] || return 0
     a shell pm grant "$PKG" android.permission.POST_NOTIFICATIONS >/dev/null 2>&1
     a shell appops set "$PKG" MANAGE_EXTERNAL_STORAGE allow >/dev/null 2>&1
 }

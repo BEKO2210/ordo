@@ -82,6 +82,8 @@ What comes next is in the [living roadmap](docs/ROADMAP-LIVE.md): every goal has
 - Rename many files at once using a pattern
 - Create and extract ZIP, TAR and 7z archives
 - Built-in viewers for images, PDF and text
+- Upload with Ordo: when a website or app asks for a file (a song on Suno, say), Ordo is listed in Android’s picker
+  under “Open from”; picking a file does not ask for notifications
 
 **Listen to music**
 
