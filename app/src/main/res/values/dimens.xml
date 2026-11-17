@@ -106,6 +106,10 @@
     <dimen name="klang_section_gap">@dimen/phi_55</dimen>
     <!-- Live picture of a card: 55 dp high, as wide as the card. -->
     <dimen name="klang_picture_height">@dimen/phi_55</dimen>
+    <!-- The tempo pendulum needs height to swing: 89 dp everywhere. -->
+    <dimen name="klang_picture_height_tall">@dimen/phi_89</dimen>
+    <!-- Two columns of lower-sheet cards only when each gets at least this much. -->
+    <dimen name="klang_column_min_width">320dp</dimen>
     <!-- 610 dp ≈ 377 × φ. -->
     <dimen name="klang_sheet_max_width">@dimen/phi_610</dimen>
 </resources>

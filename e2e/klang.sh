@@ -73,6 +73,10 @@ for effect in "${EFFECTS[@]}"; do
 done
 check "a reverb room can be chosen" paused_ui tap "Concert hall|Konzertsaal"
 check "the sleep timer shows its picture" scrolled_to "Sleep timer: Off|Schlaf-Timer: Aus|Einschlaf-Timer: Aus"
+# Skip silence, audio focus and resume-with-headphones each have their own card with a picture.
+check "skip silence has its own picture" scrolled_to skipPicture
+check "audio focus has its own picture" scrolled_to focusPicture
+check "resume with headphones has its own picture" scrolled_to headphonesPicture
 back 1
 
 session_playing() { a shell dumpsys media_session | grep -A25 "package=$PKG" | grep -q "state=PLAYING"; }

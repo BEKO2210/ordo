@@ -1033,7 +1033,6 @@
     <string name="audio_sound_db_spoken">%1$+.1f Dezibel</string>
     <string name="audio_frequency_hz_spoken">%1$d Hertz</string>
     <string name="audio_frequency_khz_spoken">%1$d Kilohertz</string>
-    <string name="audio_sound_strength_percent">Stärke %1$d %%</string>
     <string name="audio_sound_unavailable_row">%1$s: auf diesem Gerät nicht verfügbar</string>
     <string name="audio_sound_speed_hint">Tonhöhe bleibt gleich</string>
     <string name="audio_sound_speed_fine">Fein einstellen (0,05×)</string>
@@ -1047,10 +1046,8 @@
     <string name="audio_sound_crossfeed_summary">Holt die Musik aus dem Kopf nach vorn. Nur mit Kopfhörern.</string>
     <string name="audio_sound_width">Stereobreite</string>
     <string name="audio_sound_width_summary">0 % ist Mono, 100 % das Original, 150 % breit</string>
-    <string name="audio_sound_width_value">Breite %1$d %%</string>
     <string name="audio_sound_reverb">Hall</string>
     <string name="audio_sound_reverb_summary">Stellt die Musik in einen Raum; die Stufen bestimmen, wie viel davon zu hören ist</string>
-    <string name="audio_sound_reverb_value">%1$s · Anteil %2$d %%</string>
     <string name="audio_sound_reverb_mix">Hallanteil</string>
     <string name="audio_reverb_room">Raum</string>
     <string name="audio_reverb_studio">Studio</string>
@@ -1067,4 +1064,5 @@
     <string name="audio_sound_on">An</string>
     <string name="audio_sound_mono_greyed">Aus, solange Mono an ist</string>
     <string name="audio_sound_picture">%1$s: %2$s</string>
+    <string name="audio_sound_percent">%1$d %%</string>
 </resources>

@@ -67,4 +67,15 @@ class KlangMathTest {
         assertEquals(1f, KlangMath.sleepFraction(true, 0, 0L), 0f)
         assertEquals(0f, KlangMath.sleepFraction(false, 0, 1_000L), 0f)
     }
+
+    @Test
+    fun twoColumnsOnlyWhenEachCardGets320Dp() {
+        // Phone: 412 dp screen, 21 dp sheet margins.
+        assertEquals(1, KlangMath.columns(370f, 34f, 320f))
+        // Old tablet sheet, 610 dp wide: 267 dp per card is too narrow.
+        assertEquals(1, KlangMath.columns(568f, 34f, 320f))
+        // Tablet portrait, 800 dp sheet.
+        assertEquals(2, KlangMath.columns(758f, 34f, 320f))
+        assertEquals(2, KlangMath.columns(674f, 34f, 320f))
+    }
 }

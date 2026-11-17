@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- "−  value  +" centred under a picture: the value sits between the buttons that change it.
+     The buttons draw 34 dp inside 48 dp touch targets. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center"
+    android:minHeight="@dimen/klang_touch_target"
+    android:orientation="horizontal">
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/stepMinus"
+        style="@style/Widget.Ordo.Klang.StepButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:icon="@drawable/audio_remove_icon_24dp" />
+    <TextView
+        android:id="@+id/stepValue"
+        style="@style/Widget.Ordo.Klang.Value"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/klang_space_sm"
+        android:layout_marginEnd="@dimen/klang_space_sm"
+        android:accessibilityLiveRegion="polite"
+        android:minWidth="@dimen/phi_89"
+        android:paddingStart="@dimen/klang_space_md"
+        android:paddingEnd="@dimen/klang_space_md" />
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/stepPlus"
+        style="@style/Widget.Ordo.Klang.StepButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:icon="@drawable/audio_add_icon_24dp" />
+</LinearLayout>

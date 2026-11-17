@@ -50,6 +50,9 @@ internal object KlangMath {
         else -> (remainingMs / (minutes * 60_000f)).coerceIn(0f, 1f)
     }
 
+    /** Columns of the lower cards: two when each gets at least [minimumDp] beside a [gapDp] gap, else one. */
+    fun columns(contentDp: Float, gapDp: Float, minimumDp: Float): Int = if ((contentDp - gapDp) / 2 >= minimumDp) 2 else 1
+
     /** Index of the speed button that equals [speed], or -1 when the speed is in between. */
     fun speedOptionIndex(speed: Float): Int = SPEED_OPTIONS.indexOfFirst { abs(it - speed) < 0.005f }
 

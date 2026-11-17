@@ -5,8 +5,9 @@ m3-progress-indicators, m3-shape-morph, m3-motion-physics). Hausregeln: keine Sc
 − / +), 48-dp-Tippflächen, Kontrast 4,5 : 1 Text / 3 : 1 Bedienelemente, alles Bewegte hinter `Motion.any`.
 
 ## Kontext
-- Ordo-Musik-Player, modales Bottom Sheet „Klang“; Telefon (compact), Tablet hochkant (medium/expanded, Blatt max.
-  610 dp ≈ 377 × φ breit, zentriert), Tablet quer ebenso; nur die Effekt-Karten stehen zweispaltig.
+- Ordo-Musik-Player, modales Bottom Sheet „Klang“; Telefon (compact) mit Blatt max. 610 dp ≈ 377 × φ, ab sw600dp
+  (Tablet) max. 987 dp = 610 × φ, zentriert. Die Effekt-Karten und das Paar Tempo / Schlaf-Timer stehen nur dann
+  zweispaltig, wenn jede Karte mindestens 320 dp bekommt (`KlangMath.columns`); sonst einspaltig.
 - Container: `md.comp.sheet.bottom` – Fläche `surfaceContainerLow`, obere Ecken extra-large (28 dp), Griff oben.
 - **Zwei Hero-Momente, nicht mehr:** (1) die Equalizer-Bühne, (2) die Voreinstellungs-Kacheln.
 
@@ -36,36 +37,45 @@ m3-progress-indicators, m3-shape-morph, m3-motion-physics). Hausregeln: keine Sc
    Bassverstärkung (`speaker`), Raumklang für Kopfhörer (`spatial_audio`), Stereobreite (`width`), Hall
    (`surround_sound`, dazu Raum · Studio · Club · Konzertsaal als zwei Reihen verbundener Tasten), Analoge Wärme
    (`local_fire_department`), Klarheit (`flare`). Je Karte: Symbol in einem Ring = Wert (Stärke, Stufe, Breite oder
-   Hallanteil), Titel, Zustand („Stärke 60 %“, „Mittel“, „Breite 130 %“, „Studio · Anteil 25 %“), Schalter oben rechts,
-   darunter das lebende Bild, die Erklärung und `−` / `+` (tonal). Bass und Klarheit nur, wenn das Gerät sie kann; sonst
-   eine ruhige Zeile „Klarheit: auf diesem Gerät nicht verfügbar“. Raumklang und Stereobreite sind bei Mono ausgegraut
-   („Aus, solange Mono an ist“).
+   Hallanteil), Titel, Schalter oben rechts, darunter das lebende Bild, die Erklärung und mittig „−  Wert  +“: der
+   Wert-Chip („60 %“, „Mittel“, „130 %“, „30 %“) steht zwischen den Tasten, die ihn ändern. Bass und Klarheit nur, wenn
+   das Gerät sie kann; sonst eine ruhige Zeile „Klarheit: auf diesem Gerät nicht verfügbar“. Raumklang und Stereobreite
+   sind bei Mono ausgegraut (eine Zeile unter dem Titel: „Aus, solange Mono an ist“).
+   **Aus heißt sichtbar aus:** Bei ausgeschaltetem Effekt sind − / + (und die Hall-Räume) deaktiviert und auf 38 %
+   gedimmt, das Bild tritt auf 45 % zurück und zeigt die schwache Form; so ist „aus“ ohne Blick auf den Schalter klar.
+   Karten wachsen mit ihrem Inhalt (keine gestreckten leeren Karten im Raster).
 6. **Lautstärke** – Karten wie oben:
    - Lautstärke angleichen (Symbol `equal`/`graphic_eq`), Schalter, Vorverstärkung − / +.
-   - Balance: Bild „Lautsprecher links ⟷ rechts“ mit einem Punkt dazwischen, der wandert; − / + und
-     „Mitte“-Textknopf; Wert „L 20 %“ / „Mitte“ / „R 20 %“.
+   - Balance: Bild aus zwei Pegelbalken links und rechts unter einem Waagebalken, der sich zur lauteren Seite neigt
+     (kein Regler, nichts zum Greifen); darunter „−  L 20 %  +“; „Mitte“-Textknopf oben rechts nur außerhalb der Mitte.
    - Mono: Zeile mit Symbol `hearing`, Schalter.
 7. **Wiedergabe**
-   - Tempo: verbundene Knopfgruppe (single-select) 0,75× · 1× · 1,25× · 1,5× · 2× + darunter feine − / + (0,05),
-     aktueller Wert groß (headlineSmall). Hinweis „Tonhöhe bleibt gleich“.
-   - Schlaf-Timer: verbundene Gruppe Aus · 15 · 30 · 45 · 60 min · Liedende; läuft er, erscheint ein Chip
-     „Noch 23 min“ mit Abbrechen.
-   - Stille überspringen (Symbol `fast_forward`), Wenn andere Apps Ton spielen: verbundene Gruppe
-     „Pausieren | Leiser“, Weiterspielen bei Kopfhörern (Symbol `headphones`) – je Zeile mit Symbol + Untertitel.
+   - Tempo: Pendel-Bild 89 dp hoch, Auswahl-Chips 0,75× · 1× · 1,25× in einer und 1,5× · 2× in der zweiten Reihe,
+     darunter „−  1,00×  +“ (Schritt 0,05). Hinweis „Tonhöhe bleibt gleich“ unter dem Titel.
+   - Schlaf-Timer: Chips Aus · 15 · 30 in einer, 45 · 60 min · Titelende in der zweiten Reihe, jede Zelle 55 dp hoch
+     und zweizeilig möglich, damit „Titelende“ nie gequetscht wird; läuft er, erscheint ein Chip „Noch 23 min“.
+   - Auswahl-Chips überall (Hall-Räume, Tempo, Timer, Audiofokus): 13 dp Rundung an jeder Ecke, 5 dp Abstand,
+     mindestens 48 dp hoch.
+   - Drei eigene Karten, 21 dp auseinander: Stille überspringen (Wellenform-Bild), Wenn andere Apps Ton spielen
+     (Bild: die Welle einer anderen App oben, Ordos Welle darunter wird leiser oder liegt flach hinter einem Pausezeichen;
+     Chips „Pausieren | Leiser“), Weiterspielen bei Kopfhörern (Bild: Kopfhörer mit auslaufendem Puls).
 8. **Lebende Bilder** (`KlangPictureView`, Canvas, Themenfarben, keine Bitmaps, 55 dp hoch, so breit wie die Karte).
    Jede Karte im unteren Teil zeigt, was sie tut:
    Bass → tiefe Wellen, die mit der Stärke wachsen · Raumklang → Kopfhörer mit Schallbögen, die sich mit der Stufe
-   weiten · Stereobreite → zwei Punkte, die auseinanderrücken (Marken bei 100 %) · Hall → Echoringe, deren Reichweite
+   weiten · Stereobreite → ein Kopf in der Mitte, zwei Lautsprecher mit Schallbögen, die mit der Breite auseinander-
+   rücken (kein Regler-Aussehen) · Hall → Echoringe, deren Reichweite
    der Raum bestimmt · Wärme → ein Sinus, der sich zur weich begrenzten Form biegt · Klarheit → ungleiche Balken, die
    sich angleichen · Lautstärke angleichen → Balken, die sich auf eine Höhe setzen · Mono → zwei Wellen, die zu einer
    verschmelzen · Tempo → ein Pendel im gewählten Tempo · Stille überspringen → eine Wellenform, deren Lücken sich
-   schließen · Schlaf-Timer → Mond in einem Ring, der mit der Restzeit abläuft.
+   schließen · Schlaf-Timer → Mond in einem Ring, der mit der Restzeit abläuft · Audiofokus und Kopfhörer wie oben.
+   Auf Tablets (sw600dp) sind die Bilder 89 statt 55 dp hoch.
    Aus: gedämpfte Textfarbe; An: primary. Jede Änderung gleitet in 320 ms (FastOutSlowIn). Nur bei „Animationen: voll“
    atmen eingeschaltete Bilder in einer ruhigen 4-s-Schleife mit höchstens 30 Bildern/s, das Pendel schwingt im Tempo;
    außerhalb des sichtbaren Bereichs ruht die Schleife, beim Zurückscrollen läuft sie weiter. „Dezent“ zeigt nur die
    Übergänge, „Aus“ und der Systemschalter zeigen stehende Bilder. TalkBack liest je Bild „Titel: Wert“.
 9. **Luft im unteren Teil:** Abschnitte 55 dp auseinander, Karten 34 dp (Raster: 17 dp um jede Karte), Abschnitts-
-   titel mit Symbol (`tune`, `volume_up`, `play_circle`) und 13 dp bis zur ersten Karte.
+   titel mit Symbol (`tune`, `volume_up`, `play_circle`) und 13 dp bis zur ersten Karte. Jede Karte des unteren Teils hat
+   eine 1-dp-Haarlinie in `outlineVariant`, damit sie sich auch im hellen Theme vom Blatt abhebt.
 10. Jede Zeile hat ein Symbol (Material Symbols rounded filled, über `utils/material-symbols.py` importiert).
 
 ## Raster und Schrift (Goldener Schnitt)

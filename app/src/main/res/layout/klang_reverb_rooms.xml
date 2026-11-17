@@ -10,8 +10,8 @@
         android:id="@+id/roomsSmall"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:spacing="2dp"
-        app:innerCornerSize="6dp"
+        android:spacing="@dimen/klang_space_xs"
+        app:innerCornerSize="@dimen/klang_space_md"
         app:singleSelection="true">
         <com.google.android.material.button.MaterialButton
             android:id="@+id/room0"
@@ -33,8 +33,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/klang_space_xs"
-        android:spacing="2dp"
-        app:innerCornerSize="6dp"
+        android:spacing="@dimen/klang_space_xs"
+        app:innerCornerSize="@dimen/klang_space_md"
         app:singleSelection="true">
         <com.google.android.material.button.MaterialButton
             android:id="@+id/room2"

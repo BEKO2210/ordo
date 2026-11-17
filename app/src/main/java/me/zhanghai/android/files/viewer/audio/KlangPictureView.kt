@@ -41,7 +41,9 @@ class KlangPictureView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null
 ) : View(context, attrs), ViewTreeObserver.OnScrollChangedListener {
-    enum class Kind { BASS, CROSSFEED, WIDTH, REVERB, WARMTH, CLARITY, NORMALIZE, MONO, SPEED, SKIP_SILENCE, SLEEP }
+    enum class Kind {
+        BASS, CROSSFEED, WIDTH, REVERB, WARMTH, CLARITY, NORMALIZE, MONO, SPEED, SKIP_SILENCE, SLEEP, FOCUS, HEADPHONES
+    }
 
     var kind = Kind.BASS
         set(value) {
@@ -159,7 +161,11 @@ class KlangPictureView @JvmOverloads constructor(
     private fun accent(alphaFraction: Float = 1f): Int {
         val color = ColorUtils.blendARGB(muted, primary, onness)
         val enabledAlpha = if (isEnabled) 1f else DISABLED_ALPHA
-        return ColorUtils.setAlphaComponent(color, (255 * alphaFraction.coerceIn(0f, 1f) * enabledAlpha).roundToInt())
+        // Switched off, the whole picture steps back, so "off" reads at a glance and not only from the switch.
+        val presence = OFF_PRESENCE + (1f - OFF_PRESENCE) * onness
+        return ColorUtils.setAlphaComponent(
+            color, (255 * alphaFraction.coerceIn(0f, 1f) * enabledAlpha * presence).roundToInt()
+        )
     }
 
     private fun trackColor(): Int =
@@ -186,6 +192,8 @@ class KlangPictureView @JvmOverloads constructor(
             Kind.SPEED -> drawPendulum(canvas, left, top, right, bottom)
             Kind.SKIP_SILENCE -> drawSkipSilence(canvas, left, top, right, bottom, phase)
             Kind.SLEEP -> drawSleep(canvas, left, top, right, bottom, phase)
+            Kind.FOCUS -> drawFocus(canvas, left, top, right, bottom, phase)
+            Kind.HEADPHONES -> drawHeadphones(canvas, left, top, right, bottom, phase)
         }
         if (loop) {
             // Only while some of the picture is on screen; scrolling it back in restarts the loop.
@@ -229,25 +237,45 @@ class KlangPictureView @JvmOverloads constructor(
         }
     }
 
-    /** Two dots, left and right channel: together at 0 % (mono), apart with more width. */
+    /**
+     * A listener in the middle and a speaker on each side, sending sound arcs towards the head: at 0 % (mono) both
+     * speakers stand right beside the head, with more width they move apart. Nothing in it looks like a handle.
+     */
     private fun drawWidth(canvas: Canvas, l: Float, t: Float, r: Float, b: Float, phase: Float) {
         val cx = (l + r) / 2
         val cy = (t + b) / 2
-        val half = (r - l) / 2 - dp(14f)
-        stroke.color = trackColor()
-        canvas.drawLine(l + dp(6f), cy, r - dp(6f), cy, stroke)
-        // Faint marks where the original stereo picture (100 %) sits.
-        val original = half * 100f / AudioSettings.MAX_WIDTH_PERCENT
-        canvas.drawLine(cx - original, cy - dp(6f), cx - original, cy + dp(6f), stroke)
-        canvas.drawLine(cx + original, cy - dp(6f), cx + original, cy + dp(6f), stroke)
-        val offset = half * (amount * onness + (1f - onness) * 100f / AudioSettings.MAX_WIDTH_PERCENT)
-        val pulse = dp(10f) + dp(4f) * sin(phase * TWO_PI) * onness
+        val head = minOf((b - t) * 0.22f, dp(13f))
+        val icon = minOf(dp(24f), (b - t) * 0.6f)
+        val nearest = head + dp(10f) + icon / 2
+        val farthest = (r - l) / 2 - icon / 2
+        val shown = amount * onness + (1f - onness) * 100f / AudioSettings.MAX_WIDTH_PERCENT
+        val distance = nearest + (farthest - nearest) * shown
+        // The listener: a head with two ears.
+        fill.color = accent()
+        canvas.drawCircle(cx, cy, head, fill)
+        canvas.drawCircle(cx - head, cy, head * 0.32f, fill)
+        canvas.drawCircle(cx + head, cy, head * 0.32f, fill)
         for (side in SIDES) {
-            val x = cx + side * offset
-            fill.color = accent(0.25f)
-            canvas.drawCircle(x, cy, pulse, fill)
-            fill.color = accent()
-            canvas.drawCircle(x, cy, dp(6f), fill)
+            val x = cx + side * distance
+            speaker.setTint(accent())
+            canvas.save()
+            if (side > 0) canvas.scale(-1f, 1f, x, cy)
+            speaker.setBounds(
+                (x - icon / 2).roundToInt(), (cy - icon / 2).roundToInt(),
+                (x + icon / 2).roundToInt(), (cy + icon / 2).roundToInt()
+            )
+            speaker.draw(canvas)
+            canvas.restore()
+            // Arcs travel from the speaker towards the listener.
+            val gap = distance - nearest + dp(6f)
+            for (i in 0 until ARCS) {
+                val step = (i + phase) % ARCS
+                val radius = icon / 2 + dp(4f) + gap * (step + 0.5f) / ARCS * 0.8f
+                stroke.color = accent(0.8f * (1f - step / ARCS))
+                oval.set(x - radius, cy - radius, x + radius, cy + radius)
+                val sweep = 50f
+                canvas.drawArc(oval, (if (side < 0) 0f else 180f) - sweep / 2, sweep, false, stroke)
+            }
         }
     }
 
@@ -318,12 +346,16 @@ class KlangPictureView @JvmOverloads constructor(
         }
     }
 
-    /** A pendulum that swings at the playback tempo (full motion), or rests at its turning point. */
+    /**
+     * A pendulum that swings at the playback tempo (full motion), or rests at its turning point. It hangs from a small
+     * bar inside the picture, so neither the pivot nor the bob touches the edge.
+     */
     private fun drawPendulum(canvas: Canvas, l: Float, t: Float, r: Float, b: Float) {
         val cx = (l + r) / 2
-        val pivotY = t + dp(3f)
-        val length = b - t - dp(10f)
-        val maxAngle = 32f
+        val bob = dp(7f) + dp(3f) * amount
+        val pivotY = t + dp(8f)
+        val length = b - pivotY - bob - dp(4f)
+        val maxAngle = 35f
         val angle = if (Motion.full) {
             // One full swing (there and back) per beat pair: at 1× about 1 s per swing.
             maxAngle * sin(SystemClock.uptimeMillis() / 1_000f * PI.toFloat() * tempo)
@@ -331,14 +363,16 @@ class KlangPictureView @JvmOverloads constructor(
         stroke.color = trackColor()
         oval.set(cx - length, pivotY - length, cx + length, pivotY + length)
         canvas.drawArc(oval, 90f - maxAngle, maxAngle * 2, false, stroke)
+        stroke.color = accent(0.6f)
+        canvas.drawLine(cx - dp(14f), pivotY, cx + dp(14f), pivotY, stroke)
         val radians = Math.toRadians(angle.toDouble())
         val bobX = cx + length * sin(radians).toFloat()
         val bobY = pivotY + length * cos(radians).toFloat()
         stroke.color = accent()
         canvas.drawLine(cx, pivotY, bobX, bobY, stroke)
         fill.color = accent()
-        canvas.drawCircle(cx, pivotY, dp(3f), fill)
-        canvas.drawCircle(bobX, bobY, dp(6f) + dp(2f) * amount, fill)
+        canvas.drawCircle(cx, pivotY, dp(3.5f), fill)
+        canvas.drawCircle(bobX, bobY, bob, fill)
     }
 
     /** A waveform with quiet gaps that close up when silence is skipped. */
@@ -398,6 +432,48 @@ class KlangPictureView @JvmOverloads constructor(
         }
     }
 
+    /**
+     * Another app's sound (top, quiet colour) and Ordo's (bottom): with "quieter" Ordo's wave shrinks under the other
+     * one, with "pause" it lies flat behind a pause sign. [amount] 1 = quieter, 0 = pause.
+     */
+    private fun drawFocus(canvas: Canvas, l: Float, t: Float, r: Float, b: Float, phase: Float) {
+        val height = b - t
+        val otherY = t + height * 0.28f
+        val ownY = t + height * 0.72f
+        val amplitude = height * 0.18f
+        stroke.color = ColorUtils.setAlphaComponent(muted, 160)
+        wave(l, r) { x -> otherY - amplitude * sin((x * 3f + phase) * TWO_PI) }
+        canvas.drawPath(path, stroke)
+        val own = amplitude * (0.05f + 0.35f * amount)
+        stroke.color = accent()
+        wave(l, r - dp(22f)) { x -> ownY - own * sin((x * 2f + phase) * TWO_PI) }
+        canvas.drawPath(path, stroke)
+        // Pause sign fades in as the choice moves to "pause".
+        fill.color = accent(1f - amount)
+        val x = r - dp(10f)
+        canvas.drawRect(x - dp(7f), ownY - dp(7f), x - dp(3f), ownY + dp(7f), fill)
+        canvas.drawRect(x + dp(1f), ownY - dp(7f), x + dp(5f), ownY + dp(7f), fill)
+    }
+
+    /** Headphones with a pulse running out of them: playback picks up again when they connect. */
+    private fun drawHeadphones(canvas: Canvas, l: Float, t: Float, r: Float, b: Float, phase: Float) {
+        val cx = (l + r) / 2
+        val cy = (t + b) / 2
+        val icon = minOf(dp(28f), (b - t) * 0.6f)
+        for (i in 0 until RINGS) {
+            val step = (i + phase) % RINGS
+            val radius = icon * 0.6f + ((b - t) / 2 - icon * 0.6f) * (step + 1) / RINGS
+            stroke.color = accent((1f - (step + 1) / RINGS) * (0.25f + 0.75f * onness))
+            canvas.drawCircle(cx, cy, radius, stroke)
+        }
+        headphones.setTint(accent())
+        headphones.setBounds(
+            (cx - icon / 2).roundToInt(), (cy - icon / 2).roundToInt(),
+            (cx + icon / 2).roundToInt(), (cy + icon / 2).roundToInt()
+        )
+        headphones.draw(canvas)
+    }
+
     /** Fills [path] with y(x) sampled across the width, x passed as 0..1. */
     private inline fun wave(l: Float, r: Float, y: (Float) -> Float) {
         path.reset()
@@ -417,6 +493,7 @@ class KlangPictureView @JvmOverloads constructor(
         private const val FRAME_MS = 33L
         private const val STILL_PHASE = 0.15f
         private const val DISABLED_ALPHA = 0.38f
+        private const val OFF_PRESENCE = 0.45f
         private const val TWO_PI = (2 * PI).toFloat()
         private const val ARCS = 3
         private const val RINGS = 4
