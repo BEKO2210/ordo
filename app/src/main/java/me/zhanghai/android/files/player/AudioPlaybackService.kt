@@ -22,6 +22,7 @@ import android.os.Looper
 import android.os.SystemClock
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
+import androidx.media3.common.ForwardingPlayer
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.PlaybackParameters
@@ -201,7 +202,16 @@ class AudioPlaybackService : MediaSessionService() {
             ContextCompat.RECEIVER_EXPORTED
         )
         getSystemService(AudioManager::class.java).registerAudioDeviceCallback(audioDeviceCallback, handler)
-        mediaSession = MediaSession.Builder(this, player)
+        // The file name is only the display title until the file's own title tag is read; the system media controls
+        // prefer the display title, so they showed "song.mp3" instead of the song's name.
+        val sessionPlayer = object : ForwardingPlayer(player) {
+            override fun getMediaMetadata(): MediaMetadata {
+                val metadata = super.getMediaMetadata()
+                val title = metadata.title?.takeIf { it.isNotBlank() } ?: return metadata
+                return metadata.buildUpon().setDisplayTitle(title).build()
+            }
+        }
+        mediaSession = MediaSession.Builder(this, sessionPlayer)
             .setCallback(SessionCallback())
             .setSessionActivity(
                 PendingIntent.getActivity(
