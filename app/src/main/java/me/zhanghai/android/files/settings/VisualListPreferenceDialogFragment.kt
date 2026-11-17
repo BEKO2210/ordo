@@ -74,6 +74,7 @@ class VisualListPreferenceDialogFragment : MaterialPreferenceDialogFragmentCompa
             entries = state.entries
             entryValues = state.entryValues
             checkedEntryIndex = state.checkedEntryIndex
+            chosen = state.chosen
             restored = true
         }
     }
@@ -81,7 +82,14 @@ class VisualListPreferenceDialogFragment : MaterialPreferenceDialogFragmentCompa
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
 
-        outState.putState(State(entries, entryValues, checkedEntryIndex))
+        outState.putState(State(entries, entryValues, checkedEntryIndex, chosen))
+    }
+
+    override fun onStart() {
+        super.onStart()
+
+        // A choice that recreates the activity (night mode) lands before the delayed close; don't come back open.
+        if (restored && chosen) dismissAllowingStateLoss()
     }
 
     override fun onCreateDialogView(context: Context): View? = context.withTheme(theme).let { themed ->
@@ -259,7 +267,8 @@ class VisualListPreferenceDialogFragment : MaterialPreferenceDialogFragmentCompa
     private class State(
         val entries: Array<CharSequence>,
         val entryValues: Array<CharSequence>,
-        val checkedEntryIndex: Int
+        val checkedEntryIndex: Int,
+        val chosen: Boolean
     ) : ParcelableState
 
     private companion object {
