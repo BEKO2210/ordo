@@ -13,7 +13,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="?dialogPreferredPadding"
         android:layout_marginEnd="?dialogPreferredPadding"
-        android:layout_marginTop="4dp">
+        android:layout_marginTop="@dimen/phi_5">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/nameEdit"

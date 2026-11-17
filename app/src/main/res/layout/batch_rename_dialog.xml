@@ -19,7 +19,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="?dialogPreferredPadding"
         android:layout_marginEnd="?dialogPreferredPadding"
-        android:layout_marginTop="4dp"
+        android:layout_marginTop="@dimen/phi_5"
         android:hint="@string/batch_rename_pattern_hint">
 
         <com.google.android.material.textfield.TextInputEditText
@@ -38,7 +38,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="?dialogPreferredPadding"
         android:layout_marginEnd="?dialogPreferredPadding"
-        android:layout_marginTop="12dp"
+        android:layout_marginTop="@dimen/phi_13"
         android:textAppearance="?textAppearanceBody2"
         android:textColor="?android:textColorSecondary" />
 </LinearLayout>

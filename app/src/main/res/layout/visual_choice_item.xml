@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later -->
-<!-- One option of a visual choice dialog: pictogram, label, check. The outline is drawn in code (accent, 2dp). -->
+<!-- One option of a visual choice dialog: pictogram (89 x 55 dp, φ : 1), label, check. The outline is drawn in code (accent, 3 dp, radius 21 dp). -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/choice_root"
     android:layout_width="match_parent"
@@ -8,17 +8,17 @@
     android:background="@drawable/ordo_row_ripple"
     android:clickable="true"
     android:focusable="true"
-    android:minHeight="72dp"
+    android:minHeight="@dimen/phi_row_min"
     android:stateListAnimator="@animator/ordo_row_press">
 
     <View
         android:id="@+id/choice_outline"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="2dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginBottom="2dp"
+        android:layout_marginStart="@dimen/space_item"
+        android:layout_marginTop="@dimen/phi_3"
+        android:layout_marginEnd="@dimen/space_item"
+        android:layout_marginBottom="@dimen/phi_3"
         android:alpha="0"
         android:importantForAccessibility="no" />
 
@@ -26,33 +26,34 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
-        android:minHeight="72dp"
+        android:minHeight="@dimen/phi_row_min"
         android:orientation="horizontal"
-        android:paddingStart="20dp"
-        android:paddingTop="8dp"
-        android:paddingEnd="20dp"
-        android:paddingBottom="8dp">
+        android:paddingStart="@dimen/space_card_h"
+        android:paddingTop="@dimen/space_card_v"
+        android:paddingEnd="@dimen/space_card_h"
+        android:paddingBottom="@dimen/space_card_v">
 
         <ImageView
             android:id="@+id/choice_pictogram"
-            android:layout_width="56dp"
-            android:layout_height="56dp"
+            android:layout_width="@dimen/phi_tile_w"
+            android:layout_height="@dimen/phi_tile_h"
             android:importantForAccessibility="no" />
 
         <TextView
             android:id="@+id/choice_label"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:hyphenationFrequency="none"
             android:layout_weight="1"
-            android:layout_marginStart="16dp"
-            android:layout_marginEnd="12dp"
+            android:layout_marginStart="@dimen/space_card_h"
+            android:layout_marginEnd="@dimen/space_card_v"
             android:textAppearance="?textAppearanceSubtitle1"
             android:textColor="?colorOnSurface" />
 
         <ImageView
             android:id="@+id/choice_check"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
+            android:layout_width="@dimen/phi_21"
+            android:layout_height="@dimen/phi_21"
             android:importantForAccessibility="no"
             android:src="@drawable/check_icon_control_normal_24dp"
             android:tint="?colorPrimary"

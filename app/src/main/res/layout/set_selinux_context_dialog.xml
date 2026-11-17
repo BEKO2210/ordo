@@ -22,7 +22,7 @@
             android:layout_height="wrap_content"
             android:paddingStart="?dialogPreferredPadding"
             android:paddingEnd="?dialogPreferredPadding"
-            android:paddingTop="4dp"
+            android:paddingTop="@dimen/phi_5"
             android:clipToPadding="false"
             android:orientation="vertical">
 

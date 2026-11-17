@@ -11,24 +11,24 @@
     android:layout_height="wrap_content"
     android:background="?selectableItemBackground"
     android:gravity="center_vertical"
-    android:minHeight="64dp"
+    android:minHeight="@dimen/phi_row_min"
     android:orientation="horizontal"
-    android:paddingStart="12dp"
-    android:paddingEnd="6dp"
-    android:paddingVertical="8dp">
+    android:paddingStart="@dimen/space_card_v"
+    android:paddingEnd="@dimen/space_related"
+    android:paddingVertical="@dimen/space_item">
 
     <ImageView
         android:id="@+id/iconImage"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
+        android:layout_width="@dimen/phi_icon_box"
+        android:layout_height="@dimen/phi_icon_box"
         android:background="@drawable/home_icon_circle"
         android:importantForAccessibility="no"
-        android:padding="9dp" />
+        android:padding="@dimen/space_related" />
 
     <LinearLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="12dp"
+        android:layout_marginStart="@dimen/space_card_v"
         android:layout_weight="1"
         android:orientation="vertical">
 
@@ -37,6 +37,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:ellipsize="end"
+            android:hyphenationFrequency="none"
             android:maxLines="1"
             android:textAppearance="?textAppearanceSubtitle2" />
 
@@ -45,6 +46,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:ellipsize="middle"
+            android:hyphenationFrequency="none"
             android:singleLine="true"
             android:textAppearance="?textAppearanceCaption"
             android:textColor="?android:textColorSecondary" />
@@ -53,8 +55,8 @@
     <!-- Only on folders the user added: takes the folder off the list again. -->
     <ImageButton
         android:id="@+id/removeButton"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
+        android:layout_width="@dimen/phi_row_min"
+        android:layout_height="@dimen/phi_row_min"
         android:background="?selectableItemBackgroundBorderless"
         android:src="@drawable/close_icon_control_normal_24dp"
         android:visibility="gone" />
@@ -64,7 +66,7 @@
         android:id="@+id/checkBox"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
+        android:layout_marginStart="@dimen/space_item"
         android:clickable="false"
         android:focusable="false"
         android:importantForAccessibility="no"

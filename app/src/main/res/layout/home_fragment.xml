@@ -27,7 +27,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:clipToPadding="false"
-            android:paddingBottom="24dp">
+            android:paddingBottom="@dimen/space_gutter">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -39,15 +39,17 @@
                     style="@style/Widget.MaterialFiles.CardView"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_margin="16dp">
+                    android:layout_margin="@dimen/space_gutter">
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
-                        android:padding="16dp">
+                        android:paddingHorizontal="@dimen/space_card_h"
+                        android:paddingVertical="@dimen/space_card_v">
                         <TextView
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+                            android:hyphenationFrequency="none"
                             android:text="@string/home_permission_message"
                             android:textAppearance="?textAppearanceBody1" />
                         <com.google.android.material.button.MaterialButton
@@ -64,8 +66,9 @@
                     android:id="@+id/recentEmpty"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:paddingHorizontal="16dp"
-                    android:paddingVertical="24dp"
+                    android:hyphenationFrequency="none"
+                    android:paddingHorizontal="@dimen/space_gutter"
+                    android:paddingVertical="@dimen/space_gutter"
                     android:text="@string/home_recent_empty"
                     android:textColor="?android:textColorSecondary"
                     android:visibility="gone" />
@@ -95,106 +98,110 @@
                         android:id="@+id/vaultCard"
                         style="@style/Widget.Ordo.HomeCard"
                         android:layout_width="0dp"
-                        android:layout_height="64dp"
-                        android:layout_margin="4dp"
+                        android:layout_height="wrap_content"
+                        android:minHeight="@dimen/phi_row_min"
+                        android:layout_margin="@dimen/home_card_margin"
+                        app:cardCornerRadius="@dimen/phi_radius_m"
                         android:layout_weight="1"
                         android:clickable="true"
                         android:focusable="true"
                         android:foreground="?selectableItemBackground"
                         android:stateListAnimator="@animator/home_press_scale">
 
-                        <FrameLayout
+                        <LinearLayout
                             android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:padding="12dp">
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:padding="@dimen/phi_8">
 
                             <ImageView
                                 android:id="@+id/vaultIcon"
-                                android:layout_width="30dp"
-                                android:layout_height="30dp"
-                                android:layout_gravity="center_vertical|start"
+                                android:layout_width="@dimen/phi_34"
+                                android:layout_height="@dimen/phi_34"
                                 android:background="@drawable/home_icon_circle"
                                 android:contentDescription="@null"
-                                android:padding="5dp" />
+                                android:padding="@dimen/phi_5" />
 
                             <LinearLayout
-                                android:layout_width="match_parent"
+                                android:layout_width="0dp"
                                 android:layout_height="wrap_content"
-                                android:layout_gravity="center_vertical|start"
-                                android:layout_marginStart="42dp"
+                                android:layout_marginStart="@dimen/phi_8"
+                                android:layout_weight="1"
                                 android:orientation="vertical">
 
                                 <TextView
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
-                                    android:ellipsize="end"
-                                    android:maxLines="1"
+                                    android:hyphenationFrequency="none"
                                     android:text="@string/navigation_vault"
                                     android:textAppearance="?textAppearanceSubtitle2" />
 
                                 <TextView
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
-                                    android:ellipsize="end"
-                                    android:maxLines="1"
+                                    android:hyphenationFrequency="none"
+                                    android:maxLines="2"
                                     android:text="@string/home_vault_summary_short"
                                     android:textAppearance="?textAppearanceCaption"
                                     android:textColor="?android:textColorSecondary" />
                             </LinearLayout>
-                        </FrameLayout>
+                        </LinearLayout>
                     </com.google.android.material.card.MaterialCardView>
 
                     <com.google.android.material.card.MaterialCardView
                         android:id="@+id/backupCard"
                         style="@style/Widget.Ordo.HomeCard"
                         android:layout_width="0dp"
-                        android:layout_height="64dp"
-                        android:layout_margin="4dp"
+                        android:layout_height="wrap_content"
+                        android:minHeight="@dimen/phi_row_min"
+                        android:layout_margin="@dimen/home_card_margin"
+                        app:cardCornerRadius="@dimen/phi_radius_m"
                         android:layout_weight="1"
                         android:clickable="true"
                         android:focusable="true"
                         android:foreground="?selectableItemBackground"
                         android:stateListAnimator="@animator/home_press_scale">
 
-                        <FrameLayout
+                        <LinearLayout
                             android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:padding="12dp">
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:padding="@dimen/phi_8">
 
                             <ImageView
                                 android:id="@+id/backupIcon"
-                                android:layout_width="30dp"
-                                android:layout_height="30dp"
-                                android:layout_gravity="center_vertical|start"
+                                android:layout_width="@dimen/phi_34"
+                                android:layout_height="@dimen/phi_34"
                                 android:background="@drawable/home_icon_circle"
                                 android:contentDescription="@null"
-                                android:padding="5dp" />
+                                android:padding="@dimen/phi_5" />
 
                             <LinearLayout
-                                android:layout_width="match_parent"
+                                android:layout_width="0dp"
                                 android:layout_height="wrap_content"
-                                android:layout_gravity="center_vertical|start"
-                                android:layout_marginStart="42dp"
+                                android:layout_marginStart="@dimen/phi_8"
+                                android:layout_weight="1"
                                 android:orientation="vertical">
 
                                 <TextView
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
-                                    android:ellipsize="end"
-                                    android:maxLines="1"
+                                    android:hyphenationFrequency="none"
                                     android:text="@string/navigation_backup"
                                     android:textAppearance="?textAppearanceSubtitle2" />
 
                                 <TextView
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
-                                    android:ellipsize="end"
-                                    android:maxLines="1"
+                                    android:hyphenationFrequency="none"
+                                    android:maxLines="2"
                                     android:text="@string/home_backup_summary_short"
                                     android:textAppearance="?textAppearanceCaption"
                                     android:textColor="?android:textColorSecondary" />
                             </LinearLayout>
-                        </FrameLayout>
+                        </LinearLayout>
                     </com.google.android.material.card.MaterialCardView>
                 </LinearLayout>
 
@@ -226,12 +233,12 @@
             style="@style/Widget.Ordo.HomeCard"
             android:layout_width="match_parent"
             android:layout_height="48dp"
-            android:layout_marginHorizontal="16dp"
-            android:layout_marginVertical="8dp"
+            android:layout_marginHorizontal="@dimen/space_gutter"
+            android:layout_marginVertical="@dimen/space_item"
             android:clickable="true"
             android:focusable="true"
             android:foreground="?selectableItemBackground"
-            app:cardCornerRadius="24dp">
+            app:cardCornerRadius="@dimen/phi_radius_l">
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
@@ -252,7 +259,8 @@
                     android:ellipsize="end"
                     android:gravity="center_vertical"
                     android:maxLines="1"
-                    android:paddingStart="4dp"
+                    android:hyphenationFrequency="none"
+                    android:paddingStart="@dimen/phi_5"
                     android:text="@string/home_search_hint"
                     android:textAppearance="?textAppearanceBody1"
                     android:textColor="?android:textColorSecondary" />
@@ -281,7 +289,7 @@
     <View
         android:id="@+id/toolbarEdge"
         android:layout_width="match_parent"
-        android:layout_height="32dp"
+        android:layout_height="@dimen/phi_34"
         android:alpha="0"
         android:importantForAccessibility="no" />
 

@@ -346,7 +346,7 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
                     val (start, end) = FileItemSize.gridItemOffsets(
                         (view.layoutParams as GridLayoutManager.LayoutParams).spanIndex,
                         layoutManager.spanCount,
-                        parent.context.dpToDimensionPixelSize(12)
+                        parent.context.dpToDimensionPixelSize(13)
                     )
                     if (parent.layoutDirection == View.LAYOUT_DIRECTION_RTL) {
                         outRect.set(end, 0, start, 0)

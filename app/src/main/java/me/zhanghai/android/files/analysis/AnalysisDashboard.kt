@@ -8,6 +8,7 @@ package me.zhanghai.android.files.analysis
 import android.content.Context
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
+import android.text.Layout
 import android.text.SpannableString
 import android.text.Spanned
 import android.text.style.ForegroundColorSpan
@@ -112,14 +113,14 @@ class AnalysisDashboard(
     private var passes = 0
 
     /**
-     * Wide screens use their whole width like the home screen: two columns of cards, 16 dp to the edge and 8 dp
+     * Wide screens use their whole width like the home screen: two columns of cards, a gutter (21 dp) to the edge and
      * between. Where a card is wide enough, its chart stands next to its rows instead of above them.
      */
     private fun arrange(folderCount: Int) {
         val width = context.resources.displayMetrics.widthPixels / density
         if (width < WIDE_DP) return
         binding.columnB.isVisible(true)
-        val beside = (width - 2 * 16 - 8) / 2 - 2 * 20 >= BESIDE_DP
+        val beside = (width - 2 * 21 - 21) / 2 - 2 * 21 >= BESIDE_DP
         // Roughly how tall each column gets, in dp, to give the last card to the shorter one.
         val kinds = insights.usage.count { it.first != StorageInsights.KIND_SYSTEM && it.second > 0 }
         val rows = minOf(folderCount, 7)
@@ -141,22 +142,22 @@ class AnalysisDashboard(
         }
         for (card in listOf(binding.usageCard, binding.filesCard, binding.cleanupCard, binding.suggestionCard,
             binding.folderCard, binding.growthCard)) {
-            (card.layoutParams as ViewGroup.MarginLayoutParams).bottomMargin = dp(8)
+            (card.layoutParams as ViewGroup.MarginLayoutParams).bottomMargin = dp(21)
         }
         binding.filesChart.layoutParams = if (beside) {
             binding.filesBody.orientation = LinearLayout.HORIZONTAL
             binding.filesList.layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
-                .apply { marginStart = dp(20) }
-            LinearLayout.LayoutParams(dp(280), dp(280))
+                .apply { marginStart = dp(21) }
+            LinearLayout.LayoutParams(dp(233), dp(233))
         } else {
-            LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(260)).apply { topMargin = dp(8) }
+            LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(233)).apply { topMargin = dp(8) }
         }
         if (beside) {
             binding.folderBody.orientation = LinearLayout.HORIZONTAL
             binding.folderMapBlock.layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
-            binding.folderMap.layoutParams.height = dp(300)
+            binding.folderMap.layoutParams.height = dp(233)
             binding.folderList.layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
-                .apply { marginStart = dp(20); topMargin = dp(4) }
+                .apply { marginStart = dp(21); topMargin = dp(5) }
         }
     }
 
@@ -217,7 +218,7 @@ class AnalysisDashboard(
         LinearLayout(context).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
-            minimumHeight = dp(if (hint != null) 56 else 40)
+            minimumHeight = dp(if (hint != null) 55 else 34)
             if (hint != null) setPadding(0, dp(8), 0, dp(8))
             contentDescription = listOfNotNull(name, value, share, hint).filter { it.isNotEmpty() }.joinToString()
             addView(LinearLayout(context).apply {
@@ -229,26 +230,28 @@ class AnalysisDashboard(
                     addView(View(context).apply {
                         background = GradientDrawable().apply {
                             shape = GradientDrawable.OVAL
-                            if (dot != null) setColor(dot) else setStroke((1.5f * density).toInt(), muted)
+                            if (dot != null) setColor(dot) else setStroke(dp(2), muted)
                         }
-                    }, LinearLayout.LayoutParams(dp(10), dp(10)).apply { marginEnd = dp(12) })
+                    }, LinearLayout.LayoutParams(dp(13), dp(13)).apply { marginEnd = dp(8) })
                     addView(label(name, primary = true), LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
                     addView(label(value, primary = true))
                     if (share.isNotEmpty()) addView(label(share, primary = false).apply {
                         gravity = Gravity.END
-                        minWidth = dp(56)
+                        minWidth = dp(55)
                     })
                 })
                 if (hint != null) addView(label(hint, primary = false).apply {
                     TextViewCompat.setTextAppearance(this, com.google.android.material.R.style.TextAppearance_MaterialComponents_Caption)
                     setTextColor(muted)
-                    setPaddingRelative(dp(22), dp(2), 0, 0)
+                    hyphenationFrequency = Layout.HYPHENATION_FREQUENCY_NONE
+                    setPaddingRelative(dp(21), dp(3), 0, 0)
                 })
             }, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
         }
 
     private fun label(value: String, primary: Boolean) = TextView(context).apply {
         text = value
+        hyphenationFrequency = Layout.HYPHENATION_FREQUENCY_NONE
         TextViewCompat.setTextAppearance(
             this, com.google.android.material.R.style.TextAppearance_MaterialComponents_Body2
         )
@@ -263,14 +266,14 @@ class AnalysisDashboard(
             setImageResource(R.drawable.arrow_end_icon_white_24dp)
             imageTintList = android.content.res.ColorStateList.valueOf(muted)
             importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
-        }, LinearLayout.LayoutParams(dp(20), dp(20)).apply { marginStart = dp(6) })
+        }, LinearLayout.LayoutParams(dp(21), dp(21)).apply { marginStart = dp(5) })
         background = ContextCompat.getDrawable(context, R.drawable.ordo_row_ripple)
         stateListAnimator = android.animation.AnimatorInflater.loadStateListAnimator(context, R.animator.ordo_row_press)
         // The ripple is inset by 8 dp; the row reaches that far past the content so text stays aligned.
         // Left and right, not start and end: the row is already attached, and relative margins would not resolve.
         (layoutParams as? ViewGroup.MarginLayoutParams)?.let { it.leftMargin = -dp(8); it.rightMargin = -dp(8) }
         setPaddingRelative(dp(8), paddingTop, dp(8), paddingBottom)
-        minimumHeight = maxOf(minimumHeight, dp(48))
+        minimumHeight = maxOf(minimumHeight, dp(55))
         setOnClickListener { onClick() }
     }
 
@@ -286,15 +289,15 @@ class AnalysisDashboard(
         return LinearLayout(context).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
-            minimumHeight = dp(56)
+            minimumHeight = dp(55)
             setPadding(0, dp(8), 0, dp(8))
             contentDescription = "$name, ${size(bytes)}, $share"
             addView(ImageView(context).apply {
                 setBackgroundResource(R.drawable.home_icon_circle)
-                setPadding(dp(8), dp(8), dp(8), dp(8))
+                setPadding(dp(5), dp(5), dp(5), dp(5))
                 setTintedCircleIcon(icon, tint)
                 importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
-            }, LinearLayout.LayoutParams(dp(36), dp(36)).apply { marginEnd = dp(14) })
+            }, LinearLayout.LayoutParams(dp(34), dp(34)).apply { marginEnd = dp(13) })
             addView(LinearLayout(context).apply {
                 orientation = LinearLayout.VERTICAL
                 addView(LinearLayout(context).apply {
@@ -307,13 +310,13 @@ class AnalysisDashboard(
                     addView(label(size(bytes), primary = true).apply { setPaddingRelative(dp(8), 0, 0, 0) })
                     addView(label(share, primary = false).apply {
                         gravity = Gravity.END
-                        minWidth = dp(56)
+                        minWidth = dp(55)
                     })
                 })
                 addView(StackedBarView(context).apply {
                     importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
                     setParts(listOf(accent to bytes), whole)
-                }, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(6)).apply { topMargin = dp(8) })
+                }, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(5)).apply { topMargin = dp(8) })
             }, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
         }
     }
@@ -481,7 +484,7 @@ class AnalysisDashboard(
         safe.forEach { (type, bytes) -> addRow(type, bytes) }
         if (review.isNotEmpty()) {
             binding.cleanupList.addView(label(context.getString(R.string.analysis_cleanup_review), primary = false).apply {
-                setPadding(0, dp(12), 0, dp(2))
+                setPadding(0, dp(13), 0, dp(3))
                 importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_YES
                 rise(delay)
             })
@@ -508,7 +511,7 @@ class AnalysisDashboard(
             binding.suggestionList.addView(LinearLayout(context).apply {
                 orientation = LinearLayout.HORIZONTAL
                 gravity = Gravity.CENTER_VERTICAL
-                setPadding(0, dp(10), 0, 0)
+                setPadding(0, dp(8), 0, 0)
                 addView(LinearLayout(context).apply {
                     orientation = LinearLayout.VERTICAL
                     addView(label(title, primary = true).apply { setTypeface(typeface, Typeface.BOLD) })
@@ -517,7 +520,7 @@ class AnalysisDashboard(
                 addView(MaterialButton(context).apply {
                     text = context.getString(R.string.analysis_preview)
                     isAllCaps = false
-                    cornerRadius = dp(20)
+                    cornerRadius = dp(34)
                     backgroundTintList = android.content.res.ColorStateList.valueOf(accent)
                     setTextColor(onAccent)
                     minimumHeight = dp(48)
@@ -607,7 +610,7 @@ class AnalysisDashboard(
         if (index < 0) {
             binding.folderPick.addView(label(context.getString(R.string.analysis_map_hint), primary = false).apply {
                 gravity = Gravity.CENTER_VERTICAL
-                minimumHeight = dp(48)
+                minimumHeight = dp(55)
                 importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_YES
             })
             return
@@ -655,7 +658,7 @@ class AnalysisDashboard(
                 isDrawGridLinesEnabled = false
                 isDrawAxisLineEnabled = false
                 textColor = muted
-                textSize = 10f
+                textSize = 12f
                 granularity = 1f
                 labelCount = months.size
                 valueFormatter = IndexAxisValueFormatter(labels)
@@ -664,7 +667,7 @@ class AnalysisDashboard(
                 isDrawAxisLineEnabled = false
                 gridColor = withAlpha(muted, 40)
                 textColor = muted
-                textSize = 10f
+                textSize = 12f
                 axisMinimum = 0f
                 labelCount = 4
                 valueFormatter = com.github.mikephil.charting.formatter.IAxisValueFormatter { value, _ ->
@@ -689,7 +692,7 @@ class AnalysisDashboard(
     private fun View.rise(delay: Long) {
         if (!animate) return
         alpha = 0f
-        translationY = 18 * density
+        translationY = 21 * density
         animate().alpha(1f).translationY(0f).setStartDelay(delay).setDuration(420)
             .setInterpolator(PathInterpolator(0.2f, 0f, 0f, 1f)).start()
     }
@@ -706,7 +709,7 @@ class AnalysisDashboard(
 
         // Centred over the bar, a little above its top.
         override var offset: MPPointF
-            get() = MPPointF(-width / 2f, -height - 6 * resources.displayMetrics.density)
+            get() = MPPointF(-width / 2f, -height - 5 * resources.displayMetrics.density)
             set(_) {}
     }
 
@@ -736,11 +739,11 @@ class AnalysisDashboard(
                 setColor(androidx.core.graphics.ColorUtils.setAlphaComponent(color, 0x26))
             }
             val icon = ContextCompat.getDrawable(context, kindIcon(kind))!!.mutate().apply { setTint(color) }
-            val pad = (8 * density).toInt()
+            val pad = (5 * density).toInt()
             return android.graphics.drawable.LayerDrawable(arrayOf(circle, icon)).apply {
                 setLayerInset(1, pad, pad, pad, pad)
-                setLayerSize(0, (36 * density).toInt(), (36 * density).toInt())
-                setLayerSize(1, (20 * density).toInt(), (20 * density).toInt())
+                setLayerSize(0, (34 * density).toInt(), (34 * density).toInt())
+                setLayerSize(1, (24 * density).toInt(), (24 * density).toInt())
             }
         }
 

@@ -45,7 +45,7 @@
             <me.zhanghai.android.files.ui.ReadOnlyTextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="@dimen/phi_13"
                 android:hint="@string/storage_edit_device_storage_path">
 
                 <me.zhanghai.android.files.ui.ReadOnlyTextInputEditText
