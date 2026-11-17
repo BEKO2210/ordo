@@ -5,9 +5,12 @@
 
 package me.zhanghai.android.files.settings
 
+import android.graphics.Rect
 import android.os.Bundle
+import android.view.View
 import androidx.preference.PreferenceCategory
 import androidx.preference.SwitchPreferenceCompat
+import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
 import me.zhanghai.android.files.R
 import me.zhanghai.android.files.launcher.BuiltInApp
@@ -16,7 +19,8 @@ import me.zhanghai.android.files.launcher.IconColor
 import me.zhanghai.android.files.launcher.LauncherIcons
 
 /**
- * One switch per built-in app, then the icon colour of Ordo and of every app that has an icon. Switches and colours
+ * A picture of the icons, one switch per built-in app that is ready, the icon colour of Ordo and of every app that
+ * has an icon, and the apps still to come. Switches and colours
  * show the real state of the launcher aliases, read from the system each time the page is shown, so they stay right
  * after a reinstall or when something else changed an alias. Ordo never switches an icon on by itself: only this
  * page does, on the user's tap.
@@ -27,14 +31,8 @@ class LauncherIconsPreferenceFragment : SettingsPreferenceFragment() {
     override fun onCreatePreferencesFix(savedInstanceState: Bundle?, rootKey: String?) {
         super.onCreatePreferencesFix(savedInstanceState, rootKey)
 
-        BuiltInApp.entries.forEach { app ->
-            val preference = switchFor(app) ?: return@forEach
-            if (!app.isAvailable) {
-                preference.isEnabled = false
-                preference.isChecked = false
-                return@forEach
-            }
-            preference.setOnPreferenceChangeListener { _, newValue -> onSwitched(app, newValue as Boolean) }
+        BuiltInApp.available.forEach { app ->
+            switchFor(app)?.setOnPreferenceChangeListener { _, newValue -> onSwitched(app, newValue as Boolean) }
         }
 
         val context = preferenceManager.context
@@ -54,6 +52,21 @@ class LauncherIconsPreferenceFragment : SettingsPreferenceFragment() {
                 category.addPreference(row)
                 colorRows += row
             }
+        val soon = BuiltInApp.entries.filter { !it.isAvailable }
+        if (soon.isNotEmpty()) {
+            preferenceScreen.addPreference(SoonAppsPreference(context, soon).apply { key = KEY_SOON })
+        }
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        // Room after the last row, on top of the navigation bar inset the list already gets as padding.
+        val end = resources.getDimensionPixelSize(R.dimen.space_section)
+        listView.addItemDecoration(object : RecyclerView.ItemDecoration() {
+            override fun getItemOffsets(outRect: Rect, view: View, parent: RecyclerView, state: RecyclerView.State) {
+                if (parent.getChildAdapterPosition(view) == state.itemCount - 1) outRect.bottom = end
+            }
+        })
     }
 
     override fun onResume() {
@@ -70,6 +83,22 @@ class LauncherIconsPreferenceFragment : SettingsPreferenceFragment() {
         val context = requireContext()
         colorRows.forEach {
             it.show(LauncherIcons.chosenColor(context, it.prefix), LauncherIcons.color(context, it.prefix) != null)
+        }
+        refreshIcons()
+    }
+
+    /** The page's picture and each app's switch show the icons in the colours they have now. */
+    private fun refreshIcons() {
+        val context = requireContext()
+        preferenceScreen.findPreference<LauncherIconsHeaderPreference>(KEY_HEADER)?.show(
+            colorRows.map {
+                val color = LauncherIcons.chosenColor(context, it.prefix)
+                LauncherIconsHeaderPreference.Icon(it.prefix, it.title.toString(), color)
+            }
+        )
+        BuiltInApp.available.forEach { app ->
+            val prefix = app.aliasPrefix!!
+            switchFor(app)?.icon = LauncherIcons.icon(context, prefix, LauncherIcons.chosenColor(context, prefix))
         }
     }
 
@@ -108,6 +137,8 @@ class LauncherIconsPreferenceFragment : SettingsPreferenceFragment() {
             ),
             MESSAGE_DURATION_MS
         ).show()
+        // After the swatch's own animation has started: the picture and the switch's icon follow.
+        view?.post { if (isAdded) refreshIcons() }
         return true
     }
 
@@ -116,7 +147,9 @@ class LauncherIconsPreferenceFragment : SettingsPreferenceFragment() {
 
     companion object {
         const val KEY_PREFIX = "launcher_"
+        private const val KEY_HEADER = "launcher_icons_info"
         private const val KEY_COLORS = "launcher_colors"
+        private const val KEY_SOON = "launcher_soon"
         private const val KEY_COLOR_PREFIX = "launcher_color_"
         private const val MESSAGE_DURATION_MS = 6_000
     }

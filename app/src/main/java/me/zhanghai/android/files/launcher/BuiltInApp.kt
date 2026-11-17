@@ -10,6 +10,7 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
 import androidx.annotation.ColorRes
+import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.core.content.edit
 import me.zhanghai.android.files.R
@@ -21,12 +22,12 @@ import me.zhanghai.android.files.app.defaultSharedPreferences
  * without [aliasPrefix] is announced in the settings but has no icon to switch on. Nothing here is ever enabled by
  * Ordo itself: only the user's switch does it.
  */
-enum class BuiltInApp(val aliasPrefix: String?, @StringRes val labelRes: Int) {
-    MUSIC("me.zhanghai.android.files.launcher.Music", R.string.launcher_music_label),
-    VIDEO(null, R.string.launcher_video_label),
-    IMAGES(null, R.string.launcher_images_label),
-    PDF(null, R.string.launcher_pdf_label),
-    NOTES(null, R.string.launcher_notes_label);
+enum class BuiltInApp(val aliasPrefix: String?, @StringRes val labelRes: Int, @DrawableRes val iconRes: Int) {
+    MUSIC("me.zhanghai.android.files.launcher.Music", R.string.launcher_music_label, R.drawable.audio_icon_white_24dp),
+    VIDEO(null, R.string.launcher_video_label, R.drawable.video_icon_white_24dp),
+    IMAGES(null, R.string.launcher_images_label, R.drawable.image_icon_white_24dp),
+    PDF(null, R.string.launcher_pdf_label, R.drawable.document_icon_white_24dp),
+    NOTES(null, R.string.launcher_notes_label, R.drawable.text_file_icon_white_24dp);
 
     val isAvailable: Boolean
         get() = aliasPrefix != null
