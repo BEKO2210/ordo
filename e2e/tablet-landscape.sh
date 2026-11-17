@@ -1,14 +1,12 @@
 #!/bin/bash
 # Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later
 # Regression (after 0.8.1): on a tablet in landscape Ordo crashed as soon as a file was selected, because the
-# selection bar sat in the side-pane layout. Opens Downloads as a landscape tablet, selects a file and opens "More".
+# selection bar sat in the side-pane layout. Opens internal storage as a landscape tablet, selects its first entry and opens "More".
 # On an emulator it sets 2560x1600 at 320 dpi and restores the exact previous overrides (also on Ctrl-C); a real
 # device is never resized or rotated: the test runs only if it already is a tablet in landscape, else it skips.
 # Read-only.
 . "$(dirname "$0")/lib.sh" "$@"
 export E2E_FAST=0
-# Current screen in its present rotation, e.g. "2560 1600", and density.
-cur_size() { a shell dumpsys window displays | grep -o -m1 'cur=[0-9]*x[0-9]*' | sed 's/cur=//; s/x/ /'; }
 cur_dpi() { a shell wm density | tail -1 | sed 's/.*: //' | tr -d '\r'; }
 if is_emulator; then
     # Only an emulator is resized, and it gets back exactly the overrides it had (none, or e.g. a capture setup).
@@ -23,14 +21,17 @@ if is_emulator; then
     a shell wm size 2560x1600; a shell wm density 320; sleep 2
 else
     # A real device is never resized or rotated: it runs only when it already is a tablet in landscape.
-    read -r w h < <(cur_size); dpi=$(cur_dpi)
+    read -r w h < <(screen_size); dpi=$(cur_dpi)
     if [ -z "$w" ] || [ "$w" -le "$h" ] || [ $((h * 160 / dpi)) -lt 600 ]; then
         echo "SKIP: not a tablet in landscape (${w}x${h} at ${dpi} dpi); this device is never resized or rotated"
         exit 0
     fi
 fi
 launch
-ui tap "Downloads" >/dev/null; sleep 4
+# Internal storage's top folder: it has entries on every device (Downloads may be empty, as on a fresh tablet).
+a shell am start -W -a android.intent.action.VIEW -d "file:///storage/emulated/0" -t inode/directory \
+    -n "$PKG/me.zhanghai.android.files.filelist.FileListActivity" >/dev/null
+sleep 4
 # Checked before guard(): a crash puts the launcher in front, which would only abort the run.
 check "a folder opens on a tablet in landscape without a crash" test "$(crashes)" = 0
 guard
