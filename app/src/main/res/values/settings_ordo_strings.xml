@@ -63,13 +63,26 @@
     <string name="launcher_images_label">Images</string>
     <string name="launcher_pdf_label">PDF</string>
     <string name="launcher_notes_label">Notes</string>
-    <string name="launcher_music_summary">Adds “Ordo Music” as its own icon next to Ordo in your app list. It opens the music player with your last queue, or a list of your newest audio files. Turning it off removes the icon.</string>
+    <string name="launcher_music_summary">Adds “Ordo Music” as its own icon next to Ordo in your app list. It opens your music library with songs, albums, artists and folders, and what is playing. Turning it off removes the icon.</string>
     <string name="launcher_coming_soon">Coming as soon as the app is ready</string>
     <string name="launcher_icon_enabled_message">“%1$s” is on. Your launcher can need a moment before the icon shows up.</string>
     <string name="launcher_icon_disabled_message">“%1$s” is off. The icon disappears as soon as your launcher has refreshed.</string>
     <string name="launcher_icon_failed">The icon couldn’t be changed.</string>
     <string name="launcher_music_start_title">Music</string>
-    <string name="launcher_music_start_subtitle">Recently modified audio files</string>
-    <string name="launcher_music_start_empty">No audio files found yet. Choose a folder with music.</string>
-    <string name="launcher_music_choose_folder">Choose folder</string>
+    <string name="music_tab_songs">Songs</string>
+    <string name="music_tab_albums">Albums</string>
+    <string name="music_tab_artists">Artists</string>
+    <string name="music_tab_folders">Folders</string>
+    <string name="music_shuffle_all">Shuffle all (%1$d)</string>
+    <string name="music_shuffle">Shuffle</string>
+    <string name="music_unknown_album">Unknown album</string>
+    <plurals name="music_song_count">
+        <item quantity="one">%d song</item>
+        <item quantity="other">%d songs</item>
+    </plurals>
+    <string name="music_search_hint">Search music</string>
+    <string name="music_empty">No music found yet. Put songs in a folder such as Music or Download and they show up here.</string>
+    <string name="music_no_results">Nothing found for “%1$s”</string>
+    <string name="music_access_message">Allow storage access so Ordo can find your music.</string>
+    <string name="music_now_playing">Now playing: %1$s, %2$s. Opens the player</string>
 </resources>

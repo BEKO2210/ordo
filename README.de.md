@@ -94,7 +94,12 @@ Was als Nächstes kommt, steht in der [lebenden Roadmap](docs/ROADMAP-LIVE.md): 
 - „Abspielen auf …“ im Player öffnet die Ausgabe-Auswahl von Android: Bluetooth-Kopfhörer und -Lautsprecher, Kabel und
   Cast-Geräte, ohne Google-Dienste (ab Android 11; auf Android 6–10 öffnen sich die Bluetooth-Einstellungen). Musik an
   Chromecast, Fernseher und Receiver zu streamen ist geplant, siehe [docs/STREAMING-RECHERCHE.md](docs/STREAMING-RECHERCHE.md)
-- Eigenes App-Symbol für den Musik-Player (Einstellungen › Eingebaute Apps): standardmäßig aus, nur du schaltest es ein und aus, siehe [docs/AUDIO-PLAYER.md](docs/AUDIO-PLAYER.md)
+- Ordo Musik als eigene Musik-App mit eigener Karte in den Letzten Apps: deine ganze Musik in den Reitern Titel,
+  Alben, Interpreten und Ordner, mit großem Titel, der beim Scrollen in die Leiste wandert, Suche, „Alle zufällig“,
+  Albumseiten in Titelreihenfolge mit „Abspielen“ und „Zufällig“ und einem Mini-Player unten für das, was gerade
+  läuft. Die Titel kommen aus Androids Mediensammlung (nur was der Player abspielt; versteckte Ordner nur, wenn du
+  versteckte Dateien zeigst)
+- Eigenes App-Symbol für Ordo Musik (Einstellungen › Eingebaute Apps): standardmäßig aus, nur du schaltest es ein und aus, siehe [docs/AUDIO-PLAYER.md](docs/AUDIO-PLAYER.md)
 
 **Dateien schützen**
 

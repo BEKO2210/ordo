@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- What plays now: cover, title, artist, play/pause and a thin progress line. Tapping it opens the player. -->
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="@dimen/phi_8"
+    android:layout_marginTop="@dimen/phi_5"
+    android:layout_marginEnd="@dimen/phi_8"
+    android:layout_marginBottom="@dimen/phi_8"
+    android:clickable="true"
+    android:focusable="true"
+    app:cardBackgroundColor="?colorSurfaceVariant"
+    app:cardCornerRadius="@dimen/phi_radius_l"
+    app:cardElevation="0dp"
+    app:strokeWidth="0dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:minHeight="@dimen/phi_55"
+            android:orientation="horizontal"
+            android:paddingStart="@dimen/phi_8"
+            android:paddingTop="@dimen/phi_8"
+            android:paddingEnd="@dimen/phi_5"
+            android:paddingBottom="@dimen/phi_5">
+
+            <include
+                android:id="@+id/art"
+                layout="@layout/music_art" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/space_card_v"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:textAppearance="?textAppearanceBody1"
+                    android:textColor="?colorOnSurface" />
+
+                <TextView
+                    android:id="@+id/artist"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/phi_3"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:textAppearance="?textAppearanceCaption"
+                    android:textColor="?android:textColorSecondary" />
+            </LinearLayout>
+
+            <ImageButton
+                android:id="@+id/playPause"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="?selectableItemBackgroundBorderless"
+                android:contentDescription="@string/audio_player_play"
+                android:src="@drawable/play_icon_24dp"
+                app:tint="?colorOnSurface" />
+        </LinearLayout>
+
+        <com.google.android.material.progressindicator.LinearProgressIndicator
+            android:id="@+id/progress"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/phi_13"
+            android:layout_marginEnd="@dimen/phi_13"
+            android:layout_marginBottom="@dimen/phi_5"
+            android:importantForAccessibility="no"
+            android:max="1000"
+            app:trackCornerRadius="@dimen/phi_3"
+            app:trackThickness="@dimen/phi_3" />
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

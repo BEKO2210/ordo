@@ -256,6 +256,15 @@
         <item name="fontFamily">sans-serif-medium</item>
     </style>
 
+    <!-- The music library's large title, and the same title collapsed into the toolbar. -->
+    <style name="TextAppearance.Ordo.MusicTitle" parent="TextAppearance.Material3.DisplaySmall">
+        <item name="android:textColor">?colorOnSurface</item>
+    </style>
+
+    <style name="TextAppearance.Ordo.MusicTitle.Collapsed" parent="TextAppearance.Material3.TitleLarge">
+        <item name="android:textColor">?colorOnSurface</item>
+    </style>
+
     <!-- Window animations of Ordo's popup menus and dialogs. The android: item names are the platform's. -->
     <style name="Animation.Ordo.PopupMenu" parent="">
         <item name="android:windowEnterAnimation">@anim/ordo_popup_enter</item>

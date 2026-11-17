@@ -294,7 +294,8 @@ class AudioPlayerActivity : AppActivity() {
 
     /**
      * Opened from the music icon: when the session holds nothing (the process was gone), the queue Ordo saved is
-     * put back, paused. A running session is left alone. Nothing left to resume leads to the start screen.
+     * put back, paused. A running session is left alone. With nothing left to resume the player closes and the
+     * library below it shows.
      */
     private fun resumeSavedQueue(player: MediaController) {
         if (queueStarted || !intent.getBooleanExtra(EXTRA_RESUME, false)) return
@@ -307,7 +308,6 @@ class AudioPlayerActivity : AppActivity() {
             }
             if (isFinishing || isDestroyed) return@launch
             if (state == null) {
-                startActivity(MusicLauncherActivity.createStartIntent(this@AudioPlayerActivity))
                 finish()
                 return@launch
             }

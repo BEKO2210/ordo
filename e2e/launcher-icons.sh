@@ -74,15 +74,14 @@ check "tapping it off removes the icon" ui tap "$MUSIC"
 check "the removal is explained" ui wait "$OFF_MESSAGE" 5
 check "the launcher alias is disabled again" wait_alias off
 
-# The icon's own entry: enabled once more, it opens Ordo's music start screen (a saved queue would open the player
-# instead, so the start screen is asked for), which has "Choose folder".
+# The icon's own entry: enabled once more, it opens Ordo's music library (also with a saved queue), with its tabs.
 set_alias enable
 check "the alias can be started" wait_alias on
-a shell am start -W -n "$PKG/$ALIAS" --ez me.zhanghai.android.files.viewer.audio.extra.SHOW_START true >/dev/null
+a shell am start -W -n "$PKG/$ALIAS" >/dev/null
 sleep 3; guard
 # Samsung names the alias as the front screen, the emulator its target: both are the music start screen.
 music_screen() { on viewer.audio.MusicLauncherActivity || on launcher.MusicAlias; }
 check "the music icon opens its own screen" music_screen
-check "the start screen offers to choose a folder" ui has "Ordner wählen|Choose folder"
+check "the music library shows its tabs" ui has "Ordner|Folders"
 a shell am force-stop "$PKG"
 finish
