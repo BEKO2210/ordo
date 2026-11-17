@@ -42,7 +42,26 @@ Rechenlast, gemessen am 17.11.2026 auf dem Android-16-Emulator (x86_64, API 36, 
 
 Tests: `KlangChainTest` prüft die Kette und jede Stufe mit `EMPTY_BUFFER` vor den ersten Daten, bitgenaues Durchreichen im ausgeschalteten Zustand, die Wirkung im eingeschalteten (Mono, Breite, Wärme, Übersprechen, Hallfahne), den Dither (höchstens 1 LSB, etwa 0,5 LSB RMS, mittelwertfrei) und die Kette mit Kopfhörer und Mono; `ClickFreeTest` misst Knackfreiheit (unten); `AudioSettingsTest` prüft das Übernehmen des Virtualizer-Schalters. Auf dem Gerät schaltet `e2e/klang.sh` jede neue Karte ein und prüft, dass ein 16-Bit-Stereo-Titel mit allen Effekten `state=PLAYING` erreicht.
 
-Die Lautstärkenormalisierung liest nur Metadaten, die Media3 1.11.1 tatsächlich liefert: LAME-MP3-Info-ReplayGain, Vorbis-Kommentare und ID3-`TXXX` für ReplayGain beziehungsweise R128. Titelwerte haben Vorrang vor Albumwerten. Die einstellbare Normalisierungs-Vorverstärkung wird zum Tag-Gain addiert; ist ein Peak-Tag vorhanden, begrenzt `−20 log10(peak)` die Verstärkung auf höchstens 0 dBFS. Media3 deckt nicht jede Container-/Tag-Variante ab; dafür steht ein ausdrückliches `TODO(TagLib)` im Code, es gibt keinen selbst erfundenen Parser.
+### Messwerte der Klangkette
+
+Gemessen am 17.11.2026 mit `KlangMeasurementTest` (JVM, 48 kHz, 16-Bit-Stereo, Ordos eigene Kette `KlangAudioProcessor`). Equalizer, Bass und Klarheit laufen in `DynamicsProcessing`/`BassBoost` im Audio-Server von Android und sind darin **nicht** enthalten; ihren Frequenzgang und ihre Latenz misst nur eine Aufnahme am Geräteausgang, die es noch nicht gibt.
+
+| Messung | Wert |
+|---|---|
+| Alles aus (Standard): Rauschen, Sinus, Stille | bitgleich, kein Dither, kein Limiter |
+| Frequenzgang des Bearbeitungswegs (Breite 100 %, also Float, Limiter, Dither), 20 Hz–20 kHz | ±0,0002 dB |
+| Rauschteppich, digitale Stille durch den Bearbeitungsweg | −96,3 dBFS RMS (TPDF-Dither) |
+| THD+N 1 kHz, −6 dBFS: nur Bearbeitungsweg / Mono / Raumklang Mittel / Breite 130 % / Hall Studio 25 % | −84,4 / −82,8 / −84,2 / −84,9 / −84,5 dB (16-Bit-Dither-Grenze) |
+| THD+N 1 kHz, −6 dBFS: Analoge Wärme Mittel (erzeugt gewollt Obertöne) | −33,8 dB |
+| True Peak, 0-dBFS-Rosarauschen, alle eigenen Effekte am stärksten (Raumklang Stark, Breite 150 %, Wärme Stark, Hall Konzertsaal 100 %), 4-fach überabgetastet | −1,17 dBTP (Limiter-Decke −1,5 dBFS) |
+| Latenz der Kette (Impuls, mit und ohne Effekte) | 0 Samples |
+| Raumklang direkt / zum anderen Ohr bei 100 Hz · 1 kHz · 10 kHz, Stufe Leicht | −2,5/−12,1 · −1,7/−17,3 · −1,2/−35,1 dB |
+| dasselbe, Stufe Mittel | −4,0/−8,6 · −2,9/−13,4 · −2,0/−31,1 dB |
+| dasselbe, Stufe Stark | −4,6/−7,7 · −3,3/−12,5 · −2,3/−30,1 dB |
+
+Der Limiter der Kette senkt die Verstärkung sofort, sobald der lautere Kanal die Decke von −1,5 dBFS überschreiten würde, und gibt sie mit einer Zeitkonstante von 80 ms wieder frei (keine Kennlinie, die einzelne Samples verbiegt). Er wirkt nur, wenn mindestens ein eigener Effekt an ist.
+
+Die Lautstärkenormalisierung liest nur Metadaten, die Media3 1.11.1 tatsächlich liefert: LAME-MP3-Info-ReplayGain, Vorbis-Kommentare und ID3-`TXXX` für ReplayGain beziehungsweise R128. Titelwerte haben Vorrang vor Albumwerten. R128-Werte (`R128_TRACK_GAIN`, `R128_ALBUM_GAIN`) beziehen sich auf EBU R 128, also −23 LUFS (RFC 7845, Abschnitt 5.2; EBU R 128 (2014), Punkt h), ReplayGain 2.0 auf −18 LUFS; Ordo rechnet R128-Werte deshalb mit +5 dB auf den ReplayGain-Bezug um, sonst spielten R128-getaggte Opus-Dateien 5 dB leiser (`ReplayGainMetadataTest`). Die −18 LUFS stehen in der ReplayGain-2.0-Spezifikation auf hydrogenaudio, die automatischen Abruf abweist (Cloudflare); belegt ist der Wert hier über die Dokumentation des RG2-Scanners rsgain. Sobald etwas den Pegel anheben kann (Lautstärkeangleich, angehobene EQ-Bänder, Vorverstärkung, Bass), greift der Limiter von DynamicsProcessing bei −1 dB statt −0,1 dB (EBU R 128: höchstens −1 dBTP); unbearbeitete Musik behält −0,1 dB. Eine eigene Lautheitsmessung nach ITU-R BS.1770 für Dateien ohne Tags ist noch nicht gebaut. Die einstellbare Normalisierungs-Vorverstärkung wird zum Tag-Gain addiert; ist ein Peak-Tag vorhanden, begrenzt `−20 log10(peak)` die Verstärkung auf höchstens 0 dBFS. Media3 deckt nicht jede Container-/Tag-Variante ab; dafür steht ein ausdrückliches `TODO(TagLib)` im Code, es gibt keinen selbst erfundenen Parser.
 
 Weitere gespeicherte und live wirksame Einstellungen sind Geschwindigkeit 0,5–2,0 bei Pitch 1,0 (`PlaybackParameters`), Stille überspringen, Mono-Mix, Audiofokus als Pause oder Absenken sowie „bei verbundenem Kopfhörer fortsetzen“ (standardmäßig aus). Der eigene Audiofokus-Controller nutzt ab Android 8 `AudioFocusRequest`; auf älteren Versionen senkt Ordo beim Ducking selbst die Lautstärke. Der Einschlaf-Timer bietet 15/30/45/60 Minuten und Titelende, blendet in den letzten zehn Sekunden linear aus und pausiert. Media3s normale lückenlose Wiedergabe bleibt unverändert aktiv.
 

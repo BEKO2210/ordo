@@ -16,12 +16,10 @@ import java.nio.ByteBuffer
 import kotlin.math.abs
 import kotlin.math.exp
 import kotlin.math.roundToInt
-import kotlin.math.sign
-import kotlin.math.tanh
 
 /**
  * Ordo's whole sound chain in one pass (docs/AUDIO-QUALITAET-RECHERCHE.md, 4): 16-bit stereo in, once to float,
- * every active [KlangStage] in turn, one soft limiter, one TPDF dither, once back to 16 bit. Before, each of five
+ * every active [KlangStage] in turn, one peak limiter, one TPDF dither, once back to 16 bit. Before, each of five
  * processors read, limited and rounded the 16-bit signal on its own, five quantisations without dither. With every
  * stage off the buffer is copied untouched (bit for bit, no dither). Anything other than 16-bit stereo passes by
  * (mono sources, float). Without float output enabled, DefaultAudioSink hands every processor 16-bit PCM.
@@ -33,6 +31,8 @@ class KlangAudioProcessor(
 ) : BaseAudioProcessor() {
     private val active = BooleanArray(stages.size)
     private var seed = 0x2545F491
+    private var limiterGain = 1f
+    private var release = 0f
 
     override fun onConfigure(inputAudioFormat: AudioProcessor.AudioFormat): AudioProcessor.AudioFormat =
         if (inputAudioFormat.encoding == C.ENCODING_PCM_16BIT && inputAudioFormat.channelCount == 2) {
@@ -45,6 +45,8 @@ class KlangAudioProcessor(
     override fun onFlush() {
         val sampleRate = inputAudioFormat.sampleRate.takeIf { it > 0 } ?: DEFAULT_SAMPLE_RATE
         stages.forEach { it.flush(sampleRate) }
+        release = (1.0 - exp(-1.0 / (sampleRate * RELEASE_SECONDS))).toFloat()
+        limiterGain = 1f
     }
 
     override fun onReset() {
@@ -73,16 +75,26 @@ class KlangAudioProcessor(
                     left = stage.outLeft
                     right = stage.outRight
                 }
-                output.putShort(quantize(left))
-                output.putShort(quantize(right))
+                // The limiter: the gain drops at once to keep the louder channel at the ceiling and recovers slowly,
+                // so a peak is turned down as a whole instead of being bent sample by sample (no clipping distortion).
+                var gain = limiterGain
+                if (gain < 1f) {
+                    gain += (1f - gain) * release
+                    if (gain > 0.99999f) gain = 1f
+                }
+                val level = maxOf(abs(left), abs(right))
+                if (level * gain > CEILING) gain = CEILING / level
+                limiterGain = gain
+                output.putShort(quantize(left * limiterGain))
+                output.putShort(quantize(right * limiterGain))
             }
         }
         output.flip()
     }
 
-    /** The one limiter and the one dither of the chain, then 16 bit. */
+    /** The one dither of the chain, then 16 bit. */
     private fun quantize(value: Float): Short {
-        var scaled = softLimit(value) * PCM_SCALE
+        var scaled = value * PCM_SCALE
         if (dither) scaled += nextUniform() + nextUniform()
         return scaled.roundToInt().coerceIn(Short.MIN_VALUE.toInt(), Short.MAX_VALUE.toInt()).toShort()
     }
@@ -104,17 +116,13 @@ class KlangAudioProcessor(
         private const val BYTES_PER_STEREO_FRAME = 4
         private const val PCM_SCALE = 32_768f
         internal const val DEFAULT_SAMPLE_RATE = 44_100
-        private const val LIMIT_KNEE = 0.9f
-
         /**
-         * Clipping protection: unchanged up to the knee (-0.9 dBFS), then a soft curve that approaches full scale but
-         * never passes it.
+         * Peak ceiling of the chain, -1.5 dBFS: with the dither on top and the peaks between samples, the output
+         * stays at or below -1 dBTP (EBU R 128's maximum), measured with 4x oversampling in KlangMeasurementTest.
          */
-        internal fun softLimit(value: Float): Float {
-            val magnitude = abs(value)
-            if (magnitude <= LIMIT_KNEE) return value
-            return sign(value) * (LIMIT_KNEE + (1f - LIMIT_KNEE) * tanh((magnitude - LIMIT_KNEE) / (1f - LIMIT_KNEE)))
-        }
+        internal const val CEILING = 0.8414f
+        /** Back to full gain with this time constant once the peak has passed. */
+        private const val RELEASE_SECONDS = 0.08
     }
 }
 

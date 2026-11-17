@@ -97,10 +97,10 @@ class KlangChainTest {
         assertEquals(listOf<Short>(200, 200, -500, -500), mono.run(pcm(100, 300, -1000, 0)))
         // Constant gain: opposite full-scale channels cancel, equal ones stay.
         assertEquals(listOf<Short>(0, 0), mono.run(pcm(32_767, -32_767)))
-        // Equal full-scale channels stay full scale, only the one limiter rounds the very top off (by less than 3 %).
+        // Equal full-scale channels stay equal; the one limiter turns them down to its ceiling (-1.5 dBFS).
         val loud = MonoStage().configured(true).run(pcm(-32_768, -32_768))
         assertEquals(loud[0], loud[1])
-        assertTrue("${loud[0]}", loud[0] in -32_768..-31_800)
+        assertTrue("${loud[0]}", loud[0] in -27_600..-27_000)
     }
 
     @Test
@@ -131,9 +131,9 @@ class KlangChainTest {
     fun widthNeverClipsHard() {
         val wide = WidthStage().apply { widthPercent = 150 }.configured(true)
         val out = wide.run(pcm(Short.MAX_VALUE, Short.MIN_VALUE))
-        // 1.5 × full scale would wrap around without protection; the soft limit keeps the sign near full scale.
-        assertTrue(out[0] > 29_000)
-        assertTrue(out[1] < -29_000)
+        // 1.5 × full scale would wrap around without protection; the limiter keeps the sign, at its ceiling.
+        assertTrue(out[0] in 27_000..27_600)
+        assertTrue(out[1] in -27_600..-27_000)
     }
 
     @Test
@@ -195,10 +195,14 @@ class KlangChainTest {
     }
 
     @Test
-    fun softLimitOnlyActsAboveTheKnee() {
-        assertEquals(0.5f, KlangAudioProcessor.softLimit(0.5f), 0f)
-        assertTrue(KlangAudioProcessor.softLimit(3f) <= 1f && KlangAudioProcessor.softLimit(0.95f) < 0.95f)
-        assertTrue(KlangAudioProcessor.softLimit(-3f) >= -1f)
+    fun theLimiterHoldsTheCeilingAndRecovers() {
+        val wide = WidthStage().apply { widthPercent = 150 }.configured(true)
+        val ceiling = (KlangAudioProcessor.CEILING * 32_768).toInt() + 1
+        val loud = wide.run(steady(Short.MAX_VALUE, Short.MIN_VALUE, 100))
+        assertTrue("never above the ceiling", loud.all { abs(it.toInt()) <= ceiling })
+        // After the peak the gain comes back: a quiet passage plays at its own level again.
+        wide.run(steady(0, 0, 44_100))
+        assertEquals(listOf<Short>(1500, -1500), wide.run(pcm(1000, -1000)))
     }
 
     @Test
