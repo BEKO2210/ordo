@@ -4,6 +4,7 @@
 # `cmd package query-activities`, not only on the screen), the other four apps are shown disabled with their summary,
 # a calm explanation appears, the switch shows the real component state when the page is opened again, and the
 # alias is put back to exactly the state it had before the test (also on Ctrl-C). Needs Android 11 or newer.
+# On a real phone the shell may not change app components, so there the page's own switch sets and restores it.
 . "$(dirname "$0")/lib.sh" "$@"
 export E2E_FAST=0
 
@@ -20,7 +21,13 @@ alias_on() { a shell "cmd package query-activities --brief -a android.intent.act
 alias_off() { ! alias_on; }
 not() { ! "$@"; }
 wait_alias() { local want=$1 end=$((SECONDS + 8)); until "alias_$want"; do [ $SECONDS -ge "$end" ] && return 1; sleep 0.5; done; }
-set_alias() { a shell "pm $1 $PKG/$ALIAS" >/dev/null; }
+# A real device refuses `pm enable/disable` of an app component from the shell: there the page's own switch sets it.
+set_alias() {
+    if is_emulator; then a shell "pm $1 $PKG/$ALIAS" >/dev/null; return; fi
+    local want=off; [ "$1" = enable ] && want=on
+    "alias_$want" && return 0
+    open_page; ui tap "$MUSIC" >/dev/null; wait_alias "$want"; back; sleep 1
+}
 
 if alias_on; then initial=enable; else initial=disable; fi
 restore() { set_alias "$initial"; }
@@ -42,25 +49,29 @@ done
 check "a not yet ready app says when it comes" ui has "$SOON"
 check "the Ordo Musik switch starts off" not ui checked "$MUSIC"
 
+# The message first: it stays 6 s, and a screen read on a real phone takes over 2 s.
 check "tapping the switch works" ui tap "$MUSIC"
+check "a calm explanation is shown" ui wait "$ON_MESSAGE" 5
 check "the launcher alias is enabled in the system" wait_alias on
 check "the switch is on" ui checked "$MUSIC"
-check "a calm explanation is shown" ui wait "$ON_MESSAGE" 5
 
 # Leaving and returning: the switch reads the system state, not a stored value.
 back; sleep 1
 open_page
 check "after reopening the switch still shows the real state (on)" ui checked "$MUSIC"
-a shell "pm disable $PKG/$ALIAS" >/dev/null
-back; sleep 1
-open_page
-check "a change made from outside shows up when the page opens (off)" not ui checked "$MUSIC"
-
-check "tapping the switch again works" ui tap "$MUSIC"
-check "the launcher alias is enabled again" wait_alias on
+if is_emulator; then
+    a shell "pm disable $PKG/$ALIAS" >/dev/null
+    back; sleep 1
+    open_page
+    check "a change made from outside shows up when the page opens (off)" not ui checked "$MUSIC"
+    check "tapping the switch again works" ui tap "$MUSIC"
+    check "the launcher alias is enabled again" wait_alias on
+else
+    echo "SKIP a change made from outside shows up when the page opens (only an emulator lets the shell change it)"
+fi
 check "tapping it off removes the icon" ui tap "$MUSIC"
-check "the launcher alias is disabled again" wait_alias off
 check "the removal is explained" ui wait "$OFF_MESSAGE" 5
+check "the launcher alias is disabled again" wait_alias off
 
 # The icon's own entry: enabled once more, it opens Ordo's music start screen (a saved queue would open the player
 # instead, so the start screen is asked for), which has "Choose folder".

@@ -1,6 +1,6 @@
 New in this test build:
-• Settings with pictures: sun and moon for night mode, previews for motion and the search bar, an icon on every entry
-• Accent colour with a live preview
-• Menus, dialogs and the side menu open and close calmly and consistently; all of it follows Settings › Appearance › Motion
-• Still to try: new AI commands (Settings › AI assistant)
+• Music player: play songs right in Ordo, with a queue, cover art and background controls
+• Sound: 10-band equalizer with presets, bass, surround, loudness levelling, speed and a sleep timer
+• Own "Ordo Music" icon for your home screen (Settings › Built-in apps), off by default
+• All spacing follows the golden ratio
 Feedback welcome: nullmesh@protonmail.com
