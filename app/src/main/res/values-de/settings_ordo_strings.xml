@@ -84,5 +84,16 @@
     <string name="music_empty">Noch keine Musik gefunden. Lege Lieder in einen Ordner wie Music oder Download, dann erscheinen sie hier.</string>
     <string name="music_no_results">Nichts gefunden für „%1$s“</string>
     <string name="music_access_message">Erlaube den Speicherzugriff, damit Ordo deine Musik findet.</string>
+    <string name="music_play_next">Als Nächstes spielen</string>
+    <string name="music_add_to_queue">Zur Warteschlange</string>
+    <string name="music_show_file">Datei anzeigen</string>
+    <string name="music_more_options">Weitere Optionen für %1$s</string>
+    <string name="music_added_next">Kommt als Nächstes</string>
+    <string name="music_added_to_queue">Zur Warteschlange hinzugefügt</string>
+    <string name="music_nav_library">Bibliothek</string>
+    <string name="music_nav_recent">Zuletzt gespielt</string>
+    <string name="music_nav_most">Meistgespielt</string>
+    <string name="music_nav_files">Zum Dateimanager</string>
+    <string name="music_history_empty">Noch nichts gespielt. Was du hörst, erscheint hier.</string>
     <string name="music_now_playing">Läuft gerade: %1$s, %2$s. Öffnet den Player</string>
 </resources>

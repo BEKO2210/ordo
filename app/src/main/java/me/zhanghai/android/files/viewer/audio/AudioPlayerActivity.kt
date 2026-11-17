@@ -181,6 +181,14 @@ class AudioPlayerActivity : AppActivity() {
             }
         }
         showPlaceholder()
+        // Ordo Music's menu opens Sound or the sleep timer over the player.
+        if (savedInstanceState == null && intent.hasExtra(EXTRA_SOUND_SHEET)) {
+            AudioSoundSettingsSheet().apply {
+                arguments = bundleOf(
+                    AudioSoundSettingsSheet.ARG_SLEEP_TIMER to intent.getBooleanExtra(EXTRA_SOUND_SHEET, false)
+                )
+            }.show(supportFragmentManager, AudioSoundSettingsSheet.TAG)
+        }
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -609,6 +617,7 @@ class AudioPlayerActivity : AppActivity() {
         private const val EXTRA_QUEUE_TOKEN =
             "me.zhanghai.android.files.viewer.audio.extra.QUEUE_TOKEN"
         private const val EXTRA_RESUME = "me.zhanghai.android.files.viewer.audio.extra.RESUME"
+        private const val EXTRA_SOUND_SHEET = "me.zhanghai.android.files.viewer.audio.extra.SOUND_SHEET"
         private const val STATE_QUEUE_STARTED = "queueStarted"
         private const val SEEK_MAX = 1_000
         // Once per displayed second, on the second: the times only change then, and a screen that redraws twice a
@@ -632,6 +641,10 @@ class AudioPlayerActivity : AppActivity() {
         /** For the music icon: shows the saved queue, paused, unless the session already holds one. */
         fun createResumeIntent(context: Context): Intent =
             Intent(context, AudioPlayerActivity::class.java).putExtra(EXTRA_RESUME, true)
+
+        /** The player with the Sound sheet open, or scrolled to its sleep timer. */
+        fun withSoundSheet(intent: Intent, sleepTimer: Boolean): Intent =
+            intent.putExtra(EXTRA_SOUND_SHEET, sleepTimer)
 
         fun createSessionIntent(context: Context): Intent =
             Intent(context, AudioPlayerActivity::class.java)

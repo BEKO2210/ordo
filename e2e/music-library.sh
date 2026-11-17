@@ -89,8 +89,28 @@ check "the mini player names the song" eval 'ui texts | grep -Eq "\|miniPlayer\|
 check "the mini player pauses" ui tap playPause
 paused() { local i; for i in 1 2 3 4 5; do session_state PAUSED && return 0; sleep 1; done; return 1; }
 check "playback is paused" paused
+# Every song row has its ⋮; while a queue exists it offers play next and add to queue besides showing the file.
+check "a song row has its options button" ui tap "Weitere Optionen für Ordoe2e Beta|More options for Ordoe2e Beta"
+check "options offer play next" ui wait "Als Nächstes spielen|Play next" 5
+check "options offer add to queue" ui has "Zur Warteschlange|Add to queue"
+check "options offer showing the file" ui has "Datei anzeigen|Show file"
+back 1
 check "closing search keeps the library open" close_search
 check "the library is still in front" on viewer.audio.MusicLauncherActivity
+
+# Ordo's side menu: the song played above is in the play history; Sound opens over the player.
+check "the menu button opens the side menu" ui tap "Navigationsmenü öffnen|Open navigation drawer"
+check "the side menu names Ordo Musik" ui wait "Ordo Musik|Ordo Music" 5
+check "the side menu offers the library" ui has "Bibliothek|Library"
+check "the side menu offers sound and the sleep timer" ui has "Einschlaf-Timer|Sleep timer"
+check "recently played opens" ui tap "Zuletzt gespielt|Recently played"
+check "the played song is in the history" ui wait "Ordoe2e Alpha" 5
+check "the menu goes back to the library" eval 'ui tap "Navigationsmenü öffnen|Open navigation drawer" && sleep 1 && ui tap "Bibliothek|Library"'
+check "the library tabs are back" ui wait "Ordner|Folders" 5
+check "Sound opens from the side menu" eval 'ui tap "Navigationsmenü öffnen|Open navigation drawer" && sleep 1 && ui tap "Klang|Sound"'
+check "the Sound sheet opens over the player" ui wait "Equalizer" 8
+back 1.5; back 2
+check "back from the player returns to the library" on viewer.audio.MusicLauncherActivity
 
 check "the Folders tab opens" ui tap "Ordner|Folders"
 search OrdoE2E

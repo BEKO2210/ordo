@@ -51,6 +51,9 @@ class AudioPlaybackService : MediaSessionService() {
     private lateinit var player: ExoPlayer
     private lateinit var mediaSession: MediaSession
     private lateinit var stateStore: PlaybackStateStore
+    private lateinit var playHistory: PlayHistoryStore
+    // The song last counted in the play history; a pause and resume of the same song is not a new play.
+    private var lastCountedMediaId: String? = null
     private lateinit var soundEffects: SoundEffectController
     private lateinit var monoAudioProcessor: MonoAudioProcessor
     private lateinit var audioFocusController: AudioFocusController
@@ -145,6 +148,10 @@ class AudioPlaybackService : MediaSessionService() {
                 persistPosition()
                 if (player.isPlaying) handler.postDelayed(savePosition, POSITION_SAVE_INTERVAL_MS)
             }
+            if (events.contains(Player.EVENT_MEDIA_ITEM_TRANSITION)) lastCountedMediaId = null
+            if (events.containsAny(Player.EVENT_MEDIA_ITEM_TRANSITION, Player.EVENT_IS_PLAYING_CHANGED)) {
+                countPlay()
+            }
             if (events.contains(Player.EVENT_TRACKS_CHANGED)) {
                 replayGain = ReplayGainMetadata.fromTracks(player.currentTracks)
                 soundEffects.apply(soundSettings, replayGain)
@@ -163,9 +170,19 @@ class AudioPlaybackService : MediaSessionService() {
         }
     }
 
+    /** A song that starts to play counts once in Ordo Music's history; `content://` songs of other apps never. */
+    private fun countPlay() {
+        val mediaId = player.currentMediaItem?.mediaId ?: return
+        if (!player.isPlaying || mediaId == lastCountedMediaId || mediaId.startsWith("content:")) return
+        lastCountedMediaId = mediaId
+        val now = System.currentTimeMillis()
+        ioExecutor.execute { playHistory.record(mediaId, now) }
+    }
+
     override fun onCreate() {
         super.onCreate()
         stateStore = PlaybackStateStore(this)
+        playHistory = PlayHistoryStore(this)
         soundSettings = AudioSettingsStore.read()
         soundEffects = SoundEffectController()
         monoAudioProcessor = MonoAudioProcessor().apply { monoEnabled = soundSettings.mono }

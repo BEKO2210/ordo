@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later -->
 <!-- A song, an artist or a folder: cover (or track number), title, an info line if it says something new, and
-     the duration for songs. -->
+     for songs the duration and a ⋮ menu. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="?selectableItemBackground"
@@ -20,17 +21,32 @@
         android:id="@+id/art"
         layout="@layout/music_art" />
 
-    <!-- On an album page the track number stands where the (same) cover would repeat. -->
-    <TextView
-        android:id="@+id/number"
+    <!-- On an album page the track number stands where the (same) cover would repeat; the playing song shows
+         moving bars instead. -->
+    <FrameLayout
+        android:id="@+id/numberSlot"
         android:layout_width="48dp"
-        android:layout_height="wrap_content"
-        android:fontFeatureSettings="tnum"
-        android:gravity="center"
+        android:layout_height="48dp"
         android:importantForAccessibility="no"
-        android:textAppearance="?textAppearanceBody1"
-        android:textColor="?android:textColorSecondary"
-        android:visibility="gone" />
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/number"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:fontFeatureSettings="tnum"
+            android:gravity="center"
+            android:importantForAccessibility="no"
+            android:textAppearance="?textAppearanceBody1"
+            android:textColor="?android:textColorSecondary" />
+
+        <me.zhanghai.android.files.viewer.audio.EqualizerBarsView
+            android:id="@+id/bars"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:importantForAccessibility="no"
+            android:visibility="gone" />
+    </FrameLayout>
 
     <LinearLayout
         android:layout_width="0dp"
@@ -69,4 +85,14 @@
         android:fontFeatureSettings="tnum"
         android:textAppearance="?textAppearanceCaption"
         android:textColor="?android:textColorSecondary" />
+
+    <ImageButton
+        android:id="@+id/more"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_marginStart="@dimen/phi_5"
+        android:background="?selectableItemBackgroundBorderless"
+        android:src="@drawable/more_vertical_icon_white_24dp"
+        android:visibility="gone"
+        app:tint="?colorControlNormal" />
 </LinearLayout>
