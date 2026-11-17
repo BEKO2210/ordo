@@ -23,6 +23,7 @@ GREEN_MESSAGE="„Ordo“ hat jetzt die Icon-Farbe Grün. Dein Startbildschirm b
 SAVED_MESSAGE="Gespeichert. „Ordo Musik“ bekommt die Icon-Farbe Lila, sobald du es einschaltest.|Saved. “Ordo Music” gets the icon colour Violet when you turn it on."
 
 # The launcher entries of one icon (Home or Music) as the system lists them, e.g. "HomeGreen"; none while it is off.
+# LABEL is keyed by the colour suffix ("Green", "Alias" = blue): strip the icon prefix before a lookup.
 entries() {
     a shell "cmd package query-activities --components -a android.intent.action.MAIN -c android.intent.category.LAUNCHER $PKG" |
         grep -o "launcher\.$1[A-Za-z]*" | sed 's/^launcher\.//' | sort
@@ -54,12 +55,12 @@ restore() {
     trap - EXIT
     [ "$(entries Home)" = "$initial_home" ] && [ "$(entries Music)" = "$initial_music" ] && return 0
     open_page; to_colours
-    tap_colour "$ORDO" "${initial_home:-Alias}"
+    home=${initial_home#Home}; tap_colour "$ORDO" "${home:-Alias}"
     if [ -z "$initial_music" ]; then
         [ -n "$(entries Music)" ] && tap_music_switch
     else
         [ -z "$(entries Music)" ] && tap_music_switch
-        tap_colour "$MUSIC" "$initial_music"
+        tap_colour "$MUSIC" "${initial_music#Music}"
     fi
     sleep 2
     echo "restored: Home=$(entries Home) Music=$(entries Music)"
@@ -71,7 +72,7 @@ check "Ordo has exactly one launcher entry before the test" [ "$(entries Home | 
 open_page
 to_colours
 check "the page has the icon colours" ui has "$COLOURS"
-check "the colour of Ordo shows the system's state" ui checked "${LABEL[$initial_home]}"
+check "the colour of Ordo shows the system's state" ui checked "${LABEL[${initial_home#Home}]}"
 
 check "tapping green in Ordo's row works" tap_colour "$ORDO" Green
 check "the change is explained" ui wait "$GREEN_MESSAGE" 5
