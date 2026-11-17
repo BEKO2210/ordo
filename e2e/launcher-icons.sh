@@ -26,7 +26,7 @@ wait_alias() { local want=$1 end=$((SECONDS + 8)); until "alias_$want"; do [ $SE
 set_alias() {
     local want=off; [ "$1" = enable ] && want=on
     "alias_$want" && return 0
-    open_page; ui tap "$MUSIC" >/dev/null; wait_alias "$want"; back; sleep 1
+    open_page; ui tap "$MUSIC" title >/dev/null; wait_alias "$want"; back; sleep 1
 }
 
 if alias_on; then initial=enable; else initial=disable; fi
@@ -54,7 +54,7 @@ check "a not yet ready app says when it comes" ui has "$SOON"
 swipe_down; swipe_down; swipe_down
 
 # The message first: it stays 6 s, and a screen read on a real phone takes over 2 s.
-check "tapping the switch works" ui tap "$MUSIC"
+check "tapping the switch works" ui tap "$MUSIC" title
 check "a calm explanation is shown" ui wait "$ON_MESSAGE" 5
 check "the launcher alias is enabled in the system" wait_alias on
 check "the switch is on" ui checked "$MUSIC"
@@ -69,12 +69,12 @@ if wait_alias off; then
     back; sleep 1
     open_page
     check "a change made from outside shows up when the page opens (off)" not ui checked "$MUSIC"
-    check "tapping the switch again works" ui tap "$MUSIC"
+    check "tapping the switch again works" ui tap "$MUSIC" title
     check "the launcher alias is enabled again" wait_alias on
 else
     echo "SKIP a change made from outside shows up when the page opens (the shell may not change app components here)"
 fi
-check "tapping it off removes the icon" ui tap "$MUSIC"
+check "tapping it off removes the icon" ui tap "$MUSIC" title
 check "the removal is explained" ui wait "$OFF_MESSAGE" 5
 check "the launcher alias is disabled again" wait_alias off
 

@@ -44,7 +44,7 @@ ROW_TITLES="$ORDO|$MUSIC"
 nudge() { read -r W H < <(screen_size); a shell input swipe $((W / 2)) $((H * $1 / 3)) $((W / 2)) $((H * $2 / 3)) 400; sleep 1.2; }
 swatch() {
     local try title_y next_y x1 y1 x2 y2
-    for try in 1 2 3 4 5; do
+    for try in 1 2 3 4 5 6 7 8; do
         title_y=$(ui bounds "$1" | tail -1 | awk '{print $4}')
         if [ -z "$title_y" ]; then nudge 1 2; continue; fi
         next_y=$(ui bounds "$ROW_TITLES" | awk -v t="$title_y" '$2 > t {print $2}' | sort -n | head -1)
@@ -60,7 +60,7 @@ swatch() {
 tap_colour() { local xy; xy=$(swatch "$1" "$2") || return 1; a shell input tap $xy; sleep 1.2; }
 # ordo_checked SUFFIX: with Ordo's row on screen its swatches come first in the screen read.
 ordo_checked() { swatch "$ORDO" "$1" >/dev/null && ui checked "${LABEL[$1]}"; }
-tap_music_switch() { to_switches; ui tap "$MUSIC" >/dev/null; to_colours; }
+tap_music_switch() { to_switches; ui tap "$MUSIC" title >/dev/null; to_colours; }
 
 initial_home=$(entries Home)
 initial_music=$(entries Music)

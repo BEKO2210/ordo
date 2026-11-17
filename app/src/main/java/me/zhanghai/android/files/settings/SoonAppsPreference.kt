@@ -69,6 +69,10 @@ class SoonAppsPreference(context: Context, private val apps: List<BuiltInApp>) :
                 setTextAppearance(com.google.android.material.R.style.TextAppearance_MaterialComponents_Caption)
                 labelColor?.let { setTextColor(it) }
                 setPadding(0, context.resources.getDimensionPixelSize(R.dimen.space_related), 0, 0)
+                // A vertical LinearLayout would stretch it to its width by default; centred under its icon instead.
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT
+                )
             }
             row.addView(LinearLayout(context).apply {
                 orientation = LinearLayout.VERTICAL
