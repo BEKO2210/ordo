@@ -49,6 +49,7 @@ check "shuffle keeps its 48 dp touch target" touch_target shuffle
 check "repeat keeps its 48 dp touch target" touch_target repeat
 check "Sound opens from the player toolbar" paused_ui tap actionSound
 check "the equalizer and deliberate-drag guidance are visible" paused_ui wait "Equalizer" 5
+sleep 1 # the sheet is still sliding up: a tap now would land where the switch is about to leave
 check "the curve explains its 150 ms hold" paused_ui has "Hold a handle for 150 ms, then drag.|Einen Griff 150 ms halten, dann ziehen."
 check "the fine-tune controls start collapsed" paused_ui has "Fine-tune|Genau einstellen"
 # The equalizer is off by default and its controls are disabled until it is switched on.
