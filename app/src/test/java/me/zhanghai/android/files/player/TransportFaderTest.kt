@@ -75,6 +75,16 @@ class TransportFaderTest {
     }
 
     @Test
+    fun aDuckIsSilentWhenItActs() {
+        var gainWhenActing = -1f
+        fader.duck { gainWhenActing = fader.gain }
+        advance(TransportFader.DUCK_MS * 3)
+        assertEquals("the effect switches while nothing is heard", 0f, gainWhenActing, 0f)
+        assertEquals(1f, fader.gain, 0f)
+        assertGentle(gains.subList(0, gains.indexOf(0f) + 1), falling = true)
+    }
+
+    @Test
     fun nothingPlayingActsAtOnceAtFullVolume() {
         var done = false
         fader.immediate { done = true }

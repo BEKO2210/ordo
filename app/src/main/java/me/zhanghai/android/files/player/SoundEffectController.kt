@@ -22,11 +22,15 @@ import kotlin.math.ln
  *
  * Nothing jumps, because a jump in a gain is an audible crack: equalizer bands, input gain (pre-gain, levelling,
  * balance), clarity and bass strength glide towards their targets, at most [DB_MAX_STEP] per [GLIDE_TICK_MS].
- * DynamicsProcessing and BassBoost stay switched on once created: switching DynamicsProcessing off changes its latency
- * (it works in FFT blocks) and cuts over to a plain copy, both audible. "Off" means 0 dB in every band, strength 0.
- * docs/AUDIO-QUALITAET-RECHERCHE.md, 1.2 and 1.3.
+ * Switching DynamicsProcessing or BassBoost on or off is audible (DynamicsProcessing changes its latency, it works in
+ * FFT blocks, and cuts over to a plain copy), so [EffectGate] decides when: never while sound is heard; released in
+ * silence once everything is neutral, so "everything off" is bit-perfect; switched on before music plays again, or
+ * inside [duck] (a short fade of the player volume) while it plays. docs/AUDIO-QUALITAET-RECHERCHE.md, 1.2 and 1.3.
  */
-class SoundEffectController(private val handler: Handler = Handler(Looper.getMainLooper())) {
+class SoundEffectController(
+    private val handler: Handler = Handler(Looper.getMainLooper()),
+    private val duck: (() -> Unit) -> Unit = { it() }
+) {
     // Kept as Any so API 24-27 never resolve the API 28 DynamicsProcessing type while loading this class.
     private var dynamicsProcessing: Any? = null
     private var equalizer: Equalizer? = null
@@ -40,6 +44,9 @@ class SoundEffectController(private val handler: Handler = Handler(Looper.getMai
     private var bassApplied = 0
     private var bassTarget = 0
     private val glideTick = Runnable { glide() }
+    private val gate = EffectGate()
+    /** Whether sound is being heard right now; set by the service from the player. */
+    private var audible = false
     private var limiterThreshold = LIMITER_DB
 
     var status = Status()
@@ -59,8 +66,31 @@ class SoundEffectController(private val handler: Handler = Handler(Looper.getMai
         this.replayGain = replayGain
         runCatching { applyEqualizer() }.onFailure { disableEqualizer() }
         bassTarget = if (currentSettings.bassBoostEnabled) currentSettings.bassBoostStrength else 0
+        when (gate.onSettings(neutral(), audible)) {
+            EffectGate.Action.ENABLE -> setPlatformEffectsEnabled(true)
+            EffectGate.Action.ENABLE_IN_FADE -> duck { setPlatformEffectsEnabled(true) }
+            else -> Unit
+        }
         handler.removeCallbacks(glideTick)
         glide()
+    }
+
+    /** The service reports whether sound is heard; in silence a neutral setting releases the effects. */
+    fun setAudible(value: Boolean) {
+        audible = value
+        if (!value) releaseIfSilentAndNeutral()
+    }
+
+    private fun neutral(): Boolean = dynamicsTarget.all { it == 0f } && bassTarget == 0
+
+    private fun releaseIfSilentAndNeutral() {
+        val settled = dynamicsApplied.all { it == 0f } && bassApplied == 0
+        if (gate.onSilent(neutral(), settled) == EffectGate.Action.DISABLE) setPlatformEffectsEnabled(false)
+    }
+
+    private fun setPlatformEffectsEnabled(enabled: Boolean) {
+        runCatching { (dynamicsProcessing as? AudioEffect)?.enabled = enabled }
+        runCatching { bassBoost?.enabled = enabled }
     }
 
     /** One glide step towards the targets; schedules the next one until everything has arrived. */
@@ -82,6 +112,7 @@ class SoundEffectController(private val handler: Handler = Handler(Looper.getMai
             }
         }.onFailure { releaseBassBoost() }
         if (moving) handler.postDelayed(glideTick, GLIDE_TICK_MS)
+        else if (!audible) releaseIfSilentAndNeutral()
     }
 
     @android.annotation.TargetApi(28)
@@ -261,8 +292,8 @@ class SoundEffectController(private val handler: Handler = Handler(Looper.getMai
                     setMbcAllChannelsTo(mbc)
                 }
             }.build()
-            // On from the start and for good, with neutral values; see the class comment.
-            dynamicsProcessing = DynamicsProcessing(0, audioSessionId, config).apply { enabled = true }
+            // Created off with neutral values; EffectGate switches it on when a setting needs it.
+            dynamicsProcessing = DynamicsProcessing(0, audioSessionId, config)
             status = status.copy(
                 equalizerAvailable = true,
                 usingDynamicsProcessing = true,
@@ -281,9 +312,8 @@ class SoundEffectController(private val handler: Handler = Handler(Looper.getMai
         bassBoost = try {
             BassBoost(0, audioSessionId).let { effect ->
                 if (effect.strengthSupported) effect.apply {
-                    // On for good at strength 0; switching it later would crack.
+                    // Off at strength 0; EffectGate switches it together with DynamicsProcessing.
                     setStrength(0)
-                    enabled = true
                 } else {
                     effect.release()
                     null
@@ -321,6 +351,7 @@ class SoundEffectController(private val handler: Handler = Handler(Looper.getMai
         handler.removeCallbacks(glideTick)
         dynamicsApplied.fill(0f)
         bassApplied = 0
+        gate.reset()
         releaseEffect(dynamicsProcessing as? AudioEffect)
         releaseEffect(equalizer)
         releaseEffect(loudnessEnhancer)

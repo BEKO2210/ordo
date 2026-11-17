@@ -49,6 +49,15 @@ class TransportFader(
         rampTo(1f, IN_MS, null)
     }
 
+    /** While music plays: a short dip to silence, [action] (switching a platform effect), back up. */
+    fun duck(action: () -> Unit) {
+        settle()
+        rampTo(0f, DUCK_MS) {
+            action()
+            rampTo(1f, DUCK_MS, null)
+        }
+    }
+
     /** Nothing to fade (nothing is playing, or the headphones were pulled out): [action] at once at full volume. */
     fun immediate(action: () -> Unit) {
         settle()
@@ -94,6 +103,8 @@ class TransportFader(
     companion object {
         const val OUT_MS = 120L
         const val IN_MS = 80L
+        /** Switching an effect on while music plays: down and up again, each this long. */
+        const val DUCK_MS = 80L
         /** 5 ms steps keep every step of the cosine under a tenth of full volume, even over the shorter 80 ms. */
         const val STEP_MS = 5L
 
