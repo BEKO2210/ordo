@@ -10,6 +10,7 @@ import androidx.media3.common.audio.AudioProcessor
 import androidx.media3.common.audio.BaseAudioProcessor
 import java.nio.ByteBuffer
 import kotlin.math.abs
+import kotlin.math.exp
 import kotlin.math.roundToInt
 import kotlin.math.sign
 import kotlin.math.tanh
@@ -18,6 +19,8 @@ import kotlin.math.tanh
  * Base of Ordo's own sound effects: 16-bit stereo in and out (anything else bypasses it, like [MonoAudioProcessor]),
  * a plain copy while off, and one frame of floats in -1..1 at a time while on. Settings are @Volatile fields the UI
  * thread writes; subclasses read them once per buffer in [prepare], so a change applies live without a restart.
+ * Nothing switches hard, because a hard switch is an audible crack: on and off cross-fade dry and wet over
+ * [CROSSFADE_SECONDS], and subclasses glide their parameters per frame with [glide] (see ClickFreeTest).
  * Without float output enabled, DefaultAudioSink hands every processor 16-bit PCM.
  * https://developer.android.com/reference/androidx/media3/exoplayer/audio/DefaultAudioSink.Builder
  */
@@ -32,6 +35,14 @@ abstract class StereoEffectProcessor : BaseAudioProcessor() {
     protected var outLeft = 0f
     protected var outRight = 0f
 
+    /** Share of the processed signal, 0 (dry) to 1 (wet); moves towards [effectEnabled] by [mixStep] per frame. */
+    private var mix = 0f
+    private var mixStep = 1f
+
+    /** One-pole factor per frame for parameter glides: reaches 63 % of a change in [GLIDE_SECONDS]. */
+    protected var glide = 1f
+        private set
+
     override fun onConfigure(inputAudioFormat: AudioProcessor.AudioFormat): AudioProcessor.AudioFormat =
         if (inputAudioFormat.encoding == C.ENCODING_PCM_16BIT && inputAudioFormat.channelCount == 2) {
             inputAudioFormat
@@ -43,6 +54,10 @@ abstract class StereoEffectProcessor : BaseAudioProcessor() {
     override fun onFlush() {
         sampleRate = inputAudioFormat.sampleRate.takeIf { it > 0 } ?: DEFAULT_SAMPLE_RATE
         onSampleRate(sampleRate)
+        mixStep = 1f / (sampleRate * CROSSFADE_SECONDS)
+        glide = (1.0 - exp(-1.0 / (sampleRate * GLIDE_SECONDS))).toFloat()
+        // A stream starts in the state it is set to; only changes while it plays fade.
+        mix = if (effectEnabled) 1f else 0f
         running = false
     }
 
@@ -54,7 +69,8 @@ abstract class StereoEffectProcessor : BaseAudioProcessor() {
         // Media3 polls with EMPTY_BUFFER, which before the first data is also our output buffer: never copy it.
         if (!inputBuffer.hasRemaining()) return
         val output = replaceOutputBuffer(inputBuffer.remaining())
-        if (!effectEnabled) {
+        val target = if (effectEnabled) 1f else 0f
+        if (mix == 0f && target == 0f) {
             running = false
             output.put(inputBuffer)
         } else {
@@ -65,7 +81,14 @@ abstract class StereoEffectProcessor : BaseAudioProcessor() {
             }
             prepare()
             while (inputBuffer.remaining() >= BYTES_PER_STEREO_FRAME) {
-                processFrame(inputBuffer.getShort() / PCM_SCALE, inputBuffer.getShort() / PCM_SCALE)
+                if (mix != target) mix = if (target > mix) minOf(target, mix + mixStep) else maxOf(target, mix - mixStep)
+                val left = inputBuffer.getShort() / PCM_SCALE
+                val right = inputBuffer.getShort() / PCM_SCALE
+                processFrame(left, right)
+                if (mix < 1f) {
+                    outLeft = left + (outLeft - left) * mix
+                    outRight = right + (outRight - right) * mix
+                }
                 output.putShort(toPcm(outLeft))
                 output.putShort(toPcm(outRight))
             }
@@ -79,7 +102,7 @@ abstract class StereoEffectProcessor : BaseAudioProcessor() {
     /** Reads the current settings before a buffer is processed. */
     protected open fun prepare() {}
 
-    /** Forgets all filter and delay state. */
+    /** Forgets all filter and delay state; parameters jump straight to their targets on the next [prepare]. */
     protected abstract fun clear()
 
     /** Processes one stereo frame and leaves the result in [outLeft] and [outRight]. */
@@ -89,6 +112,8 @@ abstract class StereoEffectProcessor : BaseAudioProcessor() {
         private const val BYTES_PER_STEREO_FRAME = 4
         private const val PCM_SCALE = 32_768f
         internal const val DEFAULT_SAMPLE_RATE = 44_100
+        internal const val CROSSFADE_SECONDS = 0.03f
+        internal const val GLIDE_SECONDS = 0.015
         private const val LIMIT_KNEE = 0.9f
 
         /**
@@ -114,14 +139,21 @@ class StereoWidthAudioProcessor : StereoEffectProcessor() {
     var widthPercent: Int = 100
 
     private var width = 1f
+    private var targetWidth = 1f
+    private var snap = true
 
     override fun prepare() {
-        width = widthPercent.coerceIn(0, AudioSettings.MAX_WIDTH_PERCENT) / 100f
+        targetWidth = widthPercent.coerceIn(0, AudioSettings.MAX_WIDTH_PERCENT) / 100f
+        if (snap) width = targetWidth
+        snap = false
     }
 
-    override fun clear() {}
+    override fun clear() {
+        snap = true
+    }
 
     override fun processFrame(left: Float, right: Float) {
+        width += (targetWidth - width) * glide
         val mid = (left + right) * 0.5f
         val side = (left - right) * 0.5f * width
         outLeft = mid + side
@@ -140,18 +172,32 @@ class WarmthAudioProcessor : StereoEffectProcessor() {
     var level: Int = 2
 
     private var drive = DRIVES[1]
+    private var targetDrive = DRIVES[1]
     private var offset = 0f
     private var normalize = 1f
+    private var snap = true
 
     override fun prepare() {
-        drive = DRIVES[level.coerceIn(1, AudioSettings.LEVELS) - 1]
+        targetDrive = DRIVES[level.coerceIn(1, AudioSettings.LEVELS) - 1]
+        if (snap) setDrive(targetDrive)
+        snap = false
+    }
+
+    private fun setDrive(value: Float) {
+        drive = value
         offset = fastTanh(drive * BIAS)
         normalize = 1f / (drive * fastTanhSlope(drive * BIAS))
     }
 
-    override fun clear() {}
+    override fun clear() {
+        snap = true
+    }
 
     override fun processFrame(left: Float, right: Float) {
+        if (drive != targetDrive) {
+            val next = drive + (targetDrive - drive) * glide
+            setDrive(if (abs(next - targetDrive) < 1e-4f) targetDrive else next)
+        }
         outLeft = shape(left)
         outRight = shape(right)
     }

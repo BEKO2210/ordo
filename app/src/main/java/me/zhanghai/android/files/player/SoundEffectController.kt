@@ -11,12 +11,22 @@ import android.media.audiofx.DynamicsProcessing
 import android.media.audiofx.Equalizer
 import android.media.audiofx.LoudnessEnhancer
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import androidx.media3.common.C
 import kotlin.math.abs
 import kotlin.math.ln
 
-/** Owns effects for exactly one ExoPlayer audio session and releases them before that session changes. */
-class SoundEffectController {
+/**
+ * Owns effects for exactly one ExoPlayer audio session and releases them before that session changes.
+ *
+ * Nothing jumps, because a jump in a gain is an audible crack: equalizer bands, input gain (pre-gain, levelling,
+ * balance), clarity and bass strength glide towards their targets, at most [DB_MAX_STEP] per [GLIDE_TICK_MS].
+ * DynamicsProcessing and BassBoost stay switched on once created: switching DynamicsProcessing off changes its latency
+ * (it works in FFT blocks) and cuts over to a plain copy, both audible. "Off" means 0 dB in every band, strength 0.
+ * docs/AUDIO-QUALITAET-RECHERCHE.md, 1.2 and 1.3.
+ */
+class SoundEffectController(private val handler: Handler = Handler(Looper.getMainLooper())) {
     // Kept as Any so API 24-27 never resolve the API 28 DynamicsProcessing type while loading this class.
     private var dynamicsProcessing: Any? = null
     private var equalizer: Equalizer? = null
@@ -24,6 +34,12 @@ class SoundEffectController {
     private var bassBoost: BassBoost? = null
     private var currentSettings = AudioSettings()
     private var replayGain: ReplayGainInfo? = null
+    // DynamicsProcessing values as applied and as wanted: ten bands, input gain left and right, clarity amount 0..1.
+    private val dynamicsApplied = FloatArray(DYNAMICS_VALUES)
+    private val dynamicsTarget = FloatArray(DYNAMICS_VALUES)
+    private var bassApplied = 0
+    private var bassTarget = 0
+    private val glideTick = Runnable { glide() }
 
     var status = Status()
         private set
@@ -41,12 +57,79 @@ class SoundEffectController {
         currentSettings = settings.sanitized()
         this.replayGain = replayGain
         runCatching { applyEqualizer() }.onFailure { disableEqualizer() }
+        bassTarget = if (currentSettings.bassBoostEnabled) currentSettings.bassBoostStrength else 0
+        handler.removeCallbacks(glideTick)
+        glide()
+    }
+
+    /** One glide step towards the targets; schedules the next one until everything has arrived. */
+    private fun glide() {
+        var moving = false
+        if (Build.VERSION.SDK_INT >= 28) {
+            runCatching { moving = glideDynamics() }.onFailure { disableEqualizer() }
+        }
         runCatching {
-            bassBoost?.apply {
-                setStrength(currentSettings.bassBoostStrength.toShort())
-                enabled = currentSettings.bassBoostEnabled
+            bassBoost?.let { effect ->
+                val next = moveToward(
+                    bassApplied.toFloat(), bassTarget.toFloat(), BASS_MIN_STEP, GLIDE_FRACTION, BASS_MAX_STEP
+                ).toInt()
+                if (next != bassApplied) {
+                    bassApplied = next
+                    effect.setStrength(next.toShort())
+                }
+                if (bassApplied != bassTarget) moving = true
             }
         }.onFailure { releaseBassBoost() }
+        if (moving) handler.postDelayed(glideTick, GLIDE_TICK_MS)
+    }
+
+    @android.annotation.TargetApi(28)
+    private fun glideDynamics(): Boolean {
+        val effect = dynamicsProcessing as? DynamicsProcessing ?: return false
+        var moving = false
+        for (index in 0 until DYNAMICS_VALUES) {
+            val isClarity = index == CLARITY_INDEX
+            val next = if (isClarity) {
+                moveToward(dynamicsApplied[index], dynamicsTarget[index], CLARITY_MIN_STEP, GLIDE_FRACTION, 1f)
+            } else {
+                moveToward(dynamicsApplied[index], dynamicsTarget[index], DB_MIN_STEP, GLIDE_FRACTION, DB_MAX_STEP)
+            }
+            if (next == dynamicsApplied[index]) continue
+            dynamicsApplied[index] = next
+            when {
+                index < AudioSettings.BAND_COUNT -> effect.setPreEqBandAllChannelsTo(
+                    // EqBand cutoffs are upper boundaries rather than the labels' centre frequencies.
+                    // https://developer.android.com/reference/android/media/audiofx/DynamicsProcessing.EqBand
+                    index, DynamicsProcessing.EqBand(true, DYNAMICS_CUTOFF_FREQUENCIES_HZ[index], next)
+                )
+                isClarity -> applyClarity(effect, next)
+                // https://developer.android.com/reference/android/media/audiofx/DynamicsProcessing#setInputGainbyChannel(int,%20float)
+                else -> {
+                    val channel = index - AudioSettings.BAND_COUNT
+                    if (channel < effect.channelCount) effect.setInputGainbyChannel(channel, next)
+                }
+            }
+            if (next != dynamicsTarget[index]) moving = true
+        }
+        return moving
+    }
+
+    /** Clarity at [amount] 0..1: from a neutral compressor (ratio 1, no threshold, no make-up) to the chosen level. */
+    @android.annotation.TargetApi(28)
+    private fun applyClarity(effect: DynamicsProcessing, amount: Float) {
+        if (!status.clarityAvailable) return
+        val (ratio, thresholdDb, makeUpDb) = CLARITY_LEVELS[currentSettings.clarityLevel - 1]
+        // The multiband compressor evens out loud and quiet parts per band; the limiter after it keeps the make-up
+        // gain from clipping.
+        CLARITY_CUTOFFS_HZ.forEachIndexed { band, cutoff ->
+            effect.setMbcBandAllChannelsTo(
+                band,
+                DynamicsProcessing.MbcBand(
+                    amount > 0f, cutoff, CLARITY_ATTACK_MS, CLARITY_RELEASE_MS, 1f + (ratio - 1f) * amount,
+                    thresholdDb * amount, CLARITY_KNEE_DB, NOISE_GATE_OFF_DB, 1f, 0f, makeUpDb * amount
+                )
+            )
+        }
     }
 
     private fun applyEqualizer() {
@@ -77,49 +160,24 @@ class SoundEffectController {
         }
     }
 
-    @android.annotation.TargetApi(28)
+    /** Sets the targets; [glide] moves the effect there. */
     private fun applyDynamicsProcessing(inputGainDb: Float): Boolean {
-        val effect = dynamicsProcessing as? DynamicsProcessing ?: return false
-        // EqBand cutoffs are upper boundaries rather than the labels' centre frequencies.
-        // https://developer.android.com/reference/android/media/audiofx/DynamicsProcessing.EqBand
+        if (dynamicsProcessing == null) return false
         currentSettings.bandGainsDb.forEachIndexed { index, gain ->
-            effect.setPreEqBandAllChannelsTo(
-                index,
-                DynamicsProcessing.EqBand(
-                    currentSettings.equalizerEnabled,
-                    DYNAMICS_CUTOFF_FREQUENCIES_HZ[index],
-                    gain
-                )
-            )
+            dynamicsTarget[index] = if (currentSettings.equalizerEnabled) gain else 0f
         }
-        // Clarity: the multiband compressor evens out loud and quiet parts per band; the limiter after it keeps the
-        // make-up gain from clipping. Disabled bands pass through untouched.
-        if (status.clarityAvailable) {
-            val (ratio, thresholdDb, makeUpDb) = CLARITY_LEVELS[currentSettings.clarityLevel - 1]
-            CLARITY_CUTOFFS_HZ.forEachIndexed { index, cutoff ->
-                effect.setMbcBandAllChannelsTo(
-                    index,
-                    DynamicsProcessing.MbcBand(
-                        currentSettings.clarityEnabled, cutoff, CLARITY_ATTACK_MS, CLARITY_RELEASE_MS, ratio,
-                        thresholdDb, CLARITY_KNEE_DB, NOISE_GATE_OFF_DB, 1f, 0f, makeUpDb
-                    )
-                )
-            }
-        }
-        val channelCount = effect.channelCount
-        for (channel in 0 until channelCount) {
+        for (channel in 0 until 2) {
             val balanceAttenuation = when {
                 channel == 0 && currentSettings.balance > 0 -> -60f * currentSettings.balance / 100f
                 channel == 1 && currentSettings.balance < 0 -> 60f * currentSettings.balance / 100f
                 else -> 0f
             }
-            // https://developer.android.com/reference/android/media/audiofx/DynamicsProcessing#setInputGainbyChannel(int,%20float)
-            effect.setInputGainbyChannel(channel, inputGainDb + balanceAttenuation)
+            dynamicsTarget[AudioSettings.BAND_COUNT + channel] = inputGainDb + balanceAttenuation
         }
-        effect.enabled = currentSettings.equalizerEnabled || inputGainDb != 0f || currentSettings.balance != 0 ||
-            (status.clarityAvailable && currentSettings.clarityEnabled)
+        dynamicsTarget[CLARITY_INDEX] = if (status.clarityAvailable && currentSettings.clarityEnabled) 1f else 0f
         return true
     }
+
 
     private fun nearestLogicalBand(frequencyHz: Float): Int =
         AudioSettings.BAND_FREQUENCIES_HZ.indices.minByOrNull { index ->
@@ -186,7 +244,8 @@ class SoundEffectController {
                     setMbcAllChannelsTo(mbc)
                 }
             }.build()
-            dynamicsProcessing = DynamicsProcessing(0, audioSessionId, config)
+            // On from the start and for good, with neutral values; see the class comment.
+            dynamicsProcessing = DynamicsProcessing(0, audioSessionId, config).apply { enabled = true }
             status = status.copy(
                 equalizerAvailable = true,
                 usingDynamicsProcessing = true,
@@ -204,7 +263,11 @@ class SoundEffectController {
     private fun createOptionalEffects(audioSessionId: Int) {
         bassBoost = try {
             BassBoost(0, audioSessionId).let { effect ->
-                if (effect.strengthSupported) effect else {
+                if (effect.strengthSupported) effect.apply {
+                    // On for good at strength 0; switching it later would crack.
+                    setStrength(0)
+                    enabled = true
+                } else {
                     effect.release()
                     null
                 }
@@ -238,6 +301,9 @@ class SoundEffectController {
     }
 
     fun release() {
+        handler.removeCallbacks(glideTick)
+        dynamicsApplied.fill(0f)
+        bassApplied = 0
         releaseEffect(dynamicsProcessing as? AudioEffect)
         releaseEffect(equalizer)
         releaseEffect(loudnessEnhancer)
@@ -264,6 +330,30 @@ class SoundEffectController {
     )
 
     companion object {
+        private const val GLIDE_TICK_MS = 10L
+        /**
+         * Each step covers a third of the way, at least the minimum and at most the maximum: at most 1 dB per 10 ms
+         * (the research asks for ≤ 2 dB per 20 ms), so 12 dB take about 130 ms and 0.5 dB a single step.
+         */
+        private const val GLIDE_FRACTION = 0.3f
+        private const val DB_MIN_STEP = 0.25f
+        internal const val DB_MAX_STEP = 1f
+        private const val CLARITY_MIN_STEP = 0.08f
+        private const val BASS_MIN_STEP = 40f
+        private const val BASS_MAX_STEP = 100f
+        private const val DYNAMICS_VALUES = AudioSettings.BAND_COUNT + 3
+        private const val CLARITY_INDEX = AudioSettings.BAND_COUNT + 2
+
+        /**
+         * One glide step from [current] to [target]: [fraction] of the way, at least [minStep], at most [maxStep],
+         * never past it.
+         */
+        internal fun moveToward(current: Float, target: Float, minStep: Float, fraction: Float, maxStep: Float): Float {
+            val distance = target - current
+            val step = (abs(distance) * fraction).coerceIn(minStep, maxStep)
+            return if (abs(distance) <= step) target else current + step * kotlin.math.sign(distance)
+        }
+
         // Three bands: lows, mids (voices, most instruments), highs; the top cutoff closes the last band.
         private val CLARITY_CUTOFFS_HZ = floatArrayOf(250f, 4_000f, 22_050f)
         private const val CLARITY_ATTACK_MS = 3f

@@ -150,9 +150,9 @@ class StereoEffectProcessorsTest {
         reverb.run(steady(20_000, 20_000, 200))
         val tail = reverb.run(steady(0, 0, 4_000))
         assertTrue("the room still rings after the input stopped", tail.any { abs(it.toInt()) > 20 })
-        // Switching it off and on again starts from silence: no stale echo.
+        // Switching it off (it fades out over 30 ms) and on again starts from silence: no stale echo.
         reverb.effectEnabled = false
-        reverb.run(steady(0, 0, 10))
+        reverb.run(steady(0, 0, 4_000))
         reverb.effectEnabled = true
         assertTrue(reverb.run(steady(0, 0, 4_000)).all { it.toInt() == 0 })
     }

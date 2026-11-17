@@ -33,6 +33,11 @@ class ReverbAudioProcessor : StereoEffectProcessor() {
     private var damp2 = 1f
     private var wet = 0f
     private var dry = 1f
+    private var targetFeedback = 0f
+    private var targetDamp = 0f
+    private var targetWet = 0f
+    private var targetDry = 1f
+    private var snap = true
 
     init {
         onSampleRate(DEFAULT_SAMPLE_RATE)
@@ -51,17 +56,24 @@ class ReverbAudioProcessor : StereoEffectProcessor() {
 
     override fun prepare() {
         val current = preset
-        feedback = current.roomSize * SCALE_ROOM + OFFSET_ROOM
-        damp1 = current.damping * SCALE_DAMP
-        damp2 = 1f - damp1
+        targetFeedback = current.roomSize * SCALE_ROOM + OFFSET_ROOM
+        targetDamp = current.damping * SCALE_DAMP
         val mix = mixPercent.coerceIn(0, 100) / 100f
         // Freeverb's default wet level is 1 with its 0.015 input gain; the dry signal steps back as the room grows,
         // so switching it on does not simply make everything louder.
-        wet = mix
-        dry = 1f - mix * 0.5f
+        targetWet = mix
+        targetDry = 1f - mix * 0.5f
+        if (snap) {
+            feedback = targetFeedback
+            damp1 = targetDamp
+            wet = targetWet
+            dry = targetDry
+            snap = false
+        }
     }
 
     override fun clear() {
+        snap = true
         combsLeft.forEach { it.clear() }
         combsRight.forEach { it.clear() }
         allpassesLeft.forEach { it.clear() }
@@ -69,6 +81,12 @@ class ReverbAudioProcessor : StereoEffectProcessor() {
     }
 
     override fun processFrame(left: Float, right: Float) {
+        // Another room or share glides in; a jump of the dry level or the feedback would crack.
+        feedback += (targetFeedback - feedback) * glide
+        damp1 += (targetDamp - damp1) * glide
+        damp2 = 1f - damp1
+        wet += (targetWet - wet) * glide
+        dry += (targetDry - dry) * glide
         val input = (left + right) * FIXED_GAIN
         var reverbLeft = 0f
         var reverbRight = 0f
