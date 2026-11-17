@@ -4,7 +4,7 @@
 # `cmd package query-activities`, not only on the screen), the other four apps are shown disabled with their summary,
 # a calm explanation appears, the switch shows the real component state when the page is opened again, and the
 # alias is put back to exactly the state it had before the test (also on Ctrl-C). Needs Android 11 or newer.
-# On a real phone the shell may not change app components, so there the page's own switch sets and restores it.
+# Where the shell may not change app components (real phones, newer Android), the page's own switch sets and restores it.
 . "$(dirname "$0")/lib.sh" "$@"
 export E2E_FAST=0
 
@@ -21,9 +21,14 @@ alias_on() { a shell "cmd package query-activities --brief -a android.intent.act
 alias_off() { ! alias_on; }
 not() { ! "$@"; }
 wait_alias() { local want=$1 end=$((SECONDS + 8)); until "alias_$want"; do [ $SECONDS -ge "$end" ] && return 1; sleep 0.5; done; }
-# A real device refuses `pm enable/disable` of an app component from the shell: there the page's own switch sets it.
+# Newer Android (real phones, the API 36 emulator) refuses `pm enable/disable` of an app component from the shell:
+# there the page's own switch sets it. Asking for the state it already has shows whether the shell may.
+shell_switches() {
+    local now=disable; alias_on && now=enable
+    ! a shell "pm $now $PKG/$ALIAS" 2>&1 | grep -q Exception
+}
 set_alias() {
-    if is_emulator; then a shell "pm $1 $PKG/$ALIAS" >/dev/null; return; fi
+    if shell_switches; then a shell "pm $1 $PKG/$ALIAS" >/dev/null; return; fi
     local want=off; [ "$1" = enable ] && want=on
     "alias_$want" && return 0
     open_page; ui tap "$MUSIC" >/dev/null; wait_alias "$want"; back; sleep 1
@@ -59,7 +64,7 @@ check "the switch is on" ui checked "$MUSIC"
 back; sleep 1
 open_page
 check "after reopening the switch still shows the real state (on)" ui checked "$MUSIC"
-if is_emulator; then
+if shell_switches; then
     a shell "pm disable $PKG/$ALIAS" >/dev/null
     back; sleep 1
     open_page
@@ -67,7 +72,7 @@ if is_emulator; then
     check "tapping the switch again works" ui tap "$MUSIC"
     check "the launcher alias is enabled again" wait_alias on
 else
-    echo "SKIP a change made from outside shows up when the page opens (only an emulator lets the shell change it)"
+    echo "SKIP a change made from outside shows up when the page opens (the shell may not change app components here)"
 fi
 check "tapping it off removes the icon" ui tap "$MUSIC"
 check "the removal is explained" ui wait "$OFF_MESSAGE" 5
