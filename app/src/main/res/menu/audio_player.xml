@@ -2,6 +2,11 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
+        android:id="@+id/actionOutput"
+        android:icon="@drawable/audio_output_icon_24dp"
+        android:title="@string/audio_output_title"
+        app:showAsAction="always" />
+    <item
         android:id="@+id/actionSound"
         android:icon="@drawable/equalizer_icon_24dp"
         android:title="@string/audio_sound_title"

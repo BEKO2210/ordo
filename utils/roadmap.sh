@@ -118,6 +118,22 @@ cell "Video-Player: Filme direkt in Ordo ansehen" \
     "ls app/src/main/java/me/zhanghai/android/files/viewer/video/*.kt >/dev/null 2>&1" \
     "Alle gängigen Formate, Untertitel, Tonspur-Wahl, Bild-im-Bild, Tempo, Gesten für Helligkeit und Lautstärke; als eigenes Symbol einschaltbar wie der Musik-Player." \
     "Stand der Technik für Medien belegt" "Musik-Player als eigenes App-Symbol zum Einschalten"
+cell "Abspielen auf: Bluetooth, Kabel und Cast-Geräte wählen" \
+    "grep -q 'SystemOutputSwitcherDialogController' app/src/main/java/me/zhanghai/android/files/viewer/audio/AudioPlayerActivity.kt" \
+    "Ein Knopf im Player öffnet die Ausgabe-Auswahl von Android (ab Android 11), ohne Google-Play-Dienste; Android 6–10 öffnet die Bluetooth-Einstellungen. Auf Pixel und Samsung geprüft. Recherche: docs/STREAMING-RECHERCHE.md." \
+    "Musik-Player: Audio direkt in Ordo abspielen"
+cell "Streaming: Musik an Chromecast und Google TV" \
+    "ls app/src/main/java/me/zhanghai/android/files/player/cast/*.kt >/dev/null 2>&1 && ls $TESTS/player/cast/*Test.kt >/dev/null 2>&1" \
+    "Eigener Cast-V2-Sender ohne Google-Play-Dienste (GPL-verträglich): mDNS-Suche, TLS mit gepinntem Gerätezertifikat, Default Media Receiver; lokaler Dateiserver mit Zufalls-Token, genau eine Datei, nur für das gewählte Gerät, nur solange gestreamt wird. Benachrichtigung, Sperrbildschirm und Lautstärketasten steuern den Fernseher. Auf echtem Chromecast geprüft." \
+    "Abspielen auf: Bluetooth, Kabel und Cast-Geräte wählen"
+cell "Streaming: Musik an Fernseher und Receiver per DLNA" \
+    "ls app/src/main/java/me/zhanghai/android/files/player/dlna/*.kt >/dev/null 2>&1 && ls $TESTS/player/dlna/*Test.kt >/dev/null 2>&1" \
+    "SSDP-Suche, AVTransport und Lautstärke per SOAP, DIDL-Lite-Metadaten; derselbe Dateiserver wie bei Cast. Auf mindestens einem Samsung- oder LG-Fernseher und mit Kodi geprüft." \
+    "Streaming: Musik an Chromecast und Google TV"
+cell "Streaming: Videos und Bilder an den Fernseher" \
+    "grep -rq 'PLAYBACK_TYPE_REMOTE' app/src/main/java/me/zhanghai/android/files/viewer/video/ 2>/dev/null" \
+    "Video-Player und Bildansicht nutzen dieselben Streaming-Ziele wie die Musik (Cast und DLNA), mit Untertiteln, wo das Ziel sie kann." \
+    "Streaming: Musik an Fernseher und Receiver per DLNA" "Video-Player: Filme direkt in Ordo ansehen"
 cell "PDF-Leser: suchen, markieren, Nachtmodus" \
     "grep -rq 'fun search' app/src/main/java/me/zhanghai/android/files/viewer/pdf/" \
     "Der vorhandene PDF-Betrachter wird ein Leser: Textsuche, Text markieren und kopieren, Lesezeichen, Nachtmodus, zuletzt gelesene Seite." \

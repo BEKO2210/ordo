@@ -988,6 +988,7 @@
     <string name="audio_sound_normalization_summary">ReplayGain / R128 aus den Dateiangaben</string>
     <string name="audio_sound_normalization_preamp">Vorverstärkung</string>
     <string name="audio_sound_playback_heading">Wiedergabe</string>
+    <string name="audio_output_title">Abspielen auf …</string>
     <string name="audio_sound_speed">Tempo</string>
     <string name="audio_sound_speed_value">%1$.2f×</string>
     <string name="audio_sound_skip_silence">Stille überspringen</string>
