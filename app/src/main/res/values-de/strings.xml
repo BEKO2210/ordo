@@ -1065,4 +1065,5 @@
     <string name="audio_sound_mono_greyed">Aus, solange Mono an ist</string>
     <string name="audio_sound_picture">%1$s: %2$s</string>
     <string name="audio_sound_percent">%1$d %%</string>
+    <string name="audio_sleep_end_track_short">Titelende</string>
 </resources>
