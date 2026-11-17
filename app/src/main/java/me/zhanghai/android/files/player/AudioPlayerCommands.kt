@@ -19,7 +19,8 @@ object AudioPlayerCommands {
     const val EXTRA_INPUT_GAIN_AVAILABLE = "inputGainAvailable"
     const val EXTRA_LEGACY_BANDS = "legacyBands"
     const val EXTRA_BASS_AVAILABLE = "bassBoostAvailable"
-    const val EXTRA_VIRTUALIZER_AVAILABLE = "virtualizerAvailable"
+    const val EXTRA_CLARITY_AVAILABLE = "clarityAvailable"
+    const val EXTRA_HEADPHONES = "headphones"
     const val EXTRA_SLEEP_ACTIVE = "sleepActive"
     const val EXTRA_SLEEP_REMAINING_MS = "sleepRemainingMs"
 

@@ -20,6 +20,7 @@
     <dimen name="phi_233">233dp</dimen>
     <dimen name="phi_377">377dp</dimen>
     <dimen name="phi_610">610dp</dimen>
+    <dimen name="phi_987">987dp</dimen>
 
     <!-- Semantic roles -->
     <!-- between items that belong together (icon and its label, title and its info text) -->

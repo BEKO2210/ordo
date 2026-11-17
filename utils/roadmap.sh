@@ -110,6 +110,10 @@ cell "Musik-Player: Audio direkt in Ordo abspielen" \
     "ls app/src/main/java/me/zhanghai/android/files/viewer/audio/*.kt >/dev/null 2>&1 && grep -q 'mediaPlayback' app/src/main/AndroidManifest.xml" \
     "MP3 und alle gängigen Formate, Wiedergabe im Hintergrund mit Benachrichtigung, Sperrbildschirm und Kopfhörertasten, Warteschlange, lückenlos, Titelbild und Texte; Equalizer (10 Bänder, Voreinstellungen), Bassverstärkung, Lautstärkeausgleich (ReplayGain), Tempo mit gleicher Tonhöhe, Stille überspringen, Schlaf-Timer, Mono und Balance. Auf Pixel und Tab geprüft." \
     "Stand der Technik für Medien belegt"
+cell "Klang: eigene Effekte mit lebenden Bildern" \
+    "ls $TESTS/player/StereoEffectProcessorsTest.kt >/dev/null 2>&1 && grep -q 'CrossfeedAudioProcessor' app/src/main/java/me/zhanghai/android/files/player/StereoEffectProcessors.kt && grep -q 'libbs2b' app/src/main/res/raw/licenses.xml && grep -q 'KlangPictureView' app/src/main/res/layout/klang_effect_card.xml && test -x e2e/klang.sh" \
+    "Raumklang für Kopfhörer (Crossfeed nach Bauer, bs2b-Port, MIT), Stereobreite, Hall (Freeverb, gemeinfrei), analoge Wärme und Klarheit (DynamicsProcessing-Mehrband-Kompressor), ohne Marken-Namen; ersetzt den veralteten Plattform-Virtualizer. Jede Karte im unteren Klang-Blatt zeigt ein ruhiges lebendes Bild, still bei reduzierter Bewegung. Rechenlast auf einem schwachen Gerät gemessen und Raumklang mit echtem Kopfhörer gehört." \
+    "Musik-Player: Audio direkt in Ordo abspielen"
 cell "Musik-Player als eigenes App-Symbol zum Einschalten" \
     "grep -q 'activity-alias' app/src/main/AndroidManifest.xml && grep -rq 'setComponentEnabledSetting' app/src/main/java/me/zhanghai/android/files/" \
     "Schalter in den Einstellungen: Ordo Musik bekommt ein eigenes Symbol auf dem Startbildschirm und lässt sich dort wieder ausschalten. Verhalten auf Pixel und Samsung gemessen." \

@@ -129,6 +129,28 @@ class MusicLibraryTest {
     }
 
     @Test
+    fun placeholderInitialsTakeTheFirstLetterOfTwoWords() {
+        assertEquals("BH", MusicLibrary.initials("Blue Hour"))
+        assertEquals("ÄU", MusicLibrary.initials("äpfel und Birnen"))
+        assertEquals("OJ", MusicLibrary.initials("OrdoE2E-Jazz"))
+        assertEquals("A", MusicLibrary.initials("(Abendland)"))
+        assertEquals("", MusicLibrary.initials(null))
+        assertEquals("", MusicLibrary.initials("  "))
+    }
+
+    @Test
+    fun placeholderColourIsStablePerNameAndInRange() {
+        val names = listOf("Blue Hour", "Abendland", "", null, "Ordner 1", "Ordner 2")
+        names.forEach { name ->
+            val index = MusicLibrary.paletteIndex(name, 8)
+            assertTrue(index in 0 until 8)
+            assertEquals(index, MusicLibrary.paletteIndex(name, 8))
+        }
+        // Not one colour for everything: the names above spread over more than one entry.
+        assertTrue(names.map { MusicLibrary.paletteIndex(it, 8) }.toSet().size > 1)
+    }
+
+    @Test
     fun emptyLibraryHasNoGroups() {
         val lib = library()
         assertTrue(lib.songs.isEmpty() && lib.albums.isEmpty() && lib.artists.isEmpty() && lib.folders.isEmpty())

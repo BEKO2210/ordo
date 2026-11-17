@@ -40,13 +40,16 @@ import me.zhanghai.android.files.R
 import me.zhanghai.android.files.databinding.AudioSoundSettingsSheetBinding
 import me.zhanghai.android.files.databinding.KlangEffectCardBinding
 import me.zhanghai.android.files.databinding.KlangPresetTileBinding
-import me.zhanghai.android.files.databinding.KlangStepButtonsBinding
+import me.zhanghai.android.files.databinding.KlangReverbRoomsBinding
+import me.zhanghai.android.files.databinding.KlangValueStepperBinding
 import me.zhanghai.android.files.databinding.KlangStepperRowBinding
 import me.zhanghai.android.files.databinding.KlangSwitchRowBinding
 import me.zhanghai.android.files.player.AudioFocusBehavior
 import me.zhanghai.android.files.player.AudioSettings
 import me.zhanghai.android.files.player.AudioSettingsStore
 import me.zhanghai.android.files.player.EqualizerPreset
+import me.zhanghai.android.files.player.ReverbPreset
+import me.zhanghai.android.files.viewer.audio.KlangPictureView.Kind
 import me.zhanghai.android.files.ui.Motion
 import kotlin.math.roundToInt
 
@@ -121,39 +124,32 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment() {
             { settings.preGainDb }, { update { copy(preGainDb = it) } }, 0.5f,
             AudioSettings.MIN_GAIN_DB, AudioSettings.MAX_GAIN_DB, ::formatDb
         )
-        bindEffectCard(
-            binding.bassCard, R.drawable.audio_speaker_icon_24dp, R.string.audio_sound_bass_boost,
-            R.string.audio_sound_bass_summary, { settings.bassBoostEnabled },
-            { enabled -> update { copy(bassBoostEnabled = enabled) } },
-            { settings.bassBoostStrength }, { update { copy(bassBoostStrength = it) } }
-        )
-        bindEffectCard(
-            binding.virtualizerCard, R.drawable.audio_surround_icon_24dp, R.string.audio_sound_virtualizer,
-            R.string.audio_sound_virtualizer_summary, { settings.virtualizerEnabled },
-            { enabled -> update { copy(virtualizerEnabled = enabled) } },
-            { settings.virtualizerStrength }, { update { copy(virtualizerStrength = it) } }
-        )
+        bindEffects()
         bindSwitchRow(
             binding.normalizationRow, R.drawable.audio_graphic_eq_icon_24dp, R.string.audio_sound_normalization,
-            R.string.audio_sound_normalization_summary, { settings.normalizationEnabled }
+            R.string.audio_sound_normalization_summary, { settings.normalizationEnabled },
+            binding.normalizationPicture, Kind.NORMALIZE
         ) { update { copy(normalizationEnabled = it) } }
         bindStepper(
             binding.normalizationPreamp, getString(R.string.audio_sound_normalization_preamp),
             { settings.normalizationPreampDb }, { update { copy(normalizationPreampDb = it) } },
             0.5f, AudioSettings.MIN_GAIN_DB, AudioSettings.MAX_GAIN_DB, ::formatDb
         )
+        renderers += ::renderPreamp
         bindSwitchRow(
             binding.monoRow, R.drawable.audio_hearing_icon_24dp, R.string.audio_sound_mono,
-            R.string.audio_sound_mono_summary, { settings.mono }
+            R.string.audio_sound_mono_summary, { settings.mono }, binding.monoPicture, Kind.MONO
         ) { update { copy(mono = it) } }
         bindSwitchRow(
             binding.skipRow, R.drawable.audio_fast_forward_icon_24dp, R.string.audio_sound_skip_silence,
-            R.string.audio_sound_skip_silence_summary, { settings.skipSilence }
+            R.string.audio_sound_skip_silence_summary, { settings.skipSilence }, binding.skipPicture, Kind.SKIP_SILENCE
         ) { update { copy(skipSilence = it) } }
         bindSwitchRow(
             binding.headphonesRow, R.drawable.audio_headphones_icon_24dp, R.string.audio_sound_resume_headphones,
-            R.string.audio_sound_headphones_summary, { settings.resumeOnHeadphones }
+            R.string.audio_sound_headphones_summary, { settings.resumeOnHeadphones },
+            binding.headphonesPicture, Kind.HEADPHONES
         ) { update { copy(resumeOnHeadphones = it) } }
+        setColumns()
         bindBalance()
         bindSpeed()
         bindFocus()
@@ -236,11 +232,41 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment() {
     private fun applyPalette() {
         binding.equalizerStage.setCardBackgroundColor(palette.stage)
         listOf(
-            binding.fineTuneCard, binding.bassCard.root, binding.virtualizerCard.root,
+            binding.fineTuneCard, binding.bassCard.root, binding.crossfeedCard.root, binding.widthCard.root,
+            binding.reverbCard.root, binding.warmthCard.root, binding.clarityCard.root,
             binding.normalizationCard, binding.balanceCard, binding.monoCard,
-            binding.speedCard, binding.sleepCard, binding.optionsCard
+            binding.speedCard, binding.sleepCard, binding.skipCard, binding.focusCard, binding.headphonesCard
         ).forEach { it.setCardBackgroundColor(palette.card) }
         binding.balanceView.setBackgroundSurface(palette.card)
+        // The lower cards get a hairline: in the light theme the card and the sheet are almost the same colour.
+        val outline = MaterialColors.getColor(
+            binding.root, com.google.android.material.R.attr.colorOutlineVariant,
+            MaterialColors.layer(palette.card, palette.onSurface, 0.16f)
+        )
+        listOf(
+            binding.bassCard.root, binding.crossfeedCard.root, binding.widthCard.root, binding.reverbCard.root,
+            binding.warmthCard.root, binding.clarityCard.root, binding.normalizationCard, binding.balanceCard,
+            binding.monoCard, binding.speedCard, binding.sleepCard, binding.skipCard, binding.focusCard,
+            binding.headphonesCard
+        ).forEach {
+            it.strokeColor = outline
+            it.strokeWidth = dp(1)
+        }
+    }
+
+    /** Two columns of lower cards only when each one gets at least 320 dp; the sheet is that wide on tablets. */
+    private fun setColumns() {
+        val density = resources.displayMetrics.density
+        val sheetDp = minOf(
+            resources.configuration.screenWidthDp.toFloat(),
+            resources.getDimension(R.dimen.klang_sheet_max_width) / density
+        )
+        val contentDp = sheetDp - 2 * resources.getDimension(R.dimen.klang_space_lg) / density
+        val gapDp = resources.getDimension(R.dimen.klang_card_gap) / density
+        val minimumDp = resources.getDimension(R.dimen.klang_column_min_width) / density
+        val columns = KlangMath.columns(contentDp, gapDp, minimumDp)
+        binding.effectsGrid.columnCount = columns
+        binding.playbackGrid.columnCount = columns
     }
 
     private fun pill(view: TextView) {
@@ -341,7 +367,8 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment() {
         row.stepLabel.text = label
         pill(row.stepValue)
         bindStepButtons(
-            row.steps, getString(R.string.audio_sound_decrease, label), getString(R.string.audio_sound_increase, label),
+            row.steps.stepMinus, row.steps.stepPlus,
+            getString(R.string.audio_sound_decrease, label), getString(R.string.audio_sound_increase, label),
             { setter((getter() - step).coerceAtLeast(minimum)) },
             { setter((getter() + step).coerceAtMost(maximum)) }
         )
@@ -352,19 +379,46 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment() {
     }
 
     private fun bindStepButtons(
-        buttons: KlangStepButtonsBinding,
+        minus: MaterialButton,
+        plus: MaterialButton,
         decrease: String,
         increase: String,
         onMinus: () -> Unit,
         onPlus: () -> Unit
     ) {
-        // The group makes its members checkable; these are plain buttons.
-        buttons.stepMinus.isCheckable = false
-        buttons.stepPlus.isCheckable = false
-        buttons.stepMinus.contentDescription = decrease
-        buttons.stepPlus.contentDescription = increase
-        buttons.stepMinus.setOnClickListener { onMinus() }
-        buttons.stepPlus.setOnClickListener { onPlus() }
+        // A toggle group makes its members checkable; these are plain buttons.
+        minus.isCheckable = false
+        plus.isCheckable = false
+        minus.contentDescription = decrease
+        plus.contentDescription = increase
+        minus.setOnClickListener { onMinus() }
+        plus.setOnClickListener { onPlus() }
+    }
+
+    /** "−  value  +": the value chip sits between the buttons that change it. */
+    private fun bindValueStepper(
+        stepper: KlangValueStepperBinding,
+        label: String,
+        onMinus: () -> Unit,
+        onPlus: () -> Unit
+    ) {
+        pill(stepper.stepValue)
+        bindStepButtons(
+            stepper.stepMinus, stepper.stepPlus,
+            getString(R.string.audio_sound_decrease, label), getString(R.string.audio_sound_increase, label),
+            onMinus, onPlus
+        )
+    }
+
+    private fun showStepperValue(stepper: KlangValueStepperBinding, label: String, value: CharSequence) {
+        stepper.stepValue.text = value
+        stepper.stepValue.contentDescription = getString(R.string.audio_sound_picture, label, value)
+    }
+
+    /** Off: the controls of a setting stay visible but dimmed and untouchable. */
+    private fun setControlsActive(view: View, active: Boolean) {
+        setEnabledRecursively(view, active)
+        view.alpha = if (active) 1f else DISABLED_ALPHA
     }
 
     private fun bindSwitchRow(
@@ -373,6 +427,8 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment() {
         title: Int,
         summary: Int,
         getter: () -> Boolean,
+        picture: KlangPictureView? = null,
+        kind: Kind = Kind.MONO,
         setter: (Boolean) -> Unit
     ) {
         row.icon.setImageResource(icon)
@@ -383,92 +439,191 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment() {
             if (!initializing && !rendering) setter(checked)
         }
         row.root.setOnClickListener { if (row.toggle.isEnabled) row.toggle.toggle() }
-        renderers += { row.toggle.isChecked = getter() }
+        picture?.kind = kind
+        renderers += {
+            row.toggle.isChecked = getter()
+            picture?.setState(getter(), 1f)
+            picture?.contentDescription = describe(title, onOff(getter()))
+        }
     }
 
+    private fun bindEffects() {
+        val strength = R.string.audio_sound_strength
+        val level = R.string.audio_sound_level
+        bindEffectCard(
+            binding.bassCard, R.drawable.audio_speaker_icon_24dp, R.string.audio_sound_bass_boost,
+            R.string.audio_sound_bass_summary, Kind.BASS, strength, { settings.bassBoostEnabled },
+            { update { copy(bassBoostEnabled = it) } }, { KlangMath.strengthFraction(settings.bassBoostStrength) },
+            { getString(R.string.audio_sound_percent, KlangMath.strengthPercent(settings.bassBoostStrength)) },
+            { update { copy(bassBoostStrength = (bassBoostStrength - STRENGTH_STEP).coerceAtLeast(0)) } },
+            { update { copy(bassBoostStrength = (bassBoostStrength + STRENGTH_STEP).coerceAtMost(1_000)) } }
+        )
+        bindEffectCard(
+            binding.crossfeedCard, R.drawable.audio_spatial_icon_24dp, R.string.audio_sound_crossfeed,
+            R.string.audio_sound_crossfeed_summary, Kind.CROSSFEED, level, { settings.crossfeedEnabled },
+            { update { copy(crossfeedEnabled = it) } }, { KlangMath.levelFraction(settings.crossfeedLevel) },
+            { levelLabel(settings.crossfeedLevel) },
+            { update { copy(crossfeedLevel = crossfeedLevel - 1) } },
+            { update { copy(crossfeedLevel = crossfeedLevel + 1) } },
+            greyedByMono = true
+        )
+        bindEffectCard(
+            binding.widthCard, R.drawable.audio_width_icon_24dp, R.string.audio_sound_width,
+            R.string.audio_sound_width_summary, Kind.WIDTH, R.string.audio_sound_width, { settings.widthEnabled },
+            { update { copy(widthEnabled = it) } }, { KlangMath.widthFraction(settings.widthPercent) },
+            { getString(R.string.audio_sound_percent, settings.widthPercent) },
+            { update { copy(widthPercent = widthPercent - WIDTH_STEP) } },
+            { update { copy(widthPercent = widthPercent + WIDTH_STEP) } },
+            greyedByMono = true
+        )
+        bindEffectCard(
+            binding.reverbCard, R.drawable.audio_surround_icon_24dp, R.string.audio_sound_reverb,
+            R.string.audio_sound_reverb_summary, Kind.REVERB, R.string.audio_sound_reverb_mix,
+            { settings.reverbEnabled }, { update { copy(reverbEnabled = it) } }, { settings.reverbMix / 100f },
+            { getString(R.string.audio_sound_percent, settings.reverbMix) },
+            { update { copy(reverbMix = reverbMix - MIX_STEP) } },
+            { update { copy(reverbMix = reverbMix + MIX_STEP) } },
+            pictureValue = { KlangMath.roomFraction(settings.reverbPreset) }
+        )
+        bindReverbRooms()
+        bindEffectCard(
+            binding.warmthCard, R.drawable.audio_warmth_icon_24dp, R.string.audio_sound_warmth,
+            R.string.audio_sound_warmth_summary, Kind.WARMTH, level, { settings.warmthEnabled },
+            { update { copy(warmthEnabled = it) } }, { KlangMath.levelFraction(settings.warmthLevel) },
+            { levelLabel(settings.warmthLevel) },
+            { update { copy(warmthLevel = warmthLevel - 1) } },
+            { update { copy(warmthLevel = warmthLevel + 1) } }
+        )
+        bindEffectCard(
+            binding.clarityCard, R.drawable.audio_clarity_icon_24dp, R.string.audio_sound_clarity,
+            R.string.audio_sound_clarity_summary, Kind.CLARITY, level, { settings.clarityEnabled },
+            { update { copy(clarityEnabled = it) } }, { KlangMath.levelFraction(settings.clarityLevel) },
+            { levelLabel(settings.clarityLevel) },
+            { update { copy(clarityLevel = clarityLevel - 1) } },
+            { update { copy(clarityLevel = clarityLevel + 1) } }
+        )
+    }
+
+    /** Values are clamped by [AudioSettings.sanitized] in [update], so the steps never leave their range. */
     private fun bindEffectCard(
         card: KlangEffectCardBinding,
         icon: Int,
         title: Int,
         summary: Int,
+        kind: Kind,
+        stepLabel: Int,
         enabled: () -> Boolean,
         setEnabled: (Boolean) -> Unit,
-        strength: () -> Int,
-        setStrength: (Int) -> Unit
+        fraction: () -> Float,
+        stateText: () -> String,
+        onMinus: () -> Unit,
+        onPlus: () -> Unit,
+        greyedByMono: Boolean = false,
+        pictureValue: () -> Float = fraction
     ) {
         card.icon.setImageResource(icon)
         card.title.text = getString(title)
         card.summary.text = getString(summary)
         card.toggle.contentDescription = getString(title)
+        card.picture.kind = kind
         card.toggle.setOnCheckedChangeListener { _, checked ->
             if (!initializing && !rendering) setEnabled(checked)
         }
-        val label = getString(R.string.audio_sound_strength)
-        bindStepButtons(
-            card.steps, getString(R.string.audio_sound_decrease, label), getString(R.string.audio_sound_increase, label),
-            { setStrength((strength() - STRENGTH_STEP).coerceAtLeast(0)) },
-            { setStrength((strength() + STRENGTH_STEP).coerceAtMost(1_000)) }
-        )
+        val label = getString(stepLabel)
+        bindValueStepper(card.stepper, label, onMinus, onPlus)
         renderers += {
+            // Crossfeed and width have nothing to work on after the mono mix; the service skips them too.
+            val greyed = greyedByMono && settings.mono
+            val active = enabled() && !greyed
+            if (greyedByMono) enableCard(card.root, !greyed)
             card.toggle.isChecked = enabled()
-            val percent = KlangMath.strengthPercent(strength())
-            card.ring.setProgressCompat(percent, Motion.any && !firstRender)
-            card.ring.alpha = if (enabled()) 1f else DISABLED_ALPHA
-            card.state.text = getString(R.string.audio_sound_strength_percent, percent)
+            card.ring.setProgressCompat((fraction() * 100).roundToInt(), Motion.any && !firstRender)
+            card.ring.alpha = if (active) 1f else DISABLED_ALPHA
+            card.state.isVisible = greyed
+            card.state.text = getString(R.string.audio_sound_mono_greyed)
+            showStepperValue(card.stepper, label, stateText())
+            setControlsActive(card.stepper.root, active)
+            setControlsActive(card.extra, active)
+            card.picture.setState(active, pictureValue())
+            card.picture.contentDescription = describe(title, if (active) stateText() else onOff(false))
         }
     }
 
+    private fun bindReverbRooms() {
+        val rooms = KlangReverbRoomsBinding.inflate(layoutInflater, binding.reverbCard.extra, true)
+        binding.reverbCard.extra.isVisible = true
+        listOf(rooms.room0, rooms.room1, rooms.room2, rooms.room3).forEachIndexed { index, button ->
+            val preset = ReverbPreset.entries[index]
+            button.setOnClickListener { update { copy(reverbPreset = preset) } }
+            // Two groups form one choice, so the checked state comes from the setting, never from a group.
+            renderers += { button.isChecked = settings.reverbPreset == preset }
+        }
+    }
+
+    private fun levelLabel(level: Int): String = getString(
+        when (level) {
+            1 -> R.string.audio_sound_level_light
+            2 -> R.string.audio_sound_level_medium
+            else -> R.string.audio_sound_level_strong
+        }
+    )
+
+    private fun roomLabel(preset: ReverbPreset): Int = when (preset) {
+        ReverbPreset.ROOM -> R.string.audio_reverb_room
+        ReverbPreset.STUDIO -> R.string.audio_reverb_studio
+        ReverbPreset.CLUB -> R.string.audio_reverb_club
+        ReverbPreset.HALL -> R.string.audio_reverb_hall
+    }
+
+    private fun onOff(on: Boolean): String = getString(if (on) R.string.audio_sound_on else R.string.audio_sound_off)
+
+    private fun describe(title: Int, state: CharSequence): String =
+        getString(R.string.audio_sound_picture, getString(title), state)
+
     private fun bindBalance() {
-        pill(binding.balanceValue)
         val label = getString(R.string.audio_sound_balance)
-        bindStepButtons(
-            binding.balanceSteps, getString(R.string.audio_sound_decrease, label), getString(R.string.audio_sound_increase, label),
+        bindValueStepper(
+            binding.balanceStepper, label,
             { update { copy(balance = (balance - 5).coerceAtLeast(-100)) } },
             { update { copy(balance = (balance + 5).coerceAtMost(100)) } }
         )
         binding.balanceCenter.setOnClickListener { update { copy(balance = 0) } }
         renderers += {
             binding.balanceView.balance = settings.balance
-            binding.balanceValue.text = formatBalance(settings.balance)
-            // Re-centring only means something off centre; the value pill already says "Mitte".
-            binding.balanceCenter.isVisible = settings.balance != 0
-            ViewCompat.setStateDescription(binding.balanceView, binding.balanceValue.text)
+            val value = formatBalance(settings.balance)
+            showStepperValue(binding.balanceStepper, label, value)
+            // Re-centring only means something off centre; the value chip already says "Mitte".
+            binding.balanceCenter.isInvisible = settings.balance == 0
+            ViewCompat.setStateDescription(binding.balanceView, value)
         }
     }
 
     private fun bindSpeed() {
         val format = NumberFormat.getInstance().apply { maximumFractionDigits = 2 }
-        val group = binding.speedGroup
         val buttons = listOf(
             binding.speedOption0, binding.speedOption1, binding.speedOption2,
             binding.speedOption3, binding.speedOption4
         )
         buttons.forEachIndexed { index, button ->
             button.text = "${format.format(KlangMath.SPEED_OPTIONS[index])}×"
-        }
-        group.addOnButtonCheckedListener { _, checkedId, checked ->
-            if (initializing || rendering) return@addOnButtonCheckedListener
-            val index = buttons.indexOfFirst { it.id == checkedId }
-            if (index < 0) return@addOnButtonCheckedListener
-            if (checked) {
-                update { copy(speed = KlangMath.SPEED_OPTIONS[index]) }
-            } else {
-                // Tapping the selected option again clears it, but the speed is still that option.
-                group.post { if (_binding != null) render() }
-            }
+            button.setOnClickListener { update { copy(speed = KlangMath.SPEED_OPTIONS[index]) } }
         }
         val label = getString(R.string.audio_sound_speed)
-        bindStepButtons(
-            binding.speedSteps, getString(R.string.audio_sound_decrease, label),
-            getString(R.string.audio_sound_increase, label),
+        bindValueStepper(
+            binding.speedStepper, label,
             { update { copy(speed = roundSpeed((speed - 0.05f).coerceAtLeast(0.5f))) } },
             { update { copy(speed = roundSpeed((speed + 0.05f).coerceAtMost(2f))) } }
         )
+        binding.speedPicture.kind = Kind.SPEED
         renderers += {
-            binding.speedValue.text = getString(R.string.audio_sound_speed_value, settings.speed)
-            ViewCompat.setStateDescription(binding.speedValue, binding.speedValue.text)
+            val value = getString(R.string.audio_sound_speed_value, settings.speed)
+            showStepperValue(binding.speedStepper, label, value)
+            binding.speedPicture.tempo = settings.speed
+            binding.speedPicture.setState(true, (settings.speed - 0.5f) / 1.5f)
+            binding.speedPicture.contentDescription = describe(R.string.audio_sound_speed, value)
+            // Two rows form one choice: the checked chip comes from the setting, never from a row.
             val selected = KlangMath.speedOptionIndex(settings.speed)
-            if (selected < 0) group.clearChecked() else group.check(buttons[selected].id)
+            buttons.forEachIndexed { index, button -> button.isChecked = index == selected }
         }
     }
 
@@ -481,9 +636,14 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment() {
                 copy(focusBehavior = if (checkedId == R.id.focusPause) AudioFocusBehavior.PAUSE else AudioFocusBehavior.DUCK)
             }
         }
+        binding.focusPicture.kind = Kind.FOCUS
         renderers += {
-            binding.focusBehavior.check(
-                if (settings.focusBehavior == AudioFocusBehavior.PAUSE) R.id.focusPause else R.id.focusDuck
+            val pause = settings.focusBehavior == AudioFocusBehavior.PAUSE
+            binding.focusBehavior.check(if (pause) R.id.focusPause else R.id.focusDuck)
+            binding.focusPicture.setState(true, if (pause) 0f else 1f)
+            binding.focusPicture.contentDescription = describe(
+                R.string.audio_sound_focus_title,
+                getString(if (pause) R.string.audio_sound_focus_pause else R.string.audio_sound_focus_duck)
             )
         }
     }
@@ -526,11 +686,16 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment() {
         options.forEachIndexed { index, (label, timer) ->
             val button = buttons[index]
             button.text = label
+            // Two lines rather than "End of t…" in a narrow cell; the cells are 55 dp high for that.
+            button.maxLines = 2
             button.setOnClickListener {
                 (activity as? AudioPlayerActivity)?.setSleepTimer(timer.first, timer.second, ::refreshStatus)
             }
             sleepButtons += button to timer
         }
+        binding.sleepPicture.kind = Kind.SLEEP
+        binding.sleepPicture.setState(false, 0f)
+        binding.sleepPicture.contentDescription = describe(R.string.audio_sound_sleep_heading, onOff(false))
         binding.sleepRemaining.setOnClickListener { cancelSleep() }
         binding.sleepRemaining.setOnCloseIconClickListener { cancelSleep() }
         binding.sleepRemaining.closeIconContentDescription = getString(R.string.audio_sleep_cancel)
@@ -583,14 +748,14 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment() {
         soundStatus = status
         renderEqualizerState()
         enableCard(binding.normalizationRow.root, status.inputGainAvailable)
-        enableCard(binding.normalizationPreamp.root, status.inputGainAvailable)
+        renderPreamp()
         // Per-channel input gain is available in DynamicsProcessing, not the API 24-27 Equalizer.
         enableCard(binding.balanceCard, status.usingDynamicsProcessing)
         binding.effectsSection.isVisible = true
         showEffect(binding.bassCard.root, binding.bassUnavailable, status.bassBoostAvailable, R.string.audio_sound_bass_boost)
+        // Clarity is the DynamicsProcessing multiband compressor (API 28+); without it the card gives way to a note.
         showEffect(
-            binding.virtualizerCard.root, binding.virtualizerUnavailable, status.virtualizerAvailable,
-            R.string.audio_sound_virtualizer
+            binding.clarityCard.root, binding.clarityUnavailable, status.clarityAvailable, R.string.audio_sound_clarity
         )
         val activeTimer = if (status.sleepActive) status.sleepMinutes to status.sleepAtEndOfTrack else 0 to false
         sleepButtons.forEach { (button, timer) -> button.isChecked = timer == activeTimer }
@@ -600,6 +765,20 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment() {
             chip.text = if (status.sleepAtEndOfTrack) getString(R.string.audio_sleep_until_end)
             else getString(R.string.audio_sleep_remaining, KlangMath.remainingMinutes(status.sleepRemainingMs))
         }
+        binding.sleepPicture.setState(
+            status.sleepActive,
+            KlangMath.sleepFraction(status.sleepAtEndOfTrack, status.sleepMinutes, status.sleepRemainingMs)
+        )
+        binding.sleepPicture.contentDescription =
+            describe(R.string.audio_sound_sleep_heading, if (status.sleepActive) chip.text else onOff(false))
+    }
+
+    /** The pre-amp only acts while levelling is on, and only where the device has an input-gain stage. */
+    private fun renderPreamp() {
+        setControlsActive(
+            binding.normalizationPreamp.root,
+            settings.normalizationEnabled && soundStatus?.inputGainAvailable != false
+        )
     }
 
     private fun showEffect(card: View, unavailable: TextView, available: Boolean, name: Int) {
@@ -689,6 +868,8 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment() {
         private const val DISABLED_ALPHA = 0.38f
         private const val GOLDEN_RATIO = 1.618f
         private const val STRENGTH_STEP = 50
+        private const val WIDTH_STEP = 10
+        private const val MIX_STEP = 5
         private const val SLEEP_REFRESH_MS = 30_000L
     }
 }

@@ -54,4 +54,28 @@ class KlangMathTest {
         assertTrue(KlangMath.isFlat(List(10) { 0f }))
         assertFalse(KlangMath.isFlat(List(10) { if (it == 3) 0.5f else 0f }))
     }
+
+    @Test
+    fun effectValuesMapToTheirPictures() {
+        assertEquals(1f / 3, KlangMath.levelFraction(1), 0.0001f)
+        assertEquals(1f, KlangMath.levelFraction(9), 0f)
+        assertEquals(0f, KlangMath.widthFraction(0), 0f)
+        assertEquals(1f, KlangMath.widthFraction(150), 0f)
+        assertEquals(0.25f, KlangMath.roomFraction(me.zhanghai.android.files.player.ReverbPreset.ROOM), 0f)
+        assertEquals(1f, KlangMath.roomFraction(me.zhanghai.android.files.player.ReverbPreset.HALL), 0f)
+        assertEquals(0.5f, KlangMath.sleepFraction(false, 30, 15 * 60_000L), 0.0001f)
+        assertEquals(1f, KlangMath.sleepFraction(true, 0, 0L), 0f)
+        assertEquals(0f, KlangMath.sleepFraction(false, 0, 1_000L), 0f)
+    }
+
+    @Test
+    fun twoColumnsOnlyWhenEachCardGets320Dp() {
+        // Phone: 412 dp screen, 21 dp sheet margins.
+        assertEquals(1, KlangMath.columns(370f, 34f, 320f))
+        // Old tablet sheet, 610 dp wide: 267 dp per card is too narrow.
+        assertEquals(1, KlangMath.columns(568f, 34f, 320f))
+        // Tablet portrait, 800 dp sheet.
+        assertEquals(2, KlangMath.columns(758f, 34f, 320f))
+        assertEquals(2, KlangMath.columns(674f, 34f, 320f))
+    }
 }
