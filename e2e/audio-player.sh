@@ -83,8 +83,8 @@ check "Fine-tune opens its band rows" paused_ui tap fineTuneToggle
 # Everything at the top first: on a phone the band rows push the rest below the screen.
 check "the Flat preset tile restores the curve" paused_ui tap "Flat|Neutral"
 check "the equalizer switches off again" equalizer off
-# The sheet is long: scroll down until the row appears (at most five swipes).
-scrolled_to() { local i; for i in 1 2 3 4 5 6; do paused_ui has "$1" && return 0; swipe_up; done; return 1; }
+# The sheet is long: scroll down until the row appears (at most ten swipes; six effect cards sit before playback).
+scrolled_to() { local i; for i in 1 2 3 4 5 6 7 8 9 10 11; do paused_ui has "$1" && return 0; swipe_up; done; return 1; }
 check "a band row shows its gain" scrolled_to "31 Hz"
 check "the playback section reaches skip silence and mono" scrolled_to "Skip silence|Stille überspringen"
 check "the sleep timer offers end of track" scrolled_to "End of track|Titelende"

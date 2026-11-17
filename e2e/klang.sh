@@ -32,7 +32,7 @@ check "the stereo title opens in Ordo's player" on viewer.audio.AudioPlayerActiv
 check "Sound opens from the player toolbar" paused_ui tap actionSound
 sleep 1.5 # the sheet slides up
 
-scrolled_to() { local i; for i in 1 2 3 4 5 6 7 8; do paused_ui has "$1" && return 0; swipe_up; done; return 1; }
+scrolled_to() { local i; for i in 1 2 3 4 5 6 7 8 9 10 11; do paused_ui has "$1" && return 0; swipe_up; done; return 1; }
 # set_switch TITLE on|off: the effect's switch carries the title as its description.
 set_switch() {
     local i; for i in 1 2 3; do
@@ -41,13 +41,19 @@ set_switch() {
     done
     return 1
 }
-# The live picture says "Title: value"; switched on, the value is no longer "Off".
-picture_on() { ui texts | grep -E "/picture\|($1): " | grep -vqE ": (Aus|Off)$"; }
+# The live picture says "Title: value"; switched on, the value is no longer "Off". It sits under the title, so a
+# short scroll brings it in when the title stands at the bottom edge.
+nudge() { read -r W H < <(screen_size); a shell input swipe $((W / 2)) $((H * 6 / 10)) $((W / 2)) $((H * 4 / 10)) 400; sleep 1; }
+picture_shows() { ui texts | grep -E "/picture\|($1): " | grep -vqE ": (Aus|Off)$"; }
+picture_on() { local i; for i in 1 2 3; do pause_playback; picture_shows "$1" && return 0; nudge; done; return 1; }
 
-# Mono greys out room sound and width: make sure it is off first.
+# Mono greys out room sound and width: make sure it is off first. Then the sheet opens again at its top; swiping down
+# at the top would drag the whole sheet away.
 check "the mono row is reachable" scrolled_to "Mono audio|Mono-Audio|Mono"
 check "mono is off" set_switch "Mono audio|Mono-Audio|Mono" off
-swipe_down; swipe_down; swipe_down; swipe_down; swipe_down; swipe_down
+back 1
+check "Sound opens again at the top" paused_ui tap actionSound
+sleep 1.5
 
 EFFECTS=("Bass boost|Bassverstärkung" "Room sound for headphones|Raumklang für Kopfhörer" "Stereo width|Stereobreite"
     "Reverb|Hall" "Analogue warmth|Analoge Wärme" "Clarity|Klarheit")
@@ -76,7 +82,7 @@ check "it is still playing seconds later" session_playing
 pause_playback
 
 # Leave the device as it was: every effect off again.
-check "Sound opens again" paused_ui tap actionSound
+check "Sound opens for clean-up" paused_ui tap actionSound
 sleep 1.5
 for effect in "${EFFECTS[@]}"; do
     scrolled_to "$effect" >/dev/null 2>&1 || continue
