@@ -1,41 +1,39 @@
 <p align="center">
-  <img src="docs/icon/play-store-icon.png" width="112" alt="Ordo icon">
+  <img src="docs/icon/play-store-icon.png" width="128" alt="Ordo icon">
 </p>
 
 <h1 align="center">Ordo</h1>
 
 <p align="center"><b>English</b> · <a href="README.de.md">Deutsch</a></p>
 
+<h3 align="center">The file manager that tidies up for you – with an AI that never leaves your phone.</h3>
+
 <p align="center">
-  A free, open source file manager for Android – with an AI that runs entirely on your phone.<br>
-  Everything in order, nothing leaves your device.
+  Free and open source. Files, music, storage analysis, vault and backup in one app.<br>
+  No ads, no tracking, nothing leaves your device.
 </p>
 
 <p align="center">
-  <a href="LICENSE"><img alt="License: GPL-3.0-or-later" src="https://img.shields.io/badge/license-GPL--3.0--or--later-blue"></a>
+  <a href="https://github.com/BEKO2210/ordo/releases"><img alt="Latest release" src="https://img.shields.io/github/v/release/BEKO2210/ordo?include_prereleases&label=release&color=2563EB"></a>
   <img alt="Android 7.0+" src="https://img.shields.io/badge/Android-7.0%2B-3DDC84">
+  <a href="LICENSE"><img alt="License: GPL-3.0-or-later" src="https://img.shields.io/badge/license-GPL--3.0--or--later-blue"></a>
   <img alt="No ads, no tracking" src="https://img.shields.io/badge/ads%20%26%20tracking-none-2563EB">
   <img alt="On-device AI" src="https://img.shields.io/badge/AI-on--device-0E7490">
+  <img alt="Google Play: closed test" src="https://img.shields.io/badge/Google%20Play-closed%20test-414141">
   <a href="https://beko2210.github.io/ordo/privacy.html"><img alt="Privacy policy" src="https://img.shields.io/badge/privacy-policy-555"></a>
 </p>
 
 <p align="center">
   <img src="docs/screenshots/en/home.png" width="24%" alt="Home screen with recent files, categories, vault and backup">
-  <img src="docs/screenshots/en/ai.png" width="24%" alt="AI command with preview: move 9 photos">
-  <img src="docs/screenshots/en/analysis.png" width="24%" alt="Storage analysis: your files, system and free space in one bar, then your files by type">
-  <img src="docs/screenshots/en/cleanup.png" width="24%" alt="Cleanup potential and suggestions with a preview button, dark mode">
+  <img src="docs/screenshots/en/ai.png" width="24%" alt="AI command with preview: move 9 photos, dark">
+  <img src="docs/screenshots/en/library-albums-dark.png" width="24%" alt="Ordo Music: albums as a grid of covers, dark">
+  <img src="docs/screenshots/en/player-dark.png" width="24%" alt="Music player with cover art and controls, dark">
 </p>
-<p align="center">
-  <img src="docs/screenshots/en/storage.png" width="24%" alt="Storage cards with animated usage bars and Open and Analyse buttons">
-  <img src="docs/screenshots/en/audio.png" width="24%" alt="Music with cover art in dark mode">
-  <img src="docs/screenshots/en/settings.png" width="24%" alt="Settings sorted into categories with coloured icons">
-  <img src="docs/screenshots/en/appearance.png" width="24%" alt="Appearance settings: five accent colours, night mode, motion, dark mode">
-</p>
-<p align="center">
-  <img src="docs/screenshots/en/player.png" width="24%" alt="Music player with cover art and controls, light">
-  <img src="docs/screenshots/en/sound.png" width="24%" alt="Sound: equalizer curve with the Bass preset, dark">
-  <img src="docs/screenshots/en/album.png" width="24%" alt="An album in its folder, covers as thumbnails">
-</p>
+
+> **New in 0.14** (in testing, not released yet)
+> - **Ordo Music** becomes a music app of its own: Songs, Albums, Artists, Folders and a mini player
+> - **Icon colours**: eight colours for Ordo's app icon and for Ordo Music
+> - **Upload with Ordo**: picking a file for a website or app no longer asks for notifications
 
 ## Status
 
@@ -43,7 +41,123 @@ Ordo is in development (version 0.13.3). A closed test runs on Google Play; test
 [pre-releases](https://github.com/BEKO2210/ordo/releases); you can also [build it from source](#build).
 What comes next is in the [living roadmap](docs/ROADMAP-LIVE.md): every goal has a check command and closes itself. The research behind the music player and the planned video player, PDF reader and editors is in [docs/MEDIEN-RECHERCHE.md](docs/MEDIEN-RECHERCHE.md) (German).
 
-## Features
+## A tour through Ordo
+
+### Find anything, tidy up everything
+
+- Home screen with recent files, categories, apps, trash, vault, backup and your storage at a glance
+- List or grid in three sizes; search by name or by text inside files
+- Deleted files wait in the trash for 30 days
+
+<p align="center">
+  <img src="docs/screenshots/en/home-dark.png" width="24%" alt="The home screen in dark mode">
+  <img src="docs/screenshots/en/storage.png" width="24%" alt="Storage cards with usage bars and the Open and Analyse buttons">
+  <img src="docs/screenshots/en/files.png" width="24%" alt="Holiday photos in the grid view">
+</p>
+
+### AI commands – on your phone, not in a cloud
+
+- Type or dictate a sentence in English or German: *“Move all photos from Holiday 2026 to Pictures”*
+- Ordo shows the plan first and acts only when you confirm; undo with one tap
+- The model runs on the phone with llama.cpp: commands and file names never leave it – [how it works](#ai-commands)
+
+<p align="center">
+  <img src="docs/media/clips/en-ai-command.webp" width="32%" alt="Clip: the plan, confirm, the photos move, Undo brings them back">
+</p>
+<p align="center"><sub>The clip is recorded on the emulator with a fixed model answer (debug build); plan, checks, move and undo are the real ones.</sub></p>
+
+### Storage analysis that shows where the space went
+
+- A ring of your files by type, what is safe to free, a map of the folders that hold the space
+- Large files, duplicates, old APKs and files you have not used for a long time, each on its own page
+- Nothing is deleted without your tap, and deleting goes to the trash
+
+<p align="center">
+  <img src="docs/screenshots/en/analysis.png" width="24%" alt="Storage analysis: your files, system and free space">
+  <img src="docs/screenshots/en/cleanup.png" width="24%" alt="Cleanup potential and suggestions with a preview">
+</p>
+
+### Vault & backup
+
+- Vault: files encrypted with AES-256-GCM, opened with your screen lock
+- Backup of folders and the vault as a ZIP to a USB drive or Google Drive, with an optional password (AES-256)
+- Restore never replaces files you already have
+
+<p align="center">
+  <img src="docs/screenshots/en/vault.png" width="24%" alt="The vault with three documents, opened with the screen lock">
+  <img src="docs/screenshots/en/backup.png" width="24%" alt="Backup: folders, vault, destination and password">
+</p>
+
+### Ordo Music – a music app of its own
+
+- Songs, Albums, Artists and Folders with search, “Shuffle all” and a mini player
+- A player that takes its colour from the cover, with queue and background controls
+- Sound: a 10-band EQ you shape on the curve, presets, device effects, ReplayGain/R128, a fading sleep timer
+- “Play on…” sends the music to Bluetooth, wired and cast devices through Android's output picker (Android 11 and later)
+
+<p align="center">
+  <img src="docs/screenshots/en/library-songs.png" width="24%" alt="Ordo Music: songs with the mini player">
+  <img src="docs/screenshots/en/library-albums.png" width="24%" alt="Ordo Music: albums as covers">
+  <img src="docs/screenshots/en/album.png" width="24%" alt="An album page with Play and Shuffle">
+  <img src="docs/screenshots/en/player.png" width="24%" alt="The player with cover art">
+</p>
+<p align="center">
+  <img src="docs/screenshots/en/library-artists.png" width="24%" alt="Ordo Music: artists">
+  <img src="docs/screenshots/en/sound.png" width="24%" alt="Sound: the equalizer curve with the Bass preset">
+  <img src="docs/screenshots/en/sound-effects.png" width="24%" alt="Sound: normalisation, balance, tempo and sleep timer">
+  <img src="docs/screenshots/en/play-on.png" width="24%" alt="Play on: Android's own output picker">
+</p>
+<p align="center">
+  <img src="docs/media/clips/en-music.webp" width="32%" alt="Clip: scrolling the albums, opening one and playing a song">
+  <img src="docs/media/clips/en-sound.webp" width="32%" alt="Clip: the equalizer curve morphs between presets">
+</p>
+
+### Make it yours
+
+- Ordo's own colours in five accents, or your wallpaper's colours (Android 12 and later)
+- Light, dark and true black; motion full, subtle or off
+- Eight icon colours for Ordo's app icon and for Ordo Music, with a live preview
+
+<p align="center">
+  <img src="docs/screenshots/en/settings.png" width="24%" alt="Settings sorted into categories">
+  <img src="docs/screenshots/en/appearance.png" width="24%" alt="Appearance: accent colours, night mode, motion">
+  <img src="docs/screenshots/en/icon-colours.png" width="24%" alt="Icon colours: eight colours for Ordo and Ordo Music">
+  <img src="docs/screenshots/en/launcher.png" width="24%" alt="The app drawer with a violet Ordo and a green Ordo Music">
+</p>
+
+### Built for tablets
+
+- Ordo Music's album grid adds columns as the screen gets wider
+- The storage analysis in two columns of cards, rows side by side
+
+<p align="center">
+  <img src="docs/screenshots/en/tablet-albums.png" width="98%" alt="Tablet across: all six albums of Ordo Music in one row, dark">
+</p>
+<p align="center">
+  <img src="docs/screenshots/en/tablet-home.png" width="49%" alt="Tablet: home screen">
+  <img src="docs/screenshots/en/tablet-analysis.png" width="49%" alt="Tablet: storage analysis in two columns">
+</p>
+
+### Upload with Ordo
+
+- When a website or app asks for a file (a song on Suno, say), Ordo is listed in Android's picker under “Open from”
+- Picking a file does not ask for notifications
+
+<p align="center">
+  <img src="docs/screenshots/en/pick.png" width="24%" alt="Ordo opened to pick a file for an upload">
+</p>
+
+### Private by design
+
+- No ads, no trackers, no analytics; the network only for servers you add and the one-time AI model download
+- Open source under GPL-3.0, built on [Material Files](https://github.com/zhanghai/MaterialFiles)
+
+All pictures above come from `utils/readme-shots.sh` on the Android 16 emulator with sample data only.
+
+## All features
+
+<details>
+<summary><b>Everything Ordo does, in detail</b></summary>
 
 **Find your files**
 
@@ -137,6 +251,8 @@ What comes next is in the [living roadmap](docs/ROADMAP-LIVE.md): every goal has
 - The home search bar at the top or at the bottom, within thumb reach
 - Eight icon colours for Ordo's own app icon and Ordo Music, under Settings › Built-in apps › Icon colours
 - With files selected, the actions sit in a bar at the bottom; its "More" menu opens right above it, next to the thumb
+
+</details>
 
 ## AI commands
 
