@@ -24,7 +24,6 @@ für die nächste – vor 1.0.0 und danach.
 - [ ] PDF bearbeiten: markieren, kommentieren, Formulare, Seiten ordnen
 - [ ] Jede gängige Datei öffnen, lesen und schreiben – und es sieht gut aus
 - [ ] Eingebaute Apps entkoppeln: jede als eigenes App-Symbol, einzeln schaltbar
-- [ ] Goldener Schnitt als Maßsystem in ganz Ordo
 - [ ] Dokumente bearbeiten: Entscheidung für Office-Formate
 - [ ] Nach v0.12.0: nächste Version hat eine eigene Nummer
 - [ ] Nach v0.12.0: beide READMEs nennen die neue Version
@@ -49,6 +48,7 @@ für die nächste – vor 1.0.0 und danach.
 - [x] Einstellungen bildlich: Symbol an jedem Eintrag, Auswahl mit Bildern
 - [x] Bewegung aus einem Guss: Menüs, Dialoge, Piktogramme
 - [x] Stand der Technik für Medien belegt
+- [x] Goldener Schnitt als Maßsystem in ganz Ordo
 
 ## Graph
 
@@ -85,7 +85,7 @@ flowchart TD
   nc_8793c9["PDF bearbeiten: markieren, kommentieren, Formulare, Seiten ordnen [active]"]
   nc_ee6840["Jede gängige Datei öffnen, lesen und schreiben – und es sieht gut aus [active]"]
   nc_e54e06["Eingebaute Apps entkoppeln: jede als eigenes App-Symbol, einzeln schaltbar [active]"]
-  nc_ce7679["Goldener Schnitt als Maßsystem in ganz Ordo [active]"]
+  nc_ce7679["Goldener Schnitt als Maßsystem in ganz Ordo [done]"]
   nc_cfb6d6["Dokumente bearbeiten: Entscheidung für Office-Formate [active]"]
   nc_f792c0["Nach v0.12.0: nächste Version hat eine eigene Nummer [active]"]
   nc_5dd72c["Nach v0.12.0: beide READMEs nennen die neue Version [active]"]

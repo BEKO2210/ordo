@@ -15,7 +15,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="16dp">
+        android:padding="@dimen/phi_21">
 
         <TextView
             android:id="@+id/titleText"
@@ -28,7 +28,7 @@
             android:id="@+id/bodyText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
+            android:layout_marginTop="@dimen/phi_5"
             android:autoLink="email|web"
             android:lineSpacingMultiplier="1.25"
             android:textAppearance="?textAppearanceBody2"
