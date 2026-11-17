@@ -3,5 +3,5 @@ Neu in dieser Testversion:
 • „Klang“: Equalizer mit 10 Bändern, Bass, Raumklang, Lautstärke angleichen, Tempo, Einschlaf-Timer
 • „Abspielen auf …“: Musik an Bluetooth, Kabel oder Cast-Geräte schicken
 • Eigenes Symbol „Ordo Musik“ (Einstellungen › Eingebaute Apps), standardmäßig aus
-• Abstände nach dem Goldenen Schnitt
+• Behoben: Stereo-Lieder brachen in 0.13.2 mit einem Fehler ab
 Rückmeldungen gern an: nullmesh@protonmail.com
