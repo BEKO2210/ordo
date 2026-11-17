@@ -53,8 +53,9 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:padding="@dimen/screen_edge_margin"
-            android:drawablePadding="16dp"
+            android:padding="@dimen/space_gutter"
+            android:drawablePadding="@dimen/space_gutter"
+            android:hyphenationFrequency="none"
             android:gravity="center"
             android:text="@string/vault_empty"
             android:textAppearance="?textAppearanceListItem"
@@ -74,22 +75,23 @@
                 android:layout_height="wrap_content"
                 android:gravity="center"
                 android:orientation="vertical"
-                android:padding="32dp">
+                android:padding="@dimen/space_section">
 
                 <ImageView
                     android:id="@+id/lockedIcon"
-                    android:layout_width="96dp"
-                    android:layout_height="96dp"
+                    android:layout_width="@dimen/phi_89"
+                    android:layout_height="@dimen/phi_89"
                     android:background="@drawable/home_icon_circle"
                     android:importantForAccessibility="no"
-                    android:padding="28dp" />
+                    android:padding="@dimen/space_gutter" />
 
                 <TextView
                     android:id="@+id/lockedTitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="24dp"
+                    android:layout_marginTop="@dimen/space_gutter"
                     android:gravity="center"
+                    android:hyphenationFrequency="none"
                     android:text="@string/vault_locked_title"
                     android:textAppearance="?textAppearanceHeadline6" />
 
@@ -97,19 +99,20 @@
                     android:id="@+id/lockedMessage"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
+                    android:layout_marginTop="@dimen/space_item"
                     android:gravity="center"
-                    android:maxWidth="320dp"
+                    android:hyphenationFrequency="none"
+                    android:maxWidth="@dimen/phi_377"
                     android:text="@string/vault_locked_message"
-                    android:textAppearance="?textAppearanceBody2"
+                    android:textAppearance="?textAppearanceCaption"
                     android:textColor="?android:textColorSecondary" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/unlockButton"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="24dp"
-                    android:minHeight="48dp"
+                    android:layout_marginTop="@dimen/space_gutter"
+                    android:minHeight="@dimen/phi_row_min"
                     android:text="@string/vault_unlock_action" />
             </LinearLayout>
         </ScrollView>

@@ -97,6 +97,7 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
         binding.loadingText.setFactory {
             TextView(requireContext()).apply {
                 gravity = Gravity.CENTER
+                hyphenationFrequency = android.text.Layout.HYPHENATION_FREQUENCY_NONE
                 TextViewCompat.setTextAppearance(
                     this, com.google.android.material.R.style.TextAppearance_MaterialComponents_Subtitle1
                 )
@@ -1196,7 +1197,7 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
     private fun View.reveal(startDelay: Long) {
         if (!me.zhanghai.android.files.ui.Motion.any) return
         alpha = 0f
-        translationY = 16 * resources.displayMetrics.density
+        translationY = resources.getDimension(R.dimen.phi_21)
         animate().alpha(1f).translationY(0f).setStartDelay(startDelay).setDuration(320)
             .setInterpolator(android.view.animation.PathInterpolator(0.2f, 0f, 0f, 1f)).start()
     }

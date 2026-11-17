@@ -79,3 +79,35 @@ Jeder Schritt: Abstände auf die Reihe umstellen, auf Telefon (412 dp) und Table
   nach dem Zeilenrand und die Vorschau bei 56 dp: diese beiden Werte folgen der AndroidX-Kante, nicht der Reihe.
 - Keine Silbentrennung, höchstens zwei Ebenen (Titel, Info-Text). Nicht gemessen: noch kein Lauf von
   `e2e/settings-visual.sh` und kein Versatz-Messwert nach der Umstellung.
+
+### KI-Blatt (umgestellt)
+
+- Blattrand 21 dp, unten 34 dp; Karten 21/13 dp, Abstände 5/8/13/21 dp. Kugeln: Kopf 55, Denken 89, Einrichtung 144 dp.
+- Symbole 34 dp (Innenrand 5 dp); Tasten und Prüfzeilen mindestens 55 dp hoch, Eingabefeld und Tasten mit Rundung 34 dp.
+- Info-Texte (Untertitel, Route, Nachricht, Dateiliste, Notiz) 12 sp in der zweiten Textfarbe; keine Silbentrennung
+  (auch im TextSwitcher aus `CommandSheetFragment`).
+- `ai_glass_card` hat jetzt Rundung 21 dp; die Karte teilen sich Einführung und Startseitenkarten (`Widget.Ordo.*`).
+- Nicht gemessen: kein Lauf auf einem Gerät; Unschärferadius (28) und Haarlinien der Chips bleiben.
+
+### Dateiliste und Seitenmenü (umgestellt)
+
+- Listenzeile: mindestens 55 dp (wächst bei zwei Zeilen), Symbolfeld 55 dp (Tippfläche) mit sichtbarem Symbol 34 dp,
+  Info-Text 12 sp, Menü-Taste 48 dp. Auswahl- und Häkchen-Darstellung unverändert.
+- Raster: Vorschaubild φ : 1 (1,618; bisher 1,78), Rundung 8 dp, Rand 21/13 dp; kompaktes Raster bleibt quadratisch.
+  Namenszeile mindestens 55 dp. Größen `FileItemSize`: 55/34, 68/34, 89/34 dp Zeile/Symbol, Spalten 89/120/180 dp
+  (vier/drei/zwei Spalten bei 411 dp bleiben).
+- Seitenmenü: Zeile 55 dp, Symbol **24 dp sichtbar in einem 34-dp-Feld**, Auswahl-/Ziehfläche Rundung 34 dp
+  (`phi_radius_xl`), Kopf mit 34-dp-Symbol, Textkante des Kopfes fluchtet mit den Einträgen.
+- `ordo_row_ripple` hat Rundung 21 dp (gilt auch für Einstellungs- und Analysezeilen). Keine Silbentrennung.
+- Nicht gemessen: Symbol-Text-Versatz im Menü, Zeilenhöhen auf dem Gerät.
+
+### Speicheranalyse, Tresor, Sicherung (umgestellt)
+
+- Karten der Analyse: Rand 21/13 dp, Abstand 21 dp, Rundung 21 dp; Titel und Untertitel (12 sp, zweite Textfarbe) in
+  zwei Ebenen, keine Silbentrennung. Ring, Karte und Wachstum 233 dp; Ringstärke 21 dp; Treemap-Rundung 8 dp.
+- Zeilen: mindestens 55 dp, Symbolfeld 34 dp (Innenrand 5), Name zu Größe 61,8 : 38,2, Fortschrittsbalken 5 dp.
+- Zwei Spalten breiter Bildschirme bleiben **gleich breit**: die Ordnerkarte braucht die „daneben“-Breite.
+- Tresor: Hinweis mit 34-dp-Symbolfeld, Sperrbild 89 dp; Sicherung: Zeilen mindestens 55 dp, Symbolfeld 34 dp,
+  Ränder 21/13 dp, Info-Texte 12 sp.
+- Unverändert: Zeichenlogik der Diagramme, `ScanProgressView` (Ringstärke 16 dp), Diagramm-Festformate (Breite im XML
+  unbekannt, daher kein φ : 1). Nicht gemessen: kein Gerätelauf, kein `e2e/`-Lauf.

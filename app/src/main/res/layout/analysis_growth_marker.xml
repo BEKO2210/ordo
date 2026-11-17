@@ -6,8 +6,8 @@
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:background="@drawable/analysis_marker_background"
-    android:paddingHorizontal="12dp"
-    android:paddingVertical="6dp"
+    android:paddingHorizontal="@dimen/space_card_v"
+    android:paddingVertical="@dimen/space_related"
     android:textAppearance="?textAppearanceCaption"
     android:textColor="?android:colorBackground"
     android:textStyle="bold" />
