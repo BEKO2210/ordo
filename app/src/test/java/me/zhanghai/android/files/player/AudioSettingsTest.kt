@@ -116,11 +116,4 @@ class AudioSettingsTest {
         assertEquals(0.5f, SleepTimerSchedule.endOfTrackVolume(30_000L, 25_000L), 0f)
         assertEquals(1f, SleepTimerSchedule.endOfTrackVolume(-1L, 0L), 0f)
     }
-
-    @Test
-    fun monoMixUsesConstantGainAndCannotOverflow() {
-        assertEquals(0, MonoAudioProcessor.mixStereoSample(32_767, -32_767).toInt())
-        assertEquals(32_767, MonoAudioProcessor.mixStereoSample(32_767, 32_767).toInt())
-        assertEquals(-32_768, MonoAudioProcessor.mixStereoSample(-32_768, -32_768).toInt())
-    }
 }

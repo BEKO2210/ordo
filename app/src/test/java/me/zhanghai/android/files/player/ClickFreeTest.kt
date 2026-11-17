@@ -137,8 +137,8 @@ class ClickFreeTest {
     companion object {
         private const val SAMPLE_RATE = 48_000
         private const val FRAMES = 64
-        private const val BUFFERS = 400
-        private const val CHANGE_BUFFER = 200
+        private const val BUFFERS = 700
+        private const val CHANGE_BUFFER = 300
         // Long enough for every fade and for the reverb tail to build up before "after" is measured.
         private const val SETTLE = 8_000
         /** 10 ms before the change. */

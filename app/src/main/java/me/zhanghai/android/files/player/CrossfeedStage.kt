@@ -38,7 +38,7 @@ import kotlin.math.pow
  * Headphone crossfeed after Bauer (bs2b): each ear also hears the other channel through a first-order low-pass,
  * while the direct path gets a matching high-shelf boost, so the sound moves from inside the head to the front.
  */
-class CrossfeedAudioProcessor : StereoEffectProcessor() {
+class CrossfeedStage : KlangStage() {
     /** 1 light, 2 medium, 3 strong. */
     @Volatile
     var level: Int = 2
@@ -71,7 +71,7 @@ class CrossfeedAudioProcessor : StereoEffectProcessor() {
         appliedRate = sampleRate
         val (cutHz, feedDb) = LEVEL_PRESETS[current - 1]
         // bs2b init(): bs2b only accepts 2-384 kHz and falls back to 44.1 kHz outside.
-        val rate = if (sampleRate in MIN_RATE..MAX_RATE) sampleRate.toDouble() else DEFAULT_SAMPLE_RATE.toDouble()
+        val rate = if (sampleRate in MIN_RATE..MAX_RATE) sampleRate.toDouble() else KlangAudioProcessor.DEFAULT_SAMPLE_RATE.toDouble()
         val gbLo = feedDb * -5.0 / 6.0 - 3.0
         val gbHi = feedDb / 6.0 - 3.0
         val gLo = 10.0.pow(gbLo / 20.0)

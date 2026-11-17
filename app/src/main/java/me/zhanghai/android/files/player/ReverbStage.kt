@@ -15,7 +15,7 @@ import kotlin.math.abs
  * Freeverb: eight parallel low-pass-feedback comb filters and four series all-passes per channel, the right channel
  * with slightly longer delays (stereo spread). Delay lengths are the original's at 44.1 kHz, scaled to the sample rate.
  */
-class ReverbAudioProcessor : StereoEffectProcessor() {
+class ReverbStage : KlangStage() {
     @Volatile
     var preset: ReverbPreset = ReverbPreset.STUDIO
 
@@ -40,7 +40,7 @@ class ReverbAudioProcessor : StereoEffectProcessor() {
     private var snap = true
 
     init {
-        onSampleRate(DEFAULT_SAMPLE_RATE)
+        onSampleRate(KlangAudioProcessor.DEFAULT_SAMPLE_RATE)
     }
 
     override fun onSampleRate(sampleRate: Int) {
