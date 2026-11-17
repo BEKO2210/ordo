@@ -30,8 +30,17 @@ class AudioSettingsTest {
             preGainDb = 3.5f,
             bassBoostEnabled = true,
             bassBoostStrength = 750,
-            virtualizerEnabled = true,
-            virtualizerStrength = 400,
+            crossfeedEnabled = true,
+            crossfeedLevel = 3,
+            widthEnabled = true,
+            widthPercent = 60,
+            reverbEnabled = true,
+            reverbPreset = ReverbPreset.HALL,
+            reverbMix = 35,
+            warmthEnabled = true,
+            warmthLevel = 1,
+            clarityEnabled = true,
+            clarityLevel = 3,
             normalizationEnabled = true,
             normalizationPreampDb = -2f,
             speed = 1.25f,
@@ -43,13 +52,43 @@ class AudioSettingsTest {
         )
         assertEquals(original, AudioSettingsCodec.decode(AudioSettingsCodec.encode(original)))
 
-        val unsafe = original.copy(bandGainsDb = listOf(99f), speed = 5f, balance = -999)
+        val unsafe = original.copy(
+            bandGainsDb = listOf(99f), speed = 5f, balance = -999, crossfeedLevel = 9, widthPercent = 400,
+            reverbMix = -5, warmthLevel = 0, clarityLevel = -1
+        )
         val restored = AudioSettingsCodec.decode(AudioSettingsCodec.encode(unsafe))
         assertEquals(12f, restored.bandGainsDb.first(), 0f)
         assertEquals(10, restored.bandGainsDb.size)
         assertEquals(2f, restored.speed, 0f)
         assertEquals(-100, restored.balance)
+        assertEquals(3, restored.crossfeedLevel)
+        assertEquals(150, restored.widthPercent)
+        assertEquals(0, restored.reverbMix)
+        assertEquals(1, restored.warmthLevel)
+        assertEquals(1, restored.clarityLevel)
         assertEquals(1f, AudioSettings(speed = Float.NaN).sanitized().speed, 0f)
+    }
+
+    // 0.13.x stored the platform Virtualizer; its switch and strength carry over to the crossfeed that replaces it.
+    @Test
+    fun virtualizerSettingMigratesToCrossfeed() {
+        val old = """{"eq":true,"preset":"ROCK","virtualizerOn":true,"virtualizer":700,"bassOn":true,"bass":300}"""
+        val migrated = AudioSettingsCodec.decode(old)
+        assertTrue(migrated.crossfeedEnabled)
+        assertEquals(3, migrated.crossfeedLevel)
+        assertTrue(migrated.bassBoostEnabled)
+        assertEquals(EqualizerPreset.ROCK, migrated.preset)
+        assertFalse(migrated.widthEnabled || migrated.reverbEnabled || migrated.warmthEnabled || migrated.clarityEnabled)
+        assertFalse(AudioSettingsCodec.decode("""{"virtualizerOn":false,"virtualizer":0}""").crossfeedEnabled)
+        assertEquals(1, AudioSettingsCodec.decode("""{"virtualizerOn":true,"virtualizer":0}""").crossfeedLevel)
+        assertEquals(2, AudioSettingsCodec.decode("""{"virtualizerOn":true,"virtualizer":500}""").crossfeedLevel)
+        // Once saved again, only the new keys count.
+        val saved = AudioSettingsCodec.encode(migrated)
+        assertFalse(saved.contains("virtualizer"))
+        assertEquals(migrated, AudioSettingsCodec.decode(saved))
+        assertEquals(1, AudioSettingsCodec.levelFromStrength(333))
+        assertEquals(2, AudioSettingsCodec.levelFromStrength(334))
+        assertEquals(3, AudioSettingsCodec.levelFromStrength(1_000))
     }
 
     @Test

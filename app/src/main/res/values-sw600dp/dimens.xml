@@ -25,4 +25,8 @@
     <dimen name="file_list_toolbar_padding_start">16dp</dimen>
     <dimen name="file_list_toolbar_padding_end_no_overflow">22dp</dimen>
     <dimen name="file_list_toolbar_padding_end_with_overflow">14dp</dimen>
+    <!-- Sound sheet on tablets: up to 987 dp (610 × φ) wide, so two columns of cards get 320 dp each;
+         the pictures grow to 89 dp. -->
+    <dimen name="klang_sheet_max_width">@dimen/phi_987</dimen>
+    <dimen name="klang_picture_height">@dimen/phi_89</dimen>
 </resources>

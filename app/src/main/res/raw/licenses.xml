@@ -272,4 +272,11 @@
         <copyright>Copyright 2003 The Apache Software Foundation</copyright>
         <license>Apache Software License 2.0</license>
     </notice>
+
+    <notice>
+        <name>libbs2b</name>
+        <url>https://github.com/alexmarsev/libbs2b</url>
+        <copyright>Copyright (c) 2005 Boris Mikhaylov</copyright>
+        <license>MIT License</license>
+    </notice>
 </notices>

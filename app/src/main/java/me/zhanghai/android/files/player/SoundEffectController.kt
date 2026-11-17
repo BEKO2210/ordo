@@ -10,7 +10,6 @@ import android.media.audiofx.BassBoost
 import android.media.audiofx.DynamicsProcessing
 import android.media.audiofx.Equalizer
 import android.media.audiofx.LoudnessEnhancer
-import android.media.audiofx.Virtualizer
 import android.os.Build
 import androidx.media3.common.C
 import kotlin.math.abs
@@ -23,7 +22,6 @@ class SoundEffectController {
     private var equalizer: Equalizer? = null
     private var loudnessEnhancer: LoudnessEnhancer? = null
     private var bassBoost: BassBoost? = null
-    private var virtualizer: Virtualizer? = null
     private var currentSettings = AudioSettings()
     private var replayGain: ReplayGainInfo? = null
 
@@ -49,12 +47,6 @@ class SoundEffectController {
                 enabled = currentSettings.bassBoostEnabled
             }
         }.onFailure { releaseBassBoost() }
-        runCatching {
-            virtualizer?.apply {
-                setStrength(currentSettings.virtualizerStrength.toShort())
-                enabled = currentSettings.virtualizerEnabled
-            }
-        }.onFailure { releaseVirtualizer() }
     }
 
     private fun applyEqualizer() {
@@ -100,6 +92,20 @@ class SoundEffectController {
                 )
             )
         }
+        // Clarity: the multiband compressor evens out loud and quiet parts per band; the limiter after it keeps the
+        // make-up gain from clipping. Disabled bands pass through untouched.
+        if (status.clarityAvailable) {
+            val (ratio, thresholdDb, makeUpDb) = CLARITY_LEVELS[currentSettings.clarityLevel - 1]
+            CLARITY_CUTOFFS_HZ.forEachIndexed { index, cutoff ->
+                effect.setMbcBandAllChannelsTo(
+                    index,
+                    DynamicsProcessing.MbcBand(
+                        currentSettings.clarityEnabled, cutoff, CLARITY_ATTACK_MS, CLARITY_RELEASE_MS, ratio,
+                        thresholdDb, CLARITY_KNEE_DB, NOISE_GATE_OFF_DB, 1f, 0f, makeUpDb
+                    )
+                )
+            }
+        }
         val channelCount = effect.channelCount
         for (channel in 0 until channelCount) {
             val balanceAttenuation = when {
@@ -110,7 +116,8 @@ class SoundEffectController {
             // https://developer.android.com/reference/android/media/audiofx/DynamicsProcessing#setInputGainbyChannel(int,%20float)
             effect.setInputGainbyChannel(channel, inputGainDb + balanceAttenuation)
         }
-        effect.enabled = currentSettings.equalizerEnabled || inputGainDb != 0f || currentSettings.balance != 0
+        effect.enabled = currentSettings.equalizerEnabled || inputGainDb != 0f || currentSettings.balance != 0 ||
+            (status.clarityAvailable && currentSettings.clarityEnabled)
         return true
     }
 
@@ -140,6 +147,14 @@ class SoundEffectController {
 
     @android.annotation.TargetApi(28)
     private fun createDynamicsProcessing(audioSessionId: Int) {
+        // With the multiband compressor first; a device that refuses that configuration still gets the equalizer.
+        if (!createDynamicsProcessing(audioSessionId, withClarity = true)) {
+            createDynamicsProcessing(audioSessionId, withClarity = false)
+        }
+    }
+
+    @android.annotation.TargetApi(28)
+    private fun createDynamicsProcessing(audioSessionId: Int, withClarity: Boolean): Boolean {
         try {
             val eq = DynamicsProcessing.Eq(true, true, AudioSettings.BAND_COUNT).apply {
                 DYNAMICS_CUTOFF_FREQUENCIES_HZ.forEachIndexed { index, cutoff ->
@@ -156,20 +171,32 @@ class SoundEffectController {
                 2,
                 true,
                 AudioSettings.BAND_COUNT,
-                false,
-                0,
+                withClarity,
+                if (withClarity) CLARITY_CUTOFFS_HZ.size else 0,
                 false,
                 0,
                 true
-            ).setPreEqAllChannelsTo(eq).setLimiterAllChannelsTo(limiter).build()
+            ).setPreEqAllChannelsTo(eq).setLimiterAllChannelsTo(limiter).apply {
+                if (withClarity) {
+                    val mbc = DynamicsProcessing.Mbc(true, true, CLARITY_CUTOFFS_HZ.size)
+                    CLARITY_CUTOFFS_HZ.forEachIndexed { index, cutoff ->
+                        mbc.setBand(index, DynamicsProcessing.MbcBand(false, cutoff, CLARITY_ATTACK_MS,
+                            CLARITY_RELEASE_MS, 1f, 0f, CLARITY_KNEE_DB, NOISE_GATE_OFF_DB, 1f, 0f, 0f))
+                    }
+                    setMbcAllChannelsTo(mbc)
+                }
+            }.build()
             dynamicsProcessing = DynamicsProcessing(0, audioSessionId, config)
             status = status.copy(
                 equalizerAvailable = true,
                 usingDynamicsProcessing = true,
-                inputGainAvailable = true
+                inputGainAvailable = true,
+                clarityAvailable = withClarity
             )
+            return true
         } catch (_: RuntimeException) {
             disableEqualizer()
+            return false
         }
     }
 
@@ -185,20 +212,7 @@ class SoundEffectController {
         } catch (_: RuntimeException) {
             null
         }
-        virtualizer = try {
-            Virtualizer(0, audioSessionId).let { effect ->
-                if (effect.strengthSupported) effect else {
-                    effect.release()
-                    null
-                }
-            }
-        } catch (_: RuntimeException) {
-            null
-        }
-        status = status.copy(
-            bassBoostAvailable = bassBoost != null,
-            virtualizerAvailable = virtualizer != null
-        )
+        status = status.copy(bassBoostAvailable = bassBoost != null)
     }
 
     private fun disableEqualizer() {
@@ -212,7 +226,8 @@ class SoundEffectController {
             equalizerAvailable = false,
             usingDynamicsProcessing = false,
             inputGainAvailable = false,
-            legacyBandCount = 0
+            legacyBandCount = 0,
+            clarityAvailable = false
         )
     }
 
@@ -222,23 +237,15 @@ class SoundEffectController {
         status = status.copy(bassBoostAvailable = false)
     }
 
-    private fun releaseVirtualizer() {
-        releaseEffect(virtualizer)
-        virtualizer = null
-        status = status.copy(virtualizerAvailable = false)
-    }
-
     fun release() {
         releaseEffect(dynamicsProcessing as? AudioEffect)
         releaseEffect(equalizer)
         releaseEffect(loudnessEnhancer)
         releaseEffect(bassBoost)
-        releaseEffect(virtualizer)
         dynamicsProcessing = null
         equalizer = null
         loudnessEnhancer = null
         bassBoost = null
-        virtualizer = null
         status = Status()
     }
 
@@ -253,10 +260,24 @@ class SoundEffectController {
         val inputGainAvailable: Boolean = false,
         val legacyBandCount: Int = 0,
         val bassBoostAvailable: Boolean = false,
-        val virtualizerAvailable: Boolean = false
+        val clarityAvailable: Boolean = false
     )
 
     companion object {
+        // Three bands: lows, mids (voices, most instruments), highs; the top cutoff closes the last band.
+        private val CLARITY_CUTOFFS_HZ = floatArrayOf(250f, 4_000f, 22_050f)
+        private const val CLARITY_ATTACK_MS = 3f
+        private const val CLARITY_RELEASE_MS = 80f
+        private const val CLARITY_KNEE_DB = 6f
+        private const val NOISE_GATE_OFF_DB = -90f
+
+        /** Ratio, threshold (dB) and make-up gain (dB) for light, medium and strong. */
+        private val CLARITY_LEVELS = arrayOf(
+            Triple(2f, -18f, 2f),
+            Triple(3f, -24f, 4f),
+            Triple(4f, -30f, 6f)
+        )
+
         private val DYNAMICS_CUTOFF_FREQUENCIES_HZ = floatArrayOf(
             44f, 88f, 177f, 354f, 707f, 1_414f, 2_828f, 5_657f, 11_314f, 22_050f
         )
