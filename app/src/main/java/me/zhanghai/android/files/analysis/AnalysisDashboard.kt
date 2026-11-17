@@ -612,6 +612,8 @@ class AnalysisDashboard(
                 gravity = Gravity.CENTER_VERTICAL
                 minimumHeight = dp(55)
                 importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_YES
+            })
+            return
         }
         val tile = insights.tiles[index]
         val row = legendRow(accent, tileLabel(tile, short = false), size(tile.size),
