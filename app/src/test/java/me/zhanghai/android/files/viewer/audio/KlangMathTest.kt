@@ -54,4 +54,17 @@ class KlangMathTest {
         assertTrue(KlangMath.isFlat(List(10) { 0f }))
         assertFalse(KlangMath.isFlat(List(10) { if (it == 3) 0.5f else 0f }))
     }
+
+    @Test
+    fun effectValuesMapToTheirPictures() {
+        assertEquals(1f / 3, KlangMath.levelFraction(1), 0.0001f)
+        assertEquals(1f, KlangMath.levelFraction(9), 0f)
+        assertEquals(0f, KlangMath.widthFraction(0), 0f)
+        assertEquals(1f, KlangMath.widthFraction(150), 0f)
+        assertEquals(0.25f, KlangMath.roomFraction(me.zhanghai.android.files.player.ReverbPreset.ROOM), 0f)
+        assertEquals(1f, KlangMath.roomFraction(me.zhanghai.android.files.player.ReverbPreset.HALL), 0f)
+        assertEquals(0.5f, KlangMath.sleepFraction(false, 30, 15 * 60_000L), 0.0001f)
+        assertEquals(1f, KlangMath.sleepFraction(true, 0, 0L), 0f)
+        assertEquals(0f, KlangMath.sleepFraction(false, 0, 1_000L), 0f)
+    }
 }

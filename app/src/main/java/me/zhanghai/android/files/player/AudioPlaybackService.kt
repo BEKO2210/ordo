@@ -52,7 +52,7 @@ class AudioPlaybackService : MediaSessionService() {
     private lateinit var mediaSession: MediaSession
     private lateinit var stateStore: PlaybackStateStore
     private lateinit var soundEffects: SoundEffectController
-    private lateinit var monoAudioProcessor: MonoAudioProcessor
+    private val klang = KlangProcessors()
     private lateinit var audioFocusController: AudioFocusController
     private val handler = Handler(Looper.getMainLooper())
     private val ioExecutor: ExecutorService = Executors.newSingleThreadExecutor()
@@ -105,11 +105,17 @@ class AudioPlaybackService : MediaSessionService() {
 
     private val audioDeviceCallback = object : AudioDeviceCallback() {
         override fun onAudioDevicesAdded(addedDevices: Array<out AudioDeviceInfo>) {
+            // The headphone crossfeed follows the route: on with headphones, off on the speaker.
+            klang.apply(soundSettings, headphonesConnected())
             if (!soundSettings.resumeOnHeadphones || !pausedForDisconnectedHeadphones) return
             if (addedDevices.any(::isHeadphoneDevice)) {
                 pausedForDisconnectedHeadphones = false
                 player.play()
             }
+        }
+
+        override fun onAudioDevicesRemoved(removedDevices: Array<out AudioDeviceInfo>) {
+            klang.apply(soundSettings, headphonesConnected())
         }
     }
 
@@ -168,14 +174,14 @@ class AudioPlaybackService : MediaSessionService() {
         stateStore = PlaybackStateStore(this)
         soundSettings = AudioSettingsStore.read()
         soundEffects = SoundEffectController()
-        monoAudioProcessor = MonoAudioProcessor().apply { monoEnabled = soundSettings.mono }
+        klang.apply(soundSettings, headphonesConnected())
         val audioAttributes = AudioAttributes.Builder()
             .setUsage(C.USAGE_MEDIA)
             .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
             .build()
         val modes = stateStore.readModes()
         player = ExoPlayer.Builder(this)
-            .setRenderersFactory(AudioRenderersFactory(this, monoAudioProcessor))
+            .setRenderersFactory(AudioRenderersFactory(this, klang.chain))
             .setMediaSourceFactory(DefaultMediaSourceFactory(PathDataSource.Factory(this)))
             .setAudioAttributes(audioAttributes, false)
             // Ordo handles this broadcast itself so it can remember that headphones caused the pause.
@@ -251,7 +257,7 @@ class AudioPlaybackService : MediaSessionService() {
 
     private fun applySoundSettings() {
         soundSettings = AudioSettingsStore.read()
-        monoAudioProcessor.monoEnabled = soundSettings.mono
+        klang.apply(soundSettings, headphonesConnected())
         audioFocusController.setBehavior(soundSettings.focusBehavior)
         // A pitch of 1 keeps pitch unchanged while Sonic time-stretches playback.
         // https://developer.android.com/reference/androidx/media3/common/PlaybackParameters
@@ -284,6 +290,9 @@ class AudioPlaybackService : MediaSessionService() {
         sleepVolume = 1f
         updatePlayerVolume()
     }
+
+    private fun headphonesConnected(): Boolean =
+        getSystemService(AudioManager::class.java).getDevices(AudioManager.GET_DEVICES_OUTPUTS).any(::isHeadphoneDevice)
 
     private fun isHeadphoneDevice(device: AudioDeviceInfo): Boolean = when (device.type) {
         AudioDeviceInfo.TYPE_WIRED_HEADPHONES,
@@ -412,7 +421,8 @@ class AudioPlaybackService : MediaSessionService() {
                                 AudioPlayerCommands.EXTRA_INPUT_GAIN_AVAILABLE to status.inputGainAvailable,
                                 AudioPlayerCommands.EXTRA_LEGACY_BANDS to status.legacyBandCount,
                                 AudioPlayerCommands.EXTRA_BASS_AVAILABLE to status.bassBoostAvailable,
-                                AudioPlayerCommands.EXTRA_VIRTUALIZER_AVAILABLE to status.virtualizerAvailable,
+                                AudioPlayerCommands.EXTRA_CLARITY_AVAILABLE to status.clarityAvailable,
+                                AudioPlayerCommands.EXTRA_HEADPHONES to headphonesConnected(),
                                 AudioPlayerCommands.EXTRA_SLEEP_ACTIVE to
                                     (sleepDeadlineElapsedMs != null || sleepAtEndOfTrack),
                                 AudioPlayerCommands.EXTRA_SLEEP_MINUTES to sleepSelectionMinutes,

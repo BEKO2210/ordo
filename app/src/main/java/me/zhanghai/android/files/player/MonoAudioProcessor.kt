@@ -59,7 +59,7 @@ class MonoAudioProcessor : BaseAudioProcessor() {
 
 class AudioRenderersFactory(
     context: Context,
-    private val monoAudioProcessor: MonoAudioProcessor
+    private val audioProcessors: Array<AudioProcessor>
 ) : DefaultRenderersFactory(context) {
     override fun buildAudioSink(
         context: Context,
@@ -68,6 +68,6 @@ class AudioRenderersFactory(
     ): AudioSink = DefaultAudioSink.Builder(context)
         // PCM processors are the Media3-supported insertion point before AudioTrack playback.
         // https://developer.android.com/reference/androidx/media3/exoplayer/audio/DefaultAudioSink.Builder
-        .setAudioProcessors(arrayOf<AudioProcessor>(monoAudioProcessor))
+        .setAudioProcessors(audioProcessors)
         .build()
 }

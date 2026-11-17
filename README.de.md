@@ -91,6 +91,10 @@ Was als Nächstes kommt, steht in der [lebenden Roadmap](docs/ROADMAP-LIVE.md): 
   nebeneinander; die Coverfarbe tönt den Hintergrund sanft, ohne die Textfarben des Designs zu verändern; „Klang“
   gruppiert 10-Band-Equalizer, Geräteeffekte, ReplayGain/R128 und Wiedergabeoptionen in klare Bereiche. Die Kurve ist
   die Hauptsteuerung, genaue 48-dp-Tasten liegen unter „Genau einstellen“; dazu kommt ein ausblendender Einschlaf-Timer
+- Eigene Klangeffekte, auf jedem Handy gleich: Raumklang für Kopfhörer (Crossfeed nach Bauer, eine Portierung des
+  MIT-lizenzierten bs2b), Stereobreite (0 % Mono bis 150 % breit), Hall (Freeverb, gemeinfrei) mit Raum, Studio, Club
+  und Konzertsaal, analoge Wärme und Klarheit (Mehrband-Kompressor, ab Android 9). Jede Karte im unteren Klang-Blatt
+  zeigt ein kleines lebendiges Bild davon, was sie tut; es steht still, wenn Ordos Animationen aus sind
 - „Abspielen auf …“ im Player öffnet die Ausgabe-Auswahl von Android: Bluetooth-Kopfhörer und -Lautsprecher, Kabel und
   Cast-Geräte, ohne Google-Dienste (ab Android 11; auf Android 6–10 öffnen sich die Bluetooth-Einstellungen). Musik an
   Chromecast, Fernseher und Receiver zu streamen ist geplant, siehe [docs/STREAMING-RECHERCHE.md](docs/STREAMING-RECHERCHE.md)

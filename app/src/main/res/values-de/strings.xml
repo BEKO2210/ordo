@@ -980,8 +980,6 @@
     <string name="audio_sound_bass_boost">Bassverstärkung</string>
     <string name="audio_sound_effects_heading">Effekte</string>
     <string name="audio_sound_bass_summary">Verleiht tiefen Frequenzen mehr Gewicht</string>
-    <string name="audio_sound_virtualizer">Raumklang</string>
-    <string name="audio_sound_virtualizer_summary">Erweitert die wahrgenommene Klangbühne</string>
     <string name="audio_sound_strength">Stärke</string>
     <string name="audio_sound_normalization_heading">Lautstärke</string>
     <string name="audio_sound_normalization">Lautstärke angleichen</string>
@@ -1045,4 +1043,28 @@
     <string name="audio_sound_focus_pause_short">Pausieren</string>
     <string name="audio_sound_focus_duck_short">Leiser</string>
     <string name="audio_sound_balance_picture">Balance: linker Lautsprecher bis rechter Lautsprecher</string>
+    <string name="audio_sound_crossfeed">Raumklang für Kopfhörer</string>
+    <string name="audio_sound_crossfeed_summary">Holt die Musik aus dem Kopf nach vorn, wie bei Lautsprechern. Wirkt nur mit Kopfhörern.</string>
+    <string name="audio_sound_width">Stereobreite</string>
+    <string name="audio_sound_width_summary">0 % ist Mono, 100 % das Original, 150 % breit</string>
+    <string name="audio_sound_width_value">Breite %1$d %%</string>
+    <string name="audio_sound_reverb">Hall</string>
+    <string name="audio_sound_reverb_summary">Stellt die Musik in einen Raum; die Stufen bestimmen, wie viel davon zu hören ist</string>
+    <string name="audio_sound_reverb_value">%1$s · Anteil %2$d %%</string>
+    <string name="audio_sound_reverb_mix">Hallanteil</string>
+    <string name="audio_reverb_room">Raum</string>
+    <string name="audio_reverb_studio">Studio</string>
+    <string name="audio_reverb_club">Club</string>
+    <string name="audio_reverb_hall">Konzertsaal</string>
+    <string name="audio_sound_warmth">Analoge Wärme</string>
+    <string name="audio_sound_warmth_summary">Rundet Spitzen sanft ab, wie Band oder Röhre</string>
+    <string name="audio_sound_clarity">Klarheit</string>
+    <string name="audio_sound_clarity_summary">Holt leise Details nach vorn, ohne zu übersteuern</string>
+    <string name="audio_sound_level">Stufe</string>
+    <string name="audio_sound_level_light">Leicht</string>
+    <string name="audio_sound_level_medium">Mittel</string>
+    <string name="audio_sound_level_strong">Stark</string>
+    <string name="audio_sound_on">An</string>
+    <string name="audio_sound_mono_greyed">Aus, solange Mono an ist</string>
+    <string name="audio_sound_picture">%1$s: %2$s</string>
 </resources>

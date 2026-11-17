@@ -90,6 +90,10 @@ What comes next is in the [living roadmap](docs/ROADMAP-LIVE.md): every goal has
   the cover softly colours the background without changing the theme’s text colours; Sound groups a 10-band EQ,
   device effects, ReplayGain/R128 normalisation and playback controls into clear sections, with the curve as the
   main EQ control and exact 48 dp steppers behind Fine-tune, plus a fading sleep timer
+- Sound effects of Ordo’s own, the same on every phone: room sound for headphones (crossfeed after Bauer, a port of
+  the MIT-licensed bs2b), stereo width (0 % mono to 150 % wide), reverb (Freeverb, public domain) with Room, Studio,
+  Club and Concert hall, analogue warmth and clarity (a multiband compressor, Android 9 and later). Every card of the
+  lower Sound sheet shows a small live picture of what it does; it holds still when Ordo’s animations are off
 - “Play on…” in the player opens Android’s output picker: Bluetooth headphones and speakers, wired and cast devices,
   without Google services (Android 11 and later; Android 6–10 opens the Bluetooth settings). Streaming music to
   Chromecast, TVs and receivers is planned, see [docs/STREAMING-RECHERCHE.md](docs/STREAMING-RECHERCHE.md) (German)

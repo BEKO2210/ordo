@@ -32,11 +32,14 @@ m3-progress-indicators, m3-shape-morph, m3-motion-physics). Hausregeln: keine Sc
    Frequenz (bodyLarge) · Wert-Pille (labelLarge, surfaceContainerHighest) · verbundene Knopfgruppe XS mit
    `−` / `+` als **tonale** Icon-Buttons (Sichtgröße 36 dp, Tippfläche 48 dp, 2 dp Abstand). Vorverstärkung als
    letzte Zeile. TalkBack: „31 Hertz, plus 3 Dezibel, verringern / erhöhen“.
-5. **Effekte** – Abschnittstitel (labelLarge, primary). Karten (Telefon 1 Spalte, Tablet 2 Spalten),
-   `surfaceContainer`, Ecken 20 dp, je Karte: großes Symbol links (`speaker` für Bass, `surround_sound` für
-   Raumklang) in einem Ring = bestimmter Kreis-Fortschritt (Stärke 0–100 %), Titel, Zustand („Stärke 60 %“),
-   Schalter oben rechts, unten `−` / `+` (tonal). Karte nur sichtbar, wenn das Gerät den Effekt kann; sonst eine
-   ruhige Zeile „Bassverstärkung: auf diesem Gerät nicht verfügbar“.
+5. **Effekte** – Abschnittstitel mit Symbol (labelLarge, primary). Sechs Karten (Telefon 1 Spalte, Tablet 2 Spalten):
+   Bassverstärkung (`speaker`), Raumklang für Kopfhörer (`spatial_audio`), Stereobreite (`width`), Hall
+   (`surround_sound`, dazu Raum · Studio · Club · Konzertsaal als zwei Reihen verbundener Tasten), Analoge Wärme
+   (`local_fire_department`), Klarheit (`flare`). Je Karte: Symbol in einem Ring = Wert (Stärke, Stufe, Breite oder
+   Hallanteil), Titel, Zustand („Stärke 60 %“, „Mittel“, „Breite 130 %“, „Studio · Anteil 25 %“), Schalter oben rechts,
+   darunter das lebende Bild, die Erklärung und `−` / `+` (tonal). Bass und Klarheit nur, wenn das Gerät sie kann; sonst
+   eine ruhige Zeile „Klarheit: auf diesem Gerät nicht verfügbar“. Raumklang und Stereobreite sind bei Mono ausgegraut
+   („Aus, solange Mono an ist“).
 6. **Lautstärke** – Karten wie oben:
    - Lautstärke angleichen (Symbol `equal`/`graphic_eq`), Schalter, Vorverstärkung − / +.
    - Balance: Bild „Lautsprecher links ⟷ rechts“ mit einem Punkt dazwischen, der wandert; − / + und
@@ -49,7 +52,21 @@ m3-progress-indicators, m3-shape-morph, m3-motion-physics). Hausregeln: keine Sc
      „Noch 23 min“ mit Abbrechen.
    - Stille überspringen (Symbol `fast_forward`), Wenn andere Apps Ton spielen: verbundene Gruppe
      „Pausieren | Leiser“, Weiterspielen bei Kopfhörern (Symbol `headphones`) – je Zeile mit Symbol + Untertitel.
-8. Jede Zeile hat ein Symbol (Material Symbols rounded filled, über `utils/material-symbols.py` importiert).
+8. **Lebende Bilder** (`KlangPictureView`, Canvas, Themenfarben, keine Bitmaps, 55 dp hoch, so breit wie die Karte).
+   Jede Karte im unteren Teil zeigt, was sie tut:
+   Bass → tiefe Wellen, die mit der Stärke wachsen · Raumklang → Kopfhörer mit Schallbögen, die sich mit der Stufe
+   weiten · Stereobreite → zwei Punkte, die auseinanderrücken (Marken bei 100 %) · Hall → Echoringe, deren Reichweite
+   der Raum bestimmt · Wärme → ein Sinus, der sich zur weich begrenzten Form biegt · Klarheit → ungleiche Balken, die
+   sich angleichen · Lautstärke angleichen → Balken, die sich auf eine Höhe setzen · Mono → zwei Wellen, die zu einer
+   verschmelzen · Tempo → ein Pendel im gewählten Tempo · Stille überspringen → eine Wellenform, deren Lücken sich
+   schließen · Schlaf-Timer → Mond in einem Ring, der mit der Restzeit abläuft.
+   Aus: gedämpfte Textfarbe; An: primary. Jede Änderung gleitet in 320 ms (FastOutSlowIn). Nur bei „Animationen: voll“
+   atmen eingeschaltete Bilder in einer ruhigen 4-s-Schleife mit höchstens 30 Bildern/s, das Pendel schwingt im Tempo;
+   außerhalb des sichtbaren Bereichs ruht die Schleife, beim Zurückscrollen läuft sie weiter. „Dezent“ zeigt nur die
+   Übergänge, „Aus“ und der Systemschalter zeigen stehende Bilder. TalkBack liest je Bild „Titel: Wert“.
+9. **Luft im unteren Teil:** Abschnitte 55 dp auseinander, Karten 34 dp (Raster: 17 dp um jede Karte), Abschnitts-
+   titel mit Symbol (`tune`, `volume_up`, `play_circle`) und 13 dp bis zur ersten Karte.
+10. Jede Zeile hat ein Symbol (Material Symbols rounded filled, über `utils/material-symbols.py` importiert).
 
 ## Raster und Schrift (Goldener Schnitt)
 - Fibonacci-Stufen als `klang_space_*`: 5 · 8 · 13 · 21 · 34 dp – 8 zwischen verwandten Teilen, 13 in Karten (vertikal),

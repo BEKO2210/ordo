@@ -18,8 +18,19 @@ data class AudioSettings(
     val preGainDb: Float = 0f,
     val bassBoostEnabled: Boolean = false,
     val bassBoostStrength: Int = 0,
-    val virtualizerEnabled: Boolean = false,
-    val virtualizerStrength: Int = 0,
+    // Ordo's own headphone crossfeed replaces the platform Virtualizer (deprecated since API 35); levels 1..3.
+    val crossfeedEnabled: Boolean = false,
+    val crossfeedLevel: Int = 2,
+    /** Percent: 0 = mono, 100 = the original, 150 = wide. */
+    val widthEnabled: Boolean = false,
+    val widthPercent: Int = 130,
+    val reverbEnabled: Boolean = false,
+    val reverbPreset: ReverbPreset = ReverbPreset.STUDIO,
+    val reverbMix: Int = 25,
+    val warmthEnabled: Boolean = false,
+    val warmthLevel: Int = 2,
+    val clarityEnabled: Boolean = false,
+    val clarityLevel: Int = 2,
     val normalizationEnabled: Boolean = false,
     val normalizationPreampDb: Float = 0f,
     val speed: Float = 1f,
@@ -36,7 +47,11 @@ data class AudioSettings(
             .let { it + List(BAND_COUNT - it.size) { 0f } },
         preGainDb = preGainDb.takeIf { it.isFinite() }?.coerceIn(MIN_GAIN_DB, MAX_GAIN_DB) ?: 0f,
         bassBoostStrength = bassBoostStrength.coerceIn(0, 1_000),
-        virtualizerStrength = virtualizerStrength.coerceIn(0, 1_000),
+        crossfeedLevel = crossfeedLevel.coerceIn(1, LEVELS),
+        widthPercent = widthPercent.coerceIn(0, MAX_WIDTH_PERCENT),
+        reverbMix = reverbMix.coerceIn(0, 100),
+        warmthLevel = warmthLevel.coerceIn(1, LEVELS),
+        clarityLevel = clarityLevel.coerceIn(1, LEVELS),
         normalizationPreampDb = normalizationPreampDb.takeIf { it.isFinite() }
             ?.coerceIn(MIN_GAIN_DB, MAX_GAIN_DB) ?: 0f,
         speed = speed.takeIf { it.isFinite() }?.coerceIn(0.5f, 2f) ?: 1f,
@@ -47,11 +62,22 @@ data class AudioSettings(
         const val BAND_COUNT = 10
         const val MIN_GAIN_DB = -12f
         const val MAX_GAIN_DB = 12f
+        /** Crossfeed, warmth and clarity come in three steps: light, medium, strong. */
+        const val LEVELS = 3
+        const val MAX_WIDTH_PERCENT = 150
         val BAND_FREQUENCIES_HZ = intArrayOf(31, 62, 125, 250, 500, 1_000, 2_000, 4_000, 8_000, 16_000)
     }
 }
 
 enum class AudioFocusBehavior { PAUSE, DUCK }
+
+/** Freeverb room size and damping (0..1 each, the original's user scale); bigger rooms ring longer and darker. */
+enum class ReverbPreset(val roomSize: Float, val damping: Float) {
+    ROOM(0.35f, 0.7f),
+    STUDIO(0.55f, 0.5f),
+    CLUB(0.72f, 0.35f),
+    HALL(0.9f, 0.25f)
+}
 
 enum class EqualizerPreset(val gainsDb: List<Float>) {
     FLAT(gains(0, 0, 0, 0, 0, 0, 0, 0, 0, 0)),
@@ -79,8 +105,17 @@ object AudioSettingsCodec {
             .put("preGain", preGainDb.toDouble())
             .put("bassOn", bassBoostEnabled)
             .put("bass", bassBoostStrength)
-            .put("virtualizerOn", virtualizerEnabled)
-            .put("virtualizer", virtualizerStrength)
+            .put("crossfeedOn", crossfeedEnabled)
+            .put("crossfeed", crossfeedLevel)
+            .put("widthOn", widthEnabled)
+            .put("width", widthPercent)
+            .put("reverbOn", reverbEnabled)
+            .put("reverbPreset", reverbPreset.name)
+            .put("reverbMix", reverbMix)
+            .put("warmthOn", warmthEnabled)
+            .put("warmth", warmthLevel)
+            .put("clarityOn", clarityEnabled)
+            .put("clarity", clarityLevel)
             .put("normalization", normalizationEnabled)
             .put("normalizationPreamp", normalizationPreampDb.toDouble())
             .put("speed", speed.toDouble())
@@ -108,8 +143,20 @@ object AudioSettingsCodec {
                 preGainDb = json.optDouble("preGain", 0.0).toFloat(),
                 bassBoostEnabled = json.optBoolean("bassOn", false),
                 bassBoostStrength = json.optInt("bass", 0),
-                virtualizerEnabled = json.optBoolean("virtualizerOn", false),
-                virtualizerStrength = json.optInt("virtualizer", 0),
+                // Settings from 0.13.x and earlier stored the platform Virtualizer; its switch and strength move
+                // over to the crossfeed that replaces it.
+                crossfeedEnabled = json.optBoolean("crossfeedOn", json.optBoolean("virtualizerOn", false)),
+                crossfeedLevel = if (json.has("crossfeed")) json.optInt("crossfeed", 2)
+                else if (json.has("virtualizer")) levelFromStrength(json.optInt("virtualizer", 0)) else 2,
+                widthEnabled = json.optBoolean("widthOn", false),
+                widthPercent = json.optInt("width", 130),
+                reverbEnabled = json.optBoolean("reverbOn", false),
+                reverbPreset = enumValueOrDefault(json.optString("reverbPreset"), ReverbPreset.STUDIO),
+                reverbMix = json.optInt("reverbMix", 25),
+                warmthEnabled = json.optBoolean("warmthOn", false),
+                warmthLevel = json.optInt("warmth", 2),
+                clarityEnabled = json.optBoolean("clarityOn", false),
+                clarityLevel = json.optInt("clarity", 2),
                 normalizationEnabled = json.optBoolean("normalization", false),
                 normalizationPreampDb = json.optDouble("normalizationPreamp", 0.0).toFloat(),
                 speed = json.optDouble("speed", 1.0).toFloat(),
@@ -123,6 +170,10 @@ object AudioSettingsCodec {
             AudioSettings()
         }
     }
+
+    /** Virtualizer strength 0..1000 in thirds: 0-333 light, 334-667 medium, 668-1000 strong. */
+    internal fun levelFromStrength(strength: Int): Int =
+        (strength.coerceIn(0, 1_000) * AudioSettings.LEVELS / 1_001 + 1)
 
     private inline fun <reified T : Enum<T>> enumValueOrDefault(name: String, default: T): T =
         enumValues<T>().firstOrNull { it.name == name } ?: default

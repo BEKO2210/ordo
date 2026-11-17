@@ -10,6 +10,7 @@ import kotlin.math.abs
 import kotlin.math.ceil
 import kotlin.math.roundToInt
 import me.zhanghai.android.files.player.AudioSettings
+import me.zhanghai.android.files.player.ReverbPreset
 
 /** Pure helpers of the Sound sheet, kept apart from the views so they can be unit tested. */
 internal object KlangMath {
@@ -31,6 +32,23 @@ internal object KlangMath {
     fun strengthFraction(strength: Int): Float = (strength / 1_000f).coerceIn(0f, 1f)
 
     fun strengthPercent(strength: Int): Int = (strengthFraction(strength) * 100).roundToInt()
+
+    /** Crossfeed, warmth and clarity steps 1..3 as a third, two thirds, full. */
+    fun levelFraction(level: Int): Float = level.coerceIn(1, AudioSettings.LEVELS) / AudioSettings.LEVELS.toFloat()
+
+    /** Stereo width 0..150 % as 0..1. */
+    fun widthFraction(percent: Int): Float =
+        percent.coerceIn(0, AudioSettings.MAX_WIDTH_PERCENT) / AudioSettings.MAX_WIDTH_PERCENT.toFloat()
+
+    /** Room size of a reverb preset for its picture: the smallest room a quarter, the concert hall full. */
+    fun roomFraction(preset: ReverbPreset): Float = (preset.ordinal + 1) / ReverbPreset.entries.size.toFloat()
+
+    /** Share of the sleep timer still to run; "end of track" has no known length and shows a full ring. */
+    fun sleepFraction(endOfTrack: Boolean, minutes: Int, remainingMs: Long): Float = when {
+        endOfTrack -> 1f
+        minutes <= 0 -> 0f
+        else -> (remainingMs / (minutes * 60_000f)).coerceIn(0f, 1f)
+    }
 
     /** Index of the speed button that equals [speed], or -1 when the speed is in between. */
     fun speedOptionIndex(speed: Float): Int = SPEED_OPTIONS.indexOfFirst { abs(it - speed) < 0.005f }
