@@ -64,6 +64,14 @@ class AudioPlaybackService : MediaSessionService() {
     private lateinit var loudness: LoudnessAnalysis
     // The item whose loudness is being measured, so a late result for an earlier song is dropped.
     private var measuring: String? = null
+    private var measurement: java.util.concurrent.Future<*>? = null
+    // Its own low-priority thread: a slow or hostile file never holds up playback, saving or restoring the queue.
+    private val loudnessExecutor: ExecutorService = Executors.newSingleThreadExecutor { task ->
+        Thread({
+            android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND)
+            task.run()
+        }, "ordo-loudness")
+    }
     private var sleepDeadlineElapsedMs: Long? = null
     private var sleepSelectionMinutes = 0
     private var sleepAtEndOfTrack = false
@@ -288,6 +296,7 @@ class AudioPlaybackService : MediaSessionService() {
         if (::mediaSession.isInitialized) mediaSession.release()
         if (::player.isInitialized) player.release()
         ioExecutor.shutdown()
+        loudnessExecutor.shutdownNow()
         super.onDestroy()
     }
 
@@ -309,19 +318,27 @@ class AudioPlaybackService : MediaSessionService() {
      * ([LoudnessAnalysis], cached); the gain then glides in like any other change.
      */
     private fun measureLoudnessIfUntagged() {
-        if (!soundSettings.normalizationEnabled || replayGain != null) return
-        val uri = player.currentMediaItem?.localConfiguration?.uri ?: return
-        if (uri.scheme != ContentResolver.SCHEME_FILE) return
-        val path = uri.path ?: return
+        val uri = player.currentMediaItem?.localConfiguration?.uri
+        val path = uri?.takeIf { it.scheme == ContentResolver.SCHEME_FILE }?.path
+        // Another song (or levelling off): a running measurement for the previous one is cancelled.
+        if (measuring != null && measuring != path) {
+            measurement?.cancel(true)
+            measuring = null
+        }
+        if (!soundSettings.normalizationEnabled || replayGain != null || path == null) return
         if (measuring == path) return
         val file = java.io.File(path)
-        loudness.cached(file)?.let {
-            replayGain = it
-            soundEffects.apply(soundSettings, replayGain)
-            return
+        when (val cached = loudness.cached(file)) {
+            is LoudnessAnalysis.Cached.Measured -> {
+                replayGain = cached.info
+                soundEffects.apply(soundSettings, replayGain)
+                return
+            }
+            LoudnessAnalysis.Cached.Failed -> return
+            null -> Unit
         }
         measuring = path
-        ioExecutor.execute {
+        measurement = loudnessExecutor.submit(Runnable {
             val result = loudness.measure(file)
             handler.post {
                 if (measuring != path) return@post
@@ -332,7 +349,7 @@ class AudioPlaybackService : MediaSessionService() {
                     soundEffects.apply(soundSettings, replayGain)
                 }
             }
-        }
+        })
     }
 
     private fun updatePlayerVolume() {
