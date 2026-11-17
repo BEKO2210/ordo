@@ -24,6 +24,7 @@ import me.zhanghai.android.files.compat.getDescriptionCompat
 import me.zhanghai.android.files.compat.isRemovableCompat
 import me.zhanghai.android.files.compat.storageVolumesCompat
 import me.zhanghai.android.files.navigation.StandardDirectoriesLiveData
+import me.zhanghai.android.files.player.isPlayableAudioMimeType
 import me.zhanghai.android.files.settings.Settings
 import me.zhanghai.android.files.util.valueCompat
 
@@ -79,6 +80,15 @@ class HomeRepository(private val context: Context) {
     fun loadCategoryPaths(category: HomeCategory, query: String = ""): List<Path> =
         queryRows().asSequence()
             .filter { category in it.categories && it.name.contains(query, ignoreCase = true) }
+            .map { Paths.get(it.data) }
+            .toList()
+
+    /** The Audio category the home screen shows, restricted to what the player plays, recently modified first. */
+    fun loadRecentAudio(limit: Int): List<Path> =
+        queryRows().asSequence()
+            .filter { HomeCategory.AUDIO in it.categories && isPlayableAudioMimeType(it.mimeType.orEmpty()) }
+            .sortedByDescending { it.modified }
+            .take(limit)
             .map { Paths.get(it.data) }
             .toList()
 

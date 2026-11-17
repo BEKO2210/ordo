@@ -34,9 +34,9 @@
 
 ## Status
 
-Ordo is in development (version 0.12.0). A closed test runs on Google Play; test builds are also published as
+Ordo is in development (version 0.13.0). A closed test runs on Google Play; test builds are also published as
 [pre-releases](https://github.com/BEKO2210/ordo/releases); you can also [build it from source](#build).
-What comes next is in the [living roadmap](docs/ROADMAP-LIVE.md): every goal has a check command and closes itself. The research behind the planned music and video player, PDF reader and editors is in [docs/MEDIEN-RECHERCHE.md](docs/MEDIEN-RECHERCHE.md) (German).
+What comes next is in the [living roadmap](docs/ROADMAP-LIVE.md): every goal has a check command and closes itself. The research behind the music player and the planned video player, PDF reader and editors is in [docs/MEDIEN-RECHERCHE.md](docs/MEDIEN-RECHERCHE.md) (German).
 
 ## Features
 
@@ -77,6 +77,12 @@ What comes next is in the [living roadmap](docs/ROADMAP-LIVE.md): every goal has
 - Rename many files at once using a pattern
 - Create and extract ZIP, TAR and 7z archives
 - Built-in viewers for images, PDF and text
+- Play music in Ordo, with a queue, cover art and background controls. The player uses a generous centred
+  composition on phones and portrait tablets, and puts the cover beside the controls in a wide landscape window;
+  the cover softly colours the background without changing the theme’s text colours; Sound groups a 10-band EQ,
+  device effects, ReplayGain/R128 normalisation and playback controls into clear sections, with the curve as the
+  main EQ control and exact 48 dp steppers behind Fine-tune, plus a fading sleep timer
+- Optional own app icon for the music player (Settings › Built-in apps): off by default, switched on and off only by you, see [docs/AUDIO-PLAYER.md](docs/AUDIO-PLAYER.md)
 
 **Keep files safe**
 
@@ -227,7 +233,7 @@ Run the unit tests with:
 
 ## Roadmap
 
-Planned next: tabs and a two-pane view, a media player, scheduled backups, and cloud storage. The full plan is in
+Planned next: tabs and a two-pane view, a video player, scheduled backups, and cloud storage. The full plan is in
 [docs/ROADMAP.md](docs/ROADMAP.md) (German).
 
 ## Contributing

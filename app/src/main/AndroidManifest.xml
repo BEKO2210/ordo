@@ -19,6 +19,7 @@
         android:name="android.permission.FOREGROUND_SERVICE"
         tools:ignore="ForegroundServicesPolicy" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission
@@ -412,9 +413,64 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name="me.zhanghai.android.files.viewer.audio.AudioPlayerActivity"
+            android:exported="true"
+            android:label="@string/audio_player_title"
+            android:theme="@style/Theme.MaterialFiles">
+            <intent-filter tools:ignore="AppLinkUrlError">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="audio/*" />
+            </intent-filter>
+        </activity>
+
+        <!--
+          Own entry in Recents (taskAffinity, documentLaunchMode). The alias is what the launcher shows, and it is
+          disabled here: only the user's switch in Settings > Built-in apps ever enables it.
+          -->
+        <activity
+            android:name="me.zhanghai.android.files.viewer.audio.MusicLauncherActivity"
+            android:documentLaunchMode="intoExisting"
+            android:exported="true"
+            android:label="@string/launcher_music_label"
+            android:taskAffinity="me.zhanghai.android.files.music"
+            android:theme="@style/Theme.MaterialFiles" />
+
+        <activity-alias
+            android:name="me.zhanghai.android.files.launcher.MusicAlias"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_music"
+            android:label="@string/launcher_music_label"
+            android:roundIcon="@mipmap/ic_launcher_music"
+            android:targetActivity="me.zhanghai.android.files.viewer.audio.MusicLauncherActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+
         <service
             android:name="me.zhanghai.android.files.filejob.FileJobService"
             android:foregroundServiceType="dataSync" />
+
+        <service
+            android:name="me.zhanghai.android.files.player.AudioPlaybackService"
+            android:exported="true"
+            android:foregroundServiceType="mediaPlayback">
+            <intent-filter>
+                <action android:name="androidx.media3.session.MediaSessionService" />
+            </intent-filter>
+        </service>
+
+        <receiver
+            android:name="androidx.media3.session.MediaButtonReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MEDIA_BUTTON" />
+            </intent-filter>
+        </receiver>
 
         <service
             android:name="me.zhanghai.android.files.ftpserver.FtpServerService"

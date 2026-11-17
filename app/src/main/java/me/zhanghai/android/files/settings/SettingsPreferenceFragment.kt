@@ -42,7 +42,7 @@ import me.zhanghai.android.files.ui.PreferenceFragmentCompat
 import me.zhanghai.android.files.util.createIntent
 import me.zhanghai.android.files.util.startActivitySafe
 
-class SettingsPreferenceFragment : PreferenceFragmentCompat() {
+open class SettingsPreferenceFragment : PreferenceFragmentCompat() {
     private var localePreference: LocalePreference? = null
     private var iconSettleCount = 0
 
@@ -57,6 +57,7 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
                 SettingsActivity.SECTION_FILES -> R.xml.settings_files
                 SettingsActivity.SECTION_STORAGE -> R.xml.settings_storage
                 SettingsActivity.SECTION_TRASH -> R.xml.settings_trash
+                SettingsActivity.SECTION_LAUNCHER_ICONS -> R.xml.settings_launcher_icons
                 else -> R.xml.settings
             }
         )

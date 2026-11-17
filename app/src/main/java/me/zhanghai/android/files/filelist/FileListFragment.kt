@@ -95,6 +95,8 @@ import me.zhanghai.android.files.navigation.NavigationRootMapLiveData
 import me.zhanghai.android.files.provider.archive.createArchiveRootPath
 import me.zhanghai.android.files.provider.archive.isArchivePath
 import me.zhanghai.android.files.provider.linux.isLinuxPath
+import me.zhanghai.android.files.player.audioQueue
+import me.zhanghai.android.files.player.isPlayableAudio
 import me.zhanghai.android.files.settings.Settings
 import me.zhanghai.android.files.terminal.Terminal
 import me.zhanghai.android.files.ui.AppBarLayoutExpandHackListener
@@ -147,6 +149,7 @@ import me.zhanghai.android.files.util.valueCompat
 import me.zhanghai.android.files.util.viewModels
 import me.zhanghai.android.files.util.withChooser
 import me.zhanghai.android.files.viewer.image.ImageViewerActivity
+import me.zhanghai.android.files.viewer.audio.AudioPlayerActivity
 import me.zhanghai.android.files.viewer.pdf.PdfViewerActivity
 
 class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.Listener,
@@ -1571,9 +1574,12 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
                 .apply {
                     extraPath = path
                     maybeAddImageViewerActivityExtras(this, path, mimeType)
+                    if (!withChooser) maybeAddAudioPlayerActivityExtras(this, path, mimeType)
                     // PDFs open in Ordo's own viewer; "Open with" still offers every other app.
                     if (!withChooser && mimeType.value == "application/pdf") {
                         setClass(requireContext(), PdfViewerActivity::class.java)
+                    } else if (!withChooser && mimeType.isPlayableAudio) {
+                        setClass(requireContext(), AudioPlayerActivity::class.java)
                     }
                 }
                 .let {
@@ -1617,6 +1623,18 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
             position -= start
         }
         ImageViewerActivity.putExtras(intent, paths, position)
+    }
+
+    private fun maybeAddAudioPlayerActivityExtras(intent: Intent, path: Path, mimeType: MimeType) {
+        if (!mimeType.isPlayableAudio) return
+        val audioPaths = buildList {
+            for (index in 0..<adapter.itemCount) {
+                val file = adapter.getItem(index)
+                if (file.mimeType.isPlayableAudio) add(file.path)
+            }
+        }
+        val queue = audioQueue(audioPaths, path) ?: return
+        AudioPlayerActivity.putExtras(intent, queue.paths, queue.startIndex)
     }
 
     override fun cutFile(file: FileItem) {

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- Symbol in the 34 dp column, title with its info line, switch at the end line. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:minHeight="@dimen/klang_row_min_height"
+    android:orientation="horizontal">
+    <ImageView
+        android:id="@+id/icon"
+        android:layout_width="@dimen/klang_icon_column"
+        android:layout_height="@dimen/klang_icon_size"
+        android:importantForAccessibility="no"
+        android:scaleType="center"
+        app:tint="?colorPrimary" />
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:paddingStart="@dimen/klang_space_sm"
+        android:paddingEnd="@dimen/klang_space_sm">
+        <TextView
+            android:id="@+id/title"
+            style="@style/Widget.Ordo.Klang.Title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+        <TextView
+            android:id="@+id/summary"
+            style="@style/Widget.Ordo.Klang.Info"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+    </LinearLayout>
+    <com.google.android.material.materialswitch.MaterialSwitch
+        android:id="@+id/toggle"
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/klang_touch_target"
+        android:gravity="center" />
+</LinearLayout>

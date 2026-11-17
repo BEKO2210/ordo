@@ -177,6 +177,13 @@ object Settings {
     val MOTION: SettingLiveData<String> =
         StringSettingLiveData(R.string.pref_key_motion, R.string.pref_default_value_motion)
 
+    /** JSON-encoded live audio settings; see player/AudioSettings.kt for validation and migration defaults. */
+    val AUDIO_PLAYER_SOUND_SETTINGS: SettingLiveData<String> =
+        StringSettingLiveData(
+            R.string.pref_key_audio_player_sound_settings,
+            R.string.pref_default_value_audio_player_sound_settings
+        )
+
     /** top or bottom: where the home screen's search bar sits. */
     val HOME_HEADER_POSITION: SettingLiveData<String> =
         StringSettingLiveData(

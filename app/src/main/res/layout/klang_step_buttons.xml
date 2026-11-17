@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- Connected tonal minus / plus buttons: 34 dp visible, 48 dp to touch. -->
+<com.google.android.material.button.MaterialButtonToggleGroup
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/stepGroup"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:spacing="2dp"
+    app:innerCornerSize="6dp">
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/stepMinus"
+        style="@style/Widget.Ordo.Klang.StepButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:icon="@drawable/audio_remove_icon_24dp" />
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/stepPlus"
+        style="@style/Widget.Ordo.Klang.StepButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:icon="@drawable/audio_add_icon_24dp" />
+</com.google.android.material.button.MaterialButtonToggleGroup>

@@ -34,9 +34,9 @@
 
 ## Stand
 
-Ordo ist in Entwicklung (Version 0.12.0). Bei Google Play läuft ein geschlossener Test; Testversionen erscheinen auch als
+Ordo ist in Entwicklung (Version 0.13.0). Bei Google Play läuft ein geschlossener Test; Testversionen erscheinen auch als
 [Pre-Releases](https://github.com/BEKO2210/ordo/releases); du kannst Ordo auch [selbst bauen](#bauen).
-Was als Nächstes kommt, steht in der [lebenden Roadmap](docs/ROADMAP-LIVE.md): Jedes Ziel hat einen Prüfbefehl und schließt sich selbst. Die Recherche hinter dem geplanten Musik- und Video-Player, PDF-Leser und den Editoren steht in [docs/MEDIEN-RECHERCHE.md](docs/MEDIEN-RECHERCHE.md).
+Was als Nächstes kommt, steht in der [lebenden Roadmap](docs/ROADMAP-LIVE.md): Jedes Ziel hat einen Prüfbefehl und schließt sich selbst. Die Recherche hinter dem Musik-Player und dem geplanten Video-Player, PDF-Leser und den Editoren steht in [docs/MEDIEN-RECHERCHE.md](docs/MEDIEN-RECHERCHE.md).
 
 ## Funktionen
 
@@ -78,6 +78,12 @@ Was als Nächstes kommt, steht in der [lebenden Roadmap](docs/ROADMAP-LIVE.md): 
 - Viele Dateien auf einmal nach Muster umbenennen
 - ZIP-, TAR- und 7z-Archive erstellen und entpacken
 - Eingebaute Ansicht für Bilder, PDF und Text
+- Musik direkt in Ordo abspielen – mit Warteschlange, Cover und Steuerung im Hintergrund. Auf Handys und Tablets
+  im Hochformat steht der Player großzügig in der Mitte, in einem breiten Querformat liegen Cover und Steuerung
+  nebeneinander; die Coverfarbe tönt den Hintergrund sanft, ohne die Textfarben des Designs zu verändern; „Klang“
+  gruppiert 10-Band-Equalizer, Geräteeffekte, ReplayGain/R128 und Wiedergabeoptionen in klare Bereiche. Die Kurve ist
+  die Hauptsteuerung, genaue 48-dp-Tasten liegen unter „Genau einstellen“; dazu kommt ein ausblendender Einschlaf-Timer
+- Eigenes App-Symbol für den Musik-Player (Einstellungen › Eingebaute Apps): standardmäßig aus, nur du schaltest es ein und aus, siehe [docs/AUDIO-PLAYER.md](docs/AUDIO-PLAYER.md)
 
 **Dateien schützen**
 
@@ -231,7 +237,7 @@ Unit-Tests:
 
 ## Ausblick
 
-Als Nächstes geplant: Tabs und Zwei-Fenster-Ansicht, ein Medienplayer, Sicherung nach Zeitplan und
+Als Nächstes geplant: Tabs und Zwei-Fenster-Ansicht, ein Video-Player, Sicherung nach Zeitplan und
 Cloud-Speicher. Der ganze Plan steht in [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ## Mitmachen

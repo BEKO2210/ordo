@@ -26,6 +26,13 @@
             android:summary="@string/settings_section_ai_summary"
             app:ordoCircleColor="#0891B2"
             app:ordoCircleColorEnd="#4F46E5" />
+
+        <me.zhanghai.android.files.settings.SettingsCategoryPreference
+            android:key="section_launcher_icons"
+            android:icon="@drawable/settings_pictogram_builtin_apps"
+            android:title="@string/settings_section_launcher_icons"
+            android:summary="@string/settings_section_launcher_icons_summary"
+            app:ordoCircleColor="#7C3AED" />
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/settings_group_files">
