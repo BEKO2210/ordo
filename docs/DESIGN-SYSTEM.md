@@ -111,3 +111,11 @@ Jeder Schritt: Abstände auf die Reihe umstellen, auf Telefon (412 dp) und Table
   Ränder 21/13 dp, Info-Texte 12 sp.
 - Unverändert: Zeichenlogik der Diagramme, `ScanProgressView` (Ringstärke 16 dp), Diagramm-Festformate (Breite im XML
   unbekannt, daher kein φ : 1). Nicht gemessen: kein Gerätelauf, kein `e2e/`-Lauf.
+
+### Dialoge, Formulare und Rest (umgestellt)
+
+- Die übrigen 25 Layouts (Dialoge wie Ordner anlegen, Umbenennen, Archiv, Rechte; Server-Formulare SMB/SFTP/FTP/WebDAV;
+  Begrüßung, Brotkrumen, Auswahlleiste, Texteditor, Rechtliches) nehmen die Reihe nach Rolle: 4/6 → 5, 12 → 13,
+  16 → 13 senkrecht und 21 waagrecht, 20/24 → 21, 28/32 → 34.
+- Damit steht in `res/layout/` kein Abstand mehr außerhalb der Reihe; die Prüfung der lebenden Roadmap
+  (`utils/roadmap.sh`, Ziel „Goldener Schnitt“) sucht genau danach.
