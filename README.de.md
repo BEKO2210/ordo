@@ -83,6 +83,8 @@ Was als Nächstes kommt, steht in der [lebenden Roadmap](docs/ROADMAP-LIVE.md): 
 - Viele Dateien auf einmal nach Muster umbenennen
 - ZIP-, TAR- und 7z-Archive erstellen und entpacken
 - Eingebaute Ansicht für Bilder, PDF und Text
+- Hochladen mit Ordo: Wenn eine Website oder App eine Datei verlangt (etwa ein Lied bei Suno), steht Ordo in der
+  Android-Auswahl links unter „Öffnen aus“; Ordo fragt dabei nicht nach Benachrichtigungen
 
 **Musik hören**
 
