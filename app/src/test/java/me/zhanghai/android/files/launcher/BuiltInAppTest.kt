@@ -41,21 +41,83 @@ class BuiltInAppTest {
         assertTrue(BuiltInApp.isEnabled(PackageManager.COMPONENT_ENABLED_STATE_ENABLED))
     }
 
+    private val prefixes = listOf(IconAliases.HOME) + BuiltInApp.available.mapNotNull { it.aliasPrefix }
+
     @Test
-    fun theManifestDeclaresExactlyTheAvailableAliasesDisabled() {
+    fun theManifestDeclaresOneAliasPerIconAndColourAndOnlyOrdosBlueIsOn() {
         val aliases = manifest.children("activity-alias")
         assertEquals(
-            BuiltInApp.available.mapNotNull { it.aliasName }.sorted(),
+            prefixes.flatMap { prefix -> IconColor.entries.map { IconAliases.name(prefix, it) } }.sorted(),
             aliases.map { it.attr("name") }.sorted()
         )
         val activities = manifest.children("activity").map { it.attr("name") }.toSet()
         for (alias in aliases) {
-            assertEquals(alias.attr("name"), "false", alias.attr("enabled"))
-            assertTrue(alias.attr("name"), alias.attr("targetActivity") in activities)
-            assertTrue(alias.attr("name"), alias.attr("icon").startsWith("@mipmap/"))
+            val name = alias.attr("name")
+            // No android:enabled means enabled: after installing only Ordo's blue icon may be on.
+            assertEquals(name, IconAliases.enabledByDefault(name), alias.attr("enabled") != "false")
+            assertTrue(name, alias.attr("targetActivity") in activities)
+            val icon = alias.attr("icon").removePrefix("@mipmap/")
+            // Every colour is an adaptive icon with a monochrome layer, so themed icons (Android 13+) keep working.
+            val adaptive = File("src/main/res/mipmap-anydpi-v26/$icon.xml")
+            assertTrue("$name: $adaptive", adaptive.readText().contains("<monochrome"))
             val categories = alias.children("category").map { it.attr("name") }
-            assertTrue(alias.attr("name"), "android.intent.category.LAUNCHER" in categories)
+            assertTrue(name, "android.intent.category.LAUNCHER" in categories)
         }
+        // Ordo's own activity is no launcher entry itself any more: every colour is an alias.
+        val launcherActivities = manifest.children("activity").filter { activity ->
+            activity.children("category").any { it.attr("name") == "android.intent.category.LAUNCHER" }
+        }
+        assertEquals(emptyList<String>(), launcherActivities.map { it.attr("name") })
+    }
+
+    @Test
+    fun blueComesFirstAndEveryColourHasItsSwatch() {
+        assertEquals(IconColor.BLUE, IconColor.entries.first())
+        assertEquals(8, IconColor.entries.size)
+        val palette = File("src/main/res/values/launcher_icon_palette.xml").readText()
+        for (color in IconColor.entries) {
+            assertTrue(color.name, palette.contains("launcher_icon_${color.name.lowercase()}\""))
+        }
+    }
+
+    @Test
+    fun choosingAColourLeavesExactlyThatAliasOnAndNeverNone() {
+        for (prefix in prefixes) {
+            // Every starting point: each colour on, none on (an app switched off), and a broken state with two on.
+            val starts = IconColor.entries.map { setOf(IconAliases.name(prefix, it)) } + listOf(
+                emptySet(), setOf(IconAliases.name(prefix, IconColor.RED), IconAliases.name(prefix, IconColor.BLUE))
+            )
+            for (start in starts) {
+                for (color in IconColor.entries) {
+                    val on = start.toMutableSet()
+                    val switches = IconAliases.switchesFor(prefix, color) { it in on }
+                    for ((alias, enable) in switches) {
+                        if (enable) on += alias else on -= alias
+                        assertTrue("$start -> $color: no entry after $alias", start.isEmpty() || on.isNotEmpty())
+                    }
+                    assertEquals("$start -> $color", setOf(IconAliases.name(prefix, color)), on)
+                    assertEquals(color, IconAliases.current(prefix) { it in on })
+                    if (IconAliases.name(prefix, color) in start) {
+                        assertTrue("$start -> $color switches nothing on", switches.none { it.second })
+                    } else {
+                        assertEquals(IconAliases.name(prefix, color) to true, switches.first())
+                    }
+                }
+                val on = start.toMutableSet()
+                IconAliases.switchesOff(prefix) { it in on }.forEach { (alias, _) -> on -= alias }
+                assertEquals(emptySet<String>(), on)
+                assertEquals(null, IconAliases.current(prefix) { it in on })
+            }
+        }
+    }
+
+    @Test
+    fun onlyOrdosBlueIconIsOnByDefault() {
+        assertTrue(IconAliases.enabledByDefault("me.zhanghai.android.files.launcher.HomeAlias"))
+        assertFalse(IconAliases.enabledByDefault("me.zhanghai.android.files.launcher.HomeGreen"))
+        assertFalse(IconAliases.enabledByDefault("me.zhanghai.android.files.launcher.MusicAlias"))
+        assertTrue(BuiltInApp.isEnabled(PackageManager.COMPONENT_ENABLED_STATE_DEFAULT, byDefault = true))
+        assertFalse(BuiltInApp.isEnabled(PackageManager.COMPONENT_ENABLED_STATE_DISABLED, byDefault = true))
     }
 
     @Test

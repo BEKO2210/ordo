@@ -35,7 +35,12 @@ guard() {
     esac
     exit 2
 }
-on() { [ "$(top)" = "$PKG/me.zhanghai.android.files.$1" ]; }
+# Samsung names the launcher alias that started home (launcher.HomeAlias, HomeGreen, …) instead of HomeActivity.
+on() {
+    local t; t=$(top)
+    [ "$t" = "$PKG/me.zhanghai.android.files.$1" ] ||
+        { [ "$1" = home.HomeActivity ] && [[ $t == "$PKG/me.zhanghai.android.files.launcher.Home"* ]]; }
+}
 # wait_on SCREEN [S]: polls until that screen is in front (up to S seconds, default 4) instead of a fixed sleep.
 wait_on() { local end=$((SECONDS + ${2:-4})); until on "$1"; do [ $SECONDS -ge "$end" ] && return 1; sleep 0.3; done; }
 
