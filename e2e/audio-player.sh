@@ -54,13 +54,16 @@ check "the fine-tune controls start collapsed" paused_ui has "Fine-tune|Genau ei
 # The equalizer is off by default and its controls are disabled until it is switched on.
 check "the equalizer switches on" paused_ui tap equalizerEnabled
 check "the Bass preset tile can be selected" paused_ui tap "Bass"
-check "the status names the selected preset" paused_ui has Bass effectStatus
+# The status follows the player service's answer: give it a moment.
+settled() { local i; for i in 1 2 3 4 5 6; do paused_ui has "$@" && return 0; sleep 0.5; done; return 1; }
+check "the status names the selected preset" settled Bass effectStatus
 check "Fine-tune opens its band rows" paused_ui tap fineTuneToggle
-check "a band row shows its gain" paused_ui wait "31 Hz" 5
+# Everything at the top first: on a phone the band rows push the rest below the screen.
 check "the Flat preset tile restores the curve" paused_ui tap "Flat|Neutral"
 check "the equalizer switches off again" paused_ui tap equalizerEnabled
 # The sheet is long: scroll down until the row appears (at most five swipes).
 scrolled_to() { local i; for i in 1 2 3 4 5 6; do paused_ui has "$1" && return 0; swipe_up; done; return 1; }
+check "a band row shows its gain" scrolled_to "31 Hz"
 check "the playback section reaches skip silence and mono" scrolled_to "Skip silence|Stille überspringen"
 check "the sleep timer offers end of track" scrolled_to "End of track|Titelende"
 back 1

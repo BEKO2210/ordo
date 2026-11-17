@@ -376,7 +376,7 @@
     </style>
     <style name="Widget.Ordo.Klang.Title" parent="Widget.Ordo.Klang.Text">
         <item name="android:textAppearance">@style/TextAppearance.Ordo.Klang.Body</item>
-        <item name="android:maxLines">1</item>
+        <item name="android:maxLines">2</item>
         <item name="android:ellipsize">end</item>
     </style>
     <style name="Widget.Ordo.Klang.Info" parent="Widget.Ordo.Klang.Text">

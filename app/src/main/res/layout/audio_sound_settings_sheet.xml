@@ -577,57 +577,61 @@
                     android:visibility="gone"
                     app:closeIcon="@drawable/close_icon_control_normal_24dp"
                     app:closeIconVisible="true" />
-                <HorizontalScrollView
+                <!-- Two rows of three: six options never fit one row on a phone, and a hidden option is worse. -->
+                <com.google.android.material.button.MaterialButtonToggleGroup
+                    android:id="@+id/sleepOptions"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/klang_space_sm"
-                    android:overScrollMode="never"
-                    android:scrollbars="none">
-                    <com.google.android.material.button.MaterialButtonToggleGroup
-                        android:id="@+id/sleepOptions"
-                        android:layout_width="wrap_content"
+                    android:spacing="2dp"
+                    app:innerCornerSize="6dp"
+                    app:singleSelection="true">
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/sleepOption0"
+                        style="@style/Widget.Ordo.Klang.Segment"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:spacing="2dp"
-                        app:innerCornerSize="6dp"
-                        app:singleSelection="true">
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/sleepOption0"
-                            style="@style/Widget.Ordo.Klang.Segment"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:minWidth="@dimen/klang_value_slot" />
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/sleepOption1"
-                            style="@style/Widget.Ordo.Klang.Segment"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:minWidth="@dimen/klang_value_slot" />
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/sleepOption2"
-                            style="@style/Widget.Ordo.Klang.Segment"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:minWidth="@dimen/klang_value_slot" />
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/sleepOption3"
-                            style="@style/Widget.Ordo.Klang.Segment"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:minWidth="@dimen/klang_value_slot" />
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/sleepOption4"
-                            style="@style/Widget.Ordo.Klang.Segment"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:minWidth="@dimen/klang_value_slot" />
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/sleepOption5"
-                            style="@style/Widget.Ordo.Klang.Segment"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:minWidth="@dimen/klang_value_slot" />
-                    </com.google.android.material.button.MaterialButtonToggleGroup>
-                </HorizontalScrollView>
+                        android:layout_weight="1" />
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/sleepOption1"
+                        style="@style/Widget.Ordo.Klang.Segment"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1" />
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/sleepOption2"
+                        style="@style/Widget.Ordo.Klang.Segment"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1" />
+                </com.google.android.material.button.MaterialButtonToggleGroup>
+                <com.google.android.material.button.MaterialButtonToggleGroup
+                    android:id="@+id/sleepOptionsMore"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/klang_space_xs"
+                    android:spacing="2dp"
+                    app:innerCornerSize="6dp"
+                    app:singleSelection="true">
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/sleepOption3"
+                        style="@style/Widget.Ordo.Klang.Segment"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1" />
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/sleepOption4"
+                        style="@style/Widget.Ordo.Klang.Segment"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1" />
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/sleepOption5"
+                        style="@style/Widget.Ordo.Klang.Segment"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1" />
+                </com.google.android.material.button.MaterialButtonToggleGroup>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
