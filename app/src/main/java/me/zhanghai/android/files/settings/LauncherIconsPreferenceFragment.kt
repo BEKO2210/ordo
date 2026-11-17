@@ -53,7 +53,8 @@ class LauncherIconsPreferenceFragment : SettingsPreferenceFragment() {
                 if (enabled) R.string.launcher_icon_enabled_message else R.string.launcher_icon_disabled_message,
                 getString(app.labelRes)
             ),
-            Snackbar.LENGTH_LONG
+            // Two lines of about 16 words need about 5 s to read; LENGTH_LONG (2.75 s) was gone before that.
+            MESSAGE_DURATION_MS
         ).show()
         return true
     }
@@ -63,5 +64,6 @@ class LauncherIconsPreferenceFragment : SettingsPreferenceFragment() {
 
     companion object {
         const val KEY_PREFIX = "launcher_"
+        private const val MESSAGE_DURATION_MS = 6_000
     }
 }
