@@ -46,14 +46,14 @@
 
                 <TextView
                     style="@style/HomeSectionTitle"
-                    android:paddingTop="16dp"
+                    android:paddingTop="@dimen/space_gutter"
                     android:text="@string/restore_section_title" />
 
                 <com.google.android.material.card.MaterialCardView
                     style="@style/Widget.Ordo.HomeCard"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginHorizontal="16dp">
+                    android:layout_marginHorizontal="@dimen/space_gutter">
 
                     <LinearLayout
                         android:id="@+id/restoreRow"
@@ -61,23 +61,23 @@
                         android:layout_height="wrap_content"
                         android:background="?selectableItemBackground"
                         android:gravity="center_vertical"
-                        android:minHeight="64dp"
+                        android:minHeight="@dimen/phi_row_min"
                         android:orientation="horizontal"
-                        android:paddingHorizontal="12dp"
+                        android:paddingHorizontal="@dimen/space_card_v"
                         android:paddingVertical="8dp">
 
                         <ImageView
                             android:id="@+id/restoreIcon"
-                            android:layout_width="40dp"
-                            android:layout_height="40dp"
+                            android:layout_width="@dimen/phi_icon_box"
+                            android:layout_height="@dimen/phi_icon_box"
                             android:background="@drawable/home_icon_circle"
                             android:importantForAccessibility="no"
-                            android:padding="9dp" />
+                            android:padding="@dimen/space_related" />
 
                         <LinearLayout
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:layout_marginStart="12dp"
+                            android:layout_marginStart="@dimen/space_card_v"
                             android:layout_weight="1"
                             android:orientation="vertical">
 
@@ -85,12 +85,14 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:text="@string/restore_choose_title"
+                                android:hyphenationFrequency="none"
                                 android:textAppearance="?textAppearanceSubtitle2" />
 
                             <TextView
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:text="@string/restore_choose_summary"
+                                android:hyphenationFrequency="none"
                                 android:textAppearance="?textAppearanceCaption"
                                 android:textColor="?android:textColorSecondary" />
                         </LinearLayout>
@@ -105,7 +107,7 @@
                     style="@style/Widget.Ordo.HomeCard"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginHorizontal="16dp">
+                    android:layout_marginHorizontal="@dimen/space_gutter">
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -118,24 +120,24 @@
                             android:layout_height="wrap_content"
                             android:background="?selectableItemBackground"
                             android:gravity="center_vertical"
-                            android:minHeight="64dp"
+                            android:minHeight="@dimen/phi_row_min"
                             android:orientation="horizontal"
-                            android:paddingStart="12dp"
-                            android:paddingEnd="6dp"
+                            android:paddingStart="@dimen/space_card_v"
+                            android:paddingEnd="@dimen/space_related"
                             android:paddingVertical="8dp">
 
                             <ImageView
                                 android:id="@+id/usbIcon"
-                                android:layout_width="40dp"
-                                android:layout_height="40dp"
+                                android:layout_width="@dimen/phi_icon_box"
+                                android:layout_height="@dimen/phi_icon_box"
                                 android:background="@drawable/home_icon_circle"
                                 android:importantForAccessibility="no"
-                                android:padding="9dp" />
+                                android:padding="@dimen/space_related" />
 
                             <LinearLayout
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
-                                android:layout_marginStart="12dp"
+                                android:layout_marginStart="@dimen/space_card_v"
                                 android:layout_weight="1"
                                 android:orientation="vertical">
 
@@ -146,6 +148,7 @@
                                     android:ellipsize="end"
                                     android:maxLines="1"
                                     android:text="@string/backup_target_usb"
+                                    android:hyphenationFrequency="none"
                                     android:textAppearance="?textAppearanceSubtitle2" />
 
                                 <TextView
@@ -153,6 +156,7 @@
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
                                     android:text="@string/backup_target_usb_waiting"
+                                    android:hyphenationFrequency="none"
                                     android:textAppearance="?textAppearanceCaption"
                                     android:textColor="?android:textColorSecondary" />
                             </LinearLayout>
@@ -161,7 +165,7 @@
                                 android:id="@+id/usbRadio"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_marginStart="8dp"
+                                android:layout_marginStart="@dimen/space_item"
                                 android:checked="true"
                                 android:clickable="false"
                                 android:focusable="false"
@@ -175,25 +179,25 @@
                             android:layout_height="wrap_content"
                             android:background="?selectableItemBackground"
                             android:gravity="center_vertical"
-                            android:minHeight="64dp"
+                            android:minHeight="@dimen/phi_row_min"
                             android:orientation="horizontal"
                             android:visibility="gone"
-                            android:paddingStart="12dp"
-                            android:paddingEnd="6dp"
+                            android:paddingStart="@dimen/space_card_v"
+                            android:paddingEnd="@dimen/space_related"
                             android:paddingVertical="8dp">
 
                             <ImageView
                                 android:id="@+id/sdIcon"
-                                android:layout_width="40dp"
-                                android:layout_height="40dp"
+                                android:layout_width="@dimen/phi_icon_box"
+                                android:layout_height="@dimen/phi_icon_box"
                                 android:background="@drawable/home_icon_circle"
                                 android:importantForAccessibility="no"
-                                android:padding="9dp" />
+                                android:padding="@dimen/space_related" />
 
                             <LinearLayout
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
-                                android:layout_marginStart="12dp"
+                                android:layout_marginStart="@dimen/space_card_v"
                                 android:layout_weight="1"
                                 android:orientation="vertical">
 
@@ -204,12 +208,14 @@
                                     android:ellipsize="end"
                                     android:maxLines="1"
                                     android:text="@string/backup_target_sd"
+                                    android:hyphenationFrequency="none"
                                     android:textAppearance="?textAppearanceSubtitle2" />
 
                                 <TextView
                                     android:id="@+id/sdSummary"
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
+                                    android:hyphenationFrequency="none"
                                     android:textAppearance="?textAppearanceCaption"
                                     android:textColor="?android:textColorSecondary" />
                             </LinearLayout>
@@ -218,7 +224,7 @@
                                 android:id="@+id/sdRadio"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_marginStart="8dp"
+                                android:layout_marginStart="@dimen/space_item"
                                 android:clickable="false"
                                 android:focusable="false"
                                 android:importantForAccessibility="no" />
@@ -230,24 +236,24 @@
                             android:layout_height="wrap_content"
                             android:background="?selectableItemBackground"
                             android:gravity="center_vertical"
-                            android:minHeight="64dp"
+                            android:minHeight="@dimen/phi_row_min"
                             android:orientation="horizontal"
-                            android:paddingStart="12dp"
-                            android:paddingEnd="6dp"
+                            android:paddingStart="@dimen/space_card_v"
+                            android:paddingEnd="@dimen/space_related"
                             android:paddingVertical="8dp">
 
                             <ImageView
                                 android:id="@+id/otherIcon"
-                                android:layout_width="40dp"
-                                android:layout_height="40dp"
+                                android:layout_width="@dimen/phi_icon_box"
+                                android:layout_height="@dimen/phi_icon_box"
                                 android:background="@drawable/home_icon_circle"
                                 android:importantForAccessibility="no"
-                                android:padding="9dp" />
+                                android:padding="@dimen/space_related" />
 
                             <LinearLayout
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
-                                android:layout_marginStart="12dp"
+                                android:layout_marginStart="@dimen/space_card_v"
                                 android:layout_weight="1"
                                 android:orientation="vertical">
 
@@ -257,12 +263,14 @@
                                     android:ellipsize="end"
                                     android:maxLines="1"
                                     android:text="@string/backup_target_other"
+                                    android:hyphenationFrequency="none"
                                     android:textAppearance="?textAppearanceSubtitle2" />
 
                                 <TextView
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
                                     android:text="@string/backup_target_other_summary"
+                                    android:hyphenationFrequency="none"
                                     android:textAppearance="?textAppearanceCaption"
                                     android:textColor="?android:textColorSecondary" />
                             </LinearLayout>
@@ -271,7 +279,7 @@
                                 android:id="@+id/otherRadio"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_marginStart="8dp"
+                                android:layout_marginStart="@dimen/space_item"
                                 android:clickable="false"
                                 android:focusable="false"
                                 android:importantForAccessibility="no" />
@@ -287,7 +295,7 @@
                     style="@style/Widget.Ordo.HomeCard"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginHorizontal="16dp">
+                    android:layout_marginHorizontal="@dimen/space_gutter">
 
                     <LinearLayout
                         android:id="@+id/itemList"
@@ -304,7 +312,7 @@
                     style="@style/Widget.Ordo.HomeCard"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginHorizontal="16dp">
+                    android:layout_marginHorizontal="@dimen/space_gutter">
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -317,23 +325,23 @@
                             android:layout_height="wrap_content"
                             android:background="?selectableItemBackground"
                             android:gravity="center_vertical"
-                            android:minHeight="64dp"
+                            android:minHeight="@dimen/phi_row_min"
                             android:orientation="horizontal"
-                            android:paddingHorizontal="12dp"
+                            android:paddingHorizontal="@dimen/space_card_v"
                             android:paddingVertical="8dp">
 
                             <ImageView
                                 android:id="@+id/encryptIcon"
-                                android:layout_width="40dp"
-                                android:layout_height="40dp"
+                                android:layout_width="@dimen/phi_icon_box"
+                                android:layout_height="@dimen/phi_icon_box"
                                 android:background="@drawable/home_icon_circle"
                                 android:importantForAccessibility="no"
-                                android:padding="9dp" />
+                                android:padding="@dimen/space_related" />
 
                             <LinearLayout
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
-                                android:layout_marginStart="12dp"
+                                android:layout_marginStart="@dimen/space_card_v"
                                 android:layout_weight="1"
                                 android:orientation="vertical">
 
@@ -341,6 +349,7 @@
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
                                     android:text="@string/backup_encrypt"
+                                    android:hyphenationFrequency="none"
                                     android:textAppearance="?textAppearanceSubtitle2" />
 
                                 <TextView
@@ -348,6 +357,7 @@
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
                                     android:text="@string/backup_encrypt_summary"
+                                    android:hyphenationFrequency="none"
                                     android:textAppearance="?textAppearanceCaption"
                                     android:textColor="?android:textColorSecondary" />
                             </LinearLayout>
@@ -357,7 +367,7 @@
                                 android:id="@+id/switchFrame"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_marginStart="12dp"
+                                android:layout_marginStart="@dimen/space_card_v"
                                 android:importantForAccessibility="noHideDescendants" />
                         </LinearLayout>
 
@@ -366,8 +376,8 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:orientation="vertical"
-                            android:paddingHorizontal="12dp"
-                            android:paddingBottom="12dp"
+                            android:paddingHorizontal="@dimen/space_card_v"
+                            android:paddingBottom="@dimen/space_card_v"
                             android:visibility="gone">
 
                             <com.google.android.material.textfield.TextInputLayout
@@ -391,7 +401,7 @@
                                 android:id="@+id/passwordRepeatLayout"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:layout_marginTop="8dp"
+                                android:layout_marginTop="@dimen/space_item"
                                 android:hint="@string/backup_password_repeat_hint"
                                 app:endIconMode="password_toggle">
 
@@ -406,8 +416,9 @@
                             <TextView
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:layout_marginTop="8dp"
+                                android:layout_marginTop="@dimen/space_item"
                                 android:text="@string/backup_password_notice"
+                                android:hyphenationFrequency="none"
                                 android:textAppearance="?textAppearanceCaption"
                                 android:textColor="?android:textColorSecondary" />
                         </LinearLayout>
@@ -417,7 +428,7 @@
                 <!-- Keeps the last card off the bar below. -->
                 <Space
                     android:layout_width="match_parent"
-                    android:layout_height="16dp" />
+                    android:layout_height="@dimen/space_gutter" />
             </LinearLayout>
         </androidx.core.widget.NestedScrollView>
 
@@ -434,11 +445,11 @@
                 android:layout_height="wrap_content"
                 android:gravity="center"
                 android:orientation="vertical"
-                android:padding="32dp">
+                android:padding="@dimen/space_section">
 
                 <FrameLayout
-                    android:layout_width="96dp"
-                    android:layout_height="96dp">
+                    android:layout_width="@dimen/phi_89"
+                    android:layout_height="@dimen/phi_89">
 
                     <com.google.android.material.progressindicator.CircularProgressIndicator
                         android:id="@+id/progress"
@@ -446,15 +457,16 @@
                         android:layout_height="wrap_content"
                         android:layout_gravity="center"
                         android:indeterminate="true"
-                        app:indicatorSize="96dp"
+                        app:indicatorSize="@dimen/phi_89"
                         app:trackCornerRadius="2dp"
-                        app:trackThickness="4dp" />
+                        app:trackThickness="@dimen/space_related" />
 
                     <TextView
                         android:id="@+id/percentText"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_gravity="center"
+                        android:hyphenationFrequency="none"
                         android:textAppearance="?textAppearanceSubtitle1" />
 
                     <ImageView
@@ -463,36 +475,39 @@
                         android:layout_height="match_parent"
                         android:background="@drawable/home_icon_circle"
                         android:importantForAccessibility="no"
-                        android:padding="28dp" />
+                        android:padding="@dimen/space_gutter" />
                 </FrameLayout>
 
                 <TextView
                     android:id="@+id/statusTitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="24dp"
+                    android:layout_marginTop="@dimen/space_gutter"
                     android:accessibilityLiveRegion="polite"
                     android:gravity="center"
+                    android:hyphenationFrequency="none"
                     android:textAppearance="?textAppearanceHeadline6" />
 
                 <TextView
                     android:id="@+id/statusMessage"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
+                    android:layout_marginTop="@dimen/space_item"
                     android:ellipsize="middle"
                     android:gravity="center"
-                    android:maxWidth="320dp"
-                    android:textAppearance="?textAppearanceBody2"
+                    android:maxWidth="@dimen/phi_377"
+                    android:hyphenationFrequency="none"
+                    android:textAppearance="?textAppearanceCaption"
                     android:textColor="?android:textColorSecondary" />
 
                 <TextView
                     android:id="@+id/statusDetail"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
+                    android:layout_marginTop="@dimen/space_gutter"
                     android:gravity="center"
-                    android:maxWidth="320dp"
+                    android:maxWidth="@dimen/phi_377"
+                    android:hyphenationFrequency="none"
                     android:textAppearance="?textAppearanceCaption"
                     android:textColor="?android:textColorSecondary" />
 
@@ -501,16 +516,16 @@
                     style="?materialButtonOutlinedStyle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="24dp"
-                    android:minHeight="48dp"
+                    android:layout_marginTop="@dimen/space_gutter"
+                    android:minHeight="@dimen/phi_row_min"
                     android:text="@string/backup_cancel_action" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/statusButton"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="24dp"
-                    android:minHeight="48dp" />
+                    android:layout_marginTop="@dimen/space_gutter"
+                    android:minHeight="@dimen/phi_row_min" />
             </LinearLayout>
         </ScrollView>
     </me.zhanghai.android.files.ui.CoordinatorScrollingFrameLayout>
@@ -535,9 +550,10 @@
             android:id="@+id/errorText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="16dp"
-            android:layout_marginTop="8dp"
+            android:layout_marginHorizontal="@dimen/space_gutter"
+            android:layout_marginTop="@dimen/space_item"
             android:accessibilityLiveRegion="polite"
+            android:hyphenationFrequency="none"
             android:textAppearance="?textAppearanceCaption"
             android:textColor="?colorError"
             android:visibility="gone" />
@@ -546,9 +562,9 @@
             android:id="@+id/startButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="16dp"
-            android:layout_marginVertical="8dp"
-            android:minHeight="48dp"
+            android:layout_marginHorizontal="@dimen/space_gutter"
+            android:layout_marginVertical="@dimen/space_item"
+            android:minHeight="@dimen/phi_row_min"
             android:text="@string/backup_start_action" />
     </LinearLayout>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

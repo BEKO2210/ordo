@@ -154,15 +154,17 @@ accent_before=$(selected_entry "${ACCENTS[@]}") || {
     fail "accent colour has a selected swatch"
     accent_before=${ACCENTS[0]}
 }
+# The accent is saved after its short check animation and the screen is then recreated: poll instead of reading once.
+checked_soon() { local end=$((SECONDS + 4)); until ui checked "$1" >/dev/null 2>&1; do [ $SECONDS -ge "$end" ] && return 1; sleep 0.4; done; }
 accent_other=${ACCENTS[0]}
 [ "$accent_other" = "$accent_before" ] && accent_other=${ACCENTS[1]}
 ui tap "$accent_other" >/dev/null
 ui wait swatches 8 >/dev/null
-check "accent row reflects the new colour" ui checked "$accent_other"
+check "accent row reflects the new colour" checked_soon "$accent_other"
 check "accent row names the new colour" ui summary "$ACCENT_TITLE" "$accent_other"
 ui tap "$accent_before" >/dev/null
 ui wait swatches 8 >/dev/null
-check "accent colour is restored" ui checked "$accent_before"
+check "accent colour is restored" checked_soon "$accent_before"
 check "accent row names the restored colour" ui summary "$ACCENT_TITLE" "$accent_before"
 if [ "$wallpaper_was_on" = 1 ]; then
     ui tap "$WALLPAPER" >/dev/null

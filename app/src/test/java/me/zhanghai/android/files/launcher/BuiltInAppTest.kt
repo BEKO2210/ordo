@@ -45,7 +45,7 @@ class BuiltInAppTest {
     fun theManifestDeclaresExactlyTheAvailableAliasesDisabled() {
         val aliases = manifest.children("activity-alias")
         assertEquals(
-            BuiltInApp.available.map { it.aliasName }.sorted(),
+            BuiltInApp.available.mapNotNull { it.aliasName }.sorted(),
             aliases.map { it.attr("name") }.sorted()
         )
         val activities = manifest.children("activity").map { it.attr("name") }.toSet()

@@ -15,8 +15,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:paddingHorizontal="24dp"
-        android:paddingBottom="24dp">
+        android:paddingHorizontal="@dimen/space_gutter"
+        android:paddingBottom="@dimen/space_section">
 
         <!-- Only as wide as its touch target, with the rounded house highlight: with a keyboard the default focus
              highlight was a pale band across the sheet. -->
@@ -37,9 +37,9 @@
 
             <me.zhanghai.android.files.ai.AiOrbView
                 android:id="@+id/headerOrb"
-                android:layout_width="44dp"
-                android:layout_height="44dp"
-                android:layout_marginEnd="12dp" />
+                android:layout_width="@dimen/phi_55"
+                android:layout_height="@dimen/phi_55"
+                android:layout_marginEnd="@dimen/space_card_v" />
 
             <TextView
                 android:id="@+id/titleText"
@@ -47,6 +47,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:accessibilityHeading="true"
+                android:hyphenationFrequency="none"
                 android:text="@string/ai_title"
                 android:textAppearance="?textAppearanceHeadline6" />
 
@@ -64,9 +65,10 @@
             android:id="@+id/subtitleText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
+            android:layout_marginTop="@dimen/space_related"
+            android:hyphenationFrequency="none"
             android:text="@string/ai_subtitle"
-            android:textAppearance="?textAppearanceBody2"
+            android:textAppearance="?textAppearanceCaption"
             android:textColor="?android:textColorSecondary" />
 
         <!-- First run: device check and model download -->
@@ -74,7 +76,7 @@
             android:id="@+id/setupLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="@dimen/space_card_h"
             android:orientation="vertical"
             android:visibility="gone">
 
@@ -82,9 +84,10 @@
                 android:id="@+id/phaseText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
+                android:layout_marginBottom="@dimen/space_card_v"
                 android:accessibilityLiveRegion="polite"
                 android:gravity="center"
+                android:hyphenationFrequency="none"
                 android:letterSpacing="0.12"
                 android:textAllCaps="true"
                 android:textAppearance="?textAppearanceCaption"
@@ -93,8 +96,8 @@
                 android:visibility="gone" />
 
             <FrameLayout
-                android:layout_width="152dp"
-                android:layout_height="152dp"
+                android:layout_width="@dimen/phi_144"
+                android:layout_height="@dimen/phi_144"
                 android:layout_gravity="center_horizontal">
 
                 <me.zhanghai.android.files.ai.AiOrbView
@@ -120,11 +123,13 @@
                 android:id="@+id/setupPrivacy"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="@dimen/space_card_h"
                 android:background="@drawable/ai_glass_card"
-                android:drawablePadding="12dp"
+                android:drawablePadding="@dimen/space_card_v"
                 android:gravity="center_vertical"
-                android:padding="16dp"
+                android:hyphenationFrequency="none"
+                android:paddingHorizontal="@dimen/space_card_h"
+                android:paddingVertical="@dimen/space_card_v"
                 android:text="@string/ai_setup_privacy"
                 android:textAppearance="?textAppearanceBody2"
                 app:drawableStartCompat="@drawable/ai_privacy_icon_white_24dp"
@@ -134,7 +139,7 @@
                 android:id="@+id/checkList"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
+                android:layout_marginTop="@dimen/space_card_v"
                 android:orientation="vertical">
 
                 <TextView
@@ -157,20 +162,21 @@
                 android:id="@+id/downloadProgress"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="@dimen/space_card_h"
                 android:max="1000"
                 android:visibility="gone"
                 app:indicatorColor="@color/ai_accent"
                 app:trackColor="@color/ai_card"
-                app:trackCornerRadius="4dp"
-                app:trackThickness="8dp" />
+                app:trackCornerRadius="@dimen/phi_8"
+                app:trackThickness="@dimen/phi_8" />
 
             <TextView
                 android:id="@+id/downloadText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:textAppearance="?textAppearanceBody2"
+                android:layout_marginTop="@dimen/space_item"
+                android:hyphenationFrequency="none"
+                android:textAppearance="?textAppearanceCaption"
                 android:textColor="?android:textColorSecondary"
                 android:visibility="gone" />
 
@@ -178,19 +184,21 @@
                 android:id="@+id/setupButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:minHeight="56dp"
-                android:layout_marginTop="16dp"
+                android:minHeight="@dimen/phi_row_min"
+                android:layout_marginTop="@dimen/space_card_h"
                 android:backgroundTint="@color/ai_accent"
+                android:hyphenationFrequency="none"
                 android:textAllCaps="false"
                 android:textColor="@color/ai_on_accent"
                 android:textSize="16sp"
-                app:cornerRadius="28dp" />
+                app:cornerRadius="@dimen/phi_radius_xl" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/mobileDataButton"
                 style="@style/Widget.MaterialComponents.Button.TextButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:hyphenationFrequency="none"
                 android:minHeight="48dp"
                 android:text="@string/ai_mobile_data"
                 android:textAllCaps="false"
@@ -203,13 +211,13 @@
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="@dimen/space_card_h"
             android:hint="@string/ai_hint"
             android:visibility="gone"
-            app:boxCornerRadiusBottomEnd="28dp"
-            app:boxCornerRadiusBottomStart="28dp"
-            app:boxCornerRadiusTopEnd="28dp"
-            app:boxCornerRadiusTopStart="28dp"
+            app:boxCornerRadiusBottomEnd="@dimen/phi_radius_xl"
+            app:boxCornerRadiusBottomStart="@dimen/phi_radius_xl"
+            app:boxCornerRadiusTopEnd="@dimen/phi_radius_xl"
+            app:boxCornerRadiusTopStart="@dimen/phi_radius_xl"
             app:boxStrokeColor="@color/ai_accent"
             app:endIconContentDescription="@string/ai_send"
             app:endIconDrawable="@drawable/send_icon_white_24dp"
@@ -221,22 +229,23 @@
                 android:id="@+id/commandEdit"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:hyphenationFrequency="none"
                 android:imeOptions="actionGo"
                 android:inputType="textCapSentences|textMultiLine"
                 android:maxLines="3"
-                android:minHeight="56dp"
-                android:paddingStart="20dp"
-                android:paddingEnd="8dp" />
+                android:minHeight="@dimen/phi_row_min"
+                android:paddingStart="@dimen/space_card_h"
+                android:paddingEnd="@dimen/space_item" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <HorizontalScrollView
             android:id="@+id/exampleScroll"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="-24dp"
-            android:layout_marginTop="8dp"
+            android:layout_marginHorizontal="@dimen/space_gutter_negative"
+            android:layout_marginTop="@dimen/space_item"
             android:clipToPadding="false"
-            android:paddingHorizontal="24dp"
+            android:paddingHorizontal="@dimen/space_gutter"
             android:scrollbars="none"
             android:visibility="gone">
 
@@ -252,21 +261,21 @@
             android:id="@+id/loadingLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
+            android:layout_marginTop="@dimen/space_card_h"
             android:gravity="center_horizontal"
             android:orientation="vertical"
             android:visibility="gone">
 
             <me.zhanghai.android.files.ai.AiOrbView
                 android:id="@+id/thinkingOrb"
-                android:layout_width="104dp"
-                android:layout_height="104dp" />
+                android:layout_width="@dimen/phi_89"
+                android:layout_height="@dimen/phi_89" />
 
             <TextSwitcher
                 android:id="@+id/loadingText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="@dimen/space_card_h"
                 android:accessibilityLiveRegion="polite"
                 android:inAnimation="@anim/ai_text_in"
                 android:outAnimation="@anim/ai_text_out" />
@@ -276,7 +285,8 @@
                 style="@style/Widget.MaterialComponents.Button.TextButton"
                 android:layout_width="wrap_content"
                 android:layout_height="48dp"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="@dimen/space_item"
+                android:hyphenationFrequency="none"
                 android:text="@android:string/cancel"
                 android:textAllCaps="false"
                 android:textColor="@color/ai_accent" />
@@ -287,21 +297,22 @@
             android:id="@+id/messageLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="@dimen/space_card_h"
             android:background="@drawable/ai_glass_card"
             android:orientation="vertical"
-            android:padding="20dp"
+            android:paddingHorizontal="@dimen/space_card_h"
+            android:paddingVertical="@dimen/space_card_v"
             android:visibility="gone">
 
             <!-- Only for a hint (something Ordo cannot know yet): a bulb that pops in. -->
             <ImageView
                 android:id="@+id/messageIcon"
-                android:layout_width="44dp"
-                android:layout_height="44dp"
-                android:layout_marginBottom="12dp"
+                android:layout_width="@dimen/phi_icon_box"
+                android:layout_height="@dimen/phi_icon_box"
+                android:layout_marginBottom="@dimen/space_card_v"
                 android:background="@drawable/home_icon_circle"
                 android:importantForAccessibility="no"
-                android:padding="10dp"
+                android:padding="@dimen/phi_5"
                 android:visibility="gone" />
 
             <TextView
@@ -309,6 +320,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:accessibilityLiveRegion="polite"
+                android:hyphenationFrequency="none"
                 android:textAppearance="?textAppearanceSubtitle1"
                 android:textStyle="bold" />
 
@@ -316,33 +328,36 @@
                 android:id="@+id/messageText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:textAppearance="?textAppearanceBody2"
+                android:layout_marginTop="@dimen/space_related"
+                android:hyphenationFrequency="none"
+                android:textAppearance="?textAppearanceCaption"
                 android:textColor="?android:textColorSecondary" />
 
             <com.google.android.material.chip.ChipGroup
                 android:id="@+id/folderChips"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp" />
+                android:layout_marginTop="@dimen/space_item" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/hintActionButton"
                 style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
                 android:layout_width="wrap_content"
                 android:layout_height="48dp"
-                android:layout_marginTop="12dp"
+                android:layout_marginTop="@dimen/space_card_v"
                 android:backgroundTint="@color/ai_accent"
+                android:hyphenationFrequency="none"
                 android:textAllCaps="false"
                 android:textColor="@color/ai_on_accent"
                 android:visibility="gone"
-                app:cornerRadius="24dp" />
+                app:cornerRadius="@dimen/phi_radius_xl" />
 
             <TextView
                 android:id="@+id/hintDismissText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
+                android:layout_marginTop="@dimen/space_card_v"
+                android:hyphenationFrequency="none"
                 android:text="@string/ai_hint_dismiss"
                 android:textAppearance="?textAppearanceCaption"
                 android:textColor="?android:textColorSecondary"
@@ -354,6 +369,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="48dp"
                 android:layout_gravity="end"
+                android:hyphenationFrequency="none"
                 android:text="@string/ai_retry"
                 android:textAllCaps="false"
                 android:textColor="@color/ai_accent"
@@ -365,10 +381,11 @@
             android:id="@+id/previewCard"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="@dimen/space_card_h"
             android:background="@drawable/ai_glass_card"
             android:orientation="vertical"
-            android:padding="20dp"
+            android:paddingHorizontal="@dimen/space_card_h"
+            android:paddingVertical="@dimen/space_card_v"
             android:visibility="gone">
 
             <LinearLayout
@@ -379,12 +396,12 @@
 
                 <ImageView
                     android:id="@+id/actionIcon"
-                    android:layout_width="44dp"
-                    android:layout_height="44dp"
-                    android:layout_marginEnd="12dp"
+                    android:layout_width="@dimen/phi_icon_box"
+                    android:layout_height="@dimen/phi_icon_box"
+                    android:layout_marginEnd="@dimen/space_card_v"
                     android:background="@drawable/home_icon_circle"
                     android:importantForAccessibility="no"
-                    android:padding="10dp" />
+                    android:padding="@dimen/phi_5" />
 
                 <LinearLayout
                     android:layout_width="0dp"
@@ -397,6 +414,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:accessibilityHeading="true"
+                        android:hyphenationFrequency="none"
                         android:textAppearance="?textAppearanceSubtitle1"
                         android:textStyle="bold" />
 
@@ -404,7 +422,9 @@
                         android:id="@+id/routeText"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:textAppearance="?textAppearanceBody2"
+                        android:layout_marginTop="@dimen/space_related"
+                        android:hyphenationFrequency="none"
+                        android:textAppearance="?textAppearanceCaption"
                         android:textColor="?android:textColorSecondary" />
                 </LinearLayout>
             </LinearLayout>
@@ -413,30 +433,33 @@
                 android:id="@+id/filterChips"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp" />
+                android:layout_marginTop="@dimen/space_card_v" />
 
             <TextView
                 android:id="@+id/summaryText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
+                android:layout_marginTop="@dimen/space_card_v"
+                android:hyphenationFrequency="none"
                 android:textAppearance="?textAppearanceSubtitle2" />
 
             <TextView
                 android:id="@+id/fileListText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
+                android:layout_marginTop="@dimen/space_related"
+                android:hyphenationFrequency="none"
                 android:lineSpacingMultiplier="1.25"
-                android:textAppearance="?textAppearanceBody2"
+                android:textAppearance="?textAppearanceCaption"
                 android:textColor="?android:textColorSecondary" />
 
             <TextView
                 android:id="@+id/noteText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:textAppearance="?textAppearanceBody2"
+                android:layout_marginTop="@dimen/space_card_v"
+                android:hyphenationFrequency="none"
+                android:textAppearance="?textAppearanceCaption"
                 android:textColor="?android:textColorSecondary"
                 android:visibility="gone" />
 
@@ -445,17 +468,19 @@
                 android:id="@+id/confirmButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:minHeight="52dp"
+                android:layout_marginTop="@dimen/space_card_h"
+                android:hyphenationFrequency="none"
+                android:minHeight="@dimen/phi_row_min"
                 android:textAllCaps="false"
                 android:textSize="16sp"
-                app:cornerRadius="26dp" />
+                app:cornerRadius="@dimen/phi_radius_xl" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/editButton"
                 style="@style/Widget.MaterialComponents.Button.TextButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:hyphenationFrequency="none"
                 android:minHeight="48dp"
                 android:text="@string/ai_edit"
                 android:textAllCaps="false"

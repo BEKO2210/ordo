@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later -->
-<!-- With the list's 8 dp top padding as high as the home screen's top bar and centred on its search field; the icon
-     sits on the axis of the item icons, the name on that of their titles. -->
+<!-- With the list's 8 dp top padding as high as the home screen's top bar and centred on its search field. The icon
+     is as large as the icon box of the items and starts where it starts (the pill inset plus the item padding), so
+     it sits on the axis of the item icons and the name on that of their titles. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="56dp"
@@ -10,12 +11,12 @@
     android:orientation="horizontal"
     android:paddingStart="@dimen/navigation_item_horizontal_padding_material3"
     android:paddingEnd="@dimen/navigation_item_horizontal_padding_material3"
-    android:paddingBottom="8dp">
+    android:paddingBottom="@dimen/space_item">
 
     <ImageView
-        android:layout_width="32dp"
-        android:layout_height="32dp"
-        android:layout_marginHorizontal="-4dp"
+        android:layout_width="@dimen/phi_icon_box"
+        android:layout_height="@dimen/phi_icon_box"
+        android:layout_marginStart="@dimen/space_item"
         android:importantForAccessibility="no"
         android:src="@mipmap/launcher_icon" />
 
@@ -23,6 +24,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/navigation_item_icon_padding_material3"
+        android:hyphenationFrequency="none"
         android:text="@string/app_name"
         android:textAppearance="@style/TextAppearance.Ordo.HomeTitle" />
 </LinearLayout>

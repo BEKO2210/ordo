@@ -5,20 +5,23 @@
   ~ All Rights Reserved.
   -->
 
+<!-- At least phi_55 high; the 24 dp icon is visible in a phi_34 box, so every title starts at the same edge. -->
 <me.zhanghai.android.files.ui.CheckableForegroundLinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/itemLayout"
     android:layout_width="match_parent"
-    android:layout_height="?listPreferredItemHeightSmall"
+    android:layout_height="wrap_content"
     android:gravity="center_vertical"
+    android:minHeight="@dimen/phi_row_min"
     android:orientation="horizontal"
     android:stateListAnimator="@animator/ordo_row_press">
 
     <ImageView
         android:id="@+id/iconImage"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="@dimen/phi_icon_box"
+        android:layout_height="@dimen/phi_icon_box"
         android:duplicateParentState="true"
+        android:padding="@dimen/phi_5"
         android:scaleType="centerCrop" />
 
     <LinearLayout
@@ -35,6 +38,7 @@
             android:layout_height="wrap_content"
             android:duplicateParentState="true"
             android:ellipsize="end"
+            android:hyphenationFrequency="none"
             android:maxLines="1" />
 
         <me.zhanghai.android.files.ui.AutoGoneTextView
@@ -43,6 +47,7 @@
             android:layout_height="wrap_content"
             android:duplicateParentState="true"
             android:ellipsize="end"
+            android:hyphenationFrequency="none"
             android:maxLines="1" />
     </LinearLayout>
 </me.zhanghai.android.files.ui.CheckableForegroundLinearLayout>

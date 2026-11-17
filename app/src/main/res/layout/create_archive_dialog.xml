@@ -72,7 +72,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="?dialogPreferredPadding"
                 android:layout_marginEnd="?dialogPreferredPadding"
-                android:layout_marginTop="4dp"
+                android:layout_marginTop="@dimen/phi_5"
                 android:hint="@string/file_create_archive_password"
                 app:passwordToggleEnabled="true">
 

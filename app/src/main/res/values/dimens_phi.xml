@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright (c) 2026 Ordo contributors
+  ~ SPDX-License-Identifier: GPL-3.0-or-later
+  -->
+
+<!-- Ordo's measure: the golden ratio φ ≈ 1.618, in Fibonacci steps (each step ≈ the previous × φ).
+     Every spacing, size and radius in Ordo's own layouts takes one of these; docs/DESIGN-SYSTEM.md explains which. -->
+<resources>
+    <!-- Spacing -->
+    <dimen name="phi_3">3dp</dimen>
+    <dimen name="phi_5">5dp</dimen>
+    <dimen name="phi_8">8dp</dimen>
+    <dimen name="phi_13">13dp</dimen>
+    <dimen name="phi_21">21dp</dimen>
+    <dimen name="phi_34">34dp</dimen>
+    <dimen name="phi_55">55dp</dimen>
+    <dimen name="phi_89">89dp</dimen>
+    <dimen name="phi_144">144dp</dimen>
+    <dimen name="phi_233">233dp</dimen>
+    <dimen name="phi_377">377dp</dimen>
+    <dimen name="phi_610">610dp</dimen>
+
+    <!-- Semantic roles -->
+    <!-- between items that belong together (icon and its label, title and its info text) -->
+    <dimen name="space_related">@dimen/phi_5</dimen>
+    <!-- between rows and controls of one group -->
+    <dimen name="space_item">@dimen/phi_8</dimen>
+    <!-- inside cards, vertically -->
+    <dimen name="space_card_v">@dimen/phi_13</dimen>
+    <!-- inside cards horizontally, between cards, and the screen's side gutter -->
+    <dimen name="space_card_h">@dimen/phi_21</dimen>
+    <dimen name="space_gutter">@dimen/phi_21</dimen>
+    <!-- a row that scrolls to the screen edge out of a padded column cancels the gutter with this -->
+    <dimen name="space_gutter_negative">-21dp</dimen>
+    <!-- between sections of a screen -->
+    <dimen name="space_section">@dimen/phi_34</dimen>
+
+    <!-- Sizes -->
+    <dimen name="phi_icon_box">@dimen/phi_34</dimen>
+    <dimen name="phi_row_min">@dimen/phi_55</dimen>
+    <dimen name="phi_tile_h">@dimen/phi_55</dimen>
+    <dimen name="phi_tile_w">@dimen/phi_89</dimen>
+    <dimen name="phi_card_min">@dimen/phi_89</dimen>
+    <!-- content width on large screens: 377 × φ -->
+    <dimen name="phi_content_max">@dimen/phi_610</dimen>
+
+    <!-- Corner radii -->
+    <dimen name="phi_radius_s">@dimen/phi_8</dimen>
+    <dimen name="phi_radius_m">@dimen/phi_13</dimen>
+    <dimen name="phi_radius_l">@dimen/phi_21</dimen>
+    <dimen name="phi_radius_xl">@dimen/phi_34</dimen>
+</resources>

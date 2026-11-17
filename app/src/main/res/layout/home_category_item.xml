@@ -5,36 +5,45 @@
   ~ SPDX-License-Identifier: GPL-3.0-or-later
   -->
 
-<com.google.android.material.card.MaterialCardView
+<me.zhanghai.android.files.home.PhiTileCardView
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     style="@style/Widget.Ordo.HomeCard"
     android:layout_width="match_parent"
-    android:layout_height="@dimen/home_tile_height"
-    android:layout_margin="4dp"
+    android:layout_height="wrap_content"
+    android:layout_margin="@dimen/home_card_margin"
+    app:cardCornerRadius="@dimen/phi_radius_m"
     android:clickable="true"
     android:focusable="true"
     android:foreground="?selectableItemBackground"
     android:stateListAnimator="@animator/home_press_scale">
 
-    <!-- Compact tile: pictogram top right, name and count bottom left. -->
-    <FrameLayout
+    <!-- Compact tile: pictogram top right, name and count bottom left. Stacked, not overlaid: on narrow
+         tiles (nine in a row) the label would otherwise run under the pictogram; the tile grows instead. -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:padding="12dp">
+        android:orientation="vertical"
+        android:padding="@dimen/phi_8">
 
         <ImageView
             android:id="@+id/iconImage"
-            android:layout_width="30dp"
-            android:layout_height="30dp"
-            android:layout_gravity="top|end"
+            android:layout_width="@dimen/phi_34"
+            android:layout_height="@dimen/phi_34"
+            android:layout_gravity="end"
             android:background="@drawable/home_icon_circle"
             android:contentDescription="@null"
-            android:padding="5dp" />
+            android:padding="@dimen/phi_5" />
+
+        <Space
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:minHeight="@dimen/phi_3" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="bottom|start"
             android:orientation="vertical">
 
             <TextView
@@ -42,6 +51,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:ellipsize="end"
+                android:hyphenationFrequency="none"
                 android:maxLines="1"
                 android:textAppearance="?textAppearanceSubtitle2" />
 
@@ -50,9 +60,10 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:ellipsize="end"
+                android:hyphenationFrequency="none"
                 android:maxLines="1"
                 android:textAppearance="?textAppearanceCaption"
                 android:textColor="?android:textColorSecondary" />
         </LinearLayout>
-    </FrameLayout>
-</com.google.android.material.card.MaterialCardView>
+    </LinearLayout>
+</me.zhanghai.android.files.home.PhiTileCardView>

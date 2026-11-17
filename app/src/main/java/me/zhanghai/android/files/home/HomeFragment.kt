@@ -258,9 +258,9 @@ class HomeFragment : Fragment(), ShowRequestAllFilesAccessRationaleDialogFragmen
         binding.toolbarBlur.addOnLayoutChangeListener { bar, _, _, _, _, _, _, _, _ ->
             binding.toolbarEdge.translationY = (if (headerAtBottom) -bar.height else bar.height).toFloat()
         }
-        // Glass, edge and hairline appear over the first 24 dp of content under the bar: flat at rest, layered in
+        // Glass, edge and hairline appear over the first 21 dp of content under the bar: flat at rest, layered in
         // motion. The status bar scrim of the bottom position follows the scrolled distance the same way.
-        val edgeDistance = 24 * resources.displayMetrics.density
+        val edgeDistance = resources.getDimension(R.dimen.phi_21)
         binding.toolbarBlur.setGlassAmount(barColor, 0f)
         updateGlass = {
             val scroll = binding.scrollView

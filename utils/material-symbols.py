@@ -153,6 +153,9 @@ ICONS = {
     "shuffle_icon_24dp": "shuffle",
     "skip_next_icon_24dp": "skip_next",
     "skip_previous_icon_24dp": "skip_previous",
+    "equalizer_icon_24dp": "equalizer",
+    "expand_less_icon_24dp": "expand_less",
+    "expand_more_icon_24dp": "expand_more",
 }
 
 

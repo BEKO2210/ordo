@@ -113,7 +113,7 @@ class AccentPreference @JvmOverloads constructor(
 
         val row = holder.findViewById(R.id.swatches) as LinearLayout
         row.removeAllViews()
-        val density = context.resources.displayMetrics.density
+        val cell = context.resources.getDimensionPixelSize(R.dimen.phi_55)
         val ringColor = MaterialColors.getColor(
             context, com.google.android.material.R.attr.colorOnSurface, Color.BLACK
         )
@@ -121,15 +121,11 @@ class AccentPreference @JvmOverloads constructor(
             val chosen = value == visualValue
             val swatch = AccentSwatchView(context, ContextCompat.getColor(context, colors[index]), ringColor).apply {
                 importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
-                layoutParams = FrameLayout.LayoutParams(
-                    (SWATCH_SIZE_DP * density).toInt(), (SWATCH_SIZE_DP * density).toInt(), Gravity.CENTER
-                )
+                layoutParams = FrameLayout.LayoutParams(cell, cell, Gravity.CENTER)
                 setSelectedImmediately(chosen)
             }
             val touchTarget = FrameLayout(context).apply {
-                layoutParams = LinearLayout.LayoutParams(
-                    (TOUCH_TARGET_DP * density).toInt(), (TOUCH_TARGET_DP * density).toInt()
-                )
+                layoutParams = LinearLayout.LayoutParams(cell, cell)
                 addView(swatch)
                 contentDescription = names[index]
                 isSelected = chosen
@@ -255,8 +251,6 @@ class AccentPreference @JvmOverloads constructor(
     private class State(val superState: Parcelable?, val storageRevealPlayed: Boolean) : ParcelableState
 
     companion object {
-        private const val TOUCH_TARGET_DP = 48
-        private const val SWATCH_SIZE_DP = 44
         private const val SAVE_DELAY_MS = 200L
         private const val DISABLED_ALPHA = 0.38f
         private val EMPHASIZED = PathInterpolator(0.2f, 0f, 0f, 1f)
@@ -288,13 +282,13 @@ private class AccentSwatchView(
     private val fillPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val ringPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
-        strokeWidth = 2.5f * density
+        strokeWidth = RING_DP * density
     }
     private val checkPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
         strokeCap = Paint.Cap.ROUND
         strokeJoin = Paint.Join.ROUND
-        strokeWidth = 2.5f * density
+        strokeWidth = RING_DP * density
     }
     private val checkPath = Path()
     private val drawnCheck = Path()
@@ -342,14 +336,14 @@ private class AccentSwatchView(
         super.onDraw(canvas)
         val cx = width / 2f
         val cy = height / 2f
-        val radius = 18f * density
+        val radius = CIRCLE_RADIUS_DP * density
         fillPaint.color = color
         canvas.drawCircle(cx, cy, radius, fillPaint)
 
         if (ringAmount > 0f) {
             ringPaint.color = ringColor
             ringPaint.alpha = (255 * ringAmount).toInt()
-            val ringRadius = radius + (4f - 1.5f * ringAmount) * density
+            val ringRadius = radius + (RING_GAP_DP + RING_DP / 2f + 1.5f * (1f - ringAmount)) * density
             canvas.drawCircle(cx, cy, ringRadius, ringPaint)
         }
         if (checkAmount <= 0f) return
@@ -376,6 +370,11 @@ private class AccentSwatchView(
 
     companion object {
         private val EMPHASIZED = PathInterpolator(0.2f, 0f, 0f, 1f)
+
+        // φ scale: a 34 dp circle in a 55 dp cell, a 3 dp ring 3 dp away from it (reaches 24.5 dp, cell edge is 27.5).
+        private const val CIRCLE_RADIUS_DP = 17f
+        private const val RING_DP = 3f
+        private const val RING_GAP_DP = 3f
 
         private fun lerp(start: Float, end: Float, fraction: Float): Float =
             start + (end - start) * fraction

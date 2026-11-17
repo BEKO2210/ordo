@@ -22,7 +22,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:paddingHorizontal="28dp">
+        android:paddingHorizontal="@dimen/phi_34">
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/skipButton"
@@ -123,11 +123,11 @@
                     android:id="@+id/aiTyping"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
+                    android:layout_marginTop="@dimen/phi_13"
                     android:background="@drawable/ai_glass_card"
                     android:importantForAccessibility="no"
                     android:minHeight="56dp"
-                    android:padding="16dp"
+                    android:padding="@dimen/phi_21"
                     android:textAppearance="?textAppearanceBody1" />
 
                 <TextView
@@ -147,7 +147,7 @@
                     android:layout_height="96dp"
                     android:background="@drawable/home_icon_circle"
                     android:importantForAccessibility="no"
-                    android:padding="24dp"
+                    android:padding="@dimen/phi_21"
                     android:src="@drawable/ai_storage_icon_white_24dp" />
 
                 <TextView
@@ -174,8 +174,8 @@
             android:id="@+id/nextButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:layout_marginBottom="24dp"
+            android:layout_marginTop="@dimen/phi_13"
+            android:layout_marginBottom="@dimen/phi_21"
             android:backgroundTint="@color/ai_accent"
             android:minHeight="56dp"
             android:textAllCaps="false"

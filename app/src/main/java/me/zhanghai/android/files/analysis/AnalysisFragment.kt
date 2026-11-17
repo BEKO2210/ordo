@@ -54,6 +54,7 @@ import me.zhanghai.android.files.filelist.FileListActivity
 import me.zhanghai.android.files.filelist.OpenFileActivity
 import me.zhanghai.android.files.trash.Trash
 import me.zhanghai.android.files.ui.Motion
+import me.zhanghai.android.files.util.getColorByAttr
 import me.zhanghai.android.files.util.getQuantityString
 import me.zhanghai.android.files.util.startActivitySafe
 
@@ -552,7 +553,7 @@ class AnalysisFragment : Fragment() {
             binding.checkBox.isVisible = false
             binding.chevronImage.isVisible = true
             binding.shareBar.isVisible = true
-            binding.shareBar.setParts(listOf(ContextCompat.getColor(context, R.color.ai_accent) to folder.size), whole)
+            binding.shareBar.setParts(listOf(context.getColorByAttr(androidx.appcompat.R.attr.colorPrimary) to folder.size), whole)
             // Into the folder, inside the analysis; the toolbar opens it in the file list.
             binding.root.setOnClickListener { openPage(AnalysisPage.Folder(folder.path)) }
             binding.root.setOnLongClickListener(null)
@@ -564,7 +565,7 @@ class AnalysisFragment : Fragment() {
         dispose()
         scaleType = ImageView.ScaleType.CENTER
         setImageResource(R.drawable.directory_icon_white_24dp)
-        imageTintList = android.content.res.ColorStateList.valueOf(ContextCompat.getColor(context, R.color.ai_accent))
+        imageTintList = android.content.res.ColorStateList.valueOf(context.getColorByAttr(androidx.appcompat.R.attr.colorPrimary))
     }
 
     // The real picture for photos, videos, music covers, APKs and PDFs, as in the file list; the type icon otherwise.

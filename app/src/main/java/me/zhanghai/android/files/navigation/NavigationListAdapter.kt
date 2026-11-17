@@ -175,10 +175,6 @@ class NavigationListAdapter(
                         viewAttributes.itemBackground?.constantState?.newDrawable()
                     binding.itemLayout.foregroundCompat =
                         viewAttributes.itemForeground?.constantState?.newDrawable()
-                    binding.iconImage.updateLayoutParams {
-                        width = viewAttributes.itemIconSize
-                        height = viewAttributes.itemIconSize
-                    }
                     binding.iconImage.imageTintList = viewAttributes.itemIconTint
                     binding.textLayout.updateLayoutParams<ViewGroup.MarginLayoutParams> {
                         marginStart = viewAttributes.itemIconPadding

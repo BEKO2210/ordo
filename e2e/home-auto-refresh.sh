@@ -27,17 +27,17 @@ if command -v ffmpeg >/dev/null && [ -n "$bar" ]; then
     tmp=$(mktemp -d); read -r x1 y1 x2 y2 <<< "$bar"; w=$(((x2 - x1) / 2 * 2)); h=$(((y2 - y1) / 2 * 2))
     "$ADB" -s "$SERIAL" pull /sdcard/ordo-e2e-auto.mp4 "$tmp/a.mp4" >/dev/null 2>&1; a shell rm -f /sdcard/ordo-e2e-auto.mp4
     ffmpeg -loglevel error -y -i "$tmp/a.mp4" -vf "fps=15,crop=$w:2:$x1:$((y1 + h / 2))" -f rawvideo -pix_fmt rgb24 "$tmp/a.rgb" < /dev/null
-    # Fill = columns in the aurora colours (as in bars-replay.sh); the lowest of all frames against the last one.
+    # Fill = columns in the accent colour (as in bars-replay.sh); the lowest of all frames against the last one.
     low=$(python3 - "$tmp/a.rgb" "$w" <<'PY'
 import sys
 data = open(sys.argv[1], "rb").read(); w = int(sys.argv[2]); size = w * 2 * 3
-fills = [sum(1 for p in range(i * size, i * size + w * 3, 3) if data[p] < 110 and data[p + 1] > 120 and data[p + 2] > 170)
+fills = [sum(1 for p in range(i * size, i * size + w * 3, 3) if max(data[p:p + 3]) - min(data[p:p + 3]) > 60)
          for i in range(len(data) // size)]
 print(100 * min(fills) // max(fills[-1], 1) if fills and fills[-1] > w * 0.03 else "skip")
 PY
 )
     rm -rf "$tmp"; [ "$low" = skip ] || echo "  storage bar during the reload: lowest $low % of its final length"
-    if [ "$low" = skip ]; then echo "SKIP storage bar check: bar nearly empty or not in the aurora colours (storage 90 % full or more)"
+    if [ "$low" = skip ]; then echo "SKIP storage bar check: bar nearly empty or not in the accent colour (storage 90 % full or more)"
     else check "the storage bar does not empty and grow in again on an automatic reload" test "$low" -ge 90; fi
 fi
 a shell input keyevent HOME; sleep 2; a logcat -c

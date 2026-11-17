@@ -56,10 +56,11 @@ class FileViewTypeTest {
 
     @Test fun `list thumbnails fit into their row with room to tap`() {
         for (size in FileItemSize.entries) {
-            assertTrue(size.listThumbnailSizeDp + 8 <= size.listItemHeightDp)
+            assertTrue(size.listThumbnailSizeDp + 21 <= size.listItemHeightDp)
             assertTrue(size.listIconSizeDp <= size.listThumbnailSizeDp)
             // 48 dp is the smallest comfortable touch target.
-            assertTrue(size.listThumbnailSizeDp + 8 >= 48)
+            assertTrue(size.listThumbnailSizeDp + 21 >= 48)
+            assertTrue(size.listItemHeightDp >= 55)
         }
     }
 

@@ -45,7 +45,7 @@
                 android:layout_height="wrap_content"
                 android:paddingStart="?dialogPreferredPadding"
                 android:paddingEnd="?dialogPreferredPadding"
-                android:paddingTop="16dp"
+                android:paddingTop="@dimen/phi_13"
                 android:paddingBottom="8dp"
                 android:divider="@drawable/transparent_divider_vertical_16dp"
                 android:orientation="vertical"
