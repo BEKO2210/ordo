@@ -10,7 +10,8 @@ export E2E_FAST=0
 
 SETTINGS=me.zhanghai.android.files.settings.SettingsActivity
 SECTION="Eingebaute Apps|Built-in apps"
-ORDO="Ordo"
+# The app's name is the title of its colour row: a test copy (applicationId .dev) is called "Ordo Dev".
+case $PKG in *.dev) ORDO="Ordo Dev" ;; *) ORDO="Ordo" ;; esac
 MUSIC="Ordo Musik|Ordo Music"
 COLOURS="Icon-Farben|Icon colours"
 declare -A LABEL=(
@@ -19,7 +20,7 @@ declare -A LABEL=(
     [Red]="Icon-Farbe Rot|Icon colour Red" [Pink]="Icon-Farbe Pink|Icon colour Pink"
     [Violet]="Icon-Farbe Lila|Icon colour Violet" [Graphite]="Icon-Farbe Graphit|Icon colour Graphite"
 )
-GREEN_MESSAGE="„Ordo“ hat jetzt die Icon-Farbe Grün. Dein Startbildschirm braucht manchmal einen Moment, und auf manchen musst du das Symbol neu ablegen.|“Ordo” now has the icon colour Green. Your home screen can need a moment, and on some you have to place the icon again."
+GREEN_MESSAGE="„$ORDO“ hat jetzt die Icon-Farbe Grün. Dein Startbildschirm braucht manchmal einen Moment, und auf manchen musst du das Symbol neu ablegen.|“$ORDO” now has the icon colour Green. Your home screen can need a moment, and on some you have to place the icon again."
 SAVED_MESSAGE="Gespeichert. „Ordo Musik“ bekommt die Icon-Farbe Lila, sobald du es einschaltest.|Saved. “Ordo Music” gets the icon colour Violet when you turn it on."
 
 # The launcher entries of one icon (Home or Music) as the system lists them, e.g. "HomeGreen"; none while it is off.
