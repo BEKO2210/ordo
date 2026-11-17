@@ -1,6 +1,7 @@
 Neu in dieser Testversion:
-• Musik-Player: Lieder direkt in Ordo hören, mit Warteschlange, Cover und Steuerung im Hintergrund
-• „Klang“: Equalizer mit 10 Bändern und Voreinstellungen, Bass, Raumklang, Lautstärke angleichen, Tempo und Einschlaf-Timer
-• Eigenes Symbol „Ordo Musik“ für den Startbildschirm (Einstellungen › Eingebaute Apps), standardmäßig aus
-• Alle Abstände folgen dem Goldenen Schnitt
+• Musik-Player mit Warteschlange, Cover und Steuerung im Hintergrund
+• „Klang“: Equalizer mit 10 Bändern, Bass, Raumklang, Lautstärke angleichen, Tempo, Einschlaf-Timer
+• „Abspielen auf …“: Musik an Bluetooth, Kabel oder Cast-Geräte schicken
+• Eigenes Symbol „Ordo Musik“ (Einstellungen › Eingebaute Apps), standardmäßig aus
+• Abstände nach dem Goldenen Schnitt
 Rückmeldungen gern an: nullmesh@protonmail.com

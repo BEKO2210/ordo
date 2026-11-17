@@ -31,10 +31,15 @@
   <img src="docs/screenshots/de/settings.png" width="24%" alt="Einstellungen nach Kategorien mit farbigen Piktogrammen">
   <img src="docs/screenshots/de/appearance.png" width="24%" alt="Aussehen: fünf Akzentfarben, Nachtmodus, Animationen, Dunkelmodus">
 </p>
+<p align="center">
+  <img src="docs/screenshots/de/player.png" width="24%" alt="Musik-Player mit Cover und Steuerung, hell">
+  <img src="docs/screenshots/de/sound.png" width="24%" alt="Klang: Equalizer-Kurve mit Voreinstellung Bass, dunkel">
+  <img src="docs/screenshots/de/album.png" width="24%" alt="Ein Album im Ordner, Cover als Vorschaubilder">
+</p>
 
 ## Stand
 
-Ordo ist in Entwicklung (Version 0.13.1). Bei Google Play läuft ein geschlossener Test; Testversionen erscheinen auch als
+Ordo ist in Entwicklung (Version 0.13.2). Bei Google Play läuft ein geschlossener Test; Testversionen erscheinen auch als
 [Pre-Releases](https://github.com/BEKO2210/ordo/releases); du kannst Ordo auch [selbst bauen](#bauen).
 Was als Nächstes kommt, steht in der [lebenden Roadmap](docs/ROADMAP-LIVE.md): Jedes Ziel hat einen Prüfbefehl und schließt sich selbst. Die Recherche hinter dem Musik-Player und dem geplanten Video-Player, PDF-Leser und den Editoren steht in [docs/MEDIEN-RECHERCHE.md](docs/MEDIEN-RECHERCHE.md).
 
@@ -78,11 +83,17 @@ Was als Nächstes kommt, steht in der [lebenden Roadmap](docs/ROADMAP-LIVE.md): 
 - Viele Dateien auf einmal nach Muster umbenennen
 - ZIP-, TAR- und 7z-Archive erstellen und entpacken
 - Eingebaute Ansicht für Bilder, PDF und Text
+
+**Musik hören**
+
 - Musik direkt in Ordo abspielen – mit Warteschlange, Cover und Steuerung im Hintergrund. Auf Handys und Tablets
   im Hochformat steht der Player großzügig in der Mitte, in einem breiten Querformat liegen Cover und Steuerung
   nebeneinander; die Coverfarbe tönt den Hintergrund sanft, ohne die Textfarben des Designs zu verändern; „Klang“
   gruppiert 10-Band-Equalizer, Geräteeffekte, ReplayGain/R128 und Wiedergabeoptionen in klare Bereiche. Die Kurve ist
   die Hauptsteuerung, genaue 48-dp-Tasten liegen unter „Genau einstellen“; dazu kommt ein ausblendender Einschlaf-Timer
+- „Abspielen auf …“ im Player öffnet die Ausgabe-Auswahl von Android: Bluetooth-Kopfhörer und -Lautsprecher, Kabel und
+  Cast-Geräte, ohne Google-Dienste (ab Android 11; auf Android 6–10 öffnen sich die Bluetooth-Einstellungen). Musik an
+  Chromecast, Fernseher und Receiver zu streamen ist geplant, siehe [docs/STREAMING-RECHERCHE.md](docs/STREAMING-RECHERCHE.md)
 - Eigenes App-Symbol für den Musik-Player (Einstellungen › Eingebaute Apps): standardmäßig aus, nur du schaltest es ein und aus, siehe [docs/AUDIO-PLAYER.md](docs/AUDIO-PLAYER.md)
 
 **Dateien schützen**

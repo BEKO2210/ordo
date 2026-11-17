@@ -47,6 +47,16 @@ touch_target() {
 }
 check "shuffle keeps its 48 dp touch target" touch_target shuffle
 check "repeat keeps its 48 dp touch target" touch_target repeat
+# "Play on…" hands over to the system: its output picker (or, before Android 11, the Bluetooth settings) takes focus.
+system_focus() {
+    local i; for i in 1 2 3 4 5 6; do
+        a shell dumpsys window | grep -m1 mCurrentFocus | grep -qv "$PKG" && return 0; sleep 0.5
+    done
+    return 1
+}
+check "Play on is in the player toolbar" paused_ui tap actionOutput
+check "Play on opens the system output picker" system_focus
+a shell input keyevent KEYCODE_BACK; sleep 1
 check "Sound opens from the player toolbar" paused_ui tap actionSound
 check "the equalizer and deliberate-drag guidance are visible" paused_ui wait "Equalizer" 5
 sleep 1 # the sheet is still sliding up: a tap now would land where the switch is about to leave

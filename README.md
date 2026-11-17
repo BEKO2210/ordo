@@ -31,10 +31,15 @@
   <img src="docs/screenshots/en/settings.png" width="24%" alt="Settings sorted into categories with coloured icons">
   <img src="docs/screenshots/en/appearance.png" width="24%" alt="Appearance settings: five accent colours, night mode, motion, dark mode">
 </p>
+<p align="center">
+  <img src="docs/screenshots/en/player.png" width="24%" alt="Music player with cover art and controls, light">
+  <img src="docs/screenshots/en/sound.png" width="24%" alt="Sound: equalizer curve with the Bass preset, dark">
+  <img src="docs/screenshots/en/album.png" width="24%" alt="An album in its folder, covers as thumbnails">
+</p>
 
 ## Status
 
-Ordo is in development (version 0.13.1). A closed test runs on Google Play; test builds are also published as
+Ordo is in development (version 0.13.2). A closed test runs on Google Play; test builds are also published as
 [pre-releases](https://github.com/BEKO2210/ordo/releases); you can also [build it from source](#build).
 What comes next is in the [living roadmap](docs/ROADMAP-LIVE.md): every goal has a check command and closes itself. The research behind the music player and the planned video player, PDF reader and editors is in [docs/MEDIEN-RECHERCHE.md](docs/MEDIEN-RECHERCHE.md) (German).
 
@@ -77,11 +82,17 @@ What comes next is in the [living roadmap](docs/ROADMAP-LIVE.md): every goal has
 - Rename many files at once using a pattern
 - Create and extract ZIP, TAR and 7z archives
 - Built-in viewers for images, PDF and text
+
+**Listen to music**
+
 - Play music in Ordo, with a queue, cover art and background controls. The player uses a generous centred
   composition on phones and portrait tablets, and puts the cover beside the controls in a wide landscape window;
   the cover softly colours the background without changing the theme’s text colours; Sound groups a 10-band EQ,
   device effects, ReplayGain/R128 normalisation and playback controls into clear sections, with the curve as the
   main EQ control and exact 48 dp steppers behind Fine-tune, plus a fading sleep timer
+- “Play on…” in the player opens Android’s output picker: Bluetooth headphones and speakers, wired and cast devices,
+  without Google services (Android 11 and later; Android 6–10 opens the Bluetooth settings). Streaming music to
+  Chromecast, TVs and receivers is planned, see [docs/STREAMING-RECHERCHE.md](docs/STREAMING-RECHERCHE.md) (German)
 - Optional own app icon for the music player (Settings › Built-in apps): off by default, switched on and off only by you, see [docs/AUDIO-PLAYER.md](docs/AUDIO-PLAYER.md)
 
 **Keep files safe**
