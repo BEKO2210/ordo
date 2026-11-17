@@ -2,7 +2,7 @@
 
 <!-- Erzeugt von utils/roadmap.sh. Nicht von Hand ändern: Ziele stehen im Skript, erledigt ist, was sein Prüfbefehl bestätigt. -->
 
-Stand: 17.11.2026, letzte Version: v0.12.0. Als Nächstes: **Markdown lesen und schreiben**
+Stand: 17.11.2026, letzte Version: v0.13.0. Als Nächstes: **Markdown lesen und schreiben**
 
 Jedes Ziel ist eine Zelle mit einem Prüfbefehl ([autopoiesis](https://github.com/BEKO2210/autopoiesis)).
 Besteht der Befehl, ist das Ziel erledigt. Nach jeder veröffentlichten Version entstehen die Zellen
@@ -25,6 +25,7 @@ für die nächste – vor 1.0.0 und danach.
 - [ ] Goldener Schnitt als Maßsystem in ganz Ordo
 - [ ] Dokumente bearbeiten: Entscheidung für Office-Formate
 - [ ] Nach v0.12.0: neue Version veröffentlicht
+- [ ] Nach v0.13.0: neue Version veröffentlicht
 
 ## Erledigt
 
@@ -49,6 +50,8 @@ für die nächste – vor 1.0.0 und danach.
 - [x] Musik-Player als eigenes App-Symbol zum Einschalten
 - [x] Nach v0.12.0: nächste Version hat eine eigene Nummer
 - [x] Nach v0.12.0: beide READMEs nennen die neue Version
+- [x] Nach v0.13.0: nächste Version hat eine eigene Nummer
+- [x] Nach v0.13.0: beide READMEs nennen die neue Version
 
 ## Graph
 
@@ -88,6 +91,7 @@ flowchart TD
   nc_4fe6d9["Goldener Schnitt als Maßsystem in ganz Ordo [active]"]
   nc_201dcc["Dokumente bearbeiten: Entscheidung für Office-Formate [active]"]
   nc_85e42e["Nach v0.12.0: neue Version veröffentlicht [active]"]
+  nc_d4d18b["Nach v0.13.0: neue Version veröffentlicht [active]"]
   nc_4f3cba --> nc_85c842
   nc_961377 --> nc_85c842
   nc_a53ea1 --> nc_85c842
