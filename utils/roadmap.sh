@@ -114,6 +114,10 @@ cell "Musik-Player als eigenes App-Symbol zum Einschalten" \
     "grep -q 'activity-alias' app/src/main/AndroidManifest.xml && grep -rq 'setComponentEnabledSetting' app/src/main/java/me/zhanghai/android/files/" \
     "Schalter in den Einstellungen: Ordo Musik bekommt ein eigenes Symbol auf dem Startbildschirm und lässt sich dort wieder ausschalten. Verhalten auf Pixel und Samsung gemessen." \
     "Musik-Player: Audio direkt in Ordo abspielen"
+cell "Ordo Musik: eigene Musiksammlung mit Titeln, Alben, Interpreten und Ordnern" \
+    "test -s app/src/main/java/me/zhanghai/android/files/viewer/audio/MusicLibrary.kt && test -s $TESTS/viewer/audio/MusicLibraryTest.kt && test -x e2e/music-library.sh && grep -q music-library e2e/run.sh" \
+    "Ordo Musik zeigt immer die Sammlung statt in den Player zu springen: Titel, Alben (Raster), Interpreten und Ordner aus MediaStore, Suche, „Alle zufällig“, Albumseiten in Titelreihenfolge, Mini-Player unten. Aussehen nach dem Vorbild Samsung Music (großer Titel, Reiter), Goldener Schnitt, hell und dunkel, Telefon und Tablet; e2e/music-library.sh auf dem Emulator und dem Tab bestanden." \
+    "Musik-Player als eigenes App-Symbol zum Einschalten"
 cell "Video-Player: Filme direkt in Ordo ansehen" \
     "ls app/src/main/java/me/zhanghai/android/files/viewer/video/*.kt >/dev/null 2>&1" \
     "Alle gängigen Formate, Untertitel, Tonspur-Wahl, Bild-im-Bild, Tempo, Gesten für Helligkeit und Lautstärke; als eigenes Symbol einschaltbar wie der Musik-Player." \

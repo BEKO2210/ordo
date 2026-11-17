@@ -1,61 +1,101 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- The music library: a large title that collapses into the toolbar, tabs, one list, and the mini player below. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="?colorSurface"
     android:fitsSystemWindows="true"
     android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/title"
-        style="@style/Widget.Ordo.AudioPlayer.Title"
-        android:layout_marginStart="24dp"
-        android:layout_marginTop="24dp"
-        android:layout_marginEnd="24dp"
-        android:gravity="start"
-        android:text="@string/launcher_music_start_title" />
-
-    <TextView
-        android:id="@+id/subtitle"
-        style="@style/Widget.Ordo.AudioPlayer.Subtitle"
-        android:layout_marginStart="24dp"
-        android:layout_marginTop="4dp"
-        android:layout_marginEnd="24dp"
-        android:gravity="start"
-        android:text="@string/launcher_music_start_subtitle" />
-
-    <FrameLayout
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginTop="12dp"
         android:layout_weight="1">
+
+        <com.google.android.material.appbar.AppBarLayout
+            android:id="@+id/appBar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="?colorSurface"
+            app:elevation="0dp">
+
+            <com.google.android.material.appbar.CollapsingToolbarLayout
+                android:id="@+id/collapsingToolbar"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/music_header_height"
+                app:collapsedTitleTextAppearance="@style/TextAppearance.Ordo.MusicTitle.Collapsed"
+                app:contentScrim="?colorSurface"
+                app:expandedTitleGravity="center"
+                app:expandedTitleMarginEnd="@dimen/space_gutter"
+                app:expandedTitleMarginStart="@dimen/space_gutter"
+                app:expandedTitleTextAppearance="@style/TextAppearance.Ordo.MusicTitle"
+                app:layout_scrollFlags="scroll|exitUntilCollapsed|snap"
+                app:maxLines="2"
+                app:title="@string/launcher_music_start_title">
+
+                <com.google.android.material.appbar.MaterialToolbar
+                    android:id="@+id/toolbar"
+                    android:layout_width="match_parent"
+                    android:layout_height="?actionBarSize"
+                    android:theme="?actionBarTheme"
+                    app:layout_collapseMode="pin"
+                    app:menu="@menu/music_library"
+                    app:popupTheme="?actionBarPopupTheme" />
+            </com.google.android.material.appbar.CollapsingToolbarLayout>
+
+            <com.google.android.material.tabs.TabLayout
+                android:id="@+id/tabs"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="?colorSurface"
+                app:tabGravity="fill"
+                app:tabMode="fixed" />
+        </com.google.android.material.appbar.AppBarLayout>
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recyclerView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:clipToPadding="false"
-            android:paddingBottom="8dp"
-            android:scrollbars="vertical" />
+            android:paddingBottom="@dimen/phi_8"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior" />
 
-        <TextView
-            android:id="@+id/emptyText"
-            style="@style/Widget.Ordo.AudioPlayer.Subtitle"
-            android:layout_gravity="center"
-            android:maxLines="4"
-            android:paddingStart="32dp"
-            android:paddingEnd="32dp"
-            android:text="@string/launcher_music_start_empty"
-            android:visibility="gone" />
-    </FrameLayout>
+        <LinearLayout
+            android:id="@+id/emptyGroup"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:paddingStart="@dimen/space_section"
+            android:paddingEnd="@dimen/space_section"
+            android:visibility="gone"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/chooseFolder"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="16dp"
-        android:minHeight="56dp"
-        android:text="@string/launcher_music_choose_folder"
-        app:icon="@drawable/directory_icon_white_24dp" />
+            <TextView
+                android:id="@+id/emptyText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:hyphenationFrequency="none"
+                android:maxWidth="@dimen/phi_377"
+                android:textAppearance="?textAppearanceBody1"
+                android:textColor="?android:textColorSecondary" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/accessButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/space_card_h"
+                android:minHeight="@dimen/phi_55"
+                android:text="@string/home_permission_action"
+                android:visibility="gone" />
+        </LinearLayout>
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
+
+    <include
+        android:id="@+id/miniPlayer"
+        layout="@layout/music_mini_player"
+        android:visibility="gone" />
 </LinearLayout>

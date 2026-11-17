@@ -23,7 +23,13 @@ internal fun audioQueue(
     val paths = pathsInListOrder.filter { it.parent == tappedPath.parent }
     val startIndex = paths.indexOf(tappedPath)
     if (startIndex < 0) return null
-    if (paths.size <= maxSize) return AudioQueue(paths, startIndex)
-    val start = (startIndex - maxSize / 2).coerceIn(0, paths.size - maxSize)
-    return AudioQueue(paths.subList(start, start + maxSize).toList(), startIndex - start)
+    val window = queueWindow(paths.size, startIndex, maxSize)
+    return AudioQueue(paths.slice(window), startIndex - window.first)
+}
+
+/** The indices a queue of a list this long keeps: all of them, or [maxSize] around [startIndex]. */
+internal fun queueWindow(size: Int, startIndex: Int, maxSize: Int = AUDIO_QUEUE_SIZE_MAX): IntRange {
+    if (size <= maxSize) return 0 until size
+    val start = (startIndex - maxSize / 2).coerceIn(0, size - maxSize)
+    return start until start + maxSize
 }

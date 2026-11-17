@@ -63,13 +63,26 @@
     <string name="launcher_images_label">Bilder</string>
     <string name="launcher_pdf_label">PDF</string>
     <string name="launcher_notes_label">Notizen</string>
-    <string name="launcher_music_summary">Fügt „Ordo Musik“ als eigenes Symbol neben Ordo in deiner App-Liste hinzu. Es öffnet den Musik-Player mit deiner letzten Warteschlange oder eine Liste deiner neuesten Audiodateien. Ausschalten entfernt das Symbol wieder.</string>
+    <string name="launcher_music_summary">Fügt „Ordo Musik“ als eigenes Symbol neben Ordo in deiner App-Liste hinzu. Es öffnet deine Musiksammlung mit Titeln, Alben, Interpreten und Ordnern und dem, was gerade läuft. Ausschalten entfernt das Symbol wieder.</string>
     <string name="launcher_coming_soon">Kommt, sobald die App fertig ist</string>
     <string name="launcher_icon_enabled_message">„%1$s“ ist eingeschaltet. Dein Startbildschirm braucht manchmal einen Moment, bis das Symbol erscheint.</string>
     <string name="launcher_icon_disabled_message">„%1$s“ ist ausgeschaltet. Das Symbol verschwindet, sobald dein Startbildschirm sich aktualisiert hat.</string>
     <string name="launcher_icon_failed">Das Symbol konnte nicht geändert werden.</string>
     <string name="launcher_music_start_title">Musik</string>
-    <string name="launcher_music_start_subtitle">Zuletzt geänderte Audiodateien</string>
-    <string name="launcher_music_start_empty">Noch keine Audiodateien gefunden. Wähle einen Ordner mit Musik.</string>
-    <string name="launcher_music_choose_folder">Ordner wählen</string>
+    <string name="music_tab_songs">Titel</string>
+    <string name="music_tab_albums">Alben</string>
+    <string name="music_tab_artists">Interpreten</string>
+    <string name="music_tab_folders">Ordner</string>
+    <string name="music_shuffle_all">Alle zufällig (%1$d)</string>
+    <string name="music_shuffle">Zufällig</string>
+    <string name="music_unknown_album">Unbekanntes Album</string>
+    <plurals name="music_song_count">
+        <item quantity="one">%d Titel</item>
+        <item quantity="other">%d Titel</item>
+    </plurals>
+    <string name="music_search_hint">Musik durchsuchen</string>
+    <string name="music_empty">Noch keine Musik gefunden. Lege Lieder in einen Ordner wie Music oder Download, dann erscheinen sie hier.</string>
+    <string name="music_no_results">Nichts gefunden für „%1$s“</string>
+    <string name="music_access_message">Erlaube den Speicherzugriff, damit Ordo deine Musik findet.</string>
+    <string name="music_now_playing">Läuft gerade: %1$s, %2$s. Öffnet den Player</string>
 </resources>

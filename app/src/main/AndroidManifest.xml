@@ -426,14 +426,18 @@
         </activity>
 
         <!--
-          Own entry in Recents (taskAffinity, documentLaunchMode). The alias is what the launcher shows, and it is
-          disabled here: only the user's switch in Settings > Built-in apps ever enables it.
+          Ordo Musik is its own app: own task (taskAffinity, documentLaunchMode), so Recents shows it as a separate card
+          with its own name and icon, and back from the library leaves it. The player opened from the library stays in
+          that task. The alias is what the launcher shows, and it is disabled here: only the user's switch in
+          Settings > Built-in apps ever enables it.
           -->
         <activity
             android:name="me.zhanghai.android.files.viewer.audio.MusicLauncherActivity"
             android:documentLaunchMode="intoExisting"
             android:exported="true"
+            android:icon="@mipmap/ic_launcher_music"
             android:label="@string/launcher_music_label"
+            android:roundIcon="@mipmap/ic_launcher_music"
             android:taskAffinity="me.zhanghai.android.files.music"
             android:theme="@style/Theme.MaterialFiles" />
 
