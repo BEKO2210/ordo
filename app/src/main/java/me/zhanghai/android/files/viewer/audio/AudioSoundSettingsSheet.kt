@@ -160,6 +160,17 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment() {
         createSleepOptions()
 
         binding.equalizerCurve.ringColor = palette.stage
+        // The curve area keeps the golden ratio, width : height = φ : 1, within its bounds.
+        binding.equalizerCurve.addOnLayoutChangeListener { curve, left, _, right, _, _, _, _, _ ->
+            val width = right - left
+            val target = (width / GOLDEN_RATIO).roundToInt().coerceIn(
+                resources.getDimensionPixelSize(R.dimen.klang_curve_min_height),
+                resources.getDimensionPixelSize(R.dimen.klang_curve_max_height)
+            )
+            if (width > 0 && curve.layoutParams.height != target) {
+                curve.post { curve.layoutParams = curve.layoutParams.apply { height = target } }
+            }
+        }
         binding.equalizerCurve.onGainChanged = { index, gain ->
             val bands = settings.bandGainsDb.toMutableList().apply { this[index] = gain }
             update { copy(preset = EqualizerPreset.CUSTOM, bandGainsDb = bands) }
@@ -246,7 +257,10 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment() {
             curve.setGains(preset.gainsDb)
             tileBinding.curve.setImageDrawable(curve)
             tileBinding.name.text = getString(presetLabel(preset))
-            tileBinding.root.layoutParams = LinearLayout.LayoutParams(dp(96), dp(92)).apply { marginEnd = dp(8) }
+            tileBinding.root.layoutParams = LinearLayout.LayoutParams(
+                resources.getDimensionPixelSize(R.dimen.klang_tile_w),
+                resources.getDimensionPixelSize(R.dimen.klang_tile_h)
+            ).apply { marginEnd = resources.getDimensionPixelSize(R.dimen.klang_space_sm) }
             tileBinding.root.isVisible = preset != EqualizerPreset.CUSTOM
             val tile = PresetTile(preset, tileBinding, curve)
             tileBinding.root.setOnClickListener {
@@ -277,7 +291,7 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment() {
         tile.curve.setColor(if (selected) palette.onSelected else palette.primary)
         tile.binding.check.imageTintList = ColorStateList.valueOf(palette.onSelected)
         tile.binding.check.isVisible = selected
-        val target = dp(if (selected) 28 else 16).toFloat()
+        val target = resources.getDimension(if (selected) R.dimen.klang_space_xl else R.dimen.klang_space_md)
         tile.spring?.cancel()
         if (animate && Motion.any && card.isLaidOut) {
             val property = object : FloatPropertyCompat<MaterialCardView>("tileRadius") {
@@ -556,7 +570,7 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment() {
         if (firstRender && initialTile != null) {
             initialTile.binding.root.post {
                 val scroller = binding.presets.parent as? HorizontalScrollView
-                scroller?.scrollTo(maxOf(0, initialTile.binding.root.left - dp(20)), 0)
+                scroller?.scrollTo(maxOf(0, initialTile.binding.root.left - resources.getDimensionPixelSize(R.dimen.klang_space_lg)), 0)
             }
         }
         renderers.forEach { it() }
@@ -673,6 +687,7 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment() {
     companion object {
         const val TAG = "audioSoundSettings"
         private const val DISABLED_ALPHA = 0.38f
+        private const val GOLDEN_RATIO = 1.618f
         private const val STRENGTH_STEP = 50
         private const val SLEEP_REFRESH_MS = 30_000L
     }

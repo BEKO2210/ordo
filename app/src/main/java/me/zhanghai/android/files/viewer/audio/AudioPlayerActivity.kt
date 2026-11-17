@@ -57,6 +57,9 @@ import me.zhanghai.android.files.databinding.AudioPlayerActivityBinding
 import me.zhanghai.android.files.player.AudioPlaybackService
 import me.zhanghai.android.files.player.AudioPlayerCommands
 import me.zhanghai.android.files.player.AudioQueueRequests
+import me.zhanghai.android.files.player.PlaybackStateStore
+import me.zhanghai.android.files.player.pathUriExists
+import me.zhanghai.android.files.player.restorableState
 import me.zhanghai.android.files.provider.common.readAttributes
 import me.zhanghai.android.files.ui.Motion
 
@@ -223,6 +226,7 @@ class AudioPlayerActivity : AppActivity() {
             (supportFragmentManager.findFragmentByTag(AudioSoundSettingsSheet.TAG)
                 as? AudioSoundSettingsSheet)?.refreshStatus()
             startLaunchQueue(newController)
+            resumeSavedQueue(newController)
             updateUi(newController)
         }, ContextCompat.getMainExecutor(this))
     }
@@ -277,6 +281,31 @@ class AudioPlayerActivity : AppActivity() {
         player.setMediaItems(queue.items, queue.startIndex, 0L)
         player.prepare()
         player.play()
+    }
+
+    /**
+     * Opened from the music icon: when the session holds nothing (the process was gone), the queue Ordo saved is
+     * put back, paused. A running session is left alone. Nothing left to resume leads to the start screen.
+     */
+    private fun resumeSavedQueue(player: MediaController) {
+        if (queueStarted || !intent.getBooleanExtra(EXTRA_RESUME, false)) return
+        queueStarted = true
+        if (player.mediaItemCount > 0) return
+        val context = applicationContext
+        lifecycleScope.launch {
+            val state = withContext(Dispatchers.IO) {
+                PlaybackStateStore(context).read()?.let { restorableState(it, ::pathUriExists) }
+            }
+            if (isFinishing || isDestroyed) return@launch
+            if (state == null) {
+                startActivity(MusicLauncherActivity.createStartIntent(this@AudioPlayerActivity))
+                finish()
+                return@launch
+            }
+            if (controller !== player || player.mediaItemCount > 0) return@launch
+            player.setMediaItems(state.paths.map { AudioPlaybackService.mediaItem(it) }, state.currentIndex, state.positionMs)
+            player.prepare()
+        }
     }
 
     private fun updateUi(player: Player) {
@@ -568,6 +597,7 @@ class AudioPlayerActivity : AppActivity() {
     companion object {
         private const val EXTRA_QUEUE_TOKEN =
             "me.zhanghai.android.files.viewer.audio.extra.QUEUE_TOKEN"
+        private const val EXTRA_RESUME = "me.zhanghai.android.files.viewer.audio.extra.RESUME"
         private const val STATE_QUEUE_STARTED = "queueStarted"
         private const val SEEK_MAX = 1_000
         // Once per displayed second, on the second: the times only change then, and a screen that redraws twice a
@@ -587,6 +617,10 @@ class AudioPlayerActivity : AppActivity() {
                 AudioQueueRequests.register(AudioQueueRequests.Request(paths, position))
             )
         }
+
+        /** For the music icon: shows the saved queue, paused, unless the session already holds one. */
+        fun createResumeIntent(context: Context): Intent =
+            Intent(context, AudioPlayerActivity::class.java).putExtra(EXTRA_RESUME, true)
 
         fun createSessionIntent(context: Context): Intent =
             Intent(context, AudioPlayerActivity::class.java)

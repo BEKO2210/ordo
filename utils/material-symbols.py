@@ -37,6 +37,8 @@ ICONS = {
     "archive_icon_white_24dp": "folder_zip",
     "arrow_end_icon_white_24dp": "chevron_right",
     "audio_icon_white_24dp": "music_note",
+    "ic_launcher_music_foreground": "music_note",
+    "settings_pictogram_builtin_apps": "widgets",
     "audio_equalizer_icon_24dp": "equalizer",
     "audio_tune_icon_24dp": "tune",
     "audio_speaker_icon_24dp": "speaker",

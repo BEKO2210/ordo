@@ -6,7 +6,7 @@ m3-progress-indicators, m3-shape-morph, m3-motion-physics). Hausregeln: keine Sc
 
 ## Kontext
 - Ordo-Musik-Player, modales Bottom Sheet „Klang“; Telefon (compact), Tablet hochkant (medium/expanded, Blatt max.
-  640 dp breit, zentriert), Tablet quer (max. 720 dp, zweispaltige Abschnitte).
+  610 dp ≈ 377 × φ breit, zentriert), Tablet quer ebenso; nur die Effekt-Karten stehen zweispaltig.
 - Container: `md.comp.sheet.bottom` – Fläche `surfaceContainerLow`, obere Ecken extra-large (28 dp), Griff oben.
 - **Zwei Hero-Momente, nicht mehr:** (1) die Equalizer-Bühne, (2) die Voreinstellungs-Kacheln.
 
@@ -15,7 +15,7 @@ m3-progress-indicators, m3-shape-morph, m3-motion-physics). Hausregeln: keine Sc
    (Equalizer an/aus). Darunter eine Zeile, die die Wahrheit sagt: „Aus“ · „Rock“ · „Eigene Einstellung“ ·
    „Auf diesem Gerät nicht verfügbar“ (bodyMedium, onSurfaceVariant).
 2. **Equalizer-Bühne (Hero 1)** – Karte `surfaceContainerHigh`, Ecken 28 dp, Innenabstand 20 dp.
-   - Kurve 200 dp hoch (Telefon) / 260 dp (Tablet). Raster: Linien bei 0, ±6, ±12 dB (outlineVariant, 1 dp);
+   - Kurve: Breite : Höhe = φ : 1 (Höhe = Kurvenbreite / 1,618, begrenzt auf 160–300 dp). Raster: Linien bei 0, ±6, ±12 dB (outlineVariant, 1 dp);
      dB-Beschriftung links (labelSmall); Frequenzen unten (31 · 62 · 125 · 250 · 500 · 1k · 2k · 4k · 8k · 16k).
    - Fläche unter der Kurve mit Verlauf primary 28 % → 0 %; Linie 3 dp primary, runde Enden, glatte Spline.
    - Griffe: 18 dp Kreis primary mit 2 dp Ring surface; Tippfläche 48 dp. **Halten 150 ms** → Griff wächst auf
@@ -23,8 +23,8 @@ m3-progress-indicators, m3-shape-morph, m3-motion-physics). Hausregeln: keine Sc
      Raster 0,5 dB, Haptik-Tick bei 0 dB. Loslassen → Feder zurück.
    - Aus-Zustand: Kurve und Griffe 38 % Deckkraft, nicht bedienbar, Text „Equalizer ist aus“ mittig.
    - Unten rechts in der Karte: kleiner Text-Knopf „Zurücksetzen“ (nur sichtbar, wenn nicht flach).
-3. **Voreinstellungen (Hero 2)** – waagerecht scrollende Kacheln 96 × 92 dp, Abstand 8 dp, Ecken 16 dp:
-   oben eine Mini-Kurve (dieselben 10 Werte als Piktogramm, 56 × 24 dp), darunter der Name (labelLarge).
+3. **Voreinstellungen (Hero 2)** – waagerecht scrollende Kacheln 89 × 55 dp (φ : 1), Abstand 8 dp, Ecken 13 dp:
+   oben eine Mini-Kurve (dieselben 10 Werte als Piktogramm, 34 × 21 dp), darunter der Name (labelLarge).
    Gewählt: `primaryContainer` / `onPrimaryContainer`, **Formwechsel** 16 → 28 dp Ecken (Shape-Morph, Feder),
    kleiner Haken oben rechts. „Eigene“ erscheint als letzte Kachel, sobald ein Griff bewegt wurde.
    Wechsel der Voreinstellung: Kurve morpht 320 ms (emphasized decelerate) zur neuen Form.
@@ -50,6 +50,15 @@ m3-progress-indicators, m3-shape-morph, m3-motion-physics). Hausregeln: keine Sc
    - Stille überspringen (Symbol `fast_forward`), Wenn andere Apps Ton spielen: verbundene Gruppe
      „Pausieren | Leiser“, Weiterspielen bei Kopfhörern (Symbol `headphones`) – je Zeile mit Symbol + Untertitel.
 8. Jede Zeile hat ein Symbol (Material Symbols rounded filled, über `utils/material-symbols.py` importiert).
+
+## Raster und Schrift (Goldener Schnitt)
+- Fibonacci-Stufen als `klang_space_*`: 5 · 8 · 13 · 21 · 34 dp – 8 zwischen verwandten Teilen, 13 in Karten (vertikal),
+  21 Kartenrand seitlich und Abstand zwischen Karten, 34 zwischen Abschnitten. Symbole in einer 34-dp-Spalte; alle
+  Texte eines Abschnitts beginnen an einer Kante (42 dp), alle Bedienelemente enden an einer Kante.
+- Zwei Textstufen je Zeile: Titel bodyLarge 16 sp (onSurface, eine Zeile), Info 12 sp (onSurfaceVariant, höchstens zwei
+  Zeilen, neben dem Schalter nie darunter). Werte labelLarge mit Tabellenziffern in einem 55-dp-Feld. Kein Wort wird
+  getrennt (`hyphenationFrequency=none`, `breakStrategy=simple`).
+- Effekt-Karten mindestens 89 dp hoch; − / + sichtbar 34 dp in 48 dp Tippfläche.
 
 ## Bewegung
 - Feder für Griffe und Formwechsel (Material-Motion-Physik: schnelle räumliche Feder), Kurven-Morph 320 ms,

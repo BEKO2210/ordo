@@ -11,6 +11,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.commit
 import me.zhanghai.android.files.R
 import me.zhanghai.android.files.databinding.SettingsFragmentBinding
 
@@ -26,6 +27,18 @@ class SettingsFragment : Fragment() {
             .also { binding = it }
             .root
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        if (childFragmentManager.findFragmentById(R.id.preferenceContainer) == null) {
+            val fragment = when ((requireActivity() as SettingsActivity).section) {
+                SettingsActivity.SECTION_LAUNCHER_ICONS -> LauncherIconsPreferenceFragment()
+                else -> SettingsPreferenceFragment()
+            }
+            childFragmentManager.commit { add(R.id.preferenceContainer, fragment) }
+        }
+    }
+
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
 
@@ -38,6 +51,7 @@ class SettingsFragment : Fragment() {
             SettingsActivity.SECTION_FILES -> R.string.settings_section_files
             SettingsActivity.SECTION_STORAGE -> R.string.settings_section_storage
             SettingsActivity.SECTION_TRASH -> R.string.settings_trash_title
+            SettingsActivity.SECTION_LAUNCHER_ICONS -> R.string.settings_section_launcher_icons
             else -> null
         }?.let { activity.title = getString(it) }
     }

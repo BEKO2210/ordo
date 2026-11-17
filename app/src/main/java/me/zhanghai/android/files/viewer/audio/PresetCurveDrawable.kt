@@ -14,10 +14,10 @@ import android.graphics.Rect
 import android.graphics.drawable.Drawable
 import me.zhanghai.android.files.player.AudioSettings
 
-/** A preset as a small picture: the ten band gains as one smooth line, 56 × 24 dp. */
+/** A preset as a small picture: the ten band gains as one smooth line, 34 × 21 dp. */
 class PresetCurveDrawable(density: Float) : Drawable() {
-    private val width = (56 * density).toInt()
-    private val height = (24 * density).toInt()
+    private val width = (34 * density).toInt()
+    private val height = (21 * density).toInt()
     private val inset = 3 * density
     private val gains = FloatArray(AudioSettings.BAND_COUNT)
     private val xs = FloatArray(AudioSettings.BAND_COUNT)
@@ -25,7 +25,7 @@ class PresetCurveDrawable(density: Float) : Drawable() {
     private val path = Path()
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
-        strokeWidth = 2.5f * density
+        strokeWidth = 2f * density
         strokeCap = Paint.Cap.ROUND
         strokeJoin = Paint.Join.ROUND
     }

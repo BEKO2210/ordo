@@ -42,7 +42,6 @@ import java.util.concurrent.Callable
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import androidx.media3.session.SessionCommands
-import java8.nio.file.Files
 import java8.nio.file.Paths
 import me.zhanghai.android.files.viewer.audio.AudioPlayerActivity
 
@@ -331,37 +330,21 @@ class AudioPlaybackService : MediaSessionService() {
     /** Drops queue entries whose file is gone and moves the start to the next one that is left. */
     private fun restorableState(state: PlaybackStateStore.State):
         MediaSession.MediaItemsWithStartPosition {
-        val kept = ArrayList<String>(state.paths.size)
-        var startIndex = -1
-        var currentSurvived = false
-        state.paths.forEachIndexed { index, pathUri ->
-            if (!exists(pathUri)) return@forEachIndexed
-            if (startIndex < 0 && index >= state.currentIndex) {
-                startIndex = kept.size
-                currentSurvived = index == state.currentIndex
-            }
-            kept += pathUri
-        }
-        if (kept.isEmpty()) {
+        val restored = restorableState(state, ::exists)
+        if (restored == null) {
             stateStore.clearQueue()
             return MediaSession.MediaItemsWithStartPosition(emptyList(), C.INDEX_UNSET, C.TIME_UNSET)
         }
-        if (startIndex < 0) startIndex = kept.lastIndex
-        val positionMs = if (currentSurvived) state.positionMs else 0L
-        if (kept.size != state.paths.size) {
-            stateStore.writeQueue(kept)
-            stateStore.writePosition(startIndex, positionMs)
+        if (restored.paths.size != state.paths.size) {
+            stateStore.writeQueue(restored.paths)
+            stateStore.writePosition(restored.currentIndex, restored.positionMs)
         }
-        return MediaSession.MediaItemsWithStartPosition(kept.map(::mediaItem), startIndex, positionMs)
+        return MediaSession.MediaItemsWithStartPosition(
+            restored.paths.map(::mediaItem), restored.currentIndex, restored.positionMs
+        )
     }
 
-    private fun exists(pathUri: String): Boolean =
-        try {
-            val uri = URI.create(pathUri)
-            uri.scheme != ContentResolver.SCHEME_CONTENT && Files.exists(Paths.get(uri))
-        } catch (_: Exception) {
-            false
-        }
+    private fun exists(pathUri: String): Boolean = pathUriExists(pathUri)
 
     private inner class SessionCallback : MediaSession.Callback {
         // Only Ordo's own player screen may hand the session items to open: their URIs are read with Ordo's own
