@@ -31,6 +31,8 @@
     <!-- inside cards horizontally, between cards, and the screen's side gutter -->
     <dimen name="space_card_h">@dimen/phi_21</dimen>
     <dimen name="space_gutter">@dimen/phi_21</dimen>
+    <!-- a row that scrolls to the screen edge out of a padded column cancels the gutter with this -->
+    <dimen name="space_gutter_negative">-21dp</dimen>
     <!-- between sections of a screen -->
     <dimen name="space_section">@dimen/phi_34</dimen>
 

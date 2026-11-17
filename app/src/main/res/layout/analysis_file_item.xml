@@ -7,46 +7,51 @@
     android:layout_height="wrap_content"
     android:background="@drawable/ordo_row_ripple"
     android:gravity="center_vertical"
-    android:minHeight="72dp"
+    android:minHeight="@dimen/phi_row_min"
     android:orientation="horizontal"
-    android:paddingHorizontal="16dp"
-    android:paddingVertical="8dp"
+    android:paddingHorizontal="@dimen/space_gutter"
+    android:paddingVertical="@dimen/space_item"
     android:stateListAnimator="@animator/ordo_row_press">
 
     <ImageView
         android:id="@+id/iconImage"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
+        android:layout_width="@dimen/phi_row_min"
+        android:layout_height="@dimen/phi_row_min"
         android:background="@drawable/analysis_thumb_background"
         android:importantForAccessibility="no" />
 
     <LinearLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
+        android:layout_marginStart="@dimen/space_card_v"
         android:layout_weight="1"
         android:orientation="vertical">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:weightSum="1">
 
             <TextView
                 android:id="@+id/nameText"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
+                android:layout_weight="0.618"
                 android:ellipsize="middle"
+                android:hyphenationFrequency="none"
                 android:singleLine="true"
                 android:textAppearance="?textAppearanceListItem" />
 
             <TextView
                 android:id="@+id/sizeText"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="12dp"
+                android:layout_marginStart="@dimen/space_item"
+                android:layout_weight="0.382"
                 android:fontFeatureSettings="tnum"
+                android:gravity="end"
+                android:hyphenationFrequency="none"
                 android:textAppearance="?textAppearanceListItem" />
         </LinearLayout>
 
@@ -54,25 +59,27 @@
             android:id="@+id/descriptionText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
+            android:layout_marginTop="3dp"
             android:ellipsize="end"
+            android:hyphenationFrequency="none"
             android:singleLine="true"
-            android:textAppearance="?textAppearanceListItemSecondary" />
+            android:textAppearance="?textAppearanceCaption"
+            android:textColor="?android:textColorSecondary" />
 
         <me.zhanghai.android.files.analysis.StackedBarView
             android:id="@+id/shareBar"
             android:layout_width="match_parent"
-            android:layout_height="6dp"
-            android:layout_marginTop="8dp"
+            android:layout_height="@dimen/space_related"
+            android:layout_marginTop="@dimen/space_item"
             android:importantForAccessibility="no"
             android:visibility="gone" />
     </LinearLayout>
 
     <ImageView
         android:id="@+id/chevronImage"
-        android:layout_width="24dp"
-        android:layout_height="24dp"
-        android:layout_marginStart="8dp"
+        android:layout_width="@dimen/phi_21"
+        android:layout_height="@dimen/phi_21"
+        android:layout_marginStart="@dimen/space_item"
         android:importantForAccessibility="no"
         android:src="@drawable/arrow_end_icon_white_24dp"
         android:visibility="gone"

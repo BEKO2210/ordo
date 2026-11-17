@@ -22,6 +22,7 @@
         <item name="colorOnSurface">@color/ordo_on_surface</item>
         <item name="colorSurfaceVariant">@color/ordo_surface_variant</item>
         <item name="colorOnSurfaceVariant">@color/ordo_on_surface_variant</item>
+        <item name="android:textColorSecondary">@color/ordo_secondary_text</item>
         <item name="colorOutline">@color/ordo_outline</item>
         <item name="colorOutlineVariant">@color/ordo_outline_variant</item>
         <item name="colorSurfaceContainerLowest">@color/ordo_surface_container_lowest</item>
@@ -119,6 +120,7 @@
         <item name="colorOnSurface">@color/ordo_dark_on_surface</item>
         <item name="colorSurfaceVariant">@color/ordo_dark_surface_variant</item>
         <item name="colorOnSurfaceVariant">@color/ordo_dark_on_surface_variant</item>
+        <item name="android:textColorSecondary">@color/ordo_secondary_text</item>
         <item name="colorOutline">@color/ordo_dark_outline</item>
         <item name="colorOutlineVariant">@color/ordo_dark_outline_variant</item>
         <item name="colorSurfaceContainerLowest">@color/ordo_dark_surface_container_lowest</item>

@@ -11,9 +11,10 @@ enum class FileItemSize(
     val listIconSizeDp: Int,
     private val gridColumnWidthDp: Int
 ) {
-    SMALL(56, 40, 24, 90),
-    MEDIUM(72, 40, 24, 120),
-    LARGE(88, 56, 32, 180);
+    // Heights are minimums; 34 and 55 are Fibonacci steps of the golden ratio, see docs/DESIGN-SYSTEM.md.
+    SMALL(55, 34, 34, 89),
+    MEDIUM(68, 34, 34, 120),
+    LARGE(89, 55, 34, 180);
 
     fun gridSpanCount(widthDp: Int): Int = (widthDp / gridColumnWidthDp).coerceAtLeast(2)
 

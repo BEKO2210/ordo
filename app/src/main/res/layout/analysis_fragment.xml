@@ -66,7 +66,8 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:gravity="center"
-                android:padding="@dimen/screen_edge_margin"
+                android:hyphenationFrequency="none"
+                android:padding="@dimen/space_gutter"
                 android:text="@string/analysis_empty"
                 android:textAppearance="?textAppearanceListItem"
                 android:visibility="gone" />
@@ -79,10 +80,10 @@
             android:background="?colorAppBarSurface"
             android:gravity="center_vertical"
             android:orientation="horizontal"
-            android:paddingStart="@dimen/screen_edge_margin"
-            android:paddingTop="8dp"
-            android:paddingEnd="@dimen/screen_edge_margin"
-            android:paddingBottom="8dp"
+            android:paddingStart="@dimen/space_gutter"
+            android:paddingTop="@dimen/space_item"
+            android:paddingEnd="@dimen/space_gutter"
+            android:paddingBottom="@dimen/space_item"
             android:visibility="gone">
 
             <TextView
@@ -96,6 +97,7 @@
                 android:id="@+id/deleteButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:minHeight="@dimen/phi_row_min"
                 android:text="@string/analysis_delete" />
         </LinearLayout>
     </LinearLayout>

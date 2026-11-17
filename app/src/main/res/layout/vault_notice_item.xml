@@ -12,29 +12,33 @@
     style="@style/Widget.Ordo.HomeCard"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginHorizontal="@dimen/screen_edge_margin"
-    android:layout_marginTop="8dp"
-    android:layout_marginBottom="8dp">
+    android:layout_marginHorizontal="@dimen/space_gutter"
+    android:layout_marginTop="@dimen/space_item"
+    android:layout_marginBottom="@dimen/space_item">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:padding="16dp">
+        android:paddingHorizontal="@dimen/space_card_h"
+        android:paddingVertical="@dimen/space_card_v">
 
         <ImageView
-            android:layout_width="24dp"
-            android:layout_height="24dp"
+            android:layout_width="@dimen/phi_icon_box"
+            android:layout_height="@dimen/phi_icon_box"
             android:importantForAccessibility="no"
+            android:padding="@dimen/space_related"
             android:src="@drawable/information_icon_white_24dp"
             app:tint="?colorControlNormal" />
 
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
+            android:layout_marginStart="@dimen/space_item"
+            android:hyphenationFrequency="none"
             android:layout_weight="1"
             android:text="@string/vault_notice"
-            android:textAppearance="?textAppearanceBody2" />
+            android:textColor="?android:textColorSecondary"
+            android:textAppearance="?textAppearanceCaption" />
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

@@ -219,11 +219,10 @@ class FileListAdapter(
         val context = itemView.context
         val size = viewType.size
         if (!viewType.isGrid) {
-            itemLayout.updateLayoutParams {
-                height = context.dpToDimensionPixelSize(size.listItemHeightDp)
-            }
-            // The icon layout has 4dp of padding around the thumbnail.
-            val iconLayoutSize = context.dpToDimensionPixelSize(size.listThumbnailSizeDp + 8)
+            // A minimum, so that two lines of text at a large font size grow the row instead of being cut.
+            itemLayout.minimumHeight = context.dpToDimensionPixelSize(size.listItemHeightDp)
+            // The icon layout is the tap box: the thumbnail with 21 dp around it.
+            val iconLayoutSize = context.dpToDimensionPixelSize(size.listThumbnailSizeDp + 21)
             iconLayout.updateLayoutParams {
                 width = iconLayoutSize
                 height = iconLayoutSize
@@ -244,6 +243,9 @@ class FileListAdapter(
             iconLayout.isVisible = false
             menuButton.isVisible = false
             val margin = context.dpToDimensionPixelSize(8)
+            val nameRowMinHeight = context.dpToDimensionPixelSize(55)
+            val nameRowGap = context.dpToDimensionPixelSize(5)
+            val namePadding = context.dpToDimensionPixelSize(3)
             // The horizontal spacing comes from the item decoration in FileListFragment.
             (thumbnailImage.parent as AspectRatioFrameLayout).apply {
                 ratio = 1f
@@ -253,11 +255,11 @@ class FileListAdapter(
                     topMargin = margin
                 }
             }
-            (nameText.parent as View).updateLayoutParams<ViewGroup.MarginLayoutParams> {
-                height = context.dpToDimensionPixelSize(44)
-                bottomMargin = margin / 2
+            (nameText.parent as View).apply {
+                minimumHeight = nameRowMinHeight
+                updateLayoutParams<ViewGroup.MarginLayoutParams> { bottomMargin = nameRowGap }
             }
-            nameText.updatePaddingRelative(start = margin / 4, end = margin / 4)
+            nameText.updatePaddingRelative(start = namePadding, end = namePadding)
             if (size == FileItemSize.SMALL) {
                 // Keeps typical file names from breaking in the middle of the extension.
                 nameText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12f)

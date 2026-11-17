@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright (c) 2026 Ordo contributors
+  ~ SPDX-License-Identifier: GPL-3.0-or-later
+  -->
+
+<!-- Secondary text in Ordo's Material 3 themes: onSurfaceVariant instead of the library's outline colour, which
+     reaches only ~3.9:1 on light cards (WCAG asks 4.5:1 for text). -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_enabled="false" android:alpha="0.38" android:color="?attr/colorOnSurface" />
+    <item android:color="?attr/colorOnSurfaceVariant" />
+</selector>
