@@ -114,6 +114,21 @@ class StereoEffectProcessorsTest {
     }
 
     @Test
+    fun fastTanhStaysCloseToTanhAndSaturates() {
+        var x = -4f
+        while (x <= 4f) {
+            assertEquals(kotlin.math.tanh(x), WarmthAudioProcessor.fastTanh(x), 0.03f)
+            val step = 0.001f
+            val slope = (WarmthAudioProcessor.fastTanh(x + step) - WarmthAudioProcessor.fastTanh(x - step)) / (2 * step)
+            assertEquals(slope, WarmthAudioProcessor.fastTanhSlope(x), 0.01f)
+            assertTrue(WarmthAudioProcessor.fastTanhSlope(x) >= 0f)
+            x += 0.05f
+        }
+        assertEquals(1f, WarmthAudioProcessor.fastTanh(3f), 0f)
+        assertEquals(-1f, WarmthAudioProcessor.fastTanh(-10f), 0f)
+    }
+
+    @Test
     fun crossfeedFeedsTheOtherEarAndKeepsTheCentre() {
         val crossfeed = CrossfeedAudioProcessor().apply { level = 3 }.configured(true)
         val leftOnly = crossfeed.run(steady(10_000, 0, 4_000)).takeLast(2)
