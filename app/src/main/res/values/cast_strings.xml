@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later -->
+<resources>
+    <string name="cast_title">Play on a TV</string>
+    <string name="cast_searching">Looking for TVs and speakers on this Wi-Fi…</string>
+    <string name="cast_none_found">No TV found yet. Your phone and TV need to be on the same Wi-Fi.</string>
+    <string name="cast_this_phone">This phone</string>
+    <string name="cast_this_phone_summary">Plays here</string>
+    <string name="cast_connecting">Connecting…</string>
+    <string name="cast_playing_here">Playing now</string>
+    <string name="cast_stop">Stop casting</string>
+    <string name="cast_chip">Playing on %1$s</string>
+    <string name="cast_chip_connecting">Connecting to %1$s…</string>
+    <string name="cast_privacy">Ordo shares only the song that is playing, only with this device and only while it plays. Nothing leaves your Wi-Fi.</string>
+    <string name="cast_effects_note">Sound effects only work on this phone.</string>
+    <string name="cast_error_connect">Couldn\'t reach %1$s.</string>
+    <string name="cast_error_identity">%1$s identified itself differently than last time, so Ordo didn\'t connect.</string>
+    <string name="cast_error_lost">Lost the connection to %1$s. Your music is paused here.</string>
+</resources>

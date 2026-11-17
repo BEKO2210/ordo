@@ -217,8 +217,12 @@ Alle Bilder oben stammen aus `utils/readme-shots.sh`, aufgenommen im Android-16-
   Bass sanft an, je leiser die Systemlautstärke ist. Jede Karte im unteren Klang-Blatt
   zeigt ein kleines lebendiges Bild davon, was sie tut; es steht still, wenn Ordos Animationen aus sind
 - „Abspielen auf …“ im Player öffnet die Ausgabe-Auswahl von Android: Bluetooth-Kopfhörer und -Lautsprecher, Kabel und
-  Cast-Geräte, ohne Google-Dienste (ab Android 11; auf Android 6–10 öffnen sich die Bluetooth-Einstellungen). Musik an
-  Chromecast, Fernseher und Receiver zu streamen ist geplant, siehe [docs/STREAMING-RECHERCHE.md](docs/STREAMING-RECHERCHE.md)
+  Cast-Geräte, ohne Google-Dienste (ab Android 11; auf Android 6–10 öffnen sich die Bluetooth-Einstellungen)
+- „Auf Fernseher abspielen“ streamt deine Musik an einen Chromecast oder Google TV im selben WLAN, mit Ordos eigenem
+  Sender und ohne Google-Dienste: Benachrichtigung, Sperrbildschirm und Lautstärketasten steuern dann den Fernseher.
+  Ordo gibt nur den laufenden Titel frei, unter einer Zufallsadresse, nur für diesen Fernseher und nur solange er
+  läuft; Klangeffekte bleiben auf dem Handy. Siehe [docs/AUDIO-PLAYER.md](docs/AUDIO-PLAYER.md#streaming-an-chromecast-und-google-tv).
+  Fernseher und Receiver per DLNA sind geplant, siehe [docs/STREAMING-RECHERCHE.md](docs/STREAMING-RECHERCHE.md)
 - Ordo Musik als eigene Musik-App mit eigener Karte in den Letzten Apps: deine ganze Musik in den Reitern Titel,
   Alben, Interpreten und Ordner, mit großem Titel, der beim Scrollen in die Leiste wandert, Suche, „Alle zufällig“,
   Albumseiten mit großem Cover und den Titeln in ihrer Reihenfolge mit „Abspielen“ und „Zufällig“, runden

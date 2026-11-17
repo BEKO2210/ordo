@@ -44,6 +44,7 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import androidx.media3.session.SessionCommands
 import java8.nio.file.Paths
+import me.zhanghai.android.files.player.cast.CastManager
 import me.zhanghai.android.files.viewer.audio.AudioPlayerActivity
 
 @UnstableApi
@@ -292,6 +293,7 @@ class AudioPlaybackService : MediaSessionService() {
                 )
             )
             .build()
+        CastManager.attach(this, mediaSession)
     }
 
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession =
@@ -303,6 +305,8 @@ class AudioPlaybackService : MediaSessionService() {
     }
 
     override fun onDestroy() {
+        // Ends casting first, so the session holds the local player again when it is released.
+        CastManager.detach()
         handler.removeCallbacks(savePosition)
         handler.removeCallbacks(sleepTimer)
         runCatching { unregisterReceiver(noisyReceiver) }
