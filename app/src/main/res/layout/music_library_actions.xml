@@ -21,7 +21,8 @@
         android:minHeight="@dimen/phi_55"
         android:text="@string/audio_player_play"
         app:cornerRadius="@dimen/phi_radius_l"
-        app:icon="@drawable/play_icon_24dp" />
+        app:icon="@drawable/play_icon_24dp"
+        app:iconGravity="textStart" />
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/shuffle"
@@ -32,5 +33,6 @@
         android:minHeight="@dimen/phi_55"
         android:text="@string/audio_player_shuffle"
         app:cornerRadius="@dimen/phi_radius_l"
-        app:icon="@drawable/shuffle_icon_24dp" />
+        app:icon="@drawable/shuffle_icon_24dp"
+        app:iconGravity="textStart" />
 </LinearLayout>

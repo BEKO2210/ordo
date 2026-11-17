@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later -->
-<!-- The music library: a large title that collapses into the toolbar, tabs, one list, and the mini player below. -->
+<!-- The music library: a large start-aligned title that collapses into the toolbar (One UI), tabs with a pill that
+     stay pinned, one list, and the mini player below it, so no row ever hides behind the player. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
@@ -27,7 +28,8 @@
                 android:layout_height="@dimen/music_header_height"
                 app:collapsedTitleTextAppearance="@style/TextAppearance.Ordo.MusicTitle.Collapsed"
                 app:contentScrim="?colorSurface"
-                app:expandedTitleGravity="center"
+                app:expandedTitleGravity="start|bottom"
+                app:expandedTitleMarginBottom="@dimen/phi_13"
                 app:expandedTitleMarginEnd="@dimen/space_gutter"
                 app:expandedTitleMarginStart="@dimen/space_gutter"
                 app:expandedTitleTextAppearance="@style/TextAppearance.Ordo.MusicTitle"
@@ -51,7 +53,12 @@
                 android:layout_height="wrap_content"
                 android:background="?colorSurface"
                 app:tabGravity="fill"
-                app:tabMode="fixed" />
+                app:tabIndicator="@drawable/music_tab_indicator"
+                app:tabIndicatorFullWidth="true"
+                app:tabIndicatorGravity="stretch"
+                app:tabInlineLabel="@bool/music_tabs_inline"
+                app:tabMode="fixed"
+                app:tabTextAppearance="?textAppearanceBody2" />
         </com.google.android.material.appbar.AppBarLayout>
 
         <androidx.recyclerview.widget.RecyclerView

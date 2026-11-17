@@ -94,9 +94,11 @@ What comes next is in the [living roadmap](docs/ROADMAP-LIVE.md): every goal has
   without Google services (Android 11 and later; Android 6–10 opens the Bluetooth settings). Streaming music to
   Chromecast, TVs and receivers is planned, see [docs/STREAMING-RECHERCHE.md](docs/STREAMING-RECHERCHE.md) (German)
 - Ordo Music, a music app of its own with its own card in Recents: all your music in the tabs Songs, Albums, Artists
-  and Folders, with a large title that folds into the bar as you scroll, search, “Shuffle all”, album pages in track
-  order with Play and Shuffle, and a mini player at the bottom for what is playing. Songs come from Android’s media
-  library (only what the player plays; hidden folders only when you show hidden files)
+  and Folders, with a large title that folds into the bar as you scroll, search, “Shuffle all”, album pages with a
+  big cover and the songs in track order with Play and Shuffle, round artist pictures and folder tiles made of album
+  covers (a calm colour with initials where a cover is missing), and a mini player with play/pause and next at the
+  bottom. Songs come from Android’s media library (only what the player plays; hidden folders only when you show
+  hidden files)
 - Optional own app icon for Ordo Music (Settings › Built-in apps): off by default, switched on and off only by you, see [docs/AUDIO-PLAYER.md](docs/AUDIO-PLAYER.md)
 
 **Keep files safe**

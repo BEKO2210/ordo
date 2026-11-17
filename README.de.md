@@ -96,9 +96,10 @@ Was als Nächstes kommt, steht in der [lebenden Roadmap](docs/ROADMAP-LIVE.md): 
   Chromecast, Fernseher und Receiver zu streamen ist geplant, siehe [docs/STREAMING-RECHERCHE.md](docs/STREAMING-RECHERCHE.md)
 - Ordo Musik als eigene Musik-App mit eigener Karte in den Letzten Apps: deine ganze Musik in den Reitern Titel,
   Alben, Interpreten und Ordner, mit großem Titel, der beim Scrollen in die Leiste wandert, Suche, „Alle zufällig“,
-  Albumseiten in Titelreihenfolge mit „Abspielen“ und „Zufällig“ und einem Mini-Player unten für das, was gerade
-  läuft. Die Titel kommen aus Androids Mediensammlung (nur was der Player abspielt; versteckte Ordner nur, wenn du
-  versteckte Dateien zeigst)
+  Albumseiten mit großem Cover und den Titeln in ihrer Reihenfolge mit „Abspielen“ und „Zufällig“, runden
+  Interpretenbildern und Ordnerkacheln aus Albumcovern (wo ein Cover fehlt, eine ruhige Farbe mit Initialen) und
+  einem Mini-Player mit Play/Pause und Weiter unten. Die Titel kommen aus Androids Mediensammlung (nur was der
+  Player abspielt; versteckte Ordner nur, wenn du versteckte Dateien zeigst)
 - Eigenes App-Symbol für Ordo Musik (Einstellungen › Eingebaute Apps): standardmäßig aus, nur du schaltest es ein und aus, siehe [docs/AUDIO-PLAYER.md](docs/AUDIO-PLAYER.md)
 
 **Dateien schützen**
