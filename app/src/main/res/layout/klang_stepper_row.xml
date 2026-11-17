@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later -->
-<!-- Label, value pill and connected minus / plus: one band, the pre-gain, the normalisation pre-amp. -->
+<!-- Label, value pill and connected minus / plus: one band, the pre-gain, the normalisation pre-amp.
+     A single long word ("Vorverstärkung") shrinks to fit instead of breaking inside the word. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:gravity="center_vertical"
@@ -13,7 +15,11 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-        android:paddingEnd="@dimen/klang_space_sm" />
+        android:maxLines="1"
+        android:paddingEnd="@dimen/klang_space_sm"
+        app:autoSizeMaxTextSize="16sp"
+        app:autoSizeMinTextSize="12sp"
+        app:autoSizeTextType="uniform" />
     <TextView
         android:id="@+id/stepValue"
         style="@style/Widget.Ordo.Klang.Value"
