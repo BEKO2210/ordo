@@ -983,7 +983,7 @@
     <string name="audio_sound_strength">Stärke</string>
     <string name="audio_sound_normalization_heading">Lautstärke</string>
     <string name="audio_sound_normalization">Lautstärke angleichen</string>
-    <string name="audio_sound_normalization_summary">ReplayGain / R128 aus den Dateiangaben</string>
+    <string name="audio_sound_normalization_summary">ReplayGain-/R128-Tags, ohne Tags einmal gemessen</string>
     <string name="audio_sound_normalization_preamp">Vorverstärkung</string>
     <string name="audio_sound_playback_heading">Wiedergabe</string>
     <string name="audio_output_title">Abspielen auf …</string>

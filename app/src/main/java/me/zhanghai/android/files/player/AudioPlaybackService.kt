@@ -61,6 +61,9 @@ class AudioPlaybackService : MediaSessionService() {
     private var persistedIndices = IntArray(0)
     private var soundSettings = AudioSettings()
     private var replayGain: ReplayGainInfo? = null
+    private lateinit var loudness: LoudnessAnalysis
+    // The item whose loudness is being measured, so a late result for an earlier song is dropped.
+    private var measuring: String? = null
     private var sleepDeadlineElapsedMs: Long? = null
     private var sleepSelectionMinutes = 0
     private var sleepAtEndOfTrack = false
@@ -136,6 +139,11 @@ class AudioPlaybackService : MediaSessionService() {
             soundEffects.attach(audioSessionId)
         }
 
+        // Paused (after its fade), stopped, ended or waiting after a seek: nothing is heard, the effects may switch.
+        override fun onIsPlayingChanged(isPlaying: Boolean) {
+            soundEffects.setAudible(isPlaying)
+        }
+
         override fun onEvents(player: Player, events: Player.Events) {
             if (events.contains(Player.EVENT_TIMELINE_CHANGED)) {
                 persistQueue()
@@ -164,6 +172,7 @@ class AudioPlaybackService : MediaSessionService() {
             if (events.contains(Player.EVENT_TRACKS_CHANGED)) {
                 replayGain = ReplayGainMetadata.fromTracks(player.currentTracks)
                 soundEffects.apply(soundSettings, replayGain)
+                measureLoudnessIfUntagged()
             }
             if (events.contains(Player.EVENT_PLAY_WHEN_READY_CHANGED)) {
                 if (player.playWhenReady) audioFocusController.requestForPlayback()
@@ -182,8 +191,12 @@ class AudioPlaybackService : MediaSessionService() {
     override fun onCreate() {
         super.onCreate()
         stateStore = PlaybackStateStore(this)
+        loudness = LoudnessAnalysis(this)
         soundSettings = AudioSettingsStore.read()
-        soundEffects = SoundEffectController()
+        // A platform effect is only ever switched in silence, or inside a short dip while music plays.
+        soundEffects = SoundEffectController(handler) { action ->
+            if (::player.isInitialized && player.isPlaying) fader.duck(action) else fader.immediate(action)
+        }
         klang.apply(soundSettings, headphonesConnected())
         val audioAttributes = AudioAttributes.Builder()
             .setUsage(C.USAGE_MEDIA)
@@ -288,6 +301,38 @@ class AudioPlaybackService : MediaSessionService() {
         // https://developer.android.com/reference/androidx/media3/exoplayer/ExoPlayer#setSkipSilenceEnabled(boolean)
         player.skipSilenceEnabled = soundSettings.skipSilence
         soundEffects.apply(soundSettings, replayGain)
+        measureLoudnessIfUntagged()
+    }
+
+    /**
+     * Volume levelling without tags: a local file is measured once after ITU-R BS.1770 in the background
+     * ([LoudnessAnalysis], cached); the gain then glides in like any other change.
+     */
+    private fun measureLoudnessIfUntagged() {
+        if (!soundSettings.normalizationEnabled || replayGain != null) return
+        val uri = player.currentMediaItem?.localConfiguration?.uri ?: return
+        if (uri.scheme != ContentResolver.SCHEME_FILE) return
+        val path = uri.path ?: return
+        if (measuring == path) return
+        val file = java.io.File(path)
+        loudness.cached(file)?.let {
+            replayGain = it
+            soundEffects.apply(soundSettings, replayGain)
+            return
+        }
+        measuring = path
+        ioExecutor.execute {
+            val result = loudness.measure(file)
+            handler.post {
+                if (measuring != path) return@post
+                measuring = null
+                if (result != null && player.currentMediaItem?.localConfiguration?.uri?.path == path &&
+                    replayGain == null) {
+                    replayGain = result
+                    soundEffects.apply(soundSettings, replayGain)
+                }
+            }
+        }
     }
 
     private fun updatePlayerVolume() {
@@ -446,6 +491,7 @@ class AudioPlaybackService : MediaSessionService() {
                                 AudioPlayerCommands.EXTRA_BASS_AVAILABLE to status.bassBoostAvailable,
                                 AudioPlayerCommands.EXTRA_CLARITY_AVAILABLE to status.clarityAvailable,
                                 AudioPlayerCommands.EXTRA_HEADPHONES to headphonesConnected(),
+                                AudioPlayerCommands.EXTRA_HIGHS_CUTOFF to klang.highs.detectedCutoffHz,
                                 AudioPlayerCommands.EXTRA_SLEEP_ACTIVE to
                                     (sleepDeadlineElapsedMs != null || sleepAtEndOfTrack),
                                 AudioPlayerCommands.EXTRA_SLEEP_MINUTES to sleepSelectionMinutes,
