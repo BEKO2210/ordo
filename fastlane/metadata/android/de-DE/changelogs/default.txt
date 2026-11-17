@@ -1,6 +1,6 @@
 Neu in dieser Testversion:
-• Einstellungen mit Bildern: Sonne und Mond beim Nachtmodus, Vorschau bei Animationen und Suchleiste, ein Symbol an jedem Eintrag
-• Akzentfarbe mit Live-Vorschau
-• Menüs, Dialoge und Seitenmenü öffnen und schließen ruhig und einheitlich; alles folgt Einstellungen › Aussehen › Animationen
-• Weiter zum Ausprobieren: neue KI-Befehle (Einstellungen › KI-Assistent)
+• Musik-Player: Lieder direkt in Ordo hören, mit Warteschlange, Cover und Steuerung im Hintergrund
+• „Klang“: Equalizer mit 10 Bändern und Voreinstellungen, Bass, Raumklang, Lautstärke angleichen, Tempo und Einschlaf-Timer
+• Eigenes Symbol „Ordo Musik“ für den Startbildschirm (Einstellungen › Eingebaute Apps), standardmäßig aus
+• Alle Abstände folgen dem Goldenen Schnitt
 Rückmeldungen gern an: nullmesh@protonmail.com
