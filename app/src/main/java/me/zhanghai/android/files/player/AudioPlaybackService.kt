@@ -66,6 +66,15 @@ class AudioPlaybackService : MediaSessionService() {
     private var sleepAtEndOfTrack = false
     private var sleepVolume = 1f
     private var focusVolume = 1f
+    private var transportVolume = 1f
+    // Gentle play, pause and stop (TransportFader); a pulled-out headphone still pauses at once.
+    private val fader = TransportFader(
+        { SystemClock.uptimeMillis() }, { action, delay -> handler.postDelayed(action, delay) },
+        { handler.removeCallbacks(it) }
+    ) {
+        transportVolume = it
+        if (::player.isInitialized) updatePlayerVolume()
+    }
     private var pausedForDisconnectedHeadphones = false
     private val savePosition = object : Runnable {
         override fun run() {
@@ -98,7 +107,8 @@ class AudioPlaybackService : MediaSessionService() {
         override fun onReceive(context: Context, intent: Intent) {
             if (intent.action == AudioManager.ACTION_AUDIO_BECOMING_NOISY && player.isPlaying) {
                 pausedForDisconnectedHeadphones = true
-                player.pause()
+                // At once, no fade: the speaker must not keep playing aloud for another 120 ms.
+                fader.immediate { player.pause() }
             }
         }
     }
@@ -208,9 +218,22 @@ class AudioPlaybackService : MediaSessionService() {
             ContextCompat.RECEIVER_EXPORTED
         )
         getSystemService(AudioManager::class.java).registerAudioDeviceCallback(audioDeviceCallback, handler)
-        // The file name is only the display title until the file's own title tag is read; the system media controls
-        // prefer the display title, so they showed "song.mp3" instead of the song's name.
+        // Play, pause and stop from the notification, the lock screen, headphone buttons or Ordo's own screen come
+        // through here and fade instead of cutting the wave off mid-way (an audible crack). Seeks need nothing:
+        // Media3 ramps the first 20 ms of every new AudioTrack itself.
         val sessionPlayer = object : ForwardingPlayer(player) {
+            override fun play() = fader.fadeIn { player.play() }
+
+            override fun pause() = if (player.isPlaying) fader.fadeOutThen { player.pause() }
+            else fader.immediate { player.pause() }
+
+            override fun stop() = if (player.isPlaying) fader.fadeOutThen { player.stop() }
+            else fader.immediate { player.stop() }
+
+            override fun setPlayWhenReady(playWhenReady: Boolean) = if (playWhenReady) play() else pause()
+
+            // The file name is only the display title until the file's own title tag is read; the system media
+            // controls prefer the display title, so they showed "song.mp3" instead of the song's name.
             override fun getMediaMetadata(): MediaMetadata {
                 val metadata = super.getMediaMetadata()
                 val title = metadata.title?.takeIf { it.isNotBlank() } ?: return metadata
@@ -268,7 +291,7 @@ class AudioPlaybackService : MediaSessionService() {
     }
 
     private fun updatePlayerVolume() {
-        player.volume = (sleepVolume * focusVolume).coerceIn(0f, 1f)
+        player.volume = (sleepVolume * focusVolume * transportVolume).coerceIn(0f, 1f)
     }
 
     private fun setSleepTimer(minutes: Int, endOfTrack: Boolean) {
