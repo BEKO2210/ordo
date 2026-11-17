@@ -52,3 +52,15 @@ direkt darunter, höchstens zwei Zeilen, nie unter einem Bedienelement. Silbentr
 
 Jeder Schritt: Abstände auf die Reihe umstellen, auf Telefon (412 dp) und Tablet hochkant und quer messen
 (Symbol-Text-Versatz, Kanten), die automatischen Prüfungen laufen lassen, Bilder vorher/nachher.
+
+### Startseite (umgestellt)
+
+- Abstände, Größen und Rundungen der Startseite nehmen nur noch die φ-Reihe: Bildschirmrand 21 dp (Listenrand
+  `phi_13` + Kartenrand `phi_8`), Abschnitte 34 dp, Karteninnenrand 13/21 dp, Kacheln 8 dp.
+- Kategorie-, Schnellzugriff- und „Zuletzt“-Kacheln sind φ : 1 breit zu hoch (`PhiTileCardView`, `PhiImageView`); braucht
+  der Inhalt mehr Höhe (große Schrift, schmales Telefon), wächst die Kachel mit, statt etwas abzuschneiden.
+- Speicherkarte: Beschriftung zu Prozentwert 61,8 : 38,2; „Öffnen“ und „Analysieren“ bleiben gleich breit.
+- Rundungen: Karten 21 dp, Kacheln 13 dp, Suchleiste 21 dp (Höhe 48 dp bleibt). Keine Silbentrennung auf der Startseite.
+- Spaltenzahlen (3/9, 4/6/8, 3/5/8) bleiben; die Inhaltsbreite ist auf der Startseite **nicht** auf 610 dp begrenzt,
+  weil die neun Kategorien ab 840 dp in einer Reihe stehen und sonst unter die Lesbarkeit schrumpfen.
+- Titel in Kacheln bleiben bei 14 sp (Subtitle2), damit „Dokumente“ auf 360 dp nicht abgeschnitten wird.

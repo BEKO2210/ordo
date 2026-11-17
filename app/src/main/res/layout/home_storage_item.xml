@@ -5,7 +5,8 @@
     style="@style/Widget.Ordo.HomeCard"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="4dp"
+    android:layout_margin="@dimen/home_card_margin"
+    app:cardCornerRadius="@dimen/phi_radius_l"
     android:clickable="true"
     android:focusable="true"
     android:foreground="?selectableItemBackground"
@@ -14,7 +15,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="12dp">
+        android:paddingHorizontal="@dimen/space_card_h"
+        android:paddingVertical="@dimen/space_card_v">
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -22,38 +24,42 @@
             android:orientation="horizontal">
             <ImageView
                 android:id="@+id/iconImage"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
+                android:layout_width="@dimen/space_related4"
+                android:layout_height="@dimen/space_related4"
                 android:background="@drawable/home_icon_circle"
                 android:contentDescription="@null"
-                android:padding="7dp" />
+                android:padding="@dimen/phi_5" />
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="12dp"
-                android:layout_weight="1"
+                android:layout_marginStart="@dimen/phi_13"
+                android:layout_weight="0.618"
                 android:orientation="vertical">
                 <TextView
                     android:id="@+id/nameText"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:ellipsize="end"
-                    android:maxLines="1"
-                    android:textAppearance="?textAppearanceSubtitle2" />
+                    android:hyphenationFrequency="none"
+                    android:maxLines="2"
+                    android:textAppearance="?textAppearanceBody1" />
                 <TextView
                     android:id="@+id/descriptionText"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:ellipsize="end"
-                    android:maxLines="1"
+                    android:layout_marginTop="@dimen/space_related"
+                    android:hyphenationFrequency="none"
+                    android:maxLines="2"
                     android:textAppearance="?textAppearanceCaption"
                     android:textColor="?android:textColorSecondary" />
             </LinearLayout>
             <TextView
                 android:id="@+id/percentText"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="12dp"
+                android:layout_marginStart="@dimen/phi_8"
+                android:layout_weight="0.382"
+                android:gravity="end"
+                android:hyphenationFrequency="none"
                 android:textAppearance="?textAppearanceHeadline6"
                 android:textColor="?colorPrimary"
                 android:textStyle="bold" />
@@ -61,49 +67,50 @@
         <me.zhanghai.android.files.analysis.StackedBarView
             android:id="@+id/usageBar"
             android:layout_width="match_parent"
-            android:layout_height="10dp"
-            android:layout_marginTop="14dp"
+            android:layout_height="@dimen/phi_8"
+            android:layout_marginTop="@dimen/phi_13"
             android:importantForAccessibility="no" />
         <!-- Two clear actions: look inside the storage, or analyse it. Equal width, 48 dp touch height. -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="@dimen/phi_13"
             android:orientation="horizontal">
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/openButton"
                 style="@style/Widget.Material3.Button.OutlinedButton"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="6dp"
+                android:layout_marginEnd="@dimen/phi_8"
                 android:layout_weight="1"
+                android:hyphenationFrequency="none"
                 android:minHeight="48dp"
                 android:text="@string/home_storage_open"
                 android:textAllCaps="false"
                 android:textColor="?colorPrimary"
-                app:cornerRadius="20dp"
+                app:cornerRadius="@dimen/phi_radius_l"
                 app:icon="@drawable/directory_icon_white_24dp"
                 app:iconTint="?colorPrimary"
                 app:strokeColor="@color/ai_glass_stroke"
                 app:iconGravity="textStart"
-                app:iconSize="20dp" />
+                app:iconSize="@dimen/phi_21" />
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/analyzeButton"
                 style="@style/Widget.Material3.Button.TonalButton"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="6dp"
                 android:layout_weight="1"
+                android:hyphenationFrequency="none"
                 android:minHeight="48dp"
                 android:text="@string/home_storage_analyze"
                 android:textAllCaps="false"
                 android:textColor="?colorOnPrimaryContainer"
                 app:backgroundTint="?colorPrimaryContainer"
-                app:cornerRadius="20dp"
+                app:cornerRadius="@dimen/phi_radius_l"
                 app:icon="@drawable/storage_analysis_icon_white_24dp"
                 app:iconTint="?colorOnPrimaryContainer"
                 app:iconGravity="textStart"
-                app:iconSize="20dp" />
+                app:iconSize="@dimen/phi_21" />
         </LinearLayout>
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

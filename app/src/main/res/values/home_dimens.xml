@@ -6,8 +6,8 @@
   -->
 
 <resources>
-    <!-- Low enough that the storage bars show on the first screen of a phone. -->
-    <dimen name="home_tile_height">86dp</dimen>
-    <!-- With the 4 dp card margin this puts the cards 16 dp from the screen edge. -->
-    <dimen name="home_list_padding">12dp</dimen>
+    <!-- Tiles are phi : 1 (PhiTileCardView), so they have no fixed height. -->
+    <!-- With the phi_8 card margin this puts the cards phi_21 from the screen edge. -->
+    <dimen name="home_list_padding">@dimen/phi_13</dimen>
+    <dimen name="home_card_margin">@dimen/phi_8</dimen>
 </resources>

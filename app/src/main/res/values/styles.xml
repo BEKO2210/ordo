@@ -60,7 +60,7 @@
     <!-- Filled, borderless card of the home screen. -->
     <style name="Widget.Ordo.HomeCard" parent="Widget.MaterialFiles.CardView">
         <item name="cardBackgroundColor">@color/home_card</item>
-        <item name="cardCornerRadius">16dp</item>
+        <item name="cardCornerRadius">@dimen/phi_radius_l</item>
         <item name="strokeWidth">0dp</item>
     </style>
 
@@ -68,10 +68,11 @@
         <item name="android:fontFamily">sans-serif-medium</item>
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
-        <item name="android:paddingStart">16dp</item>
-        <item name="android:paddingEnd">16dp</item>
-        <item name="android:paddingTop">24dp</item>
-        <item name="android:paddingBottom">8dp</item>
+        <item name="android:hyphenationFrequency">none</item>
+        <item name="android:paddingStart">@dimen/space_gutter</item>
+        <item name="android:paddingEnd">@dimen/space_gutter</item>
+        <item name="android:paddingTop">@dimen/space_section</item>
+        <item name="android:paddingBottom">@dimen/space_item</item>
     </style>
 
     <!-- See also ThemeOverlay.AppCompat.ActionBar . -->
