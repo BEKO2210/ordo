@@ -45,7 +45,7 @@
             <me.zhanghai.android.files.ui.ReadOnlyTextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="@dimen/phi_13"
                 android:hint="@string/file_properties_permission_group">
 
                 <me.zhanghai.android.files.ui.ReadOnlyTextInputEditText
@@ -62,7 +62,7 @@
             <me.zhanghai.android.files.ui.ReadOnlyTextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="@dimen/phi_13"
                 android:hint="@string/file_properties_permission_set_mode_others">
 
                 <me.zhanghai.android.files.ui.ReadOnlyTextInputEditText
@@ -79,7 +79,7 @@
             <me.zhanghai.android.files.ui.ReadOnlyTextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="@dimen/phi_13"
                 android:hint="@string/file_properties_permission_set_mode_special">
 
                 <me.zhanghai.android.files.ui.ReadOnlyTextInputEditText

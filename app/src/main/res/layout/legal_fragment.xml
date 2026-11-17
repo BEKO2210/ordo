@@ -36,7 +36,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:clipToPadding="false"
-            android:paddingBottom="16dp"
+            android:paddingBottom="@dimen/phi_13"
             android:scrollbars="vertical">
 
             <LinearLayout
@@ -46,7 +46,7 @@
 
                 <TextView
                     style="@style/HomeSectionTitle"
-                    android:paddingTop="16dp"
+                    android:paddingTop="@dimen/phi_13"
                     android:text="@string/legal_imprint_title" />
 
                 <LinearLayout
@@ -55,7 +55,7 @@
                     android:layout_height="wrap_content"
                     android:divider="@drawable/transparent_divider_vertical_8dp"
                     android:orientation="vertical"
-                    android:paddingHorizontal="16dp"
+                    android:paddingHorizontal="@dimen/phi_21"
                     android:showDividers="middle" />
 
                 <TextView
@@ -68,7 +68,7 @@
                     android:layout_height="wrap_content"
                     android:divider="@drawable/transparent_divider_vertical_8dp"
                     android:orientation="vertical"
-                    android:paddingHorizontal="16dp"
+                    android:paddingHorizontal="@dimen/phi_21"
                     android:showDividers="middle" />
             </LinearLayout>
         </androidx.core.widget.NestedScrollView>

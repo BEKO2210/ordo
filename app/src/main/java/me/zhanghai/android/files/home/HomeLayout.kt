@@ -10,6 +10,10 @@ internal const val HOME_CATEGORY_TILE_COUNT = 9
 private const val TABLET_MIN_WIDTH_DP = 600
 private const val WIDE_MIN_WIDTH_DP = 840
 
+// home_list_padding and home_card_margin, phi_13 and phi_8
+private const val LIST_PADDING_DP = 13
+private const val CARD_MARGIN_DP = 8
+
 /** Nine tiles only tile evenly in 1, 3, or 9 columns; phones stay at 3, wide screens get one row of 9. */
 fun homeCategoryColumns(widthDp: Int): Int = if (widthDp < WIDE_MIN_WIDTH_DP) 3 else 9
 
@@ -33,7 +37,7 @@ fun homeStorageColumns(widthDp: Int, storageCount: Int): Int =
  * width they show the size alone, so no number is cut off.
  */
 fun homeCategoryCompact(widthDp: Int): Boolean =
-    homeCategoryColumns(widthDp) == 9 && (widthDp - 24) / 9 - 8 < 112
+    homeCategoryColumns(widthDp) == 9 && (widthDp - 2 * LIST_PADDING_DP) / 9 - 2 * CARD_MARGIN_DP < 112
 
 /**
  * How much glass the search bar shows, 0 to 1: it fades in over the first [edgePx] of content that lies under the

@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later -->
-<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+<me.zhanghai.android.files.home.PhiTileCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     style="@style/Widget.Ordo.HomeCard"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="4dp"
+    android:layout_margin="@dimen/home_card_margin"
+    app:cardCornerRadius="@dimen/phi_radius_m"
     android:clickable="true"
     android:focusable="true"
     android:foreground="?selectableItemBackground"
@@ -14,10 +15,10 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical">
-        <ImageView
+        <me.zhanghai.android.files.home.PhiImageView
             android:id="@+id/thumbnailImage"
             android:layout_width="match_parent"
-            android:layout_height="64dp"
+            android:layout_height="wrap_content"
             android:contentDescription="@null"
             android:scaleType="centerCrop"
             app:srcCompat="@drawable/file_generic_icon" />
@@ -26,9 +27,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:ellipsize="middle"
+            android:hyphenationFrequency="none"
             android:maxLines="1"
-            android:paddingHorizontal="12dp"
-            android:paddingVertical="6dp"
+            android:paddingHorizontal="@dimen/phi_8"
+            android:paddingVertical="@dimen/phi_5"
             android:textAppearance="?textAppearanceCaption" />
     </LinearLayout>
-</com.google.android.material.card.MaterialCardView>
+</me.zhanghai.android.files.home.PhiTileCardView>

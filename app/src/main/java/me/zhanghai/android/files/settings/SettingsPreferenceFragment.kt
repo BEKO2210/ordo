@@ -9,6 +9,7 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.view.View
+import android.graphics.drawable.VectorDrawable
 import android.view.animation.PathInterpolator
 import android.widget.ImageView
 import androidx.core.content.ContextCompat
@@ -16,12 +17,14 @@ import androidx.lifecycle.lifecycleScope
 import androidx.preference.Preference
 import androidx.preference.PreferenceCategory
 import androidx.preference.PreferenceGroup
+import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import me.zhanghai.android.files.BuildConfig
 import me.zhanghai.android.files.R
+import me.zhanghai.android.files.util.getColorByAttr
 import me.zhanghai.android.files.about.AboutActivity
 import me.zhanghai.android.files.ai.CommandDesign
 import me.zhanghai.android.files.ai.CommandModel
@@ -81,6 +84,7 @@ open class SettingsPreferenceFragment : PreferenceFragmentCompat() {
                 else -> preference.isIconSpaceReserved = true
             }
         }
+        group.tintIcons()
     }
 
     override fun onDisplayPreferenceDialog(preference: Preference) {
@@ -232,5 +236,24 @@ open class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         private const val ICON_SETTLE_STAGGER_MS = 30L
         private const val ICON_SETTLE_DURATION_MS = 240L
         private val EMPHASIZED = PathInterpolator(0.2f, 0f, 0f, 1f)
+    }
+}
+
+/**
+ * The symbols of settings rows are white vectors; without a tint they vanish on the light theme. Pictures drawn in code
+ * (night mode, black night mode) keep their own colours.
+ */
+fun PreferenceGroup.tintIcons() {
+    val color = context.getColorByAttr(androidx.appcompat.R.attr.colorControlNormal)
+    for (i in 0 until preferenceCount) {
+        val preference = getPreference(i)
+        if (preference is PreferenceGroup) {
+            preference.tintIcons()
+            continue
+        }
+        val icon = preference.icon ?: continue
+        if (icon is VectorDrawable || icon is VectorDrawableCompat) {
+            preference.icon = icon.mutate().apply { setTint(color) }
+        }
     }
 }

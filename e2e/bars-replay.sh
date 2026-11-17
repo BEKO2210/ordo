@@ -29,11 +29,11 @@ path, w, h = sys.argv[1], int(sys.argv[2]), int(sys.argv[3])
 data = open(path, "rb").read(); size = w * h * 3; frames = len(data) // size
 row = (h // 2) * w * 3                      # the middle line of the bar is enough
 def line(i): return data[i * size + row:i * size + row + w * 3]
-def fill(l): return sum(1 for p in range(0, w * 3, 3) if l[p] < 110 and l[p + 1] > 120 and l[p + 2] > 170)
+def fill(l): return sum(1 for p in range(0, w * 3, 3) if max(l[p:p + 3]) - min(l[p:p + 3]) > 60)
 def track(l): return l[int(w * 0.96) * 3:int(w * 0.99) * 3]     # the far end shows the empty track on the home screen
 last = line(frames - 1); final = fill(last)
 if final < w * 0.03:
-    print("skip: bar is empty or not in the aurora colours (nearly full storage)"); sys.exit()
+    print("skip: bar is empty or not in the accent colour (nearly full storage)"); sys.exit()
 def visible(l): return max(abs(a - b) for a, b in zip(track(l), track(last))) < 12
 shown = next(i for i in range(frames) if visible(line(i)))
 start = fill(line(shown)); peak = max(fill(line(i)) for i in range(shown, frames))

@@ -25,8 +25,8 @@
     <dimen name="dialog_padding_minus_16dp">8dp</dimen>
     <dimen name="navigation_max_width">320dp</dimen>
     <dimen name="navigation_header_height">172dp</dimen>
-    <dimen name="navigation_item_horizontal_padding">24dp</dimen>
-    <dimen name="navigation_item_icon_padding">24dp</dimen>
+    <dimen name="navigation_item_horizontal_padding">@dimen/phi_21</dimen>
+    <dimen name="navigation_item_icon_padding">@dimen/phi_8</dimen>
     <dimen name="tab_layout_height">48dp</dimen>
     <dimen name="list_vertical_padding">8dp</dimen>
     <dimen name="list_bottom_padding_with_fab">88dp</dimen>
@@ -57,47 +57,47 @@
     <dimen name="afs_min_touch_target_size">24dp</dimen>
 
     <!-- Sound sheet. Everything follows the golden ratio (φ ≈ 1.618) through the Fibonacci steps 5, 8, 13, 21, 34, 55, 89. -->
-    <dimen name="klang_space_xs">5dp</dimen>
-    <dimen name="klang_space_sm">8dp</dimen>
-    <dimen name="klang_space_md">13dp</dimen>
-    <dimen name="klang_space_lg">21dp</dimen>
-    <dimen name="klang_space_xl">34dp</dimen>
+    <dimen name="klang_space_xs">@dimen/phi_5</dimen>
+    <dimen name="klang_space_sm">@dimen/phi_8</dimen>
+    <dimen name="klang_space_md">@dimen/phi_13</dimen>
+    <dimen name="klang_space_lg">@dimen/phi_21</dimen>
+    <dimen name="klang_space_xl">@dimen/phi_34</dimen>
     <!-- Half of klang_space_lg: the margin each card of a grid carries so that neighbours sit 21 dp apart. -->
     <dimen name="klang_space_lg_half">10.5dp</dimen>
     <dimen name="klang_space_lg_half_neg">-10.5dp</dimen>
     <dimen name="klang_space_lg_neg">-21dp</dimen>
     <!-- Icons sit in a 34 dp column, so every text in a section starts at one edge. -->
-    <dimen name="klang_icon_column">34dp</dimen>
+    <dimen name="klang_icon_column">@dimen/phi_34</dimen>
     <dimen name="klang_icon_size">24dp</dimen>
     <!-- The one left text edge: the 34 dp icon column plus 8 dp. -->
     <dimen name="klang_text_edge">42dp</dimen>
-    <dimen name="klang_ring_size">34dp</dimen>
-    <dimen name="klang_ring_icon_size">21dp</dimen>
-    <dimen name="klang_ring_track">5dp</dimen>
-    <dimen name="klang_handle_width">34dp</dimen>
-    <dimen name="klang_handle_height">5dp</dimen>
+    <dimen name="klang_ring_size">@dimen/phi_34</dimen>
+    <dimen name="klang_ring_icon_size">@dimen/phi_21</dimen>
+    <dimen name="klang_ring_track">@dimen/phi_5</dimen>
+    <dimen name="klang_handle_width">@dimen/phi_34</dimen>
+    <dimen name="klang_handle_height">@dimen/phi_5</dimen>
     <!-- Row heights: 55 dp for rows with an info line or a stepper, 48 dp is the floor for a touch target. -->
-    <dimen name="klang_row_min_height">55dp</dimen>
+    <dimen name="klang_row_min_height">@dimen/phi_55</dimen>
     <dimen name="klang_touch_target">48dp</dimen>
-    <dimen name="klang_effect_card_min_height">89dp</dimen>
+    <dimen name="klang_effect_card_min_height">@dimen/phi_89</dimen>
     <!-- Value slot of the stepper pill and of the balance / tempo values. -->
-    <dimen name="klang_value_slot">55dp</dimen>
+    <dimen name="klang_value_slot">@dimen/phi_55</dimen>
     <!-- Minus / plus: 34 dp visible inside a 48 dp touch target, (48 - 34) / 2 = 7 dp of inset. -->
-    <dimen name="klang_step_visual">34dp</dimen>
+    <dimen name="klang_step_visual">@dimen/phi_34</dimen>
     <dimen name="klang_step_inset">7dp</dimen>
     <dimen name="klang_step_icon">20dp</dimen>
     <!-- Pulls the group out by its inset so the visible plus button ends on the same line as the switches. -->
     <dimen name="klang_step_edge">-7dp</dimen>
     <!-- Preset tile 89 × 55 (φ : 1) with a 34 × 21 mini curve (φ : 1). -->
-    <dimen name="klang_tile_w">89dp</dimen>
-    <dimen name="klang_tile_h">55dp</dimen>
-    <dimen name="klang_tile_curve_w">34dp</dimen>
-    <dimen name="klang_tile_curve_h">21dp</dimen>
-    <dimen name="klang_tile_check">13dp</dimen>
+    <dimen name="klang_tile_w">@dimen/phi_89</dimen>
+    <dimen name="klang_tile_h">@dimen/phi_55</dimen>
+    <dimen name="klang_tile_curve_w">@dimen/phi_34</dimen>
+    <dimen name="klang_tile_curve_h">@dimen/phi_21</dimen>
+    <dimen name="klang_tile_check">@dimen/phi_13</dimen>
     <!-- The stage curve is as wide as the stage divided by φ, kept between these bounds; the first value is only the start before layout. -->
     <dimen name="klang_curve_height">200dp</dimen>
     <dimen name="klang_curve_min_height">160dp</dimen>
     <dimen name="klang_curve_max_height">300dp</dimen>
     <!-- 610 dp ≈ 377 × φ. -->
-    <dimen name="klang_sheet_max_width">610dp</dimen>
+    <dimen name="klang_sheet_max_width">@dimen/phi_610</dimen>
 </resources>

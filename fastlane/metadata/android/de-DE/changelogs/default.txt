@@ -1,5 +1,6 @@
 Neu in dieser Testversion:
-• Zum Ausprobieren (Einstellungen › KI-Assistent › „Neue Befehle ausprobieren“, standardmäßig aus): Ordo findet und zeigt Dateien („Zeig mir die PDFs von letzter Woche“, „Wo ist meine Rechnung?“), versteht Zeit und Größe und fragt nach, wenn es unsicher ist
-• Es ist eine Vorschau und kann sich irren. Nichts ändert sich ohne deine Bestätigung
-• Das KI-Fenster ist überall gut lesbar
-Wir freuen uns über Sätze, die Ordo falsch versteht: nullmesh@protonmail.com
+• Einstellungen mit Bildern: Sonne und Mond beim Nachtmodus, Vorschau bei Animationen und Suchleiste, ein Symbol an jedem Eintrag
+• Akzentfarbe mit Live-Vorschau
+• Menüs, Dialoge und Seitenmenü öffnen und schließen ruhig und einheitlich; alles folgt Einstellungen › Aussehen › Animationen
+• Weiter zum Ausprobieren: neue KI-Befehle (Einstellungen › KI-Assistent)
+Rückmeldungen gern an: nullmesh@protonmail.com

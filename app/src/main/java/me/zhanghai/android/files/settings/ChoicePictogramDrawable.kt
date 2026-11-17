@@ -29,8 +29,9 @@ import com.google.android.material.R as MaterialR
 
 /**
  * One small drawn picture per choice (a sun, a moon, a phone ...) in a 56-unit box with 2-unit strokes, so it is 2 dp
- * thick at 56 dp. The resting state is the finished picture; [play] runs its animation once, and does nothing when
- * motion is off. In [icon] mode it is drawn larger, without a tile and with a thicker stroke, for 24 dp.
+ * thick at 56 dp; the tile in the dialogs is 89 x 55 dp (φ : 1) and the box sits centred in it. The resting state is
+ * the finished picture; [play] runs its animation once, and does nothing when motion is off. In [icon] mode it is drawn
+ * larger, without a tile and with a thicker stroke, for 24 dp.
  */
 class ChoicePictogramDrawable(
     context: Context,
@@ -109,11 +110,12 @@ class ChoicePictogramDrawable(
         lineTo(45f, 28f)
     }
 
-    private val size = ((if (icon) 24 else 56) * density).toInt()
+    private val width = ((if (icon) 24 else 89) * density).toInt()
+    private val height = ((if (icon) 24 else 55) * density).toInt()
 
-    override fun getIntrinsicWidth(): Int = size
+    override fun getIntrinsicWidth(): Int = width
 
-    override fun getIntrinsicHeight(): Int = size
+    override fun getIntrinsicHeight(): Int = height
 
     /** Plays the picture's animation once from its start; with motion off it stays in its final state. */
     fun play() {
@@ -158,12 +160,17 @@ class ChoicePictogramDrawable(
         if (b.isEmpty) return
         canvas.save()
         canvas.translate(b.left.toFloat(), b.top.toFloat())
-        val unit = b.width() / 56f
-        canvas.scale(unit, unit)
         if (!icon) {
-            rect.set(0f, 0f, 56f, 56f)
-            canvas.drawRoundRect(rect, 16f, 16f, fillIn(tile, 0.7f))
-        } else {
+            // Tile of any proportion (φ : 1 in the choice dialogs, 89 x 55 dp); the 56-unit picture sits centred in it.
+            val r = TILE_RADIUS_DP * density
+            rect.set(0f, 0f, b.width().toFloat(), b.height().toFloat())
+            canvas.drawRoundRect(rect, r, r, fillIn(tile, 0.7f))
+            val side = minOf(b.width(), b.height())
+            canvas.translate((b.width() - side) / 2f, (b.height() - side) / 2f)
+        }
+        val unit = (if (icon) b.width() else minOf(b.width(), b.height())) / 56f
+        canvas.scale(unit, unit)
+        if (icon) {
             canvas.translate(28f, 28f)
             canvas.scale(1.3f, 1.3f)
             canvas.translate(-28f, -28f)
@@ -475,5 +482,6 @@ class ChoicePictogramDrawable(
     override fun getOpacity(): Int = PixelFormat.TRANSLUCENT
 }
 
+private const val TILE_RADIUS_DP = 13f
 private val HEIGHTS_OFF = floatArrayOf(12f, 12f, 12f)
 private val HEIGHTS_ON = floatArrayOf(12f, 20f, 28f)

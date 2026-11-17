@@ -9,9 +9,16 @@ import java8.nio.file.Paths
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertSame
+import org.junit.BeforeClass
 import org.junit.Test
 
 class AudioQueueRequestsTest {
+    companion object {
+        @JvmStatic
+        @BeforeClass
+        fun fileSystem() = installTestFileSystem()
+    }
+
     private val request = AudioQueueRequests.Request(listOf(Paths.get("/Music/one.mp3")), 0)
 
     @Test

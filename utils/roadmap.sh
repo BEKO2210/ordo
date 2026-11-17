@@ -108,7 +108,7 @@ cell "Stand der Technik für Medien belegt" \
     "Für Musik, Video, PDF, Markdown und Office je Baustein: beste Bibliothek, Version, Lizenz (verträglich mit GPL-3.0), 16-KB-Seiten, Quelle an der Originalstelle geprüft. Keine Blogs. Ergebnis in docs/MEDIEN-RECHERCHE.md."
 cell "Musik-Player: Audio direkt in Ordo abspielen" \
     "ls app/src/main/java/me/zhanghai/android/files/viewer/audio/*.kt >/dev/null 2>&1 && grep -q 'mediaPlayback' app/src/main/AndroidManifest.xml" \
-    "MP3 und alle gängigen Formate, Wiedergabe im Hintergrund mit Benachrichtigung, Sperrbildschirm und Kopfhörertasten, Warteschlange, lückenlos, Titelbild und Texte. Auf Pixel und Tab geprüft." \
+    "MP3 und alle gängigen Formate, Wiedergabe im Hintergrund mit Benachrichtigung, Sperrbildschirm und Kopfhörertasten, Warteschlange, lückenlos, Titelbild und Texte; Equalizer (10 Bänder, Voreinstellungen), Bassverstärkung, Lautstärkeausgleich (ReplayGain), Tempo mit gleicher Tonhöhe, Stille überspringen, Schlaf-Timer, Mono und Balance. Auf Pixel und Tab geprüft." \
     "Stand der Technik für Medien belegt"
 cell "Musik-Player als eigenes App-Symbol zum Einschalten" \
     "grep -q 'activity-alias' app/src/main/AndroidManifest.xml && grep -rq 'setComponentEnabledSetting' app/src/main/java/me/zhanghai/android/files/" \
@@ -142,6 +142,10 @@ cell "Eingebaute Apps entkoppeln: jede als eigenes App-Symbol, einzeln schaltbar
     "test -f app/src/main/java/me/zhanghai/android/files/settings/LauncherIconsPreferenceFragment.kt && [ \"\$(grep -c '<activity-alias' app/src/main/AndroidManifest.xml)\" -ge 3 ]" \
     "Eine Seite in den Einstellungen mit einem Schalter je eingebauter App (Musik, Video, Bilder, PDF, Notizen): eingeschaltet bekommt sie ein eigenes Symbol und einen eigenen Namen auf dem Startbildschirm und öffnet direkt ihre Ansicht. Erst freischalten, wenn die jeweilige App gut genug ist. Ein Mechanismus für alle, auf Pixel und Samsung gemessen." \
     "Musik-Player als eigenes App-Symbol zum Einschalten" "Video-Player: Filme direkt in Ordo ansehen"
+cell "Goldener Schnitt als Maßsystem in ganz Ordo" \
+    "test -s docs/DESIGN-SYSTEM.md && ! grep -rqE 'android:(padding|layout_margin)[A-Za-z]*=\"(4|6|12|16|20|24|28|32)dp\"' app/src/main/res/layout/" \
+    "Alle eigenen Abstände, Größen, Proportionen und Rundungen folgen φ (Fibonacci-Reihe 3/5/8/13/21/34/55/89 dp, dimens_phi.xml); Bildschirm für Bildschirm umgestellt und auf Telefon und Tablet gemessen. Schriftgrößen bleiben Material 3."
+
 cell "Dokumente bearbeiten: Entscheidung für Office-Formate" \
     "test -s docs/OFFICE-ENTSCHEIDUNG.md" \
     "DOCX, XLSX, PPTX und ODT: ehrlich klären, was auf dem Gerät ohne Cloud in Spitzenqualität geht (ansehen, bearbeiten, gar nicht), mit Größe und Lizenz. Entscheidung von Belkis in docs/OFFICE-ENTSCHEIDUNG.md." \

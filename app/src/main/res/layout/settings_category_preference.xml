@@ -8,32 +8,33 @@
     android:stateListAnimator="@animator/ordo_row_press"
     android:baselineAligned="false"
     android:gravity="center_vertical"
-    android:minHeight="72dp"
+    android:minHeight="@dimen/phi_row_min"
     android:orientation="horizontal"
-    android:paddingStart="20dp"
-    android:paddingEnd="12dp">
+    android:paddingStart="@dimen/space_card_h"
+    android:paddingEnd="@dimen/space_card_v">
 
     <ImageView
         android:id="@android:id/icon"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
+        android:layout_width="@dimen/phi_icon_box"
+        android:layout_height="@dimen/phi_icon_box"
         android:importantForAccessibility="no"
-        android:padding="9dp" />
+        android:padding="@dimen/space_related" />
 
     <LinearLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="18dp"
+        android:layout_marginStart="@dimen/space_card_h"
         android:layout_weight="1"
         android:orientation="vertical"
-        android:paddingTop="14dp"
-        android:paddingBottom="14dp">
+        android:paddingTop="@dimen/space_card_v"
+        android:paddingBottom="@dimen/space_card_v">
 
         <TextView
             android:id="@android:id/title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:ellipsize="end"
+            android:hyphenationFrequency="none"
             android:maxLines="2"
             android:textAppearance="?textAppearanceSubtitle1" />
 
@@ -41,17 +42,18 @@
             android:id="@android:id/summary"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
+            android:layout_marginTop="@dimen/phi_3"
             android:ellipsize="end"
+            android:hyphenationFrequency="none"
             android:maxLines="2"
-            android:textAppearance="?textAppearanceBody2"
+            android:textAppearance="?textAppearanceCaption"
             android:textColor="?android:textColorSecondary" />
     </LinearLayout>
 
     <ImageView
-        android:layout_width="24dp"
-        android:layout_height="24dp"
-        android:layout_marginStart="8dp"
+        android:layout_width="@dimen/phi_21"
+        android:layout_height="@dimen/phi_21"
+        android:layout_marginStart="@dimen/space_item"
         android:importantForAccessibility="no"
         android:src="@drawable/arrow_end_icon_white_24dp"
         android:tint="?android:textColorSecondary" />

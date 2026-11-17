@@ -11,7 +11,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:clipToPadding="false"
-    android:paddingBottom="24dp">
+    android:paddingBottom="@dimen/space_section">
 
     <!-- One column of cards on a phone. On a wide screen the dashboard moves half of them into the second column. -->
     <LinearLayout
@@ -20,8 +20,8 @@
         android:layout_height="wrap_content"
         android:baselineAligned="false"
         android:orientation="horizontal"
-        android:paddingHorizontal="16dp"
-        android:paddingTop="8dp">
+        android:paddingHorizontal="@dimen/space_gutter"
+        android:paddingTop="@dimen/space_item">
 
     <LinearLayout
         android:id="@+id/columnA"
@@ -43,7 +43,7 @@
                 android:id="@+id/usageHero"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
+                android:layout_marginTop="@dimen/space_related"
                 android:textAppearance="?textAppearanceHeadline3" />
 
             <TextView
@@ -53,15 +53,15 @@
             <me.zhanghai.android.files.analysis.StackedBarView
                 android:id="@+id/usageBar"
                 android:layout_width="match_parent"
-                android:layout_height="16dp"
-                android:layout_marginTop="16dp"
+                android:layout_height="@dimen/phi_13"
+                android:layout_marginTop="@dimen/space_gutter"
                 android:importantForAccessibility="no" />
 
             <LinearLayout
                 android:id="@+id/usageLegend"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
+                android:layout_marginTop="@dimen/space_item"
                 android:orientation="vertical" />
         </LinearLayout>
 
@@ -89,8 +89,8 @@
                 <me.zhanghai.android.files.analysis.DonutView
                     android:id="@+id/filesChart"
                     android:layout_width="match_parent"
-                    android:layout_height="232dp"
-                    android:layout_marginTop="8dp" />
+                    android:layout_height="@dimen/phi_233"
+                    android:layout_marginTop="@dimen/space_item" />
 
                 <LinearLayout
                     android:id="@+id/filesList"
@@ -114,15 +114,15 @@
                 android:id="@+id/cleanupHeadline"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
+                android:layout_marginTop="@dimen/space_related"
                 android:textAppearance="?textAppearanceHeadline5"
                 android:textStyle="bold" />
 
             <me.zhanghai.android.files.analysis.StackedBarView
                 android:id="@+id/cleanupBar"
                 android:layout_width="match_parent"
-                android:layout_height="10dp"
-                android:layout_marginTop="14dp"
+                android:layout_height="@dimen/space_item"
+                android:layout_marginTop="@dimen/space_card_v"
                 android:importantForAccessibility="no" />
 
             <LinearLayout
@@ -141,10 +141,10 @@
 
             <TextView
                 style="@style/Widget.Ordo.DashboardTitle"
-                android:drawablePadding="8dp"
+                android:drawablePadding="@dimen/space_item"
                 android:text="@string/analysis_suggestions_title"
                 app:drawableStartCompat="@drawable/assistant_icon_white_24dp"
-                app:drawableTint="@color/ai_accent" />
+                app:drawableTint="?attr/colorPrimary" />
 
             <LinearLayout
                 android:id="@+id/suggestionList"
@@ -182,16 +182,16 @@
                     <me.zhanghai.android.files.analysis.TreemapView
                         android:id="@+id/folderMap"
                         android:layout_width="match_parent"
-                        android:layout_height="220dp"
-                        android:layout_marginTop="12dp" />
+                        android:layout_height="@dimen/phi_233"
+                        android:layout_marginTop="@dimen/space_card_v" />
 
                     <!-- What the marked tile is, as a row that opens it. -->
                     <LinearLayout
                         android:id="@+id/folderPick"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:minHeight="48dp"
+                        android:layout_marginTop="@dimen/space_related"
+                        android:minHeight="@dimen/phi_row_min"
                         android:orientation="vertical" />
                 </LinearLayout>
 
@@ -199,7 +199,7 @@
                     android:id="@+id/folderList"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
+                    android:layout_marginTop="@dimen/space_related"
                     android:orientation="vertical" />
             </LinearLayout>
         </LinearLayout>
@@ -220,8 +220,8 @@
             <com.github.mikephil.charting.charts.BarChart
                 android:id="@+id/growthChart"
                 android:layout_width="match_parent"
-                android:layout_height="200dp"
-                android:layout_marginTop="8dp" />
+                android:layout_height="@dimen/phi_233"
+                android:layout_marginTop="@dimen/space_item" />
         </LinearLayout>
     </LinearLayout>
 
@@ -229,7 +229,7 @@
         android:id="@+id/columnB"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
+        android:layout_marginStart="@dimen/space_gutter"
         android:layout_weight="1"
         android:orientation="vertical"
         android:visibility="gone" />

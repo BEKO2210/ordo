@@ -8,9 +8,16 @@ package me.zhanghai.android.files.player
 import java8.nio.file.Paths
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.BeforeClass
 import org.junit.Test
 
 class AudioQueueTest {
+    companion object {
+        @JvmStatic
+        @BeforeClass
+        fun fileSystem() = installTestFileSystem()
+    }
+
     @Test
     fun keepsListOrderWithinTappedFolder() {
         val first = Paths.get("/Music/first.mp3")

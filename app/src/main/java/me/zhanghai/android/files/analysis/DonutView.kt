@@ -118,7 +118,7 @@ class DonutView @JvmOverloads constructor(context: Context, attrs: AttributeSet?
         textSize = sp(13f)
         textAlign = Paint.Align.CENTER
         isFakeBoldText = true
-        color = ContextCompat.getColor(context, R.color.ai_accent)
+        color = MaterialColors.getColor(this@DonutView, androidx.appcompat.R.attr.colorPrimary)
     }
 
     private var slices: List<Slice> = emptyList()
@@ -137,7 +137,7 @@ class DonutView @JvmOverloads constructor(context: Context, attrs: AttributeSet?
     private val helper = Access()
 
     /** Geometry of the ring, for a view that wants to land exactly on it. */
-    val ringStroke: Float get() = 22 * density
+    val ringStroke: Float get() = 21 * density
     val ringRadius: Float get() = min(width, height) / 2f - ringStroke / 2 - liftBy - density
     val ringCenterX: Float get() = width / 2f
     val ringCenterY: Float get() = height / 2f
