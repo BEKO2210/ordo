@@ -89,7 +89,7 @@ class VisualListPreferenceDialogFragment : MaterialPreferenceDialogFragmentCompa
             addView(
                 LinearLayout(themed).apply {
                     orientation = LinearLayout.VERTICAL
-                    val padding = (8 * themed.resources.displayMetrics.density).toInt()
+                    val padding = themed.resources.getDimensionPixelSize(R.dimen.phi_8)
                     setPadding(0, padding, 0, padding)
                 }
             )
@@ -102,7 +102,6 @@ class VisualListPreferenceDialogFragment : MaterialPreferenceDialogFragmentCompa
         val context = view.context
         val list = (view as NestedScrollView).getChildAt(0) as LinearLayout
         val style = preference.style
-        val density = context.resources.displayMetrics.density
         rows.clear()
         entries.forEachIndexed { index, entry ->
             val root = context.layoutInflater.inflate(R.layout.visual_choice_item, list, false)
@@ -114,8 +113,11 @@ class VisualListPreferenceDialogFragment : MaterialPreferenceDialogFragmentCompa
             root.findViewById<ImageView>(R.id.choice_pictogram).setImageDrawable(pictogram)
             root.findViewById<TextView>(R.id.choice_label).text = entry
             outline.background = GradientDrawable().apply {
-                cornerRadius = 18 * density
-                setStroke((2 * density).toInt(), context.getColorByAttr(androidx.appcompat.R.attr.colorPrimary))
+                cornerRadius = context.resources.getDimension(R.dimen.phi_radius_l)
+                setStroke(
+                    context.resources.getDimensionPixelSize(R.dimen.phi_3),
+                    context.getColorByAttr(androidx.appcompat.R.attr.colorPrimary)
+                )
             }
             val selected = index == checkedEntryIndex
             root.isSelected = selected
@@ -135,14 +137,14 @@ class VisualListPreferenceDialogFragment : MaterialPreferenceDialogFragmentCompa
             root.setOnClickListener { choose(index) }
             list.addView(root)
             rows += Row(root, outline, check, pictogram)
-            if (!restored && Motion.any) enter(root, index, density)
+            if (!restored && Motion.any) enter(root, index)
         }
     }
 
     // Rows settle in one after the other: 30 ms apart, a short rise, the emphasized curve.
-    private fun enter(root: View, index: Int, density: Float) {
+    private fun enter(root: View, index: Int) {
         root.alpha = 0f
-        root.translationY = 8 * density
+        root.translationY = root.resources.getDimension(R.dimen.phi_8)
         root.onFirstSight {
             root.animate()
                 .alpha(1f)

@@ -64,3 +64,18 @@ Jeder Schritt: Abstände auf die Reihe umstellen, auf Telefon (412 dp) und Table
 - Spaltenzahlen (3/9, 4/6/8, 3/5/8) bleiben; die Inhaltsbreite ist auf der Startseite **nicht** auf 610 dp begrenzt,
   weil die neun Kategorien ab 840 dp in einer Reihe stehen und sonst unter die Lesbarkeit schrumpfen.
 - Titel in Kacheln bleiben bei 14 sp (Subtitle2), damit „Dokumente“ auf 360 dp nicht abgeschnitten wird.
+
+### Einstellungen (umgestellt)
+
+- Gilt nur für Ordos eigene Zeilen: Kopf „Akzentfarbe“, Kategoriezeilen der Übersicht, Auswahl-Dialoge mit Bildern.
+  Die Standardzeilen von AndroidX behalten ihre Maße.
+- Akzentfarben: sichtbarer Kreis 34 dp in einer 55-dp-Tippfläche (≥ 48 dp), Auswahlring 3 dp stark im Abstand von
+  3 dp zum Kreis; Farbvorschau 144 × 89 dp (φ : 1). Abstände 8 / 13 / 21 dp.
+- Auswahl-Dialoge: Bildfläche 89 × 55 dp (φ : 1, Rundung 13 dp), Zeilenrand 21 dp waagrecht und 13 dp senkrecht,
+  Auswahlrahmen 3 dp mit Rundung 21 dp.
+- Kategoriezeilen: Symbolfeld 34 dp, Zeilenrand 21/13 dp, Mindesthöhe 55 dp, Titel 16 sp, Info-Text 12 sp (Caption).
+- Ausrichtung: die Symbolspalte des Akzent-Kopfes bleibt 56 dp breit wie `icon_frame` der AndroidX-Zeilen, damit
+  Symbole und Textkante mit den Standardzeilen fluchten. Der erste Farbkreis beginnt deshalb 45,5 dp (56 − (55 − 34) / 2)
+  nach dem Zeilenrand und die Vorschau bei 56 dp: diese beiden Werte folgen der AndroidX-Kante, nicht der Reihe.
+- Keine Silbentrennung, höchstens zwei Ebenen (Titel, Info-Text). Nicht gemessen: noch kein Lauf von
+  `e2e/settings-visual.sh` und kein Versatz-Messwert nach der Umstellung.
