@@ -44,7 +44,8 @@ set_switch() {
 # The live picture says "Title: value"; switched on, the value is no longer "Off". It sits under the title, so a
 # short scroll brings it in when the title stands at the bottom edge.
 nudge() { read -r W H < <(screen_size); a shell input swipe $((W / 2)) $((H * 6 / 10)) $((W / 2)) $((H * 4 / 10)) 400; sleep 1; }
-picture_shows() { ui texts | grep -E "/picture\|($1): " | grep -vqE ": (Aus|Off)$"; }
+# ui.py texts prints "text|id|description" with the short id.
+picture_shows() { ui texts | grep -E "^\|picture\|($1): " | grep -vqE ": (Aus|Off)$"; }
 picture_on() { local i; for i in 1 2 3; do pause_playback; picture_shows "$1" && return 0; nudge; done; return 1; }
 
 # Mono greys out room sound and width: make sure it is off first. Then the sheet opens again at its top; swiping down

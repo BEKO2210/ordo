@@ -1179,7 +1179,7 @@
     <string name="audio_sound_focus_duck_short">Quieter</string>
     <string name="audio_sound_balance_picture">Balance: left speaker to right speaker</string>
     <string name="audio_sound_crossfeed">Room sound for headphones</string>
-    <string name="audio_sound_crossfeed_summary">Moves the music from inside your head to the front, like speakers. Works with headphones only.</string>
+    <string name="audio_sound_crossfeed_summary">Brings the music out of your head to the front. Headphones only.</string>
     <string name="audio_sound_width">Stereo width</string>
     <string name="audio_sound_width_summary">0 % is mono, 100 % the original, 150 % wide</string>
     <string name="audio_sound_width_value">Width %1$d %%</string>

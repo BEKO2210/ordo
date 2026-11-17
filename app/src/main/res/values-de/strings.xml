@@ -1044,7 +1044,7 @@
     <string name="audio_sound_focus_duck_short">Leiser</string>
     <string name="audio_sound_balance_picture">Balance: linker Lautsprecher bis rechter Lautsprecher</string>
     <string name="audio_sound_crossfeed">Raumklang für Kopfhörer</string>
-    <string name="audio_sound_crossfeed_summary">Holt die Musik aus dem Kopf nach vorn, wie bei Lautsprechern. Wirkt nur mit Kopfhörern.</string>
+    <string name="audio_sound_crossfeed_summary">Holt die Musik aus dem Kopf nach vorn. Nur mit Kopfhörern.</string>
     <string name="audio_sound_width">Stereobreite</string>
     <string name="audio_sound_width_summary">0 % ist Mono, 100 % das Original, 150 % breit</string>
     <string name="audio_sound_width_value">Breite %1$d %%</string>
