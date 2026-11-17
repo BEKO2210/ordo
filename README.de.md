@@ -95,6 +95,8 @@ Was als Nächstes kommt, steht in der [lebenden Roadmap](docs/ROADMAP-LIVE.md): 
   Cast-Geräte, ohne Google-Dienste (ab Android 11; auf Android 6–10 öffnen sich die Bluetooth-Einstellungen). Musik an
   Chromecast, Fernseher und Receiver zu streamen ist geplant, siehe [docs/STREAMING-RECHERCHE.md](docs/STREAMING-RECHERCHE.md)
 - Eigenes App-Symbol für den Musik-Player (Einstellungen › Eingebaute Apps): standardmäßig aus, nur du schaltest es ein und aus, siehe [docs/AUDIO-PLAYER.md](docs/AUDIO-PLAYER.md)
+- Die Icon-Farbe von Ordo und Ordo Musik selbst wählen (Einstellungen › Eingebaute Apps › Icon-Farben): acht Farben,
+  standardmäßig Blau, mit Live-Vorschau des Symbols; Themed Icons (ab Android 13) funktionieren weiter
 
 **Dateien schützen**
 
@@ -123,6 +125,7 @@ Was als Nächstes kommt, steht in der [lebenden Roadmap](docs/ROADMAP-LIVE.md): 
   Aussehen › Animationen (Voll – alle Effekte, Dezent – nur Übergänge oder Aus) steuert alles, und Androids
   Systemeinstellung „Animationen entfernen“ hat immer Vorrang
 - Die Suchleiste der Startseite oben oder unten, mit dem Daumen erreichbar
+- Acht Icon-Farben für Ordos App-Symbol und Ordo Musik, unter Einstellungen › Eingebaute Apps › Icon-Farben
 - Bei ausgewählten Dateien liegen die Aktionen in einer Leiste unten; ihr „Mehr“-Menü öffnet direkt darüber, beim Daumen
 
 ## KI-Befehle

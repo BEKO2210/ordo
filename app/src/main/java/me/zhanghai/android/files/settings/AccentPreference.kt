@@ -273,7 +273,7 @@ class AccentPreference @JvmOverloads constructor(
 }
 
 /** Draws selection separately from the colour so the ring and check can follow their own short choreography. */
-private class AccentSwatchView(
+internal class AccentSwatchView(
     context: Context,
     @ColorInt private val color: Int,
     @ColorInt private val ringColor: Int

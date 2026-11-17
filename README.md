@@ -94,6 +94,8 @@ What comes next is in the [living roadmap](docs/ROADMAP-LIVE.md): every goal has
   without Google services (Android 11 and later; Android 6–10 opens the Bluetooth settings). Streaming music to
   Chromecast, TVs and receivers is planned, see [docs/STREAMING-RECHERCHE.md](docs/STREAMING-RECHERCHE.md) (German)
 - Optional own app icon for the music player (Settings › Built-in apps): off by default, switched on and off only by you, see [docs/AUDIO-PLAYER.md](docs/AUDIO-PLAYER.md)
+- Pick the icon colour of Ordo and of Ordo Music yourself (Settings › Built-in apps › Icon colours): eight colours,
+  blue by default, with a live preview of the icon; themed icons (Android 13 and later) keep working
 
 **Keep files safe**
 
@@ -121,6 +123,7 @@ What comes next is in the [living roadmap](docs/ROADMAP-LIVE.md): every goal has
   (Full – all effects, Subtle – transitions only or Off) controls all of it, and Android's Remove animations switch
   always takes priority
 - The home search bar at the top or at the bottom, within thumb reach
+- Eight icon colours for Ordo's own app icon and Ordo Music, under Settings › Built-in apps › Icon colours
 - With files selected, the actions sit in a bar at the bottom; its "More" menu opens right above it, next to the thumb
 
 ## AI commands
