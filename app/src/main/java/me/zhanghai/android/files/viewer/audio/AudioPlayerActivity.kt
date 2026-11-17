@@ -17,6 +17,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.provider.Settings
 import android.util.TypedValue
 import android.view.Gravity
 import android.widget.ImageView
@@ -39,6 +40,7 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.common.util.Util
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
+import androidx.mediarouter.app.SystemOutputSwitcherDialogController
 import coil.dispose
 import coil.load
 import com.google.android.material.color.MaterialColors
@@ -62,6 +64,7 @@ import me.zhanghai.android.files.player.pathUriExists
 import me.zhanghai.android.files.player.restorableState
 import me.zhanghai.android.files.provider.common.readAttributes
 import me.zhanghai.android.files.ui.Motion
+import me.zhanghai.android.files.util.startActivitySafe
 
 /**
  * Exported for ACTION_VIEW of every audio type. Ordo's own screens pass a queue through [AudioQueueRequests] and only a token in
@@ -128,6 +131,12 @@ class AudioPlayerActivity : AppActivity() {
         binding.toolbar.setOnMenuItemClickListener { item ->
             if (item.itemId == R.id.actionSound) {
                 AudioSoundSettingsSheet().show(supportFragmentManager, AudioSoundSettingsSheet.TAG)
+                true
+            } else if (item.itemId == R.id.actionOutput) {
+                // Android 6–10 has no system output picker; connecting a Bluetooth speaker is the next best thing.
+                if (!SystemOutputSwitcherDialogController.showDialog(this)) {
+                    startActivitySafe(Intent(Settings.ACTION_BLUETOOTH_SETTINGS))
+                }
                 true
             } else false
         }
@@ -414,6 +423,8 @@ class AudioPlayerActivity : AppActivity() {
             scaleType = ImageView.ScaleType.CENTER_CROP
             ImageViewCompat.setImageTintList(this, null)
             load(data) {
+                // The background wash reads the cover's pixels; a hardware bitmap can't be read and failed the load.
+                allowHardware(false)
                 crossfade(Motion.any)
                 error(R.drawable.file_audio_icon)
                 listener(

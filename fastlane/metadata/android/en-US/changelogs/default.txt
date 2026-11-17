@@ -1,6 +1,7 @@
 New in this test build:
-• Music player: play songs right in Ordo, with a queue, cover art and background controls
-• Sound: 10-band equalizer with presets, bass, surround, loudness levelling, speed and a sleep timer
-• Own "Ordo Music" icon for your home screen (Settings › Built-in apps), off by default
-• All spacing follows the golden ratio
+• Music player with a queue, cover art and background controls
+• Sound: 10-band equalizer, bass, surround, loudness levelling, speed, sleep timer
+• “Play on…”: send music to Bluetooth, wired or cast devices
+• Own “Ordo Music” icon (Settings › Built-in apps), off by default
+• Spacing follows the golden ratio
 Feedback welcome: nullmesh@protonmail.com

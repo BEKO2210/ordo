@@ -1123,6 +1123,7 @@
     <string name="audio_sound_normalization_summary">ReplayGain / R128 from the file tags</string>
     <string name="audio_sound_normalization_preamp">Pre-amp</string>
     <string name="audio_sound_playback_heading">Playback</string>
+    <string name="audio_output_title">Play on…</string>
     <string name="audio_sound_speed">Tempo</string>
     <string name="audio_sound_speed_value">%1$.2f×</string>
     <string name="audio_sound_skip_silence">Skip silence</string>

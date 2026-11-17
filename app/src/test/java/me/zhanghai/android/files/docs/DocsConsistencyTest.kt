@@ -89,6 +89,16 @@ class DocsConsistencyTest {
     }
 
     @Test
+    fun websiteImagesExist() {
+        for (page in listOf("docs/index.html", "docs/en/index.html")) {
+            val dir = File(repo, page).parentFile!!
+            Regex("(?:src|poster)=\"((?:\\.\\./)?media/[^\"]+)\"").findAll(File(repo, page).readText()).forEach {
+                assertTrue("$page: missing ${it.groupValues[1]}", File(dir, it.groupValues[1]).exists())
+            }
+        }
+    }
+
+    @Test
     fun readmeVersionAndAndroidMatchTheBuild() {
         assertTrue(readme.contains("version ${BuildConfig.VERSION_NAME}"))
         assertTrue(readme.contains("Android-7.0%2B"))
