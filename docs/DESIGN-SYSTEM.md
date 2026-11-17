@@ -126,3 +126,6 @@ Jeder Schritt: Abstände auf die Reihe umstellen, auf Telefon (412 dp) und Table
 - Bewusst außerhalb der Reihe bleiben abgeleitete Werte: halbe und negative Rasterabstände (10,5 / −21 dp),
   Symbole 24 dp (Material-Raster), Tippfläche 48 dp, Innenrand der −/+-Tasten 7 dp ((48 − 34) / 2) und die
   Kurvenhöhe 160–300 dp, die der Code nach der Bühne φ : 1 begrenzt.
+- Telefonbreite (S21 Ultra, 17.11.2026): Zeilentitel dürfen zwei Zeilen haben statt abgeschnitten zu werden
+  („Vorverstärkung“, „Beim Verbinden von Kopfhörern fortsetzen“). Der Einschlaf-Timer steht in zwei gleich breiten
+  Reihen zu je drei Knöpfen, damit „Titelende“ nie hinter dem Rand verschwindet.
