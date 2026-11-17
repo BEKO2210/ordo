@@ -40,6 +40,7 @@ class SoundEffectController(private val handler: Handler = Handler(Looper.getMai
     private var bassApplied = 0
     private var bassTarget = 0
     private val glideTick = Runnable { glide() }
+    private var limiterThreshold = LIMITER_DB
 
     var status = Status()
         private set
@@ -175,9 +176,26 @@ class SoundEffectController(private val handler: Handler = Handler(Looper.getMai
             dynamicsTarget[AudioSettings.BAND_COUNT + channel] = inputGainDb + balanceAttenuation
         }
         dynamicsTarget[CLARITY_INDEX] = if (status.clarityAvailable && currentSettings.clarityEnabled) 1f else 0f
+        if (Build.VERSION.SDK_INT >= 28) applyLimiter()
         return true
     }
 
+    /**
+     * Whenever something can push the level up (volume levelling, a boosted equalizer band, pre-gain, bass boost), the
+     * limiter catches at -1 dB instead of -0.1 dB: EBU R 128 allows at most -1 dBTP, and the sample-peak limiter needs
+     * that headroom for the peaks between samples (docs/AUDIO-QUALITAET-RECHERCHE.md, 5). Untouched music keeps -0.1 dB.
+     */
+    @android.annotation.TargetApi(28)
+    private fun applyLimiter() {
+        val effect = dynamicsProcessing as? DynamicsProcessing ?: return
+        val boosted = currentSettings.normalizationEnabled || currentSettings.bassBoostEnabled ||
+            currentSettings.preGainDb > 0f ||
+            (currentSettings.equalizerEnabled && currentSettings.bandGainsDb.any { it > 0f })
+        val threshold = if (boosted) LIMITER_LEVELLING_DB else LIMITER_DB
+        if (threshold == limiterThreshold) return
+        limiterThreshold = threshold
+        effect.setLimiterAllChannelsTo(limiter(threshold))
+    }
 
     private fun nearestLogicalBand(frequencyHz: Float): Int =
         AudioSettings.BAND_FREQUENCIES_HZ.indices.minByOrNull { index ->
@@ -219,9 +237,8 @@ class SoundEffectController(private val handler: Handler = Handler(Looper.getMai
                     setBand(index, DynamicsProcessing.EqBand(true, cutoff, 0f))
                 }
             }
-            val limiter = DynamicsProcessing.Limiter(
-                true, true, 0, 1f, 60f, 20f, -0.1f, 0f
-            )
+            val limiter = limiter(LIMITER_DB)
+            limiterThreshold = LIMITER_DB
             // Frequency-resolution mode is the platform variant intended for a graphic EQ.
             // https://developer.android.com/reference/android/media/audiofx/DynamicsProcessing
             val config = DynamicsProcessing.Config.Builder(
@@ -330,6 +347,12 @@ class SoundEffectController(private val handler: Handler = Handler(Looper.getMai
     )
 
     companion object {
+        private const val LIMITER_DB = -0.1f
+        private const val LIMITER_LEVELLING_DB = -1f
+
+        @android.annotation.TargetApi(28)
+        private fun limiter(thresholdDb: Float) = DynamicsProcessing.Limiter(true, true, 0, 1f, 60f, 20f, thresholdDb, 0f)
+
         private const val GLIDE_TICK_MS = 10L
         /**
          * Each step covers a third of the way, at least the minimum and at most the maximum: at most 1 dB per 10 ms

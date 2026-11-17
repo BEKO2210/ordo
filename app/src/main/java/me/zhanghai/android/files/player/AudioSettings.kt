@@ -190,6 +190,14 @@ object AudioSettingsStore {
 data class ReplayGainInfo(val gainDb: Float, val peak: Float? = null)
 
 object ReplayGain {
+    /**
+     * R128_TRACK_GAIN / R128_ALBUM_GAIN refer to EBU R 128 (RFC 7845, 5.2: "the normal volume reference is the
+     * [EBU-R128] standard"), whose target is -23.0 LUFS (EBU R 128 (2014), h)). ReplayGain 2.0 aims at -18 LUFS
+     * (its specification page refuses automated access; rsgain, a ReplayGain 2.0 scanner, documents "-18 LUFS target
+     * loudness value specified by ReplayGain" and that R128 gains "are referenced to -23 LUFS instead of -18 LUFS").
+     */
+    const val R128_TO_REPLAYGAIN_DB = 5f
+
     /** Limits ReplayGain plus its user pre-amp so a known peak never exceeds 0 dBFS. */
     fun effectiveGainDb(trackGainDb: Float, preampDb: Float, peak: Float?): Float {
         val requested = trackGainDb + preampDb

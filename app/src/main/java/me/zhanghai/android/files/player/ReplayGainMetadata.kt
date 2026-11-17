@@ -65,7 +65,10 @@ object ReplayGainMetadata {
                 }
             }
         }
-        val gain = trackGain ?: r128Track ?: albumGain ?: r128Album ?: return null
+        // R128 tags normalise to -23 LUFS, ReplayGain to -18 LUFS: shifted onto the ReplayGain level, an Opus file
+        // with R128 tags plays as loud as an MP3 or FLAC with ReplayGain tags instead of 5 dB quieter.
+        val gain = trackGain ?: r128Track?.plus(ReplayGain.R128_TO_REPLAYGAIN_DB) ?: albumGain
+            ?: r128Album?.plus(ReplayGain.R128_TO_REPLAYGAIN_DB) ?: return null
         return ReplayGainInfo(gain, trackPeak ?: albumPeak)
     }
 
