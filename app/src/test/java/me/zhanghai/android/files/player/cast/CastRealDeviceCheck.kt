@@ -7,11 +7,9 @@ package me.zhanghai.android.files.player.cast
 
 import java.io.File
 import java.net.InetAddress
-import java.security.cert.CertificateException
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
 import org.junit.Assert.assertEquals
-import org.junit.Assert.fail
 import org.junit.Assume.assumeTrue
 import org.junit.Test
 
@@ -63,16 +61,17 @@ class CastRealDeviceCheck {
         assumeTrue("CAST_HOST / CAST_TEST_FILE not set", host != null && file != null && file.isFile)
         file!!
 
-        // First connection: trust on first use of the device certificate.
+        // Device auth: the device certificate chains to a Cast root and signed this connection's TLS certificate.
         val first = CastClient(host!!, 8009, listener)
-        val pin = first.connect(null)
-        log("device certificate pin $pin")
+        val device = first.connect()
+        log("device authenticated: ${device.certificate.subjectX500Principal}, issued by " +
+            "${device.certificate.issuerX500Principal}, pin ${device.pin}")
         first.close()
 
-        // Second connection: same device, same pin, even though the TLS session is new.
+        // Second connection: a new TLS session, the same device certificate.
         val client = CastClient(host, 8009, listener)
-        assertEquals(pin, client.connect(pin))
-        log("pinned reconnect ok")
+        assertEquals(device.pin, client.connect().pin)
+        log("second connection authenticated with the same pin")
         val receiver = client.launch()
         log("Default Media Receiver running, transport ${receiver.transportId}")
         client.setVolume(level = 0.1)
@@ -110,15 +109,6 @@ class CastRealDeviceCheck {
             Thread.sleep(1_000)
             client.close()
             server.close()
-        }
-
-        // A device that shows another certificate than the pinned one is refused.
-        val stranger = CastClient(host, 8009, listener)
-        try {
-            stranger.connect("0".repeat(64))
-            fail("a wrong pin was accepted")
-        } catch (e: CertificateException) {
-            log("wrong pin refused: ${e.message}")
         }
     }
 }

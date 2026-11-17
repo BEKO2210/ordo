@@ -53,6 +53,9 @@ object CastManager {
         private set
     var device: CastDevice? = null
         private set
+    /** A known name that now shows another device; the chooser asks before [connect] with `confirmed = true`. */
+    var confirmation: CastDevice? = null
+        private set
 
     private val listeners = mutableSetOf<() -> Unit>()
     private val handler = Handler(Looper.getMainLooper())
@@ -88,8 +91,21 @@ object CastManager {
         localPlayer = null
     }
 
-    fun connect(target: CastDevice) {
+    /** True when this name was seen before as another device ID: the chooser marks it. */
+    fun isUnfamiliar(target: CastDevice): Boolean {
+        val remembered = context?.getSharedPreferences(PINS, Context.MODE_PRIVATE)?.getString(target.name, null)
+            ?: return false
+        return !remembered.startsWith(CastDeviceAuth.record(target.id, ""))
+    }
+
+    fun dismissConfirmation() {
+        confirmation = null
+        setPhase(phase)
+    }
+
+    fun connect(target: CastDevice, confirmed: Boolean = false) {
         val context = context ?: return
+        confirmation = null
         if (phase != Phase.IDLE) end(stopReceiver = device?.id != target.id)
         if (phase != Phase.IDLE) return
         val currentAttempt = ++attempt
@@ -116,8 +132,11 @@ object CastManager {
         client = newClient
         Thread({
             val result = runCatching {
-                val pin = newClient.connect(pins.getString(target.id, null))
-                if (!pins.contains(target.id)) pins.edit().putString(target.id, pin).apply()
+                val pin = newClient.connect().pin
+                // Keyed by the name people pick from, so a stranger with a familiar name never slips through.
+                val known = CastDeviceAuth.compare(pins.getString(target.name, null), target.id, pin)
+                if (known == CastDeviceAuth.Known.CHANGED && !confirmed) throw IdentityChanged()
+                pins.edit().putString(target.name, CastDeviceAuth.record(target.id, pin)).apply()
                 val receiver = newClient.launch()
                 val newServer = CastFileServer(newClient.localAddress, InetAddress.getByName(target.host))
                 newServer to receiver
@@ -132,11 +151,13 @@ object CastManager {
                         newClient.close()
                         client = null
                         device = null
+                        if (it is IdentityChanged) confirmation = target
                         setPhase(Phase.IDLE)
-                        toast(
-                            if (it is CertificateException) R.string.cast_error_identity else R.string.cast_error_connect,
-                            target.name
-                        )
+                        when (it) {
+                            is IdentityChanged -> {}
+                            is CertificateException -> toast(R.string.cast_error_identity, target.name)
+                            else -> toast(R.string.cast_error_connect, target.name)
+                        }
                     }
             }
         }, "cast-connect").start()
@@ -353,6 +374,8 @@ object CastManager {
 
         override fun close() = channel.close()
     }
+
+    private class IdentityChanged : Exception()
 
     private const val PINS = "cast_device_pins"
 }

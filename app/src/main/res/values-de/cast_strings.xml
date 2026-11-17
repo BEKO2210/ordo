@@ -14,6 +14,10 @@
     <string name="cast_privacy">Ordo gibt nur den laufenden Titel frei, nur für dieses Gerät und nur solange er läuft. Nichts verlässt dein WLAN.</string>
     <string name="cast_effects_note">Klangeffekte wirken nur auf diesem Handy.</string>
     <string name="cast_error_connect">%1$s ist nicht erreichbar.</string>
-    <string name="cast_error_identity">%1$s hat sich anders ausgewiesen als beim letzten Mal. Ordo hat nicht verbunden.</string>
+    <string name="cast_error_identity">%1$s konnte sich nicht als echtes Cast-Gerät ausweisen. Ordo hat nicht verbunden.</string>
+    <string name="cast_changed_title">Ist das wirklich %1$s?</string>
+    <string name="cast_changed_message">%1$s meldet sich als anderes Gerät als beim letzten Mal. Verbinde nur, wenn du es ersetzt oder zurückgesetzt hast.</string>
+    <string name="cast_changed_connect">Trotzdem verbinden</string>
+    <string name="cast_unfamiliar">Anderes Gerät als bisher</string>
     <string name="cast_error_lost">Verbindung zu %1$s verloren. Die Musik ist hier pausiert.</string>
 </resources>

@@ -15,6 +15,8 @@ import androidx.annotation.OptIn
 import androidx.core.view.isVisible
 import androidx.media3.common.util.UnstableApi
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import com.google.android.material.color.MaterialColors
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import me.zhanghai.android.files.R
 import me.zhanghai.android.files.databinding.CastChooserSheetBinding
 import me.zhanghai.android.files.databinding.CastDeviceRowBinding
@@ -43,7 +45,9 @@ class CastChooserSheet : BottomSheetDialogFragment() {
         }
         lastPhase = CastManager.phase
         render()
+        askAboutChangedDevice()
     }
+    private var confirmDialog: androidx.appcompat.app.AlertDialog? = null
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = CastChooserSheetBinding.inflate(inflater, container, false)
@@ -74,6 +78,8 @@ class CastChooserSheet : BottomSheetDialogFragment() {
     }
 
     override fun onDestroyView() {
+        confirmDialog?.dismiss()
+        confirmDialog = null
         _binding = null
         discovery = null
         super.onDestroyView()
@@ -97,15 +103,17 @@ class CastChooserSheet : BottomSheetDialogFragment() {
         ) { CastManager.disconnect() }
         for (device in shown) {
             val isActive = device.id == active?.id
+            val unfamiliar = !isActive && CastManager.isUnfamiliar(device)
             val summary = when {
                 isActive && phase == CastManager.Phase.CONNECTING -> getString(R.string.cast_connecting)
                 isActive -> getString(R.string.cast_playing_here)
+                unfamiliar -> getString(R.string.cast_unfamiliar)
                 else -> device.model.orEmpty()
             }
             addRow(
                 if (device.hasVideo) R.drawable.cast_tv_icon_24dp else R.drawable.audio_speaker_icon_24dp,
                 device.name, summary, isActive && phase == CastManager.Phase.CASTING,
-                isActive && phase == CastManager.Phase.CONNECTING
+                isActive && phase == CastManager.Phase.CONNECTING, unfamiliar
             ) { if (!isActive) CastManager.connect(device) }
         }
         binding.stop.isVisible = phase != CastManager.Phase.IDLE
@@ -118,6 +126,7 @@ class CastChooserSheet : BottomSheetDialogFragment() {
         summary: String,
         selected: Boolean,
         connecting: Boolean,
+        warning: Boolean = false,
         onClick: () -> Unit
     ) {
         val row = CastDeviceRowBinding.inflate(layoutInflater, binding.devices, true)
@@ -126,10 +135,25 @@ class CastChooserSheet : BottomSheetDialogFragment() {
         row.name.text = name
         row.summary.text = summary
         row.summary.isVisible = summary.isNotEmpty()
+        if (warning) row.summary.setTextColor(MaterialColors.getColor(row.summary, androidx.appcompat.R.attr.colorError))
         row.selected.isVisible = selected
         row.progress.isVisible = connecting
         row.root.isSelected = selected
         row.root.setOnClickListener { onClick() }
+    }
+
+    /** A familiar name with another device behind it: connect only when the user says so. */
+    private fun askAboutChangedDevice() {
+        val device = CastManager.confirmation ?: return
+        if (confirmDialog?.isShowing == true || !isAdded) return
+        confirmDialog = MaterialAlertDialogBuilder(requireContext())
+            .setIcon(R.drawable.cast_tv_icon_24dp)
+            .setTitle(getString(R.string.cast_changed_title, device.name))
+            .setMessage(getString(R.string.cast_changed_message, device.name))
+            .setPositiveButton(R.string.cast_changed_connect) { _, _ -> CastManager.connect(device, confirmed = true) }
+            .setNegativeButton(android.R.string.cancel) { _, _ -> CastManager.dismissConfirmation() }
+            .setOnCancelListener { CastManager.dismissConfirmation() }
+            .show()
     }
 
     companion object {

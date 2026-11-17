@@ -27,6 +27,7 @@ import androidx.annotation.OptIn
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
 import androidx.core.os.bundleOf
+import androidx.core.view.MenuItemCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.isVisible
 import androidx.core.widget.ImageViewCompat
@@ -302,9 +303,13 @@ class AudioPlayerActivity : AppActivity() {
                 device.name
             )
         }
-        binding.toolbar.menu.findItem(R.id.actionCast)?.setIcon(
-            if (device != null) R.drawable.cast_connected_icon_24dp else R.drawable.cast_tv_icon_24dp
-        )
+        // The TV stays a TV (next to "Play on…", a second cast symbol would read as the same button); casting tints it.
+        binding.toolbar.menu.findItem(R.id.actionCast)?.let { item ->
+            MenuItemCompat.setIconTintList(
+                item,
+                if (device != null) ColorStateList.valueOf(themeColor(androidx.appcompat.R.attr.colorPrimary)) else null
+            )
+        }
     }
 
     private fun connectController() {

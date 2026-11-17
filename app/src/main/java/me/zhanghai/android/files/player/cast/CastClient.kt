@@ -12,7 +12,6 @@ import java.io.IOException
 import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.security.SecureRandom
-import java.security.cert.CertificateException
 import java.util.concurrent.Executors
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
@@ -58,10 +57,10 @@ class CastClient(
     val localAddress: InetAddress get() = socket.localAddress
 
     /**
-     * Connects, authenticates the device and returns the pin of its device certificate. With [expectedPin] set, a
-     * device showing another certificate is refused with [CertificateException]. Blocking; not on the main thread.
+     * Connects and proves the device is a real Cast device ([CastDeviceAuth.verify]); throws
+     * [java.security.cert.CertificateException] otherwise. Blocking; not on the main thread.
      */
-    fun connect(expectedPin: String?, timeoutMs: Int = 8_000): String {
+    fun connect(timeoutMs: Int = 8_000): CastDeviceAuth.Device {
         val context = SSLContext.getInstance("TLS")
         context.init(null, arrayOf(CastDeviceAuth.TlsTrustManager()), SecureRandom())
         socket = context.socketFactory.createSocket() as SSLSocket
@@ -74,18 +73,17 @@ class CastClient(
         val nonce = ByteArray(16).also { SecureRandom().nextBytes(it) }
         sendNow(CastMessage(CastProtocol.SENDER_ID, CastProtocol.RECEIVER_ID, CastDeviceAuth.NAMESPACE, "",
             CastDeviceAuth.challenge(nonce)))
-        val reply = pendingAuth.poll(timeoutMs.toLong(), TimeUnit.MILLISECONDS)
-            ?: throw IOException("No device auth reply").also { close() }
-        val pin = try {
-            CastDeviceAuth.verify(reply, socket.session.peerCertificates[0].encoded)
-                .also { if (expectedPin != null && it != expectedPin) throw CertificateException("Device certificate changed") }
+        val device = try {
+            val reply = pendingAuth.poll(timeoutMs.toLong(), TimeUnit.MILLISECONDS)
+                ?: throw IOException("No device auth reply")
+            CastDeviceAuth.verify(reply, nonce, socket.session.peerCertificates[0].encoded)
         } catch (e: Exception) {
             close()
             throw e
         }
         sendNow(message(CastProtocol.RECEIVER_ID, CastProtocol.NS_CONNECTION, CastProtocol.type("CONNECT")))
         writer.scheduleWithFixedDelay(::heartbeat, HEARTBEAT_MS, HEARTBEAT_MS, TimeUnit.MILLISECONDS)
-        return pin
+        return device
     }
 
     /** Starts (or joins) the Default Media Receiver and opens a virtual connection to it. Blocking. */
