@@ -18,6 +18,12 @@ Mit Dateien arbeiten
 • ZIP-, TAR- und 7z-Archive erstellen und entpacken
 • Eingebaute Ansicht für Bilder, PDF und Text
 
+Musik hören
+• Musik-Player mit Cover, Warteschlange und Steuerung auf dem Sperrbildschirm und per Kopfhörer
+• Klang: 10-Band-Equalizer, Bass, Lautstärke angleichen, Tempo, Einschlaf-Timer
+• „Abspielen auf …“: Musik an Bluetooth-Kopfhörer, Lautsprecher oder ein Cast-Gerät schicken
+• Auf Wunsch eigenes Symbol „Ordo Musik“
+
 Dateien schützen
 • Tresor: Dateien werden mit AES-256-GCM verschlüsselt und mit deiner Bildschirmsperre geöffnet
 • Sicherung: Ordner und Tresor als ZIP-Datei auf einen USB-Stick oder an jeden Ort, den dein Handy anbietet – auf Wunsch mit Passwort

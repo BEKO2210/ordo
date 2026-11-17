@@ -28,6 +28,9 @@ class MonoAudioProcessor : BaseAudioProcessor() {
         }
 
     override fun queueInput(inputBuffer: ByteBuffer) {
+        // The pipeline also polls with an empty buffer; before the first data our output buffer is that same
+        // EMPTY_BUFFER, and copying a buffer into itself throws, which failed every stereo song.
+        if (!inputBuffer.hasRemaining()) return
         val output = replaceOutputBuffer(inputBuffer.remaining())
         if (!monoEnabled) {
             output.put(inputBuffer)

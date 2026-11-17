@@ -2,7 +2,7 @@
 
 <!-- Erzeugt von utils/roadmap.sh. Nicht von Hand ändern: Ziele stehen im Skript, erledigt ist, was sein Prüfbefehl bestätigt. -->
 
-Stand: 17.11.2026, letzte Version: v0.13.1. Als Nächstes: **Video-Player: Filme direkt in Ordo ansehen**
+Stand: 17.11.2026, letzte Version: v0.13.2. Als Nächstes: **Video-Player: Filme direkt in Ordo ansehen**
 
 Jedes Ziel ist eine Zelle mit einem Prüfbefehl ([autopoiesis](https://github.com/BEKO2210/autopoiesis)).
 Besteht der Befehl, ist das Ziel erledigt. Nach jeder veröffentlichten Version entstehen die Zellen
@@ -28,6 +28,7 @@ für die nächste – vor 1.0.0 und danach.
 - [ ] Goldener Schnitt als Maßsystem in ganz Ordo
 - [ ] Dokumente bearbeiten: Entscheidung für Office-Formate
 - [ ] Nach v0.13.1: neue Version veröffentlicht
+- [ ] Nach v0.13.2: neue Version veröffentlicht
 
 ## Erledigt
 
@@ -53,6 +54,8 @@ für die nächste – vor 1.0.0 und danach.
 - [x] Abspielen auf: Bluetooth, Kabel und Cast-Geräte wählen
 - [x] Nach v0.13.1: nächste Version hat eine eigene Nummer
 - [x] Nach v0.13.1: beide READMEs nennen die neue Version
+- [x] Nach v0.13.2: nächste Version hat eine eigene Nummer
+- [x] Nach v0.13.2: beide READMEs nennen die neue Version
 
 ## Graph
 
@@ -96,6 +99,7 @@ flowchart TD
   nc_c9fd0b["Goldener Schnitt als Maßsystem in ganz Ordo [active]"]
   nc_2adb3d["Dokumente bearbeiten: Entscheidung für Office-Formate [active]"]
   nc_89874d["Nach v0.13.1: neue Version veröffentlicht [active]"]
+  nc_aa27a9["Nach v0.13.2: neue Version veröffentlicht [active]"]
   nc_031b14 --> nc_21eac6
   nc_7d2b74 --> nc_21eac6
   nc_830016 --> nc_21eac6

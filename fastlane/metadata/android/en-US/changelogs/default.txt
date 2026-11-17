@@ -3,5 +3,5 @@ New in this test build:
 • Sound: 10-band equalizer, bass, surround, loudness levelling, speed, sleep timer
 • “Play on…”: send music to Bluetooth, wired or cast devices
 • Own “Ordo Music” icon (Settings › Built-in apps), off by default
-• Spacing follows the golden ratio
+• Fixed: stereo songs stopped with an error in 0.13.2
 Feedback welcome: nullmesh@protonmail.com

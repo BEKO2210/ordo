@@ -18,6 +18,12 @@ Work with files
 • Create and extract ZIP, TAR and 7z archives
 • Built-in viewers for images, PDF and text
 
+Listen to music
+• Music player with cover art, a queue and controls in the notification, on the lock screen and on headphone buttons
+• Sound: 10-band equalizer with presets, bass boost, loudness levelling, speed that keeps the pitch, sleep timer
+• “Play on…”: send music to Bluetooth headphones, a speaker or a cast device
+• Optional own “Ordo Music” icon on your home screen
+
 Keep files safe
 • Vault: files are encrypted with AES-256-GCM and opened with your screen lock
 • Backup: folders and the vault as a ZIP file to a USB drive or any storage your phone offers, with an optional password

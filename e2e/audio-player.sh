@@ -13,10 +13,13 @@ tmp=$(mktemp -d); trap 'a shell "rm -rf $DIR"; rm -rf "$tmp"' EXIT
 python3 - "$tmp" <<'PY'
 import pathlib, struct, sys, wave
 root = pathlib.Path(sys.argv[1])
-for name, value in (("01-one.wav", 0), ("02-two.wav", 24)):
-    with wave.open(str(root / name), "wb") as out:
-        out.setnchannels(1); out.setsampwidth(1); out.setframerate(8000)
-        out.writeframes(bytes([128 + value]) * 240000)
+with wave.open(str(root / "01-one.wav"), "wb") as out:
+    out.setnchannels(1); out.setsampwidth(1); out.setframerate(8000)
+    out.writeframes(bytes([128]) * 240000)
+# The second title is 16-bit stereo like real music: only then does Ordo's mono/balance processor run.
+with wave.open(str(root / "02-two.wav"), "wb") as out:
+    out.setnchannels(2); out.setsampwidth(2); out.setframerate(44100)
+    out.writeframes(struct.pack("<hh", 24, -24) * (44100 * 30))
 PY
 a shell "rm -rf $DIR; mkdir -p $DIR"
 a push "$tmp/01-one.wav" "$tmp/02-two.wav" "$DIR/" >/dev/null
@@ -92,6 +95,11 @@ not_on() { ! on "$@"; }
 playing() { a shell dumpsys activity services "$PKG" | grep -q AudioPlaybackService; }
 check "playback service stays alive" playing
 a shell input keyevent KEYCODE_MEDIA_NEXT; sleep 2
+# A stereo title must actually play: a failed player leaves the session in ERROR instead of PLAYING.
+# Next keeps the paused state from the checks above, so press play first.
+session_playing() { a shell dumpsys media_session | grep -A25 "package=$PKG" | grep -q "state=PLAYING"; }
+a shell input keyevent KEYCODE_MEDIA_PLAY; sleep 3
+check "a stereo title plays" session_playing
 a shell am start -W -n "$PKG/$PLAYER" >/dev/null; sleep 2; guard
 check "the player reconnects" on viewer.audio.AudioPlayerActivity
 check "media Next selected the second title" paused_ui has 02-two.wav
