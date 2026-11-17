@@ -21,14 +21,9 @@ alias_on() { a shell "cmd package query-activities --brief -a android.intent.act
 alias_off() { ! alias_on; }
 not() { ! "$@"; }
 wait_alias() { local want=$1 end=$((SECONDS + 8)); until "alias_$want"; do [ $SECONDS -ge "$end" ] && return 1; sleep 0.5; done; }
-# Newer Android (real phones, the API 36 emulator) refuses `pm enable/disable` of an app component from the shell:
-# there the page's own switch sets it. Asking for the state it already has shows whether the shell may.
-shell_switches() {
-    local now=disable; alias_on && now=enable
-    ! a shell "pm $now $PKG/$ALIAS" 2>&1 | grep -q Exception
-}
+# Newer Android (real phones, the API 36 emulator) refuses to let the shell switch an app component (a no-op is
+# accepted, so it can't be asked beforehand): the page's own switch sets the alias, as a user would.
 set_alias() {
-    if shell_switches; then a shell "pm $1 $PKG/$ALIAS" >/dev/null; return; fi
     local want=off; [ "$1" = enable ] && want=on
     "alias_$want" && return 0
     open_page; ui tap "$MUSIC" >/dev/null; wait_alias "$want"; back; sleep 1
@@ -64,8 +59,9 @@ check "the switch is on" ui checked "$MUSIC"
 back; sleep 1
 open_page
 check "after reopening the switch still shows the real state (on)" ui checked "$MUSIC"
-if shell_switches; then
-    a shell "pm disable $PKG/$ALIAS" >/dev/null
+# Whether the shell may switch it shows only afterwards: refused, it either throws or quietly changes nothing.
+a shell "pm disable $PKG/$ALIAS" >/dev/null 2>&1
+if wait_alias off; then
     back; sleep 1
     open_page
     check "a change made from outside shows up when the page opens (off)" not ui checked "$MUSIC"
