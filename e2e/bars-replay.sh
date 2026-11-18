@@ -8,11 +8,15 @@
 command -v ffmpeg >/dev/null || { echo "SKIP bars-replay: ffmpeg missing"; exit 0; }
 tmp=$(mktemp -d); trap 'rm -rf "$tmp"' EXIT
 launch 8
-ui has usageBar || fail "no storage bar on the home screen"
 read -r W H < <(screen_size)
-# Bring the bars into view if they are below the fold, then remember where each one is.
-first=$(ui bounds usageBar | head -1 | cut -d' ' -f4)
-[ "${first:-0}" -gt $((H - 200)) ] && swipe_up
+# Bring the bars and the card's Open button into view (a large display size puts the card below the fold, S21 Ultra
+# at 600 dpi), then remember where each bar is.
+for _ in 1 2 3 4; do
+    first=$(ui bounds usageBar | head -1 | cut -d' ' -f4)
+    [ -n "$first" ] && [ "$first" -le $((H - 200)) ] && ui has openButton && break
+    swipe_up
+done
+ui has usageBar || fail "no storage bar on the home screen"
 ui bounds usageBar > "$tmp/bars.txt"
 ui tap openButton >/dev/null; sleep 4; guard
 check "left the home screen" on filelist.FileListActivity
