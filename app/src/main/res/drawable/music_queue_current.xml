@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- The queue's playing song: a calm pill in the accent at 16 %, with the usual touch ripple on top. -->
+<ripple xmlns:android="http://schemas.android.com/apk/res/android" android:color="?colorControlHighlight">
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="@dimen/phi_21" />
+            <solid android:color="@color/music_queue_current_fill" />
+        </shape>
+    </item>
+</ripple>

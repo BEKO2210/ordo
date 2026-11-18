@@ -1097,6 +1097,10 @@
     <string name="audio_player_repeat_all">Repeat all</string>
     <string name="audio_player_repeat_one">Repeat this song</string>
     <string name="audio_player_position">Position</string>
+    <string name="music_queue">Queue</string>
+    <string name="music_queue_move_up">Move up</string>
+    <string name="music_queue_move_down">Move down</string>
+    <string name="music_queue_remove">Remove from queue</string>
     <string name="music_lyrics">Lyrics</string>
     <string name="music_lyrics_close">Close lyrics</string>
     <string name="music_lyrics_jump">Jump here</string>

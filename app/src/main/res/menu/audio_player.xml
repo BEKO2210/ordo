@@ -15,6 +15,12 @@
         app:iconTint="?colorControlNormal"
         app:showAsAction="always" />
     <item
+        android:id="@+id/actionQueue"
+        android:icon="@drawable/queue_music_icon_white_24dp"
+        android:title="@string/music_queue"
+        app:iconTint="?colorControlNormal"
+        app:showAsAction="ifRoom" />
+    <item
         android:id="@+id/actionSound"
         android:icon="@drawable/equalizer_icon_24dp"
         android:title="@string/audio_sound_title"

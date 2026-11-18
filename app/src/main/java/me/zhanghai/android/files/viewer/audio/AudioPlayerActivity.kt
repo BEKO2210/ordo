@@ -192,7 +192,10 @@ class AudioPlayerActivity : AppActivity() {
         binding.root.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> updateArtworkSize() }
         binding.toolbar.setNavigationOnClickListener { finish() }
         binding.toolbar.setOnMenuItemClickListener { item ->
-            if (item.itemId == R.id.actionLyrics) {
+            if (item.itemId == R.id.actionQueue) {
+                PlayerQueueSheet().show(supportFragmentManager, PlayerQueueSheet.TAG)
+                true
+            } else if (item.itemId == R.id.actionLyrics) {
                 showLyrics()
                 true
             } else if (item.itemId == R.id.actionSound) {
@@ -783,7 +786,8 @@ class AudioPlayerActivity : AppActivity() {
         controller?.duration?.takeIf { it > 0 && it != C.TIME_UNSET } ?: 0L
 
     /**
-     * Double-tapping the cover's left or right half jumps 10 s back or ahead (as in video players): the precise way
+     * Swiping the cover sideways changes the song ([CoverSwipe]). Double-tapping its left or right half jumps 10 s back
+     * or ahead (as in video players): the precise way
      * that never needs the seek bar. A short bubble on that side names the jump.
      */
     @SuppressLint("ClickableViewAccessibility")
@@ -805,7 +809,19 @@ class AudioPlayerActivity : AppActivity() {
                 return true
             }
         })
-        binding.artworkCard.setOnTouchListener { _, event -> detector.onTouchEvent(event) }
+        binding.artworkContainer.cameraDistance = COVER_CAMERA_DISTANCE * resources.displayMetrics.density
+        val swipe = CoverSwipe(
+            binding.artworkContainer,
+            canGo = { forward ->
+                controller?.let { if (forward) it.hasNextMediaItem() else it.hasPreviousMediaItem() } == true
+            },
+            go = { forward -> controller?.let { if (forward) it.seekToNextMediaItem() else it.seekToPreviousMediaItem() } }
+        )
+        binding.artworkCard.setOnTouchListener { _, event ->
+            swipe.onTouch(event)
+            detector.onTouchEvent(event)
+            true
+        }
     }
 
     private fun showSeekBubble(forward: Boolean) {
@@ -882,6 +898,9 @@ class AudioPlayerActivity : AppActivity() {
             }
         }
     }
+
+    /** The session's player for the queue sheet. */
+    internal fun queuePlayer(): Player? = controller
 
     internal fun applySoundSettings(onApplied: (() -> Unit)? = null) {
         val player = controller ?: return
@@ -971,6 +990,7 @@ class AudioPlayerActivity : AppActivity() {
         private const val MIN_VEIL_DARK = 0.4f
         private const val DOUBLE_TAP_SEEK_MS = 10_000L
         private const val LYRICS_TICK_MS = 250L
+        private const val COVER_CAMERA_DISTANCE = 8_000f
         private const val LYRICS_FADE_MS = 200L
         private const val SEEK_BUBBLE_MS = 600L
         private const val BACKGROUND_CROSSFADE_DURATION_MS = 300L

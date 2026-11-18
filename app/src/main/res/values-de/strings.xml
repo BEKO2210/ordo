@@ -964,6 +964,10 @@
     <string name="audio_player_repeat_all">Alle wiederholen</string>
     <string name="audio_player_repeat_one">Diesen Titel wiederholen</string>
     <string name="audio_player_position">Position</string>
+    <string name="music_queue">Warteschlange</string>
+    <string name="music_queue_move_up">Nach oben</string>
+    <string name="music_queue_move_down">Nach unten</string>
+    <string name="music_queue_remove">Aus der Warteschlange entfernen</string>
     <string name="music_lyrics">Liedtext</string>
     <string name="music_lyrics_close">Liedtext schließen</string>
     <string name="music_lyrics_jump">Hierhin springen</string>

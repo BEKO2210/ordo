@@ -16,15 +16,19 @@ enum class LyricsSource { SIDECAR_LRC, EMBEDDED_SYNCED, EMBEDDED_UNSYNCED }
 
 /** The lyrics of one song. Times are milliseconds from the start of the song, offsets already applied. */
 class Lyrics(val content: SemanticLyrics, val source: LyricsSource) {
-    /** Timed lines sorted by start (a translation shares its main line's start); empty when not synced. */
-    val lines: List<LyricLine> = (content as? SyncedLyrics)?.text.orEmpty()
+    /**
+     * Timed lines sorted by start (a translation shares its main line's start); empty when not synced. At most
+     * [MAX_LINES] lines of at most [MAX_LINE_CHARS] characters: a crafted 512 KB file could otherwise hold tens of
+     * thousands of lines (security review 18.11.2026).
+     */
+    val lines: List<LyricLine> = (content as? SyncedLyrics)?.text.orEmpty().take(MAX_LINES)
+        .map { if (it.text.length > MAX_LINE_CHARS) it.copy(text = capLine(it.text), words = null) else it }
 
     val isSynced: Boolean
         get() = lines.isNotEmpty()
 
-    /** Every line as plain text, synced or not. */
-    val text: List<String>
-        get() = content.unsyncedText.map { it.first }
+    /** Every line as plain text, synced or not, with the same caps as [lines]. */
+    val text: List<String> by lazy { content.unsyncedText.take(MAX_LINES).map { capLine(it.first) } }
 
     /**
      * The index in [lines] of the line playing at [positionMs]: the last one that has started, or -1 before the
@@ -62,3 +66,13 @@ class Lyrics(val content: SemanticLyrics, val source: LyricsSource) {
 
 /** Maps the player position to the current line index, emitting only when the line changes. */
 fun Flow<Long>.lyricsLineIndex(lyrics: Lyrics): Flow<Int> = map(lyrics::lineAt).distinctUntilChanged()
+
+internal const val MAX_LINES = 5_000
+internal const val MAX_LINE_CHARS = 500
+
+/** A line cut to [MAX_LINE_CHARS] at the last space before the limit, never inside a word, with an ellipsis. */
+internal fun capLine(text: String): String {
+    if (text.length <= MAX_LINE_CHARS) return text
+    val space = text.lastIndexOf(' ', MAX_LINE_CHARS - 1)
+    return (if (space > 0) text.substring(0, space) else text.substring(0, MAX_LINE_CHARS)).trimEnd() + " …"
+}

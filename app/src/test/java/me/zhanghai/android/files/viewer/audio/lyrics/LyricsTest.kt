@@ -24,6 +24,26 @@ class LyricsTest {
         Lyrics(parseLrc(lrc, trimEnabled = true, multiLineEnabled = false)!!, LyricsSource.SIDECAR_LRC)
 
     @Test
+    fun hugeFilesAreCapped() {
+        // 20,000 timed lines, as a crafted 512 KB .lrc could hold: the player gets at most 5,000.
+        val lrc = (0 until 20_000).joinToString("\n") { "[%02d:%02d.00]Zeile $it".format(it / 60 % 100, it % 60) }
+        val capped = lyrics(lrc)
+        assertEquals(MAX_LINES, capped.lines.size)
+        assertEquals(MAX_LINES, capped.text.size)
+    }
+
+    @Test
+    fun longLinesAreCutAtAWordBoundary() {
+        val long = (1..200).joinToString(" ") { "Wort$it" }
+        val line = lyrics("[00:01.00]$long").lines.single().text
+        assertTrue(line.length <= MAX_LINE_CHARS + 2)
+        assertTrue(line.endsWith(" …"))
+        val kept = line.removeSuffix(" …")
+        assertTrue(long.startsWith(kept) && long[kept.length] == ' ')
+        assertEquals("kurz", capLine("kurz"))
+    }
+
+    @Test
     fun normalLrc() {
         val lines = synced("[00:01.00]Hallo\n[00:03.50]Welt\n[01:02.345]Ende").text
         assertEquals(listOf("Hallo", "Welt", "Ende"), lines.map { it.text })
