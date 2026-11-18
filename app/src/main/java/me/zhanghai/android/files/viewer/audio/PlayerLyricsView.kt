@@ -149,12 +149,14 @@ class PlayerLyricsView(
         songTitle.setTextColor(textColor)
         songArtist.setTextColor(dimColor)
         // Fades in the backdrop's own veil colour, top and bottom, so the lines melt away under header and button.
+        // Never fully opaque: the backdrop is the veil over the blurred cover, a solid band would stand out.
+        val soft = androidx.core.graphics.ColorUtils.setAlphaComponent(veil, FADE_ALPHA)
         val clear = androidx.core.graphics.ColorUtils.setAlphaComponent(veil, 0)
         header.background = android.graphics.drawable.GradientDrawable(
-            android.graphics.drawable.GradientDrawable.Orientation.TOP_BOTTOM, intArrayOf(veil, veil, clear)
+            android.graphics.drawable.GradientDrawable.Orientation.TOP_BOTTOM, intArrayOf(soft, soft, clear)
         )
         bottomFade.background = android.graphics.drawable.GradientDrawable(
-            android.graphics.drawable.GradientDrawable.Orientation.BOTTOM_TOP, intArrayOf(veil, veil, clear)
+            android.graphics.drawable.GradientDrawable.Orientation.BOTTOM_TOP, intArrayOf(soft, soft, clear)
         )
         lines = if (lyrics.isSynced) lyrics.lines.map { it.text } else lyrics.text
         current = -1
@@ -264,6 +266,7 @@ class PlayerLyricsView(
         private const val LINE_TEXT_SP = 28f
         private const val INACTIVE_SCALE = 0.8f
         private const val MAX_LINE_WIDTH_DP = 640
+        private const val FADE_ALPHA = 0xb0
         private val MEDIUM = android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.NORMAL)
         private val BOLD = android.graphics.Typeface.create("sans-serif", android.graphics.Typeface.BOLD)
         private const val STYLE_MS = 250L
