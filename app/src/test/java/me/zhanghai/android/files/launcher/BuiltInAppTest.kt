@@ -59,7 +59,16 @@ class BuiltInAppTest {
             val icon = alias.attr("icon").removePrefix("@mipmap/")
             // Every colour is an adaptive icon with a monochrome layer, so themed icons (Android 13+) keep working.
             val adaptive = File("src/main/res/mipmap-anydpi-v26/$icon.xml")
-            assertTrue("$name: $adaptive", adaptive.readText().contains("<monochrome"))
+            val adaptiveXml = adaptive.readText()
+            assertTrue("$name: $adaptive", adaptiveXml.contains("<monochrome"))
+            // The background is a plain rectangle filling the whole 108 dp canvas, like the blue original: no size,
+            // padding or inset that would leave a lighter edge for the launcher's mask to show.
+            val background = Regex("""<background android:drawable="@drawable/(\w+)"""").find(adaptiveXml)!!.groupValues[1]
+            for (folder in listOf("drawable", "drawable-v24")) {
+                val shape = File("src/main/res/$folder/$background.xml").takeIf { it.exists() }?.readText() ?: continue
+                assertTrue("$name: $folder/$background", shape.contains("android:shape=\"rectangle\""))
+                assertFalse("$name: $folder/$background", Regex("<size|<padding|<inset|<stroke").containsMatchIn(shape))
+            }
             val categories = alias.children("category").map { it.attr("name") }
             assertTrue(name, "android.intent.category.LAUNCHER" in categories)
         }
@@ -109,6 +118,17 @@ class BuiltInAppTest {
                 assertEquals(null, IconAliases.current(prefix) { it in on })
             }
         }
+    }
+
+    @Test
+    fun aSavedColourThatNeverReachedTheHomeScreenIsAppliedLater() {
+        // Ordo was killed before going to the background: saved green, blue still enabled -> apply at ON_STOP.
+        assertTrue(IconAliases.needsReconcile(IconColor.GREEN, IconColor.BLUE))
+        // Saved and enabled agree -> nothing to do.
+        for (color in IconColor.entries) assertFalse(IconAliases.needsReconcile(color, color))
+        // Nothing saved yet, or the icon is switched off (no alias enabled) -> leave it alone.
+        assertFalse(IconAliases.needsReconcile(null, IconColor.BLUE))
+        assertFalse(IconAliases.needsReconcile(IconColor.GREEN, null))
     }
 
     @Test

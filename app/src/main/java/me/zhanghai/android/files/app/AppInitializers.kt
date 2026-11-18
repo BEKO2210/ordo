@@ -7,6 +7,8 @@ package me.zhanghai.android.files.app
 
 import android.os.AsyncTask
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.webkit.WebView
 import jcifs.context.SingletonContext
 import me.zhanghai.android.files.BuildConfig
@@ -27,6 +29,7 @@ import java.util.Properties
 import me.zhanghai.android.files.trash.Trash
 import me.zhanghai.android.files.vault.Vault
 import me.zhanghai.android.files.provider.ftp.client.Client as FtpClient
+import me.zhanghai.android.files.launcher.LauncherIcons
 import me.zhanghai.android.files.provider.sftp.client.Client as SftpClient
 import me.zhanghai.android.files.provider.smb.client.Client as SmbClient
 import me.zhanghai.android.files.provider.webdav.client.Client as WebDavClient
@@ -42,7 +45,8 @@ val appInitializers = listOf(
     ::initializeNightMode,
     ::createNotificationChannels,
     ::purgeExpiredTrash,
-    ::cleanUpVault
+    ::cleanUpVault,
+    ::reconcileLauncherIcon
 )
 
 private fun disableHiddenApiChecks() {
@@ -112,4 +116,9 @@ private fun purgeExpiredTrash() {
 
 private fun cleanUpVault() {
     Thread({ Vault.cleanUp() }, "VaultCleanUp").start()
+}
+
+// Posted: this runs from a ContentProvider, possibly before androidx.startup has attached ProcessLifecycleOwner.
+private fun reconcileLauncherIcon() {
+    Handler(Looper.getMainLooper()).post { LauncherIcons.reconcile(application) }
 }

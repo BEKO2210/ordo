@@ -1,7 +1,7 @@
 #!/bin/bash
 # Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later
 # Settings > Built-in apps: the "Ordo Musik" switch really enables and disables the launcher alias (checked with
-# `cmd package query-activities`, not only on the screen), the other four apps are shown disabled with their summary,
+# `cmd package query-activities`, not only on the screen), the other four apps are listed under "Coming soon",
 # a calm explanation appears, the switch shows the real component state when the page is opened again, and the
 # alias is put back to exactly the state it had before the test (also on Ctrl-C). Needs Android 11 or newer.
 # Where the shell may not change app components (real phones, newer Android), the page's own switch sets and restores it.
@@ -16,8 +16,8 @@ SOON="Kommt, sobald die App fertig ist|Coming as soon as the app is ready"
 ON_MESSAGE="„Ordo Musik“ ist eingeschaltet. Dein Startbildschirm braucht manchmal einen Moment, bis das Symbol erscheint.|“Ordo Music” is on. Your launcher can need a moment before the icon shows up."
 OFF_MESSAGE="„Ordo Musik“ ist ausgeschaltet. Das Symbol verschwindet, sobald dein Startbildschirm sich aktualisiert hat.|“Ordo Music” is off. The icon disappears as soon as your launcher has refreshed."
 
-# The launcher entries of Ordo as the system lists them: the alias is there only while it is enabled.
-alias_on() { a shell "cmd package query-activities --brief -a android.intent.action.MAIN -c android.intent.category.LAUNCHER $PKG" | grep -q "$ALIAS"; }
+# The launcher entries of Ordo as the system lists them: a music alias (one per icon colour) is there only while on.
+alias_on() { a shell "cmd package query-activities --brief -a android.intent.action.MAIN -c android.intent.category.LAUNCHER $PKG" | grep -q "launcher\.Music"; }
 alias_off() { ! alias_on; }
 not() { ! "$@"; }
 wait_alias() { local want=$1 end=$((SECONDS + 8)); until "alias_$want"; do [ $SECONDS -ge "$end" ] && return 1; sleep 0.5; done; }
@@ -26,7 +26,7 @@ wait_alias() { local want=$1 end=$((SECONDS + 8)); until "alias_$want"; do [ $SE
 set_alias() {
     local want=off; [ "$1" = enable ] && want=on
     "alias_$want" && return 0
-    open_page; ui tap "$MUSIC" >/dev/null; wait_alias "$want"; back; sleep 1
+    open_page; ui tap "$MUSIC" title >/dev/null; wait_alias "$want"; back; sleep 1
 }
 
 if alias_on; then initial=enable; else initial=disable; fi
@@ -43,14 +43,18 @@ set_alias disable
 check "the icon is off before the switch is used" wait_alias off
 open_page
 check "the page lists Ordo Musik" ui has "$MUSIC"
+check "the Ordo Musik switch starts off" not ui checked "$MUSIC"
+# The apps still to come sit at the end of the page, under "Coming soon".
+swipe_up; swipe_up; swipe_up
 for app in "Video" "Bilder|Images" "PDF" "Notizen|Notes"; do
     check "$app is listed" ui has "$app"
 done
+check "the apps still to come are grouped" ui has "Bald verfügbar|Coming soon"
 check "a not yet ready app says when it comes" ui has "$SOON"
-check "the Ordo Musik switch starts off" not ui checked "$MUSIC"
+swipe_down; swipe_down; swipe_down
 
 # The message first: it stays 6 s, and a screen read on a real phone takes over 2 s.
-check "tapping the switch works" ui tap "$MUSIC"
+check "tapping the switch works" ui tap "$MUSIC" title
 check "a calm explanation is shown" ui wait "$ON_MESSAGE" 5
 check "the launcher alias is enabled in the system" wait_alias on
 check "the switch is on" ui checked "$MUSIC"
@@ -65,12 +69,12 @@ if wait_alias off; then
     back; sleep 1
     open_page
     check "a change made from outside shows up when the page opens (off)" not ui checked "$MUSIC"
-    check "tapping the switch again works" ui tap "$MUSIC"
+    check "tapping the switch again works" ui tap "$MUSIC" title
     check "the launcher alias is enabled again" wait_alias on
 else
     echo "SKIP a change made from outside shows up when the page opens (the shell may not change app components here)"
 fi
-check "tapping it off removes the icon" ui tap "$MUSIC"
+check "tapping it off removes the icon" ui tap "$MUSIC" title
 check "the removal is explained" ui wait "$OFF_MESSAGE" 5
 check "the launcher alias is disabled again" wait_alias off
 

@@ -10,7 +10,8 @@ export E2E_FAST=0
 
 SETTINGS=me.zhanghai.android.files.settings.SettingsActivity
 SECTION="Eingebaute Apps|Built-in apps"
-ORDO="Ordo"
+# The app's name is the title of its colour row: a test copy (applicationId .dev) is called "Ordo Dev".
+case $PKG in *.dev) ORDO="Ordo Dev" ;; *) ORDO="Ordo" ;; esac
 MUSIC="Ordo Musik|Ordo Music"
 COLOURS="Icon-Farben|Icon colours"
 declare -A LABEL=(
@@ -19,7 +20,8 @@ declare -A LABEL=(
     [Red]="Icon-Farbe Rot|Icon colour Red" [Pink]="Icon-Farbe Pink|Icon colour Pink"
     [Violet]="Icon-Farbe Lila|Icon colour Violet" [Graphite]="Icon-Farbe Graphit|Icon colour Graphite"
 )
-GREEN_MESSAGE="„Ordo“ hat jetzt die Icon-Farbe Grün. Dein Startbildschirm braucht manchmal einen Moment, und auf manchen musst du das Symbol neu ablegen.|“Ordo” now has the icon colour Green. Your home screen can need a moment, and on some you have to place the icon again."
+# Ordo's own colour waits for Ordo to go to the background; its row says so in a line under the icon.
+PENDING_HINT="Wechselt, sobald du Ordo verlässt|Changes as soon as you leave Ordo"
 SAVED_MESSAGE="Gespeichert. „Ordo Musik“ bekommt die Icon-Farbe Lila, sobald du es einschaltest.|Saved. “Ordo Music” gets the icon colour Violet when you turn it on."
 
 # The launcher entries of one icon (Home or Music) as the system lists them, e.g. "HomeGreen"; none while it is off.
@@ -38,16 +40,31 @@ open_page() {
 }
 to_colours() { swipe_up; swipe_up; }
 to_switches() { swipe_down; swipe_down; }
-# tap_colour ROW SUFFIX: both rows have the same eight labels, so the first swatch below the row's title is taken.
-tap_colour() {
-    local title_y x1 y1 x2 y2
-    title_y=$(ui bounds "$1" | tail -1 | awk '{print $4}')
-    [ -n "$title_y" ] || return 1
-    read -r x1 y1 x2 y2 < <(ui bounds "${LABEL[$2]}" | awk -v t="$title_y" '$2 > t' | head -1)
-    [ -n "${y2:-}" ] || return 1
-    a shell input tap $(((x1 + x2) / 2)) $(((y1 + y2) / 2)); sleep 1.2
+# tap_colour ROW SUFFIX: both rows have the same eight labels, so the swatch is the first one below the row's title
+# and above the next title. A row partly off screen is scrolled into view first (a few short swipes).
+ROW_TITLES="$ORDO|$MUSIC"
+nudge() { read -r W H < <(screen_size); a shell input swipe $((W / 2)) $((H * $1 / 3)) $((W / 2)) $((H * $2 / 3)) 400; sleep 1.2; }
+swatch() {
+    local try title_y next_y x1 y1 x2 y2
+    for try in 1 2 3 4 5 6 7 8; do
+        title_y=$(ui bounds "$1" | tail -1 | awk '{print $4}')
+        if [ -z "$title_y" ]; then nudge 1 2; continue; fi
+        next_y=$(ui bounds "$ROW_TITLES" | awk -v t="$title_y" '$2 > t {print $2}' | sort -n | head -1)
+        x1=
+        read -r x1 y1 x2 y2 < <(ui bounds "${LABEL[$2]}" |
+            awk -v t="$title_y" -v n="${next_y:-999999}" '$2 > t && $4 < n' | head -1)
+        if [ -z "$x1" ]; then nudge 2 1; continue; fi
+        echo $(((x1 + x2) / 2)) $(((y1 + y2) / 2))
+        return 0
+    done
+    return 1
 }
-tap_music_switch() { to_switches; ui tap "$MUSIC" >/dev/null; to_colours; }
+tap_colour() { local xy; xy=$(swatch "$1" "$2") || return 1; a shell input tap $xy; sleep 1.2; }
+# ordo_checked SUFFIX: with Ordo's row on screen its swatches come first in the screen read.
+ordo_checked() { swatch "$ORDO" "$1" >/dev/null && ui checked "${LABEL[$1]}"; }
+# Ordo's own icon changes once Ordo is in the background (One UI would otherwise close Ordo's task).
+leave() { a shell input keyevent KEYCODE_HOME; sleep 3; }
+tap_music_switch() { to_switches; ui tap "$MUSIC" title >/dev/null; to_colours; }
 
 initial_home=$(entries Home)
 initial_music=$(entries Music)
@@ -55,7 +72,8 @@ restore() {
     trap - EXIT
     [ "$(entries Home)" = "$initial_home" ] && [ "$(entries Music)" = "$initial_music" ] && return 0
     open_page; to_colours
-    home=${initial_home#Home}; tap_colour "$ORDO" "${home:-Alias}"
+    home=${initial_home#Home}; tap_colour "$ORDO" "${home:-Alias}"; leave
+    open_page; to_colours
     if [ -z "$initial_music" ]; then
         [ -n "$(entries Music)" ] && tap_music_switch
     else
@@ -72,19 +90,20 @@ check "Ordo has exactly one launcher entry before the test" [ "$(entries Home | 
 open_page
 to_colours
 check "the page has the icon colours" ui has "$COLOURS"
-check "the colour of Ordo shows the system's state" ui checked "${LABEL[${initial_home#Home}]}"
+check "the colour of Ordo shows the system's state" ordo_checked "${initial_home#Home}"
 
 check "tapping green in Ordo's row works" tap_colour "$ORDO" Green
-check "the change is explained" ui wait "$GREEN_MESSAGE" 5
-check "the system lists exactly the green alias for Ordo" wait_entries Home HomeGreen
-check "green is selected" ui checked "${LABEL[Green]}"
+check "the row says the icon changes once Ordo is left" ui wait "$PENDING_HINT" 5
+check "green is selected" ordo_checked Green
+check "Ordo's icon stays as it was while Ordo is open" wait_entries Home "$initial_home"
 sleep 3
 check "Ordo keeps running on its settings page" alive
+leave
+check "once Ordo is left, the system lists exactly the green alias for Ordo" wait_entries Home HomeGreen
 
-# Leaving and returning: the row reads the system state, not a stored value.
-back; sleep 1
+# Returning: the row reads the system state, not a stored value.
 open_page; to_colours
-check "after reopening green is still selected" ui checked "${LABEL[Green]}"
+check "after reopening green is still selected" ordo_checked Green
 
 # Ordo Musik: a colour picked while its icon is off is remembered and used when it is switched on.
 [ -n "$(entries Music)" ] && tap_music_switch
@@ -98,8 +117,9 @@ check "tapping blue in Ordo Musik's row works" tap_colour "$MUSIC" Alias
 check "the system lists exactly the blue music alias" wait_entries Music MusicAlias
 
 check "tapping blue in Ordo's row works" tap_colour "$ORDO" Alias
-check "the system lists exactly Ordo's blue alias again" wait_entries Home HomeAlias
 check "Ordo still runs" alive
+leave
+check "the system lists exactly Ordo's blue alias again" wait_entries Home HomeAlias
 restore
 check "Ordo's launcher entry is as before the test" [ "$(entries Home)" = "$initial_home" ]
 check "Ordo Musik's launcher entry is as before the test" [ "$(entries Music)" = "$initial_music" ]

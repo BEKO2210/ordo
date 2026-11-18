@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- A small home screen with the real icons of Ordo and its built-in apps in their chosen colours (filled in code),
+     and one short line below. φ: 21 dp inside the card, 55 dp icons 34 dp apart, 13 dp to the text. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingStart="?android:attr/listPreferredItemPaddingStart"
+    android:paddingTop="@dimen/space_card_v"
+    android:paddingEnd="?android:attr/listPreferredItemPaddingEnd"
+    android:paddingBottom="@dimen/space_card_v">
+
+    <LinearLayout
+        android:id="@+id/home_screen"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:importantForAccessibility="noHideDescendants"
+        android:orientation="horizontal"
+        android:padding="@dimen/phi_21" />
+
+    <TextView
+        android:id="@android:id/summary"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/space_card_v"
+        android:hyphenationFrequency="none"
+        android:textAppearance="?textAppearanceBody2"
+        android:textColor="?android:textColorSecondary" />
+</LinearLayout>
