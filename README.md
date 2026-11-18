@@ -91,7 +91,7 @@ What comes next is in the [living roadmap](docs/ROADMAP-LIVE.md): every goal has
 ### Ordo Music – a music app of its own
 
 - Songs, Albums, Artists and Folders with search, “Shuffle all” and a mini player
-- A player that takes its colour from the cover, with queue and background controls
+- A player that takes its colour from the cover, over a softly moving backdrop made from it, with a wavy seek bar that moves only when you hold it, queue and background controls
 - Sound: a 10-band EQ you shape on the curve, presets, device effects, ReplayGain/R128, a fading sleep timer
 - “Play on…” sends the music to Bluetooth, wired and cast devices through Android's output picker (Android 11 and later)
 
