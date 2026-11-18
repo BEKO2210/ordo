@@ -55,7 +55,7 @@ sleep 2; a shell input keyevent KEYCODE_MEDIA_PAUSE; sleep 1
 check "the Sound sheet opens" ui tap actionSound
 sleep 2; swipe_up; swipe_up; sleep 1
 back; sleep 1
-check "the queue sheet opens" ui tap actionQueue
+check "the queue sheet opens" ui tap queueChip
 sleep 2; back; back; sleep 2
 # Ordo Musik's own settings (side menu): appearance with the colour choices.
 ui tap "Navigationsmenü öffnen|Open navigation drawer" > /dev/null; sleep 1

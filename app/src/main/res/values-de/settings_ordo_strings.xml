@@ -177,4 +177,10 @@
     <string name="settings_music_preview_accent">Der Mini-Player in der gewählten Akzentfarbe</string>
     <string name="settings_music_icon_colors_title">Icon-Farbe von Ordo Musik</string>
     <string name="settings_music_icon_colors_summary">Die Farbe seines eigenen Startbildschirm-Symbols</string>
+    <string name="settings_music_effects_title">Visuelle Effekte</string>
+    <string-array name="settings_music_effects_entries">
+        <item>Maximal (etwas mehr Akku)</item>
+        <item>Ausgewogen</item>
+        <item>Sparsam (schont den Akku)</item>
+    </string-array>
 </resources>

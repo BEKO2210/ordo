@@ -8,4 +8,6 @@
     <item name="queue_move_up" type="id" />
     <item name="queue_move_down" type="id" />
     <item name="queue_remove" type="id" />
+    <item name="lyricsChip" type="id" />
+    <item name="queueChip" type="id" />
 </resources>

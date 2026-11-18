@@ -19,6 +19,13 @@
     <!-- Ordo Musik: player and mini player take the playing cover's colours (on) or the chosen accent (off). -->
     <string name="pref_key_music_cover_colors">key_music_cover_colors</string>
     <bool name="pref_default_value_music_cover_colors">true</bool>
+    <string name="pref_key_music_effects">key_music_effects</string>
+    <string name="pref_default_value_music_effects">maximal</string>
+    <string-array name="pref_entry_values_music_effects">
+        <item>maximal</item>
+        <item>balanced</item>
+        <item>saver</item>
+    </string-array>
     <string name="pref_key_motion">key_motion</string>
     <string name="pref_default_value_motion">full</string>
     <string-array name="pref_entry_values_motion">

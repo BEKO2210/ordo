@@ -38,12 +38,12 @@ search() { ui tap actionSearch > /dev/null && sleep 1 && a shell input text "$1"
 search Ordoe2e
 check "the first song opens the player" eval 'ui tap "Ordoe2e Lyrics A" title && wait_on viewer.audio.AudioPlayerActivity 8'
 pause
-ui wait actionLyrics 10 > /dev/null || { echo "DIAG:"; ui texts | head -14 | sed "s/^/  /"; a shell ls $DIR | tr "\n" " "; echo; }
-check "a song with a .lrc offers lyrics" ui has actionLyrics
-check "the lyrics layer opens with the song's lines" eval 'ui tap actionLyrics && ui wait "Ordoe2e line 0" 5'
+ui wait lyricsChip 10 > /dev/null || { echo "DIAG:"; ui texts | head -14 | sed "s/^/  /"; a shell ls $DIR | tr "\n" " "; echo; }
+check "a song with a .lrc offers lyrics" ui has lyricsChip
+check "the lyrics layer opens with the song's lines" eval 'ui tap lyricsChip && ui wait "Ordoe2e line 0" 5'
 back; pause
 check "back closes the lyrics, not the player" on viewer.audio.AudioPlayerActivity
-check "the queue sheet opens and lists the songs" eval 'ui tap actionQueue && ui wait "Ordoe2e Lyrics B" 8'
+check "the queue sheet opens and lists the songs" eval 'ui tap queueChip && ui wait "Ordoe2e Lyrics B" 8'
 back; pause
 # Cover swipe: sideways changes the song, up and down never does.
 read -r c1 d1 c2 d2 < <(ui bounds artworkCard | head -1)
@@ -55,9 +55,9 @@ a shell input swipe $((c1 + (c2 - c1) * 8 / 10)) $cy $((c1 + (c2 - c1) / 10)) $c
 check "a sideways swipe on the cover plays the next song (B, the big .lrc)" test "$(song)" != "$before"
 pause
 # The 20,000-line .lrc: lyrics come within 20 s (only the first lines are parsed) and the app stays responsive.
-wait_lyrics() { local i; for i in $(seq 20); do ui has actionLyrics && return 0; sleep 1; done; return 1; }
+wait_lyrics() { local i; for i in $(seq 20); do ui has lyricsChip && return 0; sleep 1; done; return 1; }
 check "a 20,000-line .lrc still offers lyrics" wait_lyrics
-check "its lyrics layer opens" eval 'ui tap actionLyrics && ui wait "Zeile 0" 8'
+check "its lyrics layer opens" eval 'ui tap lyricsChip && ui wait "Zeile 0" 8'
 read -r W H < <(screen_size)
 for i in 1 2 3 4 5; do a shell input swipe $((W / 2)) $((H * 3 / 4)) $((W / 2)) $((H / 4)) 120; sleep 0.4; done
 check "no app-not-responding after flinging through it" sh -c "! $ADB -s $SERIAL shell dumpsys activity processes | grep -q notResponding=true"

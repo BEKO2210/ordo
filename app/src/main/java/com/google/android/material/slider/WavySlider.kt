@@ -123,6 +123,9 @@ constructor(
     // with the progress. Input and accessibility stay with the slider; the surface only shows the wave.
     private var waveSurface: SurfaceView? = null
     private var surfaceReady = false
+
+    /** Ordo: the wave's frame period (Ordo Musik's visual effects: 33 ms maximal, 99 ms balanced). */
+    var phasePeriodMs: Long = FrameGrid.WAVE_MS
     private val surfaceDirty = android.graphics.Rect()
 
     /** Ordo: draws the flowing wave into [surface], which must lie exactly over this slider. */
@@ -671,7 +674,7 @@ constructor(
         }
         phaseTickerScheduled = true
         // Ordo: on the shared frame grid instead of every vsync (battery, see FrameGrid).
-        postDelayed(phaseTicker, FrameGrid.delayToNext(FrameGrid.WAVE_MS))
+        postDelayed(phaseTicker, FrameGrid.delayToNext(phasePeriodMs))
     }
 
     private fun shouldTickPhase(): Boolean =

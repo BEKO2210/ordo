@@ -177,4 +177,10 @@
     <string name="settings_music_preview_accent">The mini player in the chosen accent colour</string>
     <string name="settings_music_icon_colors_title">Ordo Music’s icon colour</string>
     <string name="settings_music_icon_colors_summary">The colour of its own home-screen icon</string>
+    <string name="settings_music_effects_title">Visual effects</string>
+    <string-array name="settings_music_effects_entries">
+        <item>Maximal (a little more battery)</item>
+        <item>Balanced</item>
+        <item>Saver (easy on the battery)</item>
+    </string-array>
 </resources>

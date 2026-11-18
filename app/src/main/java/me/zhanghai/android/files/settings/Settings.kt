@@ -177,6 +177,10 @@ object Settings {
     val MUSIC_COVER_COLORS: SettingLiveData<Boolean> =
         BooleanSettingLiveData(R.string.pref_key_music_cover_colors, R.bool.pref_default_value_music_cover_colors)
 
+    /** Ordo Musik's visual effects: maximal, balanced or saver (viewer/audio/MusicEffects.kt). */
+    val MUSIC_EFFECTS: SettingLiveData<String> =
+        StringSettingLiveData(R.string.pref_key_music_effects, R.string.pref_default_value_music_effects)
+
     /** full, subtle or off: see ui/Motion.kt. */
     val MOTION: SettingLiveData<String> =
         StringSettingLiveData(R.string.pref_key_motion, R.string.pref_default_value_motion)

@@ -23,6 +23,7 @@ import android.os.PowerManager
 import android.view.View
 import androidx.annotation.RequiresApi
 import androidx.core.content.getSystemService
+import me.zhanghai.android.files.ui.FrameGrid
 import me.zhanghai.android.files.ui.Motion
 import kotlin.math.cos
 import kotlin.math.max
@@ -103,11 +104,29 @@ class PlayerAtmosphereView(context: Context) : View(context) {
 
     /** One step of the drift; call it with a redraw that happens anyway (the player's time update). */
     fun advance() {
-        if (ticking) invalidate()
+        if (ticking && frameMs == 0L) invalidate()
     }
+
+    /**
+     * Its own frame period (Ordo Musik's visual effects, Maximal: 33 ms); 0 = it only steps with [advance]. If the
+     * frames come at less than half that rate over two seconds, the device cannot keep up: the rest of the session
+     * falls back to Balanced ([MusicEffects.degraded]).
+     */
+    var frameMs: Long = 0L
+        set(value) {
+            if (field == value) return
+            field = value
+            lateFrames = 0
+            countedFrames = 0
+            if (ticking) invalidate()
+        }
+    private var countedFrames = 0
+    private var lateFrames = 0
+    private val tick = Runnable { invalidate() }
 
     override fun onDetachedFromWindow() {
         fadeAnimator?.cancel()
+        removeCallbacks(tick)
         ticking = false
         super.onDetachedFromWindow()
     }
@@ -136,8 +155,27 @@ class PlayerAtmosphereView(context: Context) : View(context) {
     override fun onDraw(canvas: Canvas) {
         if (ticking) {
             val nanos = System.nanoTime()
-            if (lastFrameNanos != 0L) timeSeconds += ((nanos - lastFrameNanos) / 1e9f).coerceAtMost(MAX_STEP_S)
+            if (lastFrameNanos != 0L) {
+                val step = (nanos - lastFrameNanos) / 1e9f
+                timeSeconds += step.coerceAtMost(MAX_STEP_S)
+                if (frameMs > 0L) {
+                    countedFrames++
+                    if (step * 1000 > frameMs * 2) lateFrames++
+                    if (countedFrames >= CHECK_FRAMES) {
+                        if (lateFrames * 2 > countedFrames) {
+                            MusicEffects.degraded = true
+                            frameMs = 0L
+                        }
+                        countedFrames = 0
+                        lateFrames = 0
+                    }
+                }
+            }
             lastFrameNanos = nanos
+            if (frameMs > 0L) {
+                removeCallbacks(tick)
+                postDelayed(tick, FrameGrid.delayToNext(frameMs))
+            }
         }
         val base = previous ?: current ?: return
         canvas.drawColor(base.veil)
@@ -222,6 +260,7 @@ class PlayerAtmosphereView(context: Context) : View(context) {
          * a longer gap (a pause in drawing) does not make it leap.
          */
         private const val MAX_STEP_S = 1.5f
+        private const val CHECK_FRAMES = 60
         private const val CROSSFADE_MS = 300L
         private const val OVERSCAN = 1.35f
         private const val FIELD_ALPHA = 0.4f

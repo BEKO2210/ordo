@@ -191,6 +191,14 @@ class AudioPlayerActivity : AppActivity() {
         onBackPressedDispatcher.addCallback(this, lyricsBack)
         colors = themeColors()
         // A hairline (24 % onSurface) keeps a pale cover apart from a pale backdrop (review panel 18.11.2026).
+        // The cover's shadow and clip follow its own rounded corners. Its outline was a plain rectangle, so the bottom
+        // corners carried a square shadow while the top ones looked round (owner's macro photo, 19.11.2026).
+        binding.artworkCard.outlineProvider = object : android.view.ViewOutlineProvider() {
+            override fun getOutline(view: View, outline: android.graphics.Outline) {
+                outline.setRoundRect(0, 0, view.width, view.height, binding.artworkCard.radius)
+            }
+        }
+        binding.artworkCard.clipToOutline = true
         binding.artworkCard.strokeWidth = resources.displayMetrics.density.toInt().coerceAtLeast(1)
         binding.artworkCard.strokeColor = ColorUtils.setAlphaComponent(
             themeColor(com.google.android.material.R.attr.colorOnSurface), COVER_OUTLINE_ALPHA
@@ -289,6 +297,7 @@ class AudioPlayerActivity : AppActivity() {
             }
         })
         setUpDoubleTapSeek()
+        setUpPills()
         queueStarted = savedInstanceState?.getBoolean(STATE_QUEUE_STARTED) == true
         if (!queueStarted) {
             launchQueue = resolveLaunchQueue()
@@ -495,6 +504,7 @@ class AudioPlayerActivity : AppActivity() {
         lyricsShowPlay = showPlay
         lyricsView.setSong(binding.title.text, binding.artist.text)
         lyricsView.setPlayback(showPlay, colors[0], colors[1])
+        updatePills(player)
         binding.playPause.setImageResource(
             if (showPlay) R.drawable.play_icon_24dp else R.drawable.pause_icon_24dp
         )
@@ -509,11 +519,15 @@ class AudioPlayerActivity : AppActivity() {
             && player.duration != C.TIME_UNSET
         // The wave flows only while music plays and flattens on pause; the atmosphere drifts with it.
         // Only on a change: every call restarts the wave's spring and phase.
-        if (wavePlaying != player.isPlaying) {
-            wavePlaying = player.isPlaying
-            binding.seekBar.setWaveEnabled(player.isPlaying)
+        val effects = MusicEffects.level(this)
+        MusicEffects.waveFrameMs(effects).takeIf { it > 0 }?.let { binding.seekBar.phasePeriodMs = it }
+        atmosphere.frameMs = MusicEffects.backdropFrameMs(effects)
+        val flows = player.isPlaying && effects != MusicEffects.Level.SAVER
+        if (wavePlaying != flows) {
+            wavePlaying = flows
+            binding.seekBar.setWaveEnabled(flows)
         }
-        atmosphere.playing = player.isPlaying
+        atmosphere.playing = flows
         binding.shuffle.isActivated = player.shuffleModeEnabled
         binding.shuffle.contentDescription = getString(
             if (player.shuffleModeEnabled) R.string.audio_player_shuffle_on else R.string.audio_player_shuffle_off
@@ -725,6 +739,7 @@ class AudioPlayerActivity : AppActivity() {
                     if (lyricsKey != mediaId) return@launch
                     lyrics = loaded
                     binding.toolbar.menu.findItem(R.id.actionLyrics)?.isVisible = loaded != null
+                    controller?.let { updatePills(it) }
                     if (lyricsView.isVisible) {
                         if (loaded == null) hideLyrics() else showLyrics()
                     }
@@ -836,6 +851,62 @@ class AudioPlayerActivity : AppActivity() {
             swipe.onTouch(event)
             detector.onTouchEvent(event)
             true
+        }
+    }
+
+    private lateinit var lyricsPill: com.google.android.material.button.MaterialButton
+    private lateinit var queuePill: com.google.android.material.button.MaterialButton
+
+    /**
+     * Under the title: labelled pills for the lyrics (only when the song has them) and for what plays next, so both
+     * are seen and not hidden behind small toolbar icons (as Apple Music and Spotify show them in the player).
+     */
+    private fun setUpPills() {
+        val parent = binding.artist.parent as android.widget.LinearLayout
+        val row = android.widget.LinearLayout(this).apply {
+            orientation = android.widget.LinearLayout.HORIZONTAL
+            gravity = binding.artist.gravity
+        }
+        fun pill(id: Int, icon: Int, onClick: () -> Unit) =
+            com.google.android.material.button.MaterialButton(
+                this, null, com.google.android.material.R.attr.materialButtonOutlinedStyle
+            ).apply {
+                this.id = id
+                setIconResource(icon)
+                iconSize = resources.getDimensionPixelSize(R.dimen.phi_21)
+                cornerRadius = resources.getDimensionPixelSize(R.dimen.phi_21)
+                minHeight = resources.getDimensionPixelSize(R.dimen.phi_row_min) - resources.getDimensionPixelSize(
+                    R.dimen.phi_5)
+                maxLines = 1
+                isAllCaps = false
+                isVisible = false
+                setOnClickListener { onClick() }
+            }
+        lyricsPill = pill(R.id.lyricsChip, R.drawable.tag_lyrics_icon_white_24dp) { showLyrics() }
+            .apply { setText(R.string.music_lyrics) }
+        queuePill = pill(R.id.queueChip, R.drawable.queue_music_icon_white_24dp) {
+            PlayerQueueSheet().show(supportFragmentManager, PlayerQueueSheet.TAG)
+        }
+        val gap = resources.getDimensionPixelSize(R.dimen.phi_8)
+        row.addView(lyricsPill, android.widget.LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { marginEnd = gap })
+        row.addView(queuePill)
+        parent.addView(row, parent.indexOfChild(binding.album) + 1, android.widget.LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT
+        ).apply { topMargin = resources.getDimensionPixelSize(R.dimen.phi_13) })
+    }
+
+    private fun updatePills(player: Player) {
+        if (!::queuePill.isInitialized) return
+        lyricsPill.isVisible = lyrics != null
+        val next = (player.mediaItemCount - player.currentMediaItemIndex - 1).coerceAtLeast(0)
+        queuePill.isVisible = player.mediaItemCount > 1
+        queuePill.text = getString(R.string.music_queue_next, next)
+        val stroke = ColorStateList.valueOf(ColorUtils.setAlphaComponent(colors[0], PILL_STROKE_ALPHA))
+        for (pill in listOf(lyricsPill, queuePill)) {
+            pill.strokeColor = stroke
+            pill.iconTint = ColorStateList.valueOf(colors[0])
+            pill.setTextColor(themeColor(com.google.android.material.R.attr.colorOnSurface))
         }
     }
 
@@ -1009,6 +1080,7 @@ class AudioPlayerActivity : AppActivity() {
         private const val LYRICS_TICK_MS = 250L
         private const val COVER_CAMERA_DISTANCE = 8_000f
         private const val LYRICS_FADE_MS = 200L
+        private const val PILL_STROKE_ALPHA = 0x8a
         private const val SEEK_BUBBLE_MS = 600L
         private const val BACKGROUND_CROSSFADE_DURATION_MS = 300L
         private const val MAX_COLUMN_ARTWORK_HEIGHT_FRACTION = 0.60f

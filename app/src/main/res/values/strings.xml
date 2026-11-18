@@ -1098,6 +1098,7 @@
     <string name="audio_player_repeat_one">Repeat this song</string>
     <string name="audio_player_position">Position</string>
     <string name="music_queue">Queue</string>
+    <string name="music_queue_next">Up next · %1$d</string>
     <string name="music_queue_move_up">Move up</string>
     <string name="music_queue_move_down">Move down</string>
     <string name="music_queue_remove">Remove from queue</string>

@@ -7,6 +7,7 @@ package me.zhanghai.android.files.viewer.audio
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.graphics.Color
 import android.os.SystemClock
 import android.util.TypedValue
 import android.view.Gravity
@@ -247,17 +248,19 @@ class PlayerLyricsView(
         val distance = if (synced && current >= 0) kotlin.math.abs(position - current) else if (synced) position + 1
             else 0
         val active = !synced || distance == 0
-        view.setTextColor(if (active) textColor else dimColor)
+        // The steps go into the text colour's alpha, not the view's: a view alpha would draw each line through its
+        // own layer (W90: 20 ms median per frame instead of 12 ms).
+        val alpha = if (!synced) 1f else STEP_ALPHA[distance.coerceAtMost(STEP_ALPHA.size - 1)]
+        val base = if (active) textColor else dimColor
+        view.setTextColor(androidx.core.graphics.ColorUtils.setAlphaComponent(base, (Color.alpha(base) * alpha).toInt()))
         view.typeface = if (synced && distance == 0) BOLD else MEDIUM
         val scale = if (active) 1f else INACTIVE_SCALE
-        val alpha = if (!synced) 1f else STEP_ALPHA[distance.coerceAtMost(STEP_ALPHA.size - 1)]
         if (animate) {
-            view.animate().scaleX(scale).scaleY(scale).alpha(alpha).setDuration(STYLE_MS).start()
+            view.animate().scaleX(scale).scaleY(scale).setDuration(STYLE_MS).start()
         } else {
             view.animate().cancel()
             view.scaleX = scale
             view.scaleY = scale
-            view.alpha = alpha
         }
     }
 

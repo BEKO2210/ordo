@@ -18,6 +18,15 @@
             android:summaryOff="@string/settings_music_cover_colors_off"
             android:defaultValue="@bool/pref_default_value_music_cover_colors" />
 
+        <ListPreference
+            android:key="@string/pref_key_music_effects"
+            android:icon="@drawable/settings_motion_icon_white_24dp"
+            android:title="@string/settings_music_effects_title"
+            android:defaultValue="@string/pref_default_value_music_effects"
+            android:entries="@array/settings_music_effects_entries"
+            android:entryValues="@array/pref_entry_values_music_effects"
+            app:useSimpleSummaryProvider="true" />
+
         <SwitchPreferenceCompat
             android:key="@string/pref_key_wallpaper_colors"
             android:icon="@drawable/settings_wallpaper_icon_white_24dp"
