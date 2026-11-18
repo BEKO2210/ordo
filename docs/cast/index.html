@@ -6,7 +6,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
-<title>Ordo</title>
+<title>Ordo Musik</title>
 <style>
 @font-face {
   font-family: "Geologica";
@@ -76,7 +76,7 @@ h1 { font-size: 7vh; line-height: 1.12; font-weight: 600; letter-spacing: -.01em
   position: fixed; top: 5vh; right: 5vw; display: flex; align-items: center; gap: 1.2vh;
   font-size: 2.6vh; font-weight: 600; color: rgb(241 245 249 / .85);
 }
-.brand img { width: 4vh; height: 4vh; border-radius: 1vh; }
+.brand img { width: 4.4vh; height: 4.4vh; }
 /* Track change: the old song fades and settles, the new one rises in 300 ms. */
 .swap main { opacity: 0; transform: translate3d(0, 1.5vh, 0); }
 main { transition: opacity 300ms var(--ease), transform 300ms var(--ease); }
@@ -84,7 +84,7 @@ main { transition: opacity 300ms var(--ease), transform 300ms var(--ease); }
   position: fixed; inset: 0; display: grid; place-content: center; justify-items: center; gap: 3vh;
   transition: opacity 400ms var(--ease);
 }
-#idle img { width: 18vh; height: 18vh; border-radius: 4.5vh; box-shadow: 0 3vh 7vh rgb(0 0 0 / .45); }
+#idle img { width: 18vh; height: 18vh; border-radius: 50%; box-shadow: 0 3vh 7vh rgb(0 0 0 / .45); }
 #idle span { font-size: 5vh; font-weight: 600; }
 #idle small { font-size: 2.6vh; color: rgb(241 245 249 / .65); }
 body.playing #idle, body:not(.playing) main, body:not(.playing) .brand { opacity: 0; }
@@ -98,11 +98,11 @@ body.playing #idle, body:not(.playing) main, body:not(.playing) .brand { opacity
 <canvas id="wash" width="32" height="32"></canvas>
 <div id="glow"></div>
 <div id="idle">
-  <img src="../icon/play-store-icon.png" alt="">
-  <span>Ordo</span>
+  <img src="ordo-musik.svg" alt="">
+  <span>Ordo Musik</span>
   <small id="ready">Bereit</small>
 </div>
-<div class="brand"><img src="../icon/play-store-icon.png" alt="">Ordo</div>
+<div class="brand"><img src="ordo-musik.svg" alt="">Ordo Musik</div>
 <main>
   <div id="art">
     <div id="placeholder"><svg viewBox="0 -960 960 960" aria-hidden="true"><path fill="#ffffff" fill-opacity=".85" d="M400-120q-66 0-113-47t-47-113q0-66 47-113t113-47q23 0 42.5 5.5T480-418v-382q0-17 11.5-28.5T520-840h160q17 0 28.5 11.5T720-800v80q0 17-11.5 28.5T680-680H560v400q0 66-47 113t-113 47Z"/></svg></div>
@@ -250,7 +250,7 @@ if (preview) {
   [Event.PLAYER_LOAD_COMPLETE, Event.PLAYING, Event.PAUSE, Event.SEEKED, Event.ENDED, Event.MEDIA_FINISHED,
    Event.TIME_UPDATE, Event.BUFFERING, Event.ERROR].forEach((type) => player.addEventListener(type, sync));
   const options = new cast.framework.CastReceiverOptions();
-  options.statusText = "Ordo";
+  options.statusText = "Ordo Musik";
   // No video: the TV only needs to keep the screen for this page.
   options.disableIdleTimeout = false;
   context.start(options);

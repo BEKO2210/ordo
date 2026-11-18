@@ -76,7 +76,7 @@ class CastRealDeviceCheck {
         log("second connection authenticated with the same pin")
         // A refused launch must not leave the connection open on the TV (its accept queue is small).
         val receiver = try { client.launch(appId) } catch (e: Exception) { client.close(); throw e }
-        log("receiver $appId running, transport ${receiver.transportId}")
+        log("receiver running: appId=${receiver.appId} (asked for $appId), transport ${receiver.transportId}")
         client.setVolume(level = 0.1)
 
         val server = CastFileServer(client.localAddress, InetAddress.getByName(host))
@@ -109,6 +109,8 @@ class CastRealDeviceCheck {
             client.requestMediaStatus()
             val later = awaitState("PLAYING") { it.currentTimeSeconds > 10.5 }
             log("playing on from the seek: ${later.currentTimeSeconds}s")
+            // CAST_HOLD_S: keep playing that long, e.g. to look at (or photograph) the receiver's screen.
+            System.getenv("CAST_HOLD_S")?.toLongOrNull()?.let { log("holding ${it}s"); Thread.sleep(it * 1000) }
             client.stopMedia()
             awaitState("IDLE")
             log("STOP confirmed")
