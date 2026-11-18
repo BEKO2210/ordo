@@ -65,8 +65,11 @@ class CastClient(
         context.init(null, arrayOf(CastDeviceAuth.TlsTrustManager()), SecureRandom())
         socket = context.socketFactory.createSocket() as SSLSocket
         socket.connect(InetSocketAddress(host, port), timeoutMs)
-        socket.soTimeout = 0
+        // A sleeping Chromecast accepted TCP but never finished TLS (17.11.2026): without a timeout this hung forever.
+        socket.soTimeout = timeoutMs
         socket.startHandshake()
+        // From here on the heartbeat notices silence and closes the socket.
+        socket.soTimeout = 0
         output = BufferedOutputStream(socket.outputStream)
         lastReceivedMs = System.currentTimeMillis()
         Thread(::readLoop, "cast-reader").apply { isDaemon = true }.start()
