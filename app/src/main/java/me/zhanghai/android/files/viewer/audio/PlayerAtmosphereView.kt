@@ -23,6 +23,7 @@ import android.os.PowerManager
 import android.view.View
 import androidx.annotation.RequiresApi
 import androidx.core.content.getSystemService
+import me.zhanghai.android.files.ui.FrameGrid
 import me.zhanghai.android.files.ui.Motion
 import kotlin.math.cos
 import kotlin.math.max
@@ -34,7 +35,7 @@ import kotlin.math.sin
  * colours drift through it. Idea from Metrolist's liquid background (GPL-3.0, Compose), rebuilt as a View:
  * an AGSL shader with a slow liquid warp from Android 13, a RenderEffect blur on Android 12, a moving pre-blurred
  * bitmap below. It moves only while music plays, the screen shows it, motion is on in full and battery saver is off;
- * otherwise it stands still. Frames are capped at [FRAME_MS].
+ * otherwise it stands still. It redraws every [FRAME_MS] in a GPU layer of its own.
  */
 class PlayerAtmosphereView(context: Context) : View(context) {
     /** One song's look: the blurred cover (null without a cover), the field colours, and the veil over both. */
@@ -62,6 +63,8 @@ class PlayerAtmosphereView(context: Context) : View(context) {
     private val tick = Runnable { invalidate() }
 
     init {
+        // Its own GPU layer: when only the wave moves, the frame reuses the backdrop instead of shading it again.
+        setLayerType(LAYER_TYPE_HARDWARE, null)
         if (Build.VERSION.SDK_INT in Build.VERSION_CODES.S until Build.VERSION_CODES.TIRAMISU) {
             val radius = 24 * resources.displayMetrics.density
             setRenderEffect(RenderEffect.createBlurEffect(radius, radius, Shader.TileMode.MIRROR))
@@ -131,7 +134,7 @@ class PlayerAtmosphereView(context: Context) : View(context) {
             if (lastFrameNanos != 0L) timeSeconds += ((nanos - lastFrameNanos) / 1e9f).coerceAtMost(0.1f)
             lastFrameNanos = nanos
             removeCallbacks(tick)
-            postDelayed(tick, FRAME_MS)
+            postDelayed(tick, FrameGrid.delayToNext(FRAME_MS))
         }
         val base = previous ?: current ?: return
         canvas.drawColor(base.veil)
@@ -211,8 +214,11 @@ class PlayerAtmosphereView(context: Context) : View(context) {
     }
 
     companion object {
-        /** About 30 frames a second: the drift is slow, more frames would only cost battery. */
-        private const val FRAME_MS = 33L
+        /**
+         * Ten frames a second, on the wave's grid: the backdrop is blurred and drifts a few pixels a second, so steps
+         * this small are invisible, and more frames would only cost battery.
+         */
+        private const val FRAME_MS = FrameGrid.FRAME_MS * 3
         private const val CROSSFADE_MS = 300L
         private const val OVERSCAN = 1.35f
         private const val FIELD_ALPHA = 0.32f

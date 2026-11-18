@@ -93,6 +93,7 @@ class AudioPlayerActivity : AppActivity() {
     /** accent, onAccent, container: what the controls show now (animated between songs). */
     private var colors = IntArray(3)
     private var seekBubble: TextView? = null
+    private var wavePlaying: Boolean? = null
     private var queueStarted = false
     private var launchQueue: LaunchQueue? = null
     private var progressDescription: String? = null
@@ -200,6 +201,12 @@ class AudioPlayerActivity : AppActivity() {
             controller?.let { it.shuffleModeEnabled = !it.shuffleModeEnabled }
         }
         binding.repeat.setOnClickListener { cycleRepeatMode() }
+        // The slider keeps room for its thumb beside the track; pulled out by that much, the track lines up with the
+        // times below it.
+        (binding.seekBar.layoutParams as ViewGroup.MarginLayoutParams).apply {
+            marginStart = -binding.seekBar.trackSidePadding
+            marginEnd = -binding.seekBar.trackSidePadding
+        }
         binding.seekBar.setLabelFormatter { formatTime((currentDuration() * it / SEEK_MAX).toLong()) }
         binding.seekBar.addOnChangeListener { _, value, fromUser ->
             if (!fromUser) return@addOnChangeListener
@@ -436,7 +443,11 @@ class AudioPlayerActivity : AppActivity() {
         binding.seekBar.isEnabled = player.isCommandAvailable(Player.COMMAND_SEEK_IN_CURRENT_MEDIA_ITEM)
             && player.duration != C.TIME_UNSET
         // The wave flows only while music plays and flattens on pause; the atmosphere drifts with it.
-        binding.seekBar.setWaveEnabled(player.isPlaying)
+        // Only on a change: every call restarts the wave's spring and phase.
+        if (wavePlaying != player.isPlaying) {
+            wavePlaying = player.isPlaying
+            binding.seekBar.setWaveEnabled(player.isPlaying)
+        }
         atmosphere.playing = player.isPlaying
         binding.shuffle.isActivated = player.shuffleModeEnabled
         binding.shuffle.contentDescription = getString(
