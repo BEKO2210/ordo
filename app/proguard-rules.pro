@@ -48,6 +48,8 @@
 -keep class org.jaudiotagger.** { *; }
 -dontwarn java.awt.**
 -dontwarn javax.imageio.**
+# jaudiotagger ships desktop test helpers (org.jaudiotagger.test) that reference Swing; never loaded on Android
+-dontwarn javax.swing.**
 
 # Bouncy Castle
 -keep class org.bouncycastle.jcajce.provider.** { *; }
