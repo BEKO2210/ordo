@@ -202,6 +202,10 @@ class AudioPlaybackService : MediaSessionService() {
         }
 
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+            // The Wi-Fi lock only for files on a server: with the screen off it keeps Wi-Fi out of power saving.
+            player.setWakeMode(
+                if (mediaItem?.localConfiguration?.uri?.scheme == "file") C.WAKE_MODE_LOCAL else C.WAKE_MODE_NETWORK
+            )
             if (sleepAtEndOfTrack && reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO) {
                 player.pause()
                 cancelSleepTimer()
@@ -241,7 +245,8 @@ class AudioPlaybackService : MediaSessionService() {
             // Ordo handles this broadcast itself so it can remember that headphones caused the pause.
             // https://developer.android.com/media/optimize/audio-focus#becoming-noisy
             .setHandleAudioBecomingNoisy(false)
-            // Holds the Wi-Fi lock too, so SFTP/SMB/WebDAV/FTP playback survives the screen turning off.
+            // Holds the Wi-Fi lock too, so SFTP/SMB/WebDAV/FTP playback survives the screen turning off; local files
+            // switch to WAKE_MODE_LOCAL in onMediaItemTransition.
             .setWakeMode(C.WAKE_MODE_NETWORK)
             .build()
             .apply {

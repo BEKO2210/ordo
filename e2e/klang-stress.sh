@@ -97,10 +97,11 @@ check "it plays" resume
 a shell input keyevent KEYCODE_MEDIA_PAUSE
 check "it pauses" wait_state PAUSED
 check "and plays again" resume
-after=$(cpu 20)
-echo "INFO CPU afterwards: ${after:-?} % of one core; 20 s later: $(cpu 20) %"
-# The same settings as before the storm (an even number of taps): the share must not have grown much.
-check "the CPU share comes back (at most 1.5 × before + 3 points)" \
+first=$(cpu 20); second=$(cpu 20); after=$(cpu 20)
+# Loudness levelling measures an untagged title once on a low-priority thread (a 192 kHz title takes a while on a weak
+# device), so the first minute may be busy; what counts is where it settles.
+echo "INFO CPU afterwards, three 20-s windows: ${first:-?} / ${second:-?} / ${after:-?} % of one core"
+check "the CPU share settles back (at most 1.5 × before + 3 points)" \
     awk -v a="${after:-999}" -v b="${before:-0}" 'BEGIN { exit !(a <= b * 1.5 + 3) }'
 a shell input keyevent KEYCODE_MEDIA_PAUSE
 finish
