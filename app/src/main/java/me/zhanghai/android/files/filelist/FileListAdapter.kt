@@ -385,9 +385,16 @@ class FileListAdapter(
                 setImageDrawable(null)
             }
         }
-        // The grid shows names on two lines; they wrap after a dot, dash or underscore, never inside a word.
-        holder.nameText.text =
-            if (holder.nameText.maxLines > 1) WordBreaks.breakableName(file.name) else file.name
+        // The grid shows names on two lines; they wrap after a dot, dash, underscore or inner capital, never inside a
+        // word (a single long word becomes one line shortened in the middle).
+        if (viewType.isGrid) {
+            holder.nameText.maxLines = 2
+            holder.nameText.ellipsize = android.text.TextUtils.TruncateAt.END
+            holder.nameText.text = WordBreaks.breakableName(file.name)
+            WordBreaks.keepWordsWhole(holder.nameText)
+        } else {
+            holder.nameText.text = file.name
+        }
         holder.descriptionText?.text = if (isDirectory) {
             null
         } else {

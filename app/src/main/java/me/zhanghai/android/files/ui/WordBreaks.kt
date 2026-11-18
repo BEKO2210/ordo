@@ -25,9 +25,28 @@ object WordBreaks {
      * instead of inside a word. With hyphenation off, Android's line breaker does not break after '-' either and cut
      * such names anywhere ("01-first-light.m|p3"); a zero-width space after each separator gives it the chance.
      */
-    fun breakableName(name: String): String = SEPARATOR.replace(name, "$1​")
+    fun breakableName(name: String): String =
+        CAMEL.replace(SEPARATOR.replace(name, "$1$ZERO_WIDTH_SPACE"), ZERO_WIDTH_SPACE)
 
+    private const val ZERO_WIDTH_SPACE = "\u200B"
     private val SEPARATOR = Regex("(?<=.)([._-])(?=\\S)")
+    // "featureGraphic.png" may wrap at its inner capital: "feature" / "Graphic.png".
+    private val CAMEL = Regex("(?<=\\p{Ll})(?=\\p{Lu})")
+
+    /**
+     * For a label of a few lines: once laid out, a text that still breaks inside a word (one long word without any
+     * place to wrap) becomes a single line shortened in the middle, so the word is cut by "…" and never wrapped.
+     */
+    fun keepWordsWhole(view: android.widget.TextView) {
+        view.post {
+            val layout = view.layout ?: return@post
+            val ends = IntArray((layout.lineCount - 1).coerceAtLeast(0)) { layout.getLineEnd(it) }
+            if (midWord(layout.text, ends).isNotEmpty()) {
+                view.maxLines = 1
+                view.ellipsize = android.text.TextUtils.TruncateAt.MIDDLE
+            }
+        }
+    }
 
     private fun isWordChar(char: Char): Boolean {
         if (!char.isLetterOrDigit()) return false

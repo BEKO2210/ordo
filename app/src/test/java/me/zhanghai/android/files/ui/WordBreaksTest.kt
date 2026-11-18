@@ -30,6 +30,7 @@ class WordBreaksTest {
         assertEquals(".nomedia", WordBreaks.breakableName(".nomedia"))
         assertEquals("Notiz-", WordBreaks.breakableName("Notiz-"))
         assertEquals("Ohne Trenner", WordBreaks.breakableName("Ohne Trenner"))
+        assertEquals("feature\u200BGraphic.\u200Bpng", WordBreaks.breakableName("featureGraphic.png"))
     }
 
     @Test

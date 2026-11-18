@@ -3,7 +3,8 @@
 # The owner's rule: no word ever breaks in the middle ("Absp-ielen", "Zufäll-ig" on the Tab's narrow pane).
 # Debug builds only (MidwordWatchProvider logs every visible TextView whose layout breaks inside a word); WRITES one
 # silent test song with a cover in Music/OrdoE2E-Midword and removes it again. Walks home, settings, the music
-# library's four tabs, a folder page, an album page, the player and its Sound sheet, then fails on any logged break.
+# library's four tabs, a folder page, an album page, the player, its Sound and queue sheets and Ordo Musik's settings,
+# then fails on any logged break.
 # Run it once on a phone and once on a tablet.
 . "$(dirname "$0")/lib.sh" "$@"
 DIR=/storage/emulated/0/Music/OrdoE2E-Midword
@@ -53,7 +54,13 @@ check "the player opens" open_song || { echo "DIAG:"; ui texts | head -15 | sed 
 sleep 2; a shell input keyevent KEYCODE_MEDIA_PAUSE; sleep 1
 check "the Sound sheet opens" ui tap actionSound
 sleep 2; swipe_up; swipe_up; sleep 1
-back; back; sleep 2
+back; sleep 1
+check "the queue sheet opens" ui tap actionQueue
+sleep 2; back; back; sleep 2
+# Ordo Musik's own settings (side menu): appearance with the colour choices.
+ui tap "Navigationsmenü öffnen|Open navigation drawer" > /dev/null; sleep 1
+check "Ordo Musik's settings open" eval 'ui tap "Einstellungen|Settings" && ui wait "Farben aus dem Cover|Colours from the cover" 5'
+sleep 1; back; sleep 1
 hits=$(a logcat -d -s OrdoMidword:W | grep MIDWORD)
 [ -n "$hits" ] && echo "$hits" | sed 's/.*MIDWORD/  MIDWORD/'
 check "no visible text breaks inside a word" test -z "$hits"

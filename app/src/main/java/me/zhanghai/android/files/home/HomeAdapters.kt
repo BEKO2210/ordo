@@ -107,7 +107,10 @@ class RecentFileAdapter(private val onClick: (RecentFile) -> Unit) :
                 val width = text.width - text.paddingLeft - text.paddingRight
                 val charWidth = text.paint.measureText("n").coerceAtLeast(1f)
                 val label = recentFileLabel(item.name, (2 * width / charWidth * 0.9f).toInt())
+                text.maxLines = 2
+                text.ellipsize = android.text.TextUtils.TruncateAt.END
                 text.text = WordBreaks.breakableName(label)
+                WordBreaks.keepWordsWhole(text)
             }
             binding.root.setOnClickListener { onClick(item) }
         }
