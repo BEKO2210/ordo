@@ -57,12 +57,12 @@ class PlayerQueueSheet : BottomSheetDialogFragment() {
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         val context = requireContext()
-        return RecyclerView(context).apply {
+        list = RecyclerView(context).apply {
             layoutManager = LinearLayoutManager(context)
             adapter = this@PlayerQueueSheet.adapter
             clipToPadding = false
             val vertical = resources.getDimensionPixelSize(R.dimen.phi_21)
-            setPadding(0, vertical, 0, vertical)
+            setPadding(0, 0, 0, vertical)
             touchHelper = ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(
                 ItemTouchHelper.UP or ItemTouchHelper.DOWN, ItemTouchHelper.START or ItemTouchHelper.END
             ) {
@@ -107,7 +107,15 @@ class PlayerQueueSheet : BottomSheetDialogFragment() {
             })
             touchHelper.attachToRecyclerView(this)
         }
+        // The sheet's grip on top, so it reads as something to pull.
+        return android.widget.LinearLayout(context).apply {
+            orientation = android.widget.LinearLayout.VERTICAL
+            addView(com.google.android.material.bottomsheet.BottomSheetDragHandleView(context))
+            addView(list, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+        }
     }
+
+    private var list: RecyclerView? = null
 
     @SuppressLint("NotifyDataSetChanged")
     override fun onStart() {
@@ -123,7 +131,7 @@ class PlayerQueueSheet : BottomSheetDialogFragment() {
         }
         player?.addListener(listener)
         val index = player?.currentMediaItemIndex ?: 0
-        (view as? RecyclerView)?.scrollToPosition(index)
+        list?.scrollToPosition(index)
     }
 
     override fun onStop() {

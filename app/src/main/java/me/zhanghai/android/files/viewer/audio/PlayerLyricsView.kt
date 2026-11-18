@@ -15,6 +15,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.ImageButton
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.view.AccessibilityDelegateCompat
 import androidx.core.view.ViewCompat
@@ -38,8 +39,13 @@ import me.zhanghai.android.files.viewer.audio.lyrics.Lyrics
 class PlayerLyricsView(
     context: Context,
     private val onSeek: (Long) -> Unit,
-    onClose: () -> Unit
+    onClose: () -> Unit,
+    onPlayPause: () -> Unit
 ) : FrameLayout(context) {
+    private val songTitle = TextView(context)
+    private val songArtist = TextView(context)
+    private val header = LinearLayout(context)
+    private val playPause = ImageButton(context)
     // A RecyclerView: only the lines on screen have views, so even the longest file stays light (at most 5,000 lines,
     // see Lyrics).
     private val list = RecyclerView(context)
@@ -67,29 +73,82 @@ class PlayerLyricsView(
             }
         })
         addView(list, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT))
-        addView(ImageButton(context).apply {
+        // A header with the song over a fade, so lines scroll away beneath it instead of under the close button.
+        val row = resources.getDimensionPixelSize(R.dimen.phi_55)
+        header.orientation = LinearLayout.HORIZONTAL
+        header.gravity = Gravity.CENTER_VERTICAL
+        header.updatePadding(right = resources.getDimensionPixelSize(R.dimen.phi_21),
+            bottom = resources.getDimensionPixelSize(R.dimen.phi_21))
+        header.addView(ImageButton(context).apply {
             setImageResource(R.drawable.close_icon_control_normal_24dp)
             contentDescription = context.getString(R.string.music_lyrics_close)
             val outValue = TypedValue()
             context.theme.resolveAttribute(android.R.attr.selectableItemBackgroundBorderless, outValue, true)
             setBackgroundResource(outValue.resourceId)
             setOnClickListener { onClose() }
-        }, LayoutParams(resources.getDimensionPixelSize(R.dimen.phi_55),
-            resources.getDimensionPixelSize(R.dimen.phi_55), Gravity.TOP or Gravity.START))
+        }, LinearLayout.LayoutParams(row, row))
+        val texts = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL }
+        songTitle.setTextAppearance(com.google.android.material.R.style.TextAppearance_MaterialComponents_Subtitle1)
+        songTitle.maxLines = 1
+        songTitle.ellipsize = android.text.TextUtils.TruncateAt.END
+        songArtist.setTextAppearance(com.google.android.material.R.style.TextAppearance_MaterialComponents_Caption)
+        songArtist.maxLines = 1
+        songArtist.ellipsize = android.text.TextUtils.TruncateAt.END
+        texts.addView(songTitle)
+        texts.addView(songArtist)
+        header.addView(texts, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+        addView(header, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT, Gravity.TOP))
+        // Play and pause stay at hand while reading.
+        val play = resources.getDimensionPixelSize(R.dimen.audio_player_play_control_size)
+        playPause.setBackgroundResource(R.drawable.audio_player_primary_control_background)
+        val padding = resources.getDimensionPixelSize(R.dimen.audio_player_play_control_padding)
+        playPause.setPadding(padding, padding, padding, padding)
+        playPause.scaleType = android.widget.ImageView.ScaleType.FIT_CENTER
+        playPause.setOnClickListener { onPlayPause() }
+        addView(playPause, LayoutParams(play, play, Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL).apply {
+            bottomMargin = resources.getDimensionPixelSize(R.dimen.phi_34)
+        })
+    }
+
+    /** The song shown in the header. */
+    fun setSong(title: CharSequence, artist: CharSequence) {
+        songTitle.text = title
+        songArtist.text = artist
+    }
+
+    /** The play button's state and colours (the player's cover accent). */
+    fun setPlayback(showPlay: Boolean, accent: Int, onAccent: Int) {
+        playPause.setImageResource(if (showPlay) R.drawable.play_icon_24dp else R.drawable.pause_icon_24dp)
+        playPause.contentDescription = context.getString(
+            if (showPlay) R.string.audio_player_play else R.string.audio_player_pause
+        )
+        ViewCompat.setBackgroundTintList(playPause, android.content.res.ColorStateList.valueOf(accent))
+        androidx.core.widget.ImageViewCompat.setImageTintList(
+            playPause, android.content.res.ColorStateList.valueOf(onAccent)
+        )
     }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
-        // Room above the first and below the last line, so every line can stand in the middle.
-        list.updatePadding(top = h / 2, bottom = h / 2)
+        // Room above the first and below the last line, so every line can stand in the middle; on a wide screen the
+        // lines keep a readable width in the middle.
+        val side = maxOf(resources.getDimensionPixelSize(R.dimen.phi_34), (w - (MAX_LINE_WIDTH_DP *
+            resources.displayMetrics.density).toInt()) / 2)
+        list.updatePadding(left = side, right = side, top = h / 2, bottom = h / 2)
         post { center(animate = false) }
     }
 
     @SuppressLint("NotifyDataSetChanged")
-    fun show(lyrics: Lyrics, textColor: Int, dimColor: Int) {
+    fun show(lyrics: Lyrics, textColor: Int, dimColor: Int, veil: Int) {
         this.lyrics = lyrics
         this.textColor = textColor
         this.dimColor = dimColor
+        songTitle.setTextColor(textColor)
+        songArtist.setTextColor(dimColor)
+        header.background = android.graphics.drawable.GradientDrawable(
+            android.graphics.drawable.GradientDrawable.Orientation.TOP_BOTTOM,
+            intArrayOf(veil, veil, androidx.core.graphics.ColorUtils.setAlphaComponent(veil, 0))
+        )
         lines = if (lyrics.isSynced) lyrics.lines.map { it.text } else lyrics.text
         current = -1
         adapter.notifyDataSetChanged()
@@ -131,6 +190,7 @@ class PlayerLyricsView(
 
     private fun style(view: TextView, active: Boolean, animate: Boolean) {
         view.setTextColor(if (active) textColor else dimColor)
+        view.typeface = if (active) BOLD else MEDIUM
         val scale = if (active || lyrics?.isSynced != true) 1f else INACTIVE_SCALE
         if (animate) {
             view.animate().scaleX(scale).scaleY(scale).setDuration(STYLE_MS).start()
@@ -147,7 +207,7 @@ class PlayerLyricsView(
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
             val view = TextView(context).apply {
                 setTextSize(TypedValue.COMPLEX_UNIT_SP, LINE_TEXT_SP)
-                typeface = android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.NORMAL)
+                typeface = MEDIUM
                 setLineSpacing(0f, 1.15f)
                 val vertical = resources.getDimensionPixelSize(R.dimen.phi_8)
                 updatePadding(top = vertical, bottom = vertical)
@@ -195,7 +255,10 @@ class PlayerLyricsView(
     companion object {
         private const val ACTIVE = "active"
         private const val LINE_TEXT_SP = 28f
-        private const val INACTIVE_SCALE = 0.86f
+        private const val INACTIVE_SCALE = 0.8f
+        private const val MAX_LINE_WIDTH_DP = 640
+        private val MEDIUM = android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.NORMAL)
+        private val BOLD = android.graphics.Typeface.create("sans-serif", android.graphics.Typeface.BOLD)
         private const val STYLE_MS = 250L
         private const val SMOOTH_MS_PER_INCH = 120f
         private const val USER_SCROLL_PAUSE_MS = 3_000L

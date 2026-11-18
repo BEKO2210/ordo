@@ -104,6 +104,7 @@ class AudioPlayerActivity : AppActivity() {
     private var lyrics: Lyrics? = null
     private var lyricsKey: String? = null
     private var lyricsJob: Job? = null
+    private var lyricsShowPlay = true
     private val lyricsBack = object : androidx.activity.OnBackPressedCallback(false) {
         override fun handleOnBackPressed() = hideLyrics()
     }
@@ -174,7 +175,10 @@ class AudioPlayerActivity : AppActivity() {
         binding = AudioPlayerActivityBinding.inflate(layoutInflater)
         // The atmosphere lies behind every layout variant of the player without touching their XML.
         atmosphere = PlayerAtmosphereView(this)
-        lyricsView = PlayerLyricsView(this, onSeek = { controller?.seekTo(it) }, onClose = ::hideLyrics).apply {
+        lyricsView = PlayerLyricsView(
+            this, onSeek = { controller?.seekTo(it) }, onClose = ::hideLyrics,
+            onPlayPause = { controller?.let { Util.handlePlayPauseButtonAction(it) } }
+        ).apply {
             isVisible = false
             fitsSystemWindows = true
         }
@@ -487,6 +491,9 @@ class AudioPlayerActivity : AppActivity() {
         // Kept in every layout for stable view binding; artist and album read as one calm line.
         binding.album.isVisible = false
         val showPlay = Util.shouldShowPlayButton(player)
+        lyricsShowPlay = showPlay
+        lyricsView.setSong(binding.title.text, binding.artist.text)
+        lyricsView.setPlayback(showPlay, colors[0], colors[1])
         binding.playPause.setImageResource(
             if (showPlay) R.drawable.play_icon_24dp else R.drawable.pause_icon_24dp
         )
@@ -732,7 +739,8 @@ class AudioPlayerActivity : AppActivity() {
     private fun showLyrics() {
         val lyrics = lyrics ?: return
         lyricsView.show(lyrics, themeColor(com.google.android.material.R.attr.colorOnSurface),
-            themeColor(android.R.attr.textColorSecondary))
+            themeColor(android.R.attr.textColorSecondary), themeColor(com.google.android.material.R.attr.colorSurface))
+        lyricsView.setSong(binding.title.text, binding.artist.text)
         if (!lyricsView.isVisible) {
             lyricsView.isVisible = true
             lyricsBack.isEnabled = true
@@ -770,6 +778,7 @@ class AudioPlayerActivity : AppActivity() {
     private fun applyColors(newColors: IntArray) {
         colors = newColors
         val (accent, onAccent, container) = newColors
+        if (::lyricsView.isInitialized) lyricsView.setPlayback(lyricsShowPlay, accent, onAccent)
         val accentList = ColorStateList.valueOf(accent)
         ViewCompat.setBackgroundTintList(binding.playPause, accentList)
         ImageViewCompat.setImageTintList(binding.playPause, ColorStateList.valueOf(onAccent))
@@ -883,7 +892,9 @@ class AudioPlayerActivity : AppActivity() {
             minOf(parent.width - inset, parent.height - inset)
         } else {
             val contentHeight = binding.root.height - binding.toolbar.height
-            minOf(parent.width, (contentHeight * MAX_COLUMN_ARTWORK_HEIGHT_FRACTION).toInt())
+            // Inside the column's padding: wider, the cover was clipped at it and lost its rounded corners.
+            minOf(parent.width - parent.paddingLeft - parent.paddingRight,
+                (contentHeight * MAX_COLUMN_ARTWORK_HEIGHT_FRACTION).toInt())
         }.coerceAtLeast(resources.getDimensionPixelSize(R.dimen.audio_player_artwork_min_size))
         val params = container.layoutParams
         if (params.width == size && params.height == size) return
