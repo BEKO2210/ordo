@@ -126,6 +126,10 @@ cell "Ordo Musik: Infos bearbeiten (Tag-Editor)" \
     "test -s app/src/main/java/me/zhanghai/android/files/viewer/audio/SongTags.kt && test -s $TESTS/viewer/audio/SongTagsTest.kt && grep -q 'net.jthink:jaudiotagger' app/build.gradle && grep -q 'edit_title' e2e/music-library.sh" \
     "Titel, Interpret, Album, Album-Interpret, Nummern, Jahr, Genre, Songtext und Cover für MP3, FLAC, Ogg Vorbis und M4A ändern, einzeln oder für ein ganzes Album; Vorschau, Schreiben über eine geprüfte Kopie, Rückgängig; MediaStore und Player zeigen es sofort, die Datei spielt danach weiter. Auf Tab, S21 und Pixel geprüft." \
     "Ordo Musik: eigene Musiksammlung mit Titeln, Alben, Interpreten und Ordnern"
+cell "Ordo Musik: Auswahl, Wiedergabelisten und Favoriten" \
+    "test -s app/src/main/java/me/zhanghai/android/files/viewer/audio/Playlists.kt && test -s $TESTS/viewer/audio/PlaylistsTest.kt && grep -q 'actionFavorite' app/src/main/res/menu/audio_player.xml && grep -q 'in_playlist' e2e/music-library.sh" \
+    "Langes Drücken wählt mehrere Titel (Als Nächstes, Warteschlange, Wiedergabeliste, Favoriten, Infos bearbeiten); Wiedergabelisten und Favoriten als M3U8 in Music/Playlists, die andere Apps lesen; Herz im Player; Einträge im Seitenmenü. Auf Tab und S21 geprüft." \
+    "Ordo Musik: eigene Musiksammlung mit Titeln, Alben, Interpreten und Ordnern"
 cell "Video-Player: Filme direkt in Ordo ansehen" \
     "ls app/src/main/java/me/zhanghai/android/files/viewer/video/*.kt >/dev/null 2>&1" \
     "Alle gängigen Formate, Untertitel, Tonspur-Wahl, Bild-im-Bild, Tempo, Gesten für Helligkeit und Lautstärke; als eigenes Symbol einschaltbar wie der Musik-Player." \

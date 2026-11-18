@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later -->
 <!-- Ordo Music with Ordo's side menu: the library (music_library_content) and, as in the file list, the menu that
-     slides in from the start. A tablet in landscape keeps it open beside the library (layout-sw600dp-land). -->
+     slides in from the start. From 840 dp width (tablets in landscape) it stays open beside the library (layout-w840dp). -->
 <androidx.drawerlayout.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"

@@ -44,7 +44,19 @@
                     android:theme="?actionBarTheme"
                     app:layout_collapseMode="pin"
                     app:menu="@menu/music_library"
-                    app:popupTheme="?actionBarPopupTheme" />
+                    app:popupTheme="?actionBarPopupTheme">
+
+                    <!-- "N selected" while songs are selected (long press). -->
+                    <TextView
+                        android:id="@+id/selectionCount"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:accessibilityLiveRegion="polite"
+                        android:maxLines="1"
+                        android:textAppearance="?textAppearanceHeadline6"
+                        android:textColor="?colorOnSurface"
+                        android:visibility="gone" />
+                </com.google.android.material.appbar.MaterialToolbar>
             </com.google.android.material.appbar.CollapsingToolbarLayout>
 
             <com.google.android.material.tabs.TabLayout
@@ -59,7 +71,7 @@
                 app:tabIndicatorFullWidth="true"
                 app:tabIndicatorGravity="stretch"
                 app:tabInlineLabel="@bool/music_tabs_inline"
-                app:tabMode="fixed"
+                app:tabMode="auto"
                 app:tabTextAppearance="?textAppearanceBody2" />
         </com.google.android.material.appbar.AppBarLayout>
 

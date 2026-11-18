@@ -11,7 +11,9 @@ object MusicNavigation {
     private const val ID_BASE = 1_000L
 
     val IDS: List<Long?> = listOf(
-        ID_BASE + 1, ID_BASE + 2, ID_BASE + 3, null, ID_BASE + 4, ID_BASE + 5, null, ID_BASE + 6, ID_BASE + 7
+        // Library, recently played, most played, favourites, playlists | sound, sleep timer | settings, files
+        ID_BASE + 1, ID_BASE + 2, ID_BASE + 3, ID_BASE + 8, ID_BASE + 9, null, ID_BASE + 4, ID_BASE + 5, null,
+        ID_BASE + 6, ID_BASE + 7
     )
 
     /** The id NavigationListAdapter.getItemId gives each row: the entry's own, or the number of dividers before it. */

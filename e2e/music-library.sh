@@ -10,7 +10,20 @@ ROCK=$ROOT/Music/OrdoE2E-Rock
 JAZZ=$ROOT/Download/OrdoE2E-Jazz
 EDIT=$ROOT/Music/OrdoE2E-Edit
 LIBRARY=me.zhanghai.android.files.viewer.audio.MusicLauncherActivity
-tmp=$(mktemp -d); trap 'a shell "rm -rf $ROCK $JAZZ $EDIT"; rm -rf "$tmp"' EXIT
+PLAYLISTS=$ROOT/Music/Playlists
+# The test's own playlist goes, and the favourites lose only the test songs (or go, if the test made them);
+# the owner's lists stay as they were.
+FAVORITES_BEFORE=$(a shell "[ -f $PLAYLISTS/Favorites.m3u8 ] && echo yes" | tr -d '\r')
+clean_up() {
+    a shell "rm -rf $ROCK $JAZZ $EDIT; rm -f \"$PLAYLISTS/Ordoe2e List.m3u8\""
+    if [ "$FAVORITES_BEFORE" = yes ]; then
+        a shell "sed -i /OrdoE2E-/d $PLAYLISTS/Favorites.m3u8"
+    else
+        a shell "rm -f $PLAYLISTS/Favorites.m3u8"
+    fi
+    rm -rf "$tmp"
+}
+tmp=$(mktemp -d); trap clean_up EXIT
 
 # The albums get a name of their own per run: MediaStore must not mix them with songs of an earlier run.
 RUN=$(date +%H%M%S)
@@ -78,7 +91,11 @@ check "shuffle all is the first row" eval 'ui texts | grep -Eq "^(Alle zufällig
 # Enter submits the search: the soft keyboard closes and no longer hides the lower rows (phones).
 search() { ui tap actionSearch >/dev/null && sleep 1 && a shell input text "$1" && a shell input keyevent KEYCODE_ENTER && sleep 2; }
 # The first back may only hide the keyboard; back is pressed once more only while the search field is still there.
-close_search() { back 1; ui has search_src_text || return 0; back 1; ! ui has search_src_text; }
+# Back only while the search field is there: one more back would leave the app.
+close_search() {
+    ui has search_src_text || return 0
+    back 1; ui has search_src_text || return 0; back 1; ! ui has search_src_text
+}
 above() { local a b; a=$(ui bounds "$1" | head -1 | cut -d" " -f2); b=$(ui bounds "$2" | head -1 | cut -d" " -f2); [ "$a" -lt "$b" ]; }
 check "search opens from the toolbar" search Ordoe2e
 check "Songs lists the tagged titles" ui wait "Ordoe2e Alpha" 10
@@ -122,6 +139,28 @@ check "Sound opens from the side menu" eval 'ui tap "Navigationsmenü öffnen|Op
 check "the Sound sheet opens over the player" ui wait "Equalizer" 8
 back 1.5; back 2
 check "back from the player returns to the library" on viewer.audio.MusicLauncherActivity
+
+# Selection, playlists and favourites: a long press selects, the songs go into a new M3U8 playlist in
+# Music/Playlists, the playlist and the favourites show them in the side menu.
+MENU="Navigationsmenü öffnen|Open navigation drawer"
+check "a long press selects a song" eval 'search Ordoe2e && ui longtap "Ordoe2e Alpha" && ui wait "1 ausgewählt|1 selected" 5'
+# On failure the log shows what the toolbar showed instead.
+ui has "1 ausgewählt|1 selected" || { echo "DIAG selection:"; ui texts | head -20 | sed 's/^/  /'; }
+check "a tap adds a second song" eval 'ui tap "Ordoe2e Beta" && ui wait "2 ausgewählt|2 selected" 5'
+check "the selection goes into a new playlist" eval 'ui tap actionSelectionPlaylist && ui wait "Neue Wiedergabeliste|New playlist" 5 \
+    && ui tap "Neue Wiedergabeliste|New playlist" && sleep 1 && a shell input text "Ordoe2e%sList" && ui tap button1'
+in_playlist() { a shell cat "\"$PLAYLISTS/Ordoe2e List.m3u8\"" | grep -q "OrdoE2E-Rock/rock-1.mp3"; }
+check "the playlist is an M3U8 file in Music/Playlists" eval 'sleep 2; in_playlist'
+close_search
+ui has "$MENU" || { echo "DIAG before the side menu:"; ui texts | head -20 | sed 's/^/  /'; }
+check "the side menu lists the playlist" eval 'ui tap "$MENU" && sleep 1 && ui tap "Wiedergabelisten|Playlists" && ui wait "Ordoe2e List" 5'
+check "the playlist opens with its songs" eval 'ui tap "Ordoe2e List" && ui wait "Ordoe2e Alpha" 5 && ui has "Ordoe2e Beta"'
+back 1.5; back 1.5
+check "a song becomes a favourite from its menu" eval 'search Ordoe2e && ui tap "Weitere Optionen für Ordoe2e Gamma|More options for Ordoe2e Gamma" \
+    && ui wait "Zu Favoriten|Add to favorites" 5 && ui tap "Zu Favoriten|Add to favorites"'
+close_search
+check "the favourites show it" eval 'ui tap "$MENU" && sleep 1 && ui tap "Favoriten|Favorites" && ui wait "Ordoe2e Gamma" 5'
+check "the menu returns to the library" eval 'ui tap "$MENU" && sleep 1 && ui tap "Bibliothek|Library" && ui wait "Ordner|Folders" 5'
 
 # The tag editor: a new title for the MP3 and the FLAC; the library shows it and the song still plays.
 edit_title() {

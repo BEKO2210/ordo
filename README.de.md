@@ -224,7 +224,10 @@ Alle Bilder oben stammen aus `utils/readme-shots.sh`, aufgenommen im Android-16-
   kommen aus Androids Mediensammlung (nur was der Player abspielt; versteckte Ordner nur, wenn du versteckte Dateien
   zeigst) Infos eines Titels bearbeiten (Titel, Interpret, Album, Nummern, Jahr, Genre, Songtext, Cover) bei MP3,
   FLAC, Ogg Vorbis und M4A, für einen Titel oder ein ganzes Album, mit Vorschau vor dem Speichern und „Rückgängig“
-  danach; die Datei wird erst ersetzt, wenn die neuen Angaben richtig zurückgelesen sind.
+  danach; die Datei wird erst ersetzt, wenn die neuen Angaben richtig zurückgelesen sind. Einen Titel gedrückt
+  halten wählt mehrere aus, um sie als Nächstes zu spielen, in die Warteschlange, in eine Wiedergabeliste oder zu
+  den Favoriten zu legen. Wiedergabelisten und Favoriten sind M3U8-Dateien in Music/Playlists, die auch andere
+  Musik-Apps lesen; das Herz im Player markiert einen Favoriten.
 - Eigenes App-Symbol für Ordo Musik (Einstellungen › Eingebaute Apps): standardmäßig aus, nur du schaltest es ein und aus, siehe [docs/AUDIO-PLAYER.md](docs/AUDIO-PLAYER.md)
 - Die Icon-Farbe von Ordo und Ordo Musik selbst wählen (Einstellungen › Eingebaute Apps › Icon-Farben): acht Farben,
   standardmäßig Blau, mit Live-Vorschau des Symbols; Themed Icons (ab Android 13) funktionieren weiter

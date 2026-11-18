@@ -145,5 +145,26 @@
     <string name="music_tag_failed">Not saved, the file is unchanged: %1$s</string>
     <string name="music_tag_cover_too_large">This picture is larger than 10 MB. Please pick a smaller one.</string>
     <string name="music_tag_read_failed">Ordo couldn’t read this file’s info.</string>
+    <string name="music_nav_favorites">Favorites</string>
+    <string name="music_nav_playlists">Playlists</string>
+    <string name="music_favorite_add">Add to favorites</string>
+    <string name="music_favorite_remove">Remove from favorites</string>
+    <string name="music_favorite_added">Added to favorites</string>
+    <string name="music_favorite_removed">Removed from favorites</string>
+    <string name="music_playlist_add">Add to playlist…</string>
+    <string name="music_playlist_new">New playlist</string>
+    <string name="music_playlist_name">Name</string>
+    <string name="music_playlist_added">Added to “%1$s”</string>
+    <string name="music_playlist_remove">Remove from playlist</string>
+    <string name="music_playlist_delete">Delete playlist</string>
+    <string name="music_playlist_delete_confirm">Delete “%1$s”? The songs themselves stay.</string>
+    <string name="music_playlist_failed">The playlist couldn’t be saved.</string>
+    <string name="music_playlists_empty">No playlists yet. Use ⋮ on a song, or hold a song to select several, to start one.</string>
+    <string name="music_favorites_empty">No favorites yet. Tap the heart in the player or use ⋮ on a song.</string>
+    <plurals name="music_selected">
+        <item quantity="one">%d selected</item>
+        <item quantity="other">%d selected</item>
+    </plurals>
+    <string name="music_selection_close">End selection</string>
     <string name="music_now_playing">Now playing: %1$s, %2$s. Opens the player</string>
 </resources>

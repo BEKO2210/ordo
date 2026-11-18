@@ -18,4 +18,47 @@
         app:iconTint="?colorControlNormal"
         android:visible="false"
         app:showAsAction="ifRoom" />
+
+    <!-- A playlist's page: delete the list (the songs stay). -->
+    <item
+        android:id="@+id/actionDeletePlaylist"
+        android:icon="@drawable/delete_icon_white_24dp"
+        android:title="@string/music_playlist_delete"
+        android:visible="false"
+        app:iconTint="?colorControlNormal"
+        app:showAsAction="ifRoom" />
+
+    <!-- While songs are selected (long press): what to do with all of them. -->
+    <group android:id="@+id/groupSelection" android:visible="false">
+        <item
+            android:id="@+id/actionSelectionPlayNext"
+            android:icon="@drawable/skip_next_icon_24dp"
+            android:title="@string/music_play_next"
+            app:iconTint="?colorControlNormal"
+            app:showAsAction="ifRoom" />
+        <item
+            android:id="@+id/actionSelectionQueue"
+            android:icon="@drawable/queue_music_icon_white_24dp"
+            android:title="@string/music_add_to_queue"
+            app:iconTint="?colorControlNormal"
+            app:showAsAction="ifRoom" />
+        <item
+            android:id="@+id/actionSelectionPlaylist"
+            android:icon="@drawable/playlist_add_icon_white_24dp"
+            android:title="@string/music_playlist_add"
+            app:iconTint="?colorControlNormal"
+            app:showAsAction="ifRoom" />
+        <item
+            android:id="@+id/actionSelectionFavorite"
+            android:icon="@drawable/favorite_icon_white_24dp"
+            android:title="@string/music_favorite_add"
+            app:iconTint="?colorControlNormal"
+            app:showAsAction="never" />
+        <item
+            android:id="@+id/actionSelectionEdit"
+            android:icon="@drawable/tag_edit_icon_white_24dp"
+            android:title="@string/music_edit_tags_all"
+            app:iconTint="?colorControlNormal"
+            app:showAsAction="never" />
+    </group>
 </menu>

@@ -94,8 +94,11 @@ import me.zhanghai.android.files.util.valueCompat
 class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
     private lateinit var binding: MusicLauncherActivityBinding
     private val adapter = Adapter()
+    // The accent for text and bars: in the light theme darkened until it reads at 4.5:1 on the surface.
     private val accentColor by lazy {
-        MaterialColors.getColor(binding.root, androidx.appcompat.R.attr.colorPrimary)
+        val accent = MaterialColors.getColor(binding.root, androidx.appcompat.R.attr.colorPrimary)
+        val surface = MaterialColors.getColor(binding.root, com.google.android.material.R.attr.colorSurface)
+        readableOn(accent, surface)
     }
     private val rowTitleColor by lazy {
         MaterialColors.getColor(binding.root, com.google.android.material.R.attr.colorOnSurface)
@@ -105,6 +108,17 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
     private var tab = TAB_SONGS
     // Library (with its tabs), recently played or most played: the side menu's first three entries.
     private var section = SECTION_LIBRARY
+    // Playlists and favourites: M3U8 files in Music/Playlists, read with the library (name → song paths).
+    private val playlists by lazy {
+        @Suppress("DEPRECATION")
+        PlaylistStore(java.io.File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC), "Playlists"))
+    }
+    private var playlistData: Map<String, List<String>> = emptyMap()
+    // The playlist open in the Playlists section.
+    private var playlistName: String? = null
+    // Songs selected with a long press (paths, in the order they were picked).
+    private val selection = linkedSetOf<String>()
+    private var keepQueryOnCollapse = false
     // Ordo's play history (PlayHistoryStore), as paths.
     private var history = emptyList<PlayHistoryStore.Entry>()
     private lateinit var navigationAdapter: NavigationListAdapter
@@ -140,8 +154,10 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
     private val backInLibrary = object : OnBackPressedCallback(false) {
         override fun handleOnBackPressed() {
             when {
+                selection.isNotEmpty() -> clearSelection()
                 searchItem.isActionViewExpanded -> searchItem.collapseActionView()
                 detailKey != null -> openDetail(null)
+                playlistName != null -> openPlaylist(null)
                 else -> openSection(SECTION_LIBRARY)
             }
         }
@@ -174,6 +190,7 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
             detailKey = it.getString(STATE_DETAIL)
             query = it.getString(STATE_QUERY).orEmpty()
             section = it.getInt(STATE_SECTION)
+            playlistName = it.getString(STATE_PLAYLIST)
         }
         onBackPressedDispatcher.addCallback(this, backInLibrary)
         binding.content.recyclerView.adapter = adapter
@@ -199,17 +216,16 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
             override fun onTabReselected(tab: TabLayout.Tab) = binding.content.recyclerView.scrollToPosition(0)
         })
         binding.content.toolbar.setNavigationOnClickListener {
-            if (detailKey != null) openDetail(null) else toggleNavigation()
+            when {
+                selection.isNotEmpty() -> clearSelection()
+                detailKey != null -> openDetail(null)
+                playlistName != null -> openPlaylist(null)
+                else -> toggleNavigation()
+            }
         }
         setUpSearch()
         setUpNavigation()
-        binding.content.toolbar.setOnMenuItemClickListener { item ->
-            val group = shownGroup
-            if (item.itemId == R.id.actionEditAll && group != null) {
-                editTagsLauncher.launch(MusicTagEditorActivity.createIntent(this, group.songs.map { it.path }))
-                true
-            } else false
-        }
+        binding.content.toolbar.setOnMenuItemClickListener { item -> onToolbarItem(item.itemId) }
         binding.content.accessButton.setOnClickListener { requestAccess() }
         binding.content.miniPlayer.root.setOnClickListener {
             startActivitySafe(AudioPlayerActivity.createResumeIntent(this))
@@ -254,6 +270,7 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
         outState.putString(STATE_DETAIL, detailKey)
         outState.putString(STATE_QUERY, query)
         outState.putInt(STATE_SECTION, section)
+        outState.putString(STATE_PLAYLIST, playlistName)
     }
 
     override fun onStart() {
@@ -287,7 +304,9 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
             }
 
             override fun onMenuItemActionCollapse(item: MenuItem): Boolean {
-                query = ""
+                // A selection takes the toolbar over: the search field steps aside but its results stay.
+                if (!keepQueryOnCollapse) query = ""
+                keepQueryOnCollapse = false
                 render()
                 // The item still counts as expanded while this runs.
                 backInLibrary.isEnabled = detailKey != null || section != SECTION_LIBRARY
@@ -339,6 +358,7 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
         lifecycleScope.launch {
             val (loaded, savedState) = withContext(Dispatchers.IO) {
                 history = PlayHistoryStore(context).read()
+                playlistData = readPlaylists()
                 MusicLibrary(queryMusic(context), showHiddenFiles, Collator.getInstance()) to
                     PlaybackStateStore(context).read()?.let { restorableState(it, ::pathUriExists) }
             }
@@ -395,8 +415,11 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
                     }
                 }
             }
+            section == SECTION_PLAYLISTS && playlistName == null ->
+                playlistData.filter { (name, _) -> MusicLibrary.matches(MusicGroup(name, playlistTitle(name), null, emptyList()), query) }
+                    .mapTo(rows) { (name, paths) -> Row.Playlist(name, paths.mapNotNull { songsByPath[it] }) }
             section != SECTION_LIBRARY -> {
-                shownSongs = historySongs().filter { MusicLibrary.matches(it, query) }
+                shownSongs = sectionSongs().filter { MusicLibrary.matches(it, query) }
                 if (shownSongs.isNotEmpty()) rows += Row.Actions(shuffleOnly = false)
                 shownSongs.forEachIndexed { index, song -> rows += Row.Song(song, index, artistAndAlbum(song)) }
             }
@@ -437,10 +460,14 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
 
         updateTitle()
         binding.content.tabs.isVisible = group == null && section == SECTION_LIBRARY
-        backInLibrary.isEnabled = group != null || section != SECTION_LIBRARY || searchItem.isActionViewExpanded
-        binding.content.toolbar.menu.findItem(R.id.actionEditAll).isVisible = group != null
+        backInLibrary.isEnabled = group != null || section != SECTION_LIBRARY || searchItem.isActionViewExpanded ||
+            selection.isNotEmpty()
+        updateToolbarMenu()
         // A page goes back; otherwise the button opens the side menu, as in Ordo's file list.
-        if (group != null) {
+        if (selection.isNotEmpty()) {
+            binding.content.toolbar.setNavigationIcon(R.drawable.close_icon_control_normal_24dp)
+            binding.content.toolbar.setNavigationContentDescription(R.string.music_selection_close)
+        } else if (group != null || playlistName != null) {
             binding.content.toolbar.setNavigationIcon(androidx.appcompat.R.drawable.abc_ic_ab_back_material)
             binding.content.toolbar.setNavigationContentDescription(androidx.appcompat.R.string.abc_action_bar_up_description)
         } else {
@@ -452,6 +479,9 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
             !hasAccess -> getString(R.string.music_access_message)
             library == null -> null
             query.isNotBlank() -> getString(R.string.music_no_results, query.trim())
+            section == SECTION_FAVORITES -> getString(R.string.music_favorites_empty)
+            section == SECTION_PLAYLISTS && playlistName == null -> getString(R.string.music_playlists_empty)
+            section == SECTION_PLAYLISTS -> null
             section != SECTION_LIBRARY -> getString(R.string.music_history_empty)
             else -> getString(R.string.music_empty)
         }
@@ -471,9 +501,19 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
         val group = shownGroup
         val searching = searchItem.isActionViewExpanded
         val collapsing = binding.content.collapsingToolbar
+        // The count is a view of its own in the toolbar: a title drawn by the collapsing bar is not reliably shown
+        // (or read by TalkBack) while the search field steps aside.
+        val count = binding.content.selectionCount
+        count.isVisible = selection.isNotEmpty()
+        if (selection.isNotEmpty()) {
+            collapsing.isTitleEnabled = false
+            binding.content.toolbar.title = null
+            count.text = resources.getQuantityString(R.plurals.music_selected, selection.size, selection.size)
+            return
+        }
         if (group == null) {
             collapsing.isTitleEnabled = !searching
-            collapsing.title = getString(sectionTitle())
+            collapsing.title = playlistName?.let(::playlistTitle) ?: getString(sectionTitle())
             binding.content.toolbar.title = null
             return
         }
@@ -537,6 +577,12 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
         val queued = (controller?.mediaItemCount ?: 0) > 0
         popup.menu.findItem(R.id.actionPlayNext).isVisible = queued
         popup.menu.findItem(R.id.actionAddToQueue).isVisible = queued
+        val favorite = song.path in playlistData[PlaylistStore.FAVORITES_FILE].orEmpty()
+        popup.menu.findItem(R.id.actionFavorite).apply {
+            setTitle(if (favorite) R.string.music_favorite_remove else R.string.music_favorite_add)
+            setIcon(if (favorite) R.drawable.favorite_border_icon_white_24dp else R.drawable.favorite_icon_white_24dp)
+        }
+        popup.menu.findItem(R.id.actionRemoveFromPlaylist).isVisible = section == SECTION_PLAYLISTS && playlistName != null
         val iconTint = ColorStateList.valueOf(
             MaterialColors.getColor(anchor, com.google.android.material.R.attr.colorOnSurfaceVariant,
                 MaterialColors.getColor(anchor, android.R.attr.textColorSecondary))
@@ -553,6 +599,13 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
                 R.id.actionAddToQueue -> if (player != null) {
                     player.addMediaItem(mediaItem)
                     confirm(R.string.music_added_to_queue)
+                }
+                R.id.actionFavorite -> changePlaylists(
+                    if (favorite) R.string.music_favorite_removed else R.string.music_favorite_added
+                ) { it.toggleFavorite(song.path) }
+                R.id.actionAddToPlaylist -> pickPlaylist(listOf(song.path))
+                R.id.actionRemoveFromPlaylist -> playlistName?.let { name ->
+                    changePlaylists(null) { it.remove(name, listOf(song.path)) }
                 }
                 R.id.actionEditTags ->
                     editTagsLauncher.launch(MusicTagEditorActivity.createIntent(this, listOf(song.path)))
@@ -575,7 +628,16 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
     private fun sectionTitle(): Int = when (section) {
         SECTION_RECENT -> R.string.music_nav_recent
         SECTION_MOST -> R.string.music_nav_most
+        SECTION_FAVORITES -> R.string.music_nav_favorites
+        SECTION_PLAYLISTS -> R.string.music_nav_playlists
         else -> R.string.launcher_music_start_title
+    }
+
+    /** The songs of the section that are still in the library, in its order. */
+    private fun sectionSongs(): List<MusicSong> = when (section) {
+        SECTION_FAVORITES -> playlistData[PlaylistStore.FAVORITES_FILE].orEmpty().mapNotNull { songsByPath[it] }
+        SECTION_PLAYLISTS -> playlistData[playlistName].orEmpty().mapNotNull { songsByPath[it] }
+        else -> historySongs()
     }
 
     /** The songs of the play history that are still in the library, newest or most played first. */
@@ -602,6 +664,8 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
         )
         navigationAdapter.replace(navigationItems())
         list.doOnAttach { setUpOpenStagger(list) }
+        // The open menu dims the library only a little (about a third), so it stays visible behind it.
+        drawerLayout?.setScrimColor(0x52000000)
         // Registered after the library's own back handling, so an open menu closes first.
         drawerLayout?.let { onBackPressedDispatcher.addCallback(this, DrawerLayoutOnBackPressedCallback(it)) }
         persistentDrawer?.openDrawer(GravityCompat.START, false)
@@ -614,14 +678,18 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
             { section == SECTION_RECENT }) { openSection(SECTION_RECENT) },
         MusicNavigationItem(MusicNavigation.IDS[2]!!, R.drawable.trending_icon_white_24dp, R.string.music_nav_most,
             { section == SECTION_MOST }) { openSection(SECTION_MOST) },
+        MusicNavigationItem(MusicNavigation.IDS[3]!!, R.drawable.favorite_icon_white_24dp, R.string.music_nav_favorites,
+            { section == SECTION_FAVORITES }) { openSection(SECTION_FAVORITES) },
+        MusicNavigationItem(MusicNavigation.IDS[4]!!, R.drawable.queue_music_icon_white_24dp, R.string.music_nav_playlists,
+            { section == SECTION_PLAYLISTS }) { openSection(SECTION_PLAYLISTS) },
         null,
-        MusicNavigationItem(MusicNavigation.IDS[4]!!, R.drawable.audio_equalizer_icon_24dp, R.string.audio_sound_title) { openSound(false) },
-        MusicNavigationItem(MusicNavigation.IDS[5]!!, R.drawable.audio_timer_icon_24dp, R.string.audio_sound_sleep_heading) { openSound(true) },
+        MusicNavigationItem(MusicNavigation.IDS[6]!!, R.drawable.audio_equalizer_icon_24dp, R.string.audio_sound_title) { openSound(false) },
+        MusicNavigationItem(MusicNavigation.IDS[7]!!, R.drawable.audio_timer_icon_24dp, R.string.audio_sound_sleep_heading) { openSound(true) },
         null,
-        MusicNavigationItem(MusicNavigation.IDS[7]!!, R.drawable.settings_icon_white_24dp, R.string.settings_title) {
+        MusicNavigationItem(MusicNavigation.IDS[9]!!, R.drawable.settings_icon_white_24dp, R.string.settings_title) {
             launchIntent(SettingsActivity.createIntent(SettingsActivity.SECTION_LAUNCHER_ICONS))
         },
-        MusicNavigationItem(MusicNavigation.IDS[8]!!, R.drawable.directory_icon_white_24dp, R.string.music_nav_files) {
+        MusicNavigationItem(MusicNavigation.IDS[10]!!, R.drawable.directory_icon_white_24dp, R.string.music_nav_files) {
             packageManager.getLaunchIntentForPackage(packageName)?.let { launchIntent(it) }
         }
     )
@@ -635,8 +703,10 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
 
     private fun openSection(newSection: Int) {
         searchItem.collapseActionView()
+        selection.clear()
         section = newSection
         detailKey = null
+        playlistName = null
         binding.content.appBar.setExpanded(true, Motion.any)
         render(scrollToTop = true)
         navigationAdapter.notifyCheckedChanged()
@@ -723,6 +793,168 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
         }
         nowPlaying = now
         if (key != oldKey) navigationHeader.notifyItemChanged(0)
+    }
+
+    // ---- Playlists, favourites and the selection ------------------------------------------------------------------
+
+    private fun readPlaylists(): Map<String, List<String>> =
+        runCatching { playlists.names().associateWith { playlists.read(it) } }.getOrDefault(emptyMap())
+
+    private fun playlistTitle(name: String): String =
+        if (name == PlaylistStore.FAVORITES_FILE) getString(R.string.music_nav_favorites) else PlaylistStore.title(name)
+
+    private fun openPlaylist(name: String?) {
+        searchItem.collapseActionView()
+        playlistName = name
+        binding.content.appBar.setExpanded(true, Motion.any)
+        render(scrollToTop = true)
+    }
+
+    /** Changes the playlist files off the main thread, then reloads them and says what happened. */
+    private fun changePlaylists(@StringRes done: Int?, doneArg: String? = null, change: (PlaylistStore) -> Unit) {
+        lifecycleScope.launch {
+            val ok = withContext(Dispatchers.IO) {
+                runCatching { change(playlists) }.onFailure { it.printStackTrace() }.isSuccess.also {
+                    playlistData = readPlaylists()
+                }
+            }
+            render()
+            when {
+                !ok -> confirm(R.string.music_playlist_failed)
+                done != null && doneArg != null ->
+                    Snackbar.make(binding.content.root, getString(done, doneArg), Snackbar.LENGTH_SHORT).apply {
+                        if (binding.content.miniPlayer.root.isVisible) anchorView = binding.content.miniPlayer.root
+                    }.show()
+                done != null -> confirm(done)
+            }
+        }
+    }
+
+    /** "Add to playlist": the existing lists (favourites aside) and a new one. */
+    private fun pickPlaylist(paths: List<String>) {
+        val names = playlistData.keys.filter { it != PlaylistStore.FAVORITES_FILE }
+        val labels = (listOf(getString(R.string.music_playlist_new)) + names.map(PlaylistStore::title)).toTypedArray()
+        com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.music_playlist_add)
+            .setItems(labels) { _, which ->
+                if (which == 0) {
+                    newPlaylist(paths)
+                } else {
+                    val name = names[which - 1]
+                    changePlaylists(R.string.music_playlist_added, PlaylistStore.title(name)) { it.add(name, paths) }
+                }
+            }
+            .show()
+    }
+
+    private fun newPlaylist(paths: List<String>) {
+        val input = com.google.android.material.textfield.TextInputEditText(this)
+        val layout = com.google.android.material.textfield.TextInputLayout(this).apply {
+            hint = getString(R.string.music_playlist_name)
+            setStartIconDrawable(R.drawable.queue_music_icon_white_24dp)
+            addView(input)
+            val gutter = resources.getDimensionPixelSize(R.dimen.space_gutter)
+            setPadding(gutter, resources.getDimensionPixelSize(R.dimen.phi_8), gutter, 0)
+        }
+        com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.music_playlist_new)
+            .setView(layout)
+            .setPositiveButton(R.string.music_tag_save) { _, _ ->
+                val name = PlaylistStore.fileName(input.text.toString()) ?: return@setPositiveButton
+                changePlaylists(R.string.music_playlist_added, PlaylistStore.title(name)) { it.add(name, paths) }
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+        input.requestFocus()
+    }
+
+    private fun toggleSelection(path: String) {
+        if (!selection.remove(path)) selection += path
+        // The toolbar shows "N selected" and the actions; an open search field would hide them.
+        if (selection.isNotEmpty() && searchItem.isActionViewExpanded) {
+            keepQueryOnCollapse = true
+            searchItem.collapseActionView()
+        }
+        render()
+        // The search field comes back only once the menu shows its item again (next frame).
+        if (selection.isEmpty()) binding.root.post { restoreSearch() }
+    }
+
+    private fun clearSelection() {
+        selection.clear()
+        render()
+        binding.root.post { restoreSearch() }
+    }
+
+    /** After a selection made in search results, the search field comes back with its words. */
+    private fun restoreSearch() {
+        if (query.isBlank() || searchItem.isActionViewExpanded) return
+        val restored = query
+        searchItem.isVisible = true
+        searchItem.expandActionView()
+        (searchItem.actionView as SearchView).apply {
+            setQuery(restored, false)
+            clearFocus()
+        }
+    }
+
+    private fun updateToolbarMenu() {
+        val menu = binding.content.toolbar.menu
+        val selecting = selection.isNotEmpty()
+        menu.setGroupVisible(R.id.groupSelection, selecting)
+        searchItem.isVisible = !selecting
+        menu.findItem(R.id.actionEditAll).isVisible = !selecting && shownGroup != null
+        menu.findItem(R.id.actionDeletePlaylist).isVisible =
+            !selecting && playlistName != null && playlistName != PlaylistStore.FAVORITES_FILE
+        if (selecting) {
+            val queued = (controller?.mediaItemCount ?: 0) > 0
+            menu.findItem(R.id.actionSelectionPlayNext).isVisible = queued
+            menu.findItem(R.id.actionSelectionQueue).isVisible = queued
+        }
+    }
+
+    private fun onToolbarItem(itemId: Int): Boolean {
+        val paths = selection.toList()
+        when (itemId) {
+            R.id.actionEditAll -> shownGroup?.let {
+                editTagsLauncher.launch(MusicTagEditorActivity.createIntent(this, it.songs.map(MusicSong::path)))
+            }
+            R.id.actionDeletePlaylist -> playlistName?.let { name ->
+                com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+                    .setMessage(getString(R.string.music_playlist_delete_confirm, PlaylistStore.title(name)))
+                    .setPositiveButton(R.string.music_playlist_delete) { _, _ ->
+                        playlistName = null
+                        changePlaylists(null) { it.delete(name) }
+                    }
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .show()
+            }
+            R.id.actionSelectionPlayNext, R.id.actionSelectionQueue -> controller?.let { player ->
+                val items = paths.map { AudioPlaybackService.mediaItem(Paths.get(it).toUri().toString()) }
+                if (itemId == R.id.actionSelectionPlayNext) {
+                    player.addMediaItems((player.currentMediaItemIndex + 1).coerceAtMost(player.mediaItemCount), items)
+                    confirm(R.string.music_added_next)
+                } else {
+                    player.addMediaItems(items)
+                    confirm(R.string.music_added_to_queue)
+                }
+                clearSelection()
+            }
+            R.id.actionSelectionPlaylist -> {
+                pickPlaylist(paths)
+                clearSelection()
+            }
+            R.id.actionSelectionFavorite -> {
+                changePlaylists(R.string.music_favorite_added) { it.add(PlaylistStore.FAVORITES_FILE, paths) }
+                clearSelection()
+            }
+            R.id.actionSelectionEdit -> {
+                editTagsLauncher.launch(MusicTagEditorActivity.createIntent(this, paths))
+                clearSelection()
+            }
+            else -> return false
+        }
+        return true
     }
 
     private fun groupName(group: MusicGroup, tab: Int): String =
@@ -934,6 +1166,7 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
         class Song(val song: MusicSong, val index: Int, val info: String?, val number: Int? = null) : Row()
         class Album(val group: MusicGroup) : Row()
         class Group(val group: MusicGroup, val isFolder: Boolean) : Row()
+        class Playlist(val name: String, val songs: List<MusicSong>) : Row()
     }
 
     private inner class Adapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
@@ -996,14 +1229,26 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
                         art.bars.color = Color.WHITE
                         art.bars.setPlaying(current && currentPlaying)
                     }
-                    more.isVisible = true
+                    // A long press selects; while songs are selected a tap adds or removes one.
+                    val selected = song.path in selection
+                    art.selected.isVisible = selected && row.number == null
+                    if (row.number != null && selected) number.text = "✓"
+                    root.isActivated = selected
+                    root.background = if (selected) selectedBackground() else rowBackground()
+                    root.setOnLongClickListener {
+                        toggleSelection(song.path)
+                        true
+                    }
+                    more.isVisible = selection.isEmpty()
                     more.contentDescription = getString(R.string.music_more_options, song.title)
                     more.setOnClickListener { showSongMenu(it, song) }
                     root.setPaddingRelative(
                         root.paddingStart, root.paddingTop, resources.getDimensionPixelSize(R.dimen.phi_5),
                         root.paddingBottom
                     )
-                    root.setOnClickListener { play(shownSongs, row.index) }
+                    root.setOnClickListener {
+                        if (selection.isNotEmpty()) toggleSelection(song.path) else play(shownSongs, row.index)
+                    }
                 }
                 is Row.Group -> (binding as MusicLibraryRowBinding).apply {
                     val group = row.group
@@ -1020,6 +1265,9 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
                     more.isVisible = false
                     art.root.isVisible = true
                     art.bars.isVisible = false
+                    art.selected.isVisible = false
+                    root.background = rowBackground()
+                    root.setOnLongClickListener(null)
                     title.setTextColor(rowTitleColor)
                     root.setPaddingRelative(
                         root.paddingStart, root.paddingTop, resources.getDimensionPixelSize(R.dimen.space_gutter),
@@ -1038,6 +1286,32 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
                         )
                     }
                     root.setOnClickListener { openDetail(group.key) }
+                }
+                is Row.Playlist -> (binding as MusicLibraryRowBinding).apply {
+                    val favorites = row.name == PlaylistStore.FAVORITES_FILE
+                    title.text = playlistTitle(row.name)
+                    title.setTextColor(rowTitleColor)
+                    info.isVisible = true
+                    info.text = resources.getQuantityString(R.plurals.music_song_count, row.songs.size, row.songs.size)
+                    duration.isVisible = false
+                    numberSlot.isVisible = false
+                    more.isVisible = false
+                    art.root.isVisible = true
+                    art.bars.isVisible = false
+                    art.selected.isVisible = false
+                    root.background = rowBackground()
+                    root.setOnLongClickListener(null)
+                    val size = resources.getDimensionPixelSize(R.dimen.music_row_art_size)
+                    bindArt(
+                        art, placeholder(playlistTitle(row.name),
+                            if (favorites) R.drawable.favorite_icon_white_24dp else R.drawable.queue_music_icon_white_24dp),
+                        albumCovers(row.songs), resources.getDimension(R.dimen.phi_radius_s), size / 12
+                    )
+                    root.setPaddingRelative(
+                        root.paddingStart, root.paddingTop, resources.getDimensionPixelSize(R.dimen.space_gutter),
+                        root.paddingBottom
+                    )
+                    root.setOnClickListener { openPlaylist(row.name) }
                 }
                 is Row.Album -> (binding as MusicLibraryAlbumBinding).apply {
                     val group = row.group
@@ -1071,6 +1345,25 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
         }
     }
 
+    private fun readableOn(color: Int, background: Int): Int {
+        var result = color
+        var step = 0
+        while (androidx.core.graphics.ColorUtils.calculateContrast(result, background) < 4.5 && step < 10) {
+            result = androidx.core.graphics.ColorUtils.blendARGB(result, android.graphics.Color.BLACK, 0.1f)
+            step++
+        }
+        return result
+    }
+
+    private fun rowBackground(): Drawable? {
+        val value = android.util.TypedValue()
+        theme.resolveAttribute(androidx.appcompat.R.attr.selectableItemBackground, value, true)
+        return ContextCompat.getDrawable(this, value.resourceId)
+    }
+
+    private fun selectedBackground(): Drawable =
+        android.graphics.drawable.ColorDrawable(MaterialColors.compositeARGBWithAlpha(accentColor, 41))
+
     private class Holder<T : androidx.viewbinding.ViewBinding>(val binding: T) : RecyclerView.ViewHolder(binding.root)
 
     // The folder below the storage root ("Music/Rock"); other volumes keep their full path.
@@ -1092,6 +1385,9 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
         private const val STATE_DETAIL = "detail"
         private const val STATE_QUERY = "query"
         private const val STATE_SECTION = "section"
+        private const val STATE_PLAYLIST = "playlist"
+        private const val SECTION_FAVORITES = 3
+        private const val SECTION_PLAYLISTS = 4
         private const val SECTION_LIBRARY = 0
         private const val SECTION_RECENT = 1
         private const val SECTION_MOST = 2

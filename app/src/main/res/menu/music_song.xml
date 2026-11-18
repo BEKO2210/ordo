@@ -14,6 +14,22 @@
         android:title="@string/music_add_to_queue" />
 
     <item
+        android:id="@+id/actionFavorite"
+        android:icon="@drawable/favorite_icon_white_24dp"
+        android:title="@string/music_favorite_add" />
+
+    <item
+        android:id="@+id/actionAddToPlaylist"
+        android:icon="@drawable/playlist_add_icon_white_24dp"
+        android:title="@string/music_playlist_add" />
+
+    <item
+        android:id="@+id/actionRemoveFromPlaylist"
+        android:icon="@drawable/close_icon_control_normal_24dp"
+        android:title="@string/music_playlist_remove"
+        android:visible="false" />
+
+    <item
         android:id="@+id/actionEditTags"
         android:icon="@drawable/tag_edit_icon_white_24dp"
         android:title="@string/music_edit_tags" />
