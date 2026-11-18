@@ -170,6 +170,9 @@ cell "Icon-Farbe für Ordo und jede eingebaute App selbst wählen" \
     "[ \"\$(grep -c 'android.files.launcher.Home' app/src/main/AndroidManifest.xml)\" -ge 8 ] && [ \"\$(grep -c 'android.files.launcher.Music' app/src/main/AndroidManifest.xml)\" -ge 8 ] && test -x e2e/icon-colors.sh && grep -q 'fun choosingAColourLeavesExactlyThatAliasOnAndNeverNone' $TESTS/launcher/BuiltInAppTest.kt" \
     "Acht Hintergrundfarben je Symbol (Ordo, Ordo Musik und jede künftige eingebaute App), ein activity-alias je Farbe aus utils/launcher-icon-colors.py, Auswahl mit Vorschau unter Einstellungen › Eingebaute Apps; nie ohne Launcher-Eintrag umschalten, Themed Icons bleiben." \
     "Musik-Player als eigenes App-Symbol zum Einschalten"
+cell "Ordo als Ort in Androids Dateiauswahl (DocumentsProvider)" \
+    "test -s docs/DOKUMENTEN-ANBIETER.md && grep -q 'OrdoDocumentsProvider' app/src/main/AndroidManifest.xml && grep -q 'fun noIdReachesOutsideTheFavourites' $TESTS/documents/OrdoDocumentIdsTest.kt && test -x e2e/documents-provider.sh" \
+    "Öffnet eine andere App die System-Dateiauswahl, steht Ordo bei den Orten: erst die Lesezeichen nur zum Lesen, nie private Ordner oder der Tresor ohne ausdrückliche Einstellung; Ids kanonisch geprüft, kein Pfad-Ausbruch."
 cell "Goldener Schnitt als Maßsystem in ganz Ordo" \
     "test -s docs/DESIGN-SYSTEM.md && ! grep -rqE 'android:(padding|layout_margin)[A-Za-z]*=\"(4|6|12|16|20|24|28|32)dp\"' app/src/main/res/layout/" \
     "Alle eigenen Abstände, Größen, Proportionen und Rundungen folgen φ (Fibonacci-Reihe 3/5/8/13/21/34/55/89 dp, dimens_phi.xml); Bildschirm für Bildschirm umgestellt und auf Telefon und Tablet gemessen. Schriftgrößen bleiben Material 3."

@@ -675,6 +675,7 @@
 
     <string name="home_title">Startseite</string>
     <string name="home_recent">Zuletzt verwendet</string>
+    <string name="documents_root_summary">Deine Lesezeichen</string>
     <string name="home_recent_empty">Keine zuletzt verwendeten Dateien</string>
     <string name="home_categories">Kategorien</string>
     <string name="home_storage">Speicher</string>

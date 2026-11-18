@@ -529,6 +529,21 @@
             android:authorities="@string/app_provider_authority"
             android:exported="false" />
 
+        <!--
+          Ordo in Android's own file picker: the user's favourite folders, read-only. Only the system (DocumentsUI,
+          holding MANAGE_DOCUMENTS) may query it; other apps only get the documents the user picks there.
+          -->
+        <provider
+            android:name="me.zhanghai.android.files.documents.OrdoDocumentsProvider"
+            android:authorities="${applicationId}.documents"
+            android:exported="true"
+            android:grantUriPermissions="true"
+            android:permission="android.permission.MANAGE_DOCUMENTS">
+            <intent-filter>
+                <action android:name="android.content.action.DOCUMENTS_PROVIDER" />
+            </intent-filter>
+        </provider>
+
         <provider
             android:name="me.zhanghai.android.files.file.FileProvider"
             android:authorities="@string/file_provider_authority"
