@@ -7,6 +7,7 @@ package me.zhanghai.android.files.viewer.audio.lyrics
 
 import java.io.ByteArrayOutputStream
 import java.io.File
+import java.io.InputStream
 import me.zhanghai.android.files.viewer.audio.SongTagIo
 import org.jaudiotagger.audio.AudioFileIO
 import org.jaudiotagger.tag.FieldKey
@@ -20,6 +21,20 @@ import org.junit.Assert.assertSame
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
+
+/** java.io.File as the repository sees a song; [listable] false is a content:// song, [local] false a remote one. */
+private class TestFile(val file: File, val listable: Boolean = true, val local: Boolean = true) : LyricsFile {
+    override val key: String get() = file.toURI().toString()
+    override val name: String get() = file.name
+    override val lastModified: Long get() = file.lastModified()
+    override val size: Long get() = file.length()
+    override fun siblings(): List<LyricsFile>? =
+        if (listable) file.parentFile!!.listFiles()!!.map { TestFile(it) } else null
+    override fun newInputStream(): InputStream = file.inputStream()
+    override fun toLocalFile(): File? = if (local) file else null
+}
+
+private fun local(file: File): LyricsFile = TestFile(file)
 
 /** Source order, SYLT decoding, the cache and the charset of `.lrc` files. */
 class LyricsRepositoryTest {
@@ -76,8 +91,8 @@ class LyricsRepositoryTest {
         assertNull(LyricsRepository.pick(null) { EmbeddedLyrics(plain = "x".repeat(LyricsRepository.MAX_BYTES + 1)) })
     }
 
-    @Test
-    fun readsTheFileThenTheSidecarAndCachesUntilEitherChanges() {
+    // The fixture with a SYLT frame ("Getaktet" at 2 s) and a plain lyrics field.
+    private fun taggedSong(): File {
         val file = song()
         SongTagIo.isEditableFormat(file) // jaudiotagger set-up
         val audio = AudioFileIO.read(file)
@@ -87,33 +102,67 @@ class LyricsRepositoryTest {
             body = FrameBodySYLT(3, "deu", 2, 1, "", syltData("Getaktet" to 2000))
         })
         audio.commit()
+        return file
+    }
 
-        val embedded = LyricsRepository.loadBlocking(file)!!
+    @Test
+    fun readsSyltFromTheFileAndCachesIt() {
+        val file = taggedSong()
+        val embedded = LyricsRepository.loadBlocking(local(file))!!
         assertEquals(LyricsSource.EMBEDDED_SYNCED, embedded.source)
         assertEquals("Getaktet", embedded.lines[0].text)
         assertEquals(2000uL, embedded.lines[0].start)
-        assertSame(embedded, LyricsRepository.loadBlocking(file))
+        assertSame(embedded, LyricsRepository.loadBlocking(local(file)))
+        file.setLastModified(file.lastModified() + 5000)
+        assertNotSame(embedded, LyricsRepository.loadBlocking(local(file)))
+    }
 
+    @Test
+    fun lrcAddedLaterWinsAndRemovedFallsBack() {
+        val file = taggedSong()
+        assertEquals(LyricsSource.EMBEDDED_SYNCED, LyricsRepository.loadBlocking(local(file))!!.source)
         // Another case of the name still counts as the song's .lrc.
         val lrc = File(folder.root, "song.LRC").apply { writeText("[00:01.00]Aus der Datei") }
-        val sidecar = LyricsRepository.loadBlocking(file)!!
+        val sidecar = LyricsRepository.loadBlocking(local(file))!!
         assertEquals(LyricsSource.SIDECAR_LRC, sidecar.source)
-        assertSame(sidecar, LyricsRepository.loadBlocking(file))
+        assertSame(sidecar, LyricsRepository.loadBlocking(local(file)))
+        lrc.delete()
+        assertEquals(LyricsSource.EMBEDDED_SYNCED, LyricsRepository.loadBlocking(local(file))!!.source)
+    }
 
-        lrc.writeText("[00:01.00]Geändert")
-        lrc.setLastModified(lrc.lastModified() + 5000)
-        assertEquals("Geändert", LyricsRepository.loadBlocking(file)!!.lines[0].text)
+    @Test
+    fun onlyTheLrcChanged() {
+        val file = taggedSong()
+        val songTime = file.lastModified()
+        val lrc = File(folder.root, "Song.lrc").apply { writeText("[00:01.00]Alt") }
+        assertEquals("Alt", LyricsRepository.loadBlocking(local(file))!!.lines[0].text)
+        // Same modification time, other size.
+        val lrcTime = lrc.lastModified()
+        lrc.writeText("[00:01.00]Neuer Text")
+        lrc.setLastModified(lrcTime)
+        assertEquals("Neuer Text", LyricsRepository.loadBlocking(local(file))!!.lines[0].text)
+        // Same size, other modification time.
+        lrc.writeText("[00:01.00]Neuer Tex!")
+        lrc.setLastModified(lrcTime + 5000)
+        assertEquals("Neuer Tex!", LyricsRepository.loadBlocking(local(file))!!.lines[0].text)
+        assertEquals(songTime, file.lastModified())
+    }
 
-        val before = LyricsRepository.loadBlocking(file)
-        file.setLastModified(file.lastModified() + 5000)
-        assertNotSame(before, LyricsRepository.loadBlocking(file))
+    @Test
+    fun contentUriSongUsesOnlyEmbeddedLyrics() {
+        val file = taggedSong()
+        File(folder.root, "Song.lrc").writeText("[00:01.00]Daneben")
+        // No folder to list and not on local storage: no .lrc, the file is copied for the tag reader.
+        val lyrics = LyricsRepository.loadBlocking(TestFile(file, listable = false, local = false))!!
+        assertEquals(LyricsSource.EMBEDDED_SYNCED, lyrics.source)
+        assertEquals("Getaktet", lyrics.lines[0].text)
     }
 
     @Test
     fun tooLargeSidecarIsIgnored() {
         val file = File(folder.root, "leer.mp3").apply { writeBytes(ByteArray(0)) }
         File(folder.root, "leer.lrc").writeText("[00:01.00]A\n" + "x".repeat(LyricsRepository.MAX_BYTES))
-        assertNull(LyricsRepository.loadBlocking(file))
+        assertNull(LyricsRepository.loadBlocking(local(file)))
     }
 
     @Test
@@ -135,6 +184,6 @@ class LyricsRepositoryTest {
     fun sidecarInWindows1252IsRead() {
         val file = File(folder.root, "alt.mp3").apply { writeBytes(ByteArray(0)) }
         File(folder.root, "alt.lrc").writeBytes("[00:01.00]Grüße".toByteArray(charset("windows-1252")))
-        assertEquals("Grüße", LyricsRepository.loadBlocking(file)!!.lines[0].text)
+        assertEquals("Grüße", LyricsRepository.loadBlocking(local(file))!!.lines[0].text)
     }
 }
