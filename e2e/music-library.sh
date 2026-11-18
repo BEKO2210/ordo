@@ -140,17 +140,21 @@ check "the mini player pauses" ui tap playPause
 paused() { local i; for i in 1 2 3 4 5; do session_state PAUSED && return 0; sleep 1; done; return 1; }
 check "playback is paused" paused
 # Tapping the song that is already playing (here paused) opens the player without a restart: the position stays.
-position() { a shell dumpsys media_session | grep -A25 "package=$PKG" | grep -m1 -o "position=[0-9]*" | cut -d= -f2; }
+position() {
+    a shell dumpsys media_session | grep -A25 "package=$PKG" | grep -m1 "state=PlaybackState" \
+        | grep -o "[^d] position=[0-9]*" | head -1 | cut -d= -f2
+}
 same_song_keeps_position() {
     local before after
     before=$(position); [ "${before:-0}" -gt 1000 ] || return 1
     ui tap "Ordoe2e Alpha" title || return 1
     wait_on viewer.audio.AudioPlayerActivity 8 || return 1
     sleep 2; after=$(position); back 2
-    echo "position before $before ms, after $after ms" >&2
+    echo "position before $before ms, after $after ms" > "$tmp/position.txt"
     [ "${after:-0}" -ge "$before" ] && [ $((after - before)) -lt 1500 ]
 }
 check "tapping the playing song keeps its position" same_song_keeps_position
+cat "$tmp/position.txt" 2>/dev/null
 # Every song row has its ⋮; while a queue exists it offers play next and add to queue besides showing the file.
 check "a song row has its options button" ui tap "Weitere Optionen für Ordoe2e Beta|More options for Ordoe2e Beta"
 check "options offer play next" ui wait "Als Nächstes spielen|Play next" 5
@@ -253,12 +257,13 @@ own_covers() {
     ui tap "Ordner|Folders" && search OrdoE2E-Covers && ui tap OrdoE2E-Covers && ui wait "Ordoe2e Red" 5 || return 1
     sleep 2
     red=$(cover_colour "Ordoe2e Red"); blue=$(cover_colour "Ordoe2e Blue")
-    echo "covers: red row $red, blue row $blue" >&2
+    echo "covers: red row $red, blue row $blue" > "$tmp/covers.txt"
     read -r rr rg rb <<< "$red"; read -r br bg bb <<< "$blue"
     back 1.5; close_search
     [ "$rr" -gt "$rb" ] && [ "$bb" -gt "$br" ]
 }
 check "a folder page shows each song's own cover" own_covers
+cat "$tmp/covers.txt" 2>/dev/null
 check "the Folders tab opens" ui tap "Ordner|Folders"
 search OrdoE2E
 check "the first folder is listed" ui wait OrdoE2E-Rock 5
