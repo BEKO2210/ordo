@@ -161,7 +161,7 @@ class AudioPlayerActivity : AppActivity() {
             addView(binding.root, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
         })
         colors = themeColors()
-        // A hairline keeps a pale cover apart from a pale backdrop (review panel 18.11.2026).
+        // A hairline (24 % onSurface) keeps a pale cover apart from a pale backdrop (review panel 18.11.2026).
         binding.artworkCard.strokeWidth = resources.displayMetrics.density.toInt().coerceAtLeast(1)
         binding.artworkCard.strokeColor = ColorUtils.setAlphaComponent(
             themeColor(com.google.android.material.R.attr.colorOnSurface), COVER_OUTLINE_ALPHA
@@ -876,7 +876,7 @@ class AudioPlayerActivity : AppActivity() {
         private const val DISABLED_CONTROL_ALPHA = 0.38f
         private const val VEIL_SAMPLE_STEP = 3
         private const val MIN_VEIL_LIGHT = 0.42f
-        private const val COVER_OUTLINE_ALPHA = 0x1f
+        private const val COVER_OUTLINE_ALPHA = 0x3d
         private const val MIN_VEIL_DARK = 0.4f
         private const val DOUBLE_TAP_SEEK_MS = 10_000L
         private const val SEEK_BUBBLE_MS = 600L

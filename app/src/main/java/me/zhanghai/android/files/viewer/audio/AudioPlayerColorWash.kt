@@ -161,13 +161,13 @@ internal object AudioPlayerColorWash {
 
     /**
      * The seek bar's unplayed track: [accent] at the lowest opacity (from 30 %) that still stands 3:1 against
-     * [background] (WCAG 1.4.11, the track shows how long the song is). Review panel 18.11.2026: a pale container
+     * [background] with a margin (WCAG 1.4.11 asks 3:1; the track shows how long the song is). Review panel 18.11.2026: a pale container
      * colour vanished on light and grey covers.
      */
     fun inactiveTrack(accent: Int, background: Int): Int {
         for (percent in 30..100 step 5) {
             val color = (percent * 255 / 100 shl 24) or (accent and 0xffffff)
-            if (contrastRatio(color, background) >= MINIMUM_CONTROL_CONTRAST) return color
+            if (contrastRatio(color, background) >= TRACK_CONTRAST) return color
         }
         return accent
     }
@@ -197,6 +197,9 @@ internal object AudioPlayerColorWash {
 
     private const val MINIMUM_TEXT_CONTRAST = 4.5
     private const val MINIMUM_CONTROL_CONTRAST = 3.0
+    // 3:1 against the veil's colour measured only 2.7–3.0:1 on the Tab's screen (the blurred cover shows through the
+    // veil, the line is anti-aliased); 3.5 leaves that margin.
+    private const val TRACK_CONTRAST = 3.5
     private const val TINT_STRENGTH_PERCENT = 14
     private const val VEIL_STEP_PERCENT = 2
     private const val HUE_BINS = 36
