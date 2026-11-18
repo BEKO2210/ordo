@@ -77,6 +77,8 @@ import me.zhanghai.android.files.player.pathUriExists
 import me.zhanghai.android.files.player.restorableState
 import me.zhanghai.android.files.provider.common.readAttributes
 import me.zhanghai.android.files.ui.Motion
+import me.zhanghai.android.files.viewer.audio.lyrics.Lyrics
+import me.zhanghai.android.files.viewer.audio.lyrics.LyricsRepository
 import me.zhanghai.android.files.util.startActivitySafe
 
 /**
@@ -96,6 +98,20 @@ class AudioPlayerActivity : AppActivity() {
     private var colors = IntArray(3)
     private var seekBubble: TextView? = null
     private var wavePlaying: Boolean? = null
+    private lateinit var lyricsView: PlayerLyricsView
+    private var lyrics: Lyrics? = null
+    private var lyricsKey: String? = null
+    private var lyricsJob: Job? = null
+    private val lyricsBack = object : androidx.activity.OnBackPressedCallback(false) {
+        override fun handleOnBackPressed() = hideLyrics()
+    }
+    // While the lyrics show and music plays: four looks a second at the position. Views change only with the line.
+    private val lyricsTicker = object : Runnable {
+        override fun run() {
+            controller?.let { lyricsView.setPosition(it.currentPosition) }
+            if (lyricsView.isVisible && controller?.isPlaying == true) handler.postDelayed(this, LYRICS_TICK_MS)
+        }
+    }
     private var queueStarted = false
     private var launchQueue: LaunchQueue? = null
     private var progressDescription: String? = null
@@ -156,10 +172,16 @@ class AudioPlayerActivity : AppActivity() {
         binding = AudioPlayerActivityBinding.inflate(layoutInflater)
         // The atmosphere lies behind every layout variant of the player without touching their XML.
         atmosphere = PlayerAtmosphereView(this)
+        lyricsView = PlayerLyricsView(this, onSeek = { controller?.seekTo(it) }, onClose = ::hideLyrics).apply {
+            isVisible = false
+            fitsSystemWindows = true
+        }
         setContentView(FrameLayout(this).apply {
             addView(atmosphere, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
             addView(binding.root, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
+            addView(lyricsView, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
         })
+        onBackPressedDispatcher.addCallback(this, lyricsBack)
         colors = themeColors()
         // A hairline (24 % onSurface) keeps a pale cover apart from a pale backdrop (review panel 18.11.2026).
         binding.artworkCard.strokeWidth = resources.displayMetrics.density.toInt().coerceAtLeast(1)
@@ -170,7 +192,10 @@ class AudioPlayerActivity : AppActivity() {
         binding.root.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> updateArtworkSize() }
         binding.toolbar.setNavigationOnClickListener { finish() }
         binding.toolbar.setOnMenuItemClickListener { item ->
-            if (item.itemId == R.id.actionSound) {
+            if (item.itemId == R.id.actionLyrics) {
+                showLyrics()
+                true
+            } else if (item.itemId == R.id.actionSound) {
                 AudioSoundSettingsSheet().show(supportFragmentManager, AudioSoundSettingsSheet.TAG)
                 true
             } else if (item.itemId == R.id.actionFavorite) {
@@ -293,6 +318,7 @@ class AudioPlayerActivity : AppActivity() {
 
     override fun onStop() {
         handler.removeCallbacks(progressUpdater)
+        handler.removeCallbacks(lyricsTicker)
         artworkJob?.cancel()
         colorAnimator?.cancel()
         artworkKey = null
@@ -442,6 +468,7 @@ class AudioPlayerActivity : AppActivity() {
             }
         }
         val metadata = player.mediaMetadata
+        updateLyrics(player)
         val item = player.currentMediaItem
         binding.title.text = metadata.title?.takeIf { it.isNotBlank() }
             ?: metadata.displayTitle?.takeIf { it.isNotBlank() }
@@ -669,6 +696,70 @@ class AudioPlayerActivity : AppActivity() {
         }
     }
 
+    /** Loads the song's lyrics (a .lrc beside it or embedded) once per song; the toolbar offers them only if found. */
+    private fun updateLyrics(player: Player) {
+        val mediaId = player.currentMediaItem?.mediaId
+        if (mediaId != lyricsKey) {
+            lyricsKey = mediaId
+            lyrics = null
+            lyricsJob?.cancel()
+            binding.toolbar.menu.findItem(R.id.actionLyrics)?.isVisible = false
+            if (mediaId != null) {
+                lyricsJob = lifecycleScope.launch {
+                    val loaded = runCatching { LyricsRepository.load(mediaId) }.getOrNull()
+                    if (lyricsKey != mediaId) return@launch
+                    lyrics = loaded
+                    binding.toolbar.menu.findItem(R.id.actionLyrics)?.isVisible = loaded != null
+                    if (lyricsView.isVisible) {
+                        if (loaded == null) hideLyrics() else showLyrics()
+                    }
+                }
+            } else if (lyricsView.isVisible) {
+                hideLyrics()
+            }
+        }
+        handler.removeCallbacks(lyricsTicker)
+        if (lyricsView.isVisible) lyricsTicker.run()
+    }
+
+    private fun showLyrics() {
+        val lyrics = lyrics ?: return
+        lyricsView.show(lyrics, themeColor(com.google.android.material.R.attr.colorOnSurface),
+            themeColor(android.R.attr.textColorSecondary))
+        if (!lyricsView.isVisible) {
+            lyricsView.isVisible = true
+            lyricsBack.isEnabled = true
+            fade(lyricsView, binding.root)
+        }
+        controller?.let { lyricsView.setPosition(it.currentPosition) }
+        handler.removeCallbacks(lyricsTicker)
+        lyricsTicker.run()
+    }
+
+    private fun hideLyrics() {
+        if (!lyricsView.isVisible) return
+        lyricsBack.isEnabled = false
+        handler.removeCallbacks(lyricsTicker)
+        binding.root.isVisible = true
+        fade(binding.root, lyricsView)
+    }
+
+    /** Cross-fades from [from] to [to] in 200 ms (instantly without motion); [from] ends up gone or invisible. */
+    private fun fade(to: View, from: View) {
+        to.isVisible = true
+        if (!Motion.any) {
+            to.alpha = 1f
+            from.visibility = if (from === binding.root) View.INVISIBLE else View.GONE
+            return
+        }
+        to.alpha = 0f
+        to.animate().alpha(1f).setDuration(LYRICS_FADE_MS).start()
+        from.animate().alpha(0f).setDuration(LYRICS_FADE_MS).withEndAction {
+            from.visibility = if (from === binding.root) View.INVISIBLE else View.GONE
+            from.alpha = 1f
+        }.start()
+    }
+
     private fun applyColors(newColors: IntArray) {
         colors = newColors
         val (accent, onAccent, container) = newColors
@@ -879,6 +970,8 @@ class AudioPlayerActivity : AppActivity() {
         private const val COVER_OUTLINE_ALPHA = 0x3d
         private const val MIN_VEIL_DARK = 0.4f
         private const val DOUBLE_TAP_SEEK_MS = 10_000L
+        private const val LYRICS_TICK_MS = 250L
+        private const val LYRICS_FADE_MS = 200L
         private const val SEEK_BUBBLE_MS = 600L
         private const val BACKGROUND_CROSSFADE_DURATION_MS = 300L
         private const val MAX_COLUMN_ARTWORK_HEIGHT_FRACTION = 0.60f

@@ -102,7 +102,8 @@
                 android:gravity="center"
                 android:orientation="horizontal">
 
-                <FrameLayout android:layout_width="48dp" android:layout_height="56dp">
+                <FrameLayout android:layout_width="@dimen/audio_player_secondary_control_size"
+                    android:layout_height="@dimen/audio_player_secondary_frame_height">
                     <ImageButton android:id="@+id/shuffle" style="@style/Widget.Ordo.AudioPlayer.SecondaryControl"
                         android:accessibilityLiveRegion="polite" android:contentDescription="@string/audio_player_shuffle"
                         android:src="@drawable/shuffle_icon_24dp" />
@@ -120,7 +121,8 @@
                 <ImageButton android:id="@+id/next" style="@style/Widget.Ordo.AudioPlayer.SkipControl"
                     android:contentDescription="@string/audio_player_next" android:src="@drawable/skip_next_icon_24dp" />
                 <Space android:layout_width="4dp" android:layout_height="1dp" />
-                <FrameLayout android:layout_width="48dp" android:layout_height="56dp">
+                <FrameLayout android:layout_width="@dimen/audio_player_secondary_control_size"
+                    android:layout_height="@dimen/audio_player_secondary_frame_height">
                     <ImageButton android:id="@+id/repeat" style="@style/Widget.Ordo.AudioPlayer.SecondaryControl"
                         android:accessibilityLiveRegion="polite" android:contentDescription="@string/audio_player_repeat"
                         android:src="@drawable/repeat_icon_24dp" />

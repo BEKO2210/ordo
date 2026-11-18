@@ -964,6 +964,9 @@
     <string name="audio_player_repeat_all">Alle wiederholen</string>
     <string name="audio_player_repeat_one">Diesen Titel wiederholen</string>
     <string name="audio_player_position">Position</string>
+    <string name="music_lyrics">Liedtext</string>
+    <string name="music_lyrics_close">Liedtext schließen</string>
+    <string name="music_lyrics_jump">Hierhin springen</string>
     <string name="audio_player_seek_back">−10 s</string>
     <string name="audio_player_seek_forward">+10 s</string>
     <string name="audio_player_progress_format">%1$s von %2$s</string>

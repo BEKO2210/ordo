@@ -47,6 +47,12 @@
     <dimen name="audio_player_artwork_min_size">120dp</dimen>
     <dimen name="audio_player_split_artwork_inset">48dp</dimen>
     <dimen name="audio_player_play_control_size">64dp</dimen>
+    <dimen name="audio_player_play_control_padding">20dp</dimen>
+    <dimen name="audio_player_skip_control_size">56dp</dimen>
+    <dimen name="audio_player_skip_control_padding">16dp</dimen>
+    <dimen name="audio_player_secondary_control_size">48dp</dimen>
+    <dimen name="audio_player_secondary_control_padding">12dp</dimen>
+    <dimen name="audio_player_secondary_frame_height">56dp</dimen>
     <dimen name="audio_player_transport_row_height">80dp</dimen>
     <dimen name="badge_size">18dp</dimen>
     <dimen name="badge_size_plus_1dp">19dp</dimen>
