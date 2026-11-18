@@ -64,6 +64,7 @@ Nicht im Manifest: Standort (`ACCESS_FINE_LOCATION`, `ACCESS_COARSE_LOCATION`, `
 | `filelist.OpenFileActivity` | `me.zhanghai.android.files.intent.action.OPEN_FILE` |
 | `ftpserver.FtpServerActivity` | `me.zhanghai.android.files.intent.action.MANAGE_FTP_SERVER`, `android.service.quicksettings.action.QS_TILE_PREFERENCES` |
 | `settings.SettingsActivity` | `APPLICATION_PREFERENCES` |
+| `documents.OrdoDocumentsProvider` (Provider, `${applicationId}.documents`) | `android.content.action.DOCUMENTS_PROVIDER`; `android:permission="android.permission.MANAGE_DOCUMENTS"`, also nur die System-Dateiauswahl. Nur lesen: Lesezeichen-Ordner im geteilten Speicher, kanonische Pfade, nie `/data` oder `Android/data|obb|media`, nie der Tresor |
 | `viewer.saveas.SaveAsActivity` | `VIEW` mit `content`-Schema, `SEND` |
 | `viewer.text.TextEditorActivity` | `VIEW` für Text- und verwandte MIME-Typen |
 | `viewer.image.ImageViewerActivity` | `VIEW` `image/*` |

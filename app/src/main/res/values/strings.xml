@@ -805,6 +805,8 @@
 
     <string name="home_title">Home</string>
     <string name="home_recent">Recent files</string>
+    <string name="documents_root_summary">Your bookmarks</string>
+    <string name="documents_recent_summary">Recently used in Ordo</string>
     <string name="home_recent_empty">No recent files</string>
     <string name="home_categories">Categories</string>
     <string name="home_storage">Storage</string>
