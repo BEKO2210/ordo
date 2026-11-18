@@ -22,7 +22,7 @@ LANGS = {
     'README.md': dict(
         locale='en-US', release='release', license='License: {lic}', badge_license='license',
         new='New in {v}',
-        status='Version **{v}** · [release v{v}]({url}) · Android {min} and later '
+        status='Current version {v} · [release v{v}]({url}) · Android {min} and later '
                '(minSdk {mins}, targetSdk {tgts} = Android {tgt}) · [{lic}](LICENSE)',
         phone='Phone', tablet7='7-inch tablet', tablet10='10-inch tablet',
         shots_note='The pictures of the Play listing, from `fastlane/metadata/android/{loc}/images/`.',
@@ -33,7 +33,7 @@ LANGS = {
     'README.de.md': dict(
         locale='de-DE', release='Version', license='Lizenz: {lic}', badge_license='Lizenz',
         new='Neu in {v}',
-        status='Version **{v}** · [Release v{v}]({url}) · ab Android {min} '
+        status='Aktuelle Version {v} · [Release v{v}]({url}) · ab Android {min} '
                '(minSdk {mins}, targetSdk {tgts} = Android {tgt}) · [{lic}](LICENSE)',
         phone='Handy', tablet7='7-Zoll-Tablet', tablet10='10-Zoll-Tablet',
         shots_note='Die Bilder des Play-Eintrags, aus `fastlane/metadata/android/{loc}/images/`.',

@@ -44,7 +44,7 @@
 ## Stand
 
 <!-- AUTO:status -->
-Version **0.14.2** · [Release v0.14.2](https://github.com/BEKO2210/ordo/releases/tag/v0.14.2) · ab Android 7.0 (minSdk 24, targetSdk 36 = Android 16) · [GPL-3.0-or-later](LICENSE)
+Aktuelle Version 0.14.2 · [Release v0.14.2](https://github.com/BEKO2210/ordo/releases/tag/v0.14.2) · ab Android 7.0 (minSdk 24, targetSdk 36 = Android 16) · [GPL-3.0-or-later](LICENSE)
 <!-- /AUTO:status -->
 
 Ordo ist in Entwicklung. Bei Google Play läuft ein geschlossener Test; Testversionen erscheinen auch als

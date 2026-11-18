@@ -51,7 +51,7 @@ class GenerateTest(RepoFixture):
         self.assertTrue(out.startswith('# Title\n\nhand badges\n<!-- AUTO:badges -->\n'))
         self.assertTrue(out.endswith('<!-- /AUTO:tests -->\n\nhand end\n'))
         self.assertNotIn('\nold\n', out)
-        self.assertIn('Version **1.2.3**', out)
+        self.assertIn('Current version 1.2.3 ·', out)
         self.assertIn('Android 7.0 and later (minSdk 24, targetSdk 36 = Android 16)', out)
         self.assertIn('> **New in 1.2.3**\n> - change en-US\n<!--', out)
         self.assertNotIn('Feedback', out)
