@@ -15,6 +15,7 @@
         android:id="@+id/actionEditAll"
         android:icon="@drawable/tag_edit_icon_white_24dp"
         android:title="@string/music_edit_tags_all"
+        app:iconTint="?colorControlNormal"
         android:visible="false"
         app:showAsAction="ifRoom" />
 </menu>
