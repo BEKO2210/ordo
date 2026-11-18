@@ -43,7 +43,7 @@ class KlangPictureView @JvmOverloads constructor(
 ) : View(context, attrs), ViewTreeObserver.OnScrollChangedListener {
     enum class Kind {
         BASS, CROSSFEED, WIDTH, REVERB, WARMTH, CLARITY, NORMALIZE, MONO, SPEED, SKIP_SILENCE, SLEEP, FOCUS, HEADPHONES,
-        HIGHS
+        HIGHS, QUIET
     }
 
     var kind = Kind.BASS
@@ -196,6 +196,7 @@ class KlangPictureView @JvmOverloads constructor(
             Kind.FOCUS -> drawFocus(canvas, left, top, right, bottom, phase)
             Kind.HEADPHONES -> drawHeadphones(canvas, left, top, right, bottom, phase)
             Kind.HIGHS -> drawHighs(canvas, left, top, right, bottom, phase)
+            Kind.QUIET -> drawQuiet(canvas, left, top, right, bottom, phase)
         }
         if (loop) {
             // Only while some of the picture is on screen; scrolling it back in restarts the loop.
@@ -509,6 +510,44 @@ class KlangPictureView @JvmOverloads constructor(
         canvas.drawLine(cutX, t, cutX, b, stroke)
     }
 
+    /**
+     * A speaker with level bars (the louder, the more bars are filled; a status, nothing to grab), and the frequency
+     * response beside it: flat when loud, the lows (and a little of the highs) lifted as the volume goes down.
+     * [amount] is the current lift, 0..1.
+     */
+    private fun drawQuiet(canvas: Canvas, l: Float, t: Float, r: Float, b: Float, phase: Float) {
+        val cy = (t + b) / 2
+        val icon = minOf(dp(24f), (b - t) * 0.5f)
+        speaker.setTint(accent())
+        speaker.setBounds(l.roundToInt(), (cy - icon / 2).roundToInt(), (l + icon).roundToInt(), (cy + icon / 2).roundToInt())
+        speaker.draw(canvas)
+        // Four level bars rising in height, filled up to the current volume.
+        val volume = 1f - amount * 0.8f
+        val barWidth = dp(4f)
+        stroke.strokeWidth = barWidth
+        for (i in 0 until LEVEL_BARS) {
+            val x = l + icon + dp(6f) + i * (barWidth + dp(3f)) + barWidth / 2
+            val height = icon * (0.35f + 0.65f * (i + 1) / LEVEL_BARS)
+            stroke.color = if ((i + 0.5f) / LEVEL_BARS <= volume) accent() else trackColor()
+            canvas.drawLine(x, cy + height / 2, x, cy - height / 2, stroke)
+        }
+        stroke.strokeWidth = dp(2.5f)
+        val left = l + icon + dp(6f) + LEVEL_BARS * (barWidth + dp(3f)) + dp(10f)
+        val mid = cy + (b - t) * 0.15f
+        val lift = (b - t) * 0.4f * amount * onness
+        val breathe = 1f + 0.06f * sin(phase * TWO_PI) * onness
+        stroke.color = trackColor()
+        canvas.drawLine(left, mid, r, mid, stroke)
+        stroke.color = accent()
+        wave(left, r) { x ->
+            // Lows rise most (left), the mids stay, the very highs rise a little (right).
+            val low = (1f - x / 0.45f).coerceAtLeast(0f)
+            val high = ((x - 0.75f) / 0.25f).coerceAtLeast(0f) * 0.35f
+            mid - lift * breathe * (low * low + high)
+        }
+        canvas.drawPath(path, stroke)
+    }
+
     /** Fills [path] with y(x) sampled across the width, x passed as 0..1. */
     private inline fun wave(l: Float, r: Float, y: (Float) -> Float) {
         path.reset()
@@ -527,8 +566,10 @@ class KlangPictureView @JvmOverloads constructor(
         private const val LOOP_MS = 4_000L
         private const val FRAME_MS = 33L
         private const val STILL_PHASE = 0.15f
-        private const val DISABLED_ALPHA = 0.38f
-        private const val OFF_PRESENCE = 0.45f
+        private const val DISABLED_ALPHA = 0.6f
+        /** Off pictures step back, but keep at least 3 : 1 against the card. */
+        private const val OFF_PRESENCE = 0.65f
+        private const val LEVEL_BARS = 4
         private const val TWO_PI = (2 * PI).toFloat()
         private const val ARCS = 3
         private const val RINGS = 4

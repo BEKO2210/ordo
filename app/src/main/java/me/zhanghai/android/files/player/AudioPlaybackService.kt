@@ -256,6 +256,9 @@ class AudioPlaybackService : MediaSessionService() {
             ContextCompat.RECEIVER_EXPORTED
         )
         getSystemService(AudioManager::class.java).registerAudioDeviceCallback(audioDeviceCallback, handler)
+        // The system volume lands in Settings.System; its observer tells "full sound when quiet" the new level.
+        contentResolver.registerContentObserver(android.provider.Settings.System.CONTENT_URI, true, volumeObserver)
+        soundEffects.setVolumeFraction(volumeFraction())
         // Play, pause and stop from the notification, the lock screen, headphone buttons or Ordo's own screen come
         // through here and fade instead of cutting the wave off mid-way (an audible crack). Seeks need nothing:
         // Media3 ramps the first 20 ms of every new AudioTrack itself.
@@ -303,6 +306,7 @@ class AudioPlaybackService : MediaSessionService() {
         handler.removeCallbacks(savePosition)
         handler.removeCallbacks(sleepTimer)
         runCatching { unregisterReceiver(noisyReceiver) }
+        contentResolver.unregisterContentObserver(volumeObserver)
         getSystemService(AudioManager::class.java).unregisterAudioDeviceCallback(audioDeviceCallback)
         if (::audioFocusController.isInitialized) audioFocusController.abandon()
         if (::soundEffects.isInitialized) soundEffects.release()
@@ -391,6 +395,18 @@ class AudioPlaybackService : MediaSessionService() {
         sleepAtEndOfTrack = false
         sleepVolume = 1f
         updatePlayerVolume()
+    }
+
+    private val volumeObserver = object : android.database.ContentObserver(handler) {
+        override fun onChange(selfChange: Boolean) {
+            if (::soundEffects.isInitialized) soundEffects.setVolumeFraction(volumeFraction())
+        }
+    }
+
+    private fun volumeFraction(): Float {
+        val audioManager = getSystemService(AudioManager::class.java)
+        val max = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
+        return if (max > 0) audioManager.getStreamVolume(AudioManager.STREAM_MUSIC) / max.toFloat() else 1f
     }
 
     private fun headphonesConnected(): Boolean =
@@ -526,6 +542,7 @@ class AudioPlaybackService : MediaSessionService() {
                                 AudioPlayerCommands.EXTRA_CLARITY_AVAILABLE to status.clarityAvailable,
                                 AudioPlayerCommands.EXTRA_HEADPHONES to headphonesConnected(),
                                 AudioPlayerCommands.EXTRA_HIGHS_CUTOFF to klang.highs.detectedCutoffHz,
+                                AudioPlayerCommands.EXTRA_VOLUME_FRACTION to volumeFraction(),
                                 AudioPlayerCommands.EXTRA_SLEEP_ACTIVE to
                                     (sleepDeadlineElapsedMs != null || sleepAtEndOfTrack),
                                 AudioPlayerCommands.EXTRA_SLEEP_MINUTES to sleepSelectionMinutes,

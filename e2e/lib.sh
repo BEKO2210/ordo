@@ -81,9 +81,11 @@ launch() {
     skip_onboarding
     guard
 }
-# The screen as it stands now, e.g. "2560 1600": `wm size` gives the natural (portrait) size even when the device is
-# turned, so swipes on a tablet in landscape landed below the screen.
-screen_size() { a shell dumpsys window displays | grep -o -m1 'cur=[0-9]*x[0-9]*' | sed 's/cur=//; s/x/ /'; }
+# The current, rotated size: `wm size` gives the natural (portrait) size, so a swipe in landscape went off screen.
+screen_size() {
+    local cur; cur=$(a shell dumpsys window displays | grep -o 'cur=[0-9]*x[0-9]*' | head -1 | sed 's/cur=//; s/x/ /')
+    if [ -n "$cur" ]; then echo "$cur"; else a shell wm size | tail -1 | sed 's/.*: //; s/x/ /'; fi
+}
 # record S FILE: screen recording of S seconds on the device. A tablet's encoder may refuse its full 2560x1600, and
 # screenrecord then falls back to 1280x720, another aspect: above 1920 px it records at half size. Start ffmpeg's
 # filter with scale=W:H (screen_size), so crops use the screen's own coordinates on every device.

@@ -1182,7 +1182,7 @@
     <string name="audio_sound_width">Stereo width</string>
     <string name="audio_sound_width_summary">0 % is mono, 100 % the original, 150 % wide</string>
     <string name="audio_sound_reverb">Reverb</string>
-    <string name="audio_sound_reverb_summary">Places the music in a room; the steps set how much of it you hear</string>
+    <string name="audio_sound_reverb_summary">Places the music in a room</string>
     <string name="audio_sound_reverb_mix">Reverb mix</string>
     <string name="audio_reverb_room">Room</string>
     <string name="audio_reverb_studio">Studio</string>
@@ -1205,4 +1205,7 @@
     <string name="audio_sound_highs_summary">Adds missing highs to heavily compressed files, quietly and only above their cut</string>
     <string name="audio_sound_highs_found">Cut at %1$.1f kHz found, filled in above it</string>
     <string name="audio_sound_highs_none">No missing highs found, nothing is added</string>
+    <string name="audio_sound_quiet">Full sound when quiet</string>
+    <string name="audio_sound_quiet_summary">At low volume, gently lifts bass and treble</string>
+    <string name="audio_sound_quiet_value">up to +%1$d dB bass at this volume</string>
 </resources>

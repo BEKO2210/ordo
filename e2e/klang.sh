@@ -46,6 +46,7 @@ set_switch() {
 nudge() { read -r W H < <(screen_size); a shell input swipe $((W / 2)) $((H * 6 / 10)) $((W / 2)) $((H * 4 / 10)) 400; sleep 1; }
 # ui.py texts prints "text|id|description" with the short id.
 picture_shows() { ui texts | grep -E "^\|picture\|($1): " | grep -vqE ": (Aus|Off)$"; }
+picture_on_id() { ui texts | grep -E "^\|$1\|($2): " | grep -vqE ": (Aus|Off)$"; }
 picture_on() { local i; for i in 1 2 3; do pause_playback; picture_shows "$1" && return 0; nudge; done; return 1; }
 
 # Mono greys out room sound and width: make sure it is off first. Then the sheet opens again at its top; swiping down
@@ -72,6 +73,11 @@ for effect in "${EFFECTS[@]}"; do
     check "the $name picture reports its value" picture_on "$effect"
 done
 check "a reverb room can be chosen" paused_ui tap "Concert hall|Konzertsaal"
+QUIET="Full sound when quiet|Leise hören mit vollem Klang"
+check "full sound when quiet is reachable" scrolled_to "$QUIET"
+check "full sound when quiet switches on" set_switch "$QUIET" on
+check "its picture reports the volume" picture_on_id quietPicture "$QUIET"
+check "full sound when quiet switches off again" set_switch "$QUIET" off
 check "the sleep timer shows its picture" scrolled_to "Sleep timer: Off|Schlaf-Timer: Aus|Einschlaf-Timer: Aus"
 # Skip silence, audio focus and resume-with-headphones each have their own card with a picture.
 check "skip silence has its own picture" scrolled_to skipPicture

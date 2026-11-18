@@ -209,7 +209,8 @@ Alle Bilder oben stammen aus `utils/readme-shots.sh`, aufgenommen im Android-16-
   die Hauptsteuerung, genaue 48-dp-Tasten liegen unter „Genau einstellen“; dazu kommt ein ausblendender Einschlaf-Timer
 - Eigene Klangeffekte, auf jedem Handy gleich: Raumklang für Kopfhörer (Crossfeed nach Bauer, eine Portierung des
   MIT-lizenzierten bs2b), Stereobreite (0 % Mono bis 150 % breit), Hall (Freeverb, gemeinfrei) mit Raum, Studio, Club
-  und Konzertsaal, analoge Wärme, Klarheit (Mehrband-Kompressor, ab Android 9) und, standardmäßig aus, „Höhen ergänzen“ für stark komprimierte Dateien, das nur oberhalb einer erkannten Grenze wirkt. Jede Karte im unteren Klang-Blatt
+  und Konzertsaal, analoge Wärme, Klarheit (Mehrband-Kompressor, ab Android 9) und, standardmäßig aus, „Höhen ergänzen“ für stark komprimierte Dateien, das nur oberhalb einer erkannten Grenze wirkt; ebenfalls standardmäßig aus, „Leise hören mit vollem Klang“ hebt den
+  Bass sanft an, je leiser die Systemlautstärke ist. Jede Karte im unteren Klang-Blatt
   zeigt ein kleines lebendiges Bild davon, was sie tut; es steht still, wenn Ordos Animationen aus sind
 - „Abspielen auf …“ im Player öffnet die Ausgabe-Auswahl von Android: Bluetooth-Kopfhörer und -Lautsprecher, Kabel und
   Cast-Geräte, ohne Google-Dienste (ab Android 11; auf Android 6–10 öffnen sich die Bluetooth-Einstellungen). Musik an
