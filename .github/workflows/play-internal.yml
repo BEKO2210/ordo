@@ -5,6 +5,8 @@ name: Play closed testing
 on:
   push:
     branches: [main]
+    # Docs, the website and device tests change nothing in the app: no new upload (and no restarted review).
+    paths-ignore: ['docs/**', '**/*.md', 'utils/**', 'e2e/**']
   # A change to this file is checked in its pull request: build and checks only, never an upload.
   pull_request:
     paths: ['.github/workflows/play-internal.yml']

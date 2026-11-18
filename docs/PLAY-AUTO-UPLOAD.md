@@ -11,7 +11,7 @@ Nach jeder Änderung auf `main` baut GitHub Actions das signierte App-Bundle (AA
 
 | Schritt | Was passiert |
 |---|---|
-| Auslöser | Push auf `main` (also jeder gemergte Pull Request) oder von Hand: *Actions › Play closed testing › Run workflow* |
+| Auslöser | Push auf `main` (also jeder gemergte Pull Request), außer wenn er nur `docs/**`, `*.md`, `utils/**` oder `e2e/**` ändert (Website, Doku und Gerätetests ändern die App nicht; ein Upload würde Googles Prüfung neu starten), oder von Hand: *Actions › Play closed testing › Run workflow* |
 | Bauen | Checkout mit Submodulen (llama.cpp), JDK 21, Gradle-Cache; NDK 30 und CMake lädt das Android-Gradle-Plugin selbst |
 | Prüfen | `./gradlew testDebugUnitTest`, danach `:app:bundleRelease`, danach `utils/check-16k.sh` auf dem AAB. Schlägt etwas fehl, wird nichts hochgeladen |
 | Signieren | Upload-Schlüssel aus dem Secret `ORDO_UPLOAD_KEYSTORE_BASE64`, Passwörter aus Secrets (`signing.gradle` liest `STORE_FILE`, `STORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD`) |

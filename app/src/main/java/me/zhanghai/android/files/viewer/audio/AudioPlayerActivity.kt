@@ -27,6 +27,7 @@ import androidx.annotation.OptIn
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
 import androidx.core.os.bundleOf
+import androidx.core.view.MenuItemCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.isVisible
 import androidx.core.widget.ImageViewCompat
@@ -43,6 +44,7 @@ import androidx.media3.session.SessionToken
 import androidx.mediarouter.app.SystemOutputSwitcherDialogController
 import coil.dispose
 import coil.load
+import com.google.android.material.chip.Chip
 import com.google.android.material.color.MaterialColors
 import com.google.android.material.snackbar.Snackbar
 import com.google.common.util.concurrent.ListenableFuture
@@ -62,6 +64,7 @@ import me.zhanghai.android.files.player.AudioQueueRequests
 import me.zhanghai.android.files.player.PlaybackStateStore
 import me.zhanghai.android.files.player.pathUriExists
 import me.zhanghai.android.files.player.restorableState
+import me.zhanghai.android.files.player.cast.CastManager
 import me.zhanghai.android.files.provider.common.readAttributes
 import me.zhanghai.android.files.ui.Motion
 import me.zhanghai.android.files.util.startActivitySafe
@@ -96,6 +99,8 @@ class AudioPlayerActivity : AppActivity() {
         registerForActivityResult(androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult()) {
             if (it.resultCode == RESULT_OK) TagEditUndo.offer(this, binding.root, lifecycleScope, it.data) {}
         }
+    private lateinit var castChip: Chip
+    private val castListener: () -> Unit = { updateCastState() }
 
     private fun nextProgressDelay(): Long {
         val position = controller?.currentPosition ?: 0L
@@ -141,7 +146,10 @@ class AudioPlayerActivity : AppActivity() {
         binding.root.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> updateArtworkSize() }
         binding.toolbar.setNavigationOnClickListener { finish() }
         binding.toolbar.setOnMenuItemClickListener { item ->
-            if (item.itemId == R.id.actionSound) {
+            if (item.itemId == R.id.actionCast) {
+                showCastChooser()
+                true
+            } else if (item.itemId == R.id.actionSound) {
                 AudioSoundSettingsSheet().show(supportFragmentManager, AudioSoundSettingsSheet.TAG)
                 true
             } else if (item.itemId == R.id.actionFavorite) {
@@ -203,6 +211,7 @@ class AudioPlayerActivity : AppActivity() {
                 userSeeking = false
             }
         })
+        castChip = createCastChip()
         queueStarted = savedInstanceState?.getBoolean(STATE_QUEUE_STARTED) == true
         if (!queueStarted) {
             launchQueue = resolveLaunchQueue()
@@ -238,9 +247,12 @@ class AudioPlayerActivity : AppActivity() {
     override fun onStart() {
         super.onStart()
         connectController()
+        CastManager.addListener(castListener)
+        updateCastState()
     }
 
     override fun onStop() {
+        CastManager.removeListener(castListener)
         handler.removeCallbacks(progressUpdater)
         artworkJob?.cancel()
         backgroundAnimator?.cancel()
@@ -250,6 +262,54 @@ class AudioPlayerActivity : AppActivity() {
         controllerFuture?.let { MediaController.releaseFuture(it) }
         controllerFuture = null
         super.onStop()
+    }
+
+    private fun showCastChooser() {
+        if (supportFragmentManager.findFragmentByTag(CastChooserSheet.TAG) == null) {
+            CastChooserSheet().show(supportFragmentManager, CastChooserSheet.TAG)
+        }
+    }
+
+    /** "Playing on Wohnzimmer" above the title while casting; its × ends casting. Added here so every layout has it. */
+    private fun createCastChip(): Chip {
+        val chip = Chip(this).apply {
+            setChipIconResource(R.drawable.cast_connected_icon_24dp)
+            chipIconTint = ColorStateList.valueOf(themeColor(androidx.appcompat.R.attr.colorPrimary))
+            isCloseIconVisible = true
+            closeIconContentDescription = getString(R.string.cast_stop)
+            setOnCloseIconClickListener { CastManager.disconnect() }
+            setOnClickListener { showCastChooser() }
+            isVisible = false
+        }
+        val parent = binding.title.parent as android.view.ViewGroup
+        parent.addView(
+            chip, parent.indexOfChild(binding.title),
+            android.widget.LinearLayout.LayoutParams(
+                android.view.ViewGroup.LayoutParams.WRAP_CONTENT, android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+            ).apply {
+                gravity = Gravity.CENTER_HORIZONTAL
+                topMargin = resources.getDimensionPixelSize(R.dimen.phi_13)
+            }
+        )
+        return chip
+    }
+
+    private fun updateCastState() {
+        val device = CastManager.device
+        castChip.isVisible = device != null
+        if (device != null) {
+            castChip.text = getString(
+                if (CastManager.phase == CastManager.Phase.CONNECTING) R.string.cast_chip_connecting else R.string.cast_chip,
+                device.name
+            )
+        }
+        // The TV stays a TV (next to "Play on…", a second cast symbol would read as the same button); casting tints it.
+        binding.toolbar.menu.findItem(R.id.actionCast)?.let { item ->
+            MenuItemCompat.setIconTintList(
+                item,
+                if (device != null) ColorStateList.valueOf(themeColor(androidx.appcompat.R.attr.colorPrimary)) else null
+            )
+        }
     }
 
     private fun connectController() {
