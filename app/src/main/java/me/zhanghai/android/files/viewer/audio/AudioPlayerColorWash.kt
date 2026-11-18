@@ -197,9 +197,9 @@ internal object AudioPlayerColorWash {
 
     private const val MINIMUM_TEXT_CONTRAST = 4.5
     private const val MINIMUM_CONTROL_CONTRAST = 3.0
-    // 3:1 against the veil's colour measured only 2.7–3.0:1 on the Tab's screen (the blurred cover shows through the
-    // veil, the line is anti-aliased); 3.5 leaves that margin.
-    private const val TRACK_CONTRAST = 3.5
+    // On the Tab's screen 3:1 against the veil's colour measured only 2.7–3.0:1 and 3.5:1 still 2.97:1 (the blurred
+    // cover shows through the veil, the line is anti-aliased); 4:1 leaves that margin.
+    private const val TRACK_CONTRAST = 4.0
     private const val TINT_STRENGTH_PERCENT = 14
     private const val VEIL_STEP_PERCENT = 2
     private const val HUE_BINS = 36
