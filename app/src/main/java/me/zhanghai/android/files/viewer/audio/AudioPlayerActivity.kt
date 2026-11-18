@@ -84,6 +84,14 @@ class AudioPlayerActivity : AppActivity() {
     private var progressDescription: String? = null
     private var userSeeking = false
     private val handler = Handler(Looper.getMainLooper())
+    // The heart: favourites are Ordo Music's playlist Music/Playlists/Favorites.m3u8.
+    private val playlists by lazy {
+        @Suppress("DEPRECATION")
+        PlaylistStore(java.io.File(android.os.Environment.getExternalStoragePublicDirectory(
+            android.os.Environment.DIRECTORY_MUSIC), "Playlists"))
+    }
+    private var favoritePath: String? = null
+    private var favorite = false
     private val editTagsLauncher =
         registerForActivityResult(androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult()) {
             if (it.resultCode == RESULT_OK) TagEditUndo.offer(this, binding.root, lifecycleScope, it.data) {}
@@ -135,6 +143,21 @@ class AudioPlayerActivity : AppActivity() {
         binding.toolbar.setOnMenuItemClickListener { item ->
             if (item.itemId == R.id.actionSound) {
                 AudioSoundSettingsSheet().show(supportFragmentManager, AudioSoundSettingsSheet.TAG)
+                true
+            } else if (item.itemId == R.id.actionFavorite) {
+                val path = favoritePath
+                if (path != null) {
+                    lifecycleScope.launch {
+                        val now = withContext(Dispatchers.IO) { runCatching { playlists.toggleFavorite(path) }.getOrNull() }
+                        if (now == null) return@launch
+                        favorite = now
+                        showFavorite()
+                        Snackbar.make(
+                            binding.root, if (now) R.string.music_favorite_added else R.string.music_favorite_removed,
+                            Snackbar.LENGTH_SHORT
+                        ).show()
+                    }
+                }
                 true
             } else if (item.itemId == R.id.actionEditTags) {
                 currentFilePath()?.let {
@@ -340,8 +363,33 @@ class AudioPlayerActivity : AppActivity() {
             ?.let { runCatching { java.net.URI.create(it) }.getOrNull() }
             ?.takeIf { it.scheme == "file" }?.path
 
+    private fun showFavorite() {
+        binding.toolbar.menu.findItem(R.id.actionFavorite)?.apply {
+            isVisible = favoritePath != null
+            setIcon(if (favorite) R.drawable.favorite_icon_white_24dp else R.drawable.favorite_border_icon_white_24dp)
+            setTitle(if (favorite) R.string.music_favorite_remove else R.string.music_favorite_add)
+        }
+    }
+
     private fun updateUi(player: Player) {
-        binding.toolbar.menu.findItem(R.id.actionEditTags)?.isVisible = currentFilePath() != null
+        val filePath = currentFilePath()
+        binding.toolbar.menu.findItem(R.id.actionEditTags)?.isVisible = filePath != null
+        if (filePath != favoritePath) {
+            favoritePath = filePath
+            favorite = false
+            showFavorite()
+            if (filePath != null) {
+                lifecycleScope.launch {
+                    val isFavorite = withContext(Dispatchers.IO) {
+                        runCatching { playlists.isFavorite(filePath) }.getOrDefault(false)
+                    }
+                    if (favoritePath == filePath) {
+                        favorite = isFavorite
+                        showFavorite()
+                    }
+                }
+            }
+        }
         val metadata = player.mediaMetadata
         val item = player.currentMediaItem
         binding.title.text = metadata.title?.takeIf { it.isNotBlank() }

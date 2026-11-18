@@ -145,5 +145,26 @@
     <string name="music_tag_failed">Nicht gespeichert, die Datei ist unverändert: %1$s</string>
     <string name="music_tag_cover_too_large">Dieses Bild ist größer als 10 MB. Bitte wähle ein kleineres.</string>
     <string name="music_tag_read_failed">Ordo konnte die Infos dieser Datei nicht lesen.</string>
+    <string name="music_nav_favorites">Favoriten</string>
+    <string name="music_nav_playlists">Wiedergabelisten</string>
+    <string name="music_favorite_add">Zu Favoriten</string>
+    <string name="music_favorite_remove">Aus Favoriten entfernen</string>
+    <string name="music_favorite_added">Zu Favoriten hinzugefügt</string>
+    <string name="music_favorite_removed">Aus Favoriten entfernt</string>
+    <string name="music_playlist_add">Zur Wiedergabeliste …</string>
+    <string name="music_playlist_new">Neue Wiedergabeliste</string>
+    <string name="music_playlist_name">Name</string>
+    <string name="music_playlist_added">Zu „%1$s“ hinzugefügt</string>
+    <string name="music_playlist_remove">Aus Wiedergabeliste entfernen</string>
+    <string name="music_playlist_delete">Wiedergabeliste löschen</string>
+    <string name="music_playlist_delete_confirm">„%1$s“ löschen? Die Titel selbst bleiben.</string>
+    <string name="music_playlist_failed">Die Wiedergabeliste konnte nicht gespeichert werden.</string>
+    <string name="music_playlists_empty">Noch keine Wiedergabelisten. Lege eine über ⋮ an einem Titel an, oder halte einen Titel gedrückt, um mehrere auszuwählen.</string>
+    <string name="music_favorites_empty">Noch keine Favoriten. Tippe im Player auf das Herz oder nutze ⋮ an einem Titel.</string>
+    <plurals name="music_selected">
+        <item quantity="one">%d ausgewählt</item>
+        <item quantity="other">%d ausgewählt</item>
+    </plurals>
+    <string name="music_selection_close">Auswahl beenden</string>
     <string name="music_now_playing">Läuft gerade: %1$s, %2$s. Öffnet den Player</string>
 </resources>

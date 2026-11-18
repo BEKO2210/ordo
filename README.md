@@ -221,7 +221,9 @@ All pictures above come from `utils/readme-shots.sh` on the Android 16 emulator 
   timer, Settings and a way back to the file manager. Songs come from Android’s media library (only what the player
   plays; hidden folders only when you show hidden files) Edit a song’s info (title, artist, album, numbers, year,
   genre, lyrics, cover) for MP3, FLAC, Ogg Vorbis and M4A, one song or a whole album at once, with a preview before
-  saving and undo afterwards; the file is only replaced once the new info reads back right.
+  saving and undo afterwards; the file is only replaced once the new info reads back right. Hold a song to select
+  several, then play them next, queue them, put them on a playlist or into your favorites. Playlists and favorites
+  are M3U8 files in Music/Playlists that other music apps read too; the heart in the player marks a favorite.
 - Optional own app icon for Ordo Music (Settings › Built-in apps): off by default, switched on and off only by you, see [docs/AUDIO-PLAYER.md](docs/AUDIO-PLAYER.md)
 - Pick the icon colour of Ordo and of Ordo Music yourself (Settings › Built-in apps › Icon colours): eight colours,
   blue by default, with a live preview of the icon; themed icons (Android 13 and later) keep working
