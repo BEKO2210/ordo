@@ -44,8 +44,7 @@ class HomeRepository(private val context: Context) {
     // Still loading: the app and trash counts follow from [loadCounts].
     fun load(quickAccess: List<QuickAccessItem>, storages: List<StorageSummary>): HomeState {
         val rows = queryRows()
-        val recentFiles = rows.asSequence().filter { java.io.File(it.data).isFile }
-            .sortedByDescending { it.modified }.take(RECENT_COUNT).map {
+        val recentFiles = newestFiles(rows, RECENT_COUNT, { it.modified }) { java.io.File(it.data).isFile }.map {
             val path = Paths.get(it.data)
             val attributes = try {
                 path.readAttributes(BasicFileAttributes::class.java)
@@ -67,13 +66,12 @@ class HomeRepository(private val context: Context) {
 
     // A large trash takes seconds to measure, so these come after the tiles and recent files.
     fun loadCounts(state: HomeState): HomeState {
-        val trashEntries = Trash.entries()
+        val trash = Trash.summary()
         @Suppress("DEPRECATION")
         val appCount = context.packageManager.getInstalledApplications(0)
             .count { it.flags and ApplicationInfo.FLAG_SYSTEM == 0 }
         return state.copy(
-            isLoading = false, appCount = appCount, trashCount = trashEntries.size,
-            trashSize = trashEntries.sumOf { it.size }
+            isLoading = false, appCount = appCount, trashCount = trash.count, trashSize = trash.size
         )
     }
 
@@ -213,3 +211,10 @@ class HomeRepository(private val context: Context) {
         val categories: Set<HomeCategory>
     )
 }
+
+/**
+ * The [count] newest of [rows] that are files. Sorted first, so [isFile] (one stat on shared storage) runs only until
+ * [count] files are found, not once per row: 25,825 rows on the Galaxy Tab S9 Ultra.
+ */
+internal fun <T> newestFiles(rows: List<T>, count: Int, modified: (T) -> Long, isFile: (T) -> Boolean): List<T> =
+    rows.asSequence().sortedByDescending(modified).filter(isFile).take(count).toList()

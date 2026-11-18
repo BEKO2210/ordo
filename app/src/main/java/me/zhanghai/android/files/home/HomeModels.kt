@@ -44,6 +44,20 @@ data class HomeState(
     val trashSize: Long = 0
 )
 
+/**
+ * The visible part of a reload: tiles, recent files, storage and quick access. Loading ends here, so the pull
+ * pictogram stops; app and trash counts keep their last values until [withCounts] (a large trash takes seconds).
+ */
+fun HomeState.withSections(loaded: HomeState): HomeState =
+    copy(
+        recentFiles = loaded.recentFiles, categories = loaded.categories, storages = loaded.storages,
+        quickAccess = loaded.quickAccess, isLoading = false
+    )
+
+/** The slow part of a reload, applied without touching what [withSections] showed meanwhile. */
+fun HomeState.withCounts(loaded: HomeState): HomeState =
+    copy(appCount = loaded.appCount, trashCount = loaded.trashCount, trashSize = loaded.trashSize)
+
 // One tile of the home grid: a category or a tool, all the same size.
 class HomeTile(
     @DrawableRes val iconRes: Int,

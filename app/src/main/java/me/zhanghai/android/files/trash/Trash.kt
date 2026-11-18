@@ -10,10 +10,12 @@ import java.io.File
 import java.io.IOException
 import java.util.Properties
 import java.util.UUID
+import androidx.core.content.edit
 import java8.nio.file.LinkOption
 import java8.nio.file.Path
 import java8.nio.file.Paths
 import java8.nio.file.StandardCopyOption
+import me.zhanghai.android.files.app.defaultSharedPreferences
 import me.zhanghai.android.files.provider.common.moveTo
 import me.zhanghai.android.files.provider.linux.isLinuxPath
 import me.zhanghai.android.files.settings.Settings
@@ -141,17 +143,49 @@ object Trash {
             null
         }
 
-    fun entries(): List<TrashEntry> =
-        roots().flatMap { root ->
-            infoDir(root).listFiles()?.mapNotNull { infoFile ->
-                if (!infoFile.name.endsWith(INFO_SUFFIX)) {
-                    return@mapNotNull null
+    fun entries(): List<TrashEntry> = roots().flatMap { entriesIn(it) }.sortedByDescending { it.deletedAt }
+
+    private fun entriesIn(root: String): List<TrashEntry> =
+        infoDir(root).listFiles()?.mapNotNull { infoFile ->
+            if (!infoFile.name.endsWith(INFO_SUFFIX)) {
+                return@mapNotNull null
+            }
+            val id = infoFile.name.removeSuffix(INFO_SUFFIX)
+            val properties = readInfo(infoFile) ?: return@mapNotNull null
+            parseInfo(id, root, properties)?.takeIf { it.file.exists() }
+        } ?: emptyList()
+
+    data class Summary(val count: Int, val size: Long)
+
+    /**
+     * Count and size of all entries for the home screen. Reading every entry costs about 1 ms each on shared storage
+     * (14 s for 15,000), so each root's result is kept with its info folder's mtime and read again only after an entry
+     * came or went there (any trash, restore or delete renames or removes a file in that folder).
+     */
+    fun summary(): Summary =
+        roots().map { root ->
+            val mtime = infoDir(root).lastModified()
+            if (mtime == 0L) return@map Summary(0, 0)
+            val key = SUMMARY_KEY_PREFIX + root
+            parseSummary(defaultSharedPreferences.getString(key, null), mtime) ?: entriesIn(root).let { entries ->
+                Summary(entries.size, entries.sumOf { it.size }).also {
+                    defaultSharedPreferences.edit { putString(key, formatSummary(it, mtime)) }
                 }
-                val id = infoFile.name.removeSuffix(INFO_SUFFIX)
-                val properties = readInfo(infoFile) ?: return@mapNotNull null
-                parseInfo(id, root, properties)?.takeIf { it.file.exists() }
-            } ?: emptyList()
-        }.sortedByDescending { it.deletedAt }
+            }
+        }.fold(Summary(0, 0)) { a, b -> Summary(a.count + b.count, a.size + b.size) }
+
+    fun formatSummary(summary: Summary, mtime: Long): String = "$mtime:${summary.count}:${summary.size}"
+
+    /** The stored summary when it belongs to [mtime], else null. */
+    fun parseSummary(stored: String?, mtime: Long): Summary? {
+        val parts = stored?.split(':')?.takeIf { it.size == 3 } ?: return null
+        if (parts[0].toLongOrNull() != mtime) return null
+        val count = parts[1].toIntOrNull() ?: return null
+        val size = parts[2].toLongOrNull() ?: return null
+        return Summary(count, size)
+    }
+
+    private const val SUMMARY_KEY_PREFIX = "trash_summary_"
 
     fun restoreTarget(originalPath: String, exists: (String) -> Boolean): String {
         if (!exists(originalPath)) {

@@ -112,6 +112,17 @@ check_wand() {
     else fail "$name"; fi
 }
 
+# Ordo's trash entries of a test's own files, by the folder they came from (relative to internal storage, e.g.
+# Music/ordo-e2e-stress). Ordo records /storage/emulated/0/…; the shell's /sdcard/… never matched, so stress-delete
+# left 3000 entries per run behind (15,000 on the Tab S9 Ultra, 14 s per home reload).
+trash_pattern() { echo "^path=(/storage/emulated/0|/sdcard)/$1/"; }
+trash_count() {
+    a shell "grep -lE '$(trash_pattern "$1")' /storage/emulated/0/.OrdoTrash/info/*.info 2>/dev/null | wc -l" | tr -d '\r'
+}
+trash_drop() {
+    a shell "cd /storage/emulated/0/.OrdoTrash/info 2>/dev/null && for f in \$(grep -lE '$(trash_pattern "$1")' *.info); do rm -rf \"../files/\${f%.info}\" \"\$f\"; done"
+}
+
 finish() {
     check "no crash" test "$(crashes)" = 0
     [ "$FAILS" = 0 ] && exit 0
