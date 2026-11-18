@@ -29,7 +29,12 @@ class CastClient(
     private val port: Int = 8009,
     private val listener: Listener,
     /** Receiver apps this sender works with: Ordo's own one (if set) and the Default Media Receiver. */
-    private val receiverAppIds: List<String> = listOf(CastProtocol.DEFAULT_MEDIA_RECEIVER)
+    private val receiverAppIds: List<String> = listOf(CastProtocol.DEFAULT_MEDIA_RECEIVER),
+    /** Opens the TLS socket (not yet handshaken); replaced in tests by a fake that records close(). */
+    private val openSocket: (host: String, port: Int, timeoutMs: Int) -> SSLSocket = ::openTlsSocket,
+    /** Checks the device auth reply against this socket's TLS certificate. */
+    private val authenticate: (reply: ByteArray, nonce: ByteArray, socket: SSLSocket) -> CastDeviceAuth.Device =
+        { reply, nonce, socket -> CastDeviceAuth.verify(reply, nonce, socket.session.peerCertificates[0].encoded) }
 ) : Closeable {
     interface Listener {
         fun onReceiverStatus(status: CastProtocol.ReceiverStatus) {}
@@ -48,6 +53,7 @@ class CastClient(
     private val pendingAuth = LinkedBlockingQueue<ByteArray>()
     @Volatile private var lastReceivedMs = 0L
     @Volatile private var closed = false
+    @Volatile private var connected = false
     @Volatile var transportId: String? = null
         private set
     @Volatile var appSessionId: String? = null
@@ -65,32 +71,33 @@ class CastClient(
      * [java.security.cert.CertificateException] otherwise. Blocking; not on the main thread.
      */
     fun connect(timeoutMs: Int = 8_000): CastDeviceAuth.Device {
-        val context = SSLContext.getInstance("TLS")
-        context.init(null, arrayOf(CastDeviceAuth.TlsTrustManager()), SecureRandom())
-        socket = context.socketFactory.createSocket() as SSLSocket
-        socket.connect(InetSocketAddress(host, port), timeoutMs)
-        // A sleeping Chromecast accepted TCP but never finished TLS (17.11.2026): without a timeout this hung forever.
-        socket.soTimeout = timeoutMs
-        socket.startHandshake()
-        // From here on the heartbeat notices silence and closes the socket.
-        socket.soTimeout = 0
-        output = BufferedOutputStream(socket.outputStream)
-        lastReceivedMs = System.currentTimeMillis()
-        Thread(::readLoop, "cast-reader").apply { isDaemon = true }.start()
-        val nonce = ByteArray(16).also { SecureRandom().nextBytes(it) }
-        sendNow(CastMessage(CastProtocol.SENDER_ID, CastProtocol.RECEIVER_ID, CastDeviceAuth.NAMESPACE, "",
-            CastDeviceAuth.challenge(nonce)))
-        val device = try {
+        // Every failure closes the socket here: a connection left half open sits in the Chromecast's small accept
+        // queue (measured 18.11.2026: 4 waiting, 8 more in CLOSE_WAIT, then no one could cast).
+        try {
+            socket = openSocket(host, port, timeoutMs)
+            // A sleeping Chromecast accepted TCP but never finished TLS (17.11.2026): without a timeout this hung forever.
+            socket.soTimeout = timeoutMs
+            socket.startHandshake()
+            // From here on the heartbeat notices silence and closes the socket.
+            socket.soTimeout = 0
+            output = BufferedOutputStream(socket.outputStream)
+            lastReceivedMs = System.currentTimeMillis()
+            Thread(::readLoop, "cast-reader").apply { isDaemon = true }.start()
+            val nonce = ByteArray(16).also { SecureRandom().nextBytes(it) }
+            sendNow(CastMessage(CastProtocol.SENDER_ID, CastProtocol.RECEIVER_ID, CastDeviceAuth.NAMESPACE, "",
+                CastDeviceAuth.challenge(nonce)))
             val reply = pendingAuth.poll(timeoutMs.toLong(), TimeUnit.MILLISECONDS)
                 ?: throw IOException("No device auth reply")
-            CastDeviceAuth.verify(reply, nonce, socket.session.peerCertificates[0].encoded)
+            if (closed) throw IOException("Connection closed during device auth")
+            val device = authenticate(reply, nonce, socket)
+            sendNow(message(CastProtocol.RECEIVER_ID, CastProtocol.NS_CONNECTION, CastProtocol.type("CONNECT")))
+            connected = true
+            writer.scheduleWithFixedDelay(::heartbeat, HEARTBEAT_MS, HEARTBEAT_MS, TimeUnit.MILLISECONDS)
+            return device
         } catch (e: Exception) {
             close()
             throw e
         }
-        sendNow(message(CastProtocol.RECEIVER_ID, CastProtocol.NS_CONNECTION, CastProtocol.type("CONNECT")))
-        writer.scheduleWithFixedDelay(::heartbeat, HEARTBEAT_MS, HEARTBEAT_MS, TimeUnit.MILLISECONDS)
-        return device
     }
 
     /** Starts (or joins) the receiver app [appId] and opens a virtual connection to it. Blocking. */
@@ -135,7 +142,19 @@ class CastClient(
         runCatching { writer.submit {}.get(timeoutMs, TimeUnit.MILLISECONDS) }
     }
 
-    override fun close() = shutdown(null)
+    /**
+     * Says goodbye on the connection namespace (to the receiver app and to the device) before the socket closes, so the
+     * device releases its end at once instead of waiting for a heartbeat timeout. Blocking for at most a moment.
+     */
+    override fun close() {
+        if (!closed && connected) {
+            runCatching {
+                transportId?.let { sendNow(message(it, CastProtocol.NS_CONNECTION, CastProtocol.type("CLOSE"))) }
+                sendNow(message(CastProtocol.RECEIVER_ID, CastProtocol.NS_CONNECTION, CastProtocol.type("CLOSE")))
+            }
+        }
+        shutdown(null)
+    }
 
     private fun shutdown(error: Throwable?) {
         if (closed) return
@@ -232,6 +251,19 @@ class CastClient(
     }
 
     companion object {
+        fun openTlsSocket(host: String, port: Int, timeoutMs: Int): SSLSocket {
+            val context = SSLContext.getInstance("TLS")
+            context.init(null, arrayOf(CastDeviceAuth.TlsTrustManager()), SecureRandom())
+            val socket = context.socketFactory.createSocket() as SSLSocket
+            try {
+                socket.connect(InetSocketAddress(host, port), timeoutMs)
+            } catch (e: Exception) {
+                runCatching { socket.close() }
+                throw e
+            }
+            return socket
+        }
+
         private val LAUNCH_FAILED = CastProtocol.ReceiverStatus(null, null, null, null)
         private const val HEARTBEAT_MS = 5_000L
         private const val HEARTBEAT_TIMEOUT_MS = 20_000L
