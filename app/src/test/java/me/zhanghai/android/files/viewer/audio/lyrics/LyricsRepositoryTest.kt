@@ -1,0 +1,237 @@
+/*
+ * Copyright (c) 2026 Ordo contributors
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
+package me.zhanghai.android.files.viewer.audio.lyrics
+
+import java.io.ByteArrayOutputStream
+import java.io.File
+import java.io.InputStream
+import me.zhanghai.android.files.viewer.audio.SongTagIo
+import org.jaudiotagger.audio.AudioFileIO
+import org.jaudiotagger.tag.FieldKey
+import org.jaudiotagger.tag.id3.AbstractID3v2Tag
+import org.jaudiotagger.tag.id3.ID3v23Frame
+import org.jaudiotagger.tag.id3.framebody.FrameBodySYLT
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotSame
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertSame
+import org.junit.Assert.assertTrue
+import org.junit.Rule
+import org.junit.Test
+import org.junit.rules.TemporaryFolder
+
+/** java.io.File as the repository sees a song; [listable] false is a content:// song, [local] false a remote one. */
+private class TestFile(
+    val file: File,
+    val listable: Boolean = true,
+    val local: Boolean = true,
+    // A remote file whose size and content disagree: it reports [size], then streams [content].
+    val reportedSize: Long? = null,
+    val content: (() -> InputStream)? = null,
+    val sidecar: TestFile? = null
+) : LyricsFile {
+    override val key: String get() = file.toURI().toString()
+    override val name: String get() = file.name
+    override val lastModified: Long get() = file.lastModified()
+    override val size: Long get() = reportedSize ?: file.length()
+    override fun siblings(): List<LyricsFile>? =
+        if (!listable) null else sidecar?.let { listOf(it) } ?: file.parentFile!!.listFiles()!!.map { TestFile(it) }
+    override fun newInputStream(): InputStream = content?.invoke() ?: file.inputStream()
+    override fun toLocalFile(): File? = if (local) file else null
+}
+
+private fun local(file: File): LyricsFile = TestFile(file)
+
+/** Source order, SYLT decoding, the cache and the charset of `.lrc` files. */
+class LyricsRepositoryTest {
+    @get:Rule
+    val folder = TemporaryFolder()
+
+    private fun song(): File {
+        val file = File(folder.root, "Song.mp3")
+        javaClass.getResourceAsStream("/tags/song.mp3")!!.use { input -> file.outputStream().use { input.copyTo(it) } }
+        return file
+    }
+
+    // SYLT content: text, terminator, 4-byte millisecond timestamp, repeated (ISO-8859-1 or UTF-8).
+    private fun syltData(vararg entries: Pair<String, Int>): ByteArray {
+        val out = ByteArrayOutputStream()
+        for ((text, ms) in entries) {
+            out.write(text.toByteArray(Charsets.UTF_8))
+            out.write(0)
+            out.write(byteArrayOf((ms ushr 24).toByte(), (ms ushr 16).toByte(), (ms ushr 8).toByte(), ms.toByte()))
+        }
+        return out.toByteArray()
+    }
+
+    private val sylt = SyltLyrics.decode(3, 2, 0, syltData("Hal" to 1000, "lo" to 1500, "\nWelt" to 3000))
+
+    @Test
+    fun syltDecodesIntoLinesAndWords() {
+        val lines = sylt!!.toSyncedLyrics(trimEnabled = true).text
+        assertEquals(listOf("Hallo", "Welt"), lines.map { it.text })
+        assertEquals(listOf(1000uL, 3000uL), lines.map { it.start })
+        assertEquals(2, lines[0].words!!.size)
+    }
+
+    @Test
+    fun brokenSyltIsNull() {
+        assertNull(SyltLyrics.decode(3, 2, 0, byteArrayOf(0x41, 0, 0, 1)))
+        assertNull(SyltLyrics.decode(9, 2, 0, syltData("A" to 1)))
+    }
+
+    @Test
+    fun sourcePriority() {
+        val all = EmbeddedLyrics(sylt, "[00:09.00]Vorbis", "[00:08.00]Uslt")
+        assertEquals(LyricsSource.SIDECAR_LRC, LyricsRepository.pick("[00:01.00]Datei") { error("not read") }?.source)
+        // A blank or empty sidecar falls through to the file.
+        assertEquals(LyricsSource.EMBEDDED_SYNCED, LyricsRepository.pick(" \n") { all }?.source)
+        assertEquals("Hallo", LyricsRepository.pick(null) { all }!!.lines[0].text)
+        assertEquals("Vorbis", LyricsRepository.pick(null) { EmbeddedLyrics(null, "[00:09.00]Vorbis", "[00:08.00]Uslt") }!!.lines[0].text)
+        // SYNCEDLYRICS without timestamps is not synced; the plain field wins then.
+        assertEquals("Uslt", LyricsRepository.pick(null) { EmbeddedLyrics(null, "kein Takt", "[00:08.00]Uslt") }!!.lines[0].text)
+        val plain = LyricsRepository.pick(null) { EmbeddedLyrics(plain = "Nur\nText") }!!
+        assertEquals(LyricsSource.EMBEDDED_UNSYNCED, plain.source)
+        assertEquals(listOf("Nur", "Text"), plain.text)
+        assertNull(LyricsRepository.pick(null) { EmbeddedLyrics() })
+        assertNull(LyricsRepository.pick(null) { EmbeddedLyrics(plain = "x".repeat(LyricsRepository.MAX_BYTES + 1)) })
+    }
+
+    // The fixture with a SYLT frame ("Getaktet" at 2 s) and a plain lyrics field.
+    private fun taggedSong(): File {
+        val file = song()
+        SongTagIo.isEditableFormat(file) // jaudiotagger set-up
+        val audio = AudioFileIO.read(file)
+        val tag = audio.tagOrCreateAndSetDefault as AbstractID3v2Tag
+        tag.setField(FieldKey.LYRICS, "Ungetaktet")
+        tag.setFrame(ID3v23Frame("SYLT").apply {
+            body = FrameBodySYLT(3, "deu", 2, 1, "", syltData("Getaktet" to 2000))
+        })
+        audio.commit()
+        return file
+    }
+
+    @Test
+    fun readsSyltFromTheFileAndCachesIt() {
+        val file = taggedSong()
+        val embedded = LyricsRepository.loadBlocking(local(file))!!
+        assertEquals(LyricsSource.EMBEDDED_SYNCED, embedded.source)
+        assertEquals("Getaktet", embedded.lines[0].text)
+        assertEquals(2000uL, embedded.lines[0].start)
+        assertSame(embedded, LyricsRepository.loadBlocking(local(file)))
+        file.setLastModified(file.lastModified() + 5000)
+        assertNotSame(embedded, LyricsRepository.loadBlocking(local(file)))
+    }
+
+    @Test
+    fun lrcAddedLaterWinsAndRemovedFallsBack() {
+        val file = taggedSong()
+        assertEquals(LyricsSource.EMBEDDED_SYNCED, LyricsRepository.loadBlocking(local(file))!!.source)
+        // Another case of the name still counts as the song's .lrc.
+        val lrc = File(folder.root, "song.LRC").apply { writeText("[00:01.00]Aus der Datei") }
+        val sidecar = LyricsRepository.loadBlocking(local(file))!!
+        assertEquals(LyricsSource.SIDECAR_LRC, sidecar.source)
+        assertSame(sidecar, LyricsRepository.loadBlocking(local(file)))
+        lrc.delete()
+        assertEquals(LyricsSource.EMBEDDED_SYNCED, LyricsRepository.loadBlocking(local(file))!!.source)
+    }
+
+    @Test
+    fun onlyTheLrcChanged() {
+        val file = taggedSong()
+        val songTime = file.lastModified()
+        val lrc = File(folder.root, "Song.lrc").apply { writeText("[00:01.00]Alt") }
+        assertEquals("Alt", LyricsRepository.loadBlocking(local(file))!!.lines[0].text)
+        // Same modification time, other size.
+        val lrcTime = lrc.lastModified()
+        lrc.writeText("[00:01.00]Neuer Text")
+        lrc.setLastModified(lrcTime)
+        assertEquals("Neuer Text", LyricsRepository.loadBlocking(local(file))!!.lines[0].text)
+        // Same size, other modification time.
+        lrc.writeText("[00:01.00]Neuer Tex!")
+        lrc.setLastModified(lrcTime + 5000)
+        assertEquals("Neuer Tex!", LyricsRepository.loadBlocking(local(file))!!.lines[0].text)
+        assertEquals(songTime, file.lastModified())
+    }
+
+    @Test
+    fun contentUriSongUsesOnlyEmbeddedLyrics() {
+        val file = taggedSong()
+        File(folder.root, "Song.lrc").writeText("[00:01.00]Daneben")
+        // No folder to list and not on local storage: no .lrc, the file is copied for the tag reader.
+        val lyrics = LyricsRepository.loadBlocking(TestFile(file, listable = false, local = false))!!
+        assertEquals(LyricsSource.EMBEDDED_SYNCED, lyrics.source)
+        assertEquals("Getaktet", lyrics.lines[0].text)
+    }
+
+    // Endless zeros: a file that keeps growing while it is read.
+    private fun endless() = object : InputStream() {
+        override fun read(): Int = 0
+        override fun read(b: ByteArray, off: Int, len: Int): Int = len.also { b.fill(0, off, off + len) }
+    }
+
+    @Test
+    fun capsHoldOnTheStream() {
+        with(LyricsRepository) {
+            assertEquals(3, "abc".byteInputStream().readAtMost(3)!!.size)
+            assertNull("abcd".byteInputStream().readAtMost(3))
+            assertNull(endless().readAtMost(1000))
+            val out = ByteArrayOutputStream()
+            assertEquals(false, endless().copyAtMost(out, 10_000))
+            assertTrue(out.size() <= 10_000)
+        }
+    }
+
+    @Test
+    fun sidecarThatLiesAboutItsSizeIsIgnored() {
+        val file = File(folder.root, "remote.mp3").apply { writeBytes(ByteArray(0)) }
+        val lrc = File(folder.root, "remote.lrc").apply { writeText("[00:01.00]A") }
+        val lying = TestFile(lrc, reportedSize = 10, content = {
+            java.io.SequenceInputStream("[00:01.00]A\n".byteInputStream(), endless())
+        })
+        assertNull(LyricsRepository.loadBlocking(TestFile(file, sidecar = lying)))
+    }
+
+    @Test
+    fun songThatLiesAboutItsSizeIsNotCopiedPastTheCapAndLeavesNoTempFile() {
+        val tmp = File(System.getProperty("java.io.tmpdir")!!)
+        fun temps() = tmp.list()!!.count { it.startsWith("ordo-lyrics-") }
+        val before = temps()
+        val file = File(folder.root, "remote.mp3").apply { writeBytes(ByteArray(0)) }
+        val song = TestFile(file, listable = false, local = false, reportedSize = 1000, content = ::endless)
+        assertNull(LyricsRepository.loadBlocking(song))
+        assertEquals(before, temps())
+    }
+
+    @Test
+    fun tooLargeSidecarIsIgnored() {
+        val file = File(folder.root, "leer.mp3").apply { writeBytes(ByteArray(0)) }
+        File(folder.root, "leer.lrc").writeText("[00:01.00]A\n" + "x".repeat(LyricsRepository.MAX_BYTES))
+        assertNull(LyricsRepository.loadBlocking(local(file)))
+    }
+
+    @Test
+    fun charsets() {
+        val text = "Grüße ÄÖÜ ß"
+        val bomUtf8 = byteArrayOf(0xEF.toByte(), 0xBB.toByte(), 0xBF.toByte()) + text.toByteArray(Charsets.UTF_8)
+        assertEquals(text, LyricsRepository.decodeText(bomUtf8))
+        val bomLe = byteArrayOf(0xFF.toByte(), 0xFE.toByte()) + text.toByteArray(Charsets.UTF_16LE)
+        assertEquals(text, LyricsRepository.decodeText(bomLe))
+        val bomBe = byteArrayOf(0xFE.toByte(), 0xFF.toByte()) + text.toByteArray(Charsets.UTF_16BE)
+        assertEquals(text, LyricsRepository.decodeText(bomBe))
+        assertEquals(text, LyricsRepository.decodeText(text.toByteArray(Charsets.UTF_8)))
+        // Not valid UTF-8: read as Windows-1252, the usual encoding of old German .lrc files.
+        assertEquals(text, LyricsRepository.decodeText(text.toByteArray(charset("windows-1252"))))
+        assertEquals("", LyricsRepository.decodeText(ByteArray(0)))
+    }
+
+    @Test
+    fun sidecarInWindows1252IsRead() {
+        val file = File(folder.root, "alt.mp3").apply { writeBytes(ByteArray(0)) }
+        File(folder.root, "alt.lrc").writeBytes("[00:01.00]Grüße".toByteArray(charset("windows-1252")))
+        assertEquals("Grüße", LyricsRepository.loadBlocking(local(file))!!.lines[0].text)
+    }
+}

@@ -169,6 +169,13 @@
     </notice>
 
     <notice>
+        <name>Gramophone (lyrics parser)</name>
+        <url>https://github.com/FoedusProgramme/Gramophone</url>
+        <copyright>Copyright (C) 2024 nift4</copyright>
+        <license>GNU General Public License 3.0</license>
+    </notice>
+
+    <notice>
         <name>Coil</name>
         <url>https://github.com/coil-kt/coil</url>
         <copyright>Copyright 2020 Coil Contributors</copyright>
