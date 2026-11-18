@@ -94,8 +94,11 @@ import me.zhanghai.android.files.util.valueCompat
 class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
     private lateinit var binding: MusicLauncherActivityBinding
     private val adapter = Adapter()
+    // The accent for text and bars: in the light theme darkened until it reads at 4.5:1 on the surface.
     private val accentColor by lazy {
-        MaterialColors.getColor(binding.root, androidx.appcompat.R.attr.colorPrimary)
+        val accent = MaterialColors.getColor(binding.root, androidx.appcompat.R.attr.colorPrimary)
+        val surface = MaterialColors.getColor(binding.root, com.google.android.material.R.attr.colorSurface)
+        readableOn(accent, surface)
     }
     private val rowTitleColor by lazy {
         MaterialColors.getColor(binding.root, com.google.android.material.R.attr.colorOnSurface)
@@ -654,6 +657,8 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
         )
         navigationAdapter.replace(navigationItems())
         list.doOnAttach { setUpOpenStagger(list) }
+        // The open menu dims the library only a little (about a third), so it stays visible behind it.
+        drawerLayout?.setScrimColor(0x52000000)
         // Registered after the library's own back handling, so an open menu closes first.
         drawerLayout?.let { onBackPressedDispatcher.addCallback(this, DrawerLayoutOnBackPressedCallback(it)) }
         persistentDrawer?.openDrawer(GravityCompat.START, false)
@@ -1314,6 +1319,16 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
                 (perCell - left).toInt(), gutter.toInt()
             )
         }
+    }
+
+    private fun readableOn(color: Int, background: Int): Int {
+        var result = color
+        var step = 0
+        while (androidx.core.graphics.ColorUtils.calculateContrast(result, background) < 4.5 && step < 10) {
+            result = androidx.core.graphics.ColorUtils.blendARGB(result, android.graphics.Color.BLACK, 0.1f)
+            step++
+        }
+        return result
     }
 
     private fun rowBackground(): Drawable? {

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later -->
-<!-- A tablet in landscape: Ordo's side menu stays open beside the library, as in the file list. -->
+<!-- From 840 dp width (tablets in landscape): Ordo's side menu stays open beside the library, as in the file list. -->
 <me.zhanghai.android.files.ui.PersistentDrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"

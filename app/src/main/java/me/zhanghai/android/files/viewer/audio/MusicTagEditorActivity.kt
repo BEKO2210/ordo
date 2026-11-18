@@ -85,7 +85,10 @@ class MusicTagEditorActivity : AppActivity() {
                 view.post { binding.content.layoutParams = binding.content.layoutParams.apply { this.width = width } }
             }
         }
-        val coverSize = minOf(resources.displayMetrics.widthPixels * 2 / 3, resources.getDimensionPixelSize(R.dimen.phi_233))
+        // On a phone the cover stays at 144 dp so the fields start on the first screen; tablets show it at 233 dp.
+        val coverSize = resources.getDimensionPixelSize(
+            if (resources.configuration.screenWidthDp >= 600) R.dimen.phi_233 else R.dimen.phi_144
+        )
         binding.art.root.layoutParams = (binding.art.root.layoutParams as LinearLayout.LayoutParams).apply {
             width = coverSize
             height = coverSize
@@ -112,7 +115,7 @@ class MusicTagEditorActivity : AppActivity() {
         val trackRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
         binding.groupNumbers.addView(trackRow)
         addField(trackRow, TagField.TRACK, R.string.music_tag_track, R.drawable.tag_numbers_icon_white_24dp, 1f)
-        addField(trackRow, TagField.TRACK_TOTAL, R.string.music_tag_track_total, null, 0.618f)
+        addField(trackRow, TagField.TRACK_TOTAL, R.string.music_tag_track_total, R.drawable.tag_numbers_icon_white_24dp, 0.618f)
         val discRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
         binding.groupNumbers.addView(discRow)
         addField(discRow, TagField.DISC, R.string.music_tag_disc, R.drawable.album_icon_white_24dp, 1f)
@@ -132,6 +135,13 @@ class MusicTagEditorActivity : AppActivity() {
             hint = getString(label)
             if (icon != null) setStartIconDrawable(icon)
             setStartIconContentDescription(label)
+            // An empty field shows its name in the readable secondary colour, clearly not a value.
+            defaultHintTextColor = android.content.res.ColorStateList.valueOf(
+                com.google.android.material.color.MaterialColors.getColor(
+                    binding.root, com.google.android.material.R.attr.colorOnSurfaceVariant,
+                    com.google.android.material.color.MaterialColors.getColor(binding.root, android.R.attr.textColorSecondary)
+                )
+            )
             id = View.generateViewId()
             tag = field.name
         }
