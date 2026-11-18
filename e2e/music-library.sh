@@ -171,7 +171,9 @@ check "the album is listed" ui wait "$ROCKS" 5
 check "an album opens its songs" ui tap "$ROCKS"
 check "the album's first track is shown" ui wait "Ordoe2e Alpha" 5
 check "tracks keep the album's order" above "Ordoe2e Alpha" "Ordoe2e Beta"
-if ui has "Ordoe2e Gamma"; then
+# The mini player may well name Gamma (it played last); only a row of the page counts.
+gamma_rows() { ui texts | awk '/^Ordoe2e Gamma\|title\|/ { n++ } /\|miniPlayer\|.*Ordoe2e Gamma/ { n-- } END { print n + 0 }'; }
+if [ "$(gamma_rows)" -gt 0 ]; then
     fail "the album leaves out other songs"
     # What the page showed and how MediaStore groups the test songs, for the log.
     echo "DIAG album page:"; ui texts | sed 's/^/  /'
