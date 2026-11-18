@@ -106,7 +106,7 @@ check "songs are sorted by title" above "Ordoe2e Alpha" "Ordoe2e Beta"
 
 session_state() { a shell dumpsys media_session | grep -A25 "package=$PKG" | grep -q "state=$1"; }
 playing() { local i; for i in $(seq 10); do session_state PLAYING && return 0; sleep 1; done; return 1; }
-check "tapping a song opens the player" ui tap "Ordoe2e Alpha"
+check "tapping a song opens the player" ui tap "Ordoe2e Alpha" title
 check "the player is in front" wait_on viewer.audio.AudioPlayerActivity 8
 check "the song plays" playing
 back 2
@@ -146,10 +146,10 @@ check "back from the player returns to the library" on viewer.audio.MusicLaunche
 
 # Selection, playlists and favourites: a long press selects, the songs go into a new M3U8 playlist in
 # Music/Playlists, the playlist and the favourites show them in the side menu.
-check "a long press selects a song" eval 'search Ordoe2e && ui longtap "Ordoe2e Alpha" && ui wait "1 ausgewählt|1 selected" 5'
+check "a long press selects a song" eval 'search Ordoe2e && ui longtap "Ordoe2e Alpha" title && ui wait "1 ausgewählt|1 selected" 5'
 # On failure the log shows what the toolbar showed instead.
 ui has "1 ausgewählt|1 selected" || { echo "DIAG selection:"; ui texts | head -20 | sed 's/^/  /'; }
-check "a tap adds a second song" eval 'ui tap "Ordoe2e Beta" && ui wait "2 ausgewählt|2 selected" 5'
+check "a tap adds a second song" eval 'ui tap "Ordoe2e Beta" title && ui wait "2 ausgewählt|2 selected" 5'
 check "the selection goes into a new playlist" eval 'ui tap actionSelectionPlaylist && ui wait "Neue Wiedergabeliste|New playlist" 5 \
     && ui tap "Neue Wiedergabeliste|New playlist" && sleep 1 && a shell input text "Ordoe2e%sList" && ui tap button1'
 in_playlist() { a shell cat "\"$PLAYLISTS/Ordoe2e List.m3u8\"" | grep -q "OrdoE2E-Rock/rock-1.mp3"; }
@@ -185,13 +185,13 @@ listed() { local i; for i in 1 2 3 4 5 6; do close_search >/dev/null 2>&1; searc
 check "the MP3 gets a new title in the editor" edit_title "Ordoe2e Edited Mp"
 check "Undo is offered after saving" ui wait "Rückgängig|Undo" 5
 check "the library shows the edited MP3" listed "Ordoe2e Edited Mp"
-check "the edited MP3 opens the player" ui tap "Ordoe2e Edited Mp"
+check "the edited MP3 opens the player" ui tap "Ordoe2e Edited Mp" title
 check "the edited MP3 plays" playing
 back 2
 close_search
 check "the FLAC gets a new title in the editor" edit_title "Ordoe2e Edited Flac"
 check "the library shows the edited FLAC" listed "Ordoe2e Edited Flac"
-check "the edited FLAC opens the player" ui tap "Ordoe2e Edited Flac"
+check "the edited FLAC opens the player" ui tap "Ordoe2e Edited Flac" title
 check "the edited FLAC plays" playing
 back 2
 close_search
@@ -213,11 +213,8 @@ check "the album is listed" ui wait "$ROCKS" 5
 check "an album opens its songs" ui tap "$ROCKS"
 check "the album's first track is shown" ui wait "Ordoe2e Alpha" 5
 check "tracks keep the album's order" above "Ordoe2e Alpha" "Ordoe2e Beta"
-# The mini player and the side menu's header (a pane beside the page on wide windows) may well name Gamma, which
-# played last; only a row of the page counts.
-gamma_rows() {
-    ui texts | awk '/^Ordoe2e Gamma\|title\|/ { n++ } /\|(miniPlayer|nowPlaying)\|.*Ordoe2e Gamma/ { n-- } END { print n + 0 }'
-}
+# Only song rows carry the id "title" (the mini player and the menu's "now playing" have their own): they count.
+gamma_rows() { ui texts | grep -c '^Ordoe2e Gamma|title|'; }
 if [ "$(gamma_rows)" -gt 0 ]; then
     fail "the album leaves out other songs"
     # What the page showed and how MediaStore groups the test songs, for the log.

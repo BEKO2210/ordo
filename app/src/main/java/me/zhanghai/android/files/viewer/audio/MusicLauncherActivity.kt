@@ -774,8 +774,8 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
             val now = nowPlaying
             header.nowPlaying.isVisible = now != null
             if (now == null) return
-            header.title.text = now[0] as CharSequence
-            header.artist.text = now[1] as CharSequence
+            header.navTitle.text = now[0] as CharSequence
+            header.navArtist.text = now[1] as CharSequence
             header.nowPlaying.contentDescription = getString(R.string.music_now_playing, now[0], now[1])
             header.art.collage.isVisible = false
             header.art.cover.loadCover(now[2], placeholder(now[3] as String?, R.drawable.audio_icon_white_24dp))
@@ -1106,10 +1106,10 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
             updateNavigationHeader(null)
             return
         }
-        mini.title.text = title
-        mini.artist.text = artist ?: getString(R.string.audio_player_unknown_artist)
-        updateNavigationHeader(listOf(title, mini.artist.text, art, album))
-        mini.root.contentDescription = getString(R.string.music_now_playing, title, mini.artist.text)
+        mini.miniTitle.text = title
+        mini.miniArtist.text = artist ?: getString(R.string.audio_player_unknown_artist)
+        updateNavigationHeader(listOf(title, mini.miniArtist.text, art, album))
+        mini.root.contentDescription = getString(R.string.music_now_playing, title, mini.miniArtist.text)
         mini.playPause.setImageResource(if (showPlay) R.drawable.play_icon_24dp else R.drawable.pause_icon_24dp)
         mini.playPause.contentDescription =
             getString(if (showPlay) R.string.audio_player_play else R.string.audio_player_pause)

@@ -3,7 +3,7 @@
 """Tiny adb UI driver for Ordo's device tests. No dependencies beyond adb.
 
     ui.py SERIAL tap TARGET [ID]   tap a node; TARGET is a visible text, a content description or a resource id
-    ui.py SERIAL longtap TARGET
+    ui.py SERIAL longtap TARGET [ID]
     ui.py SERIAL has TARGET [ID]   exit 0 if a node matches
     ui.py SERIAL checked TEXT      exit 0 if the check box after the node with that text is ticked
     ui.py SERIAL summary TITLE TEXT exit 0 if a preference row has that summary
@@ -181,7 +181,7 @@ elif command == "tap":
     forget_screen()
     time.sleep(1.2)
 elif command == "longtap":
-    x, y = need(sys.argv[3])
+    x, y = need(sys.argv[3], *sys.argv[4:5])
     sh("input", "swipe", str(x), str(y), str(x), str(y), "900")
     forget_screen()
     time.sleep(1.2)
