@@ -59,7 +59,8 @@ open_app() {
     grant
     a logcat -b crash -c
     a shell am force-stop "$PKG"
-    a shell monkey -p "$PKG" -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1
+    # The home screen by name: with the "Ordo Musik" icon switched on, a launcher pick (monkey) may open the music app.
+    a shell am start -a android.intent.action.MAIN -c android.intent.category.LAUNCHER -f 0x10200000 -n "$PKG/me.zhanghai.android.files.home.HomeActivity" >/dev/null 2>&1
     sleep "${1:-6}"
 }
 # After a fresh install or cleared data Ordo first shows its welcome pages; they are skipped through their own button.

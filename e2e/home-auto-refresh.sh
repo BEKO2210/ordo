@@ -43,7 +43,7 @@ fi
 a shell input keyevent HOME; sleep 2; a logcat -c
 a shell "for i in \$(seq 50); do echo y > $DIR/g\$i.txt; done"; sleep 6
 check "no reload while the home screen is in the background" test "$(count)" = 0
-a shell monkey -p "$PKG" -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1; sleep 5; guard
+a shell am start -a android.intent.action.MAIN -c android.intent.category.LAUNCHER -f 0x10200000 -n "$PKG/me.zhanghai.android.files.home.HomeActivity" >/dev/null 2>&1; sleep 5; guard
 check "coming back reloads once" test "$(count)" = 1
 a shell rm -r "$DIR"
 finish
