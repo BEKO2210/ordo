@@ -35,7 +35,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
 
         override fun onChange(selfChange: Boolean, uri: android.net.Uri?) {
             // Rows of missing files Ordo asked MediaStore to drop come back as a change: the numbers already left
-            // them out, so a reload would only repeat itself (seen on real devices after files were removed by hand).
+            // them out, so a reload would only repeat itself.
             val own = StaleMedia.isForgotten(uri?.lastPathSegment?.toLongOrNull())
             if (BuildConfig.DEBUG) Log.d(TAG, "change $uri" + if (own) " (forgotten row, ignored)" else "")
             if (!own) auto.signal()
