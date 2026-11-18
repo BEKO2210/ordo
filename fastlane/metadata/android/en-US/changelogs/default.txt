@@ -1,7 +1,5 @@
-New in this test build:
-• Stream music to your TV: Chromecast and Google TV, without Google services
-• The TV shows title, artist, album and cover
-• Control it from the notification, the lock screen and the volume keys
-• Stopping hands the music back to the phone at the same spot
-• Safe: Ordo checks the Chromecast is genuine and shares only the playing song
-Feedback welcome: nullmesh@protonmail.com
+Ordo Musik, steadier and nicer:
+• Sound sheet reworked: no gaps, one close button in landscape, presets fade softly at the edge
+• Tested with all common formats up to 24-bit / 192 kHz (MP3, AAC, FLAC, Opus, Vorbis, WAV), gapless transitions
+• Click-free effects, even when switched quickly
+• Less battery use with the screen off
