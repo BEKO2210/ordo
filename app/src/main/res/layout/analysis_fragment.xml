@@ -98,7 +98,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:minHeight="@dimen/phi_row_min"
-                android:text="@string/analysis_delete" />
+                android:text="@string/analysis_delete"
+                app:icon="@drawable/delete_icon_white_24dp" />
         </LinearLayout>
     </LinearLayout>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

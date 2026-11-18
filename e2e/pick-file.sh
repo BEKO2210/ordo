@@ -23,7 +23,7 @@ sleep 3
 focus() { a shell dumpsys window | grep -m1 mCurrentFocus; }
 no_prompt() { ! focus | grep -q GrantPermissions; }
 ordo_closed() { ! focus | grep -q "$PKG/"; }
-check "Ordo opens in pick mode" ui has "Wähle eine Datei aus|Select a file"
+check "Ordo opens in pick mode" ui has "Datei wählen|Select a file"
 check "no notification prompt while picking" no_prompt
 ui tap ordo-e2e-pick >/dev/null 2>&1; sleep 2
 check "the test file is offered" ui has upload-test.wav

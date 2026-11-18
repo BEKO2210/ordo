@@ -39,7 +39,13 @@ direkt darunter, höchstens zwei Zeilen, nie unter einem Bedienelement. Silbentr
 
 - Fremde Bausteine (Android-Systemdialoge, Material-Standardzeilen der Einstellungen) behalten ihre Maße, solange sie
   nicht durch eigene ersetzt werden.
-- Tippflächen bleiben mindestens 48 dp, auch wenn das sichtbare Element auf der Reihe 34 dp groß ist.
+- Tippflächen bleiben mindestens 48 dp, auch wenn das sichtbare Element auf der Reihe 34 dp groß ist. `TouchTargetTest`
+  prüft jedes Layout: Taste, Schalter, Häkchen, Chip oder klickbare Ansicht unter 48 dp braucht `minWidth`/`minHeight`
+  von 48 dp (0 dp mit Gewicht ausgenommen).
+- Nie nur Text: Aktionstasten tragen ein Material-Symbol (Rounded, `utils/material-symbols.py`), z. B. „Ansehen“ (Auge),
+  „Löschen“ (Papierkorb), „Zugriff erlauben“ (offenes Schloss), „Zurücksetzen“ (Pfeil im Kreis).
+- Zuletzt verwendete Dateien: Name auf zwei Zeilen; ist er länger, fällt die Mitte weg, nie die Endung
+  („Rechnung_…final.pdf“, `recentFileLabel`).
 
 ## Umstellung, Bildschirm für Bildschirm
 
