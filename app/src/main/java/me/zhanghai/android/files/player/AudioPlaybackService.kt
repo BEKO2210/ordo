@@ -61,11 +61,31 @@ class AudioPlaybackService : MediaSessionService() {
     private var persistedIndices = IntArray(0)
     private var soundSettings = AudioSettings()
     private var replayGain: ReplayGainInfo? = null
+    private lateinit var loudness: LoudnessAnalysis
+    // The item whose loudness is being measured, so a late result for an earlier song is dropped.
+    private var measuring: String? = null
+    private var measurement: java.util.concurrent.Future<*>? = null
+    // Its own low-priority thread: a slow or hostile file never holds up playback, saving or restoring the queue.
+    private val loudnessExecutor: ExecutorService = Executors.newSingleThreadExecutor { task ->
+        Thread({
+            android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND)
+            task.run()
+        }, "ordo-loudness")
+    }
     private var sleepDeadlineElapsedMs: Long? = null
     private var sleepSelectionMinutes = 0
     private var sleepAtEndOfTrack = false
     private var sleepVolume = 1f
     private var focusVolume = 1f
+    private var transportVolume = 1f
+    // Gentle play, pause and stop (TransportFader); a pulled-out headphone still pauses at once.
+    private val fader = TransportFader(
+        { SystemClock.uptimeMillis() }, { action, delay -> handler.postDelayed(action, delay) },
+        { handler.removeCallbacks(it) }
+    ) {
+        transportVolume = it
+        if (::player.isInitialized) updatePlayerVolume()
+    }
     private var pausedForDisconnectedHeadphones = false
     private val savePosition = object : Runnable {
         override fun run() {
@@ -98,7 +118,8 @@ class AudioPlaybackService : MediaSessionService() {
         override fun onReceive(context: Context, intent: Intent) {
             if (intent.action == AudioManager.ACTION_AUDIO_BECOMING_NOISY && player.isPlaying) {
                 pausedForDisconnectedHeadphones = true
-                player.pause()
+                // At once, no fade: the speaker must not keep playing aloud for another 120 ms.
+                fader.immediate { player.pause() }
             }
         }
     }
@@ -124,6 +145,11 @@ class AudioPlaybackService : MediaSessionService() {
             // Media3 explicitly reports replacement AudioTrack sessions here; effects must follow the new ID.
             // https://developer.android.com/reference/androidx/media3/common/Player.Listener#onAudioSessionIdChanged(int)
             soundEffects.attach(audioSessionId)
+        }
+
+        // Paused (after its fade), stopped, ended or waiting after a seek: nothing is heard, the effects may switch.
+        override fun onIsPlayingChanged(isPlaying: Boolean) {
+            soundEffects.setAudible(isPlaying)
         }
 
         override fun onEvents(player: Player, events: Player.Events) {
@@ -154,6 +180,7 @@ class AudioPlaybackService : MediaSessionService() {
             if (events.contains(Player.EVENT_TRACKS_CHANGED)) {
                 replayGain = ReplayGainMetadata.fromTracks(player.currentTracks)
                 soundEffects.apply(soundSettings, replayGain)
+                measureLoudnessIfUntagged()
             }
             if (events.contains(Player.EVENT_PLAY_WHEN_READY_CHANGED)) {
                 if (player.playWhenReady) audioFocusController.requestForPlayback()
@@ -172,8 +199,12 @@ class AudioPlaybackService : MediaSessionService() {
     override fun onCreate() {
         super.onCreate()
         stateStore = PlaybackStateStore(this)
+        loudness = LoudnessAnalysis(this)
         soundSettings = AudioSettingsStore.read()
-        soundEffects = SoundEffectController()
+        // A platform effect is only ever switched in silence, or inside a short dip while music plays.
+        soundEffects = SoundEffectController(handler) { action ->
+            if (::player.isInitialized && player.isPlaying) fader.duck(action) else fader.immediate(action)
+        }
         klang.apply(soundSettings, headphonesConnected())
         val audioAttributes = AudioAttributes.Builder()
             .setUsage(C.USAGE_MEDIA)
@@ -208,9 +239,22 @@ class AudioPlaybackService : MediaSessionService() {
             ContextCompat.RECEIVER_EXPORTED
         )
         getSystemService(AudioManager::class.java).registerAudioDeviceCallback(audioDeviceCallback, handler)
-        // The file name is only the display title until the file's own title tag is read; the system media controls
-        // prefer the display title, so they showed "song.mp3" instead of the song's name.
+        // Play, pause and stop from the notification, the lock screen, headphone buttons or Ordo's own screen come
+        // through here and fade instead of cutting the wave off mid-way (an audible crack). Seeks need nothing:
+        // Media3 ramps the first 20 ms of every new AudioTrack itself.
         val sessionPlayer = object : ForwardingPlayer(player) {
+            override fun play() = fader.fadeIn { player.play() }
+
+            override fun pause() = if (player.isPlaying) fader.fadeOutThen { player.pause() }
+            else fader.immediate { player.pause() }
+
+            override fun stop() = if (player.isPlaying) fader.fadeOutThen { player.stop() }
+            else fader.immediate { player.stop() }
+
+            override fun setPlayWhenReady(playWhenReady: Boolean) = if (playWhenReady) play() else pause()
+
+            // The file name is only the display title until the file's own title tag is read; the system media
+            // controls prefer the display title, so they showed "song.mp3" instead of the song's name.
             override fun getMediaMetadata(): MediaMetadata {
                 val metadata = super.getMediaMetadata()
                 val title = metadata.title?.takeIf { it.isNotBlank() } ?: return metadata
@@ -252,6 +296,7 @@ class AudioPlaybackService : MediaSessionService() {
         if (::mediaSession.isInitialized) mediaSession.release()
         if (::player.isInitialized) player.release()
         ioExecutor.shutdown()
+        loudnessExecutor.shutdownNow()
         super.onDestroy()
     }
 
@@ -265,10 +310,50 @@ class AudioPlaybackService : MediaSessionService() {
         // https://developer.android.com/reference/androidx/media3/exoplayer/ExoPlayer#setSkipSilenceEnabled(boolean)
         player.skipSilenceEnabled = soundSettings.skipSilence
         soundEffects.apply(soundSettings, replayGain)
+        measureLoudnessIfUntagged()
+    }
+
+    /**
+     * Volume levelling without tags: a local file is measured once after ITU-R BS.1770 in the background
+     * ([LoudnessAnalysis], cached); the gain then glides in like any other change.
+     */
+    private fun measureLoudnessIfUntagged() {
+        val uri = player.currentMediaItem?.localConfiguration?.uri
+        val path = uri?.takeIf { it.scheme == ContentResolver.SCHEME_FILE }?.path
+        // Another song (or levelling off): a running measurement for the previous one is cancelled.
+        if (measuring != null && measuring != path) {
+            measurement?.cancel(true)
+            measuring = null
+        }
+        if (!soundSettings.normalizationEnabled || replayGain != null || path == null) return
+        if (measuring == path) return
+        val file = java.io.File(path)
+        when (val cached = loudness.cached(file)) {
+            is LoudnessAnalysis.Cached.Measured -> {
+                replayGain = cached.info
+                soundEffects.apply(soundSettings, replayGain)
+                return
+            }
+            LoudnessAnalysis.Cached.Failed -> return
+            null -> Unit
+        }
+        measuring = path
+        measurement = loudnessExecutor.submit(Runnable {
+            val result = loudness.measure(file)
+            handler.post {
+                if (measuring != path) return@post
+                measuring = null
+                if (result != null && player.currentMediaItem?.localConfiguration?.uri?.path == path &&
+                    replayGain == null) {
+                    replayGain = result
+                    soundEffects.apply(soundSettings, replayGain)
+                }
+            }
+        })
     }
 
     private fun updatePlayerVolume() {
-        player.volume = (sleepVolume * focusVolume).coerceIn(0f, 1f)
+        player.volume = (sleepVolume * focusVolume * transportVolume).coerceIn(0f, 1f)
     }
 
     private fun setSleepTimer(minutes: Int, endOfTrack: Boolean) {
@@ -423,6 +508,7 @@ class AudioPlaybackService : MediaSessionService() {
                                 AudioPlayerCommands.EXTRA_BASS_AVAILABLE to status.bassBoostAvailable,
                                 AudioPlayerCommands.EXTRA_CLARITY_AVAILABLE to status.clarityAvailable,
                                 AudioPlayerCommands.EXTRA_HEADPHONES to headphonesConnected(),
+                                AudioPlayerCommands.EXTRA_HIGHS_CUTOFF to klang.highs.detectedCutoffHz,
                                 AudioPlayerCommands.EXTRA_SLEEP_ACTIVE to
                                     (sleepDeadlineElapsedMs != null || sleepAtEndOfTrack),
                                 AudioPlayerCommands.EXTRA_SLEEP_MINUTES to sleepSelectionMinutes,

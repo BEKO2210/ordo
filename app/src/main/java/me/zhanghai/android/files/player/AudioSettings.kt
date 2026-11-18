@@ -31,6 +31,9 @@ data class AudioSettings(
     val warmthLevel: Int = 2,
     val clarityEnabled: Boolean = false,
     val clarityLevel: Int = 2,
+    /** "Fill in missing highs": off by default, level 1 light or 2 medium (no strong level, never harsh). */
+    val highsEnabled: Boolean = false,
+    val highsLevel: Int = 1,
     val normalizationEnabled: Boolean = false,
     val normalizationPreampDb: Float = 0f,
     val speed: Float = 1f,
@@ -52,6 +55,7 @@ data class AudioSettings(
         reverbMix = reverbMix.coerceIn(0, 100),
         warmthLevel = warmthLevel.coerceIn(1, LEVELS),
         clarityLevel = clarityLevel.coerceIn(1, LEVELS),
+        highsLevel = highsLevel.coerceIn(1, HIGHS_LEVELS),
         normalizationPreampDb = normalizationPreampDb.takeIf { it.isFinite() }
             ?.coerceIn(MIN_GAIN_DB, MAX_GAIN_DB) ?: 0f,
         speed = speed.takeIf { it.isFinite() }?.coerceIn(0.5f, 2f) ?: 1f,
@@ -65,6 +69,7 @@ data class AudioSettings(
         /** Crossfeed, warmth and clarity come in three steps: light, medium, strong. */
         const val LEVELS = 3
         const val MAX_WIDTH_PERCENT = 150
+        const val HIGHS_LEVELS = 2
         val BAND_FREQUENCIES_HZ = intArrayOf(31, 62, 125, 250, 500, 1_000, 2_000, 4_000, 8_000, 16_000)
     }
 }
@@ -116,6 +121,8 @@ object AudioSettingsCodec {
             .put("warmth", warmthLevel)
             .put("clarityOn", clarityEnabled)
             .put("clarity", clarityLevel)
+            .put("highsOn", highsEnabled)
+            .put("highs", highsLevel)
             .put("normalization", normalizationEnabled)
             .put("normalizationPreamp", normalizationPreampDb.toDouble())
             .put("speed", speed.toDouble())
@@ -157,6 +164,8 @@ object AudioSettingsCodec {
                 warmthLevel = json.optInt("warmth", 2),
                 clarityEnabled = json.optBoolean("clarityOn", false),
                 clarityLevel = json.optInt("clarity", 2),
+                highsEnabled = json.optBoolean("highsOn", false),
+                highsLevel = json.optInt("highs", 1),
                 normalizationEnabled = json.optBoolean("normalization", false),
                 normalizationPreampDb = json.optDouble("normalizationPreamp", 0.0).toFloat(),
                 speed = json.optDouble("speed", 1.0).toFloat(),
@@ -190,6 +199,14 @@ object AudioSettingsStore {
 data class ReplayGainInfo(val gainDb: Float, val peak: Float? = null)
 
 object ReplayGain {
+    /**
+     * R128_TRACK_GAIN / R128_ALBUM_GAIN refer to EBU R 128 (RFC 7845, 5.2: "the normal volume reference is the
+     * [EBU-R128] standard"), whose target is -23.0 LUFS (EBU R 128 (2014), h)). ReplayGain 2.0 aims at -18 LUFS
+     * (its specification page refuses automated access; rsgain, a ReplayGain 2.0 scanner, documents "-18 LUFS target
+     * loudness value specified by ReplayGain" and that R128 gains "are referenced to -23 LUFS instead of -18 LUFS").
+     */
+    const val R128_TO_REPLAYGAIN_DB = 5f
+
     /** Limits ReplayGain plus its user pre-amp so a known peak never exceeds 0 dBFS. */
     fun effectiveGainDb(trackGainDb: Float, preampDb: Float, peak: Float?): Float {
         val requested = trackGainDb + preampDb

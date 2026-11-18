@@ -67,7 +67,8 @@ m3-progress-indicators, m3-shape-morph, m3-motion-physics). Hausregeln: keine Sc
    der Raum bestimmt · Wärme → ein Sinus, der sich zur weich begrenzten Form biegt · Klarheit → ungleiche Balken, die
    sich angleichen · Lautstärke angleichen → Balken, die sich auf eine Höhe setzen · Mono → zwei Wellen, die zu einer
    verschmelzen · Tempo → ein Pendel im gewählten Tempo · Stille überspringen → eine Wellenform, deren Lücken sich
-   schließen · Schlaf-Timer → Mond in einem Ring, der mit der Restzeit abläuft · Audiofokus und Kopfhörer wie oben.
+   schließen · Schlaf-Timer → Mond in einem Ring, der mit der Restzeit abläuft · Audiofokus und Kopfhörer wie oben ·
+   Höhen ergänzen → ein Spektrum, das an der Grenze abfällt, darüber leise aufgefüllt (nie so hoch wie die Musik).
    Auf Tablets (sw600dp) sind die Bilder 89 statt 55 dp hoch.
    Aus: gedämpfte Textfarbe; An: primary. Jede Änderung gleitet in 320 ms (FastOutSlowIn). Nur bei „Animationen: voll“
    atmen eingeschaltete Bilder in einer ruhigen 4-s-Schleife mit höchstens 30 Bildern/s, das Pendel schwingt im Tempo;

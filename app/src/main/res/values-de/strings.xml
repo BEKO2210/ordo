@@ -983,7 +983,7 @@
     <string name="audio_sound_strength">Stärke</string>
     <string name="audio_sound_normalization_heading">Lautstärke</string>
     <string name="audio_sound_normalization">Lautstärke angleichen</string>
-    <string name="audio_sound_normalization_summary">ReplayGain / R128 aus den Dateiangaben</string>
+    <string name="audio_sound_normalization_summary">ReplayGain-/R128-Tags, ohne Tags einmal gemessen</string>
     <string name="audio_sound_normalization_preamp">Vorverstärkung</string>
     <string name="audio_sound_playback_heading">Wiedergabe</string>
     <string name="audio_output_title">Abspielen auf …</string>
@@ -1065,4 +1065,9 @@
     <string name="audio_sound_mono_greyed">Aus, solange Mono an ist</string>
     <string name="audio_sound_picture">%1$s: %2$s</string>
     <string name="audio_sound_percent">%1$d %%</string>
+    <string name="audio_sleep_end_track_short">Titelende</string>
+    <string name="audio_sound_highs">Höhen ergänzen</string>
+    <string name="audio_sound_highs_summary">Ergänzt fehlende Höhen bei stark komprimierten Dateien, leise und nur oberhalb ihrer Grenze</string>
+    <string name="audio_sound_highs_found">Grenze bei %1$.1f kHz erkannt, darüber wird ergänzt</string>
+    <string name="audio_sound_highs_none">Keine fehlenden Höhen erkannt, nichts wird ergänzt</string>
 </resources>

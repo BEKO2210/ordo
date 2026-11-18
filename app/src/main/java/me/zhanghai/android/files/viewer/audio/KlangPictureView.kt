@@ -42,7 +42,8 @@ class KlangPictureView @JvmOverloads constructor(
     attrs: AttributeSet? = null
 ) : View(context, attrs), ViewTreeObserver.OnScrollChangedListener {
     enum class Kind {
-        BASS, CROSSFEED, WIDTH, REVERB, WARMTH, CLARITY, NORMALIZE, MONO, SPEED, SKIP_SILENCE, SLEEP, FOCUS, HEADPHONES
+        BASS, CROSSFEED, WIDTH, REVERB, WARMTH, CLARITY, NORMALIZE, MONO, SPEED, SKIP_SILENCE, SLEEP, FOCUS, HEADPHONES,
+        HIGHS
     }
 
     var kind = Kind.BASS
@@ -194,6 +195,7 @@ class KlangPictureView @JvmOverloads constructor(
             Kind.SLEEP -> drawSleep(canvas, left, top, right, bottom, phase)
             Kind.FOCUS -> drawFocus(canvas, left, top, right, bottom, phase)
             Kind.HEADPHONES -> drawHeadphones(canvas, left, top, right, bottom, phase)
+            Kind.HIGHS -> drawHighs(canvas, left, top, right, bottom, phase)
         }
         if (loop) {
             // Only while some of the picture is on screen; scrolling it back in restarts the loop.
@@ -477,6 +479,34 @@ class KlangPictureView @JvmOverloads constructor(
             (cx + icon / 2).roundToInt(), (cy + icon / 2).roundToInt()
         )
         headphones.draw(canvas)
+    }
+
+    /**
+     * A spectrum that falls off at the encoder's cut (three quarters of the way); the band above it fills in softly,
+     * higher with the stronger level, and never as tall as the music below.
+     */
+    private fun drawHighs(canvas: Canvas, l: Float, t: Float, r: Float, b: Float, phase: Float) {
+        val bars = 16
+        val cut = 12
+        val slot = (r - l) / bars
+        val barWidth = minOf(slot * 0.55f, dp(9f))
+        stroke.strokeWidth = barWidth
+        for (i in 0 until bars) {
+            val x = l + slot * (i + 0.5f)
+            val wobble = 0.05f * sin((phase + i / bars.toFloat()) * TWO_PI) * onness
+            val height = if (i < cut) {
+                (0.85f - 0.035f * i + wobble).coerceIn(0.1f, 1f)
+            } else {
+                // Above the cut: nothing in the file; the filled-in part stays well below the music.
+                (0.06f + (0.22f + 0.1f * amount - 0.05f * (i - cut)) * onness + wobble).coerceIn(0.04f, 0.4f)
+            }
+            stroke.color = if (i < cut) accent(0.55f + 0.45f * height) else accent(0.35f + 0.3f * onness)
+            canvas.drawLine(x, b - barWidth / 2, x, b - barWidth / 2 - (b - t - barWidth) * height, stroke)
+        }
+        stroke.strokeWidth = dp(1f)
+        stroke.color = trackColor()
+        val cutX = l + slot * cut
+        canvas.drawLine(cutX, t, cutX, b, stroke)
     }
 
     /** Fills [path] with y(x) sampled across the width, x passed as 0..1. */

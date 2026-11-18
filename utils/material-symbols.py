@@ -60,6 +60,7 @@ ICONS = {
     "audio_clarity_icon_24dp": "flare",
     "audio_volume_icon_24dp": "volume_up",
     "audio_playback_icon_24dp": "play_circle",
+    "audio_highs_icon_24dp": "waves",
     "backup_icon_white_24dp": "backup",
     "camera_icon_white_24dp": "photo_camera",
     "check_icon_control_normal_24dp": "check",

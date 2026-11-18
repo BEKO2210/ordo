@@ -1118,7 +1118,7 @@
     <string name="audio_sound_strength">Strength</string>
     <string name="audio_sound_normalization_heading">Volume</string>
     <string name="audio_sound_normalization">Even out volume</string>
-    <string name="audio_sound_normalization_summary">ReplayGain / R128 from the file tags</string>
+    <string name="audio_sound_normalization_summary">ReplayGain / R128 tags, or measured once for files without</string>
     <string name="audio_sound_normalization_preamp">Pre-amp</string>
     <string name="audio_sound_playback_heading">Playback</string>
     <string name="audio_output_title">Play on…</string>
@@ -1200,4 +1200,9 @@
     <string name="audio_sound_mono_greyed">Off while mono audio is on</string>
     <string name="audio_sound_picture">%1$s: %2$s</string>
     <string name="audio_sound_percent">%1$d %%</string>
+    <string name="audio_sleep_end_track_short">Track end</string>
+    <string name="audio_sound_highs">Fill in missing highs</string>
+    <string name="audio_sound_highs_summary">Adds missing highs to heavily compressed files, quietly and only above their cut</string>
+    <string name="audio_sound_highs_found">Cut at %1$.1f kHz found, filled in above it</string>
+    <string name="audio_sound_highs_none">No missing highs found, nothing is added</string>
 </resources>

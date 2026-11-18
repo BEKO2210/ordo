@@ -38,13 +38,16 @@ import kotlin.math.pow
  * Headphone crossfeed after Bauer (bs2b): each ear also hears the other channel through a first-order low-pass,
  * while the direct path gets a matching high-shelf boost, so the sound moves from inside the head to the front.
  */
-class CrossfeedAudioProcessor : StereoEffectProcessor() {
+class CrossfeedStage : KlangStage() {
     /** 1 light, 2 medium, 3 strong. */
     @Volatile
     var level: Int = 2
 
     private var appliedLevel = -1
     private var appliedRate = -1
+    private var snap = true
+    // Targets of a level change; the coefficients below glide towards them frame by frame.
+    private val targets = DoubleArray(6)
     private var a0Lo = 0.0
     private var b1Lo = 0.0
     private var a0Hi = 0.0
@@ -60,28 +63,43 @@ class CrossfeedAudioProcessor : StereoEffectProcessor() {
 
     override fun prepare() {
         val current = level.coerceIn(1, AudioSettings.LEVELS)
-        if (current == appliedLevel && sampleRate == appliedRate) return
+        if (current == appliedLevel && sampleRate == appliedRate) {
+            if (snap) jumpToTargets()
+            return
+        }
         appliedLevel = current
         appliedRate = sampleRate
         val (cutHz, feedDb) = LEVEL_PRESETS[current - 1]
         // bs2b init(): bs2b only accepts 2-384 kHz and falls back to 44.1 kHz outside.
-        val rate = if (sampleRate in MIN_RATE..MAX_RATE) sampleRate.toDouble() else DEFAULT_SAMPLE_RATE.toDouble()
+        val rate = if (sampleRate in MIN_RATE..MAX_RATE) sampleRate.toDouble() else KlangAudioProcessor.DEFAULT_SAMPLE_RATE.toDouble()
         val gbLo = feedDb * -5.0 / 6.0 - 3.0
         val gbHi = feedDb / 6.0 - 3.0
         val gLo = 10.0.pow(gbLo / 20.0)
         val gHi = 1.0 - 10.0.pow(gbHi / 20.0)
         val fcHi = cutHz * 2.0.pow((gbLo - 20.0 * log10(gHi)) / 12.0)
         var x = exp(-2.0 * PI * cutHz / rate)
-        b1Lo = x
-        a0Lo = gLo * (1.0 - x)
+        targets[0] = x
+        targets[1] = gLo * (1.0 - x)
         x = exp(-2.0 * PI * fcHi / rate)
-        b1Hi = x
-        a0Hi = 1.0 - gHi * (1.0 - x)
-        a1Hi = -x
-        gain = 1.0 / (1.0 - gHi + gLo)
+        targets[2] = x
+        targets[3] = 1.0 - gHi * (1.0 - x)
+        targets[4] = -x
+        targets[5] = 1.0 / (1.0 - gHi + gLo)
+        if (snap) jumpToTargets()
+    }
+
+    private fun jumpToTargets() {
+        b1Lo = targets[0]
+        a0Lo = targets[1]
+        b1Hi = targets[2]
+        a0Hi = targets[3]
+        a1Hi = targets[4]
+        gain = targets[5]
+        snap = false
     }
 
     override fun clear() {
+        snap = true
         loLeft = 0.0
         loRight = 0.0
         hiLeft = 0.0
@@ -92,6 +110,14 @@ class CrossfeedAudioProcessor : StereoEffectProcessor() {
 
     // bs2b cross_feed_d()
     override fun processFrame(left: Float, right: Float) {
+        // A level change glides the filter coefficients instead of switching them between two samples.
+        val g = glide.toDouble()
+        b1Lo += (targets[0] - b1Lo) * g
+        a0Lo += (targets[1] - a0Lo) * g
+        b1Hi += (targets[2] - b1Hi) * g
+        a0Hi += (targets[3] - a0Hi) * g
+        a1Hi += (targets[4] - a1Hi) * g
+        gain += (targets[5] - gain) * g
         loLeft = a0Lo * left + b1Lo * loLeft
         loRight = a0Lo * right + b1Lo * loRight
         hiLeft = a0Hi * left + a1Hi * lastLeft + b1Hi * hiLeft

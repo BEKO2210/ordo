@@ -296,6 +296,14 @@
                     android:layout_columnWeight="1"
                     android:layout_gravity="fill_horizontal"
                     android:layout_margin="@dimen/klang_card_gap_half" />
+                <include
+                    android:id="@+id/highsCard"
+                    layout="@layout/klang_effect_card"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_columnWeight="1"
+                    android:layout_gravity="fill_horizontal"
+                    android:layout_margin="@dimen/klang_card_gap_half" />
             </GridLayout>
             <TextView
                 android:id="@+id/bassUnavailable"

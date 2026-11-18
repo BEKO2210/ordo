@@ -57,7 +57,7 @@ check "Sound opens again at the top" paused_ui tap actionSound
 sleep 1.5
 
 EFFECTS=("Bass boost|Bassverstärkung" "Room sound for headphones|Raumklang für Kopfhörer" "Stereo width|Stereobreite"
-    "Reverb|Hall" "Analogue warmth|Analoge Wärme" "Clarity|Klarheit")
+    "Reverb|Hall" "Analogue warmth|Analoge Wärme" "Clarity|Klarheit" "Fill in missing highs|Höhen ergänzen")
 for effect in "${EFFECTS[@]}"; do
     name=${effect%%|*}
     if ! scrolled_to "$effect"; then

@@ -208,7 +208,7 @@ All pictures above come from `utils/readme-shots.sh` on the Android 16 emulator 
   main EQ control and exact 48 dp steppers behind Fine-tune, plus a fading sleep timer
 - Sound effects of Ordo’s own, the same on every phone: room sound for headphones (crossfeed after Bauer, a port of
   the MIT-licensed bs2b), stereo width (0 % mono to 150 % wide), reverb (Freeverb, public domain) with Room, Studio,
-  Club and Concert hall, analogue warmth and clarity (a multiband compressor, Android 9 and later). Every card of the
+  Club and Concert hall, analogue warmth, clarity (a multiband compressor, Android 9 and later) and, off by default, "Fill in missing highs" for heavily compressed files, which only acts above a cut it has found. Every card of the
   lower Sound sheet shows a small live picture of what it does; it holds still when Ordo’s animations are off
 - “Play on…” in the player opens Android’s output picker: Bluetooth headphones and speakers, wired and cast devices,
   without Google services (Android 11 and later; Android 6–10 opens the Bluetooth settings). Streaming music to
