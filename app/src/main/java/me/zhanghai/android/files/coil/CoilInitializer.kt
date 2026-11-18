@@ -23,6 +23,8 @@ fun initializeCoil() {
                 add(AppIconPackageNameFetcherFactory(application))
                 add(PathAttributesKeyer())
                 add(PathAttributesFetcher.Factory(application))
+                add(SongCoverKeyer())
+                add(SongCoverFetcher.Factory(application))
                 add(
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                         ImageDecoderDecoder.Factory()

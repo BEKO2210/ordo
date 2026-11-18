@@ -1,9 +1,7 @@
 New in this test build:
-• Ordo Music as an app of its own: songs, albums, artists, folders, side menu
-• Playlists, favourites, multi-select
-• Tag editor: change title, album, cover and more, with undo
-• Click-free sound, bit-perfect with everything off, "Full sound when quiet", "Fill in missing highs"
-• Icon colours for Ordo and Ordo Music
-• Ordo shows up in Android's file picker
-• Tablets: better player and sound sheet in landscape
+• Ordo Music: every song in a folder shows its own cover
+• Tapping the playing song opens the player and keeps playing
+• Faster home screen: numbers appear at once, the trash is counted in the background
+• Tablets: buttons on the album page no longer wrap
+Plus everything from 0.14: music library, tag editor, playlists, click-free sound, icon colours
 Feedback welcome: nullmesh@protonmail.com

@@ -113,4 +113,14 @@ class TrashTest {
             root.deleteRecursively()
         }
     }
+
+    @Test
+    fun summaryIsReusedOnlyForTheSameInfoFolderTime() {
+        val stored = Trash.formatSummary(Trash.Summary(15000, 189_792_256), 1_794_998_766_451)
+        assertEquals(Trash.Summary(15000, 189_792_256), Trash.parseSummary(stored, 1_794_998_766_451))
+        assertNull(Trash.parseSummary(stored, 1_794_998_766_452))
+        assertNull(Trash.parseSummary(null, 1))
+        assertNull(Trash.parseSummary("garbage", 1))
+        assertNull(Trash.parseSummary("1:x:2", 1))
+    }
 }

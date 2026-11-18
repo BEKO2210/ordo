@@ -37,7 +37,8 @@ check "the list is empty within 15 s after that" test -n "$empty" -a "$(( ${empt
 check "peak Java heap below 200 MB" test "$max" -lt 204800
 check "same process as before" test "$pid" = "$(a shell pidof "$PKG")"
 # Clean up: only this test's entries leave the trash.
-a shell "cd /sdcard/.OrdoTrash/info 2>/dev/null && for f in \$(grep -l $DIR/ *.info 2>/dev/null); do rm -f \"../files/\${f%.info}\" \"\$f\"; done; rmdir $DIR 2>/dev/null"
-check "no test files left in the trash" sh -c "! \"$ADB\" -s \"$SERIAL\" shell 'grep -ls $DIR/ /sdcard/.OrdoTrash/info/*.info' | grep -q ."
+check "the trash holds the $COUNT test files" test "$(trash_count Music/ordo-e2e-stress)" -ge "$COUNT"
+trash_drop Music/ordo-e2e-stress; a shell "rmdir $DIR 2>/dev/null"
+check "no test files left in the trash" test "$(trash_count Music/ordo-e2e-stress)" = 0
 back; back; back
 finish

@@ -437,6 +437,7 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
         if (twoPane && group != null) {
             bindHeader(binding.content.paneHeader, group)
             bindActions(binding.content.paneActions, shuffleOnly = false)
+            stackPaneActions()
             binding.content.paneActions.root.isVisible = shownSongs.isNotEmpty()
         }
         // A page has no large title area: its own cover and name are the header.
@@ -555,6 +556,25 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
                 header.art, placeholder(group.name, R.drawable.directory_icon_white_24dp),
                 albumCovers(group.songs), resources.getDimension(R.dimen.phi_21), size / 12
             )
+        }
+    }
+
+    /**
+     * In the narrow left pane (a tablet upright with the side menu beside it) "Abspielen" and "Zufällig" side by side
+     * broke into two lines each: there they stand one above the other, each the full width.
+     */
+    private fun stackPaneActions() {
+        val actions = binding.content.paneActions
+        if (actions.root.orientation == android.widget.LinearLayout.VERTICAL) return
+        actions.root.orientation = android.widget.LinearLayout.VERTICAL
+        val gap = resources.getDimensionPixelSize(R.dimen.phi_8)
+        for (button in listOf(actions.play, actions.shuffle)) {
+            button.layoutParams = (button.layoutParams as android.widget.LinearLayout.LayoutParams).apply {
+                width = ViewGroup.LayoutParams.MATCH_PARENT
+                weight = 0f
+                marginEnd = 0
+                topMargin = if (button === actions.shuffle) gap else 0
+            }
         }
     }
 
@@ -1038,6 +1058,12 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
         )
 
     private fun play(songs: List<MusicSong>, index: Int) {
+        // The song that is already in the session: the player opens and it plays on from where it is, in any list
+        // (also in another list than the one it was started from); no new queue, no seek.
+        if (MusicLibrary.isSameSong(songs[index].path, controller?.currentMediaItem?.mediaId)) {
+            startActivitySafe(AudioPlayerActivity.createResumeIntent(this))
+            return
+        }
         val window = queueWindow(songs.size, index)
         val intent = Intent(this, AudioPlayerActivity::class.java)
         AudioPlayerActivity.putExtras(intent, songs.slice(window).map { Paths.get(it.path) }, index - window.first)
@@ -1089,7 +1115,7 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
             title = metadata.title?.takeIf { it.isNotBlank() } ?: song?.title ?: metadata.displayTitle
                 ?: getString(R.string.audio_player_unknown_title)
             artist = metadata.artist?.takeIf { it.isNotBlank() } ?: song?.artist
-            art = metadata.artworkData ?: song?.artUri
+            art = metadata.artworkData ?: song?.let { me.zhanghai.android.files.coil.SongCover(it.path, it.artUri) }
             album = song?.album ?: metadata.albumTitle?.toString()
             showPlay = Util.shouldShowPlayButton(player)
         } else if (savedState != null && player != null) {
@@ -1097,7 +1123,7 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
             val song = songAt(pathUri)
             title = song?.title ?: pathUri.substringAfterLast('/')
             artist = song?.artist
-            art = song?.artUri
+            art = song?.let { me.zhanghai.android.files.coil.SongCover(it.path, it.artUri) }
             album = song?.album
             showPlay = true
         } else {
@@ -1221,9 +1247,13 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
                         slotBars.color = accentColor
                         slotBars.setPlaying(current && currentPlaying)
                     } else {
-                        bindArt(
-                            art, placeholder(song.album, R.drawable.audio_icon_white_24dp), listOf(song.artUri),
-                            resources.getDimension(R.dimen.phi_radius_s)
+                        // Each song its own cover (embedded picture first): an untagged folder is one MediaStore
+                        // album, whose cover would otherwise repeat on every row.
+                        art.root.radius = resources.getDimension(R.dimen.phi_radius_s)
+                        art.collage.isVisible = false
+                        art.cover.loadCover(
+                            me.zhanghai.android.files.coil.SongCover(song.path, song.artUri),
+                            placeholder(song.album, R.drawable.audio_icon_white_24dp)
                         )
                         art.bars.isVisible = current
                         art.bars.color = Color.WHITE

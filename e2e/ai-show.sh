@@ -82,6 +82,6 @@ check "the note names the changed file" on_screen "seit der Vorschau geändert|c
 shot ai-show-changed
 check "the replaced file is still there" exists big_ordoe2e.mp4
 check "the unchanged one went to the trash" not exists small_ordoe2e.mp4
-a shell "rm -f /sdcard/.OrdoTrash/files/*ordoe2e* /sdcard/.OrdoTrash/info/*ordoe2e*"
+trash_drop ordo-e2e-ai   # trash files are named by entry id, not by their old name
 a shell "rm -rf $DIR /sdcard/ordo-e2e-ui.xml"
 finish
