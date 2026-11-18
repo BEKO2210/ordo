@@ -501,10 +501,14 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
         val group = shownGroup
         val searching = searchItem.isActionViewExpanded
         val collapsing = binding.content.collapsingToolbar
+        // The count is a view of its own in the toolbar: a title drawn by the collapsing bar is not reliably shown
+        // (or read by TalkBack) while the search field steps aside.
+        val count = binding.content.selectionCount
+        count.isVisible = selection.isNotEmpty()
         if (selection.isNotEmpty()) {
             collapsing.isTitleEnabled = false
-            binding.content.toolbar.title =
-                resources.getQuantityString(R.plurals.music_selected, selection.size, selection.size)
+            binding.content.toolbar.title = null
+            count.text = resources.getQuantityString(R.plurals.music_selected, selection.size, selection.size)
             return
         }
         if (group == null) {
@@ -871,16 +875,15 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
             keepQueryOnCollapse = true
             searchItem.collapseActionView()
         }
-        if (selection.isEmpty()) restoreSearch()
         render()
-        // The toolbar puts its title back only after the search field has gone: set it once more then.
-        binding.root.post { updateTitle() }
+        // The search field comes back only once the menu shows its item again (next frame).
+        if (selection.isEmpty()) binding.root.post { restoreSearch() }
     }
 
     private fun clearSelection() {
         selection.clear()
-        restoreSearch()
         render()
+        binding.root.post { restoreSearch() }
     }
 
     /** After a selection made in search results, the search field comes back with its words. */

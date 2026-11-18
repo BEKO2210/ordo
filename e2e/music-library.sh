@@ -91,7 +91,11 @@ check "shuffle all is the first row" eval 'ui texts | grep -Eq "^(Alle zufällig
 # Enter submits the search: the soft keyboard closes and no longer hides the lower rows (phones).
 search() { ui tap actionSearch >/dev/null && sleep 1 && a shell input text "$1" && a shell input keyevent KEYCODE_ENTER && sleep 2; }
 # The first back may only hide the keyboard; back is pressed once more only while the search field is still there.
-close_search() { back 1; ui has search_src_text || return 0; back 1; ! ui has search_src_text; }
+# Back only while the search field is there: one more back would leave the app.
+close_search() {
+    ui has search_src_text || return 0
+    back 1; ui has search_src_text || return 0; back 1; ! ui has search_src_text
+}
 above() { local a b; a=$(ui bounds "$1" | head -1 | cut -d" " -f2); b=$(ui bounds "$2" | head -1 | cut -d" " -f2); [ "$a" -lt "$b" ]; }
 check "search opens from the toolbar" search Ordoe2e
 check "Songs lists the tagged titles" ui wait "Ordoe2e Alpha" 10
