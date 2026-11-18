@@ -103,13 +103,20 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = AudioSoundSettingsSheetBinding.inflate(inflater, container, false)
-        return if (isSplit()) splitPanes() else binding.root
+        if (isSplit()) return splitPanes()
+        // In landscape the sheet is as tall as the window and the column scrolls inside it.
+        if (isLandscape()) {
+            binding.root.layoutParams =
+                ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
+        }
+        return binding.root
     }
 
     /** Landscape at 840 dp and wider: the equalizer on the left, the cards on the right, each scrolling on its own. */
-    private fun isSplit(): Boolean = resources.configuration.let {
-        it.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE && it.screenWidthDp >= SPLIT_MIN_DP
-    }
+    private fun isLandscape(): Boolean =
+        resources.configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
+
+    private fun isSplit(): Boolean = isLandscape() && resources.configuration.screenWidthDp >= SPLIT_MIN_DP
 
     /**
      * Moves the views of the one long column into two panes, 38.2 : 61.8 (golden ratio): curve, presets and fine-tune
@@ -136,6 +143,8 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment() {
         (binding.effectsSection.getChildAt(0).layoutParams as? ViewGroup.MarginLayoutParams)?.topMargin = 0
         return LinearLayout(context).apply {
             orientation = LinearLayout.HORIZONTAL
+            // Full height, so each pane is bounded and scrolls (wrapping the content, nothing scrolled).
+            layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
             addView(scroller(pane(views.subList(0, firstLower)), 0.382f, R.id.klangLeftPane))
             addView(scroller(pane(views.subList(firstLower, views.size)), 0.618f, R.id.klangRightPane))
         }
@@ -233,13 +242,16 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment() {
         sheet.layoutParams = sheet.layoutParams.apply {
             this.width = width
             // Two panes scroll inside a sheet of full height; one column scrolls inside the sheet as before.
-            if (split) height = ViewGroup.LayoutParams.MATCH_PARENT
+            if (isLandscape()) height = ViewGroup.LayoutParams.MATCH_PARENT
         }
         (sheet.layoutParams as? FrameLayout.LayoutParams)?.gravity = Gravity.CENTER_HORIZONTAL
         val behavior = BottomSheetBehavior.from(sheet)
         // Material caps a bottom sheet at 640 dp; that made a narrow strip in a wide landscape window.
         behavior.maxWidth = width
         behavior.skipCollapsed = true
+        // The sheet follows only one scrolling child; with two panes a drag would move the sheet instead of the
+        // right pane. Closing stays with the close button and Back.
+        if (isLandscape()) behavior.isDraggable = false
         behavior.state = BottomSheetBehavior.STATE_EXPANDED
         handler.removeCallbacks(sleepTicker)
         handler.postDelayed(sleepTicker, SLEEP_REFRESH_MS)
