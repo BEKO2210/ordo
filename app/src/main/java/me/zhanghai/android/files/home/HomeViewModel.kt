@@ -12,6 +12,8 @@ import android.os.Looper
 import android.os.SystemClock
 import android.provider.MediaStore
 import android.util.Log
+import androidx.core.content.edit
+import me.zhanghai.android.files.app.defaultSharedPreferences
 import me.zhanghai.android.files.BuildConfig
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
@@ -22,7 +24,10 @@ import kotlinx.coroutines.withContext
 
 class HomeViewModel(application: Application) : AndroidViewModel(application) {
     private val repository = HomeRepository(application)
-    private val _state = MutableLiveData(HomeState())
+    // The last reload's numbers right away; the reload below replaces them.
+    private val _state = MutableLiveData(
+        HomeNumbersCache.parse(defaultSharedPreferences.getString(NUMBERS_KEY, null)) ?: HomeState()
+    )
     val state: LiveData<HomeState> = _state
 
     // Declared before init: its reload() uses it.
@@ -77,13 +82,16 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         if (_state.value?.storages.isNullOrEmpty()) _state.value = _state.value?.copy(storages = storages)
         val partial = withContext(Dispatchers.IO) { repository.load(quickAccess, storages) }
         _state.value = _state.value?.withSections(partial)
+        if (BuildConfig.DEBUG) Log.d(TAG, "reload sections")
         val counts = withContext(Dispatchers.IO) { repository.loadCounts(partial) }
         _state.value = _state.value?.withCounts(counts)
+        _state.value?.let { done -> defaultSharedPreferences.edit { putString(NUMBERS_KEY, HomeNumbersCache.format(done)) } }
         if (BuildConfig.DEBUG) Log.d(TAG, "reload done")
     }
 
     companion object {
         private const val TAG = "HomeViewModel"
+        private const val NUMBERS_KEY = "home_numbers"
         private const val QUIET_MS = 800L
         private const val MAX_WAIT_MS = 3000L
         // The rhythm MAX_WAIT_MS already gives fast loads during a long copy; slow loads (large libraries) get it too.
