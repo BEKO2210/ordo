@@ -55,15 +55,29 @@ object OrdoDocumentIds {
         return file.takeIf { file in recent || bases.any { base -> isInside(file, base) } }
     }
 
+    /** Pictures larger than this many pixels get no thumbnail at all: decoding them could exhaust memory. */
+    const val MAX_THUMBNAIL_SOURCE_PIXELS = 50_000_000L
+
     /**
-     * The power-of-two subsampling that decodes an image of [width] x [height] to at least [target] pixels on its
-     * shorter side and no more than needed: a thumbnail never decodes the full photo.
+     * The power-of-two subsampling that brings an image of [width] x [height] down to [target] pixels or less on its
+     * longer side: a thumbnail never decodes the full picture, also not a 100000 x 600 panorama.
      */
     fun sampleSize(width: Int, height: Int, target: Int): Int {
         var sample = 1
-        while (minOf(width, height) / (sample * 2) >= target.coerceAtLeast(1)) sample *= 2
+        while (maxOf(width, height) / sample > target.coerceAtLeast(1)) sample *= 2
         return sample
     }
+
+    /** False for bounds that are missing or too large to decode safely ([MAX_THUMBNAIL_SOURCE_PIXELS]). */
+    fun canThumbnail(width: Int, height: Int): Boolean =
+        width > 0 && height > 0 && width.toLong() * height <= MAX_THUMBNAIL_SOURCE_PIXELS
+
+    /**
+     * Whether a tree grant (ACTION_OPEN_DOCUMENT_TREE) may start at this top-level document. Only the bookmark place:
+     * its content is the folders the user chose. "Recently used" changes by itself, so a grant on it would hand the
+     * client every file that later becomes recent; recent files are granted one document at a time.
+     */
+    fun supportsTree(topDocumentId: String): Boolean = topDocumentId == ROOT
 
     fun isInside(file: File, base: File): Boolean =
         file.path == base.path || file.path.startsWith(base.path.trimEnd('/') + "/")

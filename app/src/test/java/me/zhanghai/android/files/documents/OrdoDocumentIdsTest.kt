@@ -95,9 +95,26 @@ class OrdoDocumentIdsTest {
     @Test
     fun thumbnailsDecodeSubsampledNeverInFull() {
         assertEquals(1, OrdoDocumentIds.sampleSize(400, 300, 512))
-        assertEquals(4, OrdoDocumentIds.sampleSize(4000, 3000, 512))
-        assertEquals(8, OrdoDocumentIds.sampleSize(8000, 6000, 512))
+        assertEquals(8, OrdoDocumentIds.sampleSize(4000, 3000, 512))
+        assertEquals(16, OrdoDocumentIds.sampleSize(8000, 6000, 512))
         assertTrue(OrdoDocumentIds.sampleSize(100, 100, 0) >= 1)
+        // An extreme panorama: the longer side decides, so it is not decoded at nearly full size.
+        val sample = OrdoDocumentIds.sampleSize(100_000, 600, 512)
+        assertTrue("$sample", 100_000 / sample <= 512)
+        // Huge or missing bounds get no thumbnail at all.
+        assertTrue(OrdoDocumentIds.canThumbnail(8000, 6000))
+        assertFalse(OrdoDocumentIds.canThumbnail(10_000, 10_000))
+        assertFalse(OrdoDocumentIds.canThumbnail(100_000, 600_000))
+        assertFalse(OrdoDocumentIds.canThumbnail(0, 600))
+    }
+
+    @Test
+    fun onlyTheBookmarkPlaceAllowsTreeGrants() {
+        assertTrue(OrdoDocumentIds.supportsTree(OrdoDocumentIds.ROOT))
+        assertFalse(OrdoDocumentIds.supportsTree(OrdoDocumentIds.RECENT))
+        val provider = File("src/main/java/me/zhanghai/android/files/documents/OrdoDocumentsProvider.kt").readText()
+        assertTrue(provider.contains("if (parentDocumentId == OrdoDocumentIds.RECENT) return false"))
+        assertTrue(provider.contains("if (OrdoDocumentIds.supportsTree(documentId)) Root.FLAG_SUPPORTS_IS_CHILD else 0"))
     }
 
     @Test

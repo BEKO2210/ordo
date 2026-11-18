@@ -99,7 +99,7 @@ class OrdoDocumentsProvider : DocumentsProvider() {
                 add(Root.COLUMN_TITLE, context.getString(R.string.app_name))
                 add(Root.COLUMN_SUMMARY, context.getString(summary))
                 add(Root.COLUMN_ICON, R.mipmap.launcher_icon)
-                add(Root.COLUMN_FLAGS, Root.FLAG_SUPPORTS_IS_CHILD)
+                add(Root.COLUMN_FLAGS, if (OrdoDocumentIds.supportsTree(documentId)) Root.FLAG_SUPPORTS_IS_CHILD else 0)
                 add(Root.COLUMN_MIME_TYPES, "*/*")
             }
         }
@@ -169,20 +169,24 @@ class OrdoDocumentsProvider : DocumentsProvider() {
         val target = minOf(sizeHint?.let { minOf(it.x, it.y) } ?: THUMBNAIL_MAX_PX, THUMBNAIL_MAX_PX)
         if (file.length() > THUMBNAIL_MAX_BYTES) throw FileNotFoundException(documentId)
         val mimeType = mimeTypeOf(file)
-        val bitmap = when {
-            mimeType.startsWith("image/") -> decodeSampled(target) { BitmapFactory.decodeFile(file.path, it) }
-            mimeType.startsWith("audio/") -> {
-                val picture = MediaMetadataRetriever().run {
-                    try {
-                        setDataSource(file.path)
-                        embeddedPicture
-                    } finally {
-                        release()
-                    }
-                } ?: throw FileNotFoundException(documentId)
-                decodeSampled(target) { BitmapFactory.decodeByteArray(picture, 0, picture.size, it) }
+        val bitmap = try {
+            when {
+                mimeType.startsWith("image/") -> decodeSampled(target) { BitmapFactory.decodeFile(file.path, it) }
+                mimeType.startsWith("audio/") -> {
+                    val picture = MediaMetadataRetriever().run {
+                        try {
+                            setDataSource(file.path)
+                            embeddedPicture
+                        } finally {
+                            release()
+                        }
+                    } ?: throw FileNotFoundException(documentId)
+                    decodeSampled(target) { BitmapFactory.decodeByteArray(picture, 0, picture.size, it) }
+                }
+                else -> null
             }
-            else -> null
+        } catch (e: OutOfMemoryError) {
+            null
         } ?: throw FileNotFoundException(documentId)
         signal?.throwIfCanceled()
         val thumbnail = File(context!!.cacheDir, "document-thumbnails").apply { mkdirs() }
@@ -197,17 +201,16 @@ class OrdoDocumentsProvider : DocumentsProvider() {
     private fun decodeSampled(target: Int, decode: (BitmapFactory.Options) -> Bitmap?): Bitmap? {
         val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
         decode(bounds)
-        if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return null
+        if (!OrdoDocumentIds.canThumbnail(bounds.outWidth, bounds.outHeight)) return null
         return decode(BitmapFactory.Options().apply {
             inSampleSize = OrdoDocumentIds.sampleSize(bounds.outWidth, bounds.outHeight, target)
         })
     }
 
     override fun isChildDocument(parentDocumentId: String, documentId: String): Boolean {
+        // No tree grants on "Recently used" (see OrdoDocumentIds.supportsTree).
+        if (parentDocumentId == OrdoDocumentIds.RECENT) return false
         val bases = bases()
-        if (parentDocumentId == OrdoDocumentIds.RECENT) {
-            return OrdoDocumentIds.fileOf(documentId, emptyList(), recent()) != null
-        }
         val child = OrdoDocumentIds.fileOf(documentId, bases) ?: return false
         if (parentDocumentId == OrdoDocumentIds.ROOT) return true
         val parent = OrdoDocumentIds.fileOf(parentDocumentId, bases) ?: return false

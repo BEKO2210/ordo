@@ -24,7 +24,12 @@ bleibt daneben bestehen.
   Startseite unter „Zuletzt verwendet“ zeigt (MediaStore, neueste zuerst, höchstens 50, alle 10 s neu gelesen), mit
   denselben Prüfungen; leer ist der Ort ausgeblendet.
 - **Vorschaubilder** für Bilder (unterabgetastet dekodiert, nie in voller Größe) und Musik (eingebettetes Cover),
-  höchstens 512 px auf der kürzeren Seite, nicht für Dateien über 64 MB.
+  höchstens 512 px auf der längeren Seite; keine für Dateien über 64 MB oder Bilder über 50 Megapixel, und fehlt
+  Speicher, gibt es eben kein Vorschaubild.
+- **Ordner-Freigaben nur für die Lesezeichen**: Der Ort „Lesezeichen“ erlaubt eine Freigabe als Ordner
+  (ACTION_OPEN_DOCUMENT_TREE), denn sein Inhalt sind die Ordner, die du selbst gewählt hast. „Zuletzt verwendet“ erlaubt
+  das nicht (kein `FLAG_SUPPORTS_IS_CHILD`, `isChildDocument` = falsch): Die Liste ändert sich von selbst, eine Freigabe
+  darauf gäbe der fremden App jede Datei, die später zuletzt verwendet wird. Dort gibt es nur einzelne Dateien.
 - **Geänderte Lesezeichen** melden die Orte neu (`notifyChange` auf die Roots-URI), eine offene Auswahl sieht sie sofort.
 - **Kein Schreiben, kein Anlegen, kein Löschen**: `openDocument` erlaubt nur `r`, keine Flags zum Schreiben.
 - **Nur mit Zugriff auf alle Dateien** (ab Android 11 `isExternalStorageManager`, davor Leserecht); ohne ihn und ohne
