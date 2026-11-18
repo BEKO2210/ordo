@@ -3,7 +3,7 @@
 # Format matrix, WRITES: creates /storage/emulated/0/ordo-e2e-formats with 12-s files made by ffmpeg (MP3 CBR/VBR,
 # AAC, FLAC 16/24-bit, Opus, Vorbis, WAV 16/24/32-bit float; 44.1 to 192 kHz; mono, stereo, 5.1) and removes it again.
 # Each file, once with every Klang effect off and once with all of them on: it plays (state=PLAYING), the player shows
-# the right duration, a tap on the seek bar at 3/4 lands there, playback goes on from there. Two FLAC and two MP3 halves
+# the right duration, a tap on the seek bar at 3/4 lands there, playback goes on from there. Three FLAC and three MP3 parts
 # of one tone must follow each other without a gap. The sound settings are written through run-as (debug builds) and
 # restored afterwards. Needs ffmpeg on the host.
 . "$(dirname "$0")/lib.sh" "$@"
@@ -52,13 +52,13 @@ for entry in "${FORMATS[@]}"; do
     ffmpeg -v error -f lavfi -i "aevalsrc=$(tones "$ch"):s=$rate:d=$DURATION:c=$(layout "$ch")" $opts \
         "$tmp/$name/$name.$ext" || echo "FAIL ffmpeg could not make $name"
 done
-# Gapless: one continuous tone cut at exactly 6 s into two files.
+# Gapless: one continuous tone cut into three files of exactly 4 s.
 mkdir -p "$tmp/gapless-flac" "$tmp/gapless-mp3"
 ffmpeg -v error -f lavfi -i "aevalsrc=0.25*sin(2*PI*440*t)|0.25*sin(2*PI*550*t):s=44100:d=12:c=stereo" "$tmp/tone.wav"
-for half in 1 2; do
-    start=$(((half - 1) * 6))
-    ffmpeg -v error -ss $start -t 6 -i "$tmp/tone.wav" -c:a flac "$tmp/gapless-flac/gap$half.flac"
-    ffmpeg -v error -ss $start -t 6 -i "$tmp/tone.wav" -c:a libmp3lame -b:a 256k "$tmp/gapless-mp3/gap$half.mp3"
+for part in 1 2 3; do
+    start=$(((part - 1) * 4))
+    ffmpeg -v error -ss $start -t 4 -i "$tmp/tone.wav" -c:a flac "$tmp/gapless-flac/gap$part.flac"
+    ffmpeg -v error -ss $start -t 4 -i "$tmp/tone.wav" -c:a libmp3lame -b:a 256k "$tmp/gapless-mp3/gap$part.mp3"
 done
 rm "$tmp/tone.wav"
 a push "$tmp/." "$DIR/" >/dev/null
@@ -105,7 +105,19 @@ seek_three_quarters() {
     # 3/4 of 12 s is 9 s; the bar's own padding moves the tap a little.
     [ -n "$p" ] && [ "$p" -ge 7500 ] && [ "$p" -le 10500 ]
 }
-moves_on() { local p; p=$(session_field position); wait_playing && sleep 1.5 && [ "$(session_field position)" -gt "$p" ]; }
+# The session stamps its position only on events; while playing, the position now is the stamp plus the time since
+# (elapsedRealtime is CLOCK_BOOTTIME, the first field of /proc/uptime).
+position_now() {
+    local line now p u
+    line=$(a shell "dumpsys media_session | grep -A25 'package=$PKG' | grep -m1 'state=PlaybackState'; cat /proc/uptime")
+    p=$(grep -oE '[{ ]position=[0-9]+' <<<"$line" | head -1 | cut -d= -f2); u=$(grep -oE 'updated=[0-9]+' <<<"$line" | cut -d= -f2)
+    now=$(tail -1 <<<"$line" | awk '{ printf "%d", $1 * 1000 }')
+    if grep -q 'state=PLAYING' <<<"$line"; then echo $((p + now - u)); else echo "$p"; fi
+}
+moves_on() { # position when paused at the seek
+    wait_playing && sleep 1.5 && playing && [ "$(position_now)" -ge $(($1 + 1000)) ] && return 0
+    echo "INFO   state $(session_state), position $(position_now) ms after a seek to $1 ms" >&3; return 1
+}
 open_folder() {
     a shell am start -W -a android.intent.action.VIEW -d "file://$DIR/$1" -t inode/directory \
         -n "$PKG/me.zhanghai.android.files.filelist.FileListActivity" >/dev/null
@@ -121,36 +133,40 @@ play_file() { # name file label
     pause_playback; sleep 0.5
     check "$3: shows ${DURATION} s" duration_ok
     check "$3: a seek bar tap at 3/4 lands there" seek_three_quarters
+    local seek; seek=$(session_field position)
     a shell input keyevent KEYCODE_MEDIA_PLAY >/dev/null
-    check "$3: plays on from there" moves_on
+    check "$3: plays on from there" moves_on "$seek"
     pause_playback
 }
 
-# gap_ms folder first second: the time between the end of the first file and the start of the second, measured from
-# the session's own position stamps (position at an elapsedRealtime) before and after the switch.
+# gap_ms folder first: one tone cut into three 4-s files. The session stamps its position (position at an
+# elapsedRealtime) at each switch to the next file; the second and third stamps lie exactly 4 s of audio apart when
+# nothing is lost between the files. Comparing two switches cancels the player's start-up delay.
 gap_ms() {
     open_folder "$1" "$2" || return 1
     ui tap "$2" >/dev/null
-    local i item first="" p1 u1 p2 u2 now
-    for i in $(seq 1 60); do
+    local i item last="" now p u stamps=()
+    for i in $(seq 1 80); do
         now=$(session); item=$(grep -oE 'active item id=[0-9-]+' <<<"$now")
-        if [ -z "$first" ] && grep -q 'state=PLAYING' <<<"$now"; then
-            first=$item; p1=$(grep -oE 'position=[0-9]+' <<<"$now" | cut -d= -f2); u1=$(grep -oE 'updated=[0-9]+' <<<"$now" | cut -d= -f2)
-        elif [ -n "$first" ] && [ "$item" != "$first" ]; then
-            p2=$(grep -oE 'position=[0-9]+' <<<"$now" | cut -d= -f2); u2=$(grep -oE 'updated=[0-9]+' <<<"$now" | cut -d= -f2)
-            echo $(((u2 - p2) - (u1 - p1) - 6000)); return 0
+        if grep -q 'state=PLAYING' <<<"$now" && [ "$item" != "$last" ]; then
+            p=$(grep -oE '[{ ]position=[0-9]+' <<<"$now" | head -1 | cut -d= -f2); u=$(grep -oE 'updated=[0-9]+' <<<"$now" | cut -d= -f2)
+            stamps+=("$((u - p))"); last=$item
+            if [ ${#stamps[@]} = 3 ]; then echo $((stamps[2] - stamps[1] - 4000)); return 0; fi
         fi
-        sleep 0.25
+        sleep 0.2
     done
     return 1
 }
 gapless() { # folder first label
     local gap; gap=$(gap_ms "$1" "$2"); pause_playback
-    echo "INFO $3: gap ${gap:-?} ms"
-    [ -n "$gap" ] && [ "${gap#-}" -le 150 ]
+    echo "INFO $3: gap ${gap:-?} ms" >&3
+    [ -n "$gap" ] && [ "${gap#-}" -le 50 ]
 }
+exec 3>&1 # INFO lines reach the log past check's redirection
 
 errors_before=$(a logcat -d | grep -c "ExoPlayerImplInternal.*Playback error")
+# ONLY=name1,name2 runs just those formats (and the gapless pairs).
+[ -n "${ONLY:-}" ] && mapfile -t FORMATS < <(printf '%s\n' "${FORMATS[@]}" | grep -E "^(${ONLY//,/|})\|")
 for effects in off on; do
     set_effects $effects
     for entry in "${FORMATS[@]}"; do
@@ -158,8 +174,8 @@ for effects in off on; do
         play_file "$name" "$name.$ext" "$name (Klang $effects)"
         back 1
     done
-    check "gapless FLAC (Klang $effects): the second half follows without a gap" gapless gapless-flac gap1.flac "FLAC $effects"
-    check "gapless MP3 (Klang $effects): the second half follows without a gap" gapless gapless-mp3 gap1.mp3 "MP3 $effects"
+    check "gapless FLAC (Klang $effects): the parts follow without a gap" gapless gapless-flac gap1.flac "FLAC $effects"
+    check "gapless MP3 (Klang $effects): the parts follow without a gap" gapless gapless-mp3 gap1.mp3 "MP3 $effects"
 done
 check "no playback error in the log" test "$(a logcat -d | grep -c "ExoPlayerImplInternal.*Playback error")" = "$errors_before"
 finish
