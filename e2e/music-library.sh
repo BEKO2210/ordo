@@ -9,13 +9,14 @@ ROOT=/storage/emulated/0
 ROCK=$ROOT/Music/OrdoE2E-Rock
 JAZZ=$ROOT/Download/OrdoE2E-Jazz
 EDIT=$ROOT/Music/OrdoE2E-Edit
+COVERS=$ROOT/Music/OrdoE2E-Covers
 LIBRARY=me.zhanghai.android.files.viewer.audio.MusicLauncherActivity
 PLAYLISTS=$ROOT/Music/Playlists
 # The test's own playlist goes, and the favourites lose only the test songs (or go, if the test made them);
 # the owner's lists stay as they were.
 FAVORITES_BEFORE=$(a shell "[ -f $PLAYLISTS/Favorites.m3u8 ] && echo yes" | tr -d '\r')
 clean_up() {
-    a shell "rm -rf $ROCK $JAZZ $EDIT; rm -f \"$PLAYLISTS/Ordoe2e List.m3u8\""
+    a shell "rm -rf $ROCK $JAZZ $EDIT $COVERS; rm -f \"$PLAYLISTS/Ordoe2e List.m3u8\""
     if [ "$FAVORITES_BEFORE" = yes ]; then
         a shell "sed -i /OrdoE2E-/d $PLAYLISTS/Favorites.m3u8"
     else
@@ -48,6 +49,22 @@ for name, title, artist, album, track in [
     ("jazz-1.mp3", "Ordoe2e Gamma", "Ordoe2e Duo", sys.argv[3], "1"),
 ]:
     (root / name).write_bytes(id3(TIT2=title, TPE1=artist, TALB=album, TRCK=track) + silence)
+# Two songs without an album in one folder (MediaStore makes them one album, named after the folder), each with a
+# cover of its own embedded: red and blue. The folder page must show each song's cover, not one for all.
+import zlib
+def png(rgb, n=64):
+    rows = b"".join(b"\0" + bytes(rgb) * n for _ in range(n))
+    chunk = lambda t, d: struct.pack(">I", len(d)) + t + d + struct.pack(">I", zlib.crc32(t + d) & 0xffffffff)
+    return b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", struct.pack(">IIBBBBB", n, n, 8, 2, 0, 0, 0)) + \
+        chunk(b"IDAT", zlib.compress(rows)) + chunk(b"IEND", b"")
+def apic(name, data):
+    return name.encode() + struct.pack(">I", len(data)) + b"\0\0" + data
+for name, title, rgb in [("cover-red.mp3", "Ordoe2e Red", (220, 30, 30)), ("cover-blue.mp3", "Ordoe2e Blue", (30, 60, 220))]:
+    body = b"".join(apic(k, b"\0" + v.encode()) for k, v in (("TIT2", title), ("TPE1", "Ordoe2e Duo"))) + \
+        apic("APIC", b"\0image/png\0\x03\0" + png(rgb))
+    size = len(body)
+    tag = b"ID3\x03\0\0" + bytes([(size >> 21) & 127, (size >> 14) & 127, (size >> 7) & 127, size & 127]) + body
+    (root / name).write_bytes(tag + silence)
 # A WAV without tags, 16-bit stereo like real music: its title comes from the file name.
 with wave.open(str(root / "Ordoe2e Delta.wav"), "wb") as out:
     out.setnchannels(2); out.setsampwidth(2); out.setframerate(44100)
@@ -56,6 +73,11 @@ PY
 a shell "rm -rf $ROCK $JAZZ; mkdir -p $ROCK $JAZZ"
 a push "$tmp/rock-1.mp3" "$tmp/rock-2.mp3" "$ROCK/" >/dev/null
 a push "$tmp/jazz-1.mp3" "$tmp/Ordoe2e Delta.wav" "$JAZZ/" >/dev/null
+a shell "rm -rf $COVERS; mkdir -p $COVERS"
+a push "$tmp/cover-red.mp3" "$tmp/cover-blue.mp3" "$COVERS/" >/dev/null
+for f in cover-red.mp3 cover-blue.mp3; do
+    a shell am broadcast -a android.intent.action.MEDIA_SCANNER_SCAN_FILE -d "file://$COVERS/$f" >/dev/null 2>&1
+done
 # The tag editor's test songs: the unit tests' 1 s stereo MP3 and FLAC, both titled "Fixture".
 a shell "rm -rf $EDIT; mkdir -p $EDIT"
 a push "$HERE/../app/src/test/resources/tags/song.mp3" "$EDIT/edit-me.mp3" >/dev/null
@@ -117,6 +139,18 @@ check "the mini player names the song" eval 'ui texts | grep -Eq "\|miniPlayer\|
 check "the mini player pauses" ui tap playPause
 paused() { local i; for i in 1 2 3 4 5; do session_state PAUSED && return 0; sleep 1; done; return 1; }
 check "playback is paused" paused
+# Tapping the song that is already playing (here paused) opens the player without a restart: the position stays.
+position() { a shell dumpsys media_session | grep -A25 "package=$PKG" | grep -m1 -o "position=[0-9]*" | cut -d= -f2; }
+same_song_keeps_position() {
+    local before after
+    before=$(position); [ "${before:-0}" -gt 1000 ] || return 1
+    ui tap "Ordoe2e Alpha" title || return 1
+    wait_on viewer.audio.AudioPlayerActivity 8 || return 1
+    sleep 2; after=$(position); back 2
+    echo "position before $before ms, after $after ms" >&2
+    [ "${after:-0}" -ge "$before" ] && [ $((after - before)) -lt 1500 ]
+}
+check "tapping the playing song keeps its position" same_song_keeps_position
 # Every song row has its ⋮; while a queue exists it offers play next and add to queue besides showing the file.
 check "a song row has its options button" ui tap "Weitere Optionen für Ordoe2e Beta|More options for Ordoe2e Beta"
 check "options offer play next" ui wait "Als Nächstes spielen|Play next" 5
@@ -196,6 +230,35 @@ check "the edited FLAC plays" playing
 back 2
 close_search
 
+# Each song on a folder page shows its own cover: the red and the blue song's covers differ on screen.
+cover_colour() { # average colour of the 48 dp cover left of the row's title
+    local x1 y1 x2 y2 dpi
+    read -r x1 y1 x2 y2 < <(ui bounds "$1" | head -1) || return 1
+    dpi=$(a shell wm density | tail -1 | sed 's/.*: //' | tr -d '\r')
+    a exec-out screencap -p > "$tmp/covers.png"
+    python3 - "$tmp/covers.png" "$x1" "$y1" "$y2" "$dpi" <<'PY'
+import sys
+from PIL import Image
+im = Image.open(sys.argv[1]).convert("RGB")
+x1, y1, y2, dpi = (int(v) for v in sys.argv[2:6])
+dp = dpi / 160
+right = int(x1 - 13 * dp - 6 * dp); left = int(right - 36 * dp); cy = (y1 + y2) // 2
+box = im.crop((left, cy - int(12 * dp), right, cy + int(12 * dp)))
+px = list(box.getdata()); n = len(px)
+print(*(sum(p[k] for p in px) // n for k in range(3)))
+PY
+}
+own_covers() {
+    local red blue
+    ui tap "Ordner|Folders" && search OrdoE2E-Covers && ui tap OrdoE2E-Covers && ui wait "Ordoe2e Red" 5 || return 1
+    sleep 2
+    red=$(cover_colour "Ordoe2e Red"); blue=$(cover_colour "Ordoe2e Blue")
+    echo "covers: red row $red, blue row $blue" >&2
+    read -r rr rg rb <<< "$red"; read -r br bg bb <<< "$blue"
+    back 1.5; close_search
+    [ "$rr" -gt "$rb" ] && [ "$bb" -gt "$br" ]
+}
+check "a folder page shows each song's own cover" own_covers
 check "the Folders tab opens" ui tap "Ordner|Folders"
 search OrdoE2E
 check "the first folder is listed" ui wait OrdoE2E-Rock 5

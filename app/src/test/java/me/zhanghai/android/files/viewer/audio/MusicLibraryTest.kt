@@ -151,6 +151,18 @@ class MusicLibraryTest {
     }
 
     @Test
+    fun tappingThePlayingSongIsRecognised() {
+        // The session's media id is the file's URI: spaces and umlauts are escaped there, not in MediaStore's path.
+        val path = "/storage/emulated/0/Music/Grüße an Zoë.mp3"
+        val mediaId = java.io.File(path).toURI().toString()
+        assertTrue(MusicLibrary.isSameSong(path, mediaId))
+        assertTrue(!MusicLibrary.isSameSong("/storage/emulated/0/Music/Other.mp3", mediaId))
+        assertTrue(!MusicLibrary.isSameSong(path, null))
+        assertTrue(!MusicLibrary.isSameSong(path, "content://media/external/audio/media/12"))
+        assertTrue(!MusicLibrary.isSameSong(path, "not a uri %%"))
+    }
+
+    @Test
     fun emptyLibraryHasNoGroups() {
         val lib = library()
         assertTrue(lib.songs.isEmpty() && lib.albums.isEmpty() && lib.artists.isEmpty() && lib.folders.isEmpty())

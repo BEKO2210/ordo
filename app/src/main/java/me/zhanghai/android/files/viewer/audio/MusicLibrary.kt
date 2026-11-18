@@ -82,6 +82,11 @@ class MusicLibrary(songs: List<MusicSong>, showHiddenFiles: Boolean, private val
         /** The same name always picks the same of [size] colours (String.hashCode is fixed by the language). */
         fun paletteIndex(name: String?, size: Int): Int = Math.floorMod(name.orEmpty().hashCode(), size)
 
+        /** Whether [path] is the session's current item ([mediaId] is the file's URI, e.g. with %20 for spaces). */
+        fun isSameSong(path: String, mediaId: String?): Boolean =
+            mediaId != null && runCatching { java.net.URI.create(mediaId) }.getOrNull()
+                ?.takeIf { it.scheme == "file" }?.path == path
+
         /** Every song exactly once, in random order. */
         fun shuffled(songs: List<MusicSong>, random: Random = Random.Default): List<MusicSong> = songs.shuffled(random)
     }
