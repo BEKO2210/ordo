@@ -1070,4 +1070,7 @@
     <string name="audio_sound_highs_summary">Ergänzt fehlende Höhen bei stark komprimierten Dateien, leise und nur oberhalb ihrer Grenze</string>
     <string name="audio_sound_highs_found">Grenze bei %1$.1f kHz erkannt, darüber wird ergänzt</string>
     <string name="audio_sound_highs_none">Keine fehlenden Höhen erkannt, nichts wird ergänzt</string>
+    <string name="audio_sound_quiet">Leise hören mit vollem Klang</string>
+    <string name="audio_sound_quiet_summary">Hebt bei geringer Lautstärke sanft den Bass (und etwas Höhen) an, die das Ohr dann verliert</string>
+    <string name="audio_sound_quiet_value">bis +%1$d dB Bass bei dieser Lautstärke</string>
 </resources>

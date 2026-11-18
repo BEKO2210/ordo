@@ -47,6 +47,8 @@ class SoundEffectController(
     private val gate = EffectGate()
     /** Whether sound is being heard right now; set by the service from the player. */
     private var audible = false
+    /** System media volume as a fraction of its maximum, for the equal-loudness lift. */
+    private var volumeFraction = 1f
     private var limiterThreshold = LIMITER_DB
 
     var status = Status()
@@ -73,6 +75,13 @@ class SoundEffectController(
         }
         handler.removeCallbacks(glideTick)
         glide()
+    }
+
+    /** The service reports the system media volume; with "full sound when quiet" the outer bands follow it. */
+    fun setVolumeFraction(value: Float) {
+        if (value == volumeFraction) return
+        volumeFraction = value
+        if (currentSettings.quietFullEnabled) apply(currentSettings)
     }
 
     /** The service reports whether sound is heard; in silence a neutral setting releases the effects. */
@@ -195,8 +204,11 @@ class SoundEffectController(
     /** Sets the targets; [glide] moves the effect there. */
     private fun applyDynamicsProcessing(inputGainDb: Float): Boolean {
         if (dynamicsProcessing == null) return false
+        // "Full sound when quiet" adds its lift on top of the equalizer (or alone, with the equalizer off).
+        val lift = if (currentSettings.quietFullEnabled) LoudnessCompensation.liftDb(volumeFraction) else null
         currentSettings.bandGainsDb.forEachIndexed { index, gain ->
-            dynamicsTarget[index] = if (currentSettings.equalizerEnabled) gain else 0f
+            val eq = if (currentSettings.equalizerEnabled) gain else 0f
+            dynamicsTarget[index] = (eq + (lift?.get(index) ?: 0f)).coerceAtMost(AudioSettings.MAX_GAIN_DB)
         }
         for (channel in 0 until 2) {
             val balanceAttenuation = when {
@@ -220,6 +232,7 @@ class SoundEffectController(
     private fun applyLimiter() {
         val effect = dynamicsProcessing as? DynamicsProcessing ?: return
         val boosted = currentSettings.normalizationEnabled || currentSettings.bassBoostEnabled ||
+            (currentSettings.quietFullEnabled && LoudnessCompensation.amount(volumeFraction) > 0f) ||
             currentSettings.preGainDb > 0f ||
             (currentSettings.equalizerEnabled && currentSettings.bandGainsDb.any { it > 0f })
         val threshold = if (boosted) LIMITER_LEVELLING_DB else LIMITER_DB

@@ -1205,4 +1205,7 @@
     <string name="audio_sound_highs_summary">Adds missing highs to heavily compressed files, quietly and only above their cut</string>
     <string name="audio_sound_highs_found">Cut at %1$.1f kHz found, filled in above it</string>
     <string name="audio_sound_highs_none">No missing highs found, nothing is added</string>
+    <string name="audio_sound_quiet">Full sound when quiet</string>
+    <string name="audio_sound_quiet_summary">At low volume, gently lifts the bass (and a little of the treble) the ear misses</string>
+    <string name="audio_sound_quiet_value">up to +%1$d dB bass at this volume</string>
 </resources>

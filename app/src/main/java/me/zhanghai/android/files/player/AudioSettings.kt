@@ -34,6 +34,8 @@ data class AudioSettings(
     /** "Fill in missing highs": off by default, level 1 light or 2 medium (no strong level, never harsh). */
     val highsEnabled: Boolean = false,
     val highsLevel: Int = 1,
+    /** "Full sound when quiet" (equal-loudness compensation tied to the system volume), off by default. */
+    val quietFullEnabled: Boolean = false,
     val normalizationEnabled: Boolean = false,
     val normalizationPreampDb: Float = 0f,
     val speed: Float = 1f,
@@ -123,6 +125,7 @@ object AudioSettingsCodec {
             .put("clarity", clarityLevel)
             .put("highsOn", highsEnabled)
             .put("highs", highsLevel)
+            .put("quietFull", quietFullEnabled)
             .put("normalization", normalizationEnabled)
             .put("normalizationPreamp", normalizationPreampDb.toDouble())
             .put("speed", speed.toDouble())
@@ -166,6 +169,7 @@ object AudioSettingsCodec {
                 clarityLevel = json.optInt("clarity", 2),
                 highsEnabled = json.optBoolean("highsOn", false),
                 highsLevel = json.optInt("highs", 1),
+                quietFullEnabled = json.optBoolean("quietFull", false),
                 normalizationEnabled = json.optBoolean("normalization", false),
                 normalizationPreampDb = json.optDouble("normalizationPreamp", 0.0).toFloat(),
                 speed = json.optDouble("speed", 1.0).toFloat(),

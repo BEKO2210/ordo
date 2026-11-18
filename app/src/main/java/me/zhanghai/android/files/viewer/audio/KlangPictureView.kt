@@ -43,7 +43,7 @@ class KlangPictureView @JvmOverloads constructor(
 ) : View(context, attrs), ViewTreeObserver.OnScrollChangedListener {
     enum class Kind {
         BASS, CROSSFEED, WIDTH, REVERB, WARMTH, CLARITY, NORMALIZE, MONO, SPEED, SKIP_SILENCE, SLEEP, FOCUS, HEADPHONES,
-        HIGHS
+        HIGHS, QUIET
     }
 
     var kind = Kind.BASS
@@ -196,6 +196,7 @@ class KlangPictureView @JvmOverloads constructor(
             Kind.FOCUS -> drawFocus(canvas, left, top, right, bottom, phase)
             Kind.HEADPHONES -> drawHeadphones(canvas, left, top, right, bottom, phase)
             Kind.HIGHS -> drawHighs(canvas, left, top, right, bottom, phase)
+            Kind.QUIET -> drawQuiet(canvas, left, top, right, bottom, phase)
         }
         if (loop) {
             // Only while some of the picture is on screen; scrolling it back in restarts the loop.
@@ -507,6 +508,36 @@ class KlangPictureView @JvmOverloads constructor(
         stroke.color = trackColor()
         val cutX = l + slot * cut
         canvas.drawLine(cutX, t, cutX, b, stroke)
+    }
+
+    /**
+     * A volume level on the left (the louder, the taller), and the frequency response beside it: flat when loud, with
+     * the lows (and a little of the highs) lifted as the volume goes down. [amount] is the current lift, 0..1.
+     */
+    private fun drawQuiet(canvas: Canvas, l: Float, t: Float, r: Float, b: Float, phase: Float) {
+        val barWidth = dp(8f)
+        val volume = 1f - amount * 0.8f
+        stroke.strokeWidth = barWidth
+        stroke.color = trackColor()
+        val barX = l + barWidth
+        canvas.drawLine(barX, b - barWidth / 2, barX, t + barWidth / 2, stroke)
+        stroke.color = accent()
+        canvas.drawLine(barX, b - barWidth / 2, barX, b - barWidth / 2 - (b - t - barWidth) * volume, stroke)
+        stroke.strokeWidth = dp(2.5f)
+        val left = l + barWidth * 3
+        val mid = (t + b) / 2 + (b - t) * 0.15f
+        val lift = (b - t) * 0.4f * amount * onness
+        val breathe = 1f + 0.06f * sin(phase * TWO_PI) * onness
+        stroke.color = trackColor()
+        canvas.drawLine(left, mid, r, mid, stroke)
+        stroke.color = accent()
+        wave(left, r) { x ->
+            // Lows rise most (left), the mids stay, the very highs rise a little (right).
+            val low = (1f - x / 0.45f).coerceAtLeast(0f)
+            val high = ((x - 0.75f) / 0.25f).coerceAtLeast(0f) * 0.35f
+            mid - lift * breathe * (low * low + high)
+        }
+        canvas.drawPath(path, stroke)
     }
 
     /** Fills [path] with y(x) sampled across the width, x passed as 0..1. */
