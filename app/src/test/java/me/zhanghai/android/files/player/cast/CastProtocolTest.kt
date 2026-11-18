@@ -37,6 +37,31 @@ class CastProtocolTest {
     }
 
     @Test
+    fun loadSendsTheWholeMusicTrackMetadata() {
+        val track = CastProtocol.Track(
+            "http://192.168.2.158:40000/a", "audio/mpeg", "Song", "Artist", "Album", "http://192.168.2.158:40000/b",
+            albumArtist = "Various", trackNumber = 7
+        )
+        val metadata = JSONObject(CastProtocol.load(1, track, 0.0, true)).getJSONObject("media").getJSONObject("metadata")
+        assertEquals(3, metadata.getInt("metadataType"))
+        assertEquals("Various", metadata.getString("albumArtist"))
+        assertEquals(7, metadata.getInt("trackNumber"))
+        assertEquals("http://192.168.2.158:40000/b", metadata.getJSONArray("images").getJSONObject(0).getString("url"))
+    }
+
+    @Test
+    fun trackNumbersAndCoverSizesForTheTv() {
+        assertEquals(3, CastPlayback.trackNumber("3/12"))
+        assertEquals(3, CastPlayback.trackNumber("03"))
+        assertNull(CastPlayback.trackNumber("0"))
+        assertNull(CastPlayback.trackNumber("A1"))
+        assertNull(CastPlayback.trackNumber(null))
+        assertEquals(1024 to 768, CastPlayback.coverSize(3000, 2250))
+        assertEquals(512 to 1024, CastPlayback.coverSize(1000, 2000))
+        assertEquals(600 to 600, CastPlayback.coverSize(600, 600))
+    }
+
+    @Test
     fun loadLeavesOutUnknownTags() {
         val track = CastProtocol.Track("http://h/x", "audio/mpeg", null, null, null, null)
         val metadata = JSONObject(CastProtocol.load(1, track, 0.0, true)).getJSONObject("media").getJSONObject("metadata")
@@ -71,6 +96,18 @@ class CastProtocolTest {
         assertEquals("s-1", status.sessionId)
         assertEquals(0.25, status.volumeLevel!!, 0.0)
         assertEquals(false, status.muted)
+    }
+
+    @Test
+    fun ordosOwnReceiverIsLaunchedAndFoundByItsAppId() {
+        assertEquals("59928C44", JSONObject(CastProtocol.launch(2, "59928C44")).getString("appId"))
+        val payload = """{"type":"RECEIVER_STATUS","status":{"applications":[
+            {"appId":"59928C44","displayName":"Ordo","sessionId":"s-9","transportId":"t-9"}]}}"""
+        val status = CastProtocol.parseReceiverStatus(payload, listOf("59928C44", CastProtocol.DEFAULT_MEDIA_RECEIVER))!!
+        assertEquals("t-9", status.transportId)
+        assertEquals("59928C44", status.appId)
+        // A sender that only knows the Default Media Receiver does not mistake Ordo's app for it.
+        assertNull(CastProtocol.parseReceiverStatus(payload)!!.transportId)
     }
 
     @Test

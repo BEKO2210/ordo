@@ -57,6 +57,22 @@ object CastPlayback {
     fun shuffledStartingWith(size: Int, start: Int, random: Random): IntArray =
         intArrayOf(start) + (0 until size).filter { it != start }.shuffled(random).toIntArray()
 
+    /** "3", "3/12" or "03" from a tag; null when there is no positive number. */
+    fun trackNumber(tag: String?): Int? = tag?.substringBefore('/')?.trim()?.toIntOrNull()?.takeIf { it > 0 }
+
+    /** Size of a cover scaled so its longer side is at most [max] px (never enlarged). */
+    fun coverSize(width: Int, height: Int, max: Int = COVER_MAX_PX): Pair<Int, Int> {
+        val longer = maxOf(width, height)
+        if (longer <= max) return width to height
+        return (width.toLong() * max / longer).toInt().coerceAtLeast(1) to
+            (height.toLong() * max / longer).toInt().coerceAtLeast(1)
+    }
+
+    /** Pictures next to the songs that players use as album cover, in this order. */
+    val FOLDER_COVERS = listOf("cover.jpg", "folder.jpg", "front.jpg", "album.jpg", "cover.png", "folder.png")
+
+    const val COVER_MAX_PX = 1024
+
     fun deviceVolume(level: Double): Int = (level * VOLUME_STEPS).roundToInt().coerceIn(0, VOLUME_STEPS)
 
     fun level(deviceVolume: Int): Double = deviceVolume.coerceIn(0, VOLUME_STEPS).toDouble() / VOLUME_STEPS

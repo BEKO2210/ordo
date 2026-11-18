@@ -69,11 +69,13 @@ class CastRealDeviceCheck {
         first.close()
 
         // Second connection: a new TLS session, the same device certificate.
-        val client = CastClient(host, 8009, listener)
+        // CAST_APP_ID launches another receiver app, e.g. Ordo's own (59928C44); default: Default Media Receiver.
+        val appId = System.getenv("CAST_APP_ID") ?: CastProtocol.DEFAULT_MEDIA_RECEIVER
+        val client = CastClient(host, 8009, listener, listOf(appId))
         assertEquals(device.pin, client.connect().pin)
         log("second connection authenticated with the same pin")
-        val receiver = client.launch()
-        log("Default Media Receiver running, transport ${receiver.transportId}")
+        val receiver = client.launch(appId)
+        log("receiver $appId running, transport ${receiver.transportId}")
         client.setVolume(level = 0.1)
 
         val server = CastFileServer(client.localAddress, InetAddress.getByName(host))

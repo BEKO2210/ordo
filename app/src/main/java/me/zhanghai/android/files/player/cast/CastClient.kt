@@ -27,7 +27,9 @@ import javax.net.ssl.SSLSocket
 class CastClient(
     private val host: String,
     private val port: Int = 8009,
-    private val listener: Listener
+    private val listener: Listener,
+    /** Receiver apps this sender works with: Ordo's own one (if set) and the Default Media Receiver. */
+    private val receiverAppIds: List<String> = listOf(CastProtocol.DEFAULT_MEDIA_RECEIVER)
 ) : Closeable {
     interface Listener {
         fun onReceiverStatus(status: CastProtocol.ReceiverStatus) {}
@@ -52,6 +54,7 @@ class CastClient(
         private set
     @Volatile var mediaSessionId: Int? = null
         private set
+    @Volatile private var runningAppId: String? = null
 
     /** The address of this end of the connection: the network interface the device can reach us on. */
     val localAddress: InetAddress get() = socket.localAddress
@@ -89,11 +92,17 @@ class CastClient(
         return device
     }
 
-    /** Starts (or joins) the Default Media Receiver and opens a virtual connection to it. Blocking. */
-    fun launch(timeoutMs: Long = 20_000): CastProtocol.ReceiverStatus {
-        sendNow(message(CastProtocol.RECEIVER_ID, CastProtocol.NS_RECEIVER, CastProtocol.launch(nextRequestId())))
-        val status = pendingLaunch.poll(timeoutMs, TimeUnit.MILLISECONDS)
-            ?: throw IOException("The device did not start the media receiver")
+    /** Starts (or joins) the receiver app [appId] and opens a virtual connection to it. Blocking. */
+    fun launch(appId: String = CastProtocol.DEFAULT_MEDIA_RECEIVER, timeoutMs: Long = 20_000): CastProtocol.ReceiverStatus {
+        pendingLaunch.clear()
+        sendNow(message(CastProtocol.RECEIVER_ID, CastProtocol.NS_RECEIVER, CastProtocol.launch(nextRequestId(), appId)))
+        val deadline = System.currentTimeMillis() + timeoutMs
+        var status: CastProtocol.ReceiverStatus
+        do {
+            status = pendingLaunch.poll((deadline - System.currentTimeMillis()).coerceAtLeast(1), TimeUnit.MILLISECONDS)
+                ?: throw IOException("The device did not start receiver $appId")
+            if (status === LAUNCH_FAILED) throw IOException("The device refused receiver $appId")
+        } while (status.appId != appId)
         sendNow(message(status.transportId!!, CastProtocol.NS_CONNECTION, CastProtocol.type("CONNECT")))
         return status
     }
@@ -194,11 +203,17 @@ class CastClient(
                 shutdown(IOException("The receiver closed the connection"))
             }
             CastProtocol.NS_RECEIVER -> {
-                val status = CastProtocol.parseReceiverStatus(message.payload) ?: return
+                if (type == "LAUNCH_ERROR") {
+                    pendingLaunch.offer(LAUNCH_FAILED)
+                    return
+                }
+                val status = CastProtocol.parseReceiverStatus(message.payload, receiverAppIds) ?: return
                 val wasRunning = transportId != null
+                val previousApp = runningAppId
                 transportId = status.transportId
                 appSessionId = status.sessionId
-                if (status.transportId != null && !wasRunning) pendingLaunch.offer(status)
+                runningAppId = status.appId
+                if (status.transportId != null && status.appId != previousApp) pendingLaunch.offer(status)
                 listener.onReceiverStatus(status)
                 // Someone else took the TV over, or it was switched to another app.
                 if (wasRunning && status.transportId == null) shutdown(IOException("The receiver app stopped"))
@@ -215,6 +230,7 @@ class CastClient(
     }
 
     companion object {
+        private val LAUNCH_FAILED = CastProtocol.ReceiverStatus(null, null, null, null)
         private const val HEARTBEAT_MS = 5_000L
         private const val HEARTBEAT_TIMEOUT_MS = 20_000L
     }

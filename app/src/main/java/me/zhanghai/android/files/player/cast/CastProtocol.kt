@@ -24,8 +24,8 @@ object CastProtocol {
 
     fun type(type: String): String = JSONObject().put("type", type).toString()
 
-    fun launch(requestId: Int): String =
-        request("LAUNCH", requestId).put("appId", DEFAULT_MEDIA_RECEIVER).toString()
+    fun launch(requestId: Int, appId: String = DEFAULT_MEDIA_RECEIVER): String =
+        request("LAUNCH", requestId).put("appId", appId).toString()
 
     fun receiverStatus(requestId: Int): String = request("GET_STATUS", requestId).toString()
 
@@ -45,7 +45,9 @@ object CastProtocol {
         val title: String?,
         val artist: String?,
         val album: String?,
-        val imageUrl: String?
+        val imageUrl: String?,
+        val albumArtist: String? = null,
+        val trackNumber: Int? = null
     )
 
     fun load(requestId: Int, track: Track, startSeconds: Double, autoplay: Boolean): String {
@@ -54,6 +56,8 @@ object CastProtocol {
         track.title?.let { metadata.put("title", it) }
         track.artist?.let { metadata.put("artist", it) }
         track.album?.let { metadata.put("albumName", it) }
+        track.albumArtist?.let { metadata.put("albumArtist", it) }
+        track.trackNumber?.let { metadata.put("trackNumber", it) }
         track.imageUrl?.let { metadata.put("images", JSONArray().put(JSONObject().put("url", it))) }
         val media = JSONObject()
             .put("contentId", track.url)
@@ -82,28 +86,30 @@ object CastProtocol {
     fun requestIdOf(payload: String): Int = runCatching { JSONObject(payload).optInt("requestId") }.getOrDefault(0)
 
     data class ReceiverStatus(
-        /** Set while the Default Media Receiver runs on the device. */
+        /** Set while one of our receiver apps runs on the device. */
         val transportId: String?,
         val sessionId: String?,
         val volumeLevel: Double?,
-        val muted: Boolean?
+        val muted: Boolean?,
+        val appId: String? = null
     )
 
-    /** RECEIVER_STATUS: the running Default Media Receiver (if any) and the device volume. */
-    fun parseReceiverStatus(payload: String): ReceiverStatus? {
+    /** RECEIVER_STATUS: the running receiver among [appIds] (if any) and the device volume. */
+    fun parseReceiverStatus(payload: String, appIds: Collection<String> = listOf(DEFAULT_MEDIA_RECEIVER)): ReceiverStatus? {
         val json = runCatching { JSONObject(payload) }.getOrNull() ?: return null
         if (json.optString("type") != "RECEIVER_STATUS") return null
         val status = json.optJSONObject("status") ?: return null
         val app = status.optJSONArray("applications")?.let { apps ->
             (0 until apps.length()).map { apps.getJSONObject(it) }
-                .firstOrNull { it.optString("appId") == DEFAULT_MEDIA_RECEIVER }
+                .firstOrNull { it.optString("appId") in appIds }
         }
         val volume = status.optJSONObject("volume")
         return ReceiverStatus(
             app?.optString("transportId")?.takeIf { it.isNotEmpty() },
             app?.optString("sessionId")?.takeIf { it.isNotEmpty() },
             volume?.takeIf { it.has("level") }?.optDouble("level"),
-            volume?.takeIf { it.has("muted") }?.optBoolean("muted")
+            volume?.takeIf { it.has("muted") }?.optBoolean("muted"),
+            app?.optString("appId")
         )
     }
 

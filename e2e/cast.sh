@@ -28,10 +28,10 @@ a push "$tmp/01-cast-one.wav" "$tmp/02-cast-two.wav" "$DIR/" >/dev/null
 
 wake; grant; a logcat -b crash -c
 pause_playback() { a shell input keyevent KEYCODE_MEDIA_PAUSE >/dev/null; }
-session() { a shell dumpsys media_session | grep -A30 "package=$PKG"; }
+session() { a shell dumpsys media_session | grep -A${1:-30} "package=$PKG"; }
 session_state() { local i; for i in $(seq 40); do session | grep -q "state=$1" && return 0; sleep 0.5; done; return 1; }
 # A remote session reports the remote playback type (PlaybackInfo type 2) to the system.
-session_remote() { session | grep -qiE "playbackType=2|PLAYBACK_TYPE_REMOTE|type=2"; }
+session_remote() { session 80 | grep -qiE "volumeType=(REMOTE|2)\b|PLAYBACK_TYPE_REMOTE"; }
 shot() { [ -n "${SHOTS:-}" ] && [[ $(top) == "$PKG"/* ]] && a exec-out screencap -p > "$SHOTS/$1.png"; return 0; }
 settled() { local i; for i in $(seq 40); do ui has "$@" && return 0; sleep 0.5; done; return 1; }
 
@@ -57,16 +57,17 @@ for _ in 1 2 3; do a shell input keyevent KEYCODE_VOLUME_DOWN; sleep 0.3; done
 paused_now() { a shell input keyevent KEYCODE_MEDIA_PAUSE; session_state PAUSED; }
 check "media Pause pauses the TV" paused_now
 a shell input keyevent KEYCODE_MEDIA_NEXT
-check "media Next loads the second title on the TV" settled 02-cast-two
+check "media Next loads the second title on the TV" settled 02-cast-two.wav
 a shell input keyevent KEYCODE_MEDIA_PAUSE
 check "the TV is paused again" session_state PAUSED
+shot before-sheet-again
 check "the cast sheet opens again" ui tap actionCast
 sleep 1; shot cast-sheet-casting
 check "Stop casting ends it" ui tap "Stop casting|Streaming beenden"
 sleep 2; back 1
 not_casting() { ! ui has "Playing on|Läuft auf"; }
 check "the player no longer casts" not_casting
-check "the queue is back on the phone with the second title" settled 02-cast-two
+check "the queue is back on the phone with the second title" settled 02-cast-two.wav
 not_playing() { ! session | grep -q state=PLAYING; }
 check "local playback waits paused" not_playing
 shot after-casting

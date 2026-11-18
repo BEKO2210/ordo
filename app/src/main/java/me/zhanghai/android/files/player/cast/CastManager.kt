@@ -7,6 +7,8 @@ package me.zhanghai.android.files.player.cast
 
 import android.annotation.SuppressLint
 import android.content.ContentResolver
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.content.Context
 import android.media.MediaDataSource
 import android.media.MediaMetadataRetriever
@@ -28,6 +30,7 @@ import androidx.media3.exoplayer.source.ShuffleOrder
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaSession
 import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
 import java.io.InputStream
 import java.net.InetAddress
 import java.net.URI
@@ -38,8 +41,10 @@ import java8.nio.file.Path
 import java8.nio.file.Paths
 import java8.nio.file.StandardOpenOption
 import java8.nio.file.attribute.BasicFileAttributes
+import me.zhanghai.android.files.BuildConfig
 import me.zhanghai.android.files.R
 import me.zhanghai.android.files.provider.common.newByteChannel
+import me.zhanghai.android.files.provider.common.newInputStream
 import me.zhanghai.android.files.provider.common.readAttributes
 
 /**
@@ -131,7 +136,7 @@ object CastManager {
             override fun onClosed(error: Throwable?) {
                 if (error != null) handler.post { if (attempt == currentAttempt) end(stopReceiver = false, lost = true) }
             }
-        })
+        }, listOfNotNull(OWN_RECEIVER, CastProtocol.DEFAULT_MEDIA_RECEIVER))
         client = newClient
         Thread({
             val result = runCatching {
@@ -140,7 +145,9 @@ object CastManager {
                 val known = CastDeviceAuth.compare(pins.getString(target.name, null), target.id, pin)
                 if (known == CastDeviceAuth.Known.CHANGED && !confirmed) throw IdentityChanged()
                 pins.edit().putString(target.name, CastDeviceAuth.record(target.id, pin)).apply()
-                val receiver = newClient.launch()
+                // Ordo's own TV screen; Google's Default Media Receiver whenever it cannot start, so casting never breaks.
+                val receiver = OWN_RECEIVER?.let { runCatching { newClient.launch(it, OWN_RECEIVER_TIMEOUT_MS) }.getOrNull() }
+                    ?: newClient.launch(CastProtocol.DEFAULT_MEDIA_RECEIVER)
                 val newServer = CastFileServer(newClient.localAddress, InetAddress.getByName(target.host))
                 newServer to receiver
             }
@@ -298,9 +305,12 @@ object CastManager {
         val tags = readTags(uri, item, context)
         val contentType = CastPlayback.contentType(name) ?: tags.mimeType ?: "audio/mpeg"
         val track = CastFileServer.Source(source.size, contentType, source.open)
-        val cover = tags.picture?.let { picture ->
-            CastFileServer.Source(picture.size.toLong(), imageType(picture)) { offset ->
-                ByteArrayInputStream(picture, offset.toInt(), picture.size - offset.toInt())
+        // The TV gets a JPEG of at most 1024 px: the embedded cover, else the album's cover picture in the folder.
+        val coverJpeg = (tags.picture ?: if (uri.scheme == ContentResolver.SCHEME_CONTENT) null else folderCover(item))
+            ?.let(::castCover)
+        val cover = coverJpeg?.let { jpeg ->
+            CastFileServer.Source(jpeg.size.toLong(), "image/jpeg") { offset ->
+                ByteArrayInputStream(jpeg, offset.toInt(), jpeg.size - offset.toInt())
             }
         }
         val (url, coverUrl) = server.serve(track, cover)
@@ -312,7 +322,10 @@ object CastManager {
             .setAlbumTitle(tags.album)
             .apply { tags.picture?.let { setArtworkData(it, MediaMetadata.PICTURE_TYPE_FRONT_COVER) } }
             .build()
-        return CastPlayer.Prepared(CastProtocol.Track(url, contentType, title, tags.artist, tags.album, coverUrl), metadata)
+        return CastPlayer.Prepared(
+            CastProtocol.Track(url, contentType, title, tags.artist, tags.album, coverUrl, tags.albumArtist, tags.trackNumber),
+            metadata
+        )
     }
 
     private class Tags(
@@ -320,7 +333,9 @@ object CastManager {
         val artist: String?,
         val album: String?,
         val mimeType: String?,
-        val picture: ByteArray?
+        val picture: ByteArray?,
+        val albumArtist: String? = null,
+        val trackNumber: Int? = null
     )
 
     private fun readTags(uri: Uri, item: MediaItem, context: Context): Tags {
@@ -337,7 +352,9 @@ object CastManager {
                 text(MediaMetadataRetriever.METADATA_KEY_ARTIST) ?: text(MediaMetadataRetriever.METADATA_KEY_ALBUMARTIST),
                 text(MediaMetadataRetriever.METADATA_KEY_ALBUM),
                 text(MediaMetadataRetriever.METADATA_KEY_MIMETYPE),
-                retriever.embeddedPicture
+                retriever.embeddedPicture,
+                text(MediaMetadataRetriever.METADATA_KEY_ALBUMARTIST),
+                CastPlayback.trackNumber(text(MediaMetadataRetriever.METADATA_KEY_CD_TRACK_NUMBER))
             )
         } catch (_: Exception) {
             Tags(null, null, null, null, null)
@@ -346,8 +363,29 @@ object CastManager {
         }
     }
 
-    private fun imageType(bytes: ByteArray): String =
-        if (bytes.size > 3 && bytes[0] == 0x89.toByte() && bytes[1] == 'P'.code.toByte()) "image/png" else "image/jpeg"
+    private fun folderCover(item: MediaItem): ByteArray? = runCatching {
+        val folder = Paths.get(URI.create(item.mediaId)).parent ?: return null
+        CastPlayback.FOLDER_COVERS.firstNotNullOfOrNull { name ->
+            runCatching { folder.resolve(name).newInputStream().use { it.readBytes() } }.getOrNull()
+        }
+    }.getOrNull()
+
+    /** Decodes, scales to at most 1024 px and re-encodes as JPEG; null for anything that is not a picture. */
+    private fun castCover(bytes: ByteArray): ByteArray? {
+        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        BitmapFactory.decodeByteArray(bytes, 0, bytes.size, bounds)
+        if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return null
+        var sample = 1
+        while (maxOf(bounds.outWidth, bounds.outHeight) / (sample * 2) >= CastPlayback.COVER_MAX_PX) sample *= 2
+        val decoded = BitmapFactory.decodeByteArray(bytes, 0, bytes.size, BitmapFactory.Options().apply { inSampleSize = sample })
+            ?: return null
+        val (width, height) = CastPlayback.coverSize(decoded.width, decoded.height)
+        val scaled = if (width == decoded.width) decoded else Bitmap.createScaledBitmap(decoded, width, height, true)
+        return ByteArrayOutputStream().use { out ->
+            scaled.compress(Bitmap.CompressFormat.JPEG, 88, out)
+            out.toByteArray()
+        }
+    }
 
     private fun InputStream.skipFully(count: Long) {
         var left = count
@@ -390,6 +428,10 @@ object CastManager {
     }
 
     private class IdentityChanged : Exception()
+
+    /** Ordo's Custom Web Receiver (docs/cast/index.html), registered in the Cast console; empty = not configured. */
+    private val OWN_RECEIVER = BuildConfig.ORDO_CAST_APP_ID.takeIf { it.isNotEmpty() }
+    private const val OWN_RECEIVER_TIMEOUT_MS = 12_000L
 
     private const val PINS = "cast_device_pins"
 }
