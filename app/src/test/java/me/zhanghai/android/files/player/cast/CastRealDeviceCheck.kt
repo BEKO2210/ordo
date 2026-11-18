@@ -74,7 +74,8 @@ class CastRealDeviceCheck {
         val client = CastClient(host, 8009, listener, listOf(appId))
         assertEquals(device.pin, client.connect().pin)
         log("second connection authenticated with the same pin")
-        val receiver = client.launch(appId)
+        // A refused launch must not leave the connection open on the TV (its accept queue is small).
+        val receiver = try { client.launch(appId) } catch (e: Exception) { client.close(); throw e }
         log("receiver $appId running, transport ${receiver.transportId}")
         client.setVolume(level = 0.1)
 
