@@ -90,6 +90,10 @@ object IconAliases {
             IconColor.entries.filter { it != color }.map { name(prefix, it) to false })
             .filter { (alias, on) -> isEnabled(alias) != on }
 
+    /** A saved colour differs from the one on the home screen (an icon switched off has none and is left alone). */
+    fun needsReconcile(saved: IconColor?, current: IconColor?): Boolean =
+        saved != null && current != null && saved != current
+
     /** Switching a built-in app off: every colour of it goes off. */
     fun switchesOff(prefix: String, isEnabled: (String) -> Boolean): List<Pair<String, Boolean>> =
         IconColor.entries.map { name(prefix, it) }.filter(isEnabled).map { it to false }
@@ -149,20 +153,32 @@ object LauncherIcons {
         if (prefix == IconAliases.HOME) {
             // One UI (Galaxy Tab S9, measured 17.11.2026) closes Ordo's task when the alias that started it is
             // disabled, DONT_KILL_APP or not: Ordo's own icon changes only once Ordo is in the background.
-            if (pending.add(prefix)) {
-                val appContext = context.applicationContext
-                ProcessLifecycleOwner.get().lifecycle.addObserver(object : DefaultLifecycleObserver {
-                    override fun onStop(owner: LifecycleOwner) {
-                        owner.lifecycle.removeObserver(this)
-                        pending.remove(prefix)
-                        val chosen = storedColor(prefix) ?: return
-                        apply(appContext, IconAliases.switchesFor(prefix, chosen) { isAliasEnabled(appContext, it) })
-                    }
-                })
-            }
+            applyInBackground(context, prefix)
             return true
         }
         return apply(context, IconAliases.switchesFor(prefix, color) { isAliasEnabled(context, it) })
+    }
+
+    /**
+     * At process start: a colour saved for Ordo's own icon but never applied (Ordo was killed before it went to the
+     * background) is applied at this session's next ON_STOP, so a choice never gets lost.
+     */
+    fun reconcile(context: Context) {
+        val prefix = IconAliases.HOME
+        if (IconAliases.needsReconcile(storedColor(prefix), color(context, prefix))) applyInBackground(context, prefix)
+    }
+
+    private fun applyInBackground(context: Context, prefix: String) {
+        if (!pending.add(prefix)) return
+        val appContext = context.applicationContext
+        ProcessLifecycleOwner.get().lifecycle.addObserver(object : DefaultLifecycleObserver {
+            override fun onStop(owner: LifecycleOwner) {
+                owner.lifecycle.removeObserver(this)
+                pending.remove(prefix)
+                val chosen = storedColor(prefix) ?: return
+                apply(appContext, IconAliases.switchesFor(prefix, chosen) { isAliasEnabled(appContext, it) })
+            }
+        })
     }
 
     /** True while Ordo's own new icon colour waits for Ordo to go to the background. */

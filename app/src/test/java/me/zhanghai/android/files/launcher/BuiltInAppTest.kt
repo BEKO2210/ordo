@@ -121,6 +121,17 @@ class BuiltInAppTest {
     }
 
     @Test
+    fun aSavedColourThatNeverReachedTheHomeScreenIsAppliedLater() {
+        // Ordo was killed before going to the background: saved green, blue still enabled -> apply at ON_STOP.
+        assertTrue(IconAliases.needsReconcile(IconColor.GREEN, IconColor.BLUE))
+        // Saved and enabled agree -> nothing to do.
+        for (color in IconColor.entries) assertFalse(IconAliases.needsReconcile(color, color))
+        // Nothing saved yet, or the icon is switched off (no alias enabled) -> leave it alone.
+        assertFalse(IconAliases.needsReconcile(null, IconColor.BLUE))
+        assertFalse(IconAliases.needsReconcile(IconColor.GREEN, null))
+    }
+
+    @Test
     fun onlyOrdosBlueIconIsOnByDefault() {
         assertTrue(IconAliases.enabledByDefault("me.zhanghai.android.files.launcher.HomeAlias"))
         assertFalse(IconAliases.enabledByDefault("me.zhanghai.android.files.launcher.HomeGreen"))
