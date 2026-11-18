@@ -83,9 +83,15 @@ class CastRealDeviceCheck {
             val source = CastFileServer.Source(file.length(), "audio/mpeg") { offset ->
                 file.inputStream().also { it.skip(offset) }
             }
-            val (url, _) = server.serve(source, null)
-            log("serving ${file.name} (${file.length()} bytes) at $url")
-            client.load(CastProtocol.Track(url, "audio/mpeg", "Ordo cast check", "Ordo", "Tests", null), 0.0, true)
+            // CAST_COVER: a JPEG shown as the album cover on the TV.
+            val coverFile = System.getenv("CAST_COVER")?.let(::File)?.takeIf { it.isFile }
+            val cover = coverFile?.let { c -> CastFileServer.Source(c.length(), "image/jpeg") { c.inputStream().also { s -> s.skip(it) } } }
+            val (url, coverUrl) = server.serve(source, cover)
+            log("serving ${file.name} (${file.length()} bytes) at $url, cover $coverUrl")
+            client.load(
+                CastProtocol.Track(url, "audio/mpeg", "Abendlicht", "Ordo Testband", "Wohnzimmer Sessions", coverUrl, "Ordo", 3),
+                0.0, true
+            )
             awaitState("PLAYING")
             log("PLAYING confirmed")
             Thread.sleep(3_000)
