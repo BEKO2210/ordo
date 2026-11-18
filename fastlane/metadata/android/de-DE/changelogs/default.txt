@@ -1,7 +1,9 @@
 Neu in dieser Testversion:
-• Musik-Player mit Warteschlange, Cover und Steuerung im Hintergrund
-• „Klang“: Equalizer mit 10 Bändern, Bass, Raumklang, Lautstärke angleichen, Tempo, Einschlaf-Timer
-• „Abspielen auf …“: Musik an Bluetooth, Kabel oder Cast-Geräte schicken
-• Eigenes Symbol „Ordo Musik“ (Einstellungen › Eingebaute Apps), standardmäßig aus
-• Behoben: Stereo-Lieder brachen in 0.13.2 mit einem Fehler ab
+• Ordo Musik als eigene App: Titel, Alben, Interpreten, Ordner, Seitenmenü
+• Wiedergabelisten, Favoriten, Mehrfachauswahl
+• Tag-Editor: Titel, Album, Cover u. a. ändern, mit Rückgängig
+• Klang ohne Knacken, bitgenau wenn alles aus ist, „Leise hören mit vollem Klang“, „Höhen ergänzen“
+• Icon-Farben für Ordo und Ordo Musik
+• Ordo erscheint in Androids Dateiauswahl
+• Tablets: Player und Klang quer verbessert
 Rückmeldungen gern an: nullmesh@protonmail.com

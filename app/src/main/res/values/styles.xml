@@ -256,6 +256,15 @@
         <item name="fontFamily">sans-serif-medium</item>
     </style>
 
+    <!-- The music library's large title, and the same title collapsed into the toolbar. -->
+    <style name="TextAppearance.Ordo.MusicTitle" parent="TextAppearance.Material3.DisplaySmall">
+        <item name="android:textColor">?colorOnSurface</item>
+    </style>
+
+    <style name="TextAppearance.Ordo.MusicTitle.Collapsed" parent="TextAppearance.Material3.TitleLarge">
+        <item name="android:textColor">?colorOnSurface</item>
+    </style>
+
     <!-- Window animations of Ordo's popup menus and dialogs. The android: item names are the platform's. -->
     <style name="Animation.Ordo.PopupMenu" parent="">
         <item name="android:windowEnterAnimation">@anim/ordo_popup_enter</item>
@@ -379,10 +388,10 @@
         <item name="android:maxLines">2</item>
         <item name="android:ellipsize">end</item>
     </style>
+    <!-- Explanations wrap (up to four lines) and are never cut off with an ellipsis. -->
     <style name="Widget.Ordo.Klang.Info" parent="Widget.Ordo.Klang.Text">
         <item name="android:textAppearance">@style/TextAppearance.Ordo.Klang.Secondary</item>
-        <item name="android:maxLines">2</item>
-        <item name="android:ellipsize">end</item>
+        <item name="android:maxLines">4</item>
     </style>
     <style name="Widget.Ordo.Klang.Section" parent="Widget.Ordo.Klang.Text">
         <item name="android:textAppearance">@style/TextAppearance.Ordo.Klang.Section</item>
@@ -398,6 +407,11 @@
         <item name="android:paddingBottom">@dimen/klang_space_xs</item>
     </style>
 
+    <!-- Choice chips: the same 13 dp corners on every chip, outer and inner, 5 dp apart (spacing on the group). -->
+    <style name="ShapeAppearanceOverlay.Ordo.Klang.Chip" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">@dimen/klang_space_md</item>
+    </style>
     <style name="ShapeAppearanceOverlay.Ordo.Klang.Pill" parent="">
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">50%</item>
@@ -420,7 +434,7 @@
 
     <!-- Connected button group: tonal, pill outer corners, small inner corners (innerCornerSize on the group). -->
     <style name="Widget.Ordo.Klang.Segment" parent="Widget.MaterialComponents.Button.OutlinedButton">
-        <item name="shapeAppearanceOverlay">@style/ShapeAppearanceOverlay.Ordo.Klang.Pill</item>
+        <item name="shapeAppearanceOverlay">@style/ShapeAppearanceOverlay.Ordo.Klang.Chip</item>
         <item name="backgroundTint">@color/klang_segment_background</item>
         <item name="strokeColor">@color/klang_segment_stroke</item>
         <item name="android:textColor">?colorOnSurface</item>
@@ -435,6 +449,11 @@
         <item name="android:maxLines">1</item>
         <item name="android:hyphenationFrequency">none</item>
         <item name="android:breakStrategy">simple</item>
+    </style>
+    <!-- Sleep timer: 55 dp cells that take two lines, so "End of track" / "Titelende" is never squeezed. -->
+    <style name="Widget.Ordo.Klang.Segment.Tall">
+        <item name="android:minHeight">@dimen/phi_55</item>
+        <item name="android:maxLines">2</item>
     </style>
     <style name="Widget.Ordo.Klang.StepButton" parent="Widget.MaterialComponents.Button.UnelevatedButton">
         <item name="shapeAppearanceOverlay">@style/ShapeAppearanceOverlay.Ordo.Klang.Pill</item>

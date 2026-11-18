@@ -7,8 +7,8 @@
 cd "$(dirname "$0")" || exit 1
 write=0; [ "${1:-}" = "--write" ] && { write=1; shift; }
 serial=${1:?usage: e2e/run.sh [--write] <adb serial>}
-tests="first-run smoke settings-visual category-search back-navigation bars-replay home-header header-position home-pull drawer selection-more tablet-landscape analysis ai-show-guard"
-[ "$write" = 1 ] && tests="$tests stress-delete backup-restore home-auto-refresh audio-player launcher-icons ai-show"
+tests="first-run smoke settings-visual category-search back-navigation bars-replay home-header header-position home-pull drawer selection-more tablet-landscape analysis ai-show-guard documents-provider"
+[ "$write" = 1 ] && tests="$tests stress-delete backup-restore home-auto-refresh audio-player klang klang-landscape music-library launcher-icons icon-colors ai-show pick-file"
 failed=0
 for t in $tests; do
     echo "== $t"

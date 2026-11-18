@@ -264,13 +264,13 @@
 
     <string name="file_list_title">Dateien</string>
     <plurals name="file_list_title_open_file">
-        <item quantity="one">Wähle eine Datei aus</item>
-        <item quantity="other">Wähle Dateien aus</item>
+        <item quantity="one">Datei wählen</item>
+        <item quantity="other">Dateien wählen</item>
     </plurals>
     <string name="file_list_title_create_file">Datei speichern</string>
     <plurals name="file_list_title_open_directory">
-        <item quantity="one">Wähle einen Ordner aus</item>
-        <item quantity="other">Wähle Ordner aus</item>
+        <item quantity="one">Ordner wählen</item>
+        <item quantity="other">Ordner wählen</item>
     </plurals>
     <plurals name="file_list_subtitle_directory_count_format">
         <item quantity="one">%1$,d Ordner</item>
@@ -675,6 +675,8 @@
 
     <string name="home_title">Startseite</string>
     <string name="home_recent">Zuletzt verwendet</string>
+    <string name="documents_root_summary">Deine Lesezeichen</string>
+    <string name="documents_recent_summary">Zuletzt verwendet in Ordo</string>
     <string name="home_recent_empty">Keine zuletzt verwendeten Dateien</string>
     <string name="home_categories">Kategorien</string>
     <string name="home_storage">Speicher</string>
@@ -980,12 +982,10 @@
     <string name="audio_sound_bass_boost">Bassverstärkung</string>
     <string name="audio_sound_effects_heading">Effekte</string>
     <string name="audio_sound_bass_summary">Verleiht tiefen Frequenzen mehr Gewicht</string>
-    <string name="audio_sound_virtualizer">Raumklang</string>
-    <string name="audio_sound_virtualizer_summary">Erweitert die wahrgenommene Klangbühne</string>
     <string name="audio_sound_strength">Stärke</string>
     <string name="audio_sound_normalization_heading">Lautstärke</string>
     <string name="audio_sound_normalization">Lautstärke angleichen</string>
-    <string name="audio_sound_normalization_summary">ReplayGain / R128 aus den Dateiangaben</string>
+    <string name="audio_sound_normalization_summary">ReplayGain-/R128-Tags, ohne Tags einmal gemessen</string>
     <string name="audio_sound_normalization_preamp">Vorverstärkung</string>
     <string name="audio_sound_playback_heading">Wiedergabe</string>
     <string name="audio_output_title">Abspielen auf …</string>
@@ -1035,7 +1035,6 @@
     <string name="audio_sound_db_spoken">%1$+.1f Dezibel</string>
     <string name="audio_frequency_hz_spoken">%1$d Hertz</string>
     <string name="audio_frequency_khz_spoken">%1$d Kilohertz</string>
-    <string name="audio_sound_strength_percent">Stärke %1$d %%</string>
     <string name="audio_sound_unavailable_row">%1$s: auf diesem Gerät nicht verfügbar</string>
     <string name="audio_sound_speed_hint">Tonhöhe bleibt gleich</string>
     <string name="audio_sound_speed_fine">Fein einstellen (0,05×)</string>
@@ -1045,4 +1044,35 @@
     <string name="audio_sound_focus_pause_short">Pausieren</string>
     <string name="audio_sound_focus_duck_short">Leiser</string>
     <string name="audio_sound_balance_picture">Balance: linker Lautsprecher bis rechter Lautsprecher</string>
+    <string name="audio_sound_crossfeed">Raumklang für Kopfhörer</string>
+    <string name="audio_sound_crossfeed_summary">Holt die Musik aus dem Kopf nach vorn. Nur mit Kopfhörern.</string>
+    <string name="audio_sound_width">Stereobreite</string>
+    <string name="audio_sound_width_summary">0 % ist Mono, 100 % das Original, 150 % breit</string>
+    <string name="audio_sound_reverb">Hall</string>
+    <string name="audio_sound_reverb_summary">Stellt die Musik in einen Raum</string>
+    <string name="audio_sound_reverb_mix">Hallanteil</string>
+    <string name="audio_reverb_room">Raum</string>
+    <string name="audio_reverb_studio">Studio</string>
+    <string name="audio_reverb_club">Club</string>
+    <string name="audio_reverb_hall">Konzertsaal</string>
+    <string name="audio_sound_warmth">Analoge Wärme</string>
+    <string name="audio_sound_warmth_summary">Rundet Spitzen sanft ab, wie Band oder Röhre</string>
+    <string name="audio_sound_clarity">Klarheit</string>
+    <string name="audio_sound_clarity_summary">Holt leise Details nach vorn, ohne zu übersteuern</string>
+    <string name="audio_sound_level">Stufe</string>
+    <string name="audio_sound_level_light">Leicht</string>
+    <string name="audio_sound_level_medium">Mittel</string>
+    <string name="audio_sound_level_strong">Stark</string>
+    <string name="audio_sound_on">An</string>
+    <string name="audio_sound_mono_greyed">Aus, solange Mono an ist</string>
+    <string name="audio_sound_picture">%1$s: %2$s</string>
+    <string name="audio_sound_percent">%1$d %%</string>
+    <string name="audio_sleep_end_track_short">Titelende</string>
+    <string name="audio_sound_highs">Höhen ergänzen</string>
+    <string name="audio_sound_highs_summary">Ergänzt fehlende Höhen bei stark komprimierten Dateien, leise und nur oberhalb ihrer Grenze</string>
+    <string name="audio_sound_highs_found">Grenze bei %1$.1f kHz erkannt, darüber wird ergänzt</string>
+    <string name="audio_sound_highs_none">Keine fehlenden Höhen erkannt, nichts wird ergänzt</string>
+    <string name="audio_sound_quiet">Leise hören mit vollem Klang</string>
+    <string name="audio_sound_quiet_summary">Hebt bei leiser Wiedergabe sanft Bass und Höhen an</string>
+    <string name="audio_sound_quiet_value">bis +%1$d dB Bass bei dieser Lautstärke</string>
 </resources>

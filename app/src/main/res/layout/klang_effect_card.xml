@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later -->
-<!-- Bass boost / virtualizer: the ring is the strength (0-100 %), the symbol sits inside it. -->
+<!-- One effect (bass, room sound, width, reverb, warmth, clarity): the ring is the amount, the symbol sits inside it;
+     below the title a live picture of what the effect does, its explanation and "−  value  +" in the middle.
+     The state line under the title only appears when something else (mono) holds the effect off, or for what an
+     effect found (the cut of "Fill in missing highs"). -->
 <com.google.android.material.card.MaterialCardView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -62,7 +65,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:accessibilityLiveRegion="polite"
-                    android:maxLines="1" />
+                    android:visibility="gone" />
             </LinearLayout>
             <com.google.android.material.materialswitch.MaterialSwitch
                 android:id="@+id/toggle"
@@ -70,18 +73,30 @@
                 android:layout_height="@dimen/klang_touch_target"
                 android:gravity="center" />
         </LinearLayout>
+        <me.zhanghai.android.files.viewer.audio.KlangPictureView
+            android:id="@+id/picture"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/klang_picture_height"
+            android:layout_marginTop="@dimen/klang_space_md" />
         <TextView
             android:id="@+id/summary"
             style="@style/Widget.Ordo.Klang.Info"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/klang_space_sm" />
-        <include
-            android:id="@+id/steps"
-            layout="@layout/klang_step_buttons"
-            android:layout_width="wrap_content"
+            android:layout_marginTop="@dimen/klang_space_md" />
+        <!-- Effect-specific choices (the reverb rooms) go here. -->
+        <LinearLayout
+            android:id="@+id/extra"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="end"
-            android:layout_marginEnd="@dimen/klang_step_edge" />
+            android:layout_marginTop="@dimen/klang_space_md"
+            android:orientation="vertical"
+            android:visibility="gone" />
+        <include
+            android:id="@+id/stepper"
+            layout="@layout/klang_value_stepper"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/klang_space_sm" />
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

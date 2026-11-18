@@ -35,7 +35,12 @@ guard() {
     esac
     exit 2
 }
-on() { [ "$(top)" = "$PKG/me.zhanghai.android.files.$1" ]; }
+# Samsung names the launcher alias that started home (launcher.HomeAlias, HomeGreen, …) instead of HomeActivity.
+on() {
+    local t; t=$(top)
+    [ "$t" = "$PKG/me.zhanghai.android.files.$1" ] ||
+        { [ "$1" = home.HomeActivity ] && [[ $t == "$PKG/me.zhanghai.android.files.launcher.Home"* ]]; }
+}
 # wait_on SCREEN [S]: polls until that screen is in front (up to S seconds, default 4) instead of a fixed sleep.
 wait_on() { local end=$((SECONDS + ${2:-4})); until on "$1"; do [ $SECONDS -ge "$end" ] && return 1; sleep 0.3; done; }
 
@@ -47,8 +52,9 @@ is_emulator() {
 # On an emulator only, what adb may grant, so no system dialog comes to the front: notifications (Android 13+) and
 # all-files access (an app op since Android 11). A real device keeps its owner's choices; guard() then names what is
 # missing. Older platforms refuse quietly; a system dialog itself is never tapped.
+# Real phones are left alone unless E2E_GRANT=1 marks them as test devices that may be granted access for the run.
 grant() {
-    is_emulator || return 0
+    is_emulator || [ "${E2E_GRANT:-}" = 1 ] || return 0
     a shell pm grant "$PKG" android.permission.POST_NOTIFICATIONS >/dev/null 2>&1
     a shell appops set "$PKG" MANAGE_EXTERNAL_STORAGE allow >/dev/null 2>&1
 }
@@ -58,7 +64,8 @@ open_app() {
     grant
     a logcat -b crash -c
     a shell am force-stop "$PKG"
-    a shell monkey -p "$PKG" -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1
+    # The home screen by name: with the "Ordo Musik" icon switched on, a launcher pick (monkey) may open the music app.
+    a shell am start -a android.intent.action.MAIN -c android.intent.category.LAUNCHER -f 0x10200000 -n "$PKG/me.zhanghai.android.files.home.HomeActivity" >/dev/null 2>&1
     sleep "${1:-6}"
 }
 # After a fresh install or cleared data Ordo first shows its welcome pages; they are skipped through their own button.
@@ -74,16 +81,32 @@ launch() {
     skip_onboarding
     guard
 }
-screen_size() { a shell wm size | tail -1 | sed 's/.*: //; s/x/ /'; }
+# The current, rotated size: `wm size` gives the natural (portrait) size, so a swipe in landscape went off screen.
+screen_size() {
+    local cur; cur=$(a shell dumpsys window displays | grep -o 'cur=[0-9]*x[0-9]*' | head -1 | sed 's/cur=//; s/x/ /')
+    if [ -n "$cur" ]; then echo "$cur"; else a shell wm size | tail -1 | sed 's/.*: //; s/x/ /'; fi
+}
+# record S FILE: screen recording of S seconds on the device. A tablet's encoder may refuse its full 2560x1600, and
+# screenrecord then falls back to 1280x720, another aspect: above 1920 px it records at half size. Start ffmpeg's
+# filter with scale=W:H (screen_size), so crops use the screen's own coordinates on every device.
+record() {
+    local w h size=""; read -r w h < <(screen_size)
+    [ $((w > h ? w : h)) -gt 1920 ] && size="--size $((w / 2))x$((h / 2))"
+    a shell "screenrecord $size --time-limit $1 $2"
+}
 swipe_up() { read -r W H < <(screen_size); a shell input swipe $((W / 2)) $((H * 3 / 4)) $((W / 2)) $((H / 3)) 500; sleep 1.5; }
 swipe_down() { read -r W H < <(screen_size); a shell input swipe $((W / 2)) $((H / 3)) $((W / 2)) $((H * 3 / 4)) 500; sleep 1.5; }
 
 # The wand opens the command sheet. Below the model's RAM floor (CommandModel.MIN_RAM, 10 GB, compared with the
-# device's own MemTotal) it opens the setup page that says the AI can't run here: SKIP. Anything else is FAIL.
+# device's own MemTotal) it opens the setup page that says the AI can't run here: SKIP. Above it, without a model, the setup
+# page offers the download: PASS (the sheet opened, as it should). Anything else is FAIL.
 check_wand() {
     local name="the wand opens the command sheet" kb
     kb=$(a shell cat /proc/meminfo | awk '/^MemTotal/ { print $2 }')
     if ui has headerOrb; then pass "$name"
+    # Enough RAM but no model yet: the sheet opens on its setup page and offers the download. That is right.
+    elif [ -n "$kb" ] && [ "$kb" -ge 9765625 ] && ui has setupLayout && ui has setupButton; then
+        pass "$name (setup page with the download: no model on this device yet)"
     elif [ -n "$kb" ] && [ "$kb" -lt 9765625 ] && ui has "Auf diesem Gerät läuft die Ordo-KI nicht|This phone can’t run Ordo AI"; then
         echo "SKIP $name (not enough RAM for the model on this device)"
     else fail "$name"; fi

@@ -8,12 +8,14 @@ package me.zhanghai.android.files.home
 import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.core.view.doOnLayout
 import androidx.core.view.isInvisible
 import androidx.core.view.updateLayoutParams
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import android.content.res.ColorStateList
 import android.widget.ImageView
+import android.widget.TextView
 import androidx.annotation.ColorInt
 import androidx.annotation.ColorRes
 import androidx.annotation.DrawableRes
@@ -97,7 +99,14 @@ class RecentFileAdapter(private val onClick: (RecentFile) -> Unit) :
                     listener(onSuccess = { _, _ -> scaleType = ImageView.ScaleType.CENTER_CROP })
                 }
             }
+            // Two lines with the middle cut instead of one cut line: the tile is narrow, the extension matters.
             binding.nameText.text = item.name
+            binding.nameText.doOnLayout { view ->
+                val text = view as TextView
+                val width = text.width - text.paddingLeft - text.paddingRight
+                val charWidth = text.paint.measureText("n").coerceAtLeast(1f)
+                text.text = recentFileLabel(item.name, (2 * width / charWidth * 0.9f).toInt())
+            }
             binding.root.setOnClickListener { onClick(item) }
         }
     }

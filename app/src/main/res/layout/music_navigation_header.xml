@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- Top of Ordo Music's side menu: its icon and name on the axes of Ordo's own menu header (navigation_header),
+     and below, while something plays or can be resumed, a small cover with title and artist that opens the player. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingBottom="@dimen/space_item">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="@dimen/navigation_item_horizontal_padding_material3"
+        android:paddingEnd="@dimen/navigation_item_horizontal_padding_material3"
+        android:paddingBottom="@dimen/space_item">
+
+        <ImageView
+            android:layout_width="@dimen/phi_icon_box"
+            android:layout_height="@dimen/phi_icon_box"
+            android:layout_marginStart="@dimen/space_item"
+            android:importantForAccessibility="no"
+            android:src="@mipmap/ic_launcher_music" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/navigation_item_icon_padding_material3"
+            android:hyphenationFrequency="none"
+            android:text="@string/launcher_music_label"
+            android:textAppearance="@style/TextAppearance.Ordo.HomeTitle" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/nowPlaying"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/phi_8"
+        android:layout_marginEnd="@dimen/phi_8"
+        android:background="@drawable/ordo_row_ripple"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center_vertical"
+        android:minHeight="@dimen/phi_55"
+        android:orientation="horizontal"
+        android:paddingStart="@dimen/phi_8"
+        android:paddingTop="@dimen/phi_5"
+        android:paddingEnd="@dimen/phi_8"
+        android:paddingBottom="@dimen/phi_5"
+        android:visibility="gone">
+
+        <include
+            android:id="@+id/art"
+            layout="@layout/music_art" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/space_card_v"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/navTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textAppearance="?textAppearanceBody2"
+                android:textColor="?colorOnSurface" />
+
+            <TextView
+                android:id="@+id/navArtist"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/phi_3"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textAppearance="?textAppearanceCaption"
+                android:textColor="?android:textColorSecondary" />
+        </LinearLayout>
+    </LinearLayout>
+</LinearLayout>

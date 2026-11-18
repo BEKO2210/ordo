@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- The ⋮ menu of a song in the music library; the queue items only while something is in the queue. -->
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/actionPlayNext"
+        android:icon="@drawable/skip_next_icon_24dp"
+        android:title="@string/music_play_next" />
+
+    <item
+        android:id="@+id/actionAddToQueue"
+        android:icon="@drawable/add_icon_white_24dp"
+        android:title="@string/music_add_to_queue" />
+
+    <item
+        android:id="@+id/actionFavorite"
+        android:icon="@drawable/favorite_icon_white_24dp"
+        android:title="@string/music_favorite_add" />
+
+    <item
+        android:id="@+id/actionAddToPlaylist"
+        android:icon="@drawable/playlist_add_icon_white_24dp"
+        android:title="@string/music_playlist_add" />
+
+    <item
+        android:id="@+id/actionRemoveFromPlaylist"
+        android:icon="@drawable/close_icon_control_normal_24dp"
+        android:title="@string/music_playlist_remove"
+        android:visible="false" />
+
+    <item
+        android:id="@+id/actionEditTags"
+        android:icon="@drawable/tag_edit_icon_white_24dp"
+        android:title="@string/music_edit_tags" />
+
+    <item
+        android:id="@+id/actionShowFile"
+        android:icon="@drawable/directory_icon_white_24dp"
+        android:title="@string/music_show_file" />
+</menu>

@@ -75,16 +75,27 @@ equalizer() {
     return 1
 }
 check "the equalizer switches on" equalizer on
+# The preset row opens at the selected tile (a later one when another preset is remembered): back to its start
+# first, otherwise Bass and Flat lie off screen on a phone.
+presets_to_start() {
+    local l t r b i
+    read -r l t r b < <(paused_ui bounds presets | head -1) || return 1
+    read -r W H < <(screen_size)
+    [ "$l" -lt 0 ] && l=0; [ "$r" -gt "$W" ] && r=$W
+    for i in 1 2 3; do a shell input swipe $((l + 60)) $(((t + b) / 2)) $((r - 60)) $(((t + b) / 2)) 250; sleep 0.6; done
+}
+presets_to_start
 check "the Bass preset tile can be selected" paused_ui tap "Bass"
 # The status follows the player service's answer: give it a moment.
 settled() { local i; for i in 1 2 3 4 5 6; do paused_ui has "$@" && return 0; sleep 0.5; done; return 1; }
 check "the status names the selected preset" settled Bass effectStatus
 check "Fine-tune opens its band rows" paused_ui tap fineTuneToggle
 # Everything at the top first: on a phone the band rows push the rest below the screen.
+presets_to_start
 check "the Flat preset tile restores the curve" paused_ui tap "Flat|Neutral"
 check "the equalizer switches off again" equalizer off
-# The sheet is long: scroll down until the row appears (at most five swipes).
-scrolled_to() { local i; for i in 1 2 3 4 5 6; do paused_ui has "$1" && return 0; swipe_up; done; return 1; }
+# The sheet is long: scroll down until the row appears (at most ten swipes; six effect cards sit before playback).
+scrolled_to() { local i; for i in 1 2 3 4 5 6 7 8 9 10 11; do paused_ui has "$1" && return 0; swipe_up; done; return 1; }
 check "a band row shows its gain" scrolled_to "31 Hz"
 check "the playback section reaches skip silence and mono" scrolled_to "Skip silence|Stille überspringen"
 check "the sleep timer offers end of track" scrolled_to "End of track|Titelende"

@@ -3,14 +3,14 @@
 """Tiny adb UI driver for Ordo's device tests. No dependencies beyond adb.
 
     ui.py SERIAL tap TARGET [ID]   tap a node; TARGET is a visible text, a content description or a resource id
-    ui.py SERIAL longtap TARGET
+    ui.py SERIAL longtap TARGET [ID]
     ui.py SERIAL has TARGET [ID]   exit 0 if a node matches
     ui.py SERIAL checked TEXT      exit 0 if the check box after the node with that text is ticked
     ui.py SERIAL summary TITLE TEXT exit 0 if a preference row has that summary
     ui.py SERIAL visible ID        exit 0 if that view of the front activity's window is shown (fast; no popups/dialogs)
     ui.py SERIAL wait TARGET [S]   wait up to S seconds (default 10) for a node
     ui.py SERIAL waitgone TARGET [S] wait up to S seconds (default 10) for a node to disappear
-    ui.py SERIAL bounds TARGET     print "x1 y1 x2 y2" for every matching node
+    ui.py SERIAL bounds TARGET [ID] print "x1 y1 x2 y2" for every matching node
     ui.py SERIAL texts             print "text|resource-id|content-desc" per node
     ui.py SERIAL shot FILE         screenshot as PNG
 
@@ -181,7 +181,7 @@ elif command == "tap":
     forget_screen()
     time.sleep(1.2)
 elif command == "longtap":
-    x, y = need(sys.argv[3])
+    x, y = need(sys.argv[3], *sys.argv[4:5])
     sh("input", "swipe", str(x), str(y), str(x), str(y), "900")
     forget_screen()
     time.sleep(1.2)
@@ -243,7 +243,10 @@ elif command == "waitgone":
     sys.exit(f"timed out waiting for disappearance of: {sys.argv[3]}")
 elif command == "bounds":
     wanted = sys.argv[3].split("|")
+    inside = sys.argv[4] if len(sys.argv) > 4 else None
     for text, rid, desc, x1, y1, x2, y2 in nodes():
+        if inside and rid.split("/")[-1] != inside:
+            continue
         if text in wanted or desc in wanted or rid.split("/")[-1] in wanted:
             print(x1, y1, x2, y2)
 elif command == "texts":

@@ -1,7 +1,9 @@
 New in this test build:
-• Music player with a queue, cover art and background controls
-• Sound: 10-band equalizer, bass, surround, loudness levelling, speed, sleep timer
-• “Play on…”: send music to Bluetooth, wired or cast devices
-• Own “Ordo Music” icon (Settings › Built-in apps), off by default
-• Fixed: stereo songs stopped with an error in 0.13.2
+• Ordo Music as an app of its own: songs, albums, artists, folders, side menu
+• Playlists, favourites, multi-select
+• Tag editor: change title, album, cover and more, with undo
+• Click-free sound, bit-perfect with everything off, "Full sound when quiet", "Fill in missing highs"
+• Icon colours for Ordo and Ordo Music
+• Ordo shows up in Android's file picker
+• Tablets: better player and sound sheet in landscape
 Feedback welcome: nullmesh@protonmail.com

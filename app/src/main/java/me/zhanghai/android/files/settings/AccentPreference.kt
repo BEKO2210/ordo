@@ -273,10 +273,13 @@ class AccentPreference @JvmOverloads constructor(
 }
 
 /** Draws selection separately from the colour so the ring and check can follow their own short choreography. */
-private class AccentSwatchView(
+internal class AccentSwatchView(
     context: Context,
     @ColorInt private val color: Int,
-    @ColorInt private val ringColor: Int
+    @ColorInt private val ringColor: Int,
+    private val radiusDp: Float = 17f,
+    // A thin edge for a swatch that would melt into the page (graphite on the dark theme).
+    @ColorInt private val outlineColor: Int? = null
 ) : View(context) {
     private val density = resources.displayMetrics.density
     private val fillPaint = Paint(Paint.ANTI_ALIAS_FLAG)
@@ -336,9 +339,16 @@ private class AccentSwatchView(
         super.onDraw(canvas)
         val cx = width / 2f
         val cy = height / 2f
-        val radius = CIRCLE_RADIUS_DP * density
+        val radius = radiusDp * density
         fillPaint.color = color
         canvas.drawCircle(cx, cy, radius, fillPaint)
+        if (outlineColor != null) {
+            fillPaint.color = outlineColor
+            fillPaint.style = Paint.Style.STROKE
+            fillPaint.strokeWidth = 2 * density
+            canvas.drawCircle(cx, cy, radius - density, fillPaint)
+            fillPaint.style = Paint.Style.FILL
+        }
 
         if (ringAmount > 0f) {
             ringPaint.color = ringColor
@@ -372,7 +382,6 @@ private class AccentSwatchView(
         private val EMPHASIZED = PathInterpolator(0.2f, 0f, 0f, 1f)
 
         // φ scale: a 34 dp circle in a 55 dp cell, a 3 dp ring 3 dp away from it (reaches 24.5 dp, cell edge is 27.5).
-        private const val CIRCLE_RADIUS_DP = 17f
         private const val RING_DP = 3f
         private const val RING_GAP_DP = 3f
 

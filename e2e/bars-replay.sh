@@ -8,21 +8,25 @@
 command -v ffmpeg >/dev/null || { echo "SKIP bars-replay: ffmpeg missing"; exit 0; }
 tmp=$(mktemp -d); trap 'rm -rf "$tmp"' EXIT
 launch 8
+read -r W H < <(screen_size)
+# Bring the bars and the card's Open button into view (a large display size puts the card below the fold, S21 Ultra
+# at 600 dpi), then remember where each bar is.
+for _ in 1 2 3 4; do
+    first=$(ui bounds usageBar | head -1 | cut -d' ' -f4)
+    [ -n "$first" ] && [ "$first" -le $((H - 200)) ] && ui has openButton && break
+    swipe_up
+done
 ui has usageBar || fail "no storage bar on the home screen"
-read -r _ H < <(screen_size)
-# Bring the bars into view if they are below the fold, then remember where each one is.
-first=$(ui bounds usageBar | head -1 | cut -d' ' -f4)
-[ "${first:-0}" -gt $((H - 200)) ] && swipe_up
 ui bounds usageBar > "$tmp/bars.txt"
 ui tap openButton >/dev/null; sleep 4; guard
 check "left the home screen" on filelist.FileListActivity
-a shell "screenrecord --time-limit 6 /sdcard/ordo-e2e-bars.mp4" &
+record 6 /sdcard/ordo-e2e-bars.mp4 &
 sleep 1.5; back 0; wait
 "$ADB" -s "$SERIAL" pull /sdcard/ordo-e2e-bars.mp4 "$tmp/bars.mp4" >/dev/null 2>&1; a shell rm -f /sdcard/ordo-e2e-bars.mp4
 n=0
 while read -r x1 y1 x2 y2; do
     n=$((n + 1)); w=$(((x2 - x1) / 2 * 2)); h=$(((y2 - y1) / 2 * 2))
-    ffmpeg -loglevel error -y -i "$tmp/bars.mp4" -vf "fps=15,crop=$w:$h:$x1:$y1" -f rawvideo -pix_fmt rgb24 "$tmp/bar$n.rgb" < /dev/null
+    ffmpeg -loglevel error -y -i "$tmp/bars.mp4" -vf "fps=15,scale=$W:$H,crop=$w:$h:$x1:$y1" -f rawvideo -pix_fmt rgb24 "$tmp/bar$n.rgb" < /dev/null
     verdict=$(python3 - "$tmp/bar$n.rgb" "$w" "$h" <<'PY'
 import sys
 path, w, h = sys.argv[1], int(sys.argv[2]), int(sys.argv[3])

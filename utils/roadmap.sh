@@ -110,10 +110,26 @@ cell "Musik-Player: Audio direkt in Ordo abspielen" \
     "ls app/src/main/java/me/zhanghai/android/files/viewer/audio/*.kt >/dev/null 2>&1 && grep -q 'mediaPlayback' app/src/main/AndroidManifest.xml" \
     "MP3 und alle gängigen Formate, Wiedergabe im Hintergrund mit Benachrichtigung, Sperrbildschirm und Kopfhörertasten, Warteschlange, lückenlos, Titelbild und Texte; Equalizer (10 Bänder, Voreinstellungen), Bassverstärkung, Lautstärkeausgleich (ReplayGain), Tempo mit gleicher Tonhöhe, Stille überspringen, Schlaf-Timer, Mono und Balance. Auf Pixel und Tab geprüft." \
     "Stand der Technik für Medien belegt"
+cell "Klang: eigene Effekte mit lebenden Bildern" \
+    "ls $TESTS/player/KlangChainTest.kt $TESTS/player/ClickFreeTest.kt >/dev/null 2>&1 && grep -q 'CrossfeedStage' app/src/main/java/me/zhanghai/android/files/player/KlangChain.kt && grep -q 'libbs2b' app/src/main/res/raw/licenses.xml && grep -q 'KlangPictureView' app/src/main/res/layout/klang_effect_card.xml && test -x e2e/klang.sh" \
+    "Raumklang für Kopfhörer (Crossfeed nach Bauer, bs2b-Port, MIT), Stereobreite, Hall (Freeverb, gemeinfrei), analoge Wärme und Klarheit (DynamicsProcessing-Mehrband-Kompressor), ohne Marken-Namen; ersetzt den veralteten Plattform-Virtualizer. Jede Karte im unteren Klang-Blatt zeigt ein ruhiges lebendes Bild, still bei reduzierter Bewegung. Rechenlast auf einem schwachen Gerät gemessen und Raumklang mit echtem Kopfhörer gehört." \
+    "Musik-Player: Audio direkt in Ordo abspielen"
 cell "Musik-Player als eigenes App-Symbol zum Einschalten" \
     "grep -q 'activity-alias' app/src/main/AndroidManifest.xml && grep -rq 'setComponentEnabledSetting' app/src/main/java/me/zhanghai/android/files/" \
     "Schalter in den Einstellungen: Ordo Musik bekommt ein eigenes Symbol auf dem Startbildschirm und lässt sich dort wieder ausschalten. Verhalten auf Pixel und Samsung gemessen." \
     "Musik-Player: Audio direkt in Ordo abspielen"
+cell "Ordo Musik: eigene Musiksammlung mit Titeln, Alben, Interpreten und Ordnern" \
+    "test -s app/src/main/java/me/zhanghai/android/files/viewer/audio/MusicLibrary.kt && test -s $TESTS/viewer/audio/MusicLibraryTest.kt && test -x e2e/music-library.sh && grep -q music-library e2e/run.sh" \
+    "Ordo Musik zeigt immer die Sammlung statt in den Player zu springen: Titel, Alben (Raster), Interpreten und Ordner aus MediaStore, Suche, „Alle zufällig“, Albumseiten in Titelreihenfolge, Mini-Player unten. Aussehen nach dem Vorbild Samsung Music (großer Titel, Reiter), Goldener Schnitt, hell und dunkel, Telefon und Tablet; e2e/music-library.sh auf dem Emulator und dem Tab bestanden." \
+    "Musik-Player als eigenes App-Symbol zum Einschalten"
+cell "Ordo Musik: Infos bearbeiten (Tag-Editor)" \
+    "test -s app/src/main/java/me/zhanghai/android/files/viewer/audio/SongTags.kt && test -s $TESTS/viewer/audio/SongTagsTest.kt && grep -q 'net.jthink:jaudiotagger' app/build.gradle && grep -q 'edit_title' e2e/music-library.sh" \
+    "Titel, Interpret, Album, Album-Interpret, Nummern, Jahr, Genre, Songtext und Cover für MP3, FLAC, Ogg Vorbis und M4A ändern, einzeln oder für ein ganzes Album; Vorschau, Schreiben über eine geprüfte Kopie, Rückgängig; MediaStore und Player zeigen es sofort, die Datei spielt danach weiter. Auf Tab, S21 und Pixel geprüft." \
+    "Ordo Musik: eigene Musiksammlung mit Titeln, Alben, Interpreten und Ordnern"
+cell "Ordo Musik: Auswahl, Wiedergabelisten und Favoriten" \
+    "test -s app/src/main/java/me/zhanghai/android/files/viewer/audio/Playlists.kt && test -s $TESTS/viewer/audio/PlaylistsTest.kt && grep -q 'actionFavorite' app/src/main/res/menu/audio_player.xml && grep -q 'in_playlist' e2e/music-library.sh" \
+    "Langes Drücken wählt mehrere Titel (Als Nächstes, Warteschlange, Wiedergabeliste, Favoriten, Infos bearbeiten); Wiedergabelisten und Favoriten als M3U8 in Music/Playlists, die andere Apps lesen; Herz im Player; Einträge im Seitenmenü. Auf Tab und S21 geprüft." \
+    "Ordo Musik: eigene Musiksammlung mit Titeln, Alben, Interpreten und Ordnern"
 cell "Video-Player: Filme direkt in Ordo ansehen" \
     "ls app/src/main/java/me/zhanghai/android/files/viewer/video/*.kt >/dev/null 2>&1" \
     "Alle gängigen Formate, Untertitel, Tonspur-Wahl, Bild-im-Bild, Tempo, Gesten für Helligkeit und Lautstärke; als eigenes Symbol einschaltbar wie der Musik-Player." \
@@ -158,6 +174,13 @@ cell "Eingebaute Apps entkoppeln: jede als eigenes App-Symbol, einzeln schaltbar
     "test -f app/src/main/java/me/zhanghai/android/files/settings/LauncherIconsPreferenceFragment.kt && [ \"\$(grep -c '<activity-alias' app/src/main/AndroidManifest.xml)\" -ge 3 ]" \
     "Eine Seite in den Einstellungen mit einem Schalter je eingebauter App (Musik, Video, Bilder, PDF, Notizen): eingeschaltet bekommt sie ein eigenes Symbol und einen eigenen Namen auf dem Startbildschirm und öffnet direkt ihre Ansicht. Erst freischalten, wenn die jeweilige App gut genug ist. Ein Mechanismus für alle, auf Pixel und Samsung gemessen." \
     "Musik-Player als eigenes App-Symbol zum Einschalten" "Video-Player: Filme direkt in Ordo ansehen"
+cell "Icon-Farbe für Ordo und jede eingebaute App selbst wählen" \
+    "[ \"\$(grep -c 'android.files.launcher.Home' app/src/main/AndroidManifest.xml)\" -ge 8 ] && [ \"\$(grep -c 'android.files.launcher.Music' app/src/main/AndroidManifest.xml)\" -ge 8 ] && test -x e2e/icon-colors.sh && grep -q 'fun choosingAColourLeavesExactlyThatAliasOnAndNeverNone' $TESTS/launcher/BuiltInAppTest.kt" \
+    "Acht Hintergrundfarben je Symbol (Ordo, Ordo Musik und jede künftige eingebaute App), ein activity-alias je Farbe aus utils/launcher-icon-colors.py, Auswahl mit Vorschau unter Einstellungen › Eingebaute Apps; nie ohne Launcher-Eintrag umschalten, Themed Icons bleiben." \
+    "Musik-Player als eigenes App-Symbol zum Einschalten"
+cell "Ordo als Ort in Androids Dateiauswahl (DocumentsProvider)" \
+    "test -s docs/DOKUMENTEN-ANBIETER.md && grep -q 'OrdoDocumentsProvider' app/src/main/AndroidManifest.xml && grep -q 'fun noIdReachesOutsideTheFavourites' $TESTS/documents/OrdoDocumentIdsTest.kt && test -x e2e/documents-provider.sh" \
+    "Öffnet eine andere App die System-Dateiauswahl, steht Ordo bei den Orten: erst die Lesezeichen nur zum Lesen, nie private Ordner oder der Tresor ohne ausdrückliche Einstellung; Ids kanonisch geprüft, kein Pfad-Ausbruch."
 cell "Goldener Schnitt als Maßsystem in ganz Ordo" \
     "test -s docs/DESIGN-SYSTEM.md && ! grep -rqE 'android:(padding|layout_margin)[A-Za-z]*=\"(4|6|12|16|20|24|28|32)dp\"' app/src/main/res/layout/" \
     "Alle eigenen Abstände, Größen, Proportionen und Rundungen folgen φ (Fibonacci-Reihe 3/5/8/13/21/34/55/89 dp, dimens_phi.xml); Bildschirm für Bildschirm umgestellt und auf Telefon und Tablet gemessen. Schriftgrößen bleiben Material 3."

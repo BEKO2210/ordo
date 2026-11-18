@@ -805,6 +805,8 @@
 
     <string name="home_title">Home</string>
     <string name="home_recent">Recent files</string>
+    <string name="documents_root_summary">Your bookmarks</string>
+    <string name="documents_recent_summary">Recently used in Ordo</string>
     <string name="home_recent_empty">No recent files</string>
     <string name="home_categories">Categories</string>
     <string name="home_storage">Storage</string>
@@ -1115,12 +1117,10 @@
     <string name="audio_sound_bass_boost">Bass boost</string>
     <string name="audio_sound_effects_heading">Effects</string>
     <string name="audio_sound_bass_summary">Adds weight to low frequencies</string>
-    <string name="audio_sound_virtualizer">Virtualizer</string>
-    <string name="audio_sound_virtualizer_summary">Widens the perceived sound stage</string>
     <string name="audio_sound_strength">Strength</string>
     <string name="audio_sound_normalization_heading">Volume</string>
     <string name="audio_sound_normalization">Even out volume</string>
-    <string name="audio_sound_normalization_summary">ReplayGain / R128 from the file tags</string>
+    <string name="audio_sound_normalization_summary">ReplayGain / R128 tags, or measured once for files without</string>
     <string name="audio_sound_normalization_preamp">Pre-amp</string>
     <string name="audio_sound_playback_heading">Playback</string>
     <string name="audio_output_title">Play on…</string>
@@ -1170,7 +1170,6 @@
     <string name="audio_sound_db_spoken">%1$+.1f decibels</string>
     <string name="audio_frequency_hz_spoken">%1$d hertz</string>
     <string name="audio_frequency_khz_spoken">%1$d kilohertz</string>
-    <string name="audio_sound_strength_percent">Strength %1$d %%</string>
     <string name="audio_sound_unavailable_row">%1$s: not available on this device</string>
     <string name="audio_sound_speed_hint">Pitch stays the same</string>
     <string name="audio_sound_speed_fine">Fine adjustment (0.05×)</string>
@@ -1180,4 +1179,35 @@
     <string name="audio_sound_focus_pause_short">Pause</string>
     <string name="audio_sound_focus_duck_short">Quieter</string>
     <string name="audio_sound_balance_picture">Balance: left speaker to right speaker</string>
+    <string name="audio_sound_crossfeed">Room sound for headphones</string>
+    <string name="audio_sound_crossfeed_summary">Brings the music out of your head to the front. Headphones only.</string>
+    <string name="audio_sound_width">Stereo width</string>
+    <string name="audio_sound_width_summary">0 % is mono, 100 % the original, 150 % wide</string>
+    <string name="audio_sound_reverb">Reverb</string>
+    <string name="audio_sound_reverb_summary">Places the music in a room</string>
+    <string name="audio_sound_reverb_mix">Reverb mix</string>
+    <string name="audio_reverb_room">Room</string>
+    <string name="audio_reverb_studio">Studio</string>
+    <string name="audio_reverb_club">Club</string>
+    <string name="audio_reverb_hall">Concert hall</string>
+    <string name="audio_sound_warmth">Analogue warmth</string>
+    <string name="audio_sound_warmth_summary">Rounds off peaks gently, like tape or valves</string>
+    <string name="audio_sound_clarity">Clarity</string>
+    <string name="audio_sound_clarity_summary">Brings quiet details forward without overdriving</string>
+    <string name="audio_sound_level">Level</string>
+    <string name="audio_sound_level_light">Light</string>
+    <string name="audio_sound_level_medium">Medium</string>
+    <string name="audio_sound_level_strong">Strong</string>
+    <string name="audio_sound_on">On</string>
+    <string name="audio_sound_mono_greyed">Off while mono audio is on</string>
+    <string name="audio_sound_picture">%1$s: %2$s</string>
+    <string name="audio_sound_percent">%1$d %%</string>
+    <string name="audio_sleep_end_track_short">Track end</string>
+    <string name="audio_sound_highs">Fill in missing highs</string>
+    <string name="audio_sound_highs_summary">Adds missing highs to heavily compressed files, quietly and only above their cut</string>
+    <string name="audio_sound_highs_found">Cut at %1$.1f kHz found, filled in above it</string>
+    <string name="audio_sound_highs_none">No missing highs found, nothing is added</string>
+    <string name="audio_sound_quiet">Full sound when quiet</string>
+    <string name="audio_sound_quiet_summary">At low volume, gently lifts bass and treble</string>
+    <string name="audio_sound_quiet_value">up to +%1$d dB bass at this volume</string>
 </resources>

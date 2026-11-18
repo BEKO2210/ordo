@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- One album in the grid: a square cover, the album and its artist. The grid's spacing comes from the list. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?selectableItemBackground"
+    android:clickable="true"
+    android:focusable="true"
+    android:orientation="vertical">
+
+    <me.zhanghai.android.files.ui.AspectRatioFrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:aspectRatio="1">
+
+        <include
+            android:id="@+id/art"
+            layout="@layout/music_art"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+    </me.zhanghai.android.files.ui.AspectRatioFrameLayout>
+
+    <TextView
+        android:id="@+id/title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/phi_8"
+        android:ellipsize="end"
+        android:hyphenationFrequency="none"
+        android:maxLines="1"
+        android:textAppearance="?textAppearanceBody1"
+        android:textColor="?colorOnSurface" />
+
+    <TextView
+        android:id="@+id/info"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/phi_5"
+        android:ellipsize="end"
+        android:hyphenationFrequency="none"
+        android:maxLines="1"
+        android:textAppearance="?textAppearanceCaption"
+        android:textColor="?android:textColorSecondary" />
+</LinearLayout>

@@ -3,4 +3,6 @@
 <resources>
     <item name="on_first_sight" type="id" />
     <item name="ordo_row_ripple" type="id" />
+    <item name="klangLeftPane" type="id" />
+    <item name="klangRightPane" type="id" />
 </resources>

@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- The icon colours and the apps still to come are added in code, one row per entry of BuiltInApp. -->
 <PreferenceScreen
     xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <Preference
+    <me.zhanghai.android.files.settings.LauncherIconsHeaderPreference
         android:key="launcher_icons_info"
-        android:selectable="false"
         android:summary="@string/launcher_icons_info" />
 
     <SwitchPreferenceCompat
@@ -13,37 +13,5 @@
         android:icon="@drawable/audio_icon_white_24dp"
         android:title="@string/launcher_music_label"
         android:summary="@string/launcher_music_summary"
-        android:persistent="false" />
-
-    <SwitchPreferenceCompat
-        android:key="launcher_video"
-        android:icon="@drawable/video_icon_white_24dp"
-        android:title="@string/launcher_video_label"
-        android:summary="@string/launcher_coming_soon"
-        android:enabled="false"
-        android:persistent="false" />
-
-    <SwitchPreferenceCompat
-        android:key="launcher_images"
-        android:icon="@drawable/image_icon_white_24dp"
-        android:title="@string/launcher_images_label"
-        android:summary="@string/launcher_coming_soon"
-        android:enabled="false"
-        android:persistent="false" />
-
-    <SwitchPreferenceCompat
-        android:key="launcher_pdf"
-        android:icon="@drawable/document_icon_white_24dp"
-        android:title="@string/launcher_pdf_label"
-        android:summary="@string/launcher_coming_soon"
-        android:enabled="false"
-        android:persistent="false" />
-
-    <SwitchPreferenceCompat
-        android:key="launcher_notes"
-        android:icon="@drawable/text_file_icon_white_24dp"
-        android:title="@string/launcher_notes_label"
-        android:summary="@string/launcher_coming_soon"
-        android:enabled="false"
         android:persistent="false" />
 </PreferenceScreen>

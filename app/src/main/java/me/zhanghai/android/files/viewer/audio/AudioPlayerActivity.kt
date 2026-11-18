@@ -84,6 +84,18 @@ class AudioPlayerActivity : AppActivity() {
     private var progressDescription: String? = null
     private var userSeeking = false
     private val handler = Handler(Looper.getMainLooper())
+    // The heart: favourites are Ordo Music's playlist Music/Playlists/Favorites.m3u8.
+    private val playlists by lazy {
+        @Suppress("DEPRECATION")
+        PlaylistStore(java.io.File(android.os.Environment.getExternalStoragePublicDirectory(
+            android.os.Environment.DIRECTORY_MUSIC), "Playlists"))
+    }
+    private var favoritePath: String? = null
+    private var favorite = false
+    private val editTagsLauncher =
+        registerForActivityResult(androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult()) {
+            if (it.resultCode == RESULT_OK) TagEditUndo.offer(this, binding.root, lifecycleScope, it.data) {}
+        }
 
     private fun nextProgressDelay(): Long {
         val position = controller?.currentPosition ?: 0L
@@ -131,6 +143,26 @@ class AudioPlayerActivity : AppActivity() {
         binding.toolbar.setOnMenuItemClickListener { item ->
             if (item.itemId == R.id.actionSound) {
                 AudioSoundSettingsSheet().show(supportFragmentManager, AudioSoundSettingsSheet.TAG)
+                true
+            } else if (item.itemId == R.id.actionFavorite) {
+                val path = favoritePath
+                if (path != null) {
+                    lifecycleScope.launch {
+                        val now = withContext(Dispatchers.IO) { runCatching { playlists.toggleFavorite(path) }.getOrNull() }
+                        if (now == null) return@launch
+                        favorite = now
+                        showFavorite()
+                        Snackbar.make(
+                            binding.root, if (now) R.string.music_favorite_added else R.string.music_favorite_removed,
+                            Snackbar.LENGTH_SHORT
+                        ).show()
+                    }
+                }
+                true
+            } else if (item.itemId == R.id.actionEditTags) {
+                currentFilePath()?.let {
+                    editTagsLauncher.launch(MusicTagEditorActivity.createIntent(this, listOf(it)))
+                }
                 true
             } else if (item.itemId == R.id.actionOutput) {
                 // Android 6–10 has no system output picker; connecting a Bluetooth speaker is the next best thing.
@@ -181,6 +213,14 @@ class AudioPlayerActivity : AppActivity() {
             }
         }
         showPlaceholder()
+        // Ordo Music's menu opens Sound or the sleep timer over the player.
+        if (savedInstanceState == null && intent.hasExtra(EXTRA_SOUND_SHEET)) {
+            AudioSoundSettingsSheet().apply {
+                arguments = bundleOf(
+                    AudioSoundSettingsSheet.ARG_SLEEP_TIMER to intent.getBooleanExtra(EXTRA_SOUND_SHEET, false)
+                )
+            }.show(supportFragmentManager, AudioSoundSettingsSheet.TAG)
+        }
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -294,7 +334,8 @@ class AudioPlayerActivity : AppActivity() {
 
     /**
      * Opened from the music icon: when the session holds nothing (the process was gone), the queue Ordo saved is
-     * put back, paused. A running session is left alone. Nothing left to resume leads to the start screen.
+     * put back, paused. A running session is left alone. With nothing left to resume the player closes and the
+     * library below it shows.
      */
     private fun resumeSavedQueue(player: MediaController) {
         if (queueStarted || !intent.getBooleanExtra(EXTRA_RESUME, false)) return
@@ -307,7 +348,6 @@ class AudioPlayerActivity : AppActivity() {
             }
             if (isFinishing || isDestroyed) return@launch
             if (state == null) {
-                startActivity(MusicLauncherActivity.createStartIntent(this@AudioPlayerActivity))
                 finish()
                 return@launch
             }
@@ -317,7 +357,39 @@ class AudioPlayerActivity : AppActivity() {
         }
     }
 
+    /** The playing song as a local file of Ordo's own; null for a content:// song of another app. */
+    private fun currentFilePath(): String? =
+        controller?.currentMediaItem?.mediaId
+            ?.let { runCatching { java.net.URI.create(it) }.getOrNull() }
+            ?.takeIf { it.scheme == "file" }?.path
+
+    private fun showFavorite() {
+        binding.toolbar.menu.findItem(R.id.actionFavorite)?.apply {
+            isVisible = favoritePath != null
+            setIcon(if (favorite) R.drawable.favorite_icon_white_24dp else R.drawable.favorite_border_icon_white_24dp)
+            setTitle(if (favorite) R.string.music_favorite_remove else R.string.music_favorite_add)
+        }
+    }
+
     private fun updateUi(player: Player) {
+        val filePath = currentFilePath()
+        binding.toolbar.menu.findItem(R.id.actionEditTags)?.isVisible = filePath != null
+        if (filePath != favoritePath) {
+            favoritePath = filePath
+            favorite = false
+            showFavorite()
+            if (filePath != null) {
+                lifecycleScope.launch {
+                    val isFavorite = withContext(Dispatchers.IO) {
+                        runCatching { playlists.isFavorite(filePath) }.getOrDefault(false)
+                    }
+                    if (favoritePath == filePath) {
+                        favorite = isFavorite
+                        showFavorite()
+                    }
+                }
+            }
+        }
         val metadata = player.mediaMetadata
         val item = player.currentMediaItem
         binding.title.text = metadata.title?.takeIf { it.isNotBlank() }
@@ -559,7 +631,10 @@ class AudioPlayerActivity : AppActivity() {
                     extras.getBoolean(AudioPlayerCommands.EXTRA_INPUT_GAIN_AVAILABLE),
                     extras.getInt(AudioPlayerCommands.EXTRA_LEGACY_BANDS),
                     extras.getBoolean(AudioPlayerCommands.EXTRA_BASS_AVAILABLE),
-                    extras.getBoolean(AudioPlayerCommands.EXTRA_VIRTUALIZER_AVAILABLE),
+                    extras.getBoolean(AudioPlayerCommands.EXTRA_CLARITY_AVAILABLE),
+                    extras.getBoolean(AudioPlayerCommands.EXTRA_HEADPHONES),
+                    extras.getInt(AudioPlayerCommands.EXTRA_HIGHS_CUTOFF),
+                    extras.getFloat(AudioPlayerCommands.EXTRA_VOLUME_FRACTION, 1f),
                     extras.getBoolean(AudioPlayerCommands.EXTRA_SLEEP_ACTIVE),
                     extras.getInt(AudioPlayerCommands.EXTRA_SLEEP_MINUTES),
                     extras.getBoolean(AudioPlayerCommands.EXTRA_END_OF_TRACK),
@@ -587,7 +662,10 @@ class AudioPlayerActivity : AppActivity() {
         val inputGainAvailable: Boolean = false,
         val legacyBandCount: Int = 0,
         val bassBoostAvailable: Boolean = false,
-        val virtualizerAvailable: Boolean = false,
+        val clarityAvailable: Boolean = false,
+        val headphones: Boolean = false,
+        val highsCutoffHz: Int = 0,
+        val volumeFraction: Float = 1f,
         val sleepActive: Boolean = false,
         val sleepMinutes: Int = 0,
         val sleepAtEndOfTrack: Boolean = false,
@@ -609,6 +687,7 @@ class AudioPlayerActivity : AppActivity() {
         private const val EXTRA_QUEUE_TOKEN =
             "me.zhanghai.android.files.viewer.audio.extra.QUEUE_TOKEN"
         private const val EXTRA_RESUME = "me.zhanghai.android.files.viewer.audio.extra.RESUME"
+        private const val EXTRA_SOUND_SHEET = "me.zhanghai.android.files.viewer.audio.extra.SOUND_SHEET"
         private const val STATE_QUEUE_STARTED = "queueStarted"
         private const val SEEK_MAX = 1_000
         // Once per displayed second, on the second: the times only change then, and a screen that redraws twice a
@@ -632,6 +711,10 @@ class AudioPlayerActivity : AppActivity() {
         /** For the music icon: shows the saved queue, paused, unless the session already holds one. */
         fun createResumeIntent(context: Context): Intent =
             Intent(context, AudioPlayerActivity::class.java).putExtra(EXTRA_RESUME, true)
+
+        /** The player with the Sound sheet open, or scrolled to its sleep timer. */
+        fun withSoundSheet(intent: Intent, sleepTimer: Boolean): Intent =
+            intent.putExtra(EXTRA_SOUND_SHEET, sleepTimer)
 
         fun createSessionIntent(context: Context): Intent =
             Intent(context, AudioPlayerActivity::class.java)

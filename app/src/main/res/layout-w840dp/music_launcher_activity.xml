@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- From 840 dp width (tablets in landscape): Ordo's side menu stays open beside the library, as in the file list. -->
+<me.zhanghai.android.files.ui.PersistentDrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true">
+
+    <me.zhanghai.android.files.ui.NavigationFrameLayout
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_gravity="start"
+        android:background="?colorSurface">
+
+        <include
+            android:id="@+id/navigation"
+            layout="@layout/navigation_fragment" />
+    </me.zhanghai.android.files.ui.NavigationFrameLayout>
+
+    <include
+        android:id="@+id/content"
+        layout="@layout/music_library_content" />
+</me.zhanghai.android.files.ui.PersistentDrawerLayout>

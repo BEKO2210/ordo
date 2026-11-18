@@ -1893,6 +1893,10 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
         if (viewModel.isNotificationPermissionRequested) {
             return
         }
+        // Picking a file for another app (an upload in the browser) needs no notifications; asking there is noise.
+        if (viewModel.pickOptions != null) {
+            return
+        }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) !=
                 PackageManager.PERMISSION_GRANTED) {

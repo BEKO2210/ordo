@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later -->
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/actionSearch"
+        android:icon="@drawable/search_icon_control_normal_24dp"
+        android:title="@string/search"
+        app:actionViewClass="me.zhanghai.android.files.ui.FixQueryChangeSearchView"
+        app:showAsAction="always|collapseActionView" />
+
+    <!-- On an album, artist or folder page: edit the info of all its songs at once. -->
+    <item
+        android:id="@+id/actionEditAll"
+        android:icon="@drawable/tag_edit_icon_white_24dp"
+        android:title="@string/music_edit_tags_all"
+        app:iconTint="?colorControlNormal"
+        android:visible="false"
+        app:showAsAction="ifRoom" />
+
+    <!-- A playlist's page: delete the list (the songs stay). -->
+    <item
+        android:id="@+id/actionDeletePlaylist"
+        android:icon="@drawable/delete_icon_white_24dp"
+        android:title="@string/music_playlist_delete"
+        android:visible="false"
+        app:iconTint="?colorControlNormal"
+        app:showAsAction="ifRoom" />
+
+    <!-- While songs are selected (long press): what to do with all of them. -->
+    <group android:id="@+id/groupSelection" android:visible="false">
+        <item
+            android:id="@+id/actionSelectionPlayNext"
+            android:icon="@drawable/skip_next_icon_24dp"
+            android:title="@string/music_play_next"
+            app:iconTint="?colorControlNormal"
+            app:showAsAction="ifRoom" />
+        <item
+            android:id="@+id/actionSelectionQueue"
+            android:icon="@drawable/queue_music_icon_white_24dp"
+            android:title="@string/music_add_to_queue"
+            app:iconTint="?colorControlNormal"
+            app:showAsAction="ifRoom" />
+        <item
+            android:id="@+id/actionSelectionPlaylist"
+            android:icon="@drawable/playlist_add_icon_white_24dp"
+            android:title="@string/music_playlist_add"
+            app:iconTint="?colorControlNormal"
+            app:showAsAction="ifRoom" />
+        <item
+            android:id="@+id/actionSelectionFavorite"
+            android:icon="@drawable/favorite_icon_white_24dp"
+            android:title="@string/music_favorite_add"
+            app:iconTint="?colorControlNormal"
+            app:showAsAction="never" />
+        <item
+            android:id="@+id/actionSelectionEdit"
+            android:icon="@drawable/tag_edit_icon_white_24dp"
+            android:title="@string/music_edit_tags_all"
+            app:iconTint="?colorControlNormal"
+            app:showAsAction="never" />
+    </group>
+</menu>

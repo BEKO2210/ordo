@@ -57,7 +57,8 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_gravity="end"
-                            android:text="@string/home_permission_action" />
+                            android:text="@string/home_permission_action"
+                            app:icon="@drawable/lock_open_icon_white_24dp" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 

@@ -1,49 +1,163 @@
 <p align="center">
-  <img src="docs/icon/play-store-icon.png" width="112" alt="Ordo-Symbol">
+  <img src="docs/icon/play-store-icon.png" width="128" alt="Ordo-Symbol">
 </p>
 
 <h1 align="center">Ordo</h1>
 
 <p align="center"><a href="README.md">English</a> · <b>Deutsch</b></p>
 
+<h3 align="center">Der Dateimanager, der für dich aufräumt – mit einer KI, die dein Handy nie verlässt.</h3>
+
 <p align="center">
-  Ein kostenloser Open-Source-Dateimanager für Android – mit einer KI, die komplett auf deinem Handy läuft.<br>
-  Alles in Ordnung, nichts verlässt dein Gerät.
+  Kostenlos und Open Source. Dateien, Musik, Speicheranalyse, Tresor und Sicherung in einer App.<br>
+  Keine Werbung, kein Tracking, nichts verlässt dein Gerät.
 </p>
 
 <p align="center">
-  <a href="LICENSE"><img alt="Lizenz: GPL-3.0-or-later" src="https://img.shields.io/badge/Lizenz-GPL--3.0--or--later-blue"></a>
+  <a href="https://github.com/BEKO2210/ordo/releases"><img alt="Neueste Version" src="https://img.shields.io/github/v/release/BEKO2210/ordo?include_prereleases&label=Version&color=2563EB"></a>
   <img alt="Android 7.0+" src="https://img.shields.io/badge/Android-7.0%2B-3DDC84">
+  <a href="LICENSE"><img alt="Lizenz: GPL-3.0-or-later" src="https://img.shields.io/badge/Lizenz-GPL--3.0--or--later-blue"></a>
   <img alt="Keine Werbung, kein Tracking" src="https://img.shields.io/badge/Werbung%20%26%20Tracking-keine-2563EB">
   <img alt="KI auf dem Gerät" src="https://img.shields.io/badge/KI-auf%20dem%20Ger%C3%A4t-0E7490">
+  <img alt="Google Play: geschlossener Test" src="https://img.shields.io/badge/Google%20Play-geschlossener%20Test-414141">
   <a href="https://beko2210.github.io/ordo/datenschutz.html"><img alt="Datenschutz" src="https://img.shields.io/badge/Datenschutz-Erkl%C3%A4rung-555"></a>
 </p>
 
 <p align="center">
   <img src="docs/screenshots/de/home.png" width="24%" alt="Startseite mit zuletzt verwendeten Dateien, Kategorien, Tresor und Sicherung">
-  <img src="docs/screenshots/de/ai.png" width="24%" alt="KI-Befehl mit Vorschau: 9 Fotos verschieben">
-  <img src="docs/screenshots/de/analysis.png" width="24%" alt="Speicheranalyse: deine Dateien, System und freier Platz in einem Balken, dann deine Dateien nach Art">
-  <img src="docs/screenshots/de/cleanup.png" width="24%" alt="Aufräum-Potenzial und Vorschläge mit Vorschau-Knopf, Dunkelmodus">
+  <img src="docs/screenshots/de/ai.png" width="24%" alt="KI-Befehl mit Vorschau: 9 Fotos verschieben, dunkel">
+  <img src="docs/screenshots/de/library-albums-dark.png" width="24%" alt="Ordo Musik: Alben als Raster aus Covern, dunkel">
+  <img src="docs/screenshots/de/player-dark.png" width="24%" alt="Musik-Player mit Cover und Steuerung, dunkel">
 </p>
-<p align="center">
-  <img src="docs/screenshots/de/storage.png" width="24%" alt="Speicherkarten mit animierten Balken und den Knöpfen Öffnen und Analysieren">
-  <img src="docs/screenshots/de/audio.png" width="24%" alt="Musik mit Covern im Dunkelmodus">
-  <img src="docs/screenshots/de/settings.png" width="24%" alt="Einstellungen nach Kategorien mit farbigen Piktogrammen">
-  <img src="docs/screenshots/de/appearance.png" width="24%" alt="Aussehen: fünf Akzentfarben, Nachtmodus, Animationen, Dunkelmodus">
-</p>
-<p align="center">
-  <img src="docs/screenshots/de/player.png" width="24%" alt="Musik-Player mit Cover und Steuerung, hell">
-  <img src="docs/screenshots/de/sound.png" width="24%" alt="Klang: Equalizer-Kurve mit Voreinstellung Bass, dunkel">
-  <img src="docs/screenshots/de/album.png" width="24%" alt="Ein Album im Ordner, Cover als Vorschaubilder">
-</p>
+
+> **Neu in 0.14** (im Test, noch nicht veröffentlicht)
+> - **Ordo Musik** wird eine eigene Musik-App: Titel, Alben, Interpreten, Ordner und ein Mini-Player
+> - **Icon-Farben**: acht Farben für Ordos App-Symbol und für Ordo Musik
+> - **Hochladen mit Ordo**: Eine Datei für eine Website oder App auswählen fragt nicht mehr nach Benachrichtigungen
 
 ## Stand
 
-Ordo ist in Entwicklung (Version 0.13.3). Bei Google Play läuft ein geschlossener Test; Testversionen erscheinen auch als
+Ordo ist in Entwicklung (Version 0.14.0). Bei Google Play läuft ein geschlossener Test; Testversionen erscheinen auch als
 [Pre-Releases](https://github.com/BEKO2210/ordo/releases); du kannst Ordo auch [selbst bauen](#bauen).
 Was als Nächstes kommt, steht in der [lebenden Roadmap](docs/ROADMAP-LIVE.md): Jedes Ziel hat einen Prüfbefehl und schließt sich selbst. Die Recherche hinter dem Musik-Player und dem geplanten Video-Player, PDF-Leser und den Editoren steht in [docs/MEDIEN-RECHERCHE.md](docs/MEDIEN-RECHERCHE.md).
 
-## Funktionen
+## Ein Rundgang durch Ordo
+
+### Alles finden, alles aufräumen
+
+- Startseite mit zuletzt verwendeten Dateien, Kategorien, Apps, Papierkorb, Tresor, Sicherung und Speicher auf einen Blick
+- Liste oder Raster in drei Größen; Suche nach Namen oder nach Text in Dateien
+- Gelöschtes wartet 30 Tage im Papierkorb
+
+<p align="center">
+  <img src="docs/screenshots/de/home-dark.png" width="24%" alt="Die Startseite im Dunkelmodus">
+  <img src="docs/screenshots/de/storage.png" width="24%" alt="Speicherkarten mit Balken und den Knöpfen Öffnen und Analysieren">
+  <img src="docs/screenshots/de/files.png" width="24%" alt="Urlaubsfotos in der Rasteransicht">
+</p>
+
+### KI-Befehle – auf deinem Handy, nicht in einer Cloud
+
+- Einen Satz tippen oder diktieren, Deutsch oder Englisch: *„Verschiebe alle Fotos aus Urlaub 2026 nach Pictures“*
+- Ordo zeigt erst den Plan und handelt erst, wenn du bestätigst; Rückgängig mit einem Tipp
+- Das Modell läuft mit llama.cpp auf dem Handy: Befehle und Dateinamen verlassen es nie – [so funktioniert es](#ki-befehle)
+
+<p align="center">
+  <img src="docs/media/clips/de-ai-command.webp" width="32%" alt="Clip: der Plan, Bestätigen, die Fotos wandern, Rückgängig holt sie zurück">
+</p>
+<p align="center"><sub>Der Clip ist im Emulator mit einer festen Modell-Antwort aufgenommen (Debug-Version); Plan, Prüfungen, Verschieben und Rückgängig sind die echten.</sub></p>
+
+### Speicheranalyse, die zeigt, wo der Platz geblieben ist
+
+- Ein Ring deiner Dateien nach Art, was sich sicher frei machen lässt, eine Karte der Ordner, in denen der Speicher liegt
+- Große Dateien, Duplikate, alte APKs und lange nicht genutzte Dateien, jeweils auf einer eigenen Seite
+- Gelöscht wird nur auf deinen Tipp, und zwar in den Papierkorb
+
+<p align="center">
+  <img src="docs/screenshots/de/analysis.png" width="24%" alt="Speicheranalyse: deine Dateien, System und freier Platz">
+  <img src="docs/screenshots/de/cleanup.png" width="24%" alt="Aufräum-Potenzial und Vorschläge mit Vorschau">
+</p>
+
+### Tresor & Sicherung
+
+- Tresor: Dateien mit AES-256-GCM verschlüsselt, mit deiner Bildschirmsperre geöffnet
+- Sicherung von Ordnern und Tresor als ZIP auf einen USB-Stick oder zu Google Drive, auf Wunsch mit Passwort (AES-256)
+- Die Wiederherstellung ersetzt nie Dateien, die du schon hast
+
+<p align="center">
+  <img src="docs/screenshots/de/vault.png" width="24%" alt="Der Tresor mit drei Dokumenten, mit der Bildschirmsperre geöffnet">
+  <img src="docs/screenshots/de/backup.png" width="24%" alt="Sicherung: Ordner, Tresor, Ziel und Passwort">
+</p>
+
+### Ordo Musik – eine eigene Musik-App
+
+- Titel, Alben, Interpreten und Ordner mit Suche, „Alle zufällig“ und Mini-Player
+- Ein Player, der seine Farbe vom Cover nimmt, mit Warteschlange und Steuerung im Hintergrund
+- Klang: 10-Band-Equalizer, direkt an der Kurve geformt, Voreinstellungen, Geräteeffekte, ReplayGain/R128 und ein ausblendender Einschlaf-Timer
+- „Abspielen auf …“ schickt die Musik über Androids Ausgabe-Auswahl an Bluetooth-, Kabel- und Cast-Geräte (ab Android 11)
+
+<p align="center">
+  <img src="docs/screenshots/de/library-songs.png" width="24%" alt="Ordo Musik: Titel mit Mini-Player">
+  <img src="docs/screenshots/de/library-albums.png" width="24%" alt="Ordo Musik: Alben als Cover">
+  <img src="docs/screenshots/de/album.png" width="24%" alt="Eine Albumseite mit Abspielen und Zufällig">
+  <img src="docs/screenshots/de/player.png" width="24%" alt="Der Player mit Cover">
+</p>
+<p align="center">
+  <img src="docs/screenshots/de/library-artists.png" width="24%" alt="Ordo Musik: Interpreten">
+  <img src="docs/screenshots/de/sound.png" width="24%" alt="Klang: Equalizer-Kurve mit der Voreinstellung Bass">
+  <img src="docs/screenshots/de/sound-effects.png" width="24%" alt="Klang: Normalisierung, Balance, Tempo und Einschlaf-Timer">
+  <img src="docs/screenshots/de/play-on.png" width="24%" alt="Abspielen auf: Androids eigene Ausgabe-Auswahl, im Emulator auf Englisch">
+</p>
+<p align="center">
+  <img src="docs/media/clips/de-music.webp" width="32%" alt="Clip: durch die Alben scrollen, eines öffnen und einen Titel spielen">
+  <img src="docs/media/clips/de-sound.webp" width="32%" alt="Clip: die Equalizer-Kurve wechselt zwischen Voreinstellungen">
+</p>
+
+### Nach deinem Geschmack
+
+- Ordos eigene Farben in fünf Akzenten oder die Farben deines Hintergrundbilds (ab Android 12)
+- Hell, dunkel und echtes Schwarz; Animationen voll, dezent oder aus
+- Acht Icon-Farben für Ordos App-Symbol und für Ordo Musik, mit Live-Vorschau
+
+<p align="center">
+  <img src="docs/screenshots/de/settings.png" width="24%" alt="Einstellungen nach Kategorien">
+  <img src="docs/screenshots/de/appearance.png" width="24%" alt="Aussehen: Akzentfarben, Nachtmodus, Animationen">
+  <img src="docs/screenshots/de/icon-colours.png" width="24%" alt="Icon-Farben: acht Farben für Ordo und Ordo Musik">
+  <img src="docs/screenshots/de/launcher.png" width="24%" alt="Die App-Liste mit lila Ordo und grünem Ordo Musik">
+</p>
+
+### Gemacht für Tablets
+
+- Das Alben-Raster von Ordo Musik bekommt mehr Spalten, je breiter der Bildschirm ist
+- Die Speicheranalyse in zwei Spalten mit Karten, Zeilen nebeneinander
+
+<p align="center">
+  <img src="docs/screenshots/de/tablet-albums.png" width="98%" alt="Tablet quer: alle sechs Alben von Ordo Musik in einer Reihe, dunkel">
+</p>
+<p align="center">
+  <img src="docs/screenshots/de/tablet-home.png" width="49%" alt="Tablet: Startseite">
+  <img src="docs/screenshots/de/tablet-analysis.png" width="49%" alt="Tablet: Speicheranalyse in zwei Spalten">
+</p>
+
+### Hochladen mit Ordo
+
+- Wenn eine Website oder App eine Datei verlangt (etwa ein Lied bei Suno), steht Ordo in der Android-Auswahl unter „Öffnen aus“
+- Beim Auswählen fragt Ordo nicht nach Benachrichtigungen
+
+<p align="center">
+  <img src="docs/screenshots/de/pick.png" width="24%" alt="Ordo zum Auswählen einer Datei für einen Upload geöffnet">
+</p>
+
+### Privat von Grund auf
+
+- Keine Werbung, keine Tracker, keine Analyse; ins Netz nur für Server, die du hinzufügst, und einmal für das KI-Modell
+- Open Source unter GPL-3.0, aufgebaut auf [Material Files](https://github.com/zhanghai/MaterialFiles)
+
+Alle Bilder oben stammen aus `utils/readme-shots.sh`, aufgenommen im Android-16-Emulator, nur mit Beispieldaten.
+
+## Alle Funktionen
+
+<details>
+<summary><b>Alles, was Ordo kann, im Detail</b></summary>
 
 **Dateien finden**
 
@@ -83,6 +197,12 @@ Was als Nächstes kommt, steht in der [lebenden Roadmap](docs/ROADMAP-LIVE.md): 
 - Viele Dateien auf einmal nach Muster umbenennen
 - ZIP-, TAR- und 7z-Archive erstellen und entpacken
 - Eingebaute Ansicht für Bilder, PDF und Text
+- Ordo in Androids eigener Dateiauswahl: Fragt eine andere App nach einer Datei (etwa ein Upload im Browser),
+  steht „Ordo“ bei den Orten und zeigt deine Lesezeichen und die zuletzt in Ordo verwendeten Dateien, nur zum Lesen,
+  mit Vorschaubildern. Nur mit Zugriff auf alle Dateien;
+  App-eigene Ordner und der Tresor erscheinen nie
+- Hochladen mit Ordo: Wenn eine Website oder App eine Datei verlangt (etwa ein Lied bei Suno), steht Ordo in der
+  Android-Auswahl links unter „Öffnen aus“; Ordo fragt dabei nicht nach Benachrichtigungen
 
 **Musik hören**
 
@@ -91,10 +211,30 @@ Was als Nächstes kommt, steht in der [lebenden Roadmap](docs/ROADMAP-LIVE.md): 
   nebeneinander; die Coverfarbe tönt den Hintergrund sanft, ohne die Textfarben des Designs zu verändern; „Klang“
   gruppiert 10-Band-Equalizer, Geräteeffekte, ReplayGain/R128 und Wiedergabeoptionen in klare Bereiche. Die Kurve ist
   die Hauptsteuerung, genaue 48-dp-Tasten liegen unter „Genau einstellen“; dazu kommt ein ausblendender Einschlaf-Timer
+- Eigene Klangeffekte, auf jedem Handy gleich: Raumklang für Kopfhörer (Crossfeed nach Bauer, eine Portierung des
+  MIT-lizenzierten bs2b), Stereobreite (0 % Mono bis 150 % breit), Hall (Freeverb, gemeinfrei) mit Raum, Studio, Club
+  und Konzertsaal, analoge Wärme, Klarheit (Mehrband-Kompressor, ab Android 9) und, standardmäßig aus, „Höhen ergänzen“ für stark komprimierte Dateien, das nur oberhalb einer erkannten Grenze wirkt; ebenfalls standardmäßig aus, „Leise hören mit vollem Klang“ hebt den
+  Bass sanft an, je leiser die Systemlautstärke ist. Jede Karte im unteren Klang-Blatt
+  zeigt ein kleines lebendiges Bild davon, was sie tut; es steht still, wenn Ordos Animationen aus sind
 - „Abspielen auf …“ im Player öffnet die Ausgabe-Auswahl von Android: Bluetooth-Kopfhörer und -Lautsprecher, Kabel und
   Cast-Geräte, ohne Google-Dienste (ab Android 11; auf Android 6–10 öffnen sich die Bluetooth-Einstellungen). Musik an
   Chromecast, Fernseher und Receiver zu streamen ist geplant, siehe [docs/STREAMING-RECHERCHE.md](docs/STREAMING-RECHERCHE.md)
-- Eigenes App-Symbol für den Musik-Player (Einstellungen › Eingebaute Apps): standardmäßig aus, nur du schaltest es ein und aus, siehe [docs/AUDIO-PLAYER.md](docs/AUDIO-PLAYER.md)
+- Ordo Musik als eigene Musik-App mit eigener Karte in den Letzten Apps: deine ganze Musik in den Reitern Titel,
+  Alben, Interpreten und Ordner, mit großem Titel, der beim Scrollen in die Leiste wandert, Suche, „Alle zufällig“,
+  Albumseiten mit großem Cover und den Titeln in ihrer Reihenfolge mit „Abspielen“ und „Zufällig“, runden
+  Interpretenbildern und Ordnerkacheln aus Albumcovern (wo ein Cover fehlt, eine ruhige Farbe mit Initialen), einem
+  Mini-Player mit Play/Pause und Weiter unten und Ordos Seitenmenü mit Bibliothek, Zuletzt gespielt, Meistgespielt
+  (nur auf dem Gerät gezählt), Klang, Einschlaf-Timer, Einstellungen und dem Weg zurück zum Dateimanager. Die Titel
+  kommen aus Androids Mediensammlung (nur was der Player abspielt; versteckte Ordner nur, wenn du versteckte Dateien
+  zeigst) Infos eines Titels bearbeiten (Titel, Interpret, Album, Nummern, Jahr, Genre, Songtext, Cover) bei MP3,
+  FLAC, Ogg Vorbis und M4A, für einen Titel oder ein ganzes Album, mit Vorschau vor dem Speichern und „Rückgängig“
+  danach; die Datei wird erst ersetzt, wenn die neuen Angaben richtig zurückgelesen sind. Einen Titel gedrückt
+  halten wählt mehrere aus, um sie als Nächstes zu spielen, in die Warteschlange, in eine Wiedergabeliste oder zu
+  den Favoriten zu legen. Wiedergabelisten und Favoriten sind M3U8-Dateien in Music/Playlists, die auch andere
+  Musik-Apps lesen; das Herz im Player markiert einen Favoriten.
+- Eigenes App-Symbol für Ordo Musik (Einstellungen › Eingebaute Apps): standardmäßig aus, nur du schaltest es ein und aus, siehe [docs/AUDIO-PLAYER.md](docs/AUDIO-PLAYER.md)
+- Die Icon-Farbe von Ordo und Ordo Musik selbst wählen (Einstellungen › Eingebaute Apps › Icon-Farben): acht Farben,
+  standardmäßig Blau, mit Live-Vorschau des Symbols; Themed Icons (ab Android 13) funktionieren weiter
 
 **Dateien schützen**
 
@@ -123,7 +263,10 @@ Was als Nächstes kommt, steht in der [lebenden Roadmap](docs/ROADMAP-LIVE.md): 
   Aussehen › Animationen (Voll – alle Effekte, Dezent – nur Übergänge oder Aus) steuert alles, und Androids
   Systemeinstellung „Animationen entfernen“ hat immer Vorrang
 - Die Suchleiste der Startseite oben oder unten, mit dem Daumen erreichbar
+- Acht Icon-Farben für Ordos App-Symbol und Ordo Musik, unter Einstellungen › Eingebaute Apps › Icon-Farben
 - Bei ausgewählten Dateien liegen die Aktionen in einer Leiste unten; ihr „Mehr“-Menü öffnet direkt darüber, beim Daumen
+
+</details>
 
 ## KI-Befehle
 
