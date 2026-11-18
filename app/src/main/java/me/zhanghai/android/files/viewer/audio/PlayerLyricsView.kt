@@ -149,15 +149,23 @@ class PlayerLyricsView(
         )
     }
 
-    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
-        super.onSizeChanged(w, h, oldw, oldh)
-        // Room above the first and below the last line, so every line can stand in the middle; on a wide screen the
-        // lines keep a readable width in the middle.
+    override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
+        super.onLayout(changed, left, top, right, bottom)
+        // The playing line stands in the middle of the free area between header and play button. The list's top
+        // and bottom padding meet exactly there, so the first line starts in the middle and the last can reach it;
+        // on a wide screen the centred lines keep a readable width.
+        val w = right - left
+        val middle = (header.bottom + playPause.top) / 2
         val side = maxOf(resources.getDimensionPixelSize(R.dimen.phi_34), (w - (MAX_LINE_WIDTH_DP *
             resources.displayMetrics.density).toInt()) / 2)
-        list.updatePadding(left = side, right = side, top = h / 2, bottom = h / 2)
-        post { center(animate = false) }
+        if (middle != centerY || list.paddingLeft != side) {
+            centerY = middle
+            list.updatePadding(left = side, right = side, top = middle, bottom = (bottom - top) - middle)
+            post { center(animate = false, force = true) }
+        }
     }
+
+    private var centerY = 0
 
     @SuppressLint("NotifyDataSetChanged")
     fun show(lyrics: Lyrics, textColor: Int, dimColor: Int, veil: Int) {
@@ -179,7 +187,8 @@ class PlayerLyricsView(
         lines = if (lyrics.isSynced) lyrics.lines.map { it.text } else lyrics.text
         current = -1
         adapter.notifyDataSetChanged()
-        layoutManager.scrollToPositionWithOffset(0, 0)
+        // Before the first line plays it already stands in the middle.
+        post { center(animate = false, force = true) }
     }
 
     /** The playing position; only a change of line touches the views. */
@@ -190,19 +199,28 @@ class PlayerLyricsView(
         if (line == current) return
         val previous = current
         current = line
-        if (previous >= 0) adapter.notifyItemChanged(previous, ACTIVE)
-        if (line >= 0) adapter.notifyItemChanged(line, ACTIVE)
+        // The lines around the old and the new one change their step of emphasis.
+        restyle(previous)
+        restyle(line)
         center(Motion.any)
     }
 
-    private fun center(animate: Boolean) {
-        if (current < 0 || list.height == 0) return
+    private fun restyle(line: Int) {
+        if (line < 0) return
+        val from = (line - EMPHASIS_STEPS).coerceAtLeast(0)
+        val to = (line + EMPHASIS_STEPS).coerceAtMost(lines.size - 1)
+        if (to >= from) adapter.notifyItemRangeChanged(from, to - from + 1, ACTIVE)
+    }
+
+    private fun center(animate: Boolean, force: Boolean = false) {
+        if (list.height == 0 || lines.isEmpty()) return
         // The reader scrolled lately: leave the text where they put it.
-        if (SystemClock.uptimeMillis() - lastUserScroll < USER_SCROLL_PAUSE_MS) return
+        if (!force && SystemClock.uptimeMillis() - lastUserScroll < USER_SCROLL_PAUSE_MS) return
+        val target = current.coerceAtLeast(0)
         if (!animate) {
-            val row = layoutManager.findViewByPosition(current)?.height ?: 0
-            // The offset counts from the top padding (half the height), so -row / 2 puts the line's middle there.
-            layoutManager.scrollToPositionWithOffset(current, -row / 2)
+            val row = layoutManager.findViewByPosition(target)?.height ?: estimatedRow()
+            // The offset counts from the top padding, which ends at the middle: -row / 2 centres the line there.
+            layoutManager.scrollToPositionWithOffset(target, -row / 2)
             return
         }
         list.layoutManager?.startSmoothScroll(object : LinearSmoothScroller(context) {
@@ -212,19 +230,34 @@ class PlayerLyricsView(
 
             override fun calculateSpeedPerPixel(displayMetrics: android.util.DisplayMetrics): Float =
                 SMOOTH_MS_PER_INCH / displayMetrics.densityDpi
-        }.apply { targetPosition = current })
+        }.apply { targetPosition = target })
     }
 
-    private fun style(view: TextView, active: Boolean, animate: Boolean) {
+    private fun estimatedRow(): Int =
+        (LINE_TEXT_SP * resources.displayMetrics.scaledDensity * 1.3f).toInt() +
+            2 * resources.getDimensionPixelSize(R.dimen.phi_13)
+
+    /**
+     * Emphasis by distance from the playing line, as the big players do: the line itself bold, full size, in the text
+     * colour; the neighbours slightly smaller in the secondary colour (WCAG-checked against the veil), lines further
+     * away in steps of opacity. Unsynced text reads evenly.
+     */
+    private fun style(view: TextView, position: Int, animate: Boolean) {
+        val synced = lyrics?.isSynced == true
+        val distance = if (synced && current >= 0) kotlin.math.abs(position - current) else if (synced) position + 1
+            else 0
+        val active = !synced || distance == 0
         view.setTextColor(if (active) textColor else dimColor)
-        view.typeface = if (active) BOLD else MEDIUM
-        val scale = if (active || lyrics?.isSynced != true) 1f else INACTIVE_SCALE
+        view.typeface = if (synced && distance == 0) BOLD else MEDIUM
+        val scale = if (active) 1f else INACTIVE_SCALE
+        val alpha = if (!synced) 1f else STEP_ALPHA[distance.coerceAtMost(STEP_ALPHA.size - 1)]
         if (animate) {
-            view.animate().scaleX(scale).scaleY(scale).setDuration(STYLE_MS).start()
+            view.animate().scaleX(scale).scaleY(scale).alpha(alpha).setDuration(STYLE_MS).start()
         } else {
             view.animate().cancel()
             view.scaleX = scale
             view.scaleY = scale
+            view.alpha = alpha
         }
     }
 
@@ -236,9 +269,10 @@ class PlayerLyricsView(
                 setTextSize(TypedValue.COMPLEX_UNIT_SP, LINE_TEXT_SP)
                 typeface = MEDIUM
                 setLineSpacing(0f, 1.15f)
-                val vertical = resources.getDimensionPixelSize(R.dimen.phi_8)
+                val vertical = resources.getDimensionPixelSize(R.dimen.phi_13)
                 updatePadding(top = vertical, bottom = vertical)
-                pivotX = 0f
+                gravity = Gravity.CENTER_HORIZONTAL
+                textAlignment = View.TEXT_ALIGNMENT_CENTER
                 layoutParams = RecyclerView.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT
                 )
@@ -269,20 +303,22 @@ class PlayerLyricsView(
             val view = holder.itemView as TextView
             view.text = lines[position].ifBlank { "♪" }
             view.isLongClickable = lyrics?.isSynced == true
-            view.pivotY = 0f
-            style(view, lyrics?.isSynced != true || position == current, false)
+            style(view, position, false)
         }
 
         override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int, payloads: List<Any>) {
             if (payloads.isEmpty()) return onBindViewHolder(holder, position)
-            style(holder.itemView as TextView, position == current, Motion.any)
+            style(holder.itemView as TextView, position, Motion.any)
         }
     }
 
     companion object {
         private const val ACTIVE = "active"
         private const val LINE_TEXT_SP = 28f
-        private const val INACTIVE_SCALE = 0.8f
+        private const val INACTIVE_SCALE = 0.86f
+        private const val EMPHASIS_STEPS = 3
+        // Opacity by distance from the playing line: 0 (itself), 1, 2, 3 and more.
+        private val STEP_ALPHA = floatArrayOf(1f, 1f, 0.75f, 0.55f)
         private const val MAX_LINE_WIDTH_DP = 640
         private const val FADE_ALPHA = 0xb0
         private val MEDIUM = android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.NORMAL)
