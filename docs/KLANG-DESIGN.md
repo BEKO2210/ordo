@@ -76,10 +76,17 @@ m3-progress-indicators, m3-shape-morph, m3-motion-physics). Hausregeln: keine Sc
    atmen eingeschaltete Bilder in einer ruhigen 4-s-Schleife mit höchstens 30 Bildern/s, das Pendel schwingt im Tempo;
    außerhalb des sichtbaren Bereichs ruht die Schleife, beim Zurückscrollen läuft sie weiter. „Dezent“ zeigt nur die
    Übergänge, „Aus“ und der Systemschalter zeigen stehende Bilder. TalkBack liest je Bild „Titel: Wert“.
-9. **Luft im unteren Teil:** Abschnitte 55 dp auseinander, Karten 34 dp (Raster: 17 dp um jede Karte), Abschnitts-
+9. **Querformat ab 840 dp:** Das Blatt ist bis 960 dp breit (Materials Grenze von 640 dp aufgehoben) und teilt sich
+   38,2 : 61,8: links fest Kurve, Voreinstellungen und „Genau einstellen“, rechts scrollen die Karten (eigene
+   NestedScrollViews). `e2e/klang-landscape.sh` scrollt im Querformat bis zur letzten Karte.
+   Auswahl-Chips des Timers und des Audiofokus tragen ein kleines Bild (Mond, Titelende, Pause, leiser); Erklärungen
+   brechen bis zu vier Zeilen um und werden nie abgeschnitten. Ausgeschaltete Teile sind auf 60 % (Bilder 65 %)
+   gedimmt, damit sie im Dunkelmodus mindestens 3 : 1 behalten. Die Voreinstellungen rasten nach einem Wisch auf eine
+   ganze Kachel ein.
+10. **Luft im unteren Teil:** Abschnitte 55 dp auseinander, Karten 34 dp (Raster: 17 dp um jede Karte), Abschnitts-
    titel mit Symbol (`tune`, `volume_up`, `play_circle`) und 13 dp bis zur ersten Karte. Jede Karte des unteren Teils hat
    eine 1-dp-Haarlinie in `outlineVariant`, damit sie sich auch im hellen Theme vom Blatt abhebt.
-10. Jede Zeile hat ein Symbol (Material Symbols rounded filled, über `utils/material-symbols.py` importiert).
+11. Jede Zeile hat ein Symbol (Material Symbols rounded filled, über `utils/material-symbols.py` importiert).
 
 ## Raster und Schrift (Goldener Schnitt)
 - Fibonacci-Stufen als `klang_space_*`: 5 · 8 · 13 · 21 · 34 dp – 8 zwischen verwandten Teilen, 13 in Karten (vertikal),

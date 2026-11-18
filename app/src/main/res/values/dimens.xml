@@ -108,6 +108,8 @@
     <dimen name="klang_picture_height">@dimen/phi_55</dimen>
     <!-- The tempo pendulum needs height to swing: 89 dp everywhere. -->
     <dimen name="klang_picture_height_tall">@dimen/phi_89</dimen>
+    <!-- Small picture beside the label of a choice chip (timer, audio focus). -->
+    <dimen name="klang_choice_icon">@dimen/phi_13</dimen>
     <!-- Two columns of lower-sheet cards only when each gets at least this much. -->
     <dimen name="klang_column_min_width">320dp</dimen>
     <!-- 610 dp ≈ 377 × φ. -->

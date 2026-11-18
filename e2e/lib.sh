@@ -74,7 +74,11 @@ launch() {
     skip_onboarding
     guard
 }
-screen_size() { a shell wm size | tail -1 | sed 's/.*: //; s/x/ /'; }
+# The current, rotated size: `wm size` gives the natural (portrait) size, so a swipe in landscape went off screen.
+screen_size() {
+    local cur; cur=$(a shell dumpsys window displays | grep -o 'cur=[0-9]*x[0-9]*' | head -1 | sed 's/cur=//; s/x/ /')
+    if [ -n "$cur" ]; then echo "$cur"; else a shell wm size | tail -1 | sed 's/.*: //; s/x/ /'; fi
+}
 swipe_up() { read -r W H < <(screen_size); a shell input swipe $((W / 2)) $((H * 3 / 4)) $((W / 2)) $((H / 3)) 500; sleep 1.5; }
 swipe_down() { read -r W H < <(screen_size); a shell input swipe $((W / 2)) $((H / 3)) $((W / 2)) $((H * 3 / 4)) 500; sleep 1.5; }
 

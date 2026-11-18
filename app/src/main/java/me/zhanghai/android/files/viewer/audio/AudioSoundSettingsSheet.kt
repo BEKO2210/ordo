@@ -103,7 +103,42 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = AudioSoundSettingsSheetBinding.inflate(inflater, container, false)
-        return binding.root
+        return if (isSplit()) splitPanes() else binding.root
+    }
+
+    /** Landscape at 840 dp and wider: the equalizer on the left, the cards on the right, each scrolling on its own. */
+    private fun isSplit(): Boolean = resources.configuration.let {
+        it.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE && it.screenWidthDp >= SPLIT_MIN_DP
+    }
+
+    /**
+     * Moves the views of the one long column into two panes, 38.2 : 61.8 (golden ratio): curve, presets and fine-tune
+     * on the left, effects, volume and playback on the right. The views stay the same objects, so the binding holds.
+     */
+    private fun splitPanes(): View {
+        val context = requireContext()
+        val content = binding.content
+        val firstLower = content.indexOfChild(binding.effectsSection)
+        val views = (0 until content.childCount).map { content.getChildAt(it) }
+        content.removeAllViews()
+        fun pane(children: List<View>) = LinearLayout(context).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(content.paddingLeft, content.paddingTop, content.paddingRight, content.paddingBottom)
+            children.forEach(::addView)
+        }
+        fun scroller(pane: View, weight: Float, id: Int) = androidx.core.widget.NestedScrollView(context).apply {
+            this.id = id
+            clipToPadding = false
+            addView(pane)
+            layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, weight)
+        }
+        // The first card on the right needs no section gap above it.
+        (binding.effectsSection.getChildAt(0).layoutParams as? ViewGroup.MarginLayoutParams)?.topMargin = 0
+        return LinearLayout(context).apply {
+            orientation = LinearLayout.HORIZONTAL
+            addView(scroller(pane(views.subList(0, firstLower)), 0.382f, R.id.klangLeftPane))
+            addView(scroller(pane(views.subList(firstLower, views.size)), 0.618f, R.id.klangRightPane))
+        }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -120,6 +155,7 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment() {
         binding.fineTuneToggle.setOnClickListener { setFineTuneExpanded(!fineTuneExpanded, true) }
         setFineTuneExpanded(false, false)
         createPresets()
+        snapPresets()
         createBandSteppers()
         bindStepper(
             binding.preGain, getString(R.string.audio_sound_pre_gain),
@@ -190,12 +226,21 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment() {
         val dialog = dialog as? BottomSheetDialog ?: return
         if (!Motion.any) dialog.window?.setWindowAnimations(0)
         val sheet = dialog.findViewById<View>(com.google.android.material.R.id.design_bottom_sheet) ?: return
-        val maxWidth = resources.getDimensionPixelSize(R.dimen.klang_sheet_max_width)
+        val split = isSplit()
+        val maxWidth = if (split) (SPLIT_MAX_DP * resources.displayMetrics.density).roundToInt()
+        else resources.getDimensionPixelSize(R.dimen.klang_sheet_max_width)
+        val width = minOf(resources.displayMetrics.widthPixels, maxWidth)
         sheet.layoutParams = sheet.layoutParams.apply {
-            width = minOf(resources.displayMetrics.widthPixels, maxWidth)
+            this.width = width
+            // Two panes scroll inside a sheet of full height; one column scrolls inside the sheet as before.
+            if (split) height = ViewGroup.LayoutParams.MATCH_PARENT
         }
         (sheet.layoutParams as? FrameLayout.LayoutParams)?.gravity = Gravity.CENTER_HORIZONTAL
-        BottomSheetBehavior.from(sheet).state = BottomSheetBehavior.STATE_EXPANDED
+        val behavior = BottomSheetBehavior.from(sheet)
+        // Material caps a bottom sheet at 640 dp; that made a narrow strip in a wide landscape window.
+        behavior.maxWidth = width
+        behavior.skipCollapsed = true
+        behavior.state = BottomSheetBehavior.STATE_EXPANDED
         handler.removeCallbacks(sleepTicker)
         handler.postDelayed(sleepTicker, SLEEP_REFRESH_MS)
     }
@@ -261,7 +306,9 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment() {
     /** Two columns of lower cards only when each one gets at least 320 dp; the sheet is that wide on tablets. */
     private fun setColumns() {
         val density = resources.displayMetrics.density
-        val sheetDp = minOf(
+        // Two panes: the cards get 61.8 % of the wide sheet.
+        val sheetDp = if (isSplit()) minOf(resources.configuration.screenWidthDp.toFloat(), SPLIT_MAX_DP) * 0.618f
+        else minOf(
             resources.configuration.screenWidthDp.toFloat(),
             resources.getDimension(R.dimen.klang_sheet_max_width) / density
         )
@@ -309,6 +356,26 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment() {
             tiles += tile
             binding.presets.addView(tileBinding.root)
             applyTile(tile, false)
+        }
+    }
+
+    /** After a swipe the preset row settles on a whole tile at its left edge. */
+    private fun snapPresets() {
+        val scroller = binding.presets.parent as? HorizontalScrollView ?: return
+        val settle = Runnable {
+            val tiles = (0 until binding.presets.childCount).map { binding.presets.getChildAt(it) }.filter { it.isVisible }
+            val target = tiles.minByOrNull { kotlin.math.abs(it.left - scroller.scrollX) }?.left ?: return@Runnable
+            scroller.smoothScrollTo(target, 0)
+        }
+        scroller.setOnTouchListener { _, event ->
+            if (event.actionMasked == android.view.MotionEvent.ACTION_UP ||
+                event.actionMasked == android.view.MotionEvent.ACTION_CANCEL
+            ) {
+                scroller.removeCallbacks(settle)
+                // After the fling has slowed down.
+                scroller.postDelayed(settle, SNAP_DELAY_MS)
+            }
+            false
         }
     }
 
@@ -422,7 +489,7 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment() {
     /** Off: the controls of a setting stay visible but dimmed and untouchable. */
     private fun setControlsActive(view: View, active: Boolean) {
         setEnabledRecursively(view, active)
-        view.alpha = if (active) 1f else DISABLED_ALPHA
+        view.alpha = if (active) 1f else OFF_ALPHA
     }
 
     private fun bindSwitchRow(
@@ -566,7 +633,7 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment() {
             if (greyedByMono) enableCard(card.root, !greyed)
             card.toggle.isChecked = enabled()
             card.ring.setProgressCompat((fraction() * 100).roundToInt(), Motion.any && !firstRender)
-            card.ring.alpha = if (active) 1f else DISABLED_ALPHA
+            card.ring.alpha = if (active) 1f else OFF_ALPHA
             val noteText = if (active) note?.invoke() else null
             card.state.isVisible = greyed || noteText != null
             card.state.text = if (greyed) getString(R.string.audio_sound_mono_greyed) else noteText
@@ -692,6 +759,14 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment() {
                 copy(focusBehavior = if (checkedId == R.id.focusPause) AudioFocusBehavior.PAUSE else AudioFocusBehavior.DUCK)
             }
         }
+        for ((button, icon) in listOf(
+            binding.focusPause to R.drawable.audio_pause_icon_24dp, binding.focusDuck to R.drawable.audio_duck_icon_24dp
+        )) {
+            button.setIconResource(icon)
+            button.iconSize = resources.getDimensionPixelSize(R.dimen.klang_choice_icon)
+            button.iconPadding = resources.getDimensionPixelSize(R.dimen.klang_space_xs)
+            button.iconGravity = MaterialButton.ICON_GRAVITY_TEXT_START
+        }
         binding.focusPicture.kind = Kind.FOCUS
         renderers += {
             val pause = settings.focusBehavior == AudioFocusBehavior.PAUSE
@@ -748,6 +823,17 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment() {
                 button.text = getString(R.string.audio_sleep_end_track_short)
                 button.contentDescription = label
             }
+            // A small picture beside each choice (moon for a time, an end mark for the track), and the label shrinks
+            // a little rather than being cut in a narrow cell.
+            if (timer.first > 0 || timer.second) {
+                button.setIconResource(if (timer.second) R.drawable.audio_track_end_icon_24dp else R.drawable.audio_moon_icon_24dp)
+                button.iconSize = resources.getDimensionPixelSize(R.dimen.klang_choice_icon)
+                button.iconPadding = resources.getDimensionPixelSize(R.dimen.klang_space_xs)
+                button.iconGravity = MaterialButton.ICON_GRAVITY_TEXT_START
+            }
+            androidx.core.widget.TextViewCompat.setAutoSizeTextTypeUniformWithConfiguration(
+                button, 10, 14, 1, android.util.TypedValue.COMPLEX_UNIT_SP
+            )
             button.setOnClickListener {
                 (activity as? AudioPlayerActivity)?.setSleepTimer(timer.first, timer.second, ::refreshStatus)
             }
@@ -852,7 +938,7 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment() {
 
     private fun enableCard(view: View, enabled: Boolean) {
         setEnabledRecursively(view, enabled)
-        view.alpha = if (enabled) 1f else DISABLED_ALPHA
+        view.alpha = if (enabled) 1f else OFF_ALPHA
     }
 
     internal fun refreshStatus() {
@@ -934,6 +1020,11 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment() {
         private const val WIDTH_STEP = 10
         private const val MIX_STEP = 5
         private const val HIGHS_REFRESH_MS = 2_500L
+        private const val SNAP_DELAY_MS = 350L
+        private const val SPLIT_MIN_DP = 840
+        private const val SPLIT_MAX_DP = 960f
+        /** Off or held off in the lower sheet: dimmed, but graphic and value keep at least 3 : 1 against the card. */
+        private const val OFF_ALPHA = 0.6f
         private const val SLEEP_REFRESH_MS = 30_000L
     }
 }

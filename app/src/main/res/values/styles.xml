@@ -379,10 +379,10 @@
         <item name="android:maxLines">2</item>
         <item name="android:ellipsize">end</item>
     </style>
+    <!-- Explanations wrap (up to four lines) and are never cut off with an ellipsis. -->
     <style name="Widget.Ordo.Klang.Info" parent="Widget.Ordo.Klang.Text">
         <item name="android:textAppearance">@style/TextAppearance.Ordo.Klang.Secondary</item>
-        <item name="android:maxLines">2</item>
-        <item name="android:ellipsize">end</item>
+        <item name="android:maxLines">4</item>
     </style>
     <style name="Widget.Ordo.Klang.Section" parent="Widget.Ordo.Klang.Text">
         <item name="android:textAppearance">@style/TextAppearance.Ordo.Klang.Section</item>

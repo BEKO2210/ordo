@@ -511,21 +511,29 @@ class KlangPictureView @JvmOverloads constructor(
     }
 
     /**
-     * A volume level on the left (the louder, the taller), and the frequency response beside it: flat when loud, with
-     * the lows (and a little of the highs) lifted as the volume goes down. [amount] is the current lift, 0..1.
+     * A speaker with level bars (the louder, the more bars are filled; a status, nothing to grab), and the frequency
+     * response beside it: flat when loud, the lows (and a little of the highs) lifted as the volume goes down.
+     * [amount] is the current lift, 0..1.
      */
     private fun drawQuiet(canvas: Canvas, l: Float, t: Float, r: Float, b: Float, phase: Float) {
-        val barWidth = dp(8f)
+        val cy = (t + b) / 2
+        val icon = minOf(dp(24f), (b - t) * 0.5f)
+        speaker.setTint(accent())
+        speaker.setBounds(l.roundToInt(), (cy - icon / 2).roundToInt(), (l + icon).roundToInt(), (cy + icon / 2).roundToInt())
+        speaker.draw(canvas)
+        // Four level bars rising in height, filled up to the current volume.
         val volume = 1f - amount * 0.8f
+        val barWidth = dp(4f)
         stroke.strokeWidth = barWidth
-        stroke.color = trackColor()
-        val barX = l + barWidth
-        canvas.drawLine(barX, b - barWidth / 2, barX, t + barWidth / 2, stroke)
-        stroke.color = accent()
-        canvas.drawLine(barX, b - barWidth / 2, barX, b - barWidth / 2 - (b - t - barWidth) * volume, stroke)
+        for (i in 0 until LEVEL_BARS) {
+            val x = l + icon + dp(6f) + i * (barWidth + dp(3f)) + barWidth / 2
+            val height = icon * (0.35f + 0.65f * (i + 1) / LEVEL_BARS)
+            stroke.color = if ((i + 0.5f) / LEVEL_BARS <= volume) accent() else trackColor()
+            canvas.drawLine(x, cy + height / 2, x, cy - height / 2, stroke)
+        }
         stroke.strokeWidth = dp(2.5f)
-        val left = l + barWidth * 3
-        val mid = (t + b) / 2 + (b - t) * 0.15f
+        val left = l + icon + dp(6f) + LEVEL_BARS * (barWidth + dp(3f)) + dp(10f)
+        val mid = cy + (b - t) * 0.15f
         val lift = (b - t) * 0.4f * amount * onness
         val breathe = 1f + 0.06f * sin(phase * TWO_PI) * onness
         stroke.color = trackColor()
@@ -558,8 +566,10 @@ class KlangPictureView @JvmOverloads constructor(
         private const val LOOP_MS = 4_000L
         private const val FRAME_MS = 33L
         private const val STILL_PHASE = 0.15f
-        private const val DISABLED_ALPHA = 0.38f
-        private const val OFF_PRESENCE = 0.45f
+        private const val DISABLED_ALPHA = 0.6f
+        /** Off pictures step back, but keep at least 3 : 1 against the card. */
+        private const val OFF_PRESENCE = 0.65f
+        private const val LEVEL_BARS = 4
         private const val TWO_PI = (2 * PI).toFloat()
         private const val ARCS = 3
         private const val RINGS = 4
