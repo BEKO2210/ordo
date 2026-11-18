@@ -32,7 +32,8 @@ class SettingsActivity : AppActivity(), OnThemeChangedListener, OnNightModeChang
     /** Null for the overview; otherwise one of [SECTIONS]. */
     val section: String?
         // An intent from an older version or another app may not unparcel as these Args: then show the overview.
-        get() = runCatching { intent.extras?.getArgsOrNull<Args>()?.section }.getOrNull()?.takeIf { it in SECTIONS }
+        get() = runCatching { intent.extras?.getArgsOrNull<Args>()?.section }.getOrNull()
+            ?.takeIf { it in SECTIONS || it == SECTION_MUSIC }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // The state carried over by restart() stays in this process: this activity is exported, and a saved state
