@@ -97,7 +97,11 @@ check "it plays" resume
 a shell input keyevent KEYCODE_MEDIA_PAUSE
 check "it pauses" wait_state PAUSED
 check "and plays again" resume
-first=$(cpu 20); second=$(cpu 20); after=$(cpu 20)
+threads() { # the app's four busiest threads, by name
+    a shell "top -H -b -n 1 -o TID,%CPU,CMD -p $(a shell pidof "$PKG" | tr -d '\r' | awk '{print $1}')" |
+        grep -E "^ *[0-9]+ +[0-9.]+ " | sort -k2 -rn | head -4 | awk '{ print "INFO   thread " $3 ": " $2 " %" }'
+}
+threads; first=$(cpu 20); threads; second=$(cpu 20); after=$(cpu 20)
 # Loudness levelling measures an untagged title once on a low-priority thread (a 192 kHz title takes a while on a weak
 # device), so the first minute may be busy; what counts is where it settles.
 echo "INFO CPU afterwards, three 20-s windows: ${first:-?} / ${second:-?} / ${after:-?} % of one core"
