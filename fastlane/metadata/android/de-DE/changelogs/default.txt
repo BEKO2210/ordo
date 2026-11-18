@@ -1,9 +1,7 @@
 Neu in dieser Testversion:
-• Ordo Musik als eigene App: Titel, Alben, Interpreten, Ordner, Seitenmenü
-• Wiedergabelisten, Favoriten, Mehrfachauswahl
-• Tag-Editor: Titel, Album, Cover u. a. ändern, mit Rückgängig
-• Klang ohne Knacken, bitgenau wenn alles aus ist, „Leise hören mit vollem Klang“, „Höhen ergänzen“
-• Icon-Farben für Ordo und Ordo Musik
-• Ordo erscheint in Androids Dateiauswahl
-• Tablets: Player und Klang quer verbessert
+• Ordo Musik: Jedes Lied im Ordner zeigt sein eigenes Cover
+• Antippen des laufenden Lieds öffnet den Player, das Lied läuft weiter
+• Startseite schneller: Zahlen erscheinen sofort, der Papierkorb zählt im Hintergrund
+• Tablets: Knöpfe auf der Albumseite brechen nicht mehr um
+Dazu alles aus 0.14: Musik-Bibliothek, Tag-Editor, Wiedergabelisten, Klang ohne Knacken, Icon-Farben
 Rückmeldungen gern an: nullmesh@protonmail.com
