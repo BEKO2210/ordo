@@ -53,6 +53,54 @@ class OrdoDocumentIdsTest {
     }
 
     @Test
+    fun appFoldersStayPrivateInAnyCase() {
+        // Shared storage is case-insensitive: every spelling of Android/data|obb|media is the same folder.
+        for (path in listOf(
+            "/storage/emulated/0/ANDROID/Data/com.example", "/storage/emulated/0/android/OBB",
+            "/storage/emulated/0/Android/MEDIA/x.jpg", "/storage/emulated/0/aNdRoId/dAtA", "/DATA/data/com.example"
+        )) {
+            assertTrue(path, OrdoDocumentIds.isPrivate(File(path)))
+        }
+        assertFalse(OrdoDocumentIds.isPrivate(File("/storage/emulated/0/Android")))
+        assertFalse(OrdoDocumentIds.isPrivate(File("/storage/emulated/0/Music/Android/database.mp3")))
+        // A bookmark inside Android/ in any spelling is refused as a place, and nothing under it opens by id.
+        val mixed = File(storage, "android/OBB/game").apply { mkdirs() }
+        assertEquals(emptyList<File>(), OrdoDocumentIds.bases(listOf(mixed)))
+        assertNull(OrdoDocumentIds.fileOf(OrdoDocumentIds.idOf(mixed), listOf(storage)))
+    }
+
+    @Test
+    fun aHiddenFileIsNeverOpenedByItsId() {
+        val hidden = File(music, ".nomedia").apply { writeText("") }
+        val inHiddenFolder = File(music, ".thumbnails/a.jpg").apply { parentFile!!.mkdirs(); writeText("x") }
+        assertNull(OrdoDocumentIds.fileOf(OrdoDocumentIds.idOf(hidden), bases))
+        assertNull(OrdoDocumentIds.fileOf(OrdoDocumentIds.idOf(inHiddenFolder), bases))
+        assertEquals(emptyList<File>(), OrdoDocumentIds.bases(listOf(inHiddenFolder.parentFile!!)))
+    }
+
+    @Test
+    fun recentFilesAreCheckedLikeBookmarksAndCapped() {
+        val files = (1..60).map { File(secret, "r$it.txt").apply { writeText("x") } }
+        val hidden = File(secret, ".hidden.txt").apply { writeText("x") }
+        val appData = File(storage, "Android/data/com.example/f.txt").apply { parentFile!!.mkdirs(); writeText("x") }
+        val recent = OrdoDocumentIds.recentFiles(listOf(appData, hidden, secret) + files)
+        assertEquals(OrdoDocumentIds.RECENT_LIMIT, recent.size)
+        assertEquals(files.take(OrdoDocumentIds.RECENT_LIMIT), recent)
+        // A recent file opens by its id although it lies outside every bookmark; a neighbour does not.
+        assertEquals(files[0], OrdoDocumentIds.fileOf(OrdoDocumentIds.idOf(files[0]), bases, recent))
+        assertNull(OrdoDocumentIds.fileOf(OrdoDocumentIds.idOf(secretFile), bases, recent))
+        assertNull(OrdoDocumentIds.fileOf(OrdoDocumentIds.idOf(files[59]), bases, recent))
+    }
+
+    @Test
+    fun thumbnailsDecodeSubsampledNeverInFull() {
+        assertEquals(1, OrdoDocumentIds.sampleSize(400, 300, 512))
+        assertEquals(4, OrdoDocumentIds.sampleSize(4000, 3000, 512))
+        assertEquals(8, OrdoDocumentIds.sampleSize(8000, 6000, 512))
+        assertTrue(OrdoDocumentIds.sampleSize(100, 100, 0) >= 1)
+    }
+
+    @Test
     fun onlyTheSystemMayQueryTheProvider() {
         val manifest = File("src/main/AndroidManifest.xml").readText()
         val provider = Regex("""<provider\s+android:name="[^"]*OrdoDocumentsProvider"[\s\S]*?</provider>""")

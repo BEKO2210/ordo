@@ -83,6 +83,15 @@ class HomeRepository(private val context: Context) {
             .map { Paths.get(it.data) }
             .toList()
 
+    /** The files home lists under "Recent files", newest first: also what Ordo offers in the system file picker. */
+    fun loadRecentFiles(limit: Int): List<java.io.File> =
+        queryRows().asSequence()
+            .sortedByDescending { it.modified }
+            .map { java.io.File(it.data) }
+            .filter { it.isFile }
+            .take(limit)
+            .toList()
+
     /** The Audio category the home screen shows, restricted to what the player plays, recently modified first. */
     fun loadRecentAudio(limit: Int): List<Path> =
         queryRows().asSequence()

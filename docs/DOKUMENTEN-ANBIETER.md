@@ -20,11 +20,19 @@ bleibt daneben bestehen.
 - **Ein Ort „Ordo“, nur lesen, Inhalt = deine Lesezeichen** (`Settings.BOOKMARK_DIRECTORIES`, nur lokale Ordner). Den
   internen Speicher zeigt Androids eigener Anbieter schon; Ordo bringt dort nur Mehrwert, wo es etwas Eigenes weiß:
   die Ordner, die du dir gemerkt hast.
+- **Zweiter Ort „Ordo – Zuletzt verwendet in Ordo“**, damit Ordo auch ohne Lesezeichen erscheint: die Dateien, die die
+  Startseite unter „Zuletzt verwendet“ zeigt (MediaStore, neueste zuerst, höchstens 50, alle 10 s neu gelesen), mit
+  denselben Prüfungen; leer ist der Ort ausgeblendet.
+- **Vorschaubilder** für Bilder (unterabgetastet dekodiert, nie in voller Größe) und Musik (eingebettetes Cover),
+  höchstens 512 px auf der kürzeren Seite, nicht für Dateien über 64 MB.
+- **Geänderte Lesezeichen** melden die Orte neu (`notifyChange` auf die Roots-URI), eine offene Auswahl sieht sie sofort.
 - **Kein Schreiben, kein Anlegen, kein Löschen**: `openDocument` erlaubt nur `r`, keine Flags zum Schreiben.
 - **Nur mit Zugriff auf alle Dateien** (ab Android 11 `isExternalStorageManager`, davor Leserecht); ohne ihn und ohne
   vorhandenen Lesezeichen-Ordner meldet Ordo keinen Ort.
 - **Nie App-eigene Daten, nie der Tresor**: `/data`, `Android/data`, `Android/obb` und `Android/media` sind ausgeschlossen,
-  auch wenn ein Lesezeichen dorthin zeigt. Der Tresor speichert verschlüsselt in Ordos privatem Ordner und ist über den
+  auch wenn ein Lesezeichen dorthin zeigt, und zwar in jeder Schreibweise (der geteilte Speicher unterscheidet keine
+  Groß- und Kleinschreibung, „android/DATA“ ist derselbe Ordner); verglichen wird je Pfadteil. Versteckte Dateien und
+  Ordner (Name mit „.“ vorn) werden weder gelistet noch über ihre Id geöffnet. Der Tresor speichert verschlüsselt in Ordos privatem Ordner und ist über den
   Provider nicht erreichbar; ihn freizugeben bräuchte eine eigene, ausdrückliche Einstellung und ist nicht Teil
   dieses Schritts.
 - **Sicherheit der Ids** (`OrdoDocumentIds`): Eine Dokument-Id ist `path:` plus kanonischer Pfad. Jede Id wird erneut
@@ -38,5 +46,6 @@ bleibt daneben bestehen.
 - `e2e/documents-provider.sh`: öffnet die System-Dateiauswahl, prüft „Ordo“ bei den Orten und die Lesezeichen darin,
   verlässt sie mit Zurück. Noch nicht auf einem Gerät gelaufen.
 
-Offen: Ändern sich die Lesezeichen, während die Auswahl offen ist, sieht sie das erst beim nächsten Öffnen
-(`notifyChange` für die Wurzeln fehlt noch). Vorschaubilder liefert Ordo noch nicht.
+Die Tests decken zusätzlich ab: alle Schreibweisen von `Android/data|obb|media`, ein Lesezeichen in `Android/` (als
+Ort abgelehnt), versteckte Dateien, die Liste der zuletzt verwendeten Dateien (höchstens 50, geprüft wie Lesezeichen)
+und die Unterabtastung der Vorschaubilder.

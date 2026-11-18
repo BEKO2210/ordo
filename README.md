@@ -197,7 +197,7 @@ All pictures above come from `utils/readme-shots.sh` on the Android 16 emulator 
 - Create and extract ZIP, TAR and 7z archives
 - Built-in viewers for images, PDF and text
 - Ordo in Android's own file picker: when another app asks for a file (a browser upload, for example), "Ordo"
-  is one of the places and shows your bookmarks, read-only. Only with all-files access; app-private folders and
+  is one of the places and shows your bookmarks and the files recently used in Ordo, read-only, with thumbnails. Only with all-files access; app-private folders and
   the vault are never shown
 - Upload with Ordo: when a website or app asks for a file (a song on Suno, say), Ordo is listed in Android’s picker
   under “Open from”; picking a file does not ask for notifications

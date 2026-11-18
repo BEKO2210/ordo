@@ -198,7 +198,8 @@ Alle Bilder oben stammen aus `utils/readme-shots.sh`, aufgenommen im Android-16-
 - ZIP-, TAR- und 7z-Archive erstellen und entpacken
 - Eingebaute Ansicht für Bilder, PDF und Text
 - Ordo in Androids eigener Dateiauswahl: Fragt eine andere App nach einer Datei (etwa ein Upload im Browser),
-  steht „Ordo“ bei den Orten und zeigt deine Lesezeichen, nur zum Lesen. Nur mit Zugriff auf alle Dateien;
+  steht „Ordo“ bei den Orten und zeigt deine Lesezeichen und die zuletzt in Ordo verwendeten Dateien, nur zum Lesen,
+  mit Vorschaubildern. Nur mit Zugriff auf alle Dateien;
   App-eigene Ordner und der Tresor erscheinen nie
 - Hochladen mit Ordo: Wenn eine Website oder App eine Datei verlangt (etwa ein Lied bei Suno), steht Ordo in der
   Android-Auswahl links unter „Öffnen aus“; Ordo fragt dabei nicht nach Benachrichtigungen
