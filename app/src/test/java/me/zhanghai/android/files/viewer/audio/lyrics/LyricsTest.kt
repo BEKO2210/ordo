@@ -33,6 +33,14 @@ class LyricsTest {
     }
 
     @Test
+    fun parserGetsOnlyTheFirstLines() {
+        val text = (0 until 20_000).joinToString("\n") { "[00:00.00]x$it" }
+        val capped = LyricsRepository.capInput(text)
+        assertEquals(LyricsRepository.MAX_INPUT_LINES, capped.count { it == '\n' })
+        assertEquals("kurz", LyricsRepository.capInput("kurz"))
+    }
+
+    @Test
     fun longLinesAreCutAtAWordBoundary() {
         val long = (1..200).joinToString(" ") { "Wort$it" }
         val line = lyrics("[00:01.00]$long").lines.single().text

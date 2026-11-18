@@ -76,6 +76,8 @@ private class PathLyricsFile(private val path: Path) : LyricsFile {
  */
 object LyricsRepository {
     const val MAX_BYTES = 512 * 1024
+    /** Header tags and blank lines on top of the [MAX_LINES] lines the player shows. */
+    const val MAX_INPUT_LINES = MAX_LINES + 100
     const val MAX_COPY_BYTES = 64L * 1024 * 1024
     private const val CACHE_SIZE = 32
 
@@ -130,10 +132,23 @@ object LyricsRepository {
         }
     }
 
+    // Only the first lines go to the parser: the player shows at most MAX_LINES anyway, and 20,000 lines took 1.7 s
+    // on a desktop JVM (far longer on a budget tablet).
     private fun parse(text: String?): SemanticLyrics? =
         text?.takeIf { it.isNotBlank() && it.length <= MAX_BYTES }
+            ?.let { capInput(it) }
             ?.let { runCatching { parseLrc(it, trimEnabled = true, multiLineEnabled = false) }.getOrNull() }
             ?.takeIf { lyrics -> lyrics.unsyncedText.any { it.first.isNotBlank() } }
+
+    internal fun capInput(text: String): String {
+        var end = 0
+        repeat(MAX_INPUT_LINES) {
+            val next = text.indexOf('\n', end)
+            if (next < 0) return text
+            end = next + 1
+        }
+        return text.substring(0, end)
+    }
 
     /** A byte order mark wins; otherwise strict UTF-8, and Windows-1252 when that fails. */
     internal fun decodeText(bytes: ByteArray): String {
