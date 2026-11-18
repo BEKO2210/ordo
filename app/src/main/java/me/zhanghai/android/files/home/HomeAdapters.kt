@@ -32,6 +32,7 @@ import me.zhanghai.android.files.databinding.HomeRecentItemBinding
 import me.zhanghai.android.files.databinding.HomeStorageItemBinding
 import me.zhanghai.android.files.databinding.HomeQuickAccessItemBinding
 import me.zhanghai.android.files.file.asFileSize
+import me.zhanghai.android.files.ui.WordBreaks
 import me.zhanghai.android.files.util.getColorByAttr
 import me.zhanghai.android.files.util.getQuantityString
 import java.util.Locale
@@ -100,12 +101,13 @@ class RecentFileAdapter(private val onClick: (RecentFile) -> Unit) :
                 }
             }
             // Two lines with the middle cut instead of one cut line: the tile is narrow, the extension matters.
-            binding.nameText.text = item.name
+            binding.nameText.text = WordBreaks.breakableName(item.name)
             binding.nameText.doOnLayout { view ->
                 val text = view as TextView
                 val width = text.width - text.paddingLeft - text.paddingRight
                 val charWidth = text.paint.measureText("n").coerceAtLeast(1f)
-                text.text = recentFileLabel(item.name, (2 * width / charWidth * 0.9f).toInt())
+                val label = recentFileLabel(item.name, (2 * width / charWidth * 0.9f).toInt())
+                text.text = WordBreaks.breakableName(label)
             }
             binding.root.setOnClickListener { onClick(item) }
         }

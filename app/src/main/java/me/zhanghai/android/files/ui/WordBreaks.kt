@@ -20,6 +20,15 @@ object WordBreaks {
             end > 0 && end < text.length && isWordChar(text[end - 1]) && isWordChar(text[end])
         }
 
+    /**
+     * A file name for a label of two lines: it may wrap after its dots, dashes and underscores ("01-first-light.|mp3")
+     * instead of inside a word. With hyphenation off, Android's line breaker does not break after '-' either and cut
+     * such names anywhere ("01-first-light.m|p3"); a zero-width space after each separator gives it the chance.
+     */
+    fun breakableName(name: String): String = SEPARATOR.replace(name, "$1​")
+
+    private val SEPARATOR = Regex("(?<=.)([._-])(?=\\S)")
+
     private fun isWordChar(char: Char): Boolean {
         if (!char.isLetterOrDigit()) return false
         // Chinese, Japanese and Thai break between letters by design.

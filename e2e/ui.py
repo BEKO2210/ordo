@@ -59,7 +59,8 @@ def nodes(fresh=False):
         os.makedirs(os.path.dirname(DUMP), exist_ok=True)
         with open(DUMP, "w") as f:
             f.write(xml)
-    return [(html.unescape(t), rid, html.unescape(d), int(x1), int(y1), int(x2), int(y2))
+    # File names on two lines carry zero-width spaces after their separators (WordBreaks.breakableName).
+    return [(html.unescape(t).replace("​", ""), rid, html.unescape(d), int(x1), int(y1), int(x2), int(y2))
             for t, rid, d, x1, y1, x2, y2 in NODE.findall(xml)]
 
 

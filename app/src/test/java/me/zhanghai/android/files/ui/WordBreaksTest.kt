@@ -24,6 +24,15 @@ class WordBreaksTest {
     }
 
     @Test
+    fun fileNamesMayWrapAfterTheirSeparators() {
+        assertEquals("01-​first-​light.​mp3", WordBreaks.breakableName("01-first-light.mp3"))
+        // A leading dot (hidden file) and a trailing separator stay as they are.
+        assertEquals(".nomedia", WordBreaks.breakableName(".nomedia"))
+        assertEquals("Notiz-", WordBreaks.breakableName("Notiz-"))
+        assertEquals("Ohne Trenner", WordBreaks.breakableName("Ohne Trenner"))
+    }
+
+    @Test
     fun chineseAndJapaneseBreakBetweenLetters() {
         assertEquals(emptyList<Int>(), WordBreaks.midWord("播放全部", intArrayOf(2)))
     }

@@ -44,8 +44,13 @@ sleep 2; back
 ui tap "Alben|Albums" >/dev/null; sleep 2
 check "an album page opens" eval 'ui tap "Ordoe2e Midword Album" || { swipe_up; ui tap "Ordoe2e Midword Album"; }'
 sleep 2
-check "the player opens" eval 'ui tap "Ordoe2e Midword Lied" title && wait_on viewer.audio.AudioPlayerActivity 8'
-sleep 2; ui tap playPause >/dev/null; sleep 1
+open_song() {
+    ui tap "Ordoe2e Midword Lied" title || ui tap "Ordoe2e Midword Lied" || { swipe_up; ui tap "Ordoe2e Midword Lied"; } || return 1
+    wait_on viewer.audio.AudioPlayerActivity 8
+}
+check "the player opens" open_song || { echo "DIAG:"; ui texts | head -15 | sed 's/^/  /'; }
+# The wave flows while music plays and uiautomator waits for a still screen: pause first, by key.
+sleep 2; a shell input keyevent KEYCODE_MEDIA_PAUSE; sleep 1
 check "the Sound sheet opens" ui tap actionSound
 sleep 2; swipe_up; swipe_up; sleep 1
 back; back; sleep 2
