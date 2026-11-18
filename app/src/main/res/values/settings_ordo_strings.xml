@@ -57,7 +57,7 @@
     <string name="settings_ai_privacy_summary">Ordo understands your commands on this device. They are never sent anywhere.</string>
     <string name="settings_section_launcher_icons">Built-in apps</string>
     <string name="settings_section_launcher_icons_summary">Own icons for built-in apps, and icon colours</string>
-    <string name="launcher_icons_info">Give Ordo’s built-in apps their own icon and pick each icon’s colour. Ordo never turns an icon on by itself.</string>
+    <string name="launcher_icons_info">Ordo never turns an icon on by itself.</string>
     <string name="launcher_music_label">Ordo Music</string>
     <string name="launcher_video_label">Video</string>
     <string name="launcher_images_label">Images</string>
@@ -72,8 +72,8 @@
     <string name="launcher_colors_title">Icon colours</string>
     <string name="launcher_color_description">Icon colour %1$s</string>
     <string name="launcher_color_off_summary">Applies as soon as you turn the icon on</string>
+    <string name="launcher_color_pending_summary">Changes as soon as you leave Ordo</string>
     <string name="launcher_color_changed_message">“%1$s” now has the icon colour %2$s. Your home screen can need a moment, and on some you have to place the icon again.</string>
-    <string name="launcher_color_later_message">“%1$s” gets the icon colour %2$s as soon as you leave Ordo. Your home screen can then need a moment, and on some you have to place the icon again.</string>
     <string name="launcher_color_saved_message">Saved. “%1$s” gets the icon colour %2$s when you turn it on.</string>
     <string name="launcher_color_blue">Blue</string>
     <string name="launcher_color_teal">Teal</string>

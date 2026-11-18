@@ -13,6 +13,7 @@ import android.view.Gravity
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.core.view.isEmpty
 import androidx.preference.Preference
 import androidx.preference.PreferenceViewHolder
@@ -56,6 +57,17 @@ class LauncherIconsHeaderPreference @JvmOverloads constructor(
 
     override fun onBindViewHolder(holder: PreferenceViewHolder) {
         super.onBindViewHolder(holder)
+        // The one line under the picture, with a small info icon instead of a plain paragraph.
+        (holder.findViewById(android.R.id.summary) as TextView).apply {
+            val size = context.resources.getDimensionPixelSize(R.dimen.phi_21)
+            val icon = ContextCompat.getDrawable(context, R.drawable.information_icon_white_24dp)?.mutate()?.apply {
+                setBounds(0, 0, size, size)
+                setTint(currentTextColor)
+            }
+            setCompoundDrawablesRelative(icon, null, null, null)
+            compoundDrawablePadding = context.resources.getDimensionPixelSize(R.dimen.space_item)
+            gravity = Gravity.CENTER_VERTICAL
+        }
         val screen = holder.findViewById(R.id.home_screen) as LinearLayout
         val radius = context.resources.getDimension(R.dimen.phi_radius_l)
         val surface = MaterialColors.getColor(context, com.google.android.material.R.attr.colorSurface, Color.WHITE)

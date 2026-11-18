@@ -60,10 +60,15 @@ class LauncherIconsPreferenceFragment : SettingsPreferenceFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        // Room after the last row, on top of the navigation bar inset the list already gets as padding.
+        // Room after the last row, on top of the navigation bar inset the list already gets as padding. On wide
+        // windows the page is one centred column of at most 610 dp (phi_content_max), like Ordo's other content.
         val end = resources.getDimensionPixelSize(R.dimen.space_section)
+        val maxWidth = resources.getDimensionPixelSize(R.dimen.phi_content_max)
         listView.addItemDecoration(object : RecyclerView.ItemDecoration() {
             override fun getItemOffsets(outRect: Rect, view: View, parent: RecyclerView, state: RecyclerView.State) {
+                val side = ((parent.width - maxWidth) / 2).coerceAtLeast(0)
+                outRect.left = side
+                outRect.right = side
                 if (parent.getChildAdapterPosition(view) == state.itemCount - 1) outRect.bottom = end
             }
         })
@@ -82,7 +87,10 @@ class LauncherIconsPreferenceFragment : SettingsPreferenceFragment() {
     private fun refreshColors() {
         val context = requireContext()
         colorRows.forEach {
-            it.show(LauncherIcons.chosenColor(context, it.prefix), LauncherIcons.color(context, it.prefix) != null)
+            it.show(
+                LauncherIcons.chosenColor(context, it.prefix), LauncherIcons.color(context, it.prefix) != null,
+                LauncherIcons.isPending(it.prefix)
+            )
         }
         refreshIcons()
     }
@@ -116,7 +124,7 @@ class LauncherIconsPreferenceFragment : SettingsPreferenceFragment() {
             ),
             // Two lines of about 16 words need about 5 s to read; LENGTH_LONG (2.75 s) was gone before that.
             MESSAGE_DURATION_MS
-        ).show()
+        ).setTextMaxLines(3).show()
         refreshColors()
         return true
     }
@@ -128,19 +136,18 @@ class LauncherIconsPreferenceFragment : SettingsPreferenceFragment() {
             Snackbar.make(requireView(), R.string.launcher_icon_failed, Snackbar.LENGTH_LONG).show()
             return false
         }
-        Snackbar.make(
-            requireView(),
-            getString(
-                when {
-                    !iconOn -> R.string.launcher_color_saved_message
-                    LauncherIcons.isPending(prefix) -> R.string.launcher_color_later_message
-                    else -> R.string.launcher_color_changed_message
-                },
-                label,
-                getString(color.labelRes)
-            ),
-            MESSAGE_DURATION_MS
-        ).show()
+        // Ordo's own colour waits for Ordo to go to the background: the row says so in a line under its icon.
+        if (!LauncherIcons.isPending(prefix)) {
+            Snackbar.make(
+                requireView(),
+                getString(
+                    if (iconOn) R.string.launcher_color_changed_message else R.string.launcher_color_saved_message,
+                    label,
+                    getString(color.labelRes)
+                ),
+                MESSAGE_DURATION_MS
+            ).setTextMaxLines(3).show()
+        }
         // After the swatch's own animation has started: the picture and the switch's icon follow.
         view?.post { if (isAdded) refreshIcons() }
         return true

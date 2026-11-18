@@ -57,7 +57,7 @@
     <string name="settings_ai_privacy_summary">Ordo versteht deine Befehle direkt auf diesem Gerät. Sie werden nie verschickt.</string>
     <string name="settings_section_launcher_icons">Eingebaute Apps</string>
     <string name="settings_section_launcher_icons_summary">Eigene Symbole für eingebaute Apps, dazu Icon-Farben</string>
-    <string name="launcher_icons_info">Gib Ordos eingebauten Apps ein eigenes Symbol und wähle die Farbe jedes Symbols. Ordo schaltet nie selbst ein Symbol ein.</string>
+    <string name="launcher_icons_info">Ordo schaltet nie selbst ein Symbol ein.</string>
     <string name="launcher_music_label">Ordo Musik</string>
     <string name="launcher_video_label">Video</string>
     <string name="launcher_images_label">Bilder</string>
@@ -72,8 +72,8 @@
     <string name="launcher_colors_title">Icon-Farben</string>
     <string name="launcher_color_description">Icon-Farbe %1$s</string>
     <string name="launcher_color_off_summary">Gilt, sobald du das Symbol einschaltest</string>
+    <string name="launcher_color_pending_summary">Wechselt, sobald du Ordo verlässt</string>
     <string name="launcher_color_changed_message">„%1$s“ hat jetzt die Icon-Farbe %2$s. Dein Startbildschirm braucht manchmal einen Moment, und auf manchen musst du das Symbol neu ablegen.</string>
-    <string name="launcher_color_later_message">„%1$s“ bekommt die Icon-Farbe %2$s, sobald du Ordo verlässt. Danach braucht dein Startbildschirm manchmal einen Moment, und auf manchen musst du das Symbol neu ablegen.</string>
     <string name="launcher_color_saved_message">Gespeichert. „%1$s“ bekommt die Icon-Farbe %2$s, sobald du es einschaltest.</string>
     <string name="launcher_color_blue">Blau</string>
     <string name="launcher_color_teal">Türkis</string>

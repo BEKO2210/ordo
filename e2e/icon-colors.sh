@@ -20,7 +20,8 @@ declare -A LABEL=(
     [Red]="Icon-Farbe Rot|Icon colour Red" [Pink]="Icon-Farbe Pink|Icon colour Pink"
     [Violet]="Icon-Farbe Lila|Icon colour Violet" [Graphite]="Icon-Farbe Graphit|Icon colour Graphite"
 )
-GREEN_MESSAGE="„$ORDO“ bekommt die Icon-Farbe Grün, sobald du Ordo verlässt. Danach braucht dein Startbildschirm manchmal einen Moment, und auf manchen musst du das Symbol neu ablegen.|“$ORDO” gets the icon colour Green as soon as you leave Ordo. Your home screen can then need a moment, and on some you have to place the icon again."
+# Ordo's own colour waits for Ordo to go to the background; its row says so in a line under the icon.
+PENDING_HINT="Wechselt, sobald du Ordo verlässt|Changes as soon as you leave Ordo"
 SAVED_MESSAGE="Gespeichert. „Ordo Musik“ bekommt die Icon-Farbe Lila, sobald du es einschaltest.|Saved. “Ordo Music” gets the icon colour Violet when you turn it on."
 
 # The launcher entries of one icon (Home or Music) as the system lists them, e.g. "HomeGreen"; none while it is off.
@@ -92,7 +93,7 @@ check "the page has the icon colours" ui has "$COLOURS"
 check "the colour of Ordo shows the system's state" ordo_checked "${initial_home#Home}"
 
 check "tapping green in Ordo's row works" tap_colour "$ORDO" Green
-check "the change is explained" ui wait "$GREEN_MESSAGE" 5
+check "the row says the icon changes once Ordo is left" ui wait "$PENDING_HINT" 5
 check "green is selected" ordo_checked Green
 check "Ordo's icon stays as it was while Ordo is open" wait_entries Home "$initial_home"
 sleep 3

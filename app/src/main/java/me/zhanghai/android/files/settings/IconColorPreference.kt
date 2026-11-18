@@ -13,6 +13,7 @@ import android.util.TypedValue
 import android.view.Gravity
 import android.view.HapticFeedbackConstants
 import android.view.View
+import android.view.ViewGroup
 import android.view.animation.AccelerateInterpolator
 import android.view.animation.PathInterpolator
 import android.widget.FrameLayout
@@ -47,6 +48,7 @@ class IconColorPreference(
 ) : Preference(context) {
     private var color = IconColor.BLUE
     private var iconOn = true
+    private var pending = false
 
     private var boundPreview: ImageView? = null
     private var boundName: TextView? = null
@@ -58,12 +60,18 @@ class IconColorPreference(
         isPersistent = false
     }
 
-    /** [iconOn] false: a built-in app switched off, whose [color] is only remembered for when it comes on. */
-    fun show(color: IconColor, iconOn: Boolean) {
+    /**
+     * [iconOn] false: a built-in app switched off, whose [color] is only remembered for when it comes on. [pending]:
+     * Ordo's own new colour, applied once Ordo is in the background.
+     */
+    fun show(color: IconColor, iconOn: Boolean, pending: Boolean) {
         this.color = color
         this.iconOn = iconOn
+        this.pending = pending
         notifyChanged()
     }
+
+    private var boundHint: TextView? = null
 
     override fun onBindViewHolder(holder: PreferenceViewHolder) {
         super.onBindViewHolder(holder)
@@ -73,10 +81,8 @@ class IconColorPreference(
         // Preference greys the title of rows that are not selectable; this one is, through its swatches.
         context.obtainStyledAttributes(intArrayOf(android.R.attr.textColorPrimary)).use { it.getColorStateList(0) }
             ?.let { (holder.findViewById(android.R.id.title) as TextView).setTextColor(it) }
-        (holder.findViewById(android.R.id.summary) as TextView).apply {
-            setText(R.string.launcher_color_off_summary)
-            visibility = if (iconOn) View.GONE else View.VISIBLE
-        }
+        boundHint = (holder.findViewById(android.R.id.summary) as TextView).also { showHint(it) }
+        holder.itemView.asTabletCard()
         boundName = (holder.findViewById(R.id.color_name) as TextView).also { showName(it) }
         boundPreview = (holder.findViewById(R.id.icon_preview) as ImageView).apply {
             animate().cancel()
@@ -94,7 +100,8 @@ class IconColorPreference(
         val page = context.getColorByAttr(android.R.attr.colorBackground)
         val outline = MaterialColors.getColor(context, com.google.android.material.R.attr.colorOutline, ringColor)
         // All eight in one line once each gets a 55 dp cell next to the page's side padding, otherwise two lines of four.
-        val columns = if (resources.configuration.screenWidthDp - 2 * SIDE_DP >= IconColor.entries.size * 55) {
+        val columns = if (minOf(resources.configuration.screenWidthDp, COLUMN_MAX_DP) - 2 * SIDE_DP >=
+            IconColor.entries.size * 55) {
             IconColor.entries.size
         } else {
             IconColor.entries.size / 2
@@ -116,7 +123,12 @@ class IconColorPreference(
                 setSelectedImmediately(chosen)
             }
             val target = FrameLayout(context).apply {
-                layoutParams = LinearLayout.LayoutParams(0, cellHeight, 1f)
+                // Four per line fill a phone's width; all eight in one line keep the fixed 15 dp gap of their cells.
+                layoutParams = if (columns == IconColor.entries.size) {
+                    LinearLayout.LayoutParams(cellHeight, cellHeight)
+                } else {
+                    LinearLayout.LayoutParams(0, cellHeight, 1f)
+                }
                 clipChildren = false
                 addView(swatch)
                 // TalkBack: "Icon colour Green, selected" as a radio button of the group.
@@ -162,6 +174,28 @@ class IconColorPreference(
             }
         }
         boundPreview?.swapIcon(LauncherIcons.icon(context, prefix, color))
+        pending = LauncherIcons.isPending(prefix)
+        boundHint?.let { showHint(it) }
+    }
+
+    /** One calm line with a small icon: why the home screen does not change yet. */
+    private fun showHint(view: TextView) {
+        val text = when {
+            !iconOn -> R.string.launcher_color_off_summary
+            pending -> R.string.launcher_color_pending_summary
+            else -> null
+        }
+        view.visibility = if (text == null) View.GONE else View.VISIBLE
+        text ?: return
+        view.setText(text)
+        val size = context.resources.getDimensionPixelSize(R.dimen.phi_13) +
+            context.resources.getDimensionPixelSize(R.dimen.phi_3)
+        val icon = ContextCompat.getDrawable(context, R.drawable.audio_timer_icon_24dp)?.mutate()?.apply {
+            setBounds(0, 0, size, size)
+            setTint(view.currentTextColor)
+        }
+        view.setCompoundDrawablesRelative(icon, null, null, null)
+        view.compoundDrawablePadding = context.resources.getDimensionPixelSize(R.dimen.space_related)
     }
 
     private fun showName(view: TextView) {
@@ -182,11 +216,14 @@ class IconColorPreference(
         boundSwatches.clear()
         boundPreview = null
         boundName = null
+        boundHint = null
         super.onDetached()
     }
 
     companion object {
         private const val SIDE_DP = 16
+        // phi_content_max, the width of all of Ordo's content on wide windows.
+        const val COLUMN_MAX_DP = 610
         // A 40 dp circle; its 3 dp ring reaches 49 dp, inside the 55 dp cell.
         private const val SWATCH_RADIUS_DP = 20f
     }
@@ -208,4 +245,19 @@ internal fun ImageView.swapIcon(icon: Drawable?) {
             animate().scaleX(1f).scaleY(1f).alpha(1f).setDuration(220).setInterpolator(EMPHASIZED).start()
         }
         .start()
+}
+
+/** On a tablet (600 dp and wider) a section sits on its own rounded card, One UI style; phones keep the plain list. */
+internal fun View.asTabletCard() {
+    if (resources.configuration.screenWidthDp < 600) return
+    background = GradientDrawable().apply {
+        cornerRadius = resources.getDimension(R.dimen.phi_radius_l)
+        setColor(
+            MaterialColors.getColor(
+                context, com.google.android.material.R.attr.colorSurfaceContainer,
+                MaterialColors.getColor(context, com.google.android.material.R.attr.colorSurfaceVariant, Color.LTGRAY)
+            )
+        )
+    }
+    (layoutParams as? ViewGroup.MarginLayoutParams)?.bottomMargin = resources.getDimensionPixelSize(R.dimen.phi_13)
 }

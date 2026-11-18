@@ -345,8 +345,8 @@ internal class AccentSwatchView(
         if (outlineColor != null) {
             fillPaint.color = outlineColor
             fillPaint.style = Paint.Style.STROKE
-            fillPaint.strokeWidth = density
-            canvas.drawCircle(cx, cy, radius - density / 2, fillPaint)
+            fillPaint.strokeWidth = 2 * density
+            canvas.drawCircle(cx, cy, radius - density, fillPaint)
             fillPaint.style = Paint.Style.FILL
         }
 

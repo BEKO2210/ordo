@@ -36,6 +36,7 @@ class SoonAppsPreference(context: Context, private val apps: List<BuiltInApp>) :
 
     override fun onBindViewHolder(holder: PreferenceViewHolder) {
         super.onBindViewHolder(holder)
+        holder.itemView.asTabletCard()
         // Preference greys the title of rows that are not selectable; this one only shows.
         context.obtainStyledAttributes(intArrayOf(android.R.attr.textColorPrimary)).use { it.getColorStateList(0) }
             ?.let { (holder.findViewById(android.R.id.title) as TextView).setTextColor(it) }
