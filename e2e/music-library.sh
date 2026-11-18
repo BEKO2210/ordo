@@ -127,22 +127,25 @@ check "closing search keeps the library open" close_search
 check "the library is still in front" on viewer.audio.MusicLauncherActivity
 
 # Ordo's side menu: the song played above is in the play history; Sound opens over the player.
-check "the menu button opens the side menu" ui tap "Navigationsmenü öffnen|Open navigation drawer"
+MENU="Navigationsmenü öffnen|Open navigation drawer"
+# From 840 dp width (a tablet in landscape, a Tab S9 Ultra even upright) the menu is a pane that is always there;
+# the button would close it. Otherwise the button slides it in.
+open_menu() { ui has "Bibliothek|Library" titleText && return 0; ui tap "$MENU" && sleep 1; }
+check "the side menu is open or opens" open_menu
 check "the side menu names Ordo Musik" ui wait "Ordo Musik|Ordo Music" 5
 check "the side menu offers the library" ui has "Bibliothek|Library"
 check "the side menu offers sound and the sleep timer" ui has "Einschlaf-Timer|Sleep timer"
 check "recently played opens" ui tap "Zuletzt gespielt|Recently played"
 check "the played song is in the history" ui wait "Ordoe2e Alpha" 5
-check "the menu goes back to the library" eval 'ui tap "Navigationsmenü öffnen|Open navigation drawer" && sleep 1 && ui tap "Bibliothek|Library"'
+check "the menu goes back to the library" eval 'open_menu && ui tap "Bibliothek|Library"'
 check "the library tabs are back" ui wait "Ordner|Folders" 5
-check "Sound opens from the side menu" eval 'ui tap "Navigationsmenü öffnen|Open navigation drawer" && sleep 1 && ui tap "Klang|Sound"'
+check "Sound opens from the side menu" eval 'open_menu && ui tap "Klang|Sound"'
 check "the Sound sheet opens over the player" ui wait "Equalizer" 8
 back 1.5; back 2
 check "back from the player returns to the library" on viewer.audio.MusicLauncherActivity
 
 # Selection, playlists and favourites: a long press selects, the songs go into a new M3U8 playlist in
 # Music/Playlists, the playlist and the favourites show them in the side menu.
-MENU="Navigationsmenü öffnen|Open navigation drawer"
 check "a long press selects a song" eval 'search Ordoe2e && ui longtap "Ordoe2e Alpha" && ui wait "1 ausgewählt|1 selected" 5'
 # On failure the log shows what the toolbar showed instead.
 ui has "1 ausgewählt|1 selected" || { echo "DIAG selection:"; ui texts | head -20 | sed 's/^/  /'; }
@@ -152,15 +155,15 @@ check "the selection goes into a new playlist" eval 'ui tap actionSelectionPlayl
 in_playlist() { a shell cat "\"$PLAYLISTS/Ordoe2e List.m3u8\"" | grep -q "OrdoE2E-Rock/rock-1.mp3"; }
 check "the playlist is an M3U8 file in Music/Playlists" eval 'sleep 2; in_playlist'
 close_search
-ui has "$MENU" || { echo "DIAG before the side menu:"; ui texts | head -20 | sed 's/^/  /'; }
-check "the side menu lists the playlist" eval 'ui tap "$MENU" && sleep 1 && ui tap "Wiedergabelisten|Playlists" && ui wait "Ordoe2e List" 5'
+ui has "$MENU" || ui has "Bibliothek|Library" titleText || { echo "DIAG before the side menu:"; ui texts | head -20 | sed 's/^/  /'; }
+check "the side menu lists the playlist" eval 'open_menu && ui tap "Wiedergabelisten|Playlists" && ui wait "Ordoe2e List" 5'
 check "the playlist opens with its songs" eval 'ui tap "Ordoe2e List" && ui wait "Ordoe2e Alpha" 5 && ui has "Ordoe2e Beta"'
 back 1.5; back 1.5
 check "a song becomes a favourite from its menu" eval 'search Ordoe2e && ui tap "Weitere Optionen für Ordoe2e Gamma|More options for Ordoe2e Gamma" \
     && ui wait "Zu Favoriten|Add to favorites" 5 && ui tap "Zu Favoriten|Add to favorites"'
 close_search
-check "the favourites show it" eval 'ui tap "$MENU" && sleep 1 && ui tap "Favoriten|Favorites" && ui wait "Ordoe2e Gamma" 5'
-check "the menu returns to the library" eval 'ui tap "$MENU" && sleep 1 && ui tap "Bibliothek|Library" && ui wait "Ordner|Folders" 5'
+check "the favourites show it" eval 'open_menu && ui tap "Favoriten|Favorites" && ui wait "Ordoe2e Gamma" 5'
+check "the menu returns to the library" eval 'open_menu && ui tap "Bibliothek|Library" && ui wait "Ordner|Folders" 5'
 
 # The tag editor: a new title for the MP3 and the FLAC; the library shows it and the song still plays.
 edit_title() {
@@ -210,8 +213,11 @@ check "the album is listed" ui wait "$ROCKS" 5
 check "an album opens its songs" ui tap "$ROCKS"
 check "the album's first track is shown" ui wait "Ordoe2e Alpha" 5
 check "tracks keep the album's order" above "Ordoe2e Alpha" "Ordoe2e Beta"
-# The mini player may well name Gamma (it played last); only a row of the page counts.
-gamma_rows() { ui texts | awk '/^Ordoe2e Gamma\|title\|/ { n++ } /\|miniPlayer\|.*Ordoe2e Gamma/ { n-- } END { print n + 0 }'; }
+# The mini player and the side menu's header (a pane beside the page on wide windows) may well name Gamma, which
+# played last; only a row of the page counts.
+gamma_rows() {
+    ui texts | awk '/^Ordoe2e Gamma\|title\|/ { n++ } /\|(miniPlayer|nowPlaying)\|.*Ordoe2e Gamma/ { n-- } END { print n + 0 }'
+}
 if [ "$(gamma_rows)" -gt 0 ]; then
     fail "the album leaves out other songs"
     # What the page showed and how MediaStore groups the test songs, for the log.
