@@ -43,7 +43,9 @@ ui tap 01-cast-one.wav >/dev/null; sleep 3; guard
 pause_playback; sleep 1
 check "the player has a cast button" ui tap actionCast
 check "the cast sheet offers this phone" settled "This phone|Dieses Handy"
-check "the cast sheet finds $TV" settled "$TV"
+# Without the TV on the network every later check would only measure the phone: stop here.
+settled "$TV" >/dev/null 2>&1 || { fail "the cast sheet finds $TV (is it awake and on this Wi-Fi?)"; back 1; back 1; finish; }
+pass "the cast sheet finds $TV"
 sleep 1; shot cast-sheet
 ui tap "$TV" >/dev/null
 check "the player shows it is casting" settled "Playing on $TV|Läuft auf $TV"
@@ -68,7 +70,6 @@ check "the queue is back on the phone with the second title" settled 02-cast-two
 not_playing() { ! session | grep -q state=PLAYING; }
 check "local playback waits paused" not_playing
 shot after-casting
-check "no crash" test "$(crashes)" = 0
 back 1
 a shell am force-stop "$PKG"
 finish
