@@ -437,6 +437,7 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
         if (twoPane && group != null) {
             bindHeader(binding.content.paneHeader, group)
             bindActions(binding.content.paneActions, shuffleOnly = false)
+            stackPaneActions()
             binding.content.paneActions.root.isVisible = shownSongs.isNotEmpty()
         }
         // A page has no large title area: its own cover and name are the header.
@@ -555,6 +556,25 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
                 header.art, placeholder(group.name, R.drawable.directory_icon_white_24dp),
                 albumCovers(group.songs), resources.getDimension(R.dimen.phi_21), size / 12
             )
+        }
+    }
+
+    /**
+     * In the narrow left pane (a tablet upright with the side menu beside it) "Abspielen" and "Zufällig" side by side
+     * broke into two lines each: there they stand one above the other, each the full width.
+     */
+    private fun stackPaneActions() {
+        val actions = binding.content.paneActions
+        if (actions.root.orientation == android.widget.LinearLayout.VERTICAL) return
+        actions.root.orientation = android.widget.LinearLayout.VERTICAL
+        val gap = resources.getDimensionPixelSize(R.dimen.phi_8)
+        for (button in listOf(actions.play, actions.shuffle)) {
+            button.layoutParams = (button.layoutParams as android.widget.LinearLayout.LayoutParams).apply {
+                width = ViewGroup.LayoutParams.MATCH_PARENT
+                weight = 0f
+                marginEnd = 0
+                topMargin = if (button === actions.shuffle) gap else 0
+            }
         }
     }
 
