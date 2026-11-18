@@ -264,13 +264,13 @@
 
     <string name="file_list_title">Dateien</string>
     <plurals name="file_list_title_open_file">
-        <item quantity="one">Wähle eine Datei aus</item>
-        <item quantity="other">Wähle Dateien aus</item>
+        <item quantity="one">Datei wählen</item>
+        <item quantity="other">Dateien wählen</item>
     </plurals>
     <string name="file_list_title_create_file">Datei speichern</string>
     <plurals name="file_list_title_open_directory">
-        <item quantity="one">Wähle einen Ordner aus</item>
-        <item quantity="other">Wähle Ordner aus</item>
+        <item quantity="one">Ordner wählen</item>
+        <item quantity="other">Ordner wählen</item>
     </plurals>
     <plurals name="file_list_subtitle_directory_count_format">
         <item quantity="one">%1$,d Ordner</item>

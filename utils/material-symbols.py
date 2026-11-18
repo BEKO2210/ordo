@@ -88,6 +88,8 @@ ICONS = {
     "cut_icon_control_normal_24dp": "content_cut",
     "delete_icon_control_normal_24dp": "delete",
     "delete_icon_white_24dp": "delete",
+    "restart_icon_white_24dp": "restart_alt",
+    "visibility_icon_white_24dp": "visibility",
     "device_icon_white_24dp": "smartphone",
     "drawable-desk/device_icon_white_24dp": "desktop_windows",
     "drawable-sw600dp/device_icon_white_24dp": "tablet_android",

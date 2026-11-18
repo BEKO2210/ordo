@@ -45,3 +45,15 @@ fun homeCategoryCompact(widthDp: Int): Boolean =
  */
 fun homeHeaderGlassAmount(atBottom: Boolean, scrollY: Int, scrollRange: Int, edgePx: Float): Float =
     ((if (atBottom) scrollRange - scrollY else scrollY) / edgePx).coerceIn(0f, 1f)
+
+/**
+ * A recent file's name for a narrow tile with two lines of about [maxChars] characters in all: a longer name loses
+ * its middle, never its extension ("Rechnung_Mä…ember.pdf"), so the type stays readable.
+ */
+fun recentFileLabel(name: String, maxChars: Int): String {
+    if (name.length <= maxChars || maxChars < 5) return name
+    val dot = name.lastIndexOf('.').takeIf { it > 0 && name.length - it <= 6 } ?: name.length
+    val tail = name.length - dot + (maxChars - (name.length - dot) - 1) / 2
+    val head = maxChars - 1 - tail
+    return name.take(head) + "…" + name.takeLast(tail)
+}

@@ -6,6 +6,7 @@
 package me.zhanghai.android.files.analysis
 
 import android.content.Context
+import android.content.res.ColorStateList
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.text.Layout
@@ -474,6 +475,10 @@ class AnalysisDashboard(
                 text = context.getString(R.string.analysis_view)
                 isAllCaps = false
                 setTextColor(accent)
+                // Never text only: the eye says "look at these files" at a glance.
+                setIconResource(R.drawable.visibility_icon_white_24dp)
+                iconTint = ColorStateList.valueOf(accent)
+                iconSize = dp(18)
                 minimumHeight = dp(48)
                 contentDescription = "${context.getString(R.string.analysis_view)}: $name"
                 setOnClickListener { if (type == "trash") onShow(type) else onOpen(AnalysisPage.Cleanup(type)) }
