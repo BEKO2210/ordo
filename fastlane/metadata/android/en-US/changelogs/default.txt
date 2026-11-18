@@ -1,7 +1,7 @@
 New in this test build:
-• Ordo Music: every song in a folder shows its own cover
-• Tapping the playing song opens the player and keeps playing
-• Faster home screen: numbers appear at once, the trash is counted in the background
-• Tablets: buttons on the album page no longer wrap
-Plus everything from 0.14: music library, tag editor, playlists, click-free sound, icon colours
+• Stream music to your TV: Chromecast and Google TV, without Google services
+• The TV shows title, artist, album and cover
+• Control it from the notification, the lock screen and the volume keys
+• Stopping hands the music back to the phone at the same spot
+• Safe: Ordo checks the Chromecast is genuine and shares only the playing song
 Feedback welcome: nullmesh@protonmail.com
