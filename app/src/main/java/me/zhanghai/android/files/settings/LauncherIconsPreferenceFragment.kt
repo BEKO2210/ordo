@@ -131,7 +131,11 @@ class LauncherIconsPreferenceFragment : SettingsPreferenceFragment() {
         Snackbar.make(
             requireView(),
             getString(
-                if (iconOn) R.string.launcher_color_changed_message else R.string.launcher_color_saved_message,
+                when {
+                    !iconOn -> R.string.launcher_color_saved_message
+                    LauncherIcons.isPending(prefix) -> R.string.launcher_color_later_message
+                    else -> R.string.launcher_color_changed_message
+                },
                 label,
                 getString(color.labelRes)
             ),

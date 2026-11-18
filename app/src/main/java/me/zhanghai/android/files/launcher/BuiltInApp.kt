@@ -13,6 +13,9 @@ import androidx.annotation.ColorRes
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.core.content.edit
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.ProcessLifecycleOwner
 import me.zhanghai.android.files.R
 import me.zhanghai.android.files.app.defaultSharedPreferences
 
@@ -109,10 +112,20 @@ object LauncherIcons {
     fun color(context: Context, prefix: String): IconColor? =
         IconAliases.current(prefix) { isAliasEnabled(context, it) }
 
-    /** The colour on the home screen, or for an icon switched off the one it will get (remembered, blue at first). */
+    /**
+     * The colour the user chose: one still waiting for Ordo to go to the background, else the one on the home screen,
+     * else for an icon switched off the one it will get (remembered, blue at first).
+     */
     fun chosenColor(context: Context, prefix: String): IconColor =
-        color(context, prefix) ?: defaultSharedPreferences.getString(colorKey(prefix), null)
-            ?.let { name -> IconColor.entries.firstOrNull { it.name == name } } ?: IconColor.BLUE
+        storedColor(prefix).takeIf { prefix in pending } ?: color(context, prefix) ?: storedColor(prefix)
+            ?: IconColor.BLUE
+
+    private fun storedColor(prefix: String): IconColor? =
+        defaultSharedPreferences.getString(colorKey(prefix), null)
+            ?.let { name -> IconColor.entries.firstOrNull { it.name == name } }
+
+    /** Icons whose new colour is applied once Ordo is in the background; see [setColor]. */
+    private val pending = mutableSetOf<String>()
 
     /** The icon exactly as the launcher gets it, read from the alias itself (also while it is disabled). */
     fun icon(context: Context, prefix: String, color: IconColor): Drawable? =
@@ -133,8 +146,27 @@ object LauncherIcons {
     fun setColor(context: Context, prefix: String, color: IconColor): Boolean {
         defaultSharedPreferences.edit { putString(colorKey(prefix), color.name) }
         if (color(context, prefix) == null) return true
+        if (prefix == IconAliases.HOME) {
+            // One UI (Galaxy Tab S9, measured 17.11.2026) closes Ordo's task when the alias that started it is
+            // disabled, DONT_KILL_APP or not: Ordo's own icon changes only once Ordo is in the background.
+            if (pending.add(prefix)) {
+                val appContext = context.applicationContext
+                ProcessLifecycleOwner.get().lifecycle.addObserver(object : DefaultLifecycleObserver {
+                    override fun onStop(owner: LifecycleOwner) {
+                        owner.lifecycle.removeObserver(this)
+                        pending.remove(prefix)
+                        val chosen = storedColor(prefix) ?: return
+                        apply(appContext, IconAliases.switchesFor(prefix, chosen) { isAliasEnabled(appContext, it) })
+                    }
+                })
+            }
+            return true
+        }
         return apply(context, IconAliases.switchesFor(prefix, color) { isAliasEnabled(context, it) })
     }
+
+    /** True while Ordo's own new icon colour waits for Ordo to go to the background. */
+    fun isPending(prefix: String): Boolean = prefix in pending
 
     /** Returns false when the system refused; the caller then shows the real state again. */
     fun setEnabled(context: Context, app: BuiltInApp, enabled: Boolean): Boolean {

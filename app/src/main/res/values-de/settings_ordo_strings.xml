@@ -73,6 +73,7 @@
     <string name="launcher_color_description">Icon-Farbe %1$s</string>
     <string name="launcher_color_off_summary">Gilt, sobald du das Symbol einschaltest</string>
     <string name="launcher_color_changed_message">„%1$s“ hat jetzt die Icon-Farbe %2$s. Dein Startbildschirm braucht manchmal einen Moment, und auf manchen musst du das Symbol neu ablegen.</string>
+    <string name="launcher_color_later_message">„%1$s“ bekommt die Icon-Farbe %2$s, sobald du Ordo verlässt. Danach braucht dein Startbildschirm manchmal einen Moment, und auf manchen musst du das Symbol neu ablegen.</string>
     <string name="launcher_color_saved_message">Gespeichert. „%1$s“ bekommt die Icon-Farbe %2$s, sobald du es einschaltest.</string>
     <string name="launcher_color_blue">Blau</string>
     <string name="launcher_color_teal">Türkis</string>

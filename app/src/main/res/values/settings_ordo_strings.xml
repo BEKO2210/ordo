@@ -73,6 +73,7 @@
     <string name="launcher_color_description">Icon colour %1$s</string>
     <string name="launcher_color_off_summary">Applies as soon as you turn the icon on</string>
     <string name="launcher_color_changed_message">“%1$s” now has the icon colour %2$s. Your home screen can need a moment, and on some you have to place the icon again.</string>
+    <string name="launcher_color_later_message">“%1$s” gets the icon colour %2$s as soon as you leave Ordo. Your home screen can then need a moment, and on some you have to place the icon again.</string>
     <string name="launcher_color_saved_message">Saved. “%1$s” gets the icon colour %2$s when you turn it on.</string>
     <string name="launcher_color_blue">Blue</string>
     <string name="launcher_color_teal">Teal</string>

@@ -20,7 +20,7 @@ declare -A LABEL=(
     [Red]="Icon-Farbe Rot|Icon colour Red" [Pink]="Icon-Farbe Pink|Icon colour Pink"
     [Violet]="Icon-Farbe Lila|Icon colour Violet" [Graphite]="Icon-Farbe Graphit|Icon colour Graphite"
 )
-GREEN_MESSAGE="„$ORDO“ hat jetzt die Icon-Farbe Grün. Dein Startbildschirm braucht manchmal einen Moment, und auf manchen musst du das Symbol neu ablegen.|“$ORDO” now has the icon colour Green. Your home screen can need a moment, and on some you have to place the icon again."
+GREEN_MESSAGE="„$ORDO“ bekommt die Icon-Farbe Grün, sobald du Ordo verlässt. Danach braucht dein Startbildschirm manchmal einen Moment, und auf manchen musst du das Symbol neu ablegen.|“$ORDO” gets the icon colour Green as soon as you leave Ordo. Your home screen can then need a moment, and on some you have to place the icon again."
 SAVED_MESSAGE="Gespeichert. „Ordo Musik“ bekommt die Icon-Farbe Lila, sobald du es einschaltest.|Saved. “Ordo Music” gets the icon colour Violet when you turn it on."
 
 # The launcher entries of one icon (Home or Music) as the system lists them, e.g. "HomeGreen"; none while it is off.
@@ -61,6 +61,8 @@ swatch() {
 tap_colour() { local xy; xy=$(swatch "$1" "$2") || return 1; a shell input tap $xy; sleep 1.2; }
 # ordo_checked SUFFIX: with Ordo's row on screen its swatches come first in the screen read.
 ordo_checked() { swatch "$ORDO" "$1" >/dev/null && ui checked "${LABEL[$1]}"; }
+# Ordo's own icon changes once Ordo is in the background (One UI would otherwise close Ordo's task).
+leave() { a shell input keyevent KEYCODE_HOME; sleep 3; }
 tap_music_switch() { to_switches; ui tap "$MUSIC" title >/dev/null; to_colours; }
 
 initial_home=$(entries Home)
@@ -69,7 +71,8 @@ restore() {
     trap - EXIT
     [ "$(entries Home)" = "$initial_home" ] && [ "$(entries Music)" = "$initial_music" ] && return 0
     open_page; to_colours
-    home=${initial_home#Home}; tap_colour "$ORDO" "${home:-Alias}"
+    home=${initial_home#Home}; tap_colour "$ORDO" "${home:-Alias}"; leave
+    open_page; to_colours
     if [ -z "$initial_music" ]; then
         [ -n "$(entries Music)" ] && tap_music_switch
     else
@@ -90,13 +93,14 @@ check "the colour of Ordo shows the system's state" ordo_checked "${initial_home
 
 check "tapping green in Ordo's row works" tap_colour "$ORDO" Green
 check "the change is explained" ui wait "$GREEN_MESSAGE" 5
-check "the system lists exactly the green alias for Ordo" wait_entries Home HomeGreen
 check "green is selected" ordo_checked Green
+check "Ordo's icon stays as it was while Ordo is open" wait_entries Home "$initial_home"
 sleep 3
 check "Ordo keeps running on its settings page" alive
+leave
+check "once Ordo is left, the system lists exactly the green alias for Ordo" wait_entries Home HomeGreen
 
-# Leaving and returning: the row reads the system state, not a stored value.
-back; sleep 1
+# Returning: the row reads the system state, not a stored value.
 open_page; to_colours
 check "after reopening green is still selected" ordo_checked Green
 
@@ -112,8 +116,9 @@ check "tapping blue in Ordo Musik's row works" tap_colour "$MUSIC" Alias
 check "the system lists exactly the blue music alias" wait_entries Music MusicAlias
 
 check "tapping blue in Ordo's row works" tap_colour "$ORDO" Alias
-check "the system lists exactly Ordo's blue alias again" wait_entries Home HomeAlias
 check "Ordo still runs" alive
+leave
+check "the system lists exactly Ordo's blue alias again" wait_entries Home HomeAlias
 restore
 check "Ordo's launcher entry is as before the test" [ "$(entries Home)" = "$initial_home" ]
 check "Ordo Musik's launcher entry is as before the test" [ "$(entries Music)" = "$initial_music" ]
