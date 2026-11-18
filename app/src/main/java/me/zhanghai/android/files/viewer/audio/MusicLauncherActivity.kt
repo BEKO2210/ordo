@@ -1135,6 +1135,10 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
         val tabSide = if (tabletLayout) side else resources.getDimensionPixelSize(R.dimen.phi_13)
         tabs.setPaddingRelative(tabSide, tabs.paddingTop, tabSide, tabs.paddingBottom)
         tabs.clipToPadding = tabletLayout
+        // Six pills with the icon beside the label need about 760 dp. A narrower tablet column (the Tab upright beside
+        // the side menu) puts the icon above the label so all six still show; a phone scrolls the row instead.
+        val inline = !tabletLayout || contentWidthDp >= TABS_INLINE_MIN_WIDTH_DP
+        if (tabs.isInlineLabel != inline) tabs.isInlineLabel = inline
         val titleSide = if (tabletLayout) side else resources.getDimensionPixelSize(R.dimen.space_gutter)
         binding.content.collapsingToolbar.expandedTitleMarginStart = titleSide
         binding.content.collapsingToolbar.expandedTitleMarginEnd = titleSide
@@ -1210,7 +1214,8 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
     /** Finds out once whether [song] has lyrics and shows the pictogram on its row if it is still on screen. */
     private fun lookUpLyrics(song: MusicSong) {
         if (song.path in hasLyrics || !lyricsLookups.add(song.path)) return
-        lifecycleScope.launch {
+        // Not immediate: the row being bound is attached only after this returns.
+        lifecycleScope.launch(Dispatchers.Main) {
             val found = lyricsGate.withPermit {
                 // A row that scrolled away while it waited is looked up again when it comes back.
                 if (rowOnScreen(song.path) == null) null
@@ -1695,5 +1700,6 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
         private const val MINI_TRACK_ALPHA = 0x3d
         private const val DISABLED_ALPHA = 0.38f
         private const val TWO_PANE_MIN_WIDTH_DP = 600
+        private const val TABS_INLINE_MIN_WIDTH_DP = 760
     }
 }
