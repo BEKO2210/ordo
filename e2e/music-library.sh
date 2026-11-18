@@ -237,7 +237,7 @@ close_search
 # Each song on a folder page shows its own cover: the red and the blue song's covers differ on screen.
 cover_colour() { # average colour of the 48 dp cover left of the row's title
     local x1 y1 x2 y2 dpi
-    read -r x1 y1 x2 y2 < <(ui bounds "$1" | head -1) || return 1
+    read -r x1 y1 x2 y2 < <(ui bounds "$1" title | head -1) || return 1
     dpi=$(a shell wm density | tail -1 | sed 's/.*: //' | tr -d '\r')
     a exec-out screencap -p > "$tmp/covers.png"
     python3 - "$tmp/covers.png" "$x1" "$y1" "$y2" "$dpi" <<'PY'
@@ -254,7 +254,7 @@ PY
 }
 own_covers() {
     local red blue
-    ui tap "Ordner|Folders" && search OrdoE2E-Covers && ui tap OrdoE2E-Covers && ui wait "Ordoe2e Red" 5 || return 1
+    ui tap "Ordner|Folders" && search OrdoE2E-Covers && ui tap OrdoE2E-Covers title && ui wait "Ordoe2e Red" 5 || return 1
     sleep 2
     red=$(cover_colour "Ordoe2e Red"); blue=$(cover_colour "Ordoe2e Blue")
     echo "covers: red row $red, blue row $blue" > "$tmp/covers.txt"
