@@ -22,6 +22,7 @@ import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import kotlin.random.Random
 
 /**
  * The media session's player while casting. Transport, seeking, queue and the device volume go to the receiver;
@@ -42,7 +43,10 @@ class CastPlayer(
 
     private val handler = Handler(Looper.getMainLooper())
     private val io: ExecutorService = Executors.newSingleThreadExecutor { Thread(it, "cast-prepare") }
+    /** Play order: what Media3 sees, so Next and the end of a song follow it, shuffled or not. */
     private var entries = mutableListOf<Entry>()
+    /** The queue as the user built it; equals [entries] unless shuffle is on. */
+    private var original = mutableListOf<Entry>()
     private var index = 0
     private var wantsPlay = false
     private var castState = Player.STATE_IDLE
@@ -60,17 +64,45 @@ class CastPlayer(
     private var previousMediaSessionId: Int? = null
 
     /** Takes over queue, position and modes from the local player; [current] has the tags it already read. */
-    fun start(state: PlayerTransferState, current: MediaMetadata, volumeLevel: Double?, muted: Boolean?) {
-        entries = state.mediaItems.mapTo(mutableListOf()) { Entry(it, it.mediaMetadata) }
-        index = state.currentMediaItemIndex.coerceIn(0, (entries.size - 1).coerceAtLeast(0))
-        entries.getOrNull(index)?.metadata = current
+    fun start(
+        state: PlayerTransferState,
+        current: MediaMetadata,
+        volumeLevel: Double?,
+        muted: Boolean?,
+        /** The phone's shuffle order (queue indices in play order), so the TV plays the same next song. */
+        shuffleOrder: IntArray?
+    ) {
+        original = state.mediaItems.mapTo(mutableListOf()) { Entry(it, it.mediaMetadata) }
+        val currentEntry = original.getOrNull(state.currentMediaItemIndex.coerceIn(0, (original.size - 1).coerceAtLeast(0)))
+        currentEntry?.metadata = current
         repeat = state.repeatMode
         shuffle = state.shuffleModeEnabled
+        val order = shuffleOrder?.takeIf { shuffle && CastPlayback.isPermutation(it, original.size) }
+        entries = order?.mapTo(mutableListOf()) { original[it] } ?: original.toMutableList()
+        index = entries.indexOf(currentEntry).coerceAtLeast(0)
         volumeLevel?.let { volumeSteps = CastPlayback.deviceVolume(it) }
         muted?.let { deviceMuted = it }
         wantsPlay = state.playWhenReady
         if (entries.isNotEmpty()) load(index, state.currentPosition.coerceAtLeast(0L), wantsPlay)
         invalidateState()
+    }
+
+    /**
+     * What the phone takes back: the queue in the user's order, the current song and position, the modes, and the
+     * shuffle order in queue indices (null without shuffle). Paused, so the phone does not start playing aloud.
+     */
+    fun handBack(): Pair<PlayerTransferState, IntArray?> {
+        val currentEntry = entries.getOrNull(index)
+        val state = PlayerTransferState.Builder()
+            .setMediaItems(original.map { it.item })
+            .setCurrentMediaItemIndex(original.indexOf(currentEntry).coerceAtLeast(0))
+            .setCurrentPosition(positionMs())
+            .setPlayWhenReady(false)
+            .setRepeatMode(repeat)
+            .setShuffleModeEnabled(shuffle)
+            .build()
+        val order = if (shuffle) entries.map { original.indexOf(it) }.toIntArray() else null
+        return state to order
     }
 
     // Called on the cast reader thread.
@@ -233,8 +265,15 @@ class CastPlayer(
         startIndex: Int,
         startPositionMs: Long
     ): ListenableFuture<*> {
-        entries = mediaItems.mapTo(mutableListOf()) { Entry(it, it.mediaMetadata) }
-        val start = if (startIndex == C.INDEX_UNSET) 0 else startIndex.coerceIn(0, (entries.size - 1).coerceAtLeast(0))
+        original = mediaItems.mapTo(mutableListOf()) { Entry(it, it.mediaMetadata) }
+        var start = if (startIndex == C.INDEX_UNSET) 0 else startIndex.coerceIn(0, (original.size - 1).coerceAtLeast(0))
+        if (shuffle && original.isNotEmpty()) {
+            entries = CastPlayback.shuffledStartingWith(original.size, start, Random.Default)
+                .mapTo(mutableListOf()) { original[it] }
+            start = 0
+        } else {
+            entries = original.toMutableList()
+        }
         val position = if (startPositionMs == C.TIME_UNSET) 0L else startPositionMs
         if (entries.isEmpty()) {
             handleStop()
@@ -249,14 +288,18 @@ class CastPlayer(
 
     override fun handleAddMediaItems(index: Int, mediaItems: MutableList<MediaItem>): ListenableFuture<*> {
         val wasEmpty = entries.isEmpty()
-        entries.addAll(index, mediaItems.map { Entry(it, it.mediaMetadata) })
+        val added = mediaItems.map { Entry(it, it.mediaMetadata) }
+        entries.addAll(index, added)
+        if (shuffle) original.addAll(added) else original = entries.toMutableList()
         if (!wasEmpty && index <= this.index) this.index += mediaItems.size
         return Futures.immediateVoidFuture()
     }
 
     override fun handleRemoveMediaItems(fromIndex: Int, toIndex: Int): ListenableFuture<*> {
         val removesCurrent = index in fromIndex until toIndex
-        entries.subList(fromIndex, toIndex).clear()
+        val removed = entries.subList(fromIndex, toIndex)
+        original.removeAll(removed.toSet())
+        removed.clear()
         when {
             entries.isEmpty() -> handleStop().also { index = 0 }
             removesCurrent -> load(fromIndex.coerceAtMost(entries.size - 1), 0L, wantsPlay)
@@ -268,6 +311,7 @@ class CastPlayer(
     override fun handleMoveMediaItems(fromIndex: Int, toIndex: Int, newIndex: Int): ListenableFuture<*> {
         val current = entries.getOrNull(index)
         Util.moveItems(entries, fromIndex, toIndex, newIndex)
+        if (!shuffle) original = entries.toMutableList()
         if (current != null) index = entries.indexOf(current)
         return Futures.immediateVoidFuture()
     }
@@ -278,7 +322,16 @@ class CastPlayer(
     }
 
     override fun handleSetShuffleModeEnabled(shuffleModeEnabled: Boolean): ListenableFuture<*> {
+        if (shuffle == shuffleModeEnabled) return Futures.immediateVoidFuture()
         shuffle = shuffleModeEnabled
+        val current = entries.getOrNull(index)
+        entries = if (shuffle && original.isNotEmpty()) {
+            CastPlayback.shuffledStartingWith(original.size, original.indexOf(current).coerceAtLeast(0), Random.Default)
+                .mapTo(mutableListOf()) { original[it] }
+        } else {
+            original.toMutableList()
+        }
+        if (current != null) index = entries.indexOf(current)
         return Futures.immediateVoidFuture()
     }
 

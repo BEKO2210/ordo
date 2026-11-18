@@ -21,7 +21,10 @@ import androidx.annotation.MainThread
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
+import androidx.media3.common.ForwardingPlayer
 import androidx.media3.common.PlayerTransferState
+import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.source.ShuffleOrder
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaSession
 import java.io.ByteArrayInputStream
@@ -181,7 +184,13 @@ object CastManager {
         local.pause()
         val player = CastPlayer(client) { item -> prepare(item, newServer) }
         castPlayer = player
-        player.start(transfer, current, receiver.volumeLevel, receiver.muted)
+        val timeline = local.currentTimeline
+        val shuffleOrder = if (local.shuffleModeEnabled && !timeline.isEmpty) {
+            CastPlayback.traversal(timeline.getFirstWindowIndex(true)) {
+                timeline.getNextWindowIndex(it, Player.REPEAT_MODE_OFF, true)
+            }
+        } else null
+        player.start(transfer, current, receiver.volumeLevel, receiver.muted, shuffleOrder)
         session.player = player
         acquireLocks()
         setPhase(Phase.CASTING)
@@ -195,9 +204,14 @@ object CastManager {
             val local = localPlayer
             val session = session
             if (local != null && session != null) {
-                val transfer = PlayerTransferState.fromPlayer(player).buildUpon().setPlayWhenReady(false).build()
+                val (transfer, shuffleOrder) = player.handBack()
                 session.player = local
                 transfer.setToPlayer(local)
+                // setMediaItems drew a new random order; put back the one the TV was playing.
+                val exoPlayer = (local as? ForwardingPlayer)?.wrappedPlayer as? ExoPlayer
+                if (shuffleOrder != null && exoPlayer != null && shuffleOrder.size == exoPlayer.mediaItemCount) {
+                    exoPlayer.setShuffleOrder(ShuffleOrder.DefaultShuffleOrder(shuffleOrder, System.nanoTime()))
+                }
                 local.prepare()
             }
             player.release()

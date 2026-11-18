@@ -8,6 +8,7 @@ package me.zhanghai.android.files.player.cast
 import androidx.media3.common.Player
 import java.util.Locale
 import kotlin.math.roundToInt
+import kotlin.random.Random
 
 /** How a receiver's MEDIA_STATUS reads as Media3 player state. Pure, so it is tested on the JVM. */
 object CastPlayback {
@@ -37,6 +38,24 @@ object CastPlayback {
         val duration = status.durationSeconds?.let { (it * 1000).toLong() }
         return (base + moved).let { if (duration != null) it.coerceAtMost(duration) else it }.coerceAtLeast(0L)
     }
+
+    /** The indices a timeline visits from [first] on, e.g. ExoPlayer's shuffle order; [next] gives -1 at the end. */
+    fun traversal(first: Int, next: (Int) -> Int): IntArray {
+        val order = ArrayList<Int>()
+        var index = first
+        while (index >= 0 && order.size < 100_000) {
+            order += index
+            index = next(index)
+        }
+        return order.toIntArray()
+    }
+
+    fun isPermutation(order: IntArray, size: Int): Boolean =
+        order.size == size && order.sortedArray().contentEquals(IntArray(size) { it })
+
+    /** A new shuffle that plays [start] first, then the rest in random order (as a fresh shuffle on the phone does). */
+    fun shuffledStartingWith(size: Int, start: Int, random: Random): IntArray =
+        intArrayOf(start) + (0 until size).filter { it != start }.shuffled(random).toIntArray()
 
     fun deviceVolume(level: Double): Int = (level * VOLUME_STEPS).roundToInt().coerceIn(0, VOLUME_STEPS)
 
