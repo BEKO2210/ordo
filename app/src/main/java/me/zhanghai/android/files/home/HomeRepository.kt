@@ -67,13 +67,12 @@ class HomeRepository(private val context: Context) {
 
     // A large trash takes seconds to measure, so these come after the tiles and recent files.
     fun loadCounts(state: HomeState): HomeState {
-        val trashEntries = Trash.entries()
+        val trash = Trash.summary()
         @Suppress("DEPRECATION")
         val appCount = context.packageManager.getInstalledApplications(0)
             .count { it.flags and ApplicationInfo.FLAG_SYSTEM == 0 }
         return state.copy(
-            isLoading = false, appCount = appCount, trashCount = trashEntries.size,
-            trashSize = trashEntries.sumOf { it.size }
+            isLoading = false, appCount = appCount, trashCount = trash.count, trashSize = trash.size
         )
     }
 
