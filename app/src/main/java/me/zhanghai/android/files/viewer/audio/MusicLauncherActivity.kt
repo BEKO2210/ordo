@@ -609,15 +609,14 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
         )
         for (index in 0 until popup.menu.size()) MenuItemCompat.setIconTintList(popup.menu.getItem(index), iconTint)
         popup.setOnMenuItemClickListener { item ->
-            val player = controller
-            val mediaItem = AudioPlaybackService.mediaItem(Paths.get(song.path).toUri().toString())
+            val actions = musicActions()
             when (item.itemId) {
-                R.id.actionPlayNext -> if (player != null) {
-                    player.addMediaItem((player.currentMediaItemIndex + 1).coerceAtMost(player.mediaItemCount), mediaItem)
+                R.id.actionPlayNext -> if (actions != null) {
+                    actions.playNext(listOf(song.path))
                     confirm(R.string.music_added_next)
                 }
-                R.id.actionAddToQueue -> if (player != null) {
-                    player.addMediaItem(mediaItem)
+                R.id.actionAddToQueue -> if (actions != null) {
+                    actions.addToQueue(listOf(song.path))
                     confirm(R.string.music_added_to_queue)
                 }
                 R.id.actionFavorite -> changePlaylists(
@@ -949,13 +948,12 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
                     .setNegativeButton(android.R.string.cancel, null)
                     .show()
             }
-            R.id.actionSelectionPlayNext, R.id.actionSelectionQueue -> controller?.let { player ->
-                val items = paths.map { AudioPlaybackService.mediaItem(Paths.get(it).toUri().toString()) }
+            R.id.actionSelectionPlayNext, R.id.actionSelectionQueue -> musicActions()?.let { actions ->
                 if (itemId == R.id.actionSelectionPlayNext) {
-                    player.addMediaItems((player.currentMediaItemIndex + 1).coerceAtMost(player.mediaItemCount), items)
+                    actions.playNext(paths)
                     confirm(R.string.music_added_next)
                 } else {
-                    player.addMediaItems(items)
+                    actions.addToQueue(paths)
                     confirm(R.string.music_added_to_queue)
                 }
                 clearSelection()
@@ -1068,6 +1066,13 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
         val intent = Intent(this, AudioPlayerActivity::class.java)
         AudioPlayerActivity.putExtras(intent, songs.slice(window).map { Paths.get(it.path) }, index - window.first)
         startActivitySafe(intent)
+    }
+
+    /** The music actions on the session, the same ones a voice command will use; null before it is connected. */
+    private fun musicActions(): MusicActions? = controller?.let { player ->
+        ControllerMusicActions(player, { command, args -> player.sendCustomCommand(command, args) }, {
+            MusicCatalog(library?.songs.orEmpty(), history, playlistData)
+        })
     }
 
     private fun connectController() {

@@ -30,6 +30,13 @@ class ClickFreeTest {
         change: AudioSettings,
         headphones: Boolean,
         headphonesAfter: Boolean
+    ): Array<FloatArray> = render(start, headphones) { if (it == CHANGE_BUFFER) change to headphonesAfter else null }
+
+    /** As above, with the settings [schedule] gives before a buffer (null: unchanged). */
+    private fun render(
+        start: AudioSettings,
+        headphones: Boolean,
+        schedule: (Int) -> Pair<AudioSettings, Boolean>?
     ): Array<FloatArray> {
         val klang = KlangProcessors()
         klang.apply(start, headphones)
@@ -41,7 +48,7 @@ class ClickFreeTest {
         val right = FloatArray(BUFFERS * FRAMES)
         var frame = 0
         for (buffer in 0 until BUFFERS) {
-            if (buffer == CHANGE_BUFFER) klang.apply(change, headphonesAfter)
+            schedule(buffer)?.let { (settings, plugged) -> klang.apply(settings, plugged) }
             var data = ByteBuffer.allocateDirect(FRAMES * 4).order(ByteOrder.nativeOrder())
             for (i in 0 until FRAMES) {
                 val phase = 2 * PI * 1_000 * (frame + i) / SAMPLE_RATE
@@ -132,6 +139,44 @@ class ClickFreeTest {
         assertClickFree("reverb off", hall, off)
         assertClickFree("reverb room", hall.copy(reverbPreset = ReverbPreset.ROOM), hall)
         assertClickFree("reverb mix", hall.copy(reverbMix = 10), hall)
+    }
+
+    /**
+     * Every chain effect at once, switched on and off 20 times faster than a finger can (every 4 buffers, 5.3 ms), then
+     * the reverb room changed 20 times: no step may stand out from the steady signal with everything on or off, and
+     * the output stays finite and under the limiter's ceiling.
+     */
+    @Test
+    fun everythingTogglingRapidlyStaysClickFree() {
+        val all = off.copy(
+            crossfeedEnabled = true, crossfeedLevel = 3, widthEnabled = true, widthPercent = 150,
+            warmthEnabled = true, warmthLevel = 3, reverbEnabled = true, reverbPreset = ReverbPreset.HALL,
+            reverbMix = 100, highsEnabled = true
+        )
+        val rooms = ReverbPreset.entries
+        val toggles = 40
+        val stress = render(off, true) { buffer ->
+            val k = (buffer - CHANGE_BUFFER) / 4
+            when {
+                buffer < CHANGE_BUFFER || (buffer - CHANGE_BUFFER) % 4 != 0 -> null
+                k < toggles -> (if (k % 2 == 0) all else off) to true
+                k < 2 * toggles -> all.copy(reverbPreset = rooms[k % rooms.size]) to true
+                else -> null
+            }
+        }
+        val steadyOn = render(all, true) { null }
+        val end = CHANGE_BUFFER * FRAMES + 2 * toggles * 4 * FRAMES
+        for (channel in 0..1) {
+            val reference = maxOf(
+                maxDelta(stress[channel], SETTLE, CHANGE_BUFFER * FRAMES - WINDOW),
+                maxDelta(steadyOn[channel], SETTLE, steadyOn[channel].size)
+            )
+            val around = maxDelta(stress[channel], CHANGE_BUFFER * FRAMES - WINDOW, end)
+            assertTrue(
+                "rapid toggling: step %.4f, allowed %.4f".format(around, reference * 1.2f), around <= reference * 1.2f
+            )
+            assertTrue("output finite and limited", stress[channel].all { it.isFinite() && abs(it) <= 0.85f })
+        }
     }
 
     companion object {

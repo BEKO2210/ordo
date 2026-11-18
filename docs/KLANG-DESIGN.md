@@ -76,9 +76,13 @@ m3-progress-indicators, m3-shape-morph, m3-motion-physics). Hausregeln: keine Sc
    atmen eingeschaltete Bilder in einer ruhigen 4-s-Schleife mit höchstens 30 Bildern/s, das Pendel schwingt im Tempo;
    außerhalb des sichtbaren Bereichs ruht die Schleife, beim Zurückscrollen läuft sie weiter. „Dezent“ zeigt nur die
    Übergänge, „Aus“ und der Systemschalter zeigen stehende Bilder. TalkBack liest je Bild „Titel: Wert“.
-9. **Querformat ab 840 dp:** Das Blatt ist bis 960 dp breit (Materials Grenze von 640 dp aufgehoben) und teilt sich
+9. **Querformat ab 840 dp:** Das Blatt nimmt das ganze Fenster ein (Materials Grenze von 640 dp aufgehoben; so scheint auch kein zweites „X“ des
+   Players daneben durch) und teilt sich
    38,2 : 61,8: links fest Kurve, Voreinstellungen und „Genau einstellen“, rechts scrollen die Karten (eigene
    NestedScrollViews). `e2e/klang-landscape.sh` scrollt im Querformat bis zur letzten Karte.
+   Mehrere Spalten stapeln die Karten als Mauerwerk (`ui/MasonryLayout`): abwechselnd links, rechts in Listenreihenfolge,
+   je Spalte mit 13 dp Abstand, ohne Löcher unter kurzen Karten. Ist der Equalizer aus, wird die Kurve gedimmt und eine
+   ruhige Zeile darüber sagt es; nichts liegt auf den Griffen. Die Voreinstellungen blenden am Rand weich aus.
    Auswahl-Chips des Timers und des Audiofokus tragen ein kleines Bild (Mond, Titelende, Pause, leiser); Erklärungen
    brechen bis zu vier Zeilen um und werden nie abgeschnitten. Ausgeschaltete Teile sind auf 60 % (Bilder 65 %)
    gedimmt, damit sie im Dunkelmodus mindestens 3 : 1 behalten. Die Voreinstellungen rasten nach einem Wisch auf eine

@@ -56,13 +56,6 @@ class EqualizerCurveView @JvmOverloads constructor(
         }
     var onGainChanged: ((index: Int, gainDb: Float) -> Unit)? = null
 
-    /** Shown in the middle while the equalizer is off or unavailable. */
-    var offText: String? = null
-        set(value) {
-            field = value
-            invalidate()
-        }
-
     /** The colour of the card behind the view: it forms the ring around every handle. */
     var ringColor: Int = 0
         set(value) {
@@ -126,10 +119,6 @@ class EqualizerCurveView @JvmOverloads constructor(
     private val bubblePaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val bubbleTextPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         textSize = sp(13f)
-        textAlign = Paint.Align.CENTER
-    }
-    private val offPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        textSize = sp(14f)
         textAlign = Paint.Align.CENTER
     }
     private val curvePath = Path()
@@ -319,8 +308,6 @@ class EqualizerCurveView @JvmOverloads constructor(
             canvas.drawCircle(xs[i], ys[i], dp(HANDLE_DP) * scale, handlePaint)
         }
         if (dragArmed && activeBand >= 0) drawBubble(canvas, xs[activeBand], ys[activeBand])
-        val off = offText
-        if (!isEnabled && off != null) drawOffText(canvas, off)
     }
 
     private fun drawBubble(canvas: Canvas, x: Float, y: Float) {
@@ -335,18 +322,6 @@ class EqualizerCurveView @JvmOverloads constructor(
         canvas.drawRoundRect(box, height / 2, height / 2, bubblePaint)
         bubbleTextPaint.color = onBubbleColor
         canvas.drawText(bubbleText, box.centerX(), box.centerY() + dp(4.5f), bubbleTextPaint)
-    }
-
-    private fun drawOffText(canvas: Canvas, text: String) {
-        val width = offPaint.measureText(text) + dp(32f)
-        val height = dp(36f)
-        val cx = (gridLeft + gridRight) / 2
-        val cy = (plotTop + plotBottom) / 2
-        box.set(cx - width / 2, cy - height / 2, cx + width / 2, cy + height / 2)
-        ringPaint.color = ringColor
-        canvas.drawRoundRect(box, height / 2, height / 2, ringPaint)
-        offPaint.color = onSurfaceColor
-        canvas.drawText(text, cx, cy + dp(5f), offPaint)
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {

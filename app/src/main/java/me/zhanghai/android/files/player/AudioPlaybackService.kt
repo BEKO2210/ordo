@@ -46,6 +46,11 @@ import androidx.media3.session.SessionCommands
 import java8.nio.file.Paths
 import me.zhanghai.android.files.player.cast.CastManager
 import me.zhanghai.android.files.viewer.audio.AudioPlayerActivity
+import me.zhanghai.android.files.viewer.audio.MusicCatalog
+import me.zhanghai.android.files.viewer.audio.MusicFilter
+import me.zhanghai.android.files.viewer.audio.MusicLibrary
+import me.zhanghai.android.files.viewer.audio.MusicSelection
+import me.zhanghai.android.files.viewer.audio.queryMusic
 
 @UnstableApi
 class AudioPlaybackService : MediaSessionService() {
@@ -577,8 +582,29 @@ class AudioPlaybackService : MediaSessionService() {
             if (isOwnController(mediaSession, controller)) {
                 Futures.immediateFuture(mediaItems)
             } else {
-                Futures.immediateFailedFuture(SecurityException("Controller may not change the queue"))
+                val query = searchQuery(controller, mediaItems)
+                    ?: return Futures.immediateFailedFuture(SecurityException("Controller may not change the queue"))
+                Futures.submit(Callable { searchResults(query) }, ioExecutor)
             }
+
+        /**
+         * "Play X" from the Assistant or another controller arrives as one item with only a search query (Media3's
+         * playFromSearch). Ordo answers with its own files; a URI from outside is never opened. Only trusted
+         * controllers (system apps such as the Assistant) may search, so no app can list the library by guessing.
+         */
+        private fun searchQuery(controller: MediaSession.ControllerInfo, mediaItems: List<MediaItem>): String? =
+            mediaItems.singleOrNull()?.takeIf { controller.isTrusted && it.localConfiguration == null }
+                ?.requestMetadata?.searchQuery
+
+        // Nothing found fails the request, so the caller says so instead of silence.
+        private fun searchResults(query: String): List<MediaItem> {
+            val songs = MusicLibrary(queryMusic(this@AudioPlaybackService), false, java.text.Collator.getInstance()).songs
+            // "Play music" without a name: everything, shuffled.
+            val found = if (query.isBlank()) MusicLibrary.shuffled(songs)
+            else MusicSelection.select(MusicCatalog(songs), MusicFilter(query = query))
+            if (found.isEmpty()) throw NoSuchElementException("No song matches the search")
+            return found.slice(queueWindow(found.size, 0)).map { mediaItem(Paths.get(it.path).toUri().toString()) }
+        }
 
         override fun onSetMediaItems(
             mediaSession: MediaSession,
@@ -592,7 +618,11 @@ class AudioPlaybackService : MediaSessionService() {
                     MediaSession.MediaItemsWithStartPosition(mediaItems, startIndex, startPositionMs)
                 )
             } else {
-                Futures.immediateFailedFuture(SecurityException("Controller may not change the queue"))
+                val query = searchQuery(controller, mediaItems)
+                    ?: return Futures.immediateFailedFuture(SecurityException("Controller may not change the queue"))
+                Futures.submit(Callable {
+                    MediaSession.MediaItemsWithStartPosition(searchResults(query), 0, 0L)
+                }, ioExecutor)
             }
 
         // Restores only Ordo's own persisted queue, and only what still exists.
@@ -631,7 +661,9 @@ class AudioPlaybackService : MediaSessionService() {
                 Player.COMMAND_SEEK_TO_MEDIA_ITEM,
                 Player.COMMAND_GET_CURRENT_MEDIA_ITEM,
                 Player.COMMAND_GET_METADATA,
-                Player.COMMAND_GET_TIMELINE
+                Player.COMMAND_GET_TIMELINE,
+                // Only for "play X": the session callback turns away every item that is not a bare search.
+                Player.COMMAND_SET_MEDIA_ITEM
             )
             .build()
 
