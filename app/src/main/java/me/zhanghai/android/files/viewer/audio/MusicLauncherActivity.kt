@@ -118,6 +118,7 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
     private var playlistName: String? = null
     // Songs selected with a long press (paths, in the order they were picked).
     private val selection = linkedSetOf<String>()
+    private var keepQueryOnCollapse = false
     // Ordo's play history (PlayHistoryStore), as paths.
     private var history = emptyList<PlayHistoryStore.Entry>()
     private lateinit var navigationAdapter: NavigationListAdapter
@@ -303,7 +304,9 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
             }
 
             override fun onMenuItemActionCollapse(item: MenuItem): Boolean {
-                query = ""
+                // A selection takes the toolbar over: the search field steps aside but its results stay.
+                if (!keepQueryOnCollapse) query = ""
+                keepQueryOnCollapse = false
                 render()
                 // The item still counts as expanded while this runs.
                 backInLibrary.isEnabled = detailKey != null || section != SECTION_LIBRARY
@@ -863,15 +866,31 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
 
     private fun toggleSelection(path: String) {
         if (!selection.remove(path)) selection += path
+        // The toolbar shows "N selected" and the actions; an open search field would hide them.
         if (selection.isNotEmpty() && searchItem.isActionViewExpanded) {
-            (searchItem.actionView as SearchView).clearFocus()
+            keepQueryOnCollapse = true
+            searchItem.collapseActionView()
         }
+        if (selection.isEmpty()) restoreSearch()
         render()
     }
 
     private fun clearSelection() {
         selection.clear()
+        restoreSearch()
         render()
+    }
+
+    /** After a selection made in search results, the search field comes back with its words. */
+    private fun restoreSearch() {
+        if (query.isBlank() || searchItem.isActionViewExpanded) return
+        val restored = query
+        searchItem.isVisible = true
+        searchItem.expandActionView()
+        (searchItem.actionView as SearchView).apply {
+            setQuery(restored, false)
+            clearFocus()
+        }
     }
 
     private fun updateToolbarMenu() {
