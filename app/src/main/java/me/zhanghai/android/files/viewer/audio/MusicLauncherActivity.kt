@@ -873,6 +873,8 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
         }
         if (selection.isEmpty()) restoreSearch()
         render()
+        // The toolbar puts its title back only after the search field has gone: set it once more then.
+        binding.root.post { updateTitle() }
     }
 
     private fun clearSelection() {

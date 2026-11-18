@@ -140,12 +140,15 @@ check "back from the player returns to the library" on viewer.audio.MusicLaunche
 # Music/Playlists, the playlist and the favourites show them in the side menu.
 MENU="Navigationsmenü öffnen|Open navigation drawer"
 check "a long press selects a song" eval 'search Ordoe2e && ui longtap "Ordoe2e Alpha" && ui wait "1 ausgewählt|1 selected" 5'
+# On failure the log shows what the toolbar showed instead.
+ui has "1 ausgewählt|1 selected" || { echo "DIAG selection:"; ui texts | head -20 | sed 's/^/  /'; }
 check "a tap adds a second song" eval 'ui tap "Ordoe2e Beta" && ui wait "2 ausgewählt|2 selected" 5'
 check "the selection goes into a new playlist" eval 'ui tap actionSelectionPlaylist && ui wait "Neue Wiedergabeliste|New playlist" 5 \
     && ui tap "Neue Wiedergabeliste|New playlist" && sleep 1 && a shell input text "Ordoe2e%sList" && ui tap button1'
 in_playlist() { a shell cat "\"$PLAYLISTS/Ordoe2e List.m3u8\"" | grep -q "OrdoE2E-Rock/rock-1.mp3"; }
 check "the playlist is an M3U8 file in Music/Playlists" eval 'sleep 2; in_playlist'
 close_search
+ui has "$MENU" || { echo "DIAG before the side menu:"; ui texts | head -20 | sed 's/^/  /'; }
 check "the side menu lists the playlist" eval 'ui tap "$MENU" && sleep 1 && ui tap "Wiedergabelisten|Playlists" && ui wait "Ordoe2e List" 5'
 check "the playlist opens with its songs" eval 'ui tap "Ordoe2e List" && ui wait "Ordoe2e Alpha" 5 && ui has "Ordoe2e Beta"'
 back 1.5; back 1.5
