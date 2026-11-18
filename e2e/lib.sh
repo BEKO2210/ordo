@@ -98,11 +98,15 @@ swipe_up() { read -r W H < <(screen_size); a shell input swipe $((W / 2)) $((H *
 swipe_down() { read -r W H < <(screen_size); a shell input swipe $((W / 2)) $((H / 3)) $((W / 2)) $((H * 3 / 4)) 500; sleep 1.5; }
 
 # The wand opens the command sheet. Below the model's RAM floor (CommandModel.MIN_RAM, 10 GB, compared with the
-# device's own MemTotal) it opens the setup page that says the AI can't run here: SKIP. Anything else is FAIL.
+# device's own MemTotal) it opens the setup page that says the AI can't run here: SKIP. Above it, without a model, the setup
+# page offers the download: PASS (the sheet opened, as it should). Anything else is FAIL.
 check_wand() {
     local name="the wand opens the command sheet" kb
     kb=$(a shell cat /proc/meminfo | awk '/^MemTotal/ { print $2 }')
     if ui has headerOrb; then pass "$name"
+    # Enough RAM but no model yet: the sheet opens on its setup page and offers the download. That is right.
+    elif [ -n "$kb" ] && [ "$kb" -ge 9765625 ] && ui has setupLayout && ui has setupButton; then
+        pass "$name (setup page with the download: no model on this device yet)"
     elif [ -n "$kb" ] && [ "$kb" -lt 9765625 ] && ui has "Auf diesem Gerät läuft die Ordo-KI nicht|This phone can’t run Ordo AI"; then
         echo "SKIP $name (not enough RAM for the model on this device)"
     else fail "$name"; fi
