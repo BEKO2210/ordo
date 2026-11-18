@@ -217,9 +217,13 @@ Alle Bilder oben stammen aus `utils/readme-shots.sh`, aufgenommen im Android-16-
 - Ordo Musik als eigene Musik-App mit eigener Karte in den Letzten Apps: deine ganze Musik in den Reitern Titel,
   Alben, Interpreten und Ordner, mit großem Titel, der beim Scrollen in die Leiste wandert, Suche, „Alle zufällig“,
   Albumseiten mit großem Cover und den Titeln in ihrer Reihenfolge mit „Abspielen“ und „Zufällig“, runden
-  Interpretenbildern und Ordnerkacheln aus Albumcovern (wo ein Cover fehlt, eine ruhige Farbe mit Initialen) und
-  einem Mini-Player mit Play/Pause und Weiter unten. Die Titel kommen aus Androids Mediensammlung (nur was der
-  Player abspielt; versteckte Ordner nur, wenn du versteckte Dateien zeigst)
+  Interpretenbildern und Ordnerkacheln aus Albumcovern (wo ein Cover fehlt, eine ruhige Farbe mit Initialen), einem
+  Mini-Player mit Play/Pause und Weiter unten und Ordos Seitenmenü mit Bibliothek, Zuletzt gespielt, Meistgespielt
+  (nur auf dem Gerät gezählt), Klang, Einschlaf-Timer, Einstellungen und dem Weg zurück zum Dateimanager. Die Titel
+  kommen aus Androids Mediensammlung (nur was der Player abspielt; versteckte Ordner nur, wenn du versteckte Dateien
+  zeigst) Infos eines Titels bearbeiten (Titel, Interpret, Album, Nummern, Jahr, Genre, Songtext, Cover) bei MP3,
+  FLAC, Ogg Vorbis und M4A, für einen Titel oder ein ganzes Album, mit Vorschau vor dem Speichern und „Rückgängig“
+  danach; die Datei wird erst ersetzt, wenn die neuen Angaben richtig zurückgelesen sind.
 - Eigenes App-Symbol für Ordo Musik (Einstellungen › Eingebaute Apps): standardmäßig aus, nur du schaltest es ein und aus, siehe [docs/AUDIO-PLAYER.md](docs/AUDIO-PLAYER.md)
 - Die Icon-Farbe von Ordo und Ordo Musik selbst wählen (Einstellungen › Eingebaute Apps › Icon-Farben): acht Farben,
   standardmäßig Blau, mit Live-Vorschau des Symbols; Themed Icons (ab Android 13) funktionieren weiter

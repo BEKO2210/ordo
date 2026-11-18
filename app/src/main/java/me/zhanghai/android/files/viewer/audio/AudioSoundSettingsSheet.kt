@@ -116,6 +116,7 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment() {
         palette = resolvePalette()
         applyPalette()
         binding.close.setOnClickListener { dismiss() }
+        if (savedInstanceState == null && arguments?.getBoolean(ARG_SLEEP_TIMER) == true) showSleepTimer()
         binding.fineTuneToggle.setOnClickListener { setFineTuneExpanded(!fineTuneExpanded, true) }
         setFineTuneExpanded(false, false)
         createPresets()
@@ -891,6 +892,19 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment() {
 
     private fun dp(value: Int) = (value * resources.displayMetrics.density).roundToInt()
 
+    /** Opened for the sleep timer (Ordo Music's menu): the sheet opens fully and scrolls to it. */
+    private fun showSleepTimer() {
+        (dialog as? com.google.android.material.bottomsheet.BottomSheetDialog)?.behavior?.state =
+            com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_EXPANDED
+        val scrollView = binding.root
+        scrollView.post {
+            val rect = android.graphics.Rect()
+            binding.sleepCard.getDrawingRect(rect)
+            scrollView.offsetDescendantRectToMyCoords(binding.sleepCard, rect)
+            scrollView.smoothScrollTo(0, rect.top)
+        }
+    }
+
     override fun onDestroyView() {
         handler.removeCallbacks(sleepTicker)
         tiles.forEach { it.spring?.cancel() }
@@ -900,6 +914,7 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment() {
 
     companion object {
         const val TAG = "audioSoundSettings"
+        const val ARG_SLEEP_TIMER = "sleepTimer"
         private const val DISABLED_ALPHA = 0.38f
         private const val GOLDEN_RATIO = 1.618f
         private const val STRENGTH_STEP = 50

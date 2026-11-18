@@ -13,19 +13,26 @@ import android.os.Bundle
 import android.os.Environment
 import android.os.Handler
 import android.os.Looper
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.content.res.ColorStateList
+import android.graphics.Color
 import android.graphics.Rect
 import android.graphics.drawable.Drawable
 import android.widget.ImageView
 import androidx.annotation.DrawableRes
+import androidx.annotation.StringRes
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.widget.PopupMenu
 import androidx.appcompat.widget.SearchView
 import androidx.core.content.ContextCompat
+import androidx.core.view.GravityCompat
+import androidx.core.view.MenuItemCompat
+import androidx.core.view.doOnAttach
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.C
@@ -34,12 +41,14 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.common.util.Util
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
+import androidx.recyclerview.widget.ConcatAdapter
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import coil.dispose
 import coil.load
 import com.google.android.material.color.MaterialColors
+import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.tabs.TabLayout
 import com.google.common.util.concurrent.ListenableFuture
 import java.net.URI
@@ -51,17 +60,25 @@ import kotlinx.coroutines.withContext
 import me.zhanghai.android.files.R
 import me.zhanghai.android.files.app.AppActivity
 import me.zhanghai.android.files.databinding.MusicLauncherActivityBinding
+import me.zhanghai.android.files.filelist.FileListActivity
 import me.zhanghai.android.files.databinding.MusicLibraryActionsBinding
 import me.zhanghai.android.files.databinding.MusicArtBinding
 import me.zhanghai.android.files.databinding.MusicLibraryAlbumBinding
 import me.zhanghai.android.files.databinding.MusicLibraryHeaderBinding
 import me.zhanghai.android.files.databinding.MusicLibraryRowBinding
+import me.zhanghai.android.files.databinding.MusicNavigationHeaderBinding
+import me.zhanghai.android.files.navigation.NavigationItem
+import me.zhanghai.android.files.navigation.NavigationListAdapter
+import me.zhanghai.android.files.navigation.setUpOpenStagger
 import me.zhanghai.android.files.player.AudioPlaybackService
+import me.zhanghai.android.files.player.PlayHistoryStore
 import me.zhanghai.android.files.player.PlaybackStateStore
 import me.zhanghai.android.files.player.pathUriExists
 import me.zhanghai.android.files.player.queueWindow
 import me.zhanghai.android.files.player.restorableState
 import me.zhanghai.android.files.settings.Settings
+import me.zhanghai.android.files.settings.SettingsActivity
+import me.zhanghai.android.files.ui.DrawerLayoutOnBackPressedCallback
 import me.zhanghai.android.files.ui.Motion
 import me.zhanghai.android.files.ui.ThemedFastScroller
 import me.zhanghai.android.files.util.createManageAppAllFilesAccessPermissionIntent
@@ -74,16 +91,36 @@ import me.zhanghai.android.files.util.valueCompat
  * player at the bottom while something plays or can be resumed. It never jumps into the player on its own.
  */
 @androidx.annotation.OptIn(UnstableApi::class)
-class MusicLauncherActivity : AppActivity() {
+class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
     private lateinit var binding: MusicLauncherActivityBinding
     private val adapter = Adapter()
+    private val accentColor by lazy {
+        MaterialColors.getColor(binding.root, androidx.appcompat.R.attr.colorPrimary)
+    }
+    private val rowTitleColor by lazy {
+        MaterialColors.getColor(binding.root, com.google.android.material.R.attr.colorOnSurface)
+    }
     private var library: MusicLibrary? = null
     private var songsByPath = emptyMap<String, MusicSong>()
     private var tab = TAB_SONGS
+    // Library (with its tabs), recently played or most played: the side menu's first three entries.
+    private var section = SECTION_LIBRARY
+    // Ordo's play history (PlayHistoryStore), as paths.
+    private var history = emptyList<PlayHistoryStore.Entry>()
+    private lateinit var navigationAdapter: NavigationListAdapter
+    private val navigationHeader = NavigationHeaderAdapter()
+    // What the menu's header shows as playing: title, artist, cover data and album (for the placeholder).
+    private var nowPlaying: List<Any?>? = null
     // The album, artist or folder (by MusicGroup.key) open inside the current tab.
     private var detailKey: String? = null
     private var query = ""
     private var shownSongs = emptyList<MusicSong>()
+    private var shownGroup: MusicGroup? = null
+    // A page on a wide window: header and buttons on the left, songs on the right.
+    private var twoPane = false
+    // The song in the session (by path) and whether it plays: its row shows the moving bars.
+    private var playingPath: String? = null
+    private var currentPlaying = false
     private var saved: PlaybackStateStore.State? = null
     private var controllerFuture: ListenableFuture<MediaController>? = null
     private var controller: MediaController? = null
@@ -102,15 +139,31 @@ class MusicLauncherActivity : AppActivity() {
     // not collapse its search on its own.
     private val backInLibrary = object : OnBackPressedCallback(false) {
         override fun handleOnBackPressed() {
-            if (searchItem.isActionViewExpanded) searchItem.collapseActionView() else openDetail(null)
+            when {
+                searchItem.isActionViewExpanded -> searchItem.collapseActionView()
+                detailKey != null -> openDetail(null)
+                else -> openSection(SECTION_LIBRARY)
+            }
         }
     }
+    // The side menu slides in (phones, tablets upright) or stays beside the library (tablets in landscape).
+    private val drawerLayout: androidx.drawerlayout.widget.DrawerLayout?
+        get() = binding.root as? androidx.drawerlayout.widget.DrawerLayout
+    private val persistentDrawer: me.zhanghai.android.files.ui.PersistentDrawerLayout?
+        get() = binding.root as? me.zhanghai.android.files.ui.PersistentDrawerLayout
     private val searchItem: MenuItem
-        get() = binding.toolbar.menu.findItem(R.id.actionSearch)
+        get() = binding.content.toolbar.menu.findItem(R.id.actionSearch)
     private val accessLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { load() }
     private val permissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { load() }
+    // The tag editor: after a save the library reloads and offers undo for 10 s.
+    private val editTagsLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == RESULT_OK) {
+                TagEditUndo.offer(this, binding.content.root, lifecycleScope, result.data) { load() }
+            }
+        }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -120,18 +173,22 @@ class MusicLauncherActivity : AppActivity() {
             tab = it.getInt(STATE_TAB)
             detailKey = it.getString(STATE_DETAIL)
             query = it.getString(STATE_QUERY).orEmpty()
+            section = it.getInt(STATE_SECTION)
         }
         onBackPressedDispatcher.addCallback(this, backInLibrary)
-        binding.recyclerView.adapter = adapter
-        ThemedFastScroller.create(binding.recyclerView)
+        binding.content.recyclerView.adapter = adapter
+        ThemedFastScroller.create(binding.content.recyclerView)
         setUpTabs()
-        binding.recyclerView.addItemDecoration(GridSpacing())
+        binding.content.recyclerView.addItemDecoration(GridSpacing())
         // The list and the mini player keep a readable width on tablets: centred, at most 610 dp.
-        binding.recyclerView.addOnLayoutChangeListener { _, left, _, right, _, oldLeft, _, oldRight, _ ->
-            if (right - left != oldRight - oldLeft) binding.recyclerView.post { updateWidths() }
+        binding.content.recyclerView.addOnLayoutChangeListener { _, left, _, right, _, oldLeft, _, oldRight, _ ->
+            if (right - left != oldRight - oldLeft) binding.content.recyclerView.post { updateWidths() }
         }
-        binding.tabs.getTabAt(tab)?.select()
-        binding.tabs.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
+        binding.content.recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) = updateTitle()
+        })
+        binding.content.tabs.getTabAt(tab)?.select()
+        binding.content.tabs.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
             override fun onTabSelected(selected: TabLayout.Tab) {
                 tab = selected.position
                 render(scrollToTop = true)
@@ -139,19 +196,29 @@ class MusicLauncherActivity : AppActivity() {
 
             override fun onTabUnselected(tab: TabLayout.Tab) {}
 
-            override fun onTabReselected(tab: TabLayout.Tab) = binding.recyclerView.scrollToPosition(0)
+            override fun onTabReselected(tab: TabLayout.Tab) = binding.content.recyclerView.scrollToPosition(0)
         })
-        binding.toolbar.setNavigationOnClickListener { openDetail(null) }
+        binding.content.toolbar.setNavigationOnClickListener {
+            if (detailKey != null) openDetail(null) else toggleNavigation()
+        }
         setUpSearch()
-        binding.accessButton.setOnClickListener { requestAccess() }
-        binding.miniPlayer.root.setOnClickListener {
+        setUpNavigation()
+        binding.content.toolbar.setOnMenuItemClickListener { item ->
+            val group = shownGroup
+            if (item.itemId == R.id.actionEditAll && group != null) {
+                editTagsLauncher.launch(MusicTagEditorActivity.createIntent(this, group.songs.map { it.path }))
+                true
+            } else false
+        }
+        binding.content.accessButton.setOnClickListener { requestAccess() }
+        binding.content.miniPlayer.root.setOnClickListener {
             startActivitySafe(AudioPlayerActivity.createResumeIntent(this))
         }
-        binding.miniPlayer.playPause.setOnClickListener {
+        binding.content.miniPlayer.playPause.setOnClickListener {
             // With nothing in the session, play() makes the service resume the saved queue.
             controller?.let { Util.handlePlayPauseButtonAction(it) }
         }
-        binding.miniPlayer.next.setOnClickListener { controller?.seekToNextMediaItem() }
+        binding.content.miniPlayer.next.setOnClickListener { controller?.seekToNextMediaItem() }
     }
 
     private fun setUpTabs() {
@@ -160,9 +227,9 @@ class MusicLauncherActivity : AppActivity() {
             R.string.music_tab_albums to R.drawable.album_icon_white_24dp,
             R.string.music_tab_artists to R.drawable.person_icon_white_24dp,
             R.string.music_tab_folders to R.drawable.directory_icon_white_24dp
-        ).forEach { (text, icon) -> binding.tabs.addTab(binding.tabs.newTab().setText(text).setIcon(icon)) }
+        ).forEach { (text, icon) -> binding.content.tabs.addTab(binding.content.tabs.newTab().setText(text).setIcon(icon)) }
         // The pill takes Material 3's secondary container; the Material 2 theme has none, so primary at 16 %.
-        val tabs = binding.tabs
+        val tabs = binding.content.tabs
         val primary = MaterialColors.getColor(tabs, androidx.appcompat.R.attr.colorPrimary)
         val pill = MaterialColors.getColor(
             tabs, com.google.android.material.R.attr.colorSecondaryContainer,
@@ -186,10 +253,13 @@ class MusicLauncherActivity : AppActivity() {
         outState.putInt(STATE_TAB, tab)
         outState.putString(STATE_DETAIL, detailKey)
         outState.putString(STATE_QUERY, query)
+        outState.putInt(STATE_SECTION, section)
     }
 
     override fun onStart() {
         super.onStart()
+        // Back from the player the search stays, but the keyboard must not cover the list again.
+        (searchItem.actionView as SearchView).clearFocus()
         load()
         connectController()
     }
@@ -209,19 +279,19 @@ class MusicLauncherActivity : AppActivity() {
         searchView.queryHint = getString(R.string.music_search_hint)
         item.setOnActionExpandListener(object : MenuItem.OnActionExpandListener {
             override fun onMenuItemActionExpand(item: MenuItem): Boolean {
-                // The large title would run under the search field.
-                binding.collapsingToolbar.isTitleEnabled = false
-                binding.appBar.setExpanded(false, Motion.any)
+                binding.content.appBar.setExpanded(false, Motion.any)
                 backInLibrary.isEnabled = true
+                // The item counts as expanded only after this returns.
+                binding.root.post { updateTitle() }
                 return true
             }
 
             override fun onMenuItemActionCollapse(item: MenuItem): Boolean {
-                binding.collapsingToolbar.isTitleEnabled = true
                 query = ""
                 render()
                 // The item still counts as expanded while this runs.
-                backInLibrary.isEnabled = detailKey != null
+                backInLibrary.isEnabled = detailKey != null || section != SECTION_LIBRARY
+                binding.root.post { updateTitle() }
                 return true
             }
         })
@@ -268,6 +338,7 @@ class MusicLauncherActivity : AppActivity() {
         val showHiddenFiles = Settings.FILE_LIST_SHOW_HIDDEN_FILES.valueCompat
         lifecycleScope.launch {
             val (loaded, savedState) = withContext(Dispatchers.IO) {
+                history = PlayHistoryStore(context).read()
                 MusicLibrary(queryMusic(context), showHiddenFiles, Collator.getInstance()) to
                     PlaybackStateStore(context).read()?.let { restorableState(it, ::pathUriExists) }
             }
@@ -292,13 +363,14 @@ class MusicLauncherActivity : AppActivity() {
         searchItem.collapseActionView()
         detailKey = key
         // A page has its own big cover and name; the large title folds away for it.
-        binding.appBar.setExpanded(key == null, Motion.any)
+        binding.content.appBar.setExpanded(key == null, Motion.any)
         render(scrollToTop = true)
     }
 
     private fun render(scrollToTop: Boolean = false) {
         val library = library
-        val group = library?.let { lib -> groupsOf(lib, tab).find { it.key == detailKey } }
+        val group = library?.takeIf { section == SECTION_LIBRARY }
+            ?.let { lib -> groupsOf(lib, tab).find { it.key == detailKey } }
         // A page whose album, artist or folder is gone after a reload closes.
         if (library != null && group == null) detailKey = null
         val rows = ArrayList<Row>()
@@ -307,8 +379,10 @@ class MusicLauncherActivity : AppActivity() {
             library == null -> {}
             group != null -> {
                 shownSongs = group.songs.filter { MusicLibrary.matches(it, query) }
-                rows += Row.Header(group)
-                if (shownSongs.isNotEmpty()) rows += Row.Actions(shuffleOnly = false)
+                if (!twoPaneFor(group)) {
+                    rows += Row.Header(group)
+                    if (shownSongs.isNotEmpty()) rows += Row.Actions(shuffleOnly = false)
+                }
                 shownSongs.forEachIndexed { index, song ->
                     // Only what the page does not already say: an album names its artist once, at the top.
                     rows += when (tab) {
@@ -321,6 +395,11 @@ class MusicLauncherActivity : AppActivity() {
                     }
                 }
             }
+            section != SECTION_LIBRARY -> {
+                shownSongs = historySongs().filter { MusicLibrary.matches(it, query) }
+                if (shownSongs.isNotEmpty()) rows += Row.Actions(shuffleOnly = false)
+                shownSongs.forEachIndexed { index, song -> rows += Row.Song(song, index, artistAndAlbum(song)) }
+            }
             tab == TAB_SONGS -> {
                 shownSongs = library.songs.filter { MusicLibrary.matches(it, query) }
                 if (shownSongs.isNotEmpty()) rows += Row.Actions(shuffleOnly = true)
@@ -329,35 +408,321 @@ class MusicLauncherActivity : AppActivity() {
             else -> groupsOf(library, tab).filter { MusicLibrary.matches(it, query) }
                 .mapTo(rows) { if (tab == TAB_ALBUMS) Row.Album(it) else Row.Group(it, tab == TAB_FOLDERS) }
         }
-        val grid = group == null && tab == TAB_ALBUMS
-        val layoutManager = binding.recyclerView.layoutManager
+        shownGroup = group
+        twoPane = twoPaneFor(group)
+        binding.content.detailPane.isVisible = twoPane
+        if (twoPane && group != null) {
+            bindHeader(binding.content.paneHeader, group)
+            bindActions(binding.content.paneActions, shuffleOnly = false)
+            binding.content.paneActions.root.isVisible = shownSongs.isNotEmpty()
+        }
+        // A page has no large title area: its own cover and name are the header.
+        val headerHeight = if (group != null) {
+            binding.content.toolbar.layoutParams.height
+        } else {
+            resources.getDimensionPixelSize(R.dimen.music_header_height)
+        }
+        if (binding.content.collapsingToolbar.layoutParams.height != headerHeight) {
+            binding.content.collapsingToolbar.layoutParams = binding.content.collapsingToolbar.layoutParams.apply { height = headerHeight }
+        }
+        val grid = group == null && section == SECTION_LIBRARY && tab == TAB_ALBUMS
+        val layoutManager = binding.content.recyclerView.layoutManager
         if (layoutManager == null || (layoutManager is GridLayoutManager) != grid) {
-            binding.recyclerView.layoutManager =
+            binding.content.recyclerView.layoutManager =
                 if (grid) GridLayoutManager(this, albumColumns()) else LinearLayoutManager(this)
         }
         updateWidths()
         adapter.submit(rows)
-        if (scrollToTop) binding.recyclerView.scrollToPosition(0)
+        if (scrollToTop) binding.content.recyclerView.scrollToPosition(0)
 
-        binding.collapsingToolbar.title = group?.let { groupName(it, tab) } ?: getString(R.string.launcher_music_start_title)
-        binding.tabs.isVisible = group == null
-        backInLibrary.isEnabled = group != null || searchItem.isActionViewExpanded
+        updateTitle()
+        binding.content.tabs.isVisible = group == null && section == SECTION_LIBRARY
+        backInLibrary.isEnabled = group != null || section != SECTION_LIBRARY || searchItem.isActionViewExpanded
+        binding.content.toolbar.menu.findItem(R.id.actionEditAll).isVisible = group != null
+        // A page goes back; otherwise the button opens the side menu, as in Ordo's file list.
         if (group != null) {
-            binding.toolbar.setNavigationIcon(androidx.appcompat.R.drawable.abc_ic_ab_back_material)
-            binding.toolbar.setNavigationContentDescription(androidx.appcompat.R.string.abc_action_bar_up_description)
+            binding.content.toolbar.setNavigationIcon(androidx.appcompat.R.drawable.abc_ic_ab_back_material)
+            binding.content.toolbar.setNavigationContentDescription(androidx.appcompat.R.string.abc_action_bar_up_description)
         } else {
-            binding.toolbar.navigationIcon = null
+            binding.content.toolbar.setNavigationIcon(R.drawable.menu_icon_control_normal_24dp)
+            binding.content.toolbar.setNavigationContentDescription(R.string.open_navigation_drawer)
         }
         val hasAccess = library != null || hasStorageAccess()
-        binding.emptyText.text = when {
+        binding.content.emptyText.text = when {
             !hasAccess -> getString(R.string.music_access_message)
             library == null -> null
             query.isNotBlank() -> getString(R.string.music_no_results, query.trim())
+            section != SECTION_LIBRARY -> getString(R.string.music_history_empty)
             else -> getString(R.string.music_empty)
         }
-        binding.accessButton.isVisible = !hasAccess
-        binding.emptyGroup.isVisible = rows.isEmpty() && (library != null || !hasAccess)
-        binding.recyclerView.isVisible = rows.isNotEmpty()
+        binding.content.accessButton.isVisible = !hasAccess
+        binding.content.emptyGroup.isVisible = rows.isEmpty() && (library != null || !hasAccess)
+        binding.content.recyclerView.isVisible = rows.isNotEmpty()
+    }
+
+    private fun twoPaneFor(group: MusicGroup?): Boolean =
+        group != null && resources.configuration.screenWidthDp >= TWO_PANE_MIN_WIDTH_DP
+
+    /**
+     * The library shows its large "Music" title. A page shows its name in the toolbar only once its own header has
+     * scrolled away (never on a wide window, where the header stays on the left); a search hides both.
+     */
+    private fun updateTitle() {
+        val group = shownGroup
+        val searching = searchItem.isActionViewExpanded
+        val collapsing = binding.content.collapsingToolbar
+        if (group == null) {
+            collapsing.isTitleEnabled = !searching
+            collapsing.title = getString(sectionTitle())
+            binding.content.toolbar.title = null
+            return
+        }
+        collapsing.isTitleEnabled = false
+        val firstVisible = (binding.content.recyclerView.layoutManager as? LinearLayoutManager)?.findFirstVisibleItemPosition() ?: 0
+        val headerGone = !twoPane && firstVisible > 0
+        binding.content.toolbar.title = if (headerGone && !searching) groupName(group, tab) else null
+    }
+
+    private fun bindHeader(header: MusicLibraryHeaderBinding, group: MusicGroup) {
+        // An album's cover about two thirds of a phone's width, 233 dp at most on a tablet.
+        val size = minOf(
+            resources.displayMetrics.widthPixels * 2 / 3,
+            resources.getDimensionPixelSize(R.dimen.phi_233)
+        )
+        header.art.root.layoutParams = header.art.root.layoutParams.apply {
+            width = size
+            height = size
+        }
+        header.title.text = groupName(group, tab)
+        header.subtitle.text = when (tab) {
+            TAB_ALBUMS -> group.artist ?: getString(R.string.audio_player_unknown_artist)
+            TAB_FOLDERS -> displayFolder(group.key)
+            else -> null
+        }
+        header.subtitle.isVisible = !header.subtitle.text.isNullOrEmpty()
+        header.info.text = formatTotal(group.songs)
+        when (tab) {
+            TAB_ALBUMS -> bindArt(
+                header.art, placeholder(group.name, R.drawable.album_icon_white_24dp),
+                listOf(group.songs.firstOrNull()?.artUri), resources.getDimension(R.dimen.phi_21)
+            )
+            // Artists are round, like a portrait.
+            TAB_ARTISTS -> bindArt(
+                header.art, placeholder(group.name, R.drawable.person_icon_white_24dp),
+                albumCovers(group.songs), size / 2f
+            )
+            else -> bindArt(
+                header.art, placeholder(group.name, R.drawable.directory_icon_white_24dp),
+                albumCovers(group.songs), resources.getDimension(R.dimen.phi_21), size / 12
+            )
+        }
+    }
+
+    private fun bindActions(actions: MusicLibraryActionsBinding, shuffleOnly: Boolean) {
+        actions.play.isVisible = !shuffleOnly
+        actions.shuffle.text = if (shuffleOnly) {
+            getString(R.string.music_shuffle_all, shownSongs.size)
+        } else {
+            getString(R.string.music_shuffle)
+        }
+        actions.play.setOnClickListener { play(shownSongs, 0) }
+        actions.shuffle.setOnClickListener { play(MusicLibrary.shuffled(shownSongs), 0) }
+    }
+
+    /** ⋮ of a song: play next and add to the queue while there is one, and the file in its folder. */
+    private fun showSongMenu(anchor: View, song: MusicSong) {
+        val popup = PopupMenu(this, anchor, Gravity.END)
+        popup.inflate(R.menu.music_song)
+        popup.setForceShowIcon(true)
+        val queued = (controller?.mediaItemCount ?: 0) > 0
+        popup.menu.findItem(R.id.actionPlayNext).isVisible = queued
+        popup.menu.findItem(R.id.actionAddToQueue).isVisible = queued
+        val iconTint = ColorStateList.valueOf(
+            MaterialColors.getColor(anchor, com.google.android.material.R.attr.colorOnSurfaceVariant,
+                MaterialColors.getColor(anchor, android.R.attr.textColorSecondary))
+        )
+        for (index in 0 until popup.menu.size()) MenuItemCompat.setIconTintList(popup.menu.getItem(index), iconTint)
+        popup.setOnMenuItemClickListener { item ->
+            val player = controller
+            val mediaItem = AudioPlaybackService.mediaItem(Paths.get(song.path).toUri().toString())
+            when (item.itemId) {
+                R.id.actionPlayNext -> if (player != null) {
+                    player.addMediaItem((player.currentMediaItemIndex + 1).coerceAtMost(player.mediaItemCount), mediaItem)
+                    confirm(R.string.music_added_next)
+                }
+                R.id.actionAddToQueue -> if (player != null) {
+                    player.addMediaItem(mediaItem)
+                    confirm(R.string.music_added_to_queue)
+                }
+                R.id.actionEditTags ->
+                    editTagsLauncher.launch(MusicTagEditorActivity.createIntent(this, listOf(song.path)))
+                R.id.actionShowFile -> Paths.get(song.path).parent?.let {
+                    startActivitySafe(FileListActivity.createViewIntent(it))
+                }
+            }
+            true
+        }
+        popup.show()
+    }
+
+    private fun confirm(text: Int) {
+        Snackbar.make(binding.root, text, Snackbar.LENGTH_SHORT).apply {
+            if (binding.content.miniPlayer.root.isVisible) anchorView = binding.content.miniPlayer.root
+        }.show()
+    }
+
+    @StringRes
+    private fun sectionTitle(): Int = when (section) {
+        SECTION_RECENT -> R.string.music_nav_recent
+        SECTION_MOST -> R.string.music_nav_most
+        else -> R.string.launcher_music_start_title
+    }
+
+    /** The songs of the play history that are still in the library, newest or most played first. */
+    private fun historySongs(): List<MusicSong> {
+        val ordered = if (section == SECTION_MOST) {
+            PlayHistoryStore.mostPlayed(history)
+        } else {
+            PlayHistoryStore.recent(history)
+        }
+        return ordered.mapNotNull { songAt(it.pathUri) }
+    }
+
+    // ---- Side menu: Ordo's own (NavigationListAdapter, its header style and the opening stagger) -------------------
+
+    private fun setUpNavigation() {
+        val list = binding.navigation.recyclerView
+        list.layoutManager = LinearLayoutManager(this)
+        navigationAdapter = NavigationListAdapter(this, this)
+        list.adapter = ConcatAdapter(
+            ConcatAdapter.Config.Builder()
+                .setStableIdMode(ConcatAdapter.Config.StableIdMode.ISOLATED_STABLE_IDS)
+                .build(),
+            navigationHeader, navigationAdapter
+        )
+        navigationAdapter.replace(navigationItems())
+        list.doOnAttach { setUpOpenStagger(list) }
+        // Registered after the library's own back handling, so an open menu closes first.
+        drawerLayout?.let { onBackPressedDispatcher.addCallback(this, DrawerLayoutOnBackPressedCallback(it)) }
+        persistentDrawer?.openDrawer(GravityCompat.START, false)
+    }
+
+    private fun navigationItems(): List<NavigationItem?> = listOf(
+        MusicNavigationItem(MusicNavigation.IDS[0]!!, R.drawable.audio_icon_white_24dp, R.string.music_nav_library,
+            { section == SECTION_LIBRARY }) { openSection(SECTION_LIBRARY) },
+        MusicNavigationItem(MusicNavigation.IDS[1]!!, R.drawable.history_icon_white_24dp, R.string.music_nav_recent,
+            { section == SECTION_RECENT }) { openSection(SECTION_RECENT) },
+        MusicNavigationItem(MusicNavigation.IDS[2]!!, R.drawable.trending_icon_white_24dp, R.string.music_nav_most,
+            { section == SECTION_MOST }) { openSection(SECTION_MOST) },
+        null,
+        MusicNavigationItem(MusicNavigation.IDS[4]!!, R.drawable.audio_equalizer_icon_24dp, R.string.audio_sound_title) { openSound(false) },
+        MusicNavigationItem(MusicNavigation.IDS[5]!!, R.drawable.audio_timer_icon_24dp, R.string.audio_sound_sleep_heading) { openSound(true) },
+        null,
+        MusicNavigationItem(MusicNavigation.IDS[7]!!, R.drawable.settings_icon_white_24dp, R.string.settings_title) {
+            launchIntent(SettingsActivity.createIntent(SettingsActivity.SECTION_LAUNCHER_ICONS))
+        },
+        MusicNavigationItem(MusicNavigation.IDS[8]!!, R.drawable.directory_icon_white_24dp, R.string.music_nav_files) {
+            packageManager.getLaunchIntentForPackage(packageName)?.let { launchIntent(it) }
+        }
+    )
+
+    private fun toggleNavigation() {
+        drawerLayout?.openDrawer(GravityCompat.START)
+        persistentDrawer?.let {
+            if (it.isDrawerOpen(GravityCompat.START)) it.closeDrawer(GravityCompat.START) else it.openDrawer(GravityCompat.START)
+        }
+    }
+
+    private fun openSection(newSection: Int) {
+        searchItem.collapseActionView()
+        section = newSection
+        detailKey = null
+        binding.content.appBar.setExpanded(true, Motion.any)
+        render(scrollToTop = true)
+        navigationAdapter.notifyCheckedChanged()
+        closeNavigationDrawer()
+    }
+
+    /** Sound or the sleep timer, over the player: with the saved queue if there is one, so they apply to it. */
+    private fun openSound(sleepTimer: Boolean) {
+        val resumable = saved != null || (controller?.mediaItemCount ?: 0) > 0
+        val intent = if (resumable) {
+            AudioPlayerActivity.createResumeIntent(this)
+        } else {
+            AudioPlayerActivity.createSessionIntent(this)
+        }
+        startActivitySafe(AudioPlayerActivity.withSoundSheet(intent, sleepTimer))
+    }
+
+    override val currentPath: java8.nio.file.Path?
+        get() = null
+
+    override fun navigateTo(path: java8.nio.file.Path) {}
+
+    override fun navigateToRoot(path: java8.nio.file.Path) {}
+
+    override fun launchIntent(intent: Intent) {
+        startActivitySafe(intent)
+    }
+
+    override fun closeNavigationDrawer() {
+        drawerLayout?.closeDrawer(GravityCompat.START)
+    }
+
+    private class MusicNavigationItem(
+        override val id: Long,
+        @DrawableRes override val iconRes: Int,
+        @StringRes private val titleRes: Int,
+        private val checked: () -> Boolean = { false },
+        private val action: () -> Unit
+    ) : NavigationItem() {
+        override fun getTitle(context: android.content.Context): String = context.getString(titleRes)
+
+        override fun isChecked(listener: Listener): Boolean = checked()
+
+        override fun onClick(listener: Listener) {
+            action()
+            listener.closeNavigationDrawer()
+        }
+    }
+
+    /** Ordo Music's icon and name, and what plays: a small cover, title and artist that open the player. */
+    private inner class NavigationHeaderAdapter : RecyclerView.Adapter<Holder<MusicNavigationHeaderBinding>>() {
+        init {
+            setHasStableIds(true)
+        }
+
+        override fun getItemCount(): Int = 1
+
+        override fun getItemId(position: Int): Long = 0
+
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): Holder<MusicNavigationHeaderBinding> =
+            Holder(MusicNavigationHeaderBinding.inflate(LayoutInflater.from(parent.context), parent, false))
+
+        override fun onBindViewHolder(holder: Holder<MusicNavigationHeaderBinding>, position: Int) {
+            val header = holder.binding
+            val now = nowPlaying
+            header.nowPlaying.isVisible = now != null
+            if (now == null) return
+            header.title.text = now[0] as CharSequence
+            header.artist.text = now[1] as CharSequence
+            header.nowPlaying.contentDescription = getString(R.string.music_now_playing, now[0], now[1])
+            header.art.collage.isVisible = false
+            header.art.cover.loadCover(now[2], placeholder(now[3] as String?, R.drawable.audio_icon_white_24dp))
+            header.nowPlaying.setOnClickListener {
+                closeNavigationDrawer()
+                startActivitySafe(AudioPlayerActivity.createResumeIntent(this@MusicLauncherActivity))
+            }
+        }
+    }
+
+    private fun updateNavigationHeader(now: List<Any?>?) {
+        val key = now?.let { listOf(it[0].toString(), it[1].toString(), (it[2] as? ByteArray)?.contentHashCode() ?: it[2]) }
+        val oldKey = nowPlaying?.let {
+            listOf(it[0].toString(), it[1].toString(), (it[2] as? ByteArray)?.contentHashCode() ?: it[2])
+        }
+        nowPlaying = now
+        if (key != oldKey) navigationHeader.notifyItemChanged(0)
     }
 
     private fun groupName(group: MusicGroup, tab: Int): String =
@@ -383,14 +748,14 @@ class MusicLauncherActivity : AppActivity() {
 
     /** Lists and the mini player at most 610 dp wide and centred; the album grid uses the whole width. */
     private fun updateWidths() {
-        val width = binding.root.width.takeIf { it > 0 } ?: return
+        val width = binding.content.root.width.takeIf { it > 0 } ?: return
         val side = ((width - resources.getDimensionPixelSize(R.dimen.phi_content_max)) / 2).coerceAtLeast(0)
-        val recycler = binding.recyclerView
-        val listSide = if (recycler.layoutManager is GridLayoutManager) 0 else side
+        val recycler = binding.content.recyclerView
+        val listSide = if (recycler.layoutManager is GridLayoutManager || twoPane) 0 else side
         if (recycler.paddingStart != listSide) {
             recycler.setPaddingRelative(listSide, recycler.paddingTop, listSide, recycler.paddingBottom)
         }
-        val mini = binding.miniPlayer.root
+        val mini = binding.content.miniPlayer.root
         val params = mini.layoutParams as ViewGroup.MarginLayoutParams
         val margin = maxOf(side, resources.getDimensionPixelSize(R.dimen.phi_8))
         if (params.marginStart != margin) {
@@ -470,7 +835,7 @@ class MusicLauncherActivity : AppActivity() {
         pathUri?.let { runCatching { URI.create(it).path }.getOrNull() }?.let { songsByPath[it] }
 
     private fun updateMiniPlayer() {
-        val mini = binding.miniPlayer
+        val mini = binding.content.miniPlayer
         val player = controller
         val item = player?.currentMediaItem
         val savedState = saved
@@ -479,6 +844,13 @@ class MusicLauncherActivity : AppActivity() {
         val art: Any?
         val album: String?
         val showPlay: Boolean
+        val path = item?.mediaId?.let { runCatching { URI.create(it).path }.getOrNull() }
+        val isPlaying = player?.isPlaying == true
+        if (path != playingPath || isPlaying != currentPlaying) {
+            playingPath = path
+            currentPlaying = isPlaying
+            adapter.notifyItemRangeChanged(0, adapter.itemCount)
+        }
         if (item != null) {
             val metadata = player.mediaMetadata
             val song = songAt(item.mediaId)
@@ -499,10 +871,12 @@ class MusicLauncherActivity : AppActivity() {
         } else {
             mini.root.isVisible = false
             handler.removeCallbacks(progressUpdater)
+            updateNavigationHeader(null)
             return
         }
         mini.title.text = title
         mini.artist.text = artist ?: getString(R.string.audio_player_unknown_artist)
+        updateNavigationHeader(listOf(title, mini.artist.text, art, album))
         mini.root.contentDescription = getString(R.string.music_now_playing, title, mini.artist.text)
         mini.playPause.setImageResource(if (showPlay) R.drawable.play_icon_24dp else R.drawable.pause_icon_24dp)
         mini.playPause.contentDescription =
@@ -538,7 +912,7 @@ class MusicLauncherActivity : AppActivity() {
         val progress = if (duration > 0 && duration != C.TIME_UNSET) {
             (position.coerceIn(0L, duration) * PROGRESS_MAX / duration).toInt()
         } else 0
-        binding.miniPlayer.progress.setProgressCompat(progress, false)
+        binding.content.miniPlayer.progress.setProgressCompat(progress, false)
     }
 
     private fun ImageView.loadCover(data: Any?, placeholder: Drawable?) {
@@ -593,67 +967,42 @@ class MusicLauncherActivity : AppActivity() {
         override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
             val binding = (holder as Holder<*>).binding
             when (val row = rows[position]) {
-                is Row.Actions -> (binding as MusicLibraryActionsBinding).apply {
-                    play.isVisible = !row.shuffleOnly
-                    shuffle.text = if (row.shuffleOnly) {
-                        getString(R.string.music_shuffle_all, shownSongs.size)
-                    } else {
-                        getString(R.string.music_shuffle)
-                    }
-                    play.setOnClickListener { play(shownSongs, 0) }
-                    shuffle.setOnClickListener { play(MusicLibrary.shuffled(shownSongs), 0) }
-                }
-                is Row.Header -> (binding as MusicLibraryHeaderBinding).apply {
-                    val group = row.group
-                    // An album's cover about two thirds of a phone's width, 233 dp at most on a tablet.
-                    val size = minOf(
-                        resources.displayMetrics.widthPixels * 2 / 3,
-                        resources.getDimensionPixelSize(R.dimen.phi_233)
-                    )
-                    art.root.layoutParams = art.root.layoutParams.apply {
-                        width = size
-                        height = size
-                    }
-                    title.text = groupName(group, tab)
-                    subtitle.text = when (tab) {
-                        TAB_ALBUMS -> group.artist ?: getString(R.string.audio_player_unknown_artist)
-                        TAB_FOLDERS -> displayFolder(group.key)
-                        else -> null
-                    }
-                    subtitle.isVisible = !subtitle.text.isNullOrEmpty()
-                    info.text = formatTotal(group.songs)
-                    when (tab) {
-                        TAB_ALBUMS -> bindArt(
-                            art, placeholder(group.name, R.drawable.album_icon_white_24dp),
-                            listOf(group.songs.firstOrNull()?.artUri), resources.getDimension(R.dimen.phi_21)
-                        )
-                        // Artists are round, like a portrait.
-                        TAB_ARTISTS -> bindArt(
-                            art, placeholder(group.name, R.drawable.person_icon_white_24dp),
-                            albumCovers(group.songs), size / 2f
-                        )
-                        else -> bindArt(
-                            art, placeholder(group.name, R.drawable.directory_icon_white_24dp),
-                            albumCovers(group.songs), resources.getDimension(R.dimen.phi_21), size / 12
-                        )
-                    }
-                }
+                is Row.Actions -> bindActions(binding as MusicLibraryActionsBinding, row.shuffleOnly)
+                is Row.Header -> bindHeader(binding as MusicLibraryHeaderBinding, row.group)
                 is Row.Song -> (binding as MusicLibraryRowBinding).apply {
                     val song = row.song
+                    val current = song.path == playingPath
                     title.text = song.title
+                    title.setTextColor(if (current) accentColor else rowTitleColor)
                     info.text = row.info
                     info.isVisible = row.info != null
                     duration.isVisible = true
                     duration.text = formatDuration(song.durationMs)
-                    number.isVisible = row.number != null
-                    number.text = row.number?.toString()
+                    numberSlot.isVisible = row.number != null
                     art.root.isVisible = row.number == null
-                    if (row.number == null) {
+                    if (row.number != null) {
+                        // The playing song's number gives way to the moving bars.
+                        number.text = row.number.toString()
+                        number.isVisible = !current
+                        slotBars.isVisible = current
+                        slotBars.color = accentColor
+                        slotBars.setPlaying(current && currentPlaying)
+                    } else {
                         bindArt(
                             art, placeholder(song.album, R.drawable.audio_icon_white_24dp), listOf(song.artUri),
                             resources.getDimension(R.dimen.phi_radius_s)
                         )
+                        art.bars.isVisible = current
+                        art.bars.color = Color.WHITE
+                        art.bars.setPlaying(current && currentPlaying)
                     }
+                    more.isVisible = true
+                    more.contentDescription = getString(R.string.music_more_options, song.title)
+                    more.setOnClickListener { showSongMenu(it, song) }
+                    root.setPaddingRelative(
+                        root.paddingStart, root.paddingTop, resources.getDimensionPixelSize(R.dimen.phi_5),
+                        root.paddingBottom
+                    )
                     root.setOnClickListener { play(shownSongs, row.index) }
                 }
                 is Row.Group -> (binding as MusicLibraryRowBinding).apply {
@@ -667,8 +1016,15 @@ class MusicLauncherActivity : AppActivity() {
                         count
                     }
                     duration.isVisible = false
-                    number.isVisible = false
+                    numberSlot.isVisible = false
+                    more.isVisible = false
                     art.root.isVisible = true
+                    art.bars.isVisible = false
+                    title.setTextColor(rowTitleColor)
+                    root.setPaddingRelative(
+                        root.paddingStart, root.paddingTop, resources.getDimensionPixelSize(R.dimen.space_gutter),
+                        root.paddingBottom
+                    )
                     val size = resources.getDimensionPixelSize(R.dimen.music_row_art_size)
                     if (row.isFolder) {
                         bindArt(
@@ -735,6 +1091,10 @@ class MusicLauncherActivity : AppActivity() {
         private const val STATE_TAB = "tab"
         private const val STATE_DETAIL = "detail"
         private const val STATE_QUERY = "query"
+        private const val STATE_SECTION = "section"
+        private const val SECTION_LIBRARY = 0
+        private const val SECTION_RECENT = 1
+        private const val SECTION_MOST = 2
         private const val TAB_SONGS = 0
         private const val TAB_ALBUMS = 1
         private const val TAB_ARTISTS = 2
@@ -748,5 +1108,6 @@ class MusicLauncherActivity : AppActivity() {
         private const val PROGRESS_UPDATE_INTERVAL_MS = 1_000L
         private const val MINI_PLAYER_FADE_MS = 200L
         private const val DISABLED_ALPHA = 0.38f
+        private const val TWO_PANE_MIN_WIDTH_DP = 600
     }
 }

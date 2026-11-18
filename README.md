@@ -216,9 +216,12 @@ All pictures above come from `utils/readme-shots.sh` on the Android 16 emulator 
 - Ordo Music, a music app of its own with its own card in Recents: all your music in the tabs Songs, Albums, Artists
   and Folders, with a large title that folds into the bar as you scroll, search, “Shuffle all”, album pages with a
   big cover and the songs in track order with Play and Shuffle, round artist pictures and folder tiles made of album
-  covers (a calm colour with initials where a cover is missing), and a mini player with play/pause and next at the
-  bottom. Songs come from Android’s media library (only what the player plays; hidden folders only when you show
-  hidden files)
+  covers (a calm colour with initials where a cover is missing), a mini player with play/pause and next at the
+  bottom, and Ordo’s side menu with Library, Recently played, Most played (counted on the device only), Sound, Sleep
+  timer, Settings and a way back to the file manager. Songs come from Android’s media library (only what the player
+  plays; hidden folders only when you show hidden files) Edit a song’s info (title, artist, album, numbers, year,
+  genre, lyrics, cover) for MP3, FLAC, Ogg Vorbis and M4A, one song or a whole album at once, with a preview before
+  saving and undo afterwards; the file is only replaced once the new info reads back right.
 - Optional own app icon for Ordo Music (Settings › Built-in apps): off by default, switched on and off only by you, see [docs/AUDIO-PLAYER.md](docs/AUDIO-PLAYER.md)
 - Pick the icon colour of Ordo and of Ordo Music yourself (Settings › Built-in apps › Icon colours): eight colours,
   blue by default, with a live preview of the icon; themed icons (Android 13 and later) keep working

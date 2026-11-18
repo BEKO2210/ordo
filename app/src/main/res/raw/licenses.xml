@@ -162,6 +162,13 @@
     </notice>
 
     <notice>
+        <name>jaudiotagger</name>
+        <url>https://bitbucket.org/ijabz/jaudiotagger</url>
+        <copyright>Copyright (C) 2015 Paul Taylor</copyright>
+        <license>GNU Lesser General Public License 2.1</license>
+    </notice>
+
+    <notice>
         <name>Coil</name>
         <url>https://github.com/coil-kt/coil</url>
         <copyright>Copyright 2020 Coil Contributors</copyright>

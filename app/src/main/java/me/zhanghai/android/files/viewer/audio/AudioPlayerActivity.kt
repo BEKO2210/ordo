@@ -84,6 +84,10 @@ class AudioPlayerActivity : AppActivity() {
     private var progressDescription: String? = null
     private var userSeeking = false
     private val handler = Handler(Looper.getMainLooper())
+    private val editTagsLauncher =
+        registerForActivityResult(androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult()) {
+            if (it.resultCode == RESULT_OK) TagEditUndo.offer(this, binding.root, lifecycleScope, it.data) {}
+        }
 
     private fun nextProgressDelay(): Long {
         val position = controller?.currentPosition ?: 0L
@@ -131,6 +135,11 @@ class AudioPlayerActivity : AppActivity() {
         binding.toolbar.setOnMenuItemClickListener { item ->
             if (item.itemId == R.id.actionSound) {
                 AudioSoundSettingsSheet().show(supportFragmentManager, AudioSoundSettingsSheet.TAG)
+                true
+            } else if (item.itemId == R.id.actionEditTags) {
+                currentFilePath()?.let {
+                    editTagsLauncher.launch(MusicTagEditorActivity.createIntent(this, listOf(it)))
+                }
                 true
             } else if (item.itemId == R.id.actionOutput) {
                 // Android 6–10 has no system output picker; connecting a Bluetooth speaker is the next best thing.
@@ -181,6 +190,14 @@ class AudioPlayerActivity : AppActivity() {
             }
         }
         showPlaceholder()
+        // Ordo Music's menu opens Sound or the sleep timer over the player.
+        if (savedInstanceState == null && intent.hasExtra(EXTRA_SOUND_SHEET)) {
+            AudioSoundSettingsSheet().apply {
+                arguments = bundleOf(
+                    AudioSoundSettingsSheet.ARG_SLEEP_TIMER to intent.getBooleanExtra(EXTRA_SOUND_SHEET, false)
+                )
+            }.show(supportFragmentManager, AudioSoundSettingsSheet.TAG)
+        }
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -317,7 +334,14 @@ class AudioPlayerActivity : AppActivity() {
         }
     }
 
+    /** The playing song as a local file of Ordo's own; null for a content:// song of another app. */
+    private fun currentFilePath(): String? =
+        controller?.currentMediaItem?.mediaId
+            ?.let { runCatching { java.net.URI.create(it) }.getOrNull() }
+            ?.takeIf { it.scheme == "file" }?.path
+
     private fun updateUi(player: Player) {
+        binding.toolbar.menu.findItem(R.id.actionEditTags)?.isVisible = currentFilePath() != null
         val metadata = player.mediaMetadata
         val item = player.currentMediaItem
         binding.title.text = metadata.title?.takeIf { it.isNotBlank() }
@@ -613,6 +637,7 @@ class AudioPlayerActivity : AppActivity() {
         private const val EXTRA_QUEUE_TOKEN =
             "me.zhanghai.android.files.viewer.audio.extra.QUEUE_TOKEN"
         private const val EXTRA_RESUME = "me.zhanghai.android.files.viewer.audio.extra.RESUME"
+        private const val EXTRA_SOUND_SHEET = "me.zhanghai.android.files.viewer.audio.extra.SOUND_SHEET"
         private const val STATE_QUEUE_STARTED = "queueStarted"
         private const val SEEK_MAX = 1_000
         // Once per displayed second, on the second: the times only change then, and a screen that redraws twice a
@@ -636,6 +661,10 @@ class AudioPlayerActivity : AppActivity() {
         /** For the music icon: shows the saved queue, paused, unless the session already holds one. */
         fun createResumeIntent(context: Context): Intent =
             Intent(context, AudioPlayerActivity::class.java).putExtra(EXTRA_RESUME, true)
+
+        /** The player with the Sound sheet open, or scrolled to its sleep timer. */
+        fun withSoundSheet(intent: Intent, sleepTimer: Boolean): Intent =
+            intent.putExtra(EXTRA_SOUND_SHEET, sleepTimer)
 
         fun createSessionIntent(context: Context): Intent =
             Intent(context, AudioPlayerActivity::class.java)

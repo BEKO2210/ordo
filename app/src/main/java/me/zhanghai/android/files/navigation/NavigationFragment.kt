@@ -60,68 +60,11 @@ class NavigationFragment : Fragment(), NavigationItem.Listener {
             HeaderAdapter(), adapter
         )
 
-        binding.recyclerView.doOnAttach { setUpOpenStagger(it) }
+        binding.recyclerView.doOnAttach { setUpOpenStagger(binding.recyclerView) }
 
         val viewLifecycleOwner = viewLifecycleOwner
         NavigationItemListLiveData.observe(viewLifecycleOwner) { onNavigationItemsChanged(it) }
         listener.observeCurrentPath(viewLifecycleOwner) { onCurrentPathChanged(it) }
-    }
-
-    // Each time the side menu starts to open its rows rise in one after the other, 20 ms apart, the first eight only.
-    private fun setUpOpenStagger(view: View) {
-        var drawer: View? = view
-        while (drawer != null && drawer !is DrawerLayout) {
-            drawer = drawer.parent as? View
-        }
-        val drawerLayout = drawer as? DrawerLayout ?: return
-        val listener = object : DrawerLayout.SimpleDrawerListener() {
-            private var closed = true
-
-            override fun onDrawerSlide(drawerView: View, slideOffset: Float) {
-                if (!closed || slideOffset <= 0f) {
-                    return
-                }
-                closed = false
-                if (view.isAttachedToWindow && Motion.any) {
-                    staggerRows()
-                }
-            }
-
-            override fun onDrawerClosed(drawerView: View) {
-                closed = true
-            }
-        }
-        drawerLayout.addDrawerListener(listener)
-        // The drawer outlives this view: without this every recreated view would leave a listener behind.
-        view.doOnDetach { drawerLayout.removeDrawerListener(listener) }
-    }
-
-    private fun staggerRows() {
-        val recyclerView = binding.recyclerView
-        val rise = 8 * recyclerView.resources.displayMetrics.density
-        val interpolator = PathInterpolator(0.2f, 0f, 0f, 1f)
-        for (index in 0 until recyclerView.childCount) {
-            val row = recyclerView.getChildAt(index)
-            row.animate().cancel()
-            row.alpha = 0f
-            row.translationY = rise
-            row.animate()
-                .alpha(1f)
-                .translationY(0f)
-                .setStartDelay(minOf(index, 8) * 20L)
-                .setDuration(200)
-                .setInterpolator(interpolator)
-                .setListener(object : AnimatorListenerAdapter() {
-                    override fun onAnimationCancel(animation: Animator) {
-                        row.alpha = 1f
-                        row.translationY = 0f
-                    }
-
-                    override fun onAnimationEnd(animation: Animator) {
-                        row.animate().setListener(null)
-                    }
-                })
-        }
     }
 
     private fun onNavigationItemsChanged(navigationItems: List<NavigationItem?>) {
@@ -177,5 +120,62 @@ class NavigationFragment : Fragment(), NavigationItem.Listener {
         fun navigateToDefaultRoot()
         fun observeCurrentPath(owner: LifecycleOwner, observer: (Path) -> Unit)
         fun closeNavigationDrawer()
+    }
+}
+
+// Ordo's side menus (files and music): each time one starts to open its rows rise in one after the other, 20 ms
+// apart, the first eight only.
+fun setUpOpenStagger(view: RecyclerView) {
+    var drawer: View? = view
+    while (drawer != null && drawer !is DrawerLayout) {
+        drawer = drawer.parent as? View
+    }
+    val drawerLayout = drawer as? DrawerLayout ?: return
+    val listener = object : DrawerLayout.SimpleDrawerListener() {
+        private var closed = true
+
+        override fun onDrawerSlide(drawerView: View, slideOffset: Float) {
+            if (!closed || slideOffset <= 0f) {
+                return
+            }
+            closed = false
+            if (view.isAttachedToWindow && Motion.any) {
+                staggerRows(view)
+            }
+        }
+
+        override fun onDrawerClosed(drawerView: View) {
+            closed = true
+        }
+    }
+    drawerLayout.addDrawerListener(listener)
+    // The drawer outlives this view: without this every recreated view would leave a listener behind.
+    view.doOnDetach { drawerLayout.removeDrawerListener(listener) }
+}
+
+private fun staggerRows(recyclerView: RecyclerView) {
+    val rise = 8 * recyclerView.resources.displayMetrics.density
+    val interpolator = PathInterpolator(0.2f, 0f, 0f, 1f)
+    for (index in 0 until recyclerView.childCount) {
+        val row = recyclerView.getChildAt(index)
+        row.animate().cancel()
+        row.alpha = 0f
+        row.translationY = rise
+        row.animate()
+            .alpha(1f)
+            .translationY(0f)
+            .setStartDelay(minOf(index, 8) * 20L)
+            .setDuration(200)
+            .setInterpolator(interpolator)
+            .setListener(object : AnimatorListenerAdapter() {
+                override fun onAnimationCancel(animation: Animator) {
+                    row.alpha = 1f
+                    row.translationY = 0f
+                }
+
+                override fun onAnimationEnd(animation: Animator) {
+                    row.animate().setListener(null)
+                }
+            })
     }
 }
