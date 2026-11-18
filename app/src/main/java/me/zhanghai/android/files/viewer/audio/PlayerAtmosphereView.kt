@@ -69,6 +69,10 @@ class PlayerAtmosphereView(context: Context) : View(context) {
         }
     }
 
+    /** The veil's colour now: what overlays fade into so they sit on the backdrop without a seam. */
+    val veilColor: Int
+        get() = current?.veil ?: 0
+
     fun show(look: Look) {
         fadeAnimator?.cancel()
         previous?.let { shaders.remove(it) }

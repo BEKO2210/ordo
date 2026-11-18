@@ -739,7 +739,8 @@ class AudioPlayerActivity : AppActivity() {
     private fun showLyrics() {
         val lyrics = lyrics ?: return
         lyricsView.show(lyrics, themeColor(com.google.android.material.R.attr.colorOnSurface),
-            themeColor(android.R.attr.textColorSecondary), themeColor(com.google.android.material.R.attr.colorSurface))
+            themeColor(android.R.attr.textColorSecondary),
+            atmosphere.veilColor.takeIf { it != 0 } ?: themeColor(com.google.android.material.R.attr.colorSurface))
         lyricsView.setSong(binding.title.text, binding.artist.text)
         if (!lyricsView.isVisible) {
             lyricsView.isVisible = true

@@ -46,6 +46,7 @@ class PlayerLyricsView(
     private val songArtist = TextView(context)
     private val header = LinearLayout(context)
     private val playPause = ImageButton(context)
+    private val bottomFade = View(context)
     // A RecyclerView: only the lines on screen have views, so even the longest file stays light (at most 5,000 lines,
     // see Lyrics).
     private val list = RecyclerView(context)
@@ -105,6 +106,8 @@ class PlayerLyricsView(
         playPause.setPadding(padding, padding, padding, padding)
         playPause.scaleType = android.widget.ImageView.ScaleType.FIT_CENTER
         playPause.setOnClickListener { onPlayPause() }
+        addView(bottomFade, LayoutParams(LayoutParams.MATCH_PARENT, play + 2 * resources.getDimensionPixelSize(
+            R.dimen.phi_34), Gravity.BOTTOM))
         addView(playPause, LayoutParams(play, play, Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL).apply {
             bottomMargin = resources.getDimensionPixelSize(R.dimen.phi_34)
         })
@@ -145,9 +148,13 @@ class PlayerLyricsView(
         this.dimColor = dimColor
         songTitle.setTextColor(textColor)
         songArtist.setTextColor(dimColor)
+        // Fades in the backdrop's own veil colour, top and bottom, so the lines melt away under header and button.
+        val clear = androidx.core.graphics.ColorUtils.setAlphaComponent(veil, 0)
         header.background = android.graphics.drawable.GradientDrawable(
-            android.graphics.drawable.GradientDrawable.Orientation.TOP_BOTTOM,
-            intArrayOf(veil, veil, androidx.core.graphics.ColorUtils.setAlphaComponent(veil, 0))
+            android.graphics.drawable.GradientDrawable.Orientation.TOP_BOTTOM, intArrayOf(veil, veil, clear)
+        )
+        bottomFade.background = android.graphics.drawable.GradientDrawable(
+            android.graphics.drawable.GradientDrawable.Orientation.BOTTOM_TOP, intArrayOf(veil, veil, clear)
         )
         lines = if (lyrics.isSynced) lyrics.lines.map { it.text } else lyrics.text
         current = -1
