@@ -16,6 +16,10 @@ import androidx.core.view.AccessibilityDelegateCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.accessibility.AccessibilityNodeInfoCompat
 import androidx.core.view.isVisible
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.recyclerview.widget.ItemTouchHelper
@@ -48,6 +52,8 @@ class PlayerQueueSheet : BottomSheetDialogFragment() {
         }
     }
     private var dragging = false
+    // Queue items carry only their file; titles and artists come from the music library, read once per sheet.
+    private var songs: Map<String, MusicSong> = emptyMap()
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         val context = requireContext()
@@ -103,8 +109,18 @@ class PlayerQueueSheet : BottomSheetDialogFragment() {
         }
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     override fun onStart() {
         super.onStart()
+        if (songs.isEmpty()) {
+            val context = requireContext().applicationContext
+            viewLifecycleOwner.lifecycleScope.launch {
+                songs = withContext(Dispatchers.IO) {
+                    runCatching { queryMusic(context).associateBy { it.path } }.getOrDefault(emptyMap())
+                }
+                adapter.notifyDataSetChanged()
+            }
+        }
         player?.addListener(listener)
         val index = player?.currentMediaItemIndex ?: 0
         (view as? RecyclerView)?.scrollToPosition(index)
@@ -169,9 +185,11 @@ class PlayerQueueSheet : BottomSheetDialogFragment() {
             val player = player ?: return
             val item = player.getMediaItemAt(position)
             val playing = position == player.currentMediaItemIndex
-            holder.binding.title.text = title(item)
-            holder.binding.subtitle.text = item.mediaMetadata.artist ?: ""
-            holder.binding.subtitle.isVisible = !item.mediaMetadata.artist.isNullOrBlank()
+            val song = runCatching { java.net.URI.create(item.mediaId).path }.getOrNull()?.let { songs[it] }
+            holder.binding.title.text = song?.title ?: title(item)
+            val artist = song?.artist ?: item.mediaMetadata.artist
+            holder.binding.subtitle.text = artist ?: ""
+            holder.binding.subtitle.isVisible = !artist.isNullOrBlank()
             holder.binding.bars.isVisible = playing
             holder.binding.bars.color = MaterialColors.getColor(holder.itemView, androidx.appcompat.R.attr.colorPrimary)
             holder.binding.bars.setPlaying(playing && player.isPlaying)
@@ -190,7 +208,7 @@ class PlayerQueueSheet : BottomSheetDialogFragment() {
     private fun title(item: MediaItem): CharSequence =
         item.mediaMetadata.title?.takeIf { it.isNotBlank() }
             ?: item.mediaMetadata.displayTitle?.takeIf { it.isNotBlank() }
-            ?: android.net.Uri.decode(item.mediaId.substringAfterLast('/'))
+            ?: android.net.Uri.decode(item.mediaId.substringAfterLast('/')).substringBeforeLast('.')
 
     companion object {
         const val TAG = "PlayerQueueSheet"
