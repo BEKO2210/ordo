@@ -14,9 +14,11 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/BEKO2210/ordo/releases"><img alt="Latest release" src="https://img.shields.io/github/v/release/BEKO2210/ordo?include_prereleases&label=release&color=2563EB"></a>
+<!-- AUTO:badges -->
+  <a href="https://github.com/BEKO2210/ordo/releases/tag/v0.14.2"><img alt="release 0.14.2" src="https://img.shields.io/badge/release-0.14.2-2563EB"></a>
   <img alt="Android 7.0+" src="https://img.shields.io/badge/Android-7.0%2B-3DDC84">
   <a href="LICENSE"><img alt="License: GPL-3.0-or-later" src="https://img.shields.io/badge/license-GPL--3.0--or--later-blue"></a>
+<!-- /AUTO:badges -->
   <img alt="No ads, no tracking" src="https://img.shields.io/badge/ads%20%26%20tracking-none-2563EB">
   <img alt="On-device AI" src="https://img.shields.io/badge/AI-on--device-0E7490">
   <img alt="Google Play: closed test" src="https://img.shields.io/badge/Google%20Play-closed%20test-414141">
@@ -30,14 +32,22 @@
   <img src="docs/screenshots/en/player-dark.png" width="24%" alt="Music player with cover art and controls, dark">
 </p>
 
-> **New in 0.14** (in testing, not released yet)
-> - **Ordo Music** becomes a music app of its own: Songs, Albums, Artists, Folders and a mini player
-> - **Icon colours**: eight colours for Ordo's app icon and for Ordo Music
-> - **Upload with Ordo**: picking a file for a website or app no longer asks for notifications
+<!-- AUTO:new -->
+> **New in 0.14.2**
+> - Stream music to your TV: Chromecast and Google TV, without Google services
+> - The TV shows title, artist, album and cover
+> - Control it from the notification, the lock screen and the volume keys
+> - Stopping hands the music back to the phone at the same spot
+> - Safe: Ordo checks the Chromecast is genuine and shares only the playing song
+<!-- /AUTO:new -->
 
 ## Status
 
-Ordo is in development (version 0.14.2). A closed test runs on Google Play; test builds are also published as
+<!-- AUTO:status -->
+Version **0.14.2** · [release v0.14.2](https://github.com/BEKO2210/ordo/releases/tag/v0.14.2) · Android 7.0 and later (minSdk 24, targetSdk 36 = Android 16) · [GPL-3.0-or-later](LICENSE)
+<!-- /AUTO:status -->
+
+Ordo is in development. A closed test runs on Google Play; test builds are also published as
 [pre-releases](https://github.com/BEKO2210/ordo/releases); you can also [build it from source](#build).
 What comes next is in the [living roadmap](docs/ROADMAP-LIVE.md): every goal has a check command and closes itself. The research behind the music player and the planned video player, PDF reader and editors is in [docs/MEDIEN-RECHERCHE.md](docs/MEDIEN-RECHERCHE.md) (German).
 
@@ -154,7 +164,100 @@ What comes next is in the [living roadmap](docs/ROADMAP-LIVE.md): every goal has
 
 All pictures above come from `utils/readme-shots.sh` on the Android 16 emulator with sample data only.
 
+## Play Store pictures
+
+<!-- AUTO:screenshots -->
+The pictures of the Play listing, from `fastlane/metadata/android/en-US/images/`.
+
+<p align="center"><sub>Phone</sub></p>
+<p align="center">
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/01_home.jpg" width="24%" alt="Phone: home">
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/02_ai.jpg" width="24%" alt="Phone: ai">
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/03_analysis.jpg" width="24%" alt="Phone: analysis">
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/04_files.jpg" width="24%" alt="Phone: files">
+</p>
+<p align="center">
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/05_vault.jpg" width="24%" alt="Phone: vault">
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/06_backup.jpg" width="24%" alt="Phone: backup">
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/07_music.jpg" width="24%" alt="Phone: music">
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/08_settings.jpg" width="24%" alt="Phone: settings">
+</p>
+<p align="center"><sub>7-inch tablet</sub></p>
+<p align="center">
+  <img src="fastlane/metadata/android/en-US/images/sevenInchScreenshots/01_home.jpg" width="32%" alt="7-inch tablet: home">
+  <img src="fastlane/metadata/android/en-US/images/sevenInchScreenshots/02_analysis.jpg" width="32%" alt="7-inch tablet: analysis">
+  <img src="fastlane/metadata/android/en-US/images/sevenInchScreenshots/03_files.jpg" width="32%" alt="7-inch tablet: files">
+</p>
+<p align="center"><sub>10-inch tablet</sub></p>
+<p align="center">
+  <img src="fastlane/metadata/android/en-US/images/tenInchScreenshots/01_home.jpg" width="32%" alt="10-inch tablet: home">
+  <img src="fastlane/metadata/android/en-US/images/tenInchScreenshots/02_analysis.jpg" width="32%" alt="10-inch tablet: analysis">
+  <img src="fastlane/metadata/android/en-US/images/tenInchScreenshots/03_files.jpg" width="32%" alt="10-inch tablet: files">
+</p>
+<!-- /AUTO:screenshots -->
+
 ## All features
+
+<!-- AUTO:features -->
+From the Play listing, `fastlane/metadata/android/en-US/full_description.txt`.
+
+**Find your files**
+
+- Home screen with recent files, categories and your storage at a glance
+- Search by name or by text inside files
+- List or grid, bookmarks and quick access to common folders
+
+**Free up space**
+
+- Storage analysis for internal storage, SD cards and USB drives
+- See your files by type, the folders that take the most space, large files, duplicates, files you have not used for a long time, old APKs, empty folders and thumbnail caches
+- Cleanup suggestions with a preview through the AI commands, so you decide what goes
+- Trash: deleted files can be restored for 30 days
+- App manager: see installed apps, save their APK, uninstall
+
+**Work with files**
+
+- Copy, move, rename and share, with speed and time remaining
+- Rename many files at once using a pattern
+- Create and extract ZIP, TAR and 7z archives
+- Built-in viewers for images, PDF and text
+
+**Listen to music**
+
+- Music player with cover art, a queue and controls in the notification, on the lock screen and on headphone buttons
+- Sound: 10-band equalizer with presets, bass boost, loudness levelling, speed that keeps the pitch, sleep timer
+- “Play on…”: send music to Bluetooth headphones, a speaker or a cast device
+- Optional own “Ordo Music” icon on your home screen
+
+**Keep files safe**
+
+- Vault: files are encrypted with AES-256-GCM and opened with your screen lock
+- Backup: folders and the vault as a ZIP file to a USB drive or any storage your phone offers, with an optional password
+- Restore normal files from a backup without replacing the ones you already have
+
+**Ask in your own words**
+
+Type or dictate a sentence like “Move all MP3s from Download to Music”. Ordo shows the plan first and acts only when you confirm. One tap undoes it.
+
+- Move, copy, sort into subfolders or move to the trash
+- Works in English and German
+- The AI runs entirely on your phone. Your commands and file names never leave the device.
+- Deleting always means the trash. System folders are protected. If a folder is unclear, Ordo asks instead of guessing.
+- Setup downloads the language model once (about 2.6 GB, over Wi-Fi by default). After that it works offline.
+- Needs a 64-bit phone with a recent Arm chip (Armv8.2 dot product), at least 10 GB of RAM (phones sold with 12 GB) and about 3.1 GB of free space
+- AI commands are free, like the rest of Ordo
+
+**For power users**
+
+- FTP, SFTP, SMB and WebDAV servers, plus a built-in FTP server
+- Root and Shizuku access, Linux permissions, symbolic links and SELinux context
+
+**Make it yours**
+
+- Five accent colors, or your wallpaper’s colors on Android 12 and later
+- Light, dark and true black
+- Motion full, subtle or off
+<!-- /AUTO:features -->
 
 <details>
 <summary><b>Everything Ordo does, in detail</b></summary>
@@ -385,6 +488,10 @@ Run the unit tests with:
 ```sh
 ./gradlew testDebugUnitTest
 ```
+
+<!-- AUTO:tests -->
+Device tests: 27 scripts in [`e2e/`](e2e/README.md), run with `e2e/run.sh`: 15 read-only (`first-run`, `smoke`, `settings-visual`, `category-search`, `back-navigation`, `bars-replay`, `home-header`, `header-position`, `home-pull`, `drawer`, `selection-more`, `tablet-landscape`, `analysis`, `ai-show-guard`, `documents-provider`) and 12 more with `--write` (`stress-delete`, `backup-restore`, `home-auto-refresh`, `audio-player`, `cast`, `klang`, `klang-landscape`, `music-library`, `launcher-icons`, `icon-colors`, `ai-show`, `pick-file`). Unit tests: 79 test classes in `app/src/test`.
+<!-- /AUTO:tests -->
 
 ## Roadmap
 

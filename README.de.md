@@ -14,9 +14,11 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/BEKO2210/ordo/releases"><img alt="Neueste Version" src="https://img.shields.io/github/v/release/BEKO2210/ordo?include_prereleases&label=Version&color=2563EB"></a>
+<!-- AUTO:badges -->
+  <a href="https://github.com/BEKO2210/ordo/releases/tag/v0.14.2"><img alt="Version 0.14.2" src="https://img.shields.io/badge/Version-0.14.2-2563EB"></a>
   <img alt="Android 7.0+" src="https://img.shields.io/badge/Android-7.0%2B-3DDC84">
   <a href="LICENSE"><img alt="Lizenz: GPL-3.0-or-later" src="https://img.shields.io/badge/Lizenz-GPL--3.0--or--later-blue"></a>
+<!-- /AUTO:badges -->
   <img alt="Keine Werbung, kein Tracking" src="https://img.shields.io/badge/Werbung%20%26%20Tracking-keine-2563EB">
   <img alt="KI auf dem Gerät" src="https://img.shields.io/badge/KI-auf%20dem%20Ger%C3%A4t-0E7490">
   <img alt="Google Play: geschlossener Test" src="https://img.shields.io/badge/Google%20Play-geschlossener%20Test-414141">
@@ -30,14 +32,22 @@
   <img src="docs/screenshots/de/player-dark.png" width="24%" alt="Musik-Player mit Cover und Steuerung, dunkel">
 </p>
 
-> **Neu in 0.14** (im Test, noch nicht veröffentlicht)
-> - **Ordo Musik** wird eine eigene Musik-App: Titel, Alben, Interpreten, Ordner und ein Mini-Player
-> - **Icon-Farben**: acht Farben für Ordos App-Symbol und für Ordo Musik
-> - **Hochladen mit Ordo**: Eine Datei für eine Website oder App auswählen fragt nicht mehr nach Benachrichtigungen
+<!-- AUTO:new -->
+> **Neu in 0.14.2**
+> - Musik auf den Fernseher streamen: Chromecast und Google TV, ohne Google-Dienste
+> - Fernseher zeigt Titel, Interpret, Album und Cover
+> - Steuerung über Benachrichtigung, Sperrbildschirm und Lautstärketasten
+> - Beim Beenden geht die Musik an derselben Stelle aufs Handy zurück
+> - Sicher: Ordo prüft, dass der Chromecast echt ist, und gibt nur das laufende Lied frei
+<!-- /AUTO:new -->
 
 ## Stand
 
-Ordo ist in Entwicklung (Version 0.14.2). Bei Google Play läuft ein geschlossener Test; Testversionen erscheinen auch als
+<!-- AUTO:status -->
+Version **0.14.2** · [Release v0.14.2](https://github.com/BEKO2210/ordo/releases/tag/v0.14.2) · ab Android 7.0 (minSdk 24, targetSdk 36 = Android 16) · [GPL-3.0-or-later](LICENSE)
+<!-- /AUTO:status -->
+
+Ordo ist in Entwicklung. Bei Google Play läuft ein geschlossener Test; Testversionen erscheinen auch als
 [Pre-Releases](https://github.com/BEKO2210/ordo/releases); du kannst Ordo auch [selbst bauen](#bauen).
 Was als Nächstes kommt, steht in der [lebenden Roadmap](docs/ROADMAP-LIVE.md): Jedes Ziel hat einen Prüfbefehl und schließt sich selbst. Die Recherche hinter dem Musik-Player und dem geplanten Video-Player, PDF-Leser und den Editoren steht in [docs/MEDIEN-RECHERCHE.md](docs/MEDIEN-RECHERCHE.md).
 
@@ -154,7 +164,100 @@ Was als Nächstes kommt, steht in der [lebenden Roadmap](docs/ROADMAP-LIVE.md): 
 
 Alle Bilder oben stammen aus `utils/readme-shots.sh`, aufgenommen im Android-16-Emulator, nur mit Beispieldaten.
 
+## Bilder aus dem Play Store
+
+<!-- AUTO:screenshots -->
+Die Bilder des Play-Eintrags, aus `fastlane/metadata/android/de-DE/images/`.
+
+<p align="center"><sub>Handy</sub></p>
+<p align="center">
+  <img src="fastlane/metadata/android/de-DE/images/phoneScreenshots/01_home.jpg" width="24%" alt="Handy: home">
+  <img src="fastlane/metadata/android/de-DE/images/phoneScreenshots/02_ai.jpg" width="24%" alt="Handy: ai">
+  <img src="fastlane/metadata/android/de-DE/images/phoneScreenshots/03_analysis.jpg" width="24%" alt="Handy: analysis">
+  <img src="fastlane/metadata/android/de-DE/images/phoneScreenshots/04_files.jpg" width="24%" alt="Handy: files">
+</p>
+<p align="center">
+  <img src="fastlane/metadata/android/de-DE/images/phoneScreenshots/05_vault.jpg" width="24%" alt="Handy: vault">
+  <img src="fastlane/metadata/android/de-DE/images/phoneScreenshots/06_backup.jpg" width="24%" alt="Handy: backup">
+  <img src="fastlane/metadata/android/de-DE/images/phoneScreenshots/07_music.jpg" width="24%" alt="Handy: music">
+  <img src="fastlane/metadata/android/de-DE/images/phoneScreenshots/08_settings.jpg" width="24%" alt="Handy: settings">
+</p>
+<p align="center"><sub>7-Zoll-Tablet</sub></p>
+<p align="center">
+  <img src="fastlane/metadata/android/de-DE/images/sevenInchScreenshots/01_home.jpg" width="32%" alt="7-Zoll-Tablet: home">
+  <img src="fastlane/metadata/android/de-DE/images/sevenInchScreenshots/02_analysis.jpg" width="32%" alt="7-Zoll-Tablet: analysis">
+  <img src="fastlane/metadata/android/de-DE/images/sevenInchScreenshots/03_files.jpg" width="32%" alt="7-Zoll-Tablet: files">
+</p>
+<p align="center"><sub>10-Zoll-Tablet</sub></p>
+<p align="center">
+  <img src="fastlane/metadata/android/de-DE/images/tenInchScreenshots/01_home.jpg" width="32%" alt="10-Zoll-Tablet: home">
+  <img src="fastlane/metadata/android/de-DE/images/tenInchScreenshots/02_analysis.jpg" width="32%" alt="10-Zoll-Tablet: analysis">
+  <img src="fastlane/metadata/android/de-DE/images/tenInchScreenshots/03_files.jpg" width="32%" alt="10-Zoll-Tablet: files">
+</p>
+<!-- /AUTO:screenshots -->
+
 ## Alle Funktionen
+
+<!-- AUTO:features -->
+Aus dem Play-Eintrag, `fastlane/metadata/android/de-DE/full_description.txt`.
+
+**Dateien finden**
+
+- Startseite mit zuletzt verwendeten Dateien, Kategorien und Speicher auf einen Blick
+- Suche nach Namen oder nach Text in Dateien
+- Liste oder Raster, Lesezeichen und Schnellzugriff auf häufige Ordner
+
+**Platz schaffen**
+
+- Speicheranalyse für internen Speicher, SD-Karte und USB-Stick
+- Deine Dateien nach Art, die Ordner mit dem meisten Platz, große Dateien, Duplikate, lange nicht genutzte Dateien, alte APKs, leere Ordner und Vorschaubilder-Cache
+- Aufräum-Vorschläge mit Vorschau über die KI-Befehle, damit du entscheidest, was gehen soll
+- Papierkorb: Gelöschtes lässt sich 30 Tage lang wiederherstellen
+- App-Verwaltung: installierte Apps ansehen, APK sichern, deinstallieren
+
+**Mit Dateien arbeiten**
+
+- Kopieren, verschieben, umbenennen und teilen – mit Tempo und Restzeit
+- Viele Dateien auf einmal nach Muster umbenennen
+- ZIP-, TAR- und 7z-Archive erstellen und entpacken
+- Eingebaute Ansicht für Bilder, PDF und Text
+
+**Musik hören**
+
+- Musik-Player mit Cover, Warteschlange und Steuerung auf dem Sperrbildschirm und per Kopfhörer
+- Klang: 10-Band-Equalizer, Bass, Lautstärke angleichen, Tempo, Einschlaf-Timer
+- „Abspielen auf …“: Musik an Bluetooth-Kopfhörer, Lautsprecher oder ein Cast-Gerät schicken
+- Auf Wunsch eigenes Symbol „Ordo Musik“
+
+**Dateien schützen**
+
+- Tresor: Dateien werden mit AES-256-GCM verschlüsselt und mit deiner Bildschirmsperre geöffnet
+- Sicherung: Ordner und Tresor als ZIP-Datei auf einen USB-Stick oder an jeden Ort, den dein Handy anbietet – auf Wunsch mit Passwort
+- Normale Dateien aus einer Sicherung wiederherstellen, ohne vorhandene zu ersetzen
+
+**In deinen eigenen Worten**
+
+Tippe oder diktiere einen Satz wie „Verschiebe alle MP3s aus Download nach Musik“. Ordo zeigt erst den Plan und handelt erst, wenn du bestätigst. Ein Tipp macht es rückgängig.
+
+- Verschieben, kopieren, in Unterordner sortieren oder in den Papierkorb legen
+- Versteht Deutsch und Englisch
+- Die KI läuft komplett auf deinem Handy. Deine Befehle und Dateinamen verlassen es nicht.
+- Löschen heißt immer Papierkorb. Systemordner sind geschützt. Ist ein Ordner unklar, fragt Ordo nach, statt zu raten.
+- Beim Einrichten lädt Ordo das Sprachmodell einmalig herunter (rund 2,6 GB, standardmäßig nur über WLAN). Danach arbeitet die KI offline.
+- Braucht ein 64-Bit-Handy mit aktuellem Arm-Chip (Dot-Product, Armv8.2), mindestens 10 GB RAM (Handys mit 12 GB) und rund 3,1 GB freiem Speicher
+- Die KI-Befehle sind kostenlos wie der Rest von Ordo
+
+**Für Profis**
+
+- FTP-, SFTP-, SMB- und WebDAV-Server sowie ein eingebauter FTP-Server
+- Root- und Shizuku-Zugriff, Linux-Rechte, symbolische Links und SELinux-Kontext
+
+**Nach deinem Geschmack**
+
+- Fünf Akzentfarben oder die Farben deines Hintergrundbilds ab Android 12
+- Hell, dunkel und echtes Schwarz
+- Animationen voll, dezent oder aus
+<!-- /AUTO:features -->
 
 <details>
 <summary><b>Alles, was Ordo kann, im Detail</b></summary>
@@ -392,6 +495,10 @@ Unit-Tests:
 ```sh
 ./gradlew testDebugUnitTest
 ```
+
+<!-- AUTO:tests -->
+Gerätetests: 27 Skripte in [`e2e/`](e2e/README.md), gestartet mit `e2e/run.sh`: 15 nur lesend (`first-run`, `smoke`, `settings-visual`, `category-search`, `back-navigation`, `bars-replay`, `home-header`, `header-position`, `home-pull`, `drawer`, `selection-more`, `tablet-landscape`, `analysis`, `ai-show-guard`, `documents-provider`) und 12 weitere mit `--write` (`stress-delete`, `backup-restore`, `home-auto-refresh`, `audio-player`, `cast`, `klang`, `klang-landscape`, `music-library`, `launcher-icons`, `icon-colors`, `ai-show`, `pick-file`). Unit-Tests: 79 Testklassen in `app/src/test`.
+<!-- /AUTO:tests -->
 
 ## Ausblick
 
