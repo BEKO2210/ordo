@@ -113,6 +113,24 @@ class PlayerLyricsView(
         })
     }
 
+    init {
+        // The fades reach the screen's edges; only the header's content and the button keep clear of the system bars
+        // (a padded layer left a seam beside the Tab's right inset).
+        val headerRight = header.paddingRight
+        val headerBottom = header.paddingBottom
+        val buttonBottom = (playPause.layoutParams as LayoutParams).bottomMargin
+        val fadeHeight = bottomFade.layoutParams.height
+        ViewCompat.setOnApplyWindowInsetsListener(this) { _, insets ->
+            val bars = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.systemBars() or
+                androidx.core.view.WindowInsetsCompat.Type.displayCutout())
+            header.setPadding(bars.left, bars.top, headerRight + bars.right, headerBottom)
+            (playPause.layoutParams as LayoutParams).bottomMargin = buttonBottom + bars.bottom
+            bottomFade.layoutParams.height = fadeHeight + bars.bottom
+            requestLayout()
+            insets
+        }
+    }
+
     /** The song shown in the header. */
     fun setSong(title: CharSequence, artist: CharSequence) {
         songTitle.text = title

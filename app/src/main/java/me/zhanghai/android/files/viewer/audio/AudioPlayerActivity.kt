@@ -180,12 +180,13 @@ class AudioPlayerActivity : AppActivity() {
             onPlayPause = { controller?.let { Util.handlePlayPauseButtonAction(it) } }
         ).apply {
             isVisible = false
-            fitsSystemWindows = true
         }
         setContentView(FrameLayout(this).apply {
             addView(atmosphere, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
-            addView(binding.root, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
+            // Before the player: it gets the window insets first (before Android 11 the player's fitsSystemWindows
+            // consumes them), and the player is invisible while the lyrics show, so the order does not matter there.
             addView(lyricsView, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
+            addView(binding.root, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
         })
         onBackPressedDispatcher.addCallback(this, lyricsBack)
         colors = themeColors()
