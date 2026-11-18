@@ -55,8 +55,8 @@ only ever cleared on an emulator (`first-run.sh`). To put an older build over a 
 
 The wand checks in `home-header.sh` and `header-position.sh` print `SKIP (not enough RAM for the model on this
 device)` instead of failing only when the device's MemTotal is below the model's 10 GB floor (`CommandModel.MIN_RAM`)
-and the sheet shows its setup page saying the AI can't run here. Any other screen, or that page on a device with
-enough memory, is a FAIL.
+and the sheet shows its setup page saying the AI can't run here. On a device with enough memory but no model yet,
+the setup page offering the download is a PASS (the sheet opened, as it should). Any other screen is a FAIL.
 
 Rules for every test:
 

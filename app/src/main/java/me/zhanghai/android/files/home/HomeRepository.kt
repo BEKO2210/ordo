@@ -161,7 +161,7 @@ class HomeRepository(private val context: Context) {
     // shortcut: one stat per row, fine for tens of thousands of media files; batch by folder if libraries grow larger.
     private fun dropMissing(rows: List<MediaRow>): List<MediaRow> {
         val (present, missing) = rows.partition { java.io.File(it.data).exists() }
-        StaleMedia.forget(missing.map { it.data })
+        StaleMedia.forget(missing.map { it.data }, missing.map { android.content.ContentUris.parseId(it.uri) })
         return present
     }
 
