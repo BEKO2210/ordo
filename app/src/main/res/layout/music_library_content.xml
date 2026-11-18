@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later -->
-<!-- The music library: a large start-aligned title that collapses into the toolbar (One UI), tabs with a pill that
-     stay pinned, one list, and the mini player below it, so no row ever hides behind the player. -->
+<!-- The music library: a large start-aligned title that collapses into the toolbar (One UI), a row of six icon+label
+     pills that stays pinned (it scrolls sideways on a phone, sits evenly spread where all six fit), one list, and the
+     mini player below it, so no row ever hides behind the player. The list fades out over 34 dp under the tabs and above
+     the mini player instead of a hard cut (iOS 26's soft scroll edge); the fade only appears once there is content
+     beyond the edge, so the first row is fully visible at rest. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
@@ -64,14 +67,19 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="?colorSurface"
+                android:clipToPadding="false"
                 android:paddingStart="@dimen/phi_13"
                 android:paddingEnd="@dimen/phi_13"
                 app:tabGravity="fill"
                 app:tabIndicator="@drawable/music_tab_indicator"
+                app:tabIndicatorAnimationMode="elastic"
                 app:tabIndicatorFullWidth="true"
                 app:tabIndicatorGravity="stretch"
-                app:tabInlineLabel="@bool/music_tabs_inline"
+                app:tabInlineLabel="true"
+                app:tabMinWidth="@dimen/phi_55"
                 app:tabMode="auto"
+                app:tabPaddingEnd="@dimen/phi_21"
+                app:tabPaddingStart="@dimen/phi_21"
                 app:tabRippleColor="@null"
                 app:tabTextAppearance="?textAppearanceBody2" />
         </com.google.android.material.appbar.AppBarLayout>
@@ -113,7 +121,9 @@
                 android:layout_height="match_parent"
                 android:layout_weight="0.618"
                 android:clipToPadding="false"
-                android:paddingBottom="@dimen/phi_8" />
+                android:fadingEdgeLength="@dimen/phi_34"
+                android:paddingBottom="@dimen/phi_8"
+                android:requiresFadingEdge="vertical" />
         </LinearLayout>
 
         <LinearLayout

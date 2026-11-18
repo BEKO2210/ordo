@@ -215,8 +215,13 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
         binding.content.tabs.getTabAt(tab)?.select()
         binding.content.tabs.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
             override fun onTabSelected(selected: TabLayout.Tab) {
+                // openSection selects the tab itself after it has set the tab and section.
+                if (selected.position == tab) return
                 tab = selected.position
+                section = sectionOfTab(tab)
+                playlistName = null
                 render(scrollToTop = true)
+                navigationAdapter.notifyCheckedChanged()
             }
 
             override fun onTabUnselected(tab: TabLayout.Tab) {}
@@ -250,6 +255,8 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
             R.string.music_tab_songs to R.drawable.audio_icon_white_24dp,
             R.string.music_tab_albums to R.drawable.album_icon_white_24dp,
             R.string.music_tab_artists to R.drawable.person_icon_white_24dp,
+            R.string.music_nav_playlists to R.drawable.queue_music_icon_white_24dp,
+            R.string.music_nav_favorites to R.drawable.favorite_icon_white_24dp,
             R.string.music_tab_folders to R.drawable.directory_icon_white_24dp
         ).forEach { (text, icon) -> binding.content.tabs.addTab(binding.content.tabs.newTab().setText(text).setIcon(icon)) }
         // The pill takes Material 3's secondary container; the Material 2 theme has none, so primary at 16 %.
@@ -270,6 +277,8 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
         tabs.setSelectedTabIndicatorColor(pill)
         tabs.tabTextColors = colors
         tabs.tabIconTint = colors
+        // The pill glides (and stretches) to the new tab; with reduced motion it jumps.
+        if (!Motion.any) tabs.tabIndicatorAnimationDuration = 0
         // TabLayout's own ripple fills the whole rectangular tab (owner: a square frame flashed around the pill), so
         // it is off in the layout and every tab gets a ripple masked to exactly the pill's shape instead.
         val highlight = MaterialColors.getColor(tabs, androidx.appcompat.R.attr.colorControlHighlight)
@@ -328,7 +337,7 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
                 keepQueryOnCollapse = false
                 render()
                 // The item still counts as expanded while this runs.
-                backInLibrary.isEnabled = detailKey != null || section != SECTION_LIBRARY
+                backInLibrary.isEnabled = detailKey != null || playlistName != null || !inTabs()
                 binding.root.post { updateTitle() }
                 return true
             }
@@ -479,8 +488,8 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
         if (scrollToTop) binding.content.recyclerView.scrollToPosition(0)
 
         updateTitle()
-        binding.content.tabs.isVisible = group == null && section == SECTION_LIBRARY
-        backInLibrary.isEnabled = group != null || section != SECTION_LIBRARY || searchItem.isActionViewExpanded ||
+        binding.content.tabs.isVisible = group == null && playlistName == null && inTabs()
+        backInLibrary.isEnabled = group != null || playlistName != null || !inTabs() || searchItem.isActionViewExpanded ||
             selection.isNotEmpty()
         updateToolbarMenu()
         // A page goes back; otherwise the button opens the side menu, as in Ordo's file list.
@@ -686,8 +695,7 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
     private fun sectionTitle(): Int = when (section) {
         SECTION_RECENT -> R.string.music_nav_recent
         SECTION_MOST -> R.string.music_nav_most
-        SECTION_FAVORITES -> R.string.music_nav_favorites
-        SECTION_PLAYLISTS -> R.string.music_nav_playlists
+        // Favourites and playlists are tabs of the library: the tab names them, the title stays "Music".
         else -> R.string.launcher_music_start_title
     }
 
@@ -765,11 +773,26 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
         section = newSection
         detailKey = null
         playlistName = null
+        tab = when (newSection) {
+            SECTION_FAVORITES -> TAB_FAVORITES
+            SECTION_PLAYLISTS -> TAB_PLAYLISTS
+            else -> tab.takeIf { sectionOfTab(it) == SECTION_LIBRARY } ?: TAB_SONGS
+        }
+        binding.content.tabs.getTabAt(tab)?.select()
         binding.content.appBar.setExpanded(true, Motion.any)
         render(scrollToTop = true)
         navigationAdapter.notifyCheckedChanged()
         closeNavigationDrawer()
     }
+
+    private fun sectionOfTab(tab: Int): Int = when (tab) {
+        TAB_FAVORITES -> SECTION_FAVORITES
+        TAB_PLAYLISTS -> SECTION_PLAYLISTS
+        else -> SECTION_LIBRARY
+    }
+
+    /** The library's top level, where the tabs show: everything but the history lists. */
+    private fun inTabs(): Boolean = section != SECTION_RECENT && section != SECTION_MOST
 
     /** Sound or the sleep timer, over the player: with the saved queue if there is one, so they apply to it. */
     private fun openSound(sleepTimer: Boolean) {
@@ -1529,7 +1552,10 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
         private const val TAB_SONGS = 0
         private const val TAB_ALBUMS = 1
         private const val TAB_ARTISTS = 2
-        private const val TAB_FOLDERS = 3
+        // In the order of use (owner, 19.11.2026); favourites and playlists are the side menu's sections as tabs.
+        private const val TAB_PLAYLISTS = 3
+        private const val TAB_FAVORITES = 4
+        private const val TAB_FOLDERS = 5
         private const val TYPE_HEADER = 3
         private const val TYPE_ACTIONS = 0
         private const val TYPE_ROW = 1
