@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- Ordo Musik's settings (its side menu): appearance with a live mini player picture. Accent, wallpaper colours and
+     dark mode use Ordo's own keys, so both apps always look alike; Ordo has no per-app colours to keep apart. -->
+<PreferenceScreen
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory android:title="@string/settings_section_appearance">
+
+        <me.zhanghai.android.files.settings.MusicLookPreviewPreference android:key="music_preview" />
+
+        <SwitchPreferenceCompat
+            android:key="@string/pref_key_music_cover_colors"
+            android:icon="@drawable/audio_icon_white_24dp"
+            android:title="@string/settings_music_cover_colors_title"
+            android:summaryOn="@string/settings_music_cover_colors_on"
+            android:summaryOff="@string/settings_music_cover_colors_off"
+            android:defaultValue="@bool/pref_default_value_music_cover_colors" />
+
+        <SwitchPreferenceCompat
+            android:key="@string/pref_key_wallpaper_colors"
+            android:icon="@drawable/settings_wallpaper_icon_white_24dp"
+            android:title="@string/settings_wallpaper_colors_title"
+            android:summary="@string/settings_wallpaper_colors_summary"
+            android:defaultValue="@bool/pref_default_value_wallpaper_colors"
+            android:disableDependentsState="true"
+            app:isPreferenceVisible="@bool/pref_visible_wallpaper_colors" />
+
+        <me.zhanghai.android.files.settings.AccentPreference
+            android:key="@string/pref_key_accent"
+            android:icon="@drawable/palette_icon_white_24dp"
+            android:title="@string/settings_accent_title"
+            android:defaultValue="@string/pref_default_value_accent"
+            android:dependency="@string/pref_key_wallpaper_colors" />
+
+        <me.zhanghai.android.files.settings.VisualListPreference
+            android:key="@string/pref_key_night_mode"
+            android:title="@string/settings_night_mode_title"
+            android:defaultValue="@string/pref_default_value_night_mode"
+            android:entries="@array/settings_night_mode_entries"
+            android:entryValues="@array/pref_entry_values_night_mode"
+            app:useSimpleSummaryProvider="true" />
+
+        <me.zhanghai.android.files.settings.BlackNightModePreference
+            android:key="@string/pref_key_black_night_mode"
+            android:title="@string/settings_black_night_mode"
+            android:defaultValue="@bool/pref_default_value_black_night_mode" />
+
+        <Preference
+            android:key="music_icon_colors"
+            android:icon="@drawable/palette_icon_white_24dp"
+            android:title="@string/settings_music_icon_colors_title"
+            android:summary="@string/settings_music_icon_colors_summary"
+            android:persistent="false" />
+    </PreferenceCategory>
+</PreferenceScreen>

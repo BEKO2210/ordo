@@ -169,4 +169,12 @@
     </plurals>
     <string name="music_selection_close">Auswahl beenden</string>
     <string name="music_now_playing">Läuft gerade: %1$s, %2$s. Öffnet den Player</string>
+    <string name="settings_music_title">Ordo Musik</string>
+    <string name="settings_music_cover_colors_title">Farben aus dem Cover</string>
+    <string name="settings_music_cover_colors_on">Player und Mini-Player nehmen die Farbe des laufenden Covers an</string>
+    <string name="settings_music_cover_colors_off">Der Player nutzt die unten gewählte Akzentfarbe</string>
+    <string name="settings_music_preview_cover">Der Mini-Player in den Farben des laufenden Covers</string>
+    <string name="settings_music_preview_accent">Der Mini-Player in der gewählten Akzentfarbe</string>
+    <string name="settings_music_icon_colors_title">Icon-Farbe von Ordo Musik</string>
+    <string name="settings_music_icon_colors_summary">Die Farbe seines eigenen Startbildschirm-Symbols</string>
 </resources>

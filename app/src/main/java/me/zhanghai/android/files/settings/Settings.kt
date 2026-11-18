@@ -173,6 +173,10 @@ object Settings {
     val ACCENT: SettingLiveData<String> =
         StringSettingLiveData(R.string.pref_key_accent, R.string.pref_default_value_accent)
 
+    /** Ordo Musik: the player's colours from the playing cover (default) or the chosen accent everywhere. */
+    val MUSIC_COVER_COLORS: SettingLiveData<Boolean> =
+        BooleanSettingLiveData(R.string.pref_key_music_cover_colors, R.bool.pref_default_value_music_cover_colors)
+
     /** full, subtle or off: see ui/Motion.kt. */
     val MOTION: SettingLiveData<String> =
         StringSettingLiveData(R.string.pref_key_motion, R.string.pref_default_value_motion)

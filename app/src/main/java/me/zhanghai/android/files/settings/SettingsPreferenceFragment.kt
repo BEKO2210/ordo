@@ -58,6 +58,7 @@ open class SettingsPreferenceFragment : PreferenceFragmentCompat() {
                 SettingsActivity.SECTION_STORAGE -> R.xml.settings_storage
                 SettingsActivity.SECTION_TRASH -> R.xml.settings_trash
                 SettingsActivity.SECTION_LAUNCHER_ICONS -> R.xml.settings_launcher_icons
+                SettingsActivity.SECTION_MUSIC -> R.xml.settings_music
                 else -> R.xml.settings
             }
         )
@@ -67,6 +68,12 @@ open class SettingsPreferenceFragment : PreferenceFragmentCompat() {
             localePreference?.setApplicationLocalesPre33 = { locales ->
                 val activity = requireActivity() as SettingsActivity
                 activity.setApplicationLocalesPre33(locales)
+            }
+        }
+        if (section == SettingsActivity.SECTION_MUSIC) {
+            preferenceScreen.findPreference<Preference>("music_icon_colors")?.setOnPreferenceClickListener {
+                startActivitySafe(SettingsActivity.createIntent(SettingsActivity.SECTION_LAUNCHER_ICONS))
+                true
             }
         }
         if (section == null) {
@@ -171,6 +178,12 @@ open class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         Settings.BLACK_NIGHT_MODE.observe(viewLifecycleOwner, this::onBlackNightModeChanged)
         Settings.ACCENT.observe(viewLifecycleOwner, this::onAccentChanged)
         Settings.WALLPAPER_COLORS.observe(viewLifecycleOwner, this::onWallpaperColorsChanged)
+        Settings.MUSIC_COVER_COLORS.observe(viewLifecycleOwner, this::onMusicCoverColorsChanged)
+    }
+
+    // The mini player picture above redraws with the choice (live preview).
+    private fun onMusicCoverColorsChanged(coverColors: Boolean) {
+        listView?.adapter?.notifyDataSetChanged()
     }
 
     private fun onAccentChanged(accent: String) {

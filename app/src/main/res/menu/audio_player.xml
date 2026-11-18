@@ -19,7 +19,7 @@
         android:icon="@drawable/queue_music_icon_white_24dp"
         android:title="@string/music_queue"
         app:iconTint="?colorControlNormal"
-        app:showAsAction="ifRoom" />
+        app:showAsAction="always" />
     <item
         android:id="@+id/actionSound"
         android:icon="@drawable/equalizer_icon_24dp"

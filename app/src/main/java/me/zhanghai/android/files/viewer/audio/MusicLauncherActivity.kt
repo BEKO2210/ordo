@@ -138,6 +138,7 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
     private var playingPath: String? = null
     private var currentPlaying = false
     private var miniAccent: Int? = null
+    private var miniCoverColors = true
     private var miniColorAnimator: android.animation.ValueAnimator? = null
     private var saved: PlaybackStateStore.State? = null
     private var controllerFuture: ListenableFuture<MediaController>? = null
@@ -206,7 +207,10 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
             if (right - left != oldRight - oldLeft) binding.content.recyclerView.post { updateWidths() }
         }
         binding.content.recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
-            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) = updateTitle()
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                updateTitle()
+                parallaxHeader(recyclerView)
+            }
         })
         binding.content.tabs.getTabAt(tab)?.select()
         binding.content.tabs.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
@@ -292,6 +296,8 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
         (searchItem.actionView as SearchView).clearFocus()
         load()
         connectController()
+        // Back from Ordo Musik's settings with "Colours from the cover" switched: the mini player follows.
+        if (miniCoverColors != Settings.MUSIC_COVER_COLORS.valueCompat) miniArtKey = null
     }
 
     override fun onStop() {
@@ -537,7 +543,26 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
         binding.content.toolbar.title = if (headerGone && !searching) groupName(group, tab) else null
     }
 
+    /**
+     * A page's big cover drifts up at 40 % of the scroll and fades a little as the list moves over it (the hero's
+     * parallax); without motion it simply scrolls with the list.
+     */
+    private fun parallaxHeader(list: RecyclerView) {
+        val header = list.findViewHolderForAdapterPosition(0)?.itemView ?: return
+        val art = header.findViewById<View>(R.id.art) ?: return
+        if (!Motion.any || header.height == 0) {
+            art.translationY = 0f
+            art.alpha = 1f
+            return
+        }
+        val scrolled = (-header.top).coerceAtLeast(0).toFloat()
+        art.translationY = scrolled * HERO_PARALLAX
+        art.alpha = 1f - (scrolled / header.height).coerceIn(0f, 1f) * HERO_FADE
+    }
+
     private fun bindHeader(header: MusicLibraryHeaderBinding, group: MusicGroup) {
+        header.art.root.translationY = 0f
+        header.art.root.alpha = 1f
         // An album's cover about two thirds of a phone's width, 233 dp at most on a tablet.
         val size = minOf(
             resources.displayMetrics.widthPixels * 2 / 3,
@@ -720,7 +745,7 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
         MusicNavigationItem(MusicNavigation.IDS[7]!!, R.drawable.audio_timer_icon_24dp, R.string.audio_sound_sleep_heading) { openSound(true) },
         null,
         MusicNavigationItem(MusicNavigation.IDS[9]!!, R.drawable.settings_icon_white_24dp, R.string.settings_title) {
-            launchIntent(SettingsActivity.createIntent(SettingsActivity.SECTION_LAUNCHER_ICONS))
+            launchIntent(SettingsActivity.createIntent(SettingsActivity.SECTION_MUSIC))
         },
         MusicNavigationItem(MusicNavigation.IDS[10]!!, R.drawable.directory_icon_white_24dp, R.string.music_nav_files) {
             packageManager.getLaunchIntentForPackage(packageName)?.let { launchIntent(it) }
@@ -1221,7 +1246,9 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
         val surface = MaterialColors.getColor(mini.root, com.google.android.material.R.attr.colorSurfaceVariant)
         val onSurface = MaterialColors.getColor(mini.root, com.google.android.material.R.attr.colorOnSurface)
         val primary = MaterialColors.getColor(mini.root, androidx.appcompat.R.attr.colorPrimary)
-        val bitmap = (drawable as? BitmapDrawable)?.bitmap
+        miniCoverColors = Settings.MUSIC_COVER_COLORS.valueCompat
+        // "Colours from the cover" off (Ordo Musik › Settings): the chosen accent.
+        val bitmap = (drawable as? BitmapDrawable)?.bitmap?.takeIf { miniCoverColors }
         if (bitmap == null) {
             applyMiniColors(surface, primary)
             return
@@ -1512,6 +1539,8 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
         private const val PROGRESS_UPDATE_INTERVAL_MS = 1_000L
         private const val MINI_PLAYER_FADE_MS = 200L
         private const val MINI_TINT_SAMPLE = 24
+        private const val HERO_PARALLAX = 0.4f
+        private const val HERO_FADE = 0.6f
         private const val MINI_TINT_FADE_MS = 300L
         private const val MINI_TRACK_ALPHA = 0x3d
         private const val DISABLED_ALPHA = 0.38f

@@ -115,6 +115,8 @@ class SettingsActivity : AppActivity(), OnThemeChangedListener, OnNightModeChang
         const val SECTION_STORAGE = "storage"
         const val SECTION_TRASH = "trash"
         const val SECTION_LAUNCHER_ICONS = "launcher_icons"
+        /** Ordo Musik's own settings page (its side menu); not listed in Ordo's overview. */
+        const val SECTION_MUSIC = "music"
         val SECTIONS = listOf(
             SECTION_APPEARANCE, SECTION_AI, SECTION_LAUNCHER_ICONS, SECTION_FILES, SECTION_STORAGE, SECTION_TRASH
         )

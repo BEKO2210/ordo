@@ -76,7 +76,9 @@ import me.zhanghai.android.files.player.PlaybackStateStore
 import me.zhanghai.android.files.player.pathUriExists
 import me.zhanghai.android.files.player.restorableState
 import me.zhanghai.android.files.provider.common.readAttributes
+import me.zhanghai.android.files.settings.Settings as OrdoSettings
 import me.zhanghai.android.files.ui.Motion
+import me.zhanghai.android.files.util.valueCompat
 import me.zhanghai.android.files.viewer.audio.lyrics.Lyrics
 import me.zhanghai.android.files.viewer.audio.lyrics.LyricsRepository
 import me.zhanghai.android.files.util.startActivitySafe
@@ -636,6 +638,7 @@ class AudioPlayerActivity : AppActivity() {
         val secondaryText = themeColor(android.R.attr.textColorSecondary)
         val fallback = themeColors()
         val isLight = ColorUtils.calculateLuminance(surface) > 0.5
+        val coverColors = OrdoSettings.MUSIC_COVER_COLORS.valueCompat
         artworkJob = lifecycleScope.launch {
             val (target, look) = withContext(Dispatchers.Default) {
                 val size = CoverBlur.SIZE
@@ -643,7 +646,8 @@ class AudioPlayerActivity : AppActivity() {
                 val pixels = IntArray(size * size)
                 small.getPixels(pixels, 0, size, 0, 0, size, size)
                 if (small !== source) small.recycle()
-                val scheme = AudioPlayerColorWash.seed(pixels)
+                // "Colours from the cover" off (Ordo Musik › Settings): the accent, the cover still behind.
+                val scheme = AudioPlayerColorWash.seed(pixels)?.takeIf { coverColors }
                     ?.let { AudioPlayerColorWash.scheme(it, surface, onSurface, isLight) }
                 val target = scheme?.let {
                     intArrayOf(it.accent, it.onAccent, AudioPlayerColorWash.inactiveTrack(it.accent, it.tint))
