@@ -69,6 +69,11 @@ class MusicLookPreviewPreference @JvmOverloads constructor(
             } else primary
             val gutter = 21 * density
             val h = height - 2 * gutter
+            // As wide as a real mini player gets (610 dp, centred) instead of the whole tablet.
+            val inset = ((width - 2 * gutter - MAX_WIDTH_DP * density) / 2).coerceAtLeast(0f)
+            canvas.save()
+            canvas.translate(inset, 0f)
+            val width = width - 2 * inset
             // The mini player card, tinted towards the accent as the real one is.
             paint.shader = null
             paint.color = ColorUtils.blendARGB(surfaceVariant, accent, 0.12f)
@@ -123,10 +128,12 @@ class MusicLookPreviewPreference @JvmOverloads constructor(
             path.lineTo(cx - 6 * density, cy + 8 * density)
             path.close()
             canvas.drawPath(path, paint)
+            canvas.restore()
         }
     }
 
     companion object {
+        private const val MAX_WIDTH_DP = 610f
         private const val COVER_TEAL = 0xff2ac8a6.toInt()
         private const val COVER_NIGHT = 0xff1c1650.toInt()
     }
