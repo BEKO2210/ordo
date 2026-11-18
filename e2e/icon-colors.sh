@@ -10,8 +10,10 @@ export E2E_FAST=0
 
 SETTINGS=me.zhanghai.android.files.settings.SettingsActivity
 SECTION="Eingebaute Apps|Built-in apps"
-# The app's name is the title of its colour row: a test copy (applicationId .dev) is called "Ordo Dev".
-case $PKG in *.dev) ORDO="Ordo Dev" ;; *) ORDO="Ordo" ;; esac
+# The app's name is the title of its colour row. A test copy (applicationId .dev) is called "Ordo Dev" only where its
+# build renamed app_name: the copies rename the English default, so in German its row is still titled "Ordo". The
+# colour row's title is the last match on the page (the switch above has the same name).
+case $PKG in *.dev) ORDO="Ordo Dev|Ordo" ;; *) ORDO="Ordo" ;; esac
 MUSIC="Ordo Musik|Ordo Music"
 COLOURS="Icon-Farben|Icon colours"
 declare -A LABEL=(
@@ -68,6 +70,8 @@ tap_music_switch() { to_switches; ui tap "$MUSIC" title >/dev/null; to_colours; 
 
 initial_home=$(entries Home)
 initial_music=$(entries Music)
+# The colour to switch Ordo to: never the one it already has (a tap on the chosen swatch changes nothing, so no hint).
+NEW=Green; [ "$initial_home" = HomeGreen ] && NEW=Teal
 restore() {
     trap - EXIT
     [ "$(entries Home)" = "$initial_home" ] && [ "$(entries Music)" = "$initial_music" ] && return 0
@@ -92,18 +96,18 @@ to_colours
 check "the page has the icon colours" ui has "$COLOURS"
 check "the colour of Ordo shows the system's state" ordo_checked "${initial_home#Home}"
 
-check "tapping green in Ordo's row works" tap_colour "$ORDO" Green
+check "tapping ${NEW,,} in Ordo's row works" tap_colour "$ORDO" "$NEW"
 check "the row says the icon changes once Ordo is left" ui wait "$PENDING_HINT" 5
-check "green is selected" ordo_checked Green
+check "${NEW,,} is selected" ordo_checked "$NEW"
 check "Ordo's icon stays as it was while Ordo is open" wait_entries Home "$initial_home"
 sleep 3
 check "Ordo keeps running on its settings page" alive
 leave
-check "once Ordo is left, the system lists exactly the green alias for Ordo" wait_entries Home HomeGreen
+check "once Ordo is left, the system lists exactly the ${NEW,,} alias for Ordo" wait_entries Home "Home$NEW"
 
 # Returning: the row reads the system state, not a stored value.
 open_page; to_colours
-check "after reopening green is still selected" ordo_checked Green
+check "after reopening ${NEW,,} is still selected" ordo_checked "$NEW"
 
 # Ordo Musik: a colour picked while its icon is off is remembered and used when it is switched on.
 [ -n "$(entries Music)" ] && tap_music_switch
