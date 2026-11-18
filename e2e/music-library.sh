@@ -12,7 +12,10 @@ EDIT=$ROOT/Music/OrdoE2E-Edit
 LIBRARY=me.zhanghai.android.files.viewer.audio.MusicLauncherActivity
 tmp=$(mktemp -d); trap 'a shell "rm -rf $ROCK $JAZZ $EDIT"; rm -rf "$tmp"' EXIT
 
-python3 - "$tmp" <<'PY'
+# The albums get a name of their own per run: MediaStore must not mix them with songs of an earlier run.
+RUN=$(date +%H%M%S)
+ROCKS="Ordoe2e Rocks $RUN"
+python3 - "$tmp" "$ROCKS" "Ordoe2e Jazz $RUN" <<'PY'
 import pathlib, struct, sys, wave
 root = pathlib.Path(sys.argv[1])
 
@@ -27,9 +30,9 @@ def id3(**frames):
 frame = b"\xff\xfb\x90\x00" + bytes(413)
 silence = frame * (30 * 44100 // 1152)
 for name, title, artist, album, track in [
-    ("rock-1.mp3", "Ordoe2e Alpha", "Ordoe2e Band", "Ordoe2e Rocks", "1"),
-    ("rock-2.mp3", "Ordoe2e Beta", "Ordoe2e Band", "Ordoe2e Rocks", "2"),
-    ("jazz-1.mp3", "Ordoe2e Gamma", "Ordoe2e Duo", "Ordoe2e Jazz", "1"),
+    ("rock-1.mp3", "Ordoe2e Alpha", "Ordoe2e Band", sys.argv[2], "1"),
+    ("rock-2.mp3", "Ordoe2e Beta", "Ordoe2e Band", sys.argv[2], "2"),
+    ("jazz-1.mp3", "Ordoe2e Gamma", "Ordoe2e Duo", sys.argv[3], "1"),
 ]:
     (root / name).write_bytes(id3(TIT2=title, TPE1=artist, TALB=album, TRCK=track) + silence)
 # A WAV without tags, 16-bit stereo like real music: its title comes from the file name.
@@ -72,7 +75,8 @@ for t in "Titel|Songs" "Alben|Albums" "Interpreten|Artists" "Ordner|Folders"; do
 done
 check "shuffle all is the first row" eval 'ui texts | grep -Eq "^(Alle zufällig|Shuffle all) \([0-9]+\)\|"'
 # A device has other music too: every list is narrowed by search to the test songs, which no other name contains.
-search() { ui tap actionSearch >/dev/null && sleep 1 && a shell input text "$1" && sleep 2; }
+# Enter submits the search: the soft keyboard closes and no longer hides the lower rows (phones).
+search() { ui tap actionSearch >/dev/null && sleep 1 && a shell input text "$1" && a shell input keyevent KEYCODE_ENTER && sleep 2; }
 # The first back may only hide the keyboard; back is pressed once more only while the search field is still there.
 close_search() { back 1; ui has search_src_text || return 0; back 1; ! ui has search_src_text; }
 above() { local a b; a=$(ui bounds "$1" | head -1 | cut -d" " -f2); b=$(ui bounds "$2" | head -1 | cut -d" " -f2); [ "$a" -lt "$b" ]; }
@@ -130,9 +134,9 @@ edit_title() {
     a shell input keycombination 113 29; sleep 0.5   # Ctrl+A: the new title replaces the old one
     a shell input text "${new// /%s}"; sleep 1
     a shell input keyevent KEYCODE_BACK; sleep 1      # hide the keyboard
-    ui tap "Speichern|Save" || return 1               # the toolbar's Save opens the preview
+    ui tap actionSave || return 1                     # the toolbar's Save (shown in capitals) opens the preview
     ui wait "Diese Änderungen speichern?|Save these changes?" 5 || return 1
-    ui tap "Speichern|Save" || return 1               # the preview's Save
+    ui tap button1 || return 1                        # the preview's Save
     wait_on viewer.audio.MusicLauncherActivity 10
 }
 listed() { local i; for i in 1 2 3 4 5 6; do close_search >/dev/null 2>&1; search "$1" && ui has "$1" && return 0; sleep 2; done; return 1; }
@@ -163,11 +167,19 @@ check "back leaves the folder, not the app" on viewer.audio.MusicLauncherActivit
 check "the tabs are back" ui has "Alben|Albums"
 check "the Albums tab opens" ui tap "Alben|Albums"
 search Ordoe2e
-check "the album is listed" ui wait "Ordoe2e Rocks" 5
-check "an album opens its songs" ui tap "Ordoe2e Rocks"
+check "the album is listed" ui wait "$ROCKS" 5
+check "an album opens its songs" ui tap "$ROCKS"
 check "the album's first track is shown" ui wait "Ordoe2e Alpha" 5
 check "tracks keep the album's order" above "Ordoe2e Alpha" "Ordoe2e Beta"
-check "the album leaves out other songs" eval '! ui has "Ordoe2e Gamma"'
+if ui has "Ordoe2e Gamma"; then
+    fail "the album leaves out other songs"
+    # What the page showed and how MediaStore groups the test songs, for the log.
+    echo "DIAG album page:"; ui texts | sed 's/^/  /'
+    echo "DIAG MediaStore:"; a shell content query --uri content://media/external/audio/media \
+        --projection _data:album:album_id:album_artist:title --where "\"_data LIKE '%OrdoE2E-%'\"" | sed 's/^/  /'
+else
+    pass "the album leaves out other songs"
+fi
 back 1.5
 check "back closes the album" ui has "Alben|Albums"
 back 2

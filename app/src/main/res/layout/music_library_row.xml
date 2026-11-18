@@ -41,7 +41,7 @@
             android:textColor="?android:textColorSecondary" />
 
         <me.zhanghai.android.files.viewer.audio.EqualizerBarsView
-            android:id="@+id/bars"
+            android:id="@+id/slotBars"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:importantForAccessibility="no"

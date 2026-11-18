@@ -258,6 +258,8 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
 
     override fun onStart() {
         super.onStart()
+        // Back from the player the search stays, but the keyboard must not cover the list again.
+        (searchItem.actionView as SearchView).clearFocus()
         load()
         connectController()
     }
@@ -606,20 +608,20 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
     }
 
     private fun navigationItems(): List<NavigationItem?> = listOf(
-        MusicNavigationItem(1, R.drawable.audio_icon_white_24dp, R.string.music_nav_library,
+        MusicNavigationItem(MusicNavigation.IDS[0]!!, R.drawable.audio_icon_white_24dp, R.string.music_nav_library,
             { section == SECTION_LIBRARY }) { openSection(SECTION_LIBRARY) },
-        MusicNavigationItem(2, R.drawable.history_icon_white_24dp, R.string.music_nav_recent,
+        MusicNavigationItem(MusicNavigation.IDS[1]!!, R.drawable.history_icon_white_24dp, R.string.music_nav_recent,
             { section == SECTION_RECENT }) { openSection(SECTION_RECENT) },
-        MusicNavigationItem(3, R.drawable.trending_icon_white_24dp, R.string.music_nav_most,
+        MusicNavigationItem(MusicNavigation.IDS[2]!!, R.drawable.trending_icon_white_24dp, R.string.music_nav_most,
             { section == SECTION_MOST }) { openSection(SECTION_MOST) },
         null,
-        MusicNavigationItem(4, R.drawable.audio_equalizer_icon_24dp, R.string.audio_sound_title) { openSound(false) },
-        MusicNavigationItem(5, R.drawable.audio_timer_icon_24dp, R.string.audio_sound_sleep_heading) { openSound(true) },
+        MusicNavigationItem(MusicNavigation.IDS[4]!!, R.drawable.audio_equalizer_icon_24dp, R.string.audio_sound_title) { openSound(false) },
+        MusicNavigationItem(MusicNavigation.IDS[5]!!, R.drawable.audio_timer_icon_24dp, R.string.audio_sound_sleep_heading) { openSound(true) },
         null,
-        MusicNavigationItem(6, R.drawable.settings_icon_white_24dp, R.string.settings_title) {
+        MusicNavigationItem(MusicNavigation.IDS[7]!!, R.drawable.settings_icon_white_24dp, R.string.settings_title) {
             launchIntent(SettingsActivity.createIntent(SettingsActivity.SECTION_LAUNCHER_ICONS))
         },
-        MusicNavigationItem(7, R.drawable.directory_icon_white_24dp, R.string.music_nav_files) {
+        MusicNavigationItem(MusicNavigation.IDS[8]!!, R.drawable.directory_icon_white_24dp, R.string.music_nav_files) {
             packageManager.getLaunchIntentForPackage(packageName)?.let { launchIntent(it) }
         }
     )
@@ -982,9 +984,9 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
                         // The playing song's number gives way to the moving bars.
                         number.text = row.number.toString()
                         number.isVisible = !current
-                        bars.isVisible = current
-                        bars.color = accentColor
-                        bars.setPlaying(current && currentPlaying)
+                        slotBars.isVisible = current
+                        slotBars.color = accentColor
+                        slotBars.setPlaying(current && currentPlaying)
                     } else {
                         bindArt(
                             art, placeholder(song.album, R.drawable.audio_icon_white_24dp), listOf(song.artUri),
