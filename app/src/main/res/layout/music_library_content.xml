@@ -78,8 +78,8 @@
                 app:tabInlineLabel="true"
                 app:tabMinWidth="@dimen/phi_55"
                 app:tabMode="auto"
-                app:tabPaddingEnd="@dimen/phi_21"
-                app:tabPaddingStart="@dimen/phi_21"
+                app:tabPaddingEnd="@dimen/phi_13"
+                app:tabPaddingStart="@dimen/phi_13"
                 app:tabRippleColor="@null"
                 app:tabTextAppearance="?textAppearanceBody2" />
         </com.google.android.material.appbar.AppBarLayout>
@@ -87,6 +87,7 @@
         <!-- A page on a wide window: cover, name and Play/Shuffle stay on the left (38.2 %), the songs scroll on the
              right (61.8 %). Otherwise the pane is gone and the list takes the whole row. -->
         <LinearLayout
+            android:id="@+id/libraryBody"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="horizontal"

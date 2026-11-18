@@ -105,7 +105,8 @@ check "Ordo Musik opens its library, not the player" on viewer.audio.MusicLaunch
 # Ordo Musik is its own app: a task of its own affinity, a separate card in Recents next to the file manager.
 music_task() { a shell dumpsys activity recents | grep -Eq "A=[0-9]+:me\.zhanghai\.android\.files\.music([ }]|$)"; }
 check "Recents shows Ordo Musik as a task of its own" music_task
-for t in "Titel|Songs" "Alben|Albums" "Interpreten|Artists" "Ordner|Folders"; do
+for t in "Titel|Songs" "Alben|Albums" "Interpreten|Artists" "Wiedergabelisten|Playlists" "Favoriten|Favorites" \
+    "Ordner|Folders"; do
     check "the tab $t is shown" ui has "$t"
 done
 check "shuffle all is the first row" eval 'ui texts | grep -Eq "^(Alle zufällig|Shuffle all) \([0-9]+\)\|"'
@@ -201,6 +202,8 @@ check "a song becomes a favourite from its menu" eval 'search Ordoe2e && ui tap 
     && ui wait "Zu Favoriten|Add to favorites" 5 && ui tap "Zu Favoriten|Add to favorites"'
 close_search
 check "the favourites show it" eval 'open_menu && ui tap "Favoriten|Favorites" && ui wait "Ordoe2e Gamma" 5'
+# Favourites and playlists are tabs of the library: the tab row stays, with the other tabs beside them.
+check "the favourites keep the tab row" ui has "Alben|Albums"
 check "the menu returns to the library" eval 'open_menu && ui tap "Bibliothek|Library" && ui wait "Ordner|Folders" 5'
 
 # The tag editor: a new title for the MP3 and the FLAC; the library shows it and the song still plays.

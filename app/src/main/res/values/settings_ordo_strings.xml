@@ -103,6 +103,7 @@
     <string name="music_add_to_queue">Add to queue</string>
     <string name="music_show_file">Show file</string>
     <string name="music_more_options">More options for %1$s</string>
+    <string name="music_has_lyrics">Lyrics available</string>
     <string name="music_added_next">Plays next</string>
     <string name="music_added_to_queue">Added to the queue</string>
     <string name="music_nav_library">Library</string>

@@ -31,7 +31,7 @@
 </p>
 
 > **New in 0.14** (in testing, not released yet)
-> - **Ordo Music** becomes a music app of its own: Songs, Albums, Artists, Folders and a mini player
+> - **Ordo Music** becomes a music app of its own: Songs, Albums, Artists, Playlists, Favorites, Folders and a mini player
 > - **Icon colours**: eight colours for Ordo's app icon and for Ordo Music
 > - **Upload with Ordo**: picking a file for a website or app no longer asks for notifications
 
@@ -90,7 +90,7 @@ What comes next is in the [living roadmap](docs/ROADMAP-LIVE.md): every goal has
 
 ### Ordo Music – a music app of its own
 
-- Songs, Albums, Artists and Folders with search, “Shuffle all” and a mini player
+- Songs, Albums, Artists, Playlists, Favorites and Folders with search, “Shuffle all” and a mini player
 - A player that takes its colour from the cover, over a softly moving backdrop made from it, with a wavy seek bar that moves only when you hold it, queue and background controls
 - Synced lyrics from a .lrc beside the song or embedded in it, swipe the cover to change songs, a queue you can reorder, and Ordo Music settings with “Colours from the cover”
 - Sound: a 10-band EQ you shape on the curve, presets, device effects, ReplayGain/R128, a fading sleep timer

@@ -108,6 +108,8 @@ class AudioPlayerActivity : AppActivity() {
     private var lyricsKey: String? = null
     private var lyricsJob: Job? = null
     private var lyricsShowPlay = true
+    // Opened from a song's lyrics pictogram in the library: the lyrics show as soon as they are loaded.
+    private var openLyricsPending = false
     private val lyricsBack = object : androidx.activity.OnBackPressedCallback(false) {
         override fun handleOnBackPressed() = hideLyrics()
     }
@@ -321,6 +323,7 @@ class AudioPlayerActivity : AppActivity() {
             }
         }
         showPlaceholder()
+        openLyricsPending = savedInstanceState == null && intent.getBooleanExtra(EXTRA_LYRICS, false)
         // Ordo Music's menu opens Sound or the sleep timer over the player.
         if (savedInstanceState == null && intent.hasExtra(EXTRA_SOUND_SHEET)) {
             AudioSoundSettingsSheet().apply {
@@ -804,6 +807,10 @@ class AudioPlayerActivity : AppActivity() {
                     lyrics = loaded
                     binding.toolbar.menu.findItem(R.id.actionLyrics)?.isVisible = loaded != null
                     controller?.let { updatePills(it) }
+                    if (loaded != null && openLyricsPending) {
+                        openLyricsPending = false
+                        showLyrics()
+                    }
                     if (lyricsView.isVisible) {
                         if (loaded == null) hideLyrics() else showLyrics()
                     }
@@ -1129,6 +1136,7 @@ class AudioPlayerActivity : AppActivity() {
             "me.zhanghai.android.files.viewer.audio.extra.QUEUE_TOKEN"
         private const val EXTRA_RESUME = "me.zhanghai.android.files.viewer.audio.extra.RESUME"
         private const val EXTRA_SOUND_SHEET = "me.zhanghai.android.files.viewer.audio.extra.SOUND_SHEET"
+        private const val EXTRA_LYRICS = "me.zhanghai.android.files.viewer.audio.extra.LYRICS"
         private const val STATE_QUEUE_STARTED = "queueStarted"
         private const val SEEK_MAX = 1_000
         // Once per displayed second, on the second: the times only change then, and a screen that redraws twice a
@@ -1165,6 +1173,9 @@ class AudioPlayerActivity : AppActivity() {
         /** The player with the Sound sheet open, or scrolled to its sleep timer. */
         fun withSoundSheet(intent: Intent, sleepTimer: Boolean): Intent =
             intent.putExtra(EXTRA_SOUND_SHEET, sleepTimer)
+
+        /** The player that opens straight into the song's lyrics (the library's lyrics pictogram). */
+        fun withLyrics(intent: Intent): Intent = intent.putExtra(EXTRA_LYRICS, true)
 
         fun createSessionIntent(context: Context): Intent =
             Intent(context, AudioPlayerActivity::class.java)

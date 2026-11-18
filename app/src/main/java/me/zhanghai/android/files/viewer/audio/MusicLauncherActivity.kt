@@ -58,6 +58,8 @@ import java.text.Collator
 import java8.nio.file.Paths
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
 import me.zhanghai.android.files.R
 import me.zhanghai.android.files.app.AppActivity
@@ -87,6 +89,13 @@ import me.zhanghai.android.files.util.createManageAppAllFilesAccessPermissionInt
 import me.zhanghai.android.files.util.startActivitySafe
 import me.zhanghai.android.files.util.supportsExternalStorageManager
 import me.zhanghai.android.files.util.valueCompat
+import me.zhanghai.android.files.viewer.audio.lyrics.LyricsRepository
+
+internal fun musicContentWidthDp(windowWidthDp: Int): Int = when {
+    windowWidthDp < 600 -> windowWidthDp.coerceAtLeast(0)
+    windowWidthDp < 840 -> windowWidthDp - 2 * 34
+    else -> maxOf((windowWidthDp * 0.618).toInt(), windowWidthDp - 2 * 55).coerceAtMost(1100)
+}
 
 /**
  * What the "Ordo Musik" icon opens: the music library (songs, albums, artists, folders from MediaStore) with a mini
@@ -134,6 +143,18 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
     private var shownGroup: MusicGroup? = null
     // A page on a wide window: header and buttons on the left, songs on the right.
     private var twoPane = false
+    private var tabletLayout = false
+    // Whether a song has lyrics, looked up lazily for the rows on screen (two at a time, off the main thread) and kept
+    // per path until the library reloads, so scrolling never waits for a file.
+    private val hasLyrics = HashMap<String, Boolean>()
+    private val lyricsLookups = HashSet<String>()
+    private val lyricsGate = Semaphore(2)
+    private var contentWidthDp = 0
+    private var albumGrid = false
+    private var toolbarInsetStart = 0
+    private var toolbarInsetEnd = 0
+    private var toolbarInsetWithNavigation = 0
+    private var toolbarTitleMarginStart = 0
     // The song in the session (by path) and whether it plays: its row shows the moving bars.
     private var playingPath: String? = null
     private var currentPlaying = false
@@ -190,6 +211,10 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
         super.onCreate(savedInstanceState)
         binding = MusicLauncherActivityBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        toolbarInsetStart = binding.content.toolbar.contentInsetStart
+        toolbarInsetEnd = binding.content.toolbar.contentInsetEnd
+        toolbarInsetWithNavigation = binding.content.toolbar.contentInsetStartWithNavigation
+        toolbarTitleMarginStart = binding.content.toolbar.titleMarginStart
         savedInstanceState?.let {
             tab = it.getInt(STATE_TAB)
             detailKey = it.getString(STATE_DETAIL)
@@ -202,8 +227,8 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
         ThemedFastScroller.create(binding.content.recyclerView)
         setUpTabs()
         binding.content.recyclerView.addItemDecoration(GridSpacing())
-        // The list and the mini player keep a readable width on tablets: centred, at most 610 dp.
-        binding.content.recyclerView.addOnLayoutChangeListener { _, left, _, right, _, oldLeft, _, oldRight, _ ->
+        // The container still resizes when its centred content has reached the width cap.
+        binding.content.root.addOnLayoutChangeListener { _, left, _, right, _, oldLeft, _, oldRight, _ ->
             if (right - left != oldRight - oldLeft) binding.content.recyclerView.post { updateWidths() }
         }
         binding.content.recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
@@ -277,8 +302,6 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
         tabs.setSelectedTabIndicatorColor(pill)
         tabs.tabTextColors = colors
         tabs.tabIconTint = colors
-        // The pill glides (and stretches) to the new tab; with reduced motion it jumps.
-        if (!Motion.any) tabs.tabIndicatorAnimationDuration = 0
         // TabLayout's own ripple fills the whole rectangular tab (owner: a square frame flashed around the pill), so
         // it is off in the layout and every tab gets a ripple masked to exactly the pill's shape instead.
         val highlight = MaterialColors.getColor(tabs, androidx.appcompat.R.attr.colorControlHighlight)
@@ -392,6 +415,7 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
             }
             library = loaded
             songsByPath = loaded.songs.associateBy { it.path }
+            hasLyrics.clear()
             saved = savedState
             render()
             updateMiniPlayer()
@@ -477,14 +501,9 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
         if (binding.content.collapsingToolbar.layoutParams.height != headerHeight) {
             binding.content.collapsingToolbar.layoutParams = binding.content.collapsingToolbar.layoutParams.apply { height = headerHeight }
         }
-        val grid = group == null && section == SECTION_LIBRARY && tab == TAB_ALBUMS
-        val layoutManager = binding.content.recyclerView.layoutManager
-        if (layoutManager == null || (layoutManager is GridLayoutManager) != grid) {
-            binding.content.recyclerView.layoutManager =
-                if (grid) GridLayoutManager(this, albumColumns()) else LinearLayoutManager(this)
-        }
-        updateWidths()
+        albumGrid = group == null && section == SECTION_LIBRARY && tab == TAB_ALBUMS
         adapter.submit(rows)
+        updateWidths()
         if (scrollToTop) binding.content.recyclerView.scrollToPosition(0)
 
         updateTitle()
@@ -1050,27 +1069,83 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
             song.album ?: getString(R.string.music_unknown_album)
         )
 
-    // Columns of at least 144 dp between 21 dp edges and 13 dp gutters: two on a phone, four on a portrait tablet.
+    // Tablet covers use the shared content width, including space for the gaps between covers.
     private fun albumColumns(): Int {
-        val width = resources.configuration.screenWidthDp * resources.displayMetrics.density
-        val outer = resources.getDimension(R.dimen.phi_21)
+        val density = resources.displayMetrics.density
+        val width = contentWidthDp * density
+        val outer = if (tabletLayout) 0f else resources.getDimension(R.dimen.phi_21)
         val gutter = resources.getDimension(R.dimen.phi_13)
-        val cell = resources.getDimension(R.dimen.music_album_min_width)
-        return ((width - 2 * outer + gutter) / (cell + gutter)).toInt().coerceAtLeast(2)
+        val cell = if (tabletLayout) 180 * density else resources.getDimension(R.dimen.music_album_min_width)
+        return ((width - 2 * outer + gutter) / (cell + gutter)).toInt().coerceAtLeast(if (tabletLayout) 1 else 2)
     }
 
-    /** Lists and the mini player at most 610 dp wide and centred; the album grid uses the whole width. */
+    // A shared gutter keeps navigation, covers, rows and the mini player aligned on tablets.
     private fun updateWidths() {
-        val width = binding.content.root.width.takeIf { it > 0 } ?: return
-        val side = ((width - resources.getDimensionPixelSize(R.dimen.phi_content_max)) / 2).coerceAtLeast(0)
+        val density = resources.displayMetrics.density
+        val windowWidthDp = resources.configuration.screenWidthDp
+        val width = binding.content.root.width.takeIf { it > 0 } ?: (windowWidthDp * density).toInt()
+        val wasTablet = tabletLayout
+        tabletLayout = windowWidthDp >= 600
+        val side = if (tabletLayout) {
+            val minimum = resources.getDimensionPixelSize(if (windowWidthDp < 840) R.dimen.phi_34 else R.dimen.phi_55)
+            // The persistent drawer can leave less space than the window's target content width.
+            maxOf(minimum, (width - (musicContentWidthDp(windowWidthDp) * density).toInt()) / 2)
+        } else {
+            ((width - resources.getDimensionPixelSize(R.dimen.phi_content_max)) / 2).coerceAtLeast(0)
+        }
+        contentWidthDp = if (tabletLayout) ((width - 2 * side).coerceAtLeast(0) / density).toInt() else windowWidthDp
+        if (twoPane != twoPaneFor(shownGroup)) {
+            render()
+            return
+        }
+        val body = binding.content.libraryBody
+        val bodySide = if (tabletLayout) side else 0
+        if (body.paddingStart != bodySide) {
+            body.setPaddingRelative(bodySide, body.paddingTop, bodySide, body.paddingBottom)
+        }
         val recycler = binding.content.recyclerView
-        val listSide = if (recycler.layoutManager is GridLayoutManager || twoPane) 0 else side
+        val columns = if (albumGrid) albumColumns() else if (!twoPane && contentWidthDp >= 840) 2 else 1
+        val grid = albumGrid || columns > 1
+        val layoutManager = recycler.layoutManager
+        if (layoutManager == null || (layoutManager is GridLayoutManager) != grid) {
+            val state = layoutManager?.onSaveInstanceState()
+            recycler.layoutManager = if (grid) {
+                GridLayoutManager(this, columns).apply {
+                    spanSizeLookup = object : GridLayoutManager.SpanSizeLookup() {
+                        override fun getSpanSize(position: Int): Int = when (adapter.getItemViewType(position)) {
+                            TYPE_HEADER, TYPE_ACTIONS -> spanCount
+                            else -> 1
+                        }
+                    }
+                }
+            } else {
+                LinearLayoutManager(this)
+            }
+            if (state != null) recycler.layoutManager?.onRestoreInstanceState(state)
+        } else if (layoutManager is GridLayoutManager && layoutManager.spanCount != columns) {
+            layoutManager.spanCount = columns
+        }
+        val listSide = if (tabletLayout || grid || twoPane) 0 else side
         if (recycler.paddingStart != listSide) {
             recycler.setPaddingRelative(listSide, recycler.paddingTop, listSide, recycler.paddingBottom)
         }
+        recycler.invalidateItemDecorations()
+        if (wasTablet != tabletLayout) adapter.notifyDataSetChanged()
+        val tabs = binding.content.tabs
+        val tabSide = if (tabletLayout) side else resources.getDimensionPixelSize(R.dimen.phi_13)
+        tabs.setPaddingRelative(tabSide, tabs.paddingTop, tabSide, tabs.paddingBottom)
+        tabs.clipToPadding = tabletLayout
+        val titleSide = if (tabletLayout) side else resources.getDimensionPixelSize(R.dimen.space_gutter)
+        binding.content.collapsingToolbar.expandedTitleMarginStart = titleSide
+        binding.content.collapsingToolbar.expandedTitleMarginEnd = titleSide
+        binding.content.toolbar.setContentInsetsRelative(
+            if (tabletLayout) side else toolbarInsetStart, if (tabletLayout) side else toolbarInsetEnd
+        )
+        binding.content.toolbar.contentInsetStartWithNavigation = if (tabletLayout) side else toolbarInsetWithNavigation
+        binding.content.toolbar.titleMarginStart = if (tabletLayout) 0 else toolbarTitleMarginStart
         val mini = binding.content.miniPlayer.root
         val params = mini.layoutParams as ViewGroup.MarginLayoutParams
-        val margin = maxOf(side, resources.getDimensionPixelSize(R.dimen.phi_8))
+        val margin = if (tabletLayout) side else maxOf(side, resources.getDimensionPixelSize(R.dimen.phi_8))
         if (params.marginStart != margin) {
             params.marginStart = margin
             params.marginEnd = margin
@@ -1118,17 +1193,42 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
             formatDuration(songs.sumOf { it.durationMs })
         )
 
-    private fun play(songs: List<MusicSong>, index: Int) {
+    private fun play(songs: List<MusicSong>, index: Int, lyrics: Boolean = false) {
         // The song that is already in the session: the player opens and it plays on from where it is, in any list
         // (also in another list than the one it was started from); no new queue, no seek.
         if (MusicLibrary.isSameSong(songs[index].path, controller?.currentMediaItem?.mediaId)) {
-            startActivitySafe(AudioPlayerActivity.createResumeIntent(this))
+            val resume = AudioPlayerActivity.createResumeIntent(this)
+            startActivitySafe(if (lyrics) AudioPlayerActivity.withLyrics(resume) else resume)
             return
         }
         val window = queueWindow(songs.size, index)
         val intent = Intent(this, AudioPlayerActivity::class.java)
         AudioPlayerActivity.putExtras(intent, songs.slice(window).map { Paths.get(it.path) }, index - window.first)
-        startActivitySafe(intent)
+        startActivitySafe(if (lyrics) AudioPlayerActivity.withLyrics(intent) else intent)
+    }
+
+    /** Finds out once whether [song] has lyrics and shows the pictogram on its row if it is still on screen. */
+    private fun lookUpLyrics(song: MusicSong) {
+        if (song.path in hasLyrics || !lyricsLookups.add(song.path)) return
+        lifecycleScope.launch {
+            val found = lyricsGate.withPermit {
+                // A row that scrolled away while it waited is looked up again when it comes back.
+                if (rowOnScreen(song.path) == null) null
+                else runCatching { LyricsRepository.load(song) != null }.getOrDefault(false)
+            }
+            lyricsLookups.remove(song.path)
+            if (found == null) return@launch
+            hasLyrics[song.path] = found
+            if (found && selection.isEmpty()) rowOnScreen(song.path)?.findViewById<View>(R.id.lyrics)?.isVisible = true
+        }
+    }
+
+    private fun rowOnScreen(path: String): View? {
+        val list = binding.content.recyclerView
+        for (i in 0 until list.childCount) {
+            list.getChildAt(i).takeIf { it.tag == path }?.let { return it }
+        }
+        return null
     }
 
     private fun connectController() {
@@ -1353,6 +1453,16 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
 
         override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
             val binding = (holder as Holder<*>).binding
+            if (binding is MusicLibraryRowBinding) {
+                val start = if (tabletLayout) 0 else resources.getDimensionPixelSize(R.dimen.space_gutter)
+                binding.root.setPaddingRelative(
+                    start, binding.root.paddingTop, binding.root.paddingEnd, binding.root.paddingBottom
+                )
+            } else if (binding is MusicLibraryActionsBinding) {
+                // "Shuffle all" starts and ends where the title, the tabs and the rows do.
+                val side = if (tabletLayout) 0 else resources.getDimensionPixelSize(R.dimen.space_gutter)
+                binding.root.setPaddingRelative(side, binding.root.paddingTop, side, binding.root.paddingBottom)
+            }
             when (val row = rows[position]) {
                 is Row.Actions -> bindActions(binding as MusicLibraryActionsBinding, row.shuffleOnly)
                 is Row.Header -> bindHeader(binding as MusicLibraryHeaderBinding, row.group)
@@ -1399,6 +1509,10 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
                     }
                     more.isVisible = selection.isEmpty()
                     more.contentDescription = getString(R.string.music_more_options, song.title)
+                    root.tag = song.path
+                    lyrics.isVisible = selection.isEmpty() && hasLyrics[song.path] == true
+                    lyrics.setOnClickListener { play(shownSongs, row.index, lyrics = true) }
+                    lookUpLyrics(song)
                     more.setOnClickListener { showSongMenu(it, song) }
                     root.setPaddingRelative(
                         root.paddingStart, root.paddingTop, resources.getDimensionPixelSize(R.dimen.phi_5),
@@ -1421,6 +1535,8 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
                     duration.isVisible = false
                     numberSlot.isVisible = false
                     more.isVisible = false
+                    lyrics.isVisible = false
+                    root.tag = null
                     art.root.isVisible = true
                     art.bars.isVisible = false
                     art.selected.isVisible = false
@@ -1454,6 +1570,8 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
                     duration.isVisible = false
                     numberSlot.isVisible = false
                     more.isVisible = false
+                    lyrics.isVisible = false
+                    root.tag = null
                     art.root.isVisible = true
                     art.bars.isVisible = false
                     art.selected.isVisible = false
@@ -1485,19 +1603,25 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
         }
     }
 
-    /** The album grid's φ spacing: 21 dp at the edges, 13 dp between columns and rows, every cell equally wide. */
+    // Tablet edges already come from the shared gutter; only albums need cover spacing.
     private inner class GridSpacing : RecyclerView.ItemDecoration() {
+        private val phoneOuter = resources.getDimension(R.dimen.phi_21)
+        private val gutter = resources.getDimension(R.dimen.phi_13)
+        private val top = resources.getDimensionPixelSize(R.dimen.phi_8)
+
         override fun getItemOffsets(outRect: Rect, view: View, parent: RecyclerView, state: RecyclerView.State) {
+            outRect.setEmpty()
+            if (!albumGrid) return
             val layoutManager = parent.layoutManager as? GridLayoutManager ?: return
-            val position = parent.getChildAdapterPosition(view).takeIf { it >= 0 } ?: return
+            val position = parent.getChildAdapterPosition(view)
+            if (position < 0) return
             val columns = layoutManager.spanCount
             val column = position % columns
-            val outer = resources.getDimension(R.dimen.phi_21)
-            val gutter = resources.getDimension(R.dimen.phi_13)
+            val outer = if (tabletLayout) 0f else phoneOuter
             val perCell = (2 * outer + (columns - 1) * gutter) / columns
             val left = outer + column * (gutter - perCell)
             outRect.set(
-                left.toInt(), if (position < columns) resources.getDimensionPixelSize(R.dimen.phi_8) else 0,
+                left.toInt(), if (position < columns) top else 0,
                 (perCell - left).toInt(), gutter.toInt()
             )
         }
