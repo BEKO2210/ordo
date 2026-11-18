@@ -55,6 +55,7 @@ class CastClient(
     @Volatile var mediaSessionId: Int? = null
         private set
     @Volatile private var runningAppId: String? = null
+    @Volatile private var launchError: String? = null
 
     /** The address of this end of the connection: the network interface the device can reach us on. */
     val localAddress: InetAddress get() = socket.localAddress
@@ -101,7 +102,7 @@ class CastClient(
         do {
             status = pendingLaunch.poll((deadline - System.currentTimeMillis()).coerceAtLeast(1), TimeUnit.MILLISECONDS)
                 ?: throw IOException("The device did not start receiver $appId")
-            if (status === LAUNCH_FAILED) throw IOException("The device refused receiver $appId")
+            if (status === LAUNCH_FAILED) throw IOException("The device refused receiver $appId: $launchError")
         } while (status.appId != appId)
         sendNow(message(status.transportId!!, CastProtocol.NS_CONNECTION, CastProtocol.type("CONNECT")))
         return status
@@ -204,6 +205,7 @@ class CastClient(
             }
             CastProtocol.NS_RECEIVER -> {
                 if (type == "LAUNCH_ERROR") {
+                    launchError = message.payload
                     pendingLaunch.offer(LAUNCH_FAILED)
                     return
                 }
