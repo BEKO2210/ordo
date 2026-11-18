@@ -180,8 +180,8 @@ class PlayerAtmosphereView(context: Context) : View(context) {
         val t = timeSeconds
         colors.forEachIndexed { i, color ->
             val phase = i * 2.1f
-            val x = width * (0.5f + 0.32f * sin(t * 0.09f + phase))
-            val y = height * (0.45f + 0.28f * cos(t * 0.06f + phase))
+            val x = width * (0.5f + 0.32f * sin(t * 0.04f + phase))
+            val y = height * (0.45f + 0.28f * cos(t * 0.03f + phase))
             val radius = max(width, height) * 0.55f
             val center = Color.argb((FIELD_ALPHA * alpha * 255).toInt(), Color.red(color), Color.green(color),
                 Color.blue(color))
@@ -215,10 +215,10 @@ class PlayerAtmosphereView(context: Context) : View(context) {
 
     companion object {
         /**
-         * Ten frames a second, on the wave's grid: the backdrop is blurred and drifts a few pixels a second, so steps
+         * 7.5 frames a second, on the wave's ticks: the backdrop is blurred and drifts a few pixels a second, so steps
          * this small are invisible, and more frames would only cost battery.
          */
-        private const val FRAME_MS = FrameGrid.FRAME_MS * 3
+        private const val FRAME_MS = FrameGrid.WAVE_MS * 2
         private const val CROSSFADE_MS = 300L
         private const val OVERSCAN = 1.35f
         private const val FIELD_ALPHA = 0.32f
@@ -239,12 +239,12 @@ half4 main(float2 p) {
     float2 c = (p - size * 0.5) / k;
     float a = 0.14 * sin(time * 0.05);
     c = float2(c.x * cos(a) - c.y * sin(a), c.x * sin(a) + c.y * cos(a));
-    c += 0.045 * float2(sin(c.y * 5.0 + time * 0.31), cos(c.x * 4.0 + time * 0.23));
+    c += 0.045 * float2(sin(c.y * 5.0 + time * 0.12), cos(c.x * 4.0 + time * 0.09));
     c += float2(0.04 * sin(time * 0.07), 0.03 * cos(time * 0.05));
     half3 color = cover.eval((c + 0.5) * coverSize).rgb;
     float2 uv = p / size;
-    float2 ca = float2(0.5 + 0.32 * sin(time * 0.09), 0.45 + 0.28 * cos(time * 0.06));
-    float2 cb = float2(0.5 + 0.32 * sin(time * 0.09 + 2.1), 0.45 + 0.28 * cos(time * 0.06 + 2.1));
+    float2 ca = float2(0.5 + 0.32 * sin(time * 0.04), 0.45 + 0.28 * cos(time * 0.03));
+    float2 cb = float2(0.5 + 0.32 * sin(time * 0.04 + 2.1), 0.45 + 0.28 * cos(time * 0.03 + 2.1));
     color = mix(color, fieldA.rgb, fieldA.a * smoothstep(0.75, 0.0, distance(uv, ca)));
     color = mix(color, fieldB.rgb, fieldB.a * smoothstep(0.75, 0.0, distance(uv, cb)));
     color = mix(color, veil.rgb, veil.a);

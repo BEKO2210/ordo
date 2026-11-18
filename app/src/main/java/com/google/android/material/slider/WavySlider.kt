@@ -17,7 +17,7 @@
  *
  * Ordo: taken from Auxio (https://github.com/OxygenCobalt/Auxio, commit 9e18f5f,
  * app/src/main/java/com/google/android/material/slider/WavySlider.kt). Changes: open for Ordo's
- * hold-to-seek subclass, Ordo's R and motion switch, android.util.Log instead of Timber, 30 fps phase
+ * hold-to-seek subclass, Ordo's R and motion switch, android.util.Log instead of Timber, 15 fps phase
  * ticks on Ordo's shared frame grid, and the wave
  * is on only while animations are allowed (the original check was inverted).
  */
@@ -610,8 +610,8 @@ constructor(
             return
         }
         phaseTickerScheduled = true
-        // Ordo: on the shared 30 fps grid instead of every vsync (battery).
-        postDelayed(phaseTicker, FrameGrid.delayToNext())
+        // Ordo: on the shared frame grid instead of every vsync (battery, see FrameGrid).
+        postDelayed(phaseTicker, FrameGrid.delayToNext(FrameGrid.WAVE_MS))
     }
 
     private fun shouldTickPhase(): Boolean =

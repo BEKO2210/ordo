@@ -1164,11 +1164,10 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
             }
             if (art == null) tintMiniPlayer(null, artKey)
         }
-        // A quiet wave while music plays, flat when paused; it only flows with motion in full.
+        // A quiet, still wave while music plays, flat when paused. It does not flow: MDC moves it every display frame,
+        // which cost about 9 % of a core on the Galaxy Tab S9 Ultra (18.11.2026) for a 2 dp line.
         mini.progress.waveAmplitude =
             if (isPlaying) resources.getDimensionPixelSize(R.dimen.music_mini_wave_amplitude) else 0
-        mini.progress.waveSpeed =
-            if (isPlaying && Motion.full) resources.getDimensionPixelSize(R.dimen.music_mini_wave_speed) else 0
         if (!mini.root.isVisible) {
             mini.root.isVisible = true
             if (Motion.any) {
