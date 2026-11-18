@@ -227,7 +227,8 @@
         <item name="waveAmplitude">3dp</item>
         <item name="waveSpeed">10dp</item>
         <item name="waveAmplitudeRampProgressMin">0.0</item>
-        <item name="waveAmplitudeRampProgressMax">0.03</item>
+        <!-- The wave grows over the first tenth of the song: a few seconds in, half a wavelength looked like a hook. -->
+        <item name="waveAmplitudeRampProgressMax">0.1</item>
     </style>
 
     <style name="Widget.Ordo.OnboardingFeature" parent="">

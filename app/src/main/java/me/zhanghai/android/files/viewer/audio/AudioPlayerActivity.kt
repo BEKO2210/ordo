@@ -17,6 +17,7 @@ import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -26,6 +27,7 @@ import android.view.GestureDetector
 import android.view.HapticFeedbackConstants
 import android.view.Gravity
 import android.view.MotionEvent
+import android.view.SurfaceView
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
@@ -121,6 +123,8 @@ class AudioPlayerActivity : AppActivity() {
     private val progressUpdater = object : Runnable {
         override fun run() {
             updateProgress()
+            // The backdrop drifts one step in the same frame as the time, so it costs no frame of its own.
+            atmosphere.advance()
             if (controller?.isPlaying == true) handler.postDelayed(this, nextProgressDelay())
         }
     }
@@ -157,6 +161,11 @@ class AudioPlayerActivity : AppActivity() {
             addView(binding.root, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
         })
         colors = themeColors()
+        // A hairline keeps a pale cover apart from a pale backdrop (review panel 18.11.2026).
+        binding.artworkCard.strokeWidth = resources.displayMetrics.density.toInt().coerceAtLeast(1)
+        binding.artworkCard.strokeColor = ColorUtils.setAlphaComponent(
+            themeColor(com.google.android.material.R.attr.colorOnSurface), COVER_OUTLINE_ALPHA
+        )
         applyColors(colors)
         binding.root.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> updateArtworkSize() }
         binding.toolbar.setNavigationOnClickListener { finish() }
@@ -206,6 +215,22 @@ class AudioPlayerActivity : AppActivity() {
         (binding.seekBar.layoutParams as ViewGroup.MarginLayoutParams).apply {
             marginStart = -binding.seekBar.trackSidePadding
             marginEnd = -binding.seekBar.trackSidePadding
+        }
+        // From Android 11 the flowing wave draws into a small surface laid exactly over the slider, so it never redraws
+        // the window (a child surface there stays under dialogs and sheets). It only shows the wave: it takes no
+        // touches and is hidden from accessibility, both stay with the slider.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            val seek = binding.seekBar
+            val parent = seek.parent as ViewGroup
+            val index = parent.indexOfChild(seek)
+            val params = seek.layoutParams
+            parent.removeViewAt(index)
+            val frame = FrameLayout(this)
+            frame.addView(seek, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
+            val surface = SurfaceView(this).apply { importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO }
+            frame.addView(surface, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
+            parent.addView(frame, index, params)
+            seek.setWaveSurface(surface)
         }
         binding.seekBar.setLabelFormatter { formatTime((currentDuration() * it / SEEK_MAX).toLong()) }
         binding.seekBar.addOnChangeListener { _, value, fromUser ->
@@ -550,8 +575,10 @@ class AudioPlayerActivity : AppActivity() {
         )
         binding.artwork.apply {
             dispose()
-            scaleType = ImageView.ScaleType.CENTER_INSIDE
-            val padding = resources.getDimensionPixelSize(R.dimen.audio_player_artwork_padding)
+            // A calm, large note (a third of the cover) instead of a tiny glyph that looked like a loading state.
+            scaleType = ImageView.ScaleType.FIT_CENTER
+            val padding = binding.artworkContainer.width.takeIf { it > 0 }?.let { it / 3 }
+                ?: resources.getDimensionPixelSize(R.dimen.audio_player_artwork_padding)
             setPadding(padding, padding, padding, padding)
             setImageResource(R.drawable.file_audio_icon)
             ImageViewCompat.setImageTintList(
@@ -588,7 +615,9 @@ class AudioPlayerActivity : AppActivity() {
                 if (small !== source) small.recycle()
                 val scheme = AudioPlayerColorWash.seed(pixels)
                     ?.let { AudioPlayerColorWash.scheme(it, surface, onSurface, isLight) }
-                val target = scheme?.let { intArrayOf(it.accent, it.onAccent, it.container) } ?: fallback
+                val target = scheme?.let {
+                    intArrayOf(it.accent, it.onAccent, AudioPlayerColorWash.inactiveTrack(it.accent, it.tint))
+                } ?: fallback
                 CoverBlur.blur(pixels, size, size)
                 val veil = scheme?.tint ?: surface
                 val fields = scheme?.let { intArrayOf(it.accent, it.container) } ?: IntArray(0)
@@ -618,7 +647,7 @@ class AudioPlayerActivity : AppActivity() {
         val primary = themeColor(androidx.appcompat.R.attr.colorPrimary)
         return intArrayOf(
             primary, themeColor(com.google.android.material.R.attr.colorOnPrimary),
-            ColorUtils.setAlphaComponent(primary, INACTIVE_TRACK_ALPHA)
+            AudioPlayerColorWash.inactiveTrack(primary, themeColor(com.google.android.material.R.attr.colorSurface))
         )
     }
 
@@ -846,9 +875,9 @@ class AudioPlayerActivity : AppActivity() {
         private const val INACTIVE_CONTROL_ALPHA = 0.70f
         private const val DISABLED_CONTROL_ALPHA = 0.38f
         private const val VEIL_SAMPLE_STEP = 3
-        private const val MIN_VEIL_LIGHT = 0.62f
-        private const val MIN_VEIL_DARK = 0.5f
-        private const val INACTIVE_TRACK_ALPHA = 0x3d
+        private const val MIN_VEIL_LIGHT = 0.42f
+        private const val COVER_OUTLINE_ALPHA = 0x1f
+        private const val MIN_VEIL_DARK = 0.4f
         private const val DOUBLE_TAP_SEEK_MS = 10_000L
         private const val SEEK_BUBBLE_MS = 600L
         private const val BACKGROUND_CROSSFADE_DURATION_MS = 300L

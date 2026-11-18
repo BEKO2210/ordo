@@ -8,6 +8,7 @@ package me.zhanghai.android.files.viewer.audio
 import com.google.android.material.color.MaterialColors
 import kotlin.math.max
 import kotlin.math.pow
+import kotlin.math.roundToInt
 
 internal object AudioPlayerColorWash {
     const val ARTWORK_STRENGTH_PERCENT = 8
@@ -65,8 +66,8 @@ internal object AudioPlayerColorWash {
 
     /**
      * The cover's leading colour: the hue with the most colour in it (each pixel weighted by its chroma, neighbouring
-     * hues counted half), averaged over that hue's pixels. A cover with hardly any colour gives its plain average, so
-     * a grey cover makes a calm grey player instead of picking up a stray coloured pixel.
+     * hues counted half, chroma squared so vivid beats large and dull), averaged over that hue's pixels. A cover with
+     * hardly any colour gives null: the player keeps the theme's accent instead of a grey one or a stray pixel's.
      */
     fun seed(pixels: IntArray): Int? {
         val weight = DoubleArray(HUE_BINS)
@@ -89,7 +90,8 @@ internal object AudioPlayerColorWash {
                 else -> (r - g).toDouble() / chroma + 4
             }
             val bin = (sector / 6 * HUE_BINS).toInt().coerceIn(0, HUE_BINS - 1)
-            val w = chroma / 255.0
+            // Squared: a vivid band (the aurora's teal) outweighs a large, dull area (its violet sky).
+            val w = (chroma / 255.0) * (chroma / 255.0)
             weight[bin] += w
             red[bin] += r * w
             green[bin] += g * w
@@ -105,7 +107,7 @@ internal object AudioPlayerColorWash {
                 bestScore = score
             }
         }
-        if (best < 0 || bestScore < opaque * MIN_COLOURFUL_SHARE) return averageArgb(pixels)
+        if (best < 0 || bestScore < opaque * MIN_COLOURFUL_SHARE) return null
         var w = 0.0
         var r = 0.0
         var g = 0.0
@@ -117,7 +119,8 @@ internal object AudioPlayerColorWash {
             g += green[i]
             b += blue[i]
         }
-        return 0xff000000.toInt() or ((r / w).toInt() shl 16) or ((g / w).toInt() shl 8) or (b / w).toInt()
+        return 0xff000000.toInt() or ((r / w).roundToInt() shl 16) or ((g / w).roundToInt() shl 8) or
+            (b / w).roundToInt()
     }
 
     /**
@@ -156,6 +159,19 @@ internal object AudioPlayerColorWash {
         return 1f
     }
 
+    /**
+     * The seek bar's unplayed track: [accent] at the lowest opacity (from 30 %) that still stands 3:1 against
+     * [background] (WCAG 1.4.11, the track shows how long the song is). Review panel 18.11.2026: a pale container
+     * colour vanished on light and grey covers.
+     */
+    fun inactiveTrack(accent: Int, background: Int): Int {
+        for (percent in 30..100 step 5) {
+            val color = (percent * 255 / 100 shl 24) or (accent and 0xffffff)
+            if (contrastRatio(color, background) >= MINIMUM_CONTROL_CONTRAST) return color
+        }
+        return accent
+    }
+
     fun contrastRatio(first: Int, second: Int): Double = contrast(over(first, second), second)
 
     private fun over(top: Int, bottom: Int): Int {
@@ -185,5 +201,5 @@ internal object AudioPlayerColorWash {
     private const val VEIL_STEP_PERCENT = 2
     private const val HUE_BINS = 36
     private const val MIN_CHROMA = 24
-    private const val MIN_COLOURFUL_SHARE = 0.03
+    private const val MIN_COLOURFUL_SHARE = 0.01
 }

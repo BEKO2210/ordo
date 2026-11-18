@@ -18,8 +18,8 @@
  * Ordo: taken from Auxio (https://github.com/OxygenCobalt/Auxio, commit 9e18f5f,
  * app/src/main/java/com/google/android/material/slider/WavySlider.kt). Changes: open for Ordo's
  * hold-to-seek subclass, Ordo's R and motion switch, android.util.Log instead of Timber, 15 fps phase
- * ticks on Ordo's shared frame grid, and the wave
- * is on only while animations are allowed (the original check was inverted).
+ * ticks on Ordo's shared frame grid drawn into a small SurfaceView of their own (API 30+, a still wave
+ * below), and the wave is on only while animations are allowed (the original check was inverted).
  */
  
 package com.google.android.material.slider
@@ -33,9 +33,14 @@ import android.graphics.Matrix
 import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.PathMeasure
+import android.graphics.PixelFormat
 import android.graphics.PointF
+import android.graphics.PorterDuff
 import android.graphics.RectF
+import android.os.Build
 import android.util.AttributeSet
+import android.view.SurfaceHolder
+import android.view.SurfaceView
 import android.view.View
 import androidx.annotation.Px
 import androidx.core.content.res.getDimensionPixelSizeOrThrow
@@ -112,6 +117,57 @@ constructor(
 
     @Px private var waveSpeed: Int = 0
 
+    // Ordo: the wave's own surface. Every frame of the window costs about 0.6 % of a core per frame per second on a
+    // Galaxy Tab S9 Ultra, almost all of it in Android's frame delivery; a small surface on top of the track flows
+    // without redrawing the window. Without it (API < 30, or before it exists) the wave stands still and only moves
+    // with the progress. Input and accessibility stay with the slider; the surface only shows the wave.
+    private var waveSurface: SurfaceView? = null
+    private var surfaceReady = false
+    private val surfaceDirty = android.graphics.Rect()
+
+    /** Ordo: draws the flowing wave into [surface], which must lie exactly over this slider. */
+    fun setWaveSurface(surface: SurfaceView) {
+        waveSurface = surface
+        surface.setZOrderOnTop(true)
+        surface.holder.setFormat(PixelFormat.TRANSLUCENT)
+        surface.holder.addCallback(object : SurfaceHolder.Callback {
+            override fun surfaceCreated(holder: SurfaceHolder) {}
+
+            override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {
+                surfaceReady = true
+                renderWaveSurface()
+                // The window drew the wave itself until now; redraw it without.
+                invalidate()
+                ensurePhaseTickerState()
+            }
+
+            override fun surfaceDestroyed(holder: SurfaceHolder) {
+                surfaceReady = false
+                invalidate()
+                ensurePhaseTickerState()
+            }
+        })
+    }
+
+    private fun renderWaveSurface() {
+        val holder = waveSurface?.holder ?: return
+        // Software drawing of just the wave's band: on the Tab a hardware canvas cost about as much per frame as a
+        // window frame, a software band about a third of it (18.11.2026).
+        val half = configuredAmplitudePx + trackHeight
+        surfaceDirty.set(0, height / 2 - half, width, height / 2 + half)
+        val canvas = try {
+            holder.lockCanvas(surfaceDirty)
+        } catch (e: IllegalStateException) {
+            null
+        } ?: return
+        try {
+            canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR)
+            drawWave(canvas)
+        } finally {
+            holder.unlockCanvasAndPost(canvas)
+        }
+    }
+
     private val phaseTicker =
         object : Runnable {
             override fun run() {
@@ -123,7 +179,8 @@ constructor(
                 if (shouldTickPhase()) {
                     updatePhaseFraction()
                 }
-                invalidate()
+                // Ordo: a flowing wave only redraws its own small surface, never the window.
+                if (surfaceReady) renderWaveSurface() else invalidate()
                 schedulePhaseTicker()
             }
         }
@@ -264,7 +321,10 @@ constructor(
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
+        if (surfaceReady) renderWaveSurface() else drawWave(canvas)
+    }
 
+    private fun drawWave(canvas: Canvas) {
         val trackLength = trackWidth.toFloat()
         if (trackLength <= 0f) {
             // Nothing to draw width-wise
@@ -615,7 +675,8 @@ constructor(
     }
 
     private fun shouldTickPhase(): Boolean =
-        shouldDrawWave() &&
+        surfaceReady &&
+            shouldDrawWave() &&
             waveSpeed != 0 &&
             isVisible &&
             windowVisibility == VISIBLE &&

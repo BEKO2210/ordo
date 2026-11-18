@@ -32,6 +32,7 @@ class PlayerSeekSlider @JvmOverloads constructor(
     private var lastY = 0f
     private var waiting = false
     private var grabbed = false
+    private var restWidth = 0
 
     private val grab = Runnable {
         if (!waiting) return@Runnable
@@ -39,6 +40,9 @@ class PlayerSeekSlider @JvmOverloads constructor(
         grabbed = true
         parent?.requestDisallowInterceptTouchEvent(true)
         performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+        // The handle widens while it is held, so the hold visibly took (review panel 18.11.2026).
+        restWidth = thumbWidth
+        thumbWidth = restWidth * GRABBED_WIDTH_FACTOR
         // The slider waits for a touch-slop move inside a scrolling parent; a synthetic press just beside the finger
         // and a move onto it start the drag at once, with the value under the finger.
         val now = SystemClock.uptimeMillis()
@@ -73,6 +77,7 @@ class PlayerSeekSlider @JvmOverloads constructor(
                 cancelHold()
                 if (!grabbed) return true
                 grabbed = false
+                thumbWidth = restWidth
                 // A finger that never moved after the grab leaves where it was grabbed; that was deliberate too.
                 return super.onTouchEvent(event)
             }
@@ -102,5 +107,6 @@ class PlayerSeekSlider @JvmOverloads constructor(
 
     companion object {
         const val HOLD_MS = 150L
+        private const val GRABBED_WIDTH_FACTOR = 2
     }
 }

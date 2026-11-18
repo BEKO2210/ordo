@@ -23,7 +23,6 @@ import android.os.PowerManager
 import android.view.View
 import androidx.annotation.RequiresApi
 import androidx.core.content.getSystemService
-import me.zhanghai.android.files.ui.FrameGrid
 import me.zhanghai.android.files.ui.Motion
 import kotlin.math.cos
 import kotlin.math.max
@@ -35,7 +34,8 @@ import kotlin.math.sin
  * colours drift through it. Idea from Metrolist's liquid background (GPL-3.0, Compose), rebuilt as a View:
  * an AGSL shader with a slow liquid warp from Android 13, a RenderEffect blur on Android 12, a moving pre-blurred
  * bitmap below. It moves only while music plays, the screen shows it, motion is on in full and battery saver is off;
- * otherwise it stands still. It redraws every [FRAME_MS] in a GPU layer of its own.
+ * otherwise it stands still. It has no clock of its own: [advance] moves it one step with the player's once-a-second
+ * time update, in the same frame, so it adds no frames, only its own GPU layer is shaded again.
  */
 class PlayerAtmosphereView(context: Context) : View(context) {
     /** One song's look: the blurred cover (null without a cover), the field colours, and the veil over both. */
@@ -59,8 +59,6 @@ class PlayerAtmosphereView(context: Context) : View(context) {
             field = value
             updateTicking()
         }
-
-    private val tick = Runnable { invalidate() }
 
     init {
         // Its own GPU layer: when only the wave moves, the frame reuses the backdrop instead of shading it again.
@@ -99,9 +97,13 @@ class PlayerAtmosphereView(context: Context) : View(context) {
         updateTicking()
     }
 
+    /** One step of the drift; call it with a redraw that happens anyway (the player's time update). */
+    fun advance() {
+        if (ticking) invalidate()
+    }
+
     override fun onDetachedFromWindow() {
         fadeAnimator?.cancel()
-        removeCallbacks(tick)
         ticking = false
         super.onDetachedFromWindow()
     }
@@ -123,7 +125,6 @@ class PlayerAtmosphereView(context: Context) : View(context) {
         if (now == ticking) return
         ticking = now
         lastFrameNanos = 0L
-        removeCallbacks(tick)
         if (now) invalidate()
     }
 
@@ -131,10 +132,8 @@ class PlayerAtmosphereView(context: Context) : View(context) {
     override fun onDraw(canvas: Canvas) {
         if (ticking) {
             val nanos = System.nanoTime()
-            if (lastFrameNanos != 0L) timeSeconds += ((nanos - lastFrameNanos) / 1e9f).coerceAtMost(0.1f)
+            if (lastFrameNanos != 0L) timeSeconds += ((nanos - lastFrameNanos) / 1e9f).coerceAtMost(MAX_STEP_S)
             lastFrameNanos = nanos
-            removeCallbacks(tick)
-            postDelayed(tick, FrameGrid.delayToNext(FRAME_MS))
         }
         val base = previous ?: current ?: return
         canvas.drawColor(base.veil)
@@ -166,10 +165,10 @@ class PlayerAtmosphereView(context: Context) : View(context) {
         val t = timeSeconds
         matrix.reset()
         matrix.postTranslate(-cover.width / 2f, -cover.height / 2f)
-        matrix.postRotate(8f * sin(t * 0.05f))
+        matrix.postRotate(4f * sin(t * 0.025f))
         matrix.postScale(scale, scale)
         matrix.postTranslate(
-            width / 2f + width * 0.04f * sin(t * 0.07f), height / 2f + height * 0.03f * cos(t * 0.05f)
+            width / 2f + width * 0.04f * sin(t * 0.035f), height / 2f + height * 0.03f * cos(t * 0.025f)
         )
         paint.shader = null
         paint.alpha = (alpha * 255).toInt()
@@ -180,8 +179,8 @@ class PlayerAtmosphereView(context: Context) : View(context) {
         val t = timeSeconds
         colors.forEachIndexed { i, color ->
             val phase = i * 2.1f
-            val x = width * (0.5f + 0.32f * sin(t * 0.04f + phase))
-            val y = height * (0.45f + 0.28f * cos(t * 0.03f + phase))
+            val x = width * (0.5f + 0.32f * sin(t * 0.008f + phase))
+            val y = height * (0.45f + 0.28f * cos(t * 0.006f + phase))
             val radius = max(width, height) * 0.55f
             val center = Color.argb((FIELD_ALPHA * alpha * 255).toInt(), Color.red(color), Color.green(color),
                 Color.blue(color))
@@ -215,13 +214,13 @@ class PlayerAtmosphereView(context: Context) : View(context) {
 
     companion object {
         /**
-         * 7.5 frames a second, on the wave's ticks: the backdrop is blurred and drifts a few pixels a second, so steps
-         * this small are invisible, and more frames would only cost battery.
+         * The drift moves at most ~5 px a second on the blurred backdrop, so one step a second is not seen as a jump;
+         * a longer gap (a pause in drawing) does not make it leap.
          */
-        private const val FRAME_MS = FrameGrid.WAVE_MS * 2
+        private const val MAX_STEP_S = 1.5f
         private const val CROSSFADE_MS = 300L
         private const val OVERSCAN = 1.35f
-        private const val FIELD_ALPHA = 0.32f
+        private const val FIELD_ALPHA = 0.4f
 
         // The cover fills the view enlarged, turns a few degrees and flows in a slow liquid warp; two colour fields
         // drift on top; the veil decides the final contrast; a little noise keeps gradients free of banding.
@@ -237,14 +236,14 @@ uniform half4 veil;
 half4 main(float2 p) {
     float k = max(size.x, size.y) * 1.35;
     float2 c = (p - size * 0.5) / k;
-    float a = 0.14 * sin(time * 0.05);
+    float a = 0.07 * sin(time * 0.025);
     c = float2(c.x * cos(a) - c.y * sin(a), c.x * sin(a) + c.y * cos(a));
-    c += 0.045 * float2(sin(c.y * 5.0 + time * 0.12), cos(c.x * 4.0 + time * 0.09));
-    c += float2(0.04 * sin(time * 0.07), 0.03 * cos(time * 0.05));
+    c += 0.045 * float2(sin(c.y * 5.0 + time * 0.025), cos(c.x * 4.0 + time * 0.02));
+    c += float2(0.04 * sin(time * 0.035), 0.03 * cos(time * 0.025));
     half3 color = cover.eval((c + 0.5) * coverSize).rgb;
     float2 uv = p / size;
-    float2 ca = float2(0.5 + 0.32 * sin(time * 0.04), 0.45 + 0.28 * cos(time * 0.03));
-    float2 cb = float2(0.5 + 0.32 * sin(time * 0.04 + 2.1), 0.45 + 0.28 * cos(time * 0.03 + 2.1));
+    float2 ca = float2(0.5 + 0.32 * sin(time * 0.008), 0.45 + 0.28 * cos(time * 0.006));
+    float2 cb = float2(0.5 + 0.32 * sin(time * 0.008 + 2.1), 0.45 + 0.28 * cos(time * 0.006 + 2.1));
     color = mix(color, fieldA.rgb, fieldA.a * smoothstep(0.75, 0.0, distance(uv, ca)));
     color = mix(color, fieldB.rgb, fieldB.a * smoothstep(0.75, 0.0, distance(uv, cb)));
     color = mix(color, veil.rgb, veil.a);

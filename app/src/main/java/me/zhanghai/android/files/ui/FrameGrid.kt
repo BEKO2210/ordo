@@ -18,8 +18,8 @@ object FrameGrid {
     /** 30 frames a second: the bars. */
     const val FRAME_MS = 33L
 
-    /** 15 frames a second: the wave flows slowly enough that its steps stay under 2 px. */
-    const val WAVE_MS = FRAME_MS * 2
+    /** 10 frames a second: the wave flows slowly (10 dp a second), so its steps stay about 1 dp. */
+    const val WAVE_MS = FRAME_MS * 3
 
     /** Milliseconds until the next tick of a grid with [periodMs]; multiples of [FRAME_MS] share the same ticks. */
     fun delayToNext(periodMs: Long = FRAME_MS): Long = periodMs - SystemClock.uptimeMillis() % periodMs

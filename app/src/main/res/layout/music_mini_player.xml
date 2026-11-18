@@ -94,6 +94,7 @@
             android:importantForAccessibility="no"
             android:max="1000"
             app:trackCornerRadius="@dimen/phi_3"
+            app:trackStopIndicatorSize="0dp"
             app:trackThickness="@dimen/phi_3"
             app:waveAmplitude="0dp"
             app:waveAmplitudeRampProgressMax="0.05"

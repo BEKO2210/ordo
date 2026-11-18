@@ -45,19 +45,32 @@ class AudioPlayerColorWashTest {
     }
 
     @Test
-    fun seedIsTheMostColourfulHueNotTheAverage() {
-        // A dark blue cover with an orange sun on a fifth of it: grey average, but the player takes the blue.
-        val pixels = IntArray(100) { if (it < 20) 0xffff8800.toInt() else 0xff102a80.toInt() }
-        val seed = AudioPlayerColorWash.seed(pixels)!!
-        assertEquals(0x10, seed shr 16 and 0xff)
-        assertEquals(0x80, seed and 0xff)
+    fun seedIsTheMostVividHueNotTheLargestArea() {
+        // The aurora cover: a teal band on a fifth of it over a large dull violet sky; the player takes the teal.
+        val pixels = IntArray(100) { if (it < 20) 0xff20c8a0.toInt() else 0xff281860.toInt() }
+        assertEquals(0xff20c8a0.toInt(), AudioPlayerColorWash.seed(pixels))
+        // Without a vivid part the large area still wins.
+        val calm = IntArray(100) { if (it < 20) 0xff606a70.toInt() else 0xff281860.toInt() }
+        assertEquals(0xff281860.toInt(), AudioPlayerColorWash.seed(calm))
     }
 
     @Test
-    fun greyCoverGivesItsAverage() {
+    fun greyCoverKeepsTheThemeColours() {
         val pixels = IntArray(100) { if (it % 2 == 0) 0xff202020.toInt() else 0xffa0a0a0.toInt() }
-        assertEquals(0xff606060.toInt(), AudioPlayerColorWash.seed(pixels))
+        assertNull(AudioPlayerColorWash.seed(pixels))
         assertNull(AudioPlayerColorWash.seed(intArrayOf(0x00ff0000)))
+    }
+
+    @Test
+    fun unplayedTrackStandsThreeToOne() {
+        for ((accent, background) in listOf(
+            0xff5b5a9a.toInt() to 0xffe8e6f0.toInt(), 0xffc6c2ff.toInt() to 0xff1c1b2a.toInt(),
+            0xff006874.toInt() to 0xfff5f7fa.toInt()
+        )) {
+            val track = AudioPlayerColorWash.inactiveTrack(accent, background)
+            assertTrue(AudioPlayerColorWash.contrastRatio(track, background) >= 3.0)
+            assertTrue(track ushr 24 < 0xff || AudioPlayerColorWash.contrastRatio(accent, background) < 3.6)
+        }
     }
 
     @Test
