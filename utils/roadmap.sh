@@ -190,6 +190,16 @@ cell "Dokumente bearbeiten: Entscheidung für Office-Formate" \
     "DOCX, XLSX, PPTX und ODT: ehrlich klären, was auf dem Gerät ohne Cloud in Spitzenqualität geht (ansehen, bearbeiten, gar nicht), mit Größe und Lizenz. Entscheidung von Belkis in docs/OFFICE-ENTSCHEIDUNG.md." \
     "Markdown lesen und schreiben"
 
+cell "KI: Musik per Satz abspielen (Datei-Manager und Ordo Musik)" \
+    "test -s docs/KI-MUSIK.md && test -f $TESTS/ai/MusicCommandTest.kt" \
+    "Sätze wie „Spiel alle Songs von gestern“, „Spiel meine Favoriten zufällig“, „Spiel das Album …“, „Spiel die Musik aus dem Ordner …“, „Schlaf-Timer 30 Minuten“ werden zu einem geprüften Plan (Filter auf Datum, Interpret, Album, Genre, Jahr, Ordner, Wiedergabeliste, Favoriten, Zuletzt/Meistgespielt, Dauer, Format) und spielen nach Vorschau ab. Einfache Sätze ohne Modell über Regeln (jedes Gerät), freie Sätze über das lokale Modell. Ehrlich nur, was die Metadaten hergeben; Fehlgriffe nie destruktiv." \
+    "Ordo Musik: Auswahl, Wiedergabelisten und Favoriten"
+
+cell "Offline-Chatbot, verbunden mit allen eingebauten Apps" \
+    "test -s docs/KI-CHAT.md && test -f $TESTS/ai/ChatToolRouterTest.kt" \
+    "Ein Chat auf dem Gerät ohne Internet, der alle Teile von Ordo bedienen kann: öffnen, suchen, Musik oder Videos abspielen, PDF schreiben und bearbeiten, Dateien ordnen. Jede Aktion als geprüftes Werkzeug mit Vorschau und Bestätigung; Löschen und Überschreiben nie ohne ausdrückliches Ja. Kommt am Ende, wenn Video, PDF und Dokumente stehen." \
+    "KI: Musik per Satz abspielen (Datei-Manager und Ordo Musik)" "Video-Player: Filme direkt in Ordo ansehen" "PDF bearbeiten: markieren, kommentieren, Formulare, Seiten ordnen"
+
 # ---- The release cycle: opens again after every release, for ever -----------------------------------------------
 LAST=$($TAG 'refs/tags/v[0-9]*' | sed -n 's|.*refs/tags/v\([0-9.]*\)$|\1|p' | sort -V | tail -1)
 if [ -n "$LAST" ]; then
