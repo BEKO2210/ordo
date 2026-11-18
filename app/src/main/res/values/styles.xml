@@ -208,6 +208,28 @@
         <item name="android:tint">?colorOnPrimary</item>
     </style>
 
+    <!-- The wavy seek bar (Auxio's WavySlider): a slim bar thumb with a gap, the wave only while playing. The
+         colours come from the cover at runtime. -->
+    <style name="Widget.Ordo.AudioPlayer.Seek" parent="Widget.MaterialComponents.Slider">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">48dp</item>
+        <item name="android:valueFrom">0</item>
+        <item name="android:valueTo">1000</item>
+        <item name="trackHeight">5dp</item>
+        <item name="thumbWidth">5dp</item>
+        <item name="thumbHeight">34dp</item>
+        <item name="thumbTrackGapSize">5dp</item>
+        <item name="thumbElevation">0dp</item>
+        <item name="trackStopIndicatorSize">0dp</item>
+        <item name="haloRadius">0dp</item>
+        <item name="labelBehavior">floating</item>
+        <item name="wavelength">34dp</item>
+        <item name="waveAmplitude">3dp</item>
+        <item name="waveSpeed">21dp</item>
+        <item name="waveAmplitudeRampProgressMin">0.0</item>
+        <item name="waveAmplitudeRampProgressMax">0.03</item>
+    </style>
+
     <style name="Widget.Ordo.OnboardingFeature" parent="">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>

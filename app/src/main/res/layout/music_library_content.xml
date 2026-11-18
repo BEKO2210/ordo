@@ -72,6 +72,7 @@
                 app:tabIndicatorGravity="stretch"
                 app:tabInlineLabel="@bool/music_tabs_inline"
                 app:tabMode="auto"
+                app:tabRippleColor="@null"
                 app:tabTextAppearance="?textAppearanceBody2" />
         </com.google.android.material.appbar.AppBarLayout>
 

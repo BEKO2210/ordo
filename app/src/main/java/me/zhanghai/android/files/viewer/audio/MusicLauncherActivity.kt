@@ -21,6 +21,8 @@ import android.view.ViewGroup
 import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.Rect
+import android.graphics.Bitmap
+import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.widget.ImageView
 import androidx.annotation.DrawableRes
@@ -135,6 +137,8 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
     // The song in the session (by path) and whether it plays: its row shows the moving bars.
     private var playingPath: String? = null
     private var currentPlaying = false
+    private var miniAccent: Int? = null
+    private var miniColorAnimator: android.animation.ValueAnimator? = null
     private var saved: PlaybackStateStore.State? = null
     private var controllerFuture: ListenableFuture<MediaController>? = null
     private var controller: MediaController? = null
@@ -262,6 +266,15 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
         tabs.setSelectedTabIndicatorColor(pill)
         tabs.tabTextColors = colors
         tabs.tabIconTint = colors
+        // TabLayout's own ripple fills the whole rectangular tab (owner: a square frame flashed around the pill), so
+        // it is off in the layout and every tab gets a ripple masked to exactly the pill's shape instead.
+        val highlight = MaterialColors.getColor(tabs, androidx.appcompat.R.attr.colorControlHighlight)
+        for (i in 0 until tabs.tabCount) {
+            tabs.getTabAt(i)?.view?.background = android.graphics.drawable.RippleDrawable(
+                ColorStateList.valueOf(highlight), null,
+                ContextCompat.getDrawable(this, R.drawable.music_tab_indicator)
+            )
+        }
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -1146,8 +1159,16 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
         if (artKey != miniArtKey || !mini.root.isVisible) {
             miniArtKey = artKey
             mini.art.collage.isVisible = false
-            mini.art.cover.loadCover(art, placeholder(album, R.drawable.audio_icon_white_24dp))
+            mini.art.cover.loadCover(art, placeholder(album, R.drawable.audio_icon_white_24dp)) {
+                tintMiniPlayer(it, artKey)
+            }
+            if (art == null) tintMiniPlayer(null, artKey)
         }
+        // A quiet wave while music plays, flat when paused; it only flows with motion in full.
+        mini.progress.waveAmplitude =
+            if (isPlaying) resources.getDimensionPixelSize(R.dimen.music_mini_wave_amplitude) else 0
+        mini.progress.waveSpeed =
+            if (isPlaying && Motion.full) resources.getDimensionPixelSize(R.dimen.music_mini_wave_speed) else 0
         if (!mini.root.isVisible) {
             mini.root.isVisible = true
             if (Motion.any) {
@@ -1173,7 +1194,7 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
         binding.content.miniPlayer.progress.setProgressCompat(progress, false)
     }
 
-    private fun ImageView.loadCover(data: Any?, placeholder: Drawable?) {
+    private fun ImageView.loadCover(data: Any?, placeholder: Drawable?, onLoaded: ((Drawable?) -> Unit)? = null) {
         if (data == null) {
             dispose()
             setImageDrawable(placeholder)
@@ -1183,6 +1204,64 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
             placeholder(placeholder)
             error(placeholder)
             crossfade(Motion.any)
+            if (onLoaded != null) {
+                // The tint reads the cover's pixels, which a hardware bitmap does not allow.
+                allowHardware(false)
+                listener(onSuccess = { _, result -> onLoaded(result.drawable) }, onError = { _, _ -> onLoaded(null) })
+            }
+        }
+    }
+
+    /**
+     * The mini player takes on the playing cover's colour like the player: the card tinted towards it, the wave in its
+     * accent, both WCAG-checked by [AudioPlayerColorWash.scheme] and computed off the main thread; no cover or a failed
+     * check keeps the theme's colours.
+     */
+    private fun tintMiniPlayer(drawable: Drawable?, key: Any?) {
+        val mini = binding.content.miniPlayer
+        val surface = MaterialColors.getColor(mini.root, com.google.android.material.R.attr.colorSurfaceVariant)
+        val onSurface = MaterialColors.getColor(mini.root, com.google.android.material.R.attr.colorOnSurface)
+        val primary = MaterialColors.getColor(mini.root, androidx.appcompat.R.attr.colorPrimary)
+        val bitmap = (drawable as? BitmapDrawable)?.bitmap
+        if (bitmap == null) {
+            applyMiniColors(surface, primary)
+            return
+        }
+        val isLight = androidx.core.graphics.ColorUtils.calculateLuminance(surface) > 0.5
+        lifecycleScope.launch {
+            val scheme = withContext(Dispatchers.Default) {
+                val small = Bitmap.createScaledBitmap(bitmap, MINI_TINT_SAMPLE, MINI_TINT_SAMPLE, true)
+                val pixels = IntArray(MINI_TINT_SAMPLE * MINI_TINT_SAMPLE)
+                small.getPixels(pixels, 0, MINI_TINT_SAMPLE, 0, 0, MINI_TINT_SAMPLE, MINI_TINT_SAMPLE)
+                if (small !== bitmap) small.recycle()
+                AudioPlayerColorWash.seed(pixels)?.let { AudioPlayerColorWash.scheme(it, surface, onSurface, isLight) }
+            }
+            if (key != miniArtKey) return@launch
+            applyMiniColors(scheme?.tint ?: surface, scheme?.accent ?: primary)
+        }
+    }
+
+    private fun applyMiniColors(card: Int, accent: Int) {
+        val mini = binding.content.miniPlayer
+        val from = mini.root.cardBackgroundColor.defaultColor
+        val fromAccent = miniAccent ?: accent
+        miniAccent = accent
+        miniColorAnimator?.cancel()
+        val evaluator = android.animation.ArgbEvaluator()
+        fun apply(f: Float) {
+            mini.root.setCardBackgroundColor(evaluator.evaluate(f, from, card) as Int)
+            val a = evaluator.evaluate(f, fromAccent, accent) as Int
+            mini.progress.setIndicatorColor(a)
+            mini.progress.trackColor = androidx.core.graphics.ColorUtils.setAlphaComponent(a, MINI_TRACK_ALPHA)
+        }
+        if (!Motion.any || !mini.root.isShown) {
+            apply(1f)
+            return
+        }
+        miniColorAnimator = android.animation.ValueAnimator.ofFloat(0f, 1f).apply {
+            duration = MINI_TINT_FADE_MS
+            addUpdateListener { apply(it.animatedFraction) }
+            start()
         }
     }
 
@@ -1433,6 +1512,9 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
         // Once a second, like the player: a screen that redraws more often never goes idle for accessibility tools.
         private const val PROGRESS_UPDATE_INTERVAL_MS = 1_000L
         private const val MINI_PLAYER_FADE_MS = 200L
+        private const val MINI_TINT_SAMPLE = 24
+        private const val MINI_TINT_FADE_MS = 300L
+        private const val MINI_TRACK_ALPHA = 0x3d
         private const val DISABLED_ALPHA = 0.38f
         private const val TWO_PANE_MIN_WIDTH_DP = 600
     }

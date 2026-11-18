@@ -47,10 +47,11 @@
             <TextView android:id="@+id/album" style="@style/Widget.Ordo.AudioPlayer.Subtitle"
                 android:visibility="gone" />
 
-            <SeekBar android:id="@+id/seekBar" android:layout_width="match_parent"
-                android:layout_height="48dp" android:layout_marginTop="24dp"
-                android:contentDescription="@string/audio_player_position" android:max="1000"
-                android:paddingStart="0dp" android:paddingEnd="0dp" />
+            <me.zhanghai.android.files.viewer.audio.PlayerSeekSlider
+                android:id="@+id/seekBar"
+                style="@style/Widget.Ordo.AudioPlayer.Seek"
+                android:layout_marginTop="24dp"
+                android:contentDescription="@string/audio_player_position" />
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
                 android:orientation="horizontal">
                 <TextView android:id="@+id/elapsed" style="@style/Widget.Ordo.AudioPlayer.Time" android:text="0:00" />

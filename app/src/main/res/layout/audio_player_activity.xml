@@ -79,15 +79,11 @@
                 style="@style/Widget.Ordo.AudioPlayer.Subtitle"
                 android:visibility="gone" />
 
-            <SeekBar
+            <me.zhanghai.android.files.viewer.audio.PlayerSeekSlider
                 android:id="@+id/seekBar"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
+                style="@style/Widget.Ordo.AudioPlayer.Seek"
                 android:layout_marginTop="16dp"
-                android:contentDescription="@string/audio_player_position"
-                android:max="1000"
-                android:paddingStart="0dp"
-                android:paddingEnd="0dp" />
+                android:contentDescription="@string/audio_player_position" />
 
             <LinearLayout
                 android:layout_width="match_parent"

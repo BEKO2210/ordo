@@ -1097,6 +1097,8 @@
     <string name="audio_player_repeat_all">Repeat all</string>
     <string name="audio_player_repeat_one">Repeat this song</string>
     <string name="audio_player_position">Position</string>
+    <string name="audio_player_seek_back">−10 s</string>
+    <string name="audio_player_seek_forward">+10 s</string>
     <string name="audio_player_progress_format">%1$s of %2$s</string>
     <string name="audio_player_external_refused">Ordo plays only shared audio from other apps.</string>
     <string name="audio_player_error">This song couldn’t be played.</string>

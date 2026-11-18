@@ -14,5 +14,11 @@
             android:exported="true"
             android:permission="android.permission.DUMP"
             android:theme="@style/Theme.MaterialFiles" />
+
+        <!-- e2e/no-midword-breaks.sh: logs every visible text that breaks inside a word (owner's rule). -->
+        <provider
+            android:name="me.zhanghai.android.files.ui.MidwordWatchProvider"
+            android:authorities="${applicationId}.midword_watch"
+            android:exported="false" />
     </application>
 </manifest>
