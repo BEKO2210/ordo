@@ -6,7 +6,9 @@
 package me.zhanghai.android.files.viewer.audio.lyrics
 
 import java.io.File
+import java.io.ByteArrayOutputStream
 import java.io.InputStream
+import java.io.OutputStream
 import java.net.URI
 import java.nio.ByteBuffer
 import java.nio.charset.CharacterCodingException
@@ -100,8 +102,10 @@ object LyricsRepository {
                 (sidecar?.let { "${it.key}/${it.lastModified}/${it.size}" } ?: "absent")
         }.getOrElse { return null }
         synchronized(cache) { cache[file.key]?.takeIf { it.stamp == stamp }?.let { return it.lyrics } }
+        // The size check is only a fast path; a remote or growing file is capped while it is read.
         val sidecarText = sidecar?.takeIf { it.size <= MAX_BYTES }
-            ?.let { runCatching { decodeText(it.newInputStream().use(InputStream::readBytes)) }.getOrNull() }
+            ?.let { lrc -> runCatching { lrc.newInputStream().use { it.readAtMost(MAX_BYTES.toLong()) } }.getOrNull() }
+            ?.let(::decodeText)
         val lyrics = pick(sidecarText) { runCatching { readEmbedded(file) }.getOrDefault(EmbeddedLyrics()) }
         synchronized(cache) { cache[file.key] = Entry(stamp, lyrics) }
         return lyrics
@@ -155,12 +159,31 @@ object LyricsRepository {
         if (file.size > MAX_COPY_BYTES) return EmbeddedLyrics()
         val copy = File.createTempFile("ordo-lyrics-", ".$extension")
         try {
-            file.newInputStream().use { input -> copy.outputStream().use { input.copyTo(it) } }
-            return readEmbedded(copy)
+            val complete = file.newInputStream().use { input ->
+                copy.outputStream().use { input.copyAtMost(it, MAX_COPY_BYTES) }
+            }
+            return if (complete) readEmbedded(copy) else EmbeddedLyrics()
         } finally {
             copy.delete()
         }
     }
+
+    /** Copies at most [limit] bytes; false when the stream has more, so the copy is incomplete. */
+    internal fun InputStream.copyAtMost(out: OutputStream, limit: Long): Boolean {
+        val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+        var total = 0L
+        while (true) {
+            val read = read(buffer)
+            if (read < 0) return true
+            total += read
+            if (total > limit) return false
+            out.write(buffer, 0, read)
+        }
+    }
+
+    /** All bytes when there are at most [limit], else null. */
+    internal fun InputStream.readAtMost(limit: Long): ByteArray? =
+        ByteArrayOutputStream().let { if (copyAtMost(it, limit)) it.toByteArray() else null }
 
     private fun readEmbedded(file: File): EmbeddedLyrics {
         val audio = AudioFileIO.read(file)

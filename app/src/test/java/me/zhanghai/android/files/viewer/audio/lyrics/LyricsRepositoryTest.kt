@@ -18,19 +18,28 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotSame
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertSame
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
 
 /** java.io.File as the repository sees a song; [listable] false is a content:// song, [local] false a remote one. */
-private class TestFile(val file: File, val listable: Boolean = true, val local: Boolean = true) : LyricsFile {
+private class TestFile(
+    val file: File,
+    val listable: Boolean = true,
+    val local: Boolean = true,
+    // A remote file whose size and content disagree: it reports [size], then streams [content].
+    val reportedSize: Long? = null,
+    val content: (() -> InputStream)? = null,
+    val sidecar: TestFile? = null
+) : LyricsFile {
     override val key: String get() = file.toURI().toString()
     override val name: String get() = file.name
     override val lastModified: Long get() = file.lastModified()
-    override val size: Long get() = file.length()
+    override val size: Long get() = reportedSize ?: file.length()
     override fun siblings(): List<LyricsFile>? =
-        if (listable) file.parentFile!!.listFiles()!!.map { TestFile(it) } else null
-    override fun newInputStream(): InputStream = file.inputStream()
+        if (!listable) null else sidecar?.let { listOf(it) } ?: file.parentFile!!.listFiles()!!.map { TestFile(it) }
+    override fun newInputStream(): InputStream = content?.invoke() ?: file.inputStream()
     override fun toLocalFile(): File? = if (local) file else null
 }
 
@@ -156,6 +165,45 @@ class LyricsRepositoryTest {
         val lyrics = LyricsRepository.loadBlocking(TestFile(file, listable = false, local = false))!!
         assertEquals(LyricsSource.EMBEDDED_SYNCED, lyrics.source)
         assertEquals("Getaktet", lyrics.lines[0].text)
+    }
+
+    // Endless zeros: a file that keeps growing while it is read.
+    private fun endless() = object : InputStream() {
+        override fun read(): Int = 0
+        override fun read(b: ByteArray, off: Int, len: Int): Int = len.also { b.fill(0, off, off + len) }
+    }
+
+    @Test
+    fun capsHoldOnTheStream() {
+        with(LyricsRepository) {
+            assertEquals(3, "abc".byteInputStream().readAtMost(3)!!.size)
+            assertNull("abcd".byteInputStream().readAtMost(3))
+            assertNull(endless().readAtMost(1000))
+            val out = ByteArrayOutputStream()
+            assertEquals(false, endless().copyAtMost(out, 10_000))
+            assertTrue(out.size() <= 10_000)
+        }
+    }
+
+    @Test
+    fun sidecarThatLiesAboutItsSizeIsIgnored() {
+        val file = File(folder.root, "remote.mp3").apply { writeBytes(ByteArray(0)) }
+        val lrc = File(folder.root, "remote.lrc").apply { writeText("[00:01.00]A") }
+        val lying = TestFile(lrc, reportedSize = 10, content = {
+            java.io.SequenceInputStream("[00:01.00]A\n".byteInputStream(), endless())
+        })
+        assertNull(LyricsRepository.loadBlocking(TestFile(file, sidecar = lying)))
+    }
+
+    @Test
+    fun songThatLiesAboutItsSizeIsNotCopiedPastTheCapAndLeavesNoTempFile() {
+        val tmp = File(System.getProperty("java.io.tmpdir")!!)
+        fun temps() = tmp.list()!!.count { it.startsWith("ordo-lyrics-") }
+        val before = temps()
+        val file = File(folder.root, "remote.mp3").apply { writeBytes(ByteArray(0)) }
+        val song = TestFile(file, listable = false, local = false, reportedSize = 1000, content = ::endless)
+        assertNull(LyricsRepository.loadBlocking(song))
+        assertEquals(before, temps())
     }
 
     @Test
