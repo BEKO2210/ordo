@@ -10,7 +10,7 @@
     ui.py SERIAL visible ID        exit 0 if that view of the front activity's window is shown (fast; no popups/dialogs)
     ui.py SERIAL wait TARGET [S]   wait up to S seconds (default 10) for a node
     ui.py SERIAL waitgone TARGET [S] wait up to S seconds (default 10) for a node to disappear
-    ui.py SERIAL bounds TARGET     print "x1 y1 x2 y2" for every matching node
+    ui.py SERIAL bounds TARGET [ID] print "x1 y1 x2 y2" for every matching node
     ui.py SERIAL texts             print "text|resource-id|content-desc" per node
     ui.py SERIAL shot FILE         screenshot as PNG
 
@@ -243,7 +243,10 @@ elif command == "waitgone":
     sys.exit(f"timed out waiting for disappearance of: {sys.argv[3]}")
 elif command == "bounds":
     wanted = sys.argv[3].split("|")
+    inside = sys.argv[4] if len(sys.argv) > 4 else None
     for text, rid, desc, x1, y1, x2, y2 in nodes():
+        if inside and rid.split("/")[-1] != inside:
+            continue
         if text in wanted or desc in wanted or rid.split("/")[-1] in wanted:
             print(x1, y1, x2, y2)
 elif command == "texts":

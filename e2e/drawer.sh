@@ -10,6 +10,17 @@ read -r W H < <(screen_size)
 menu_open() { ui visible navigationFragment; }
 menu_closed() { ! menu_open; }
 open_menu() { ui tap menuButton >/dev/null 2>&1; sleep 1; }
+# Top edge of the navigation bar at the bottom (gesture bar or buttons), else the screen's end. A tap on an entry
+# behind it reaches the system, not the menu: on a landscape tablet the last visible entry sat right there.
+NAV=$(a shell dumpsys window | grep -m1 -oE "type=navigationBars frame=\[0,[0-9]+\]\[$W,$H\]" | sed -E 's/.*\[0,([0-9]+)\].*/\1/')
+NAV=${NAV:-$H}
+# tap_entry ENTRY: taps it only when it lies fully above the navigation bar.
+tap_entry() {
+    local x1 y1 x2 y2
+    read -r x1 y1 x2 y2 < <(ui bounds "$1" titleText | head -1)
+    [ -n "${y2:-}" ] && [ "$y2" -le "$NAV" ] || return 1
+    a shell input tap $(((x1 + x2) / 2)) $(((y1 + y2) / 2)); sleep 1.2
+}
 # The menu is a list: its last entries are only reachable by scrolling.
 menu_scroll() { a shell input swipe $((W / 6)) $((H * $1 / 100)) $((W / 6)) $((H * $2 / 100)) 400; sleep 1; }
 menu_top() { menu_scroll 30 80; menu_scroll 30 80; }
@@ -34,7 +45,7 @@ menu_tap() {
     for round in 1 2; do
         # Small steps: a long swipe can fling an entry past the visible area on tall phones.
         for try in 1 2 3 4 5 6 7 8; do
-            E2E_FAST=0 ui tap "$1" titleText >/dev/null 2>&1 && return 0   # the menu scrolls: always read it
+            tap_entry "$1" && return 0
             menu_scroll 65 50
         done
         menu_top
@@ -67,7 +78,8 @@ for i in "${!entries[@]}"; do
     wait_on "$screen"; guard
     check "$entry opens ${screen##*.}" on "$screen"
     back 0.3
-    wait_on home.HomeActivity 3 || back 2   # an unlock prompt was on top
+    # An unlock prompt was on top: one more back closes it, and one before that its keyboard (PIN or password).
+    for _ in 1 2; do wait_on home.HomeActivity 3 && break; guard; back 2; done
     check "$entry: back returns to the home screen" on home.HomeActivity
     # A dialog opens over the menu, which stays open below it, as in the file list.
     [ "$screen" = storage.AddStorageDialogActivity ] && menu_open && back

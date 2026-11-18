@@ -64,7 +64,8 @@ open_app() {
     grant
     a logcat -b crash -c
     a shell am force-stop "$PKG"
-    a shell monkey -p "$PKG" -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1
+    # The home screen by name: with the "Ordo Musik" icon switched on, a launcher pick (monkey) may open the music app.
+    a shell am start -a android.intent.action.MAIN -c android.intent.category.LAUNCHER -f 0x10200000 -n "$PKG/me.zhanghai.android.files.home.HomeActivity" >/dev/null 2>&1
     sleep "${1:-6}"
 }
 # After a fresh install or cleared data Ordo first shows its welcome pages; they are skipped through their own button.
@@ -80,7 +81,17 @@ launch() {
     skip_onboarding
     guard
 }
-screen_size() { a shell wm size | tail -1 | sed 's/.*: //; s/x/ /'; }
+# The screen as it stands now, e.g. "2560 1600": `wm size` gives the natural (portrait) size even when the device is
+# turned, so swipes on a tablet in landscape landed below the screen.
+screen_size() { a shell dumpsys window displays | grep -o -m1 'cur=[0-9]*x[0-9]*' | sed 's/cur=//; s/x/ /'; }
+# record S FILE: screen recording of S seconds on the device. A tablet's encoder may refuse its full 2560x1600, and
+# screenrecord then falls back to 1280x720, another aspect: above 1920 px it records at half size. Start ffmpeg's
+# filter with scale=W:H (screen_size), so crops use the screen's own coordinates on every device.
+record() {
+    local w h size=""; read -r w h < <(screen_size)
+    [ $((w > h ? w : h)) -gt 1920 ] && size="--size $((w / 2))x$((h / 2))"
+    a shell "screenrecord $size --time-limit $1 $2"
+}
 swipe_up() { read -r W H < <(screen_size); a shell input swipe $((W / 2)) $((H * 3 / 4)) $((W / 2)) $((H / 3)) 500; sleep 1.5; }
 swipe_down() { read -r W H < <(screen_size); a shell input swipe $((W / 2)) $((H / 3)) $((W / 2)) $((H * 3 / 4)) 500; sleep 1.5; }
 
