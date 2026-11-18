@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later -->
+<resources>
+    <string name="cast_title">Auf Fernseher abspielen</string>
+    <string name="cast_searching">Suche Fernseher und Lautsprecher in diesem WLAN …</string>
+    <string name="cast_none_found">Noch kein Fernseher gefunden. Handy und Fernseher müssen im selben WLAN sein.</string>
+    <string name="cast_this_phone">Dieses Handy</string>
+    <string name="cast_this_phone_summary">Spielt hier</string>
+    <string name="cast_connecting">Verbinde …</string>
+    <string name="cast_playing_here">Spielt gerade</string>
+    <string name="cast_stop">Streaming beenden</string>
+    <string name="cast_chip">Läuft auf %1$s</string>
+    <string name="cast_chip_connecting">Verbinde mit %1$s …</string>
+    <string name="cast_privacy">Ordo gibt nur den laufenden Titel frei, nur für dieses Gerät und nur solange er läuft. Nichts verlässt dein WLAN.</string>
+    <string name="cast_effects_note">Klangeffekte wirken nur auf diesem Handy.</string>
+    <string name="cast_error_connect">%1$s ist nicht erreichbar.</string>
+    <string name="cast_error_identity">%1$s konnte sich nicht als echtes Cast-Gerät ausweisen. Ordo hat nicht verbunden.</string>
+    <string name="cast_changed_title">Ist das wirklich %1$s?</string>
+    <string name="cast_changed_message">%1$s meldet sich als anderes Gerät als beim letzten Mal. Verbinde nur, wenn du es ersetzt oder zurückgesetzt hast.</string>
+    <string name="cast_changed_connect">Trotzdem verbinden</string>
+    <string name="cast_unfamiliar">Anderes Gerät als bisher</string>
+    <string name="cast_error_lost">Verbindung zu %1$s verloren. Die Musik ist hier pausiert.</string>
+</resources>
