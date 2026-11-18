@@ -73,13 +73,12 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         val quickAccess = repository.loadQuickAccess()
         val storages = withContext(Dispatchers.IO) { repository.loadStorages() }
         // The storage card needs only statfs: on a cold start it shows at once, not after the media scan.
-        // Later reloads keep the old card until the end, so held bars grow in together (HomeFragment.onResume).
+        // Later reloads keep the old card until the sections arrive, so held bars grow in together (HomeFragment.onResume).
         if (_state.value?.storages.isNullOrEmpty()) _state.value = _state.value?.copy(storages = storages)
         val partial = withContext(Dispatchers.IO) { repository.load(quickAccess, storages) }
-        _state.value = _state.value?.copy(
-            recentFiles = partial.recentFiles, categories = partial.categories, quickAccess = partial.quickAccess
-        )
-        _state.value = withContext(Dispatchers.IO) { repository.loadCounts(partial) }
+        _state.value = _state.value?.withSections(partial)
+        val counts = withContext(Dispatchers.IO) { repository.loadCounts(partial) }
+        _state.value = _state.value?.withCounts(counts)
         if (BuildConfig.DEBUG) Log.d(TAG, "reload done")
     }
 
