@@ -3,6 +3,14 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
+        android:id="@+id/actionSound"
+        android:title="@string/video_sound_menu"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/actionAudioTrack"
+        android:title="@string/video_audio_track_menu"
+        app:showAsAction="never" />
+    <item
         android:id="@+id/actionOpenWith"
         android:title="@string/video_player_open_with"
         app:showAsAction="never" />

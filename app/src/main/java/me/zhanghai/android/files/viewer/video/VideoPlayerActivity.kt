@@ -55,6 +55,10 @@ import androidx.media3.common.VideoSize
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.common.util.Util
 import androidx.media3.exoplayer.ExoPlayer
+import me.zhanghai.android.files.viewer.video.sound.VideoAudioTrackSheet
+import me.zhanghai.android.files.viewer.video.sound.VideoSoundEngine
+import me.zhanghai.android.files.viewer.video.sound.VideoSoundHost
+import me.zhanghai.android.files.viewer.video.sound.VideoSoundSheet
 import androidx.media3.exoplayer.mediacodec.MediaCodecDecoderException
 import androidx.media3.exoplayer.mediacodec.MediaCodecRenderer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
@@ -99,12 +103,14 @@ import me.zhanghai.android.files.util.startActivitySafe
  * other caller only a `content://` URI with a read grant is played, and path extras are ignored.
  */
 @OptIn(UnstableApi::class)
-class VideoPlayerActivity : AppActivity(), AppAccentActivity {
+class VideoPlayerActivity : AppActivity(), AppAccentActivity, VideoSoundHost {
     override val appAccent: SettingLiveData<String>
         get() = Settings.VIDEO_ACCENT
 
     private lateinit var binding: VideoPlayerActivityBinding
     private var player: ExoPlayer? = null
+    override var videoSound: VideoSoundEngine? = null
+        private set
     private var session: MediaSession? = null
     private lateinit var controls: VideoControls
     private lateinit var resumeStore: VideoResumeStore
@@ -244,7 +250,9 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity {
         setUpControls()
         binding.playerView.resizeMode = resizeMode
         userOrientation = savedInstanceState?.getBoolean(STATE_USER_ORIENTATION) == true
+        val sound = VideoSoundEngine(this).also { videoSound = it }
         val player = ExoPlayer.Builder(this)
+            .setRenderersFactory(sound.renderersFactory())
             .setMediaSourceFactory(DefaultMediaSourceFactory(PathDataSource.Factory(this)))
             .setAudioAttributes(
                 AudioAttributes.Builder().setUsage(C.USAGE_MEDIA).setContentType(C.AUDIO_CONTENT_TYPE_MOVIE).build(),
@@ -255,6 +263,7 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity {
             .setWakeMode(C.WAKE_MODE_NETWORK)
             .build()
         this.player = player
+        sound.attach(player)
         // Its own ID: the music service's session lives in the same process.
         // Unique per screen (two can overlap while one closes). Controllers (media keys, the system) may play and seek
         // but never hand the player items of their own: that would bypass the launch rule above.
@@ -336,6 +345,8 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity {
         handler.removeCallbacksAndMessages(null)
         session?.release()
         session = null
+        videoSound?.release()
+        videoSound = null
         player?.release()
         player = null
         if (isFinishing) AudioQueueRequests.release(intent.getStringExtra(EXTRA_QUEUE_TOKEN))
@@ -508,6 +519,8 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity {
             when (it.itemId) {
                 R.id.actionOpenWith -> openWithOtherApp()
                 R.id.actionFileInfo -> showFileInfo()
+                R.id.actionSound -> VideoSoundSheet.show(this)
+                R.id.actionAudioTrack -> player?.let { VideoAudioTrackSheet.show(this, it, videoSound) }
                 else -> return@setOnMenuItemClickListener false
             }
             true

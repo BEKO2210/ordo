@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later -->
+<resources>
+    <string name="video_sound_menu">Klang</string>
+    <string name="video_sound_own_settings">Nur für Videos – dein Musik-Klang bleibt, wie er ist</string>
+    <string name="video_sound_dialog">Dialog-Verstärker</string>
+    <string name="video_sound_dialog_summary">Holt Stimmen nach vorn und gleicht sie an</string>
+    <string name="video_sound_night">Nachtmodus</string>
+    <string name="video_sound_night_summary">Dämpft laute Szenen, hebt leise Sprache an</string>
+    <string name="video_sound_bass_summary">Mehr Tiefe für kleine Lautsprecher</string>
+    <string name="video_sound_surround_format">%1$s-Ton wird für zwei Lautsprecher gemischt, Stimmen bleiben klar</string>
+    <string name="video_audio_track_menu">Tonspur</string>
+    <string name="video_audio_track_title">Tonspur</string>
+    <string name="video_audio_track_unknown_language">Spur %1$d</string>
+    <string name="video_audio_track_channels">%1$d Kanäle</string>
+    <string name="video_audio_track_unplayable">auf diesem Gerät nicht abspielbar</string>
+    <string name="video_audio_track_none">Dieses Video hat keine Tonspur.</string>
+    <string name="video_audio_sync">Ton-Synchronisation</string>
+    <string name="video_audio_sync_summary">Passen Lippen und Stimme nicht zusammen, verschiebe den Ton in 50-ms-Schritten.</string>
+    <string name="video_audio_sync_zero">Synchron (0 ms)</string>
+    <string name="video_audio_sync_later">Ton %1$d ms später</string>
+    <string name="video_audio_sync_earlier">Ton %1$d ms früher</string>
+    <string name="video_audio_sync_earlier_button">Ton früher</string>
+    <string name="video_audio_sync_later_button">Ton später</string>
+    <string name="video_sound_balance_left_button">Mehr links</string>
+    <string name="video_sound_balance_right_button">Mehr rechts</string>
+</resources>
