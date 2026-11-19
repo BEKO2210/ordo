@@ -99,7 +99,11 @@ shown_duration() {
 duration_ok() { local d; d=$(shown_duration); [ -n "$d" ] && [ $((d - DURATION)) -ge -1 ] && [ $((d - DURATION)) -le 1 ]; }
 seek_three_quarters() {
     local l t r b
-    read -r l t r b < <(ui bounds seekBar | head -1) || return 1
+    # MDC's slider can hide its own node from uiautomator (W90, Android 16): measured as in player-seek.sh, between
+    # the artist line (or the pills under it) and the times, as wide as the times row.
+    t=$(ui bounds "artist|lyricsChip|queueChip" | awk '$4 > m { m = $4 } END { print m }')
+    read -r l b _ _ < <(ui bounds elapsed | head -1) || return 1
+    read -r _ _ r _ < <(ui bounds remaining | head -1) || return 1
     # A tap never seeks (house rule, PlayerSeekSlider): hold 400 ms, then drag to 3/4, like player-seek.sh.
     local y=$(((t + b) / 2)) xa=$((l + (r - l) / 4)) xb=$((l + (r - l) * 3 / 4))
     a shell "input motionevent DOWN $xa $y; sleep 0.4; input motionevent MOVE $(((xa + xb) / 2)) $y; \
