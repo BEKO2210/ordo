@@ -4,9 +4,9 @@
  */
 
 // Media3's decoder_ffmpeg (Apache-2.0), audio only: FfmpegAudioRenderer with FFmpeg's ac3, eac3, dca, truehd and
-// mlp decoders (LGPL-2.1-or-later). Not on Maven; src/main/java and proguard-rules.txt come from
-// utils/ffmpeg-audio/build.sh, which pins the versions and flags (docs/VIDEO-PLAYER.md, "FFmpeg-Ton"). The .so files
-// are not in git: the script builds them from source once per checkout (about a minute) into build/ffmpeg-audio.
+// mlp decoders (LGPL-2.1-or-later). Not on Maven; src/main/java and proguard-rules.txt are vendored unchanged from
+// Media3 1.11.1. The .so files are not in git: utils/ffmpeg-audio/build.sh (pinned commits and flags,
+// docs/VIDEO-PLAYER.md, "FFmpeg-Ton") builds them from source once per checkout (about a minute) into build/ffmpeg-audio.
 apply plugin: 'com.android.library'
 
 def ffmpegLibs = layout.buildDirectory.dir('ffmpeg-audio')

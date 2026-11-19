@@ -19,10 +19,14 @@ jobs:
       with:
         distribution: 'temurin'
         java-version: '21'
-    - name: Install the NDK for FFmpeg (utils/ffmpeg-audio/build.sh runs before AGP would fetch it)
-      run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --install 'ndk;30.0.16248370' > /dev/null
+    # Third-party build scripts (FFmpeg, Media3, pinned in utils/ffmpeg-audio/build.sh) in their own step.
+    - name: Build FFmpeg audio decoders
+      run: |
+        yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --install 'ndk;30.0.16248370' > /dev/null
+        ./gradlew :ffmpeg:buildFfmpegAudio
+        ls -l ffmpeg/build/ffmpeg-audio/{arm64-v8a,armeabi-v7a,x86_64}/libffmpegJNI.so
     - name: Build with Gradle
-      run: ./gradlew assembleDebug testDebugUnitTest lintVitalRelease
+      run: ./gradlew assembleDebug testDebugUnitTest lintVitalRelease -x :ffmpeg:buildFfmpegAudio
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
