@@ -1,0 +1,68 @@
+# Rebuilds the generated blocks of README.md and README.de.md (utils/readme/generate.py) after every change on
+# main to a file they come from, and shows in a pull request whether the README would change.
+#
+# Why this can never start a Play upload: the bot commit only changes README*.md, which play-internal.yml lists
+# in paths-ignore, and it is pushed with GITHUB_TOKEN, whose pushes start no workflow at all
+# (https://docs.github.com/actions/using-workflows/triggering-a-workflow#triggering-a-workflow-from-a-workflow).
+# [skip ci] in the message is a third guard.
+name: README
+
+on:
+  push:
+    branches: [main]
+    paths: ['app/build.gradle', 'fastlane/**', 'utils/readme/**', 'README*.md', 'e2e/run.sh', 'app/src/test/**',
+            '.github/workflows/readme.yml']
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: readme-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  regenerate:
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Test the generator
+        run: python3 -m unittest discover -s utils/readme -k GenerateTest
+
+      - name: Regenerate README
+        run: python3 utils/readme/generate.py
+
+      - name: Commit and push if it changed
+        run: |
+          git diff --quiet -- README.md README.de.md && { echo "README is current"; exit 0; }
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add README.md README.de.md
+          git commit -m 'docs: regenerate README [skip ci]'
+          git push
+
+  check:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Test the generator
+        run: python3 -m unittest discover -s utils/readme -k GenerateTest
+
+      - name: Would the README change?
+        # A notice, not a blocker: main regenerates the README itself after the merge.
+        run: |
+          python3 utils/readme/generate.py
+          if ! git diff --exit-code -- README.md README.de.md; then
+            echo "::notice title=README will change::After the merge the README workflow regenerates README.md and README.de.md (diff above). Run python3 utils/readme/generate.py to include it in this PR."
+          fi
