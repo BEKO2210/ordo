@@ -1,7 +1,10 @@
-Neu: Ordo Video
-• Eigener Video-Player mit Weiterschauen, Doppeltipp, Wischgesten für Helligkeit, Lautstärke und Spulen
-• Bibliothek mit Ordnern, lesbaren Kameranamen und Videoinfos
-• Am Ende anhalten, wiederholen oder automatisch weiter
-• Klare Hinweise, wenn ein Format auf dem Gerät nicht läuft
-• Viele Einstellungen und eigenes Symbol „Ordo Video“
-Musik und Video mit eigener Farbe. Cover in der Musik verrutschen nicht mehr.
+Ordo Video wird groß
+• Untertitel: Dateien und Spuren, Lese-Hilfe, gut lesbar
+• Bild-in-Bild, Ton im Hintergrund, Schlaf-Timer
+• Klang fürs Video: klare Dialoge, Nachtmodus, gleiche Lautstärke
+• Dolby- und DTS-Ton auch auf günstigen Geräten
+• Vorschaubilder beim Spulen, Kapitel, A-B-Schleife, Zoom
+• Filme vom Netzlaufwerk und auf den Fernseher
+• Serien, Gesehen-Markierung, Suche, Tresor-Videos
+• Schärferes Bild und der Signalweg zeigt, was passiert
+Musik: Reiter auf Tablets gleich breit.

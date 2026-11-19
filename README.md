@@ -15,7 +15,7 @@
 
 <p align="center">
 <!-- AUTO:badges -->
-  <a href="https://github.com/BEKO2210/ordo/releases/tag/v0.15.0"><img alt="release 0.15.0" src="https://img.shields.io/badge/release-0.15.0-2563EB"></a>
+  <a href="https://github.com/BEKO2210/ordo/releases/tag/v0.16.0"><img alt="release 0.16.0" src="https://img.shields.io/badge/release-0.16.0-2563EB"></a>
   <img alt="Android 7.0+" src="https://img.shields.io/badge/Android-7.0%2B-3DDC84">
   <a href="LICENSE"><img alt="License: GPL-3.0-or-later" src="https://img.shields.io/badge/license-GPL--3.0--or--later-blue"></a>
 <!-- /AUTO:badges -->
@@ -33,18 +33,21 @@
 </p>
 
 <!-- AUTO:new -->
-> **New in 0.15.0**
-> - Own video player with continue watching, double tap, swipe gestures for brightness, volume and seeking
-> - Library with folders, readable camera names and video details
-> - At the end stop, repeat or play on
-> - Clear notices when a format can't play on the device
-> - Many settings and an optional "Ordo Video" icon
+> **New in 0.16.0**
+> - Subtitles: files and tracks, reading aid, easy to read
+> - Picture-in-picture, sound in the background, sleep timer
+> - Sound for video: clear dialogue, night mode, even volume
+> - Dolby and DTS sound, even on low-cost devices
+> - Preview frames while seeking, chapters, A-B loop, zoom
+> - Films from network drives and on your TV
+> - Series, watched marks, search, vault videos
+> - Sharper picture, and the signal path shows what happens
 <!-- /AUTO:new -->
 
 ## Status
 
 <!-- AUTO:status -->
-Current version 0.15.0 · [release v0.15.0](https://github.com/BEKO2210/ordo/releases/tag/v0.15.0) · Android 7.0 and later (minSdk 24, targetSdk 36 = Android 16) · [GPL-3.0-or-later](LICENSE)
+Current version 0.16.0 · [release v0.16.0](https://github.com/BEKO2210/ordo/releases/tag/v0.16.0) · Android 7.0 and later (minSdk 24, targetSdk 36 = Android 16) · [GPL-3.0-or-later](LICENSE)
 <!-- /AUTO:status -->
 
 Ordo is in development. A closed test runs on Google Play; test builds are also published as
