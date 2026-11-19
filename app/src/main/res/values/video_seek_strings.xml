@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- Ordo Video's pro seeking (viewer/video/seek). -->
+<resources>
+    <string name="video_seek_chapters">Chapters</string>
+    <string name="video_seek_chapter_untitled">Chapter %1$d</string>
+    <string name="video_seek_chapter_current">Playing now</string>
+    <string name="video_seek_frame_mode">Frame by frame</string>
+    <string name="video_seek_frame_back">Previous frame</string>
+    <string name="video_seek_frame_ahead">Next frame</string>
+    <string name="video_seek_frame_close">End frame by frame</string>
+    <string name="video_seek_frame_format">Frame %1$d</string>
+    <string name="video_seek_ab_set_a">Set loop start (A)</string>
+    <string name="video_seek_ab_set_b">Set loop end (B)</string>
+    <string name="video_seek_ab_clear">End A-B loop</string>
+    <string name="video_seek_ab_a_format">A at %1$s. Now set B.</string>
+    <string name="video_seek_ab_looping_format">Looping %1$s – %2$s</string>
+    <string name="video_seek_ab_cleared">A-B loop ended</string>
+    <string name="video_seek_ab_too_short">Set B a bit further from A</string>
+    <string name="video_seek_snapshot">Save frame</string>
+    <string name="video_seek_snapshot_saved">Frame saved to Pictures/Ordo</string>
+    <string name="video_seek_snapshot_open">Open</string>
+    <string name="video_seek_snapshot_failed">Couldn’t save the frame</string>
+    <string name="video_seek_zoom_format">%1$s×</string>
+    <string name="video_seek_zoom_reset_format">Zoom %1$s. Tap to reset.</string>
+</resources>

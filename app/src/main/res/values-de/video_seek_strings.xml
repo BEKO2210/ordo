@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later -->
+<resources>
+    <string name="video_seek_chapters">Kapitel</string>
+    <string name="video_seek_chapter_untitled">Kapitel %1$d</string>
+    <string name="video_seek_chapter_current">Läuft gerade</string>
+    <string name="video_seek_frame_mode">Einzelbild</string>
+    <string name="video_seek_frame_back">Vorheriges Bild</string>
+    <string name="video_seek_frame_ahead">Nächstes Bild</string>
+    <string name="video_seek_frame_close">Einzelbild beenden</string>
+    <string name="video_seek_frame_format">Bild %1$d</string>
+    <string name="video_seek_ab_set_a">Schleifenstart A setzen</string>
+    <string name="video_seek_ab_set_b">Schleifenende B setzen</string>
+    <string name="video_seek_ab_clear">A-B-Schleife beenden</string>
+    <string name="video_seek_ab_a_format">A bei %1$s. Jetzt B setzen.</string>
+    <string name="video_seek_ab_looping_format">Wiederholt %1$s – %2$s</string>
+    <string name="video_seek_ab_cleared">A-B-Schleife beendet</string>
+    <string name="video_seek_ab_too_short">B etwas weiter von A entfernt setzen</string>
+    <string name="video_seek_snapshot">Standbild speichern</string>
+    <string name="video_seek_snapshot_saved">Standbild in Pictures/Ordo gespeichert</string>
+    <string name="video_seek_snapshot_open">Öffnen</string>
+    <string name="video_seek_snapshot_failed">Standbild konnte nicht gespeichert werden</string>
+    <string name="video_seek_zoom_format">%1$s×</string>
+    <string name="video_seek_zoom_reset_format">Zoom %1$s. Zum Zurücksetzen tippen.</string>
+</resources>

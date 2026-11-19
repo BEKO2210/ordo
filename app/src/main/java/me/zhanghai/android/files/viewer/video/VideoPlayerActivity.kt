@@ -100,6 +100,7 @@ import me.zhanghai.android.files.util.startActivitySafe
 import me.zhanghai.android.files.viewer.video.subtitles.VideoSubtitles
 import me.zhanghai.android.files.viewer.video.subtitles.showSubtitleSheet
 import me.zhanghai.android.files.viewer.video.background.VideoBackgroundController
+import me.zhanghai.android.files.viewer.video.seek.VideoSeekPro
 
 /**
  * Ordo's video player. The activity owns its ExoPlayer and a MediaSession (media keys, `dumpsys media_session`); the
@@ -127,6 +128,7 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
     private var session: MediaSession? = null
     private var background: VideoBackgroundController? = null
     private lateinit var controls: VideoControls
+    private var seekPro: VideoSeekPro? = null
     private lateinit var resumeStore: VideoResumeStore
     private var subtitles: VideoSubtitles? = null
     private val watchedStore by lazy { VideoWatchedStore(this) }
@@ -324,6 +326,9 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
         player.prepare()
         // After setMediaItems, so the first item is not announced twice; a recreated screen offers no pill.
         player.addListener(playerListener)
+        seekPro = VideoSeekPro(
+            this, binding, player, ::playPause, ::seekBy, { jumpMs }, controls::toggle, { controls.isLocked }
+        ) { showHint(it, Gravity.CENTER) }
         startTracking(player.currentMediaItem)
         player.currentMediaItem?.let { offerResume(it, showPill = savedInstanceState == null) }
         updateUi(player)
@@ -376,6 +381,7 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
         subtitles?.release()
         background?.release()
         background = null
+        seekPro?.release()
         session?.release()
         session = null
         videoSound?.release()
@@ -386,16 +392,20 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
         super.onDestroy()
     }
 
-    // While a film plays on the TV, the volume keys set the TV's volume.
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        // While a film plays on the TV, the volume keys set the TV's volume.
         val up = when (event.keyCode) {
             KeyEvent.KEYCODE_VOLUME_UP -> true
             KeyEvent.KEYCODE_VOLUME_DOWN -> false
-            else -> return super.dispatchKeyEvent(event)
+            else -> null
         }
-        val cast = castSession?.takeIf { it.isCasting } ?: return super.dispatchKeyEvent(event)
-        if (event.action == KeyEvent.ACTION_DOWN) cast.onVolumeKey(up)
-        return true
+        val cast = castSession?.takeIf { it.isCasting }
+        if (up != null && cast != null) {
+            if (event.action == KeyEvent.ACTION_DOWN) cast.onVolumeKey(up)
+            return true
+        }
+        // Keyboard shortcuts (viewer/video/seek).
+        return seekPro?.onKey(event) == true || super.dispatchKeyEvent(event)
     }
 
     private fun showCastChooser() {
@@ -449,6 +459,8 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
                 MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> controls.scheduleHide()
             }
         }
+        // Two fingers pinch and pan the picture (viewer/video/seek).
+        if (seekPro?.onTouch(event) == true) return true
         return super.dispatchTouchEvent(event)
     }
 
@@ -764,6 +776,7 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
                     val delta = target - startPositionMs
                     val sign = if (delta < 0) "−" else "+"
                     hinted = true
+                    seekPro?.previewAt(target)
                     showHint(
                         getString(
                             R.string.video_player_seek_preview_format, formatTime(target),
@@ -781,6 +794,7 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
             if (mode == VideoGestures.Mode.VOLUME) audioManager?.let { if (lastIndex > 0) unmute(it) }
             val slop = ViewConfiguration.get(this@VideoPlayerActivity).scaledTouchSlop.toFloat()
             val jumped = mode == VideoGestures.Mode.SEEK && !VideoGestures.isCancelled(dx, slop)
+            if (mode == VideoGestures.Mode.SEEK) seekPro?.hidePreview()
             if (jumped) {
                 player?.seekTo(VideoGestures.seekTarget(startPositionMs, dx, binding.root.width, currentDuration()))
                 updateProgress()
