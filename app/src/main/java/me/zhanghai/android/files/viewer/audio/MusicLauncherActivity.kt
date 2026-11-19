@@ -5,6 +5,8 @@
 
 package me.zhanghai.android.files.viewer.audio
 
+import me.zhanghai.android.files.theme.custom.AppAccentActivity
+import me.zhanghai.android.files.settings.SettingLiveData
 import android.Manifest
 import android.content.ComponentName
 import android.content.Intent
@@ -103,7 +105,10 @@ internal fun musicContentWidthDp(windowWidthDp: Int): Int = when {
  * player at the bottom while something plays or can be resumed. It never jumps into the player on its own.
  */
 @androidx.annotation.OptIn(UnstableApi::class)
-class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
+class MusicLauncherActivity : AppActivity(), NavigationItem.Listener, AppAccentActivity {
+    override val appAccent: SettingLiveData<String>
+        get() = Settings.MUSIC_ACCENT
+
     private lateinit var binding: MusicLauncherActivityBinding
     private val adapter = Adapter()
     // The accent for text and bars: in the light theme darkened until it reads at 4.5:1 on the surface.
@@ -577,7 +582,8 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
      * parallax); without motion it simply scrolls with the list.
      */
     private fun parallaxHeader(list: RecyclerView) {
-        val header = list.findViewHolderForAdapterPosition(0)?.itemView ?: return
+        // Only a page's header: the first album cover or song row also has an R.id.art, and a recycled one kept the drift.
+        val header = list.findViewHolderForAdapterPosition(0)?.takeIf { it.itemViewType == TYPE_HEADER }?.itemView ?: return
         val art = header.findViewById<View>(R.id.art) ?: return
         if (!Motion.any || header.height == 0) {
             art.translationY = 0f

@@ -5,6 +5,9 @@
 
 package me.zhanghai.android.files.viewer.audio
 
+import me.zhanghai.android.files.theme.custom.AppAccentActivity
+import me.zhanghai.android.files.settings.SettingLiveData
+import me.zhanghai.android.files.settings.Settings
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
@@ -45,7 +48,10 @@ import me.zhanghai.android.files.ui.Motion
  * preview names them before anything is saved, and the files are replaced only after the new tags read back right
  * ([SongTagIo]). The caller offers undo through [TagEditUndo].
  */
-class MusicTagEditorActivity : AppActivity() {
+class MusicTagEditorActivity : AppActivity(), AppAccentActivity {
+    override val appAccent: SettingLiveData<String>
+        get() = Settings.MUSIC_ACCENT
+
     private lateinit var binding: MusicTagEditorActivityBinding
     private val files by lazy { intent.getStringArrayListExtra(EXTRA_PATHS).orEmpty().map(::File) }
     private val inputs = linkedMapOf<TagField, TextInputLayout>()

@@ -27,7 +27,7 @@ import me.zhanghai.android.files.app.defaultSharedPreferences
  */
 enum class BuiltInApp(val aliasPrefix: String?, @StringRes val labelRes: Int, @DrawableRes val iconRes: Int) {
     MUSIC("me.zhanghai.android.files.launcher.Music", R.string.launcher_music_label, R.drawable.audio_icon_white_24dp),
-    VIDEO(null, R.string.launcher_video_label, R.drawable.video_icon_white_24dp),
+    VIDEO("me.zhanghai.android.files.launcher.Video", R.string.launcher_video_label, R.drawable.video_icon_white_24dp),
     IMAGES(null, R.string.launcher_images_label, R.drawable.image_icon_white_24dp),
     PDF(null, R.string.launcher_pdf_label, R.drawable.document_icon_white_24dp),
     NOTES(null, R.string.launcher_notes_label, R.drawable.text_file_icon_white_24dp);
@@ -54,7 +54,8 @@ enum class BuiltInApp(val aliasPrefix: String?, @StringRes val labelRes: Int, @D
 
 /**
  * The background colours an icon can have, in the order of utils/launcher-icon-colors.py, which writes the icons and
- * aliases. Blue is the original icon and the default; its aliases are the hand-written `HomeAlias` and `MusicAlias`.
+ * aliases. Blue is the original icon and the default; its aliases are the hand-written `HomeAlias`, `MusicAlias` and
+ * `VideoAlias`.
  */
 enum class IconColor(val aliasSuffix: String, @ColorRes val colorRes: Int, @StringRes val labelRes: Int) {
     BLUE("Alias", R.color.launcher_icon_blue, R.string.launcher_color_blue),

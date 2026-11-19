@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later -->
+<resources>
+    <string name="video_player_title">Videoplayer</string>
+    <string name="video_player_back">Zurück</string>
+    <string name="video_player_play">Abspielen</string>
+    <string name="video_player_pause">Pause</string>
+    <string name="video_player_rewind">10 Sekunden zurück</string>
+    <string name="video_player_forward">10 Sekunden vor</string>
+    <string name="video_player_seek_back_format">−%1$d s</string>
+    <string name="video_player_seek_forward_format">+%1$d s</string>
+    <string name="video_player_position">Position</string>
+    <string name="video_player_progress_format">%1$s von %2$s</string>
+    <string name="video_player_show_remaining">Restzeit zeigen</string>
+    <string name="video_player_show_elapsed">Gespielte Zeit zeigen</string>
+    <string name="video_player_show_controls">Steuerung zeigen</string>
+    <string name="video_player_previous">Vorheriges Video</string>
+    <string name="video_player_next">Nächstes Video</string>
+    <string name="video_player_speed">Tempo</string>
+    <string name="video_player_speed_title">Wiedergabetempo</string>
+    <string name="video_player_speed_format">%1$s×</string>
+    <string name="video_player_resize">Bildformat</string>
+    <string name="video_player_resize_fit">Einpassen</string>
+    <string name="video_player_resize_fill">Füllen</string>
+    <string name="video_player_resize_stretch">Strecken</string>
+    <string name="video_player_rotate">Bildschirm drehen</string>
+    <string name="video_player_lock">Bedienung sperren</string>
+    <string name="video_player_locked">Gesperrt</string>
+    <string name="video_player_unlock">Entsperren</string>
+    <string name="video_player_unlock_hint">Zum Entsperren halten</string>
+    <string name="video_player_resume_format">Weiter bei %1$s</string>
+    <string name="video_player_open_with">Mit anderer App öffnen</string>
+    <string name="video_player_file_info">Videoinfos</string>
+    <string name="video_player_external_refused">Ordo spielt von anderen Apps nur freigegebene Videos ab.</string>
+    <string name="video_player_error_format">Dieses Videoformat kann Ordo nicht abspielen.</string>
+    <string name="video_player_error_damaged">Die Datei scheint beschädigt oder unvollständig.</string>
+    <string name="video_player_error_read">Ordo kann diese Datei nicht lesen.</string>
+    <string name="video_player_error">Dieses Video lässt sich nicht abspielen.</string>
+    <string name="video_player_brightness_format">Helligkeit %1$d %%</string>
+    <string name="video_player_volume_format">Lautstärke %1$d %%</string>
+    <string name="video_player_seek_preview_format">%1$s · %2$s</string>
+    <string name="video_library_camera_title_format">%1$s · %2$s</string>
+    <string name="video_player_repeat">Wiederholen</string>
+    <string name="video_player_repeat_stop">Am Ende anhalten</string>
+    <string name="video_player_repeat_one">Dieses Video wiederholen</string>
+    <string name="video_player_repeat_next">Automatisch weiter</string>
+    <string name="video_player_watch_again">Nochmal ansehen</string>
+    <string name="video_player_error_device_format">Dieses Gerät kann dieses Videoformat (%1$s) nicht abspielen.</string>
+    <string name="video_player_ten_bit_format">%1$s 10-Bit</string>
+    <string name="video_player_audio_unsupported_format">Tonspur %1$s wird auf diesem Gerät nicht unterstützt.</string>
+    <string name="video_player_audio_switched_format">Tonspur %1$s wird auf diesem Gerät nicht unterstützt. Eine andere Tonspur läuft.</string>
+    <string name="video_settings_cat_playback">Wiedergabe</string>
+    <string name="video_settings_cat_gestures">Gesten</string>
+    <string name="video_settings_cat_sound">Ton</string>
+    <string name="video_settings_cat_library">Bibliothek</string>
+    <string name="video_settings_cat_privacy">Datenschutz</string>
+    <string name="video_settings_end">Am Ende</string>
+    <string name="video_settings_resume">Fortsetzen</string>
+    <string name="video_settings_speed">Standard-Tempo</string>
+    <string name="video_settings_jump">Sprungweite Doppeltipp</string>
+    <string name="video_settings_resize">Bildformat beim Start</string>
+    <string name="video_settings_orientation">Ausrichtung</string>
+    <string name="video_settings_keep_screen_on">Bildschirm bleibt an</string>
+    <string name="video_settings_keep_screen_on_summary">Während ein Video läuft</string>
+    <string name="video_settings_g_brightness">Helligkeit wischen</string>
+    <string name="video_settings_g_brightness_summary">Links hoch und runter</string>
+    <string name="video_settings_g_volume">Lautstärke wischen</string>
+    <string name="video_settings_g_volume_summary">Rechts hoch und runter</string>
+    <string name="video_settings_g_seek">Spulen wischen</string>
+    <string name="video_settings_g_seek_summary">Seitwärts, springt beim Loslassen</string>
+    <string name="video_settings_g_double_tap">Doppeltipp spulen</string>
+    <string name="video_settings_g_double_tap_summary">Links zurück, rechts vor</string>
+    <string name="video_settings_g_hold">Halten für schneller</string>
+    <string name="video_settings_g_hold_summary">Schneller, solange ein Finger auf dem Bild liegt</string>
+    <string name="video_settings_hold_speed">Tempo beim Halten</string>
+    <string name="video_settings_remember_brightness">Helligkeit merken</string>
+    <string name="video_settings_remember_brightness_summary">Das nächste Video startet mit der zuletzt gewischten Helligkeit</string>
+    <string name="video_settings_audio_language">Bevorzugte Tonspur-Sprache</string>
+    <string name="video_settings_sort">Sortierung</string>
+    <string name="video_settings_view">Ansicht</string>
+    <string name="video_settings_show_continue">„Weiterschauen“ anzeigen</string>
+    <string name="video_settings_show_continue_summary">Oben in der Bibliothek</string>
+    <string name="video_settings_camera_names">Kameranamen lesbar anzeigen</string>
+    <string name="video_settings_camera_names_summary">„VID_20261118_141941“ erscheint als Datum und Uhrzeit</string>
+    <string name="video_settings_hidden_folders">Ordner ausblenden</string>
+    <string name="video_settings_hidden_folders_none">Keine</string>
+    <string name="video_settings_clear_history">„Weiterschauen“ löschen</string>
+    <string name="video_settings_clear_history_summary">Alle gemerkten Stellen vergessen</string>
+    <string name="video_settings_clear_history_confirm">Alle gemerkten Stellen vergessen?</string>
+    <string name="video_settings_clear_history_action">Löschen</string>
+    <string name="video_settings_clear_history_done">„Weiterschauen“ ist leer.</string>
+    <string name="video_settings_no_history">Keine Stellen merken</string>
+    <string name="video_settings_no_history_summary">Videos beginnen immer am Anfang</string>
+    <string-array name="video_settings_end_entries">
+        <item>Anhalten</item>
+        <item>Video wiederholen</item>
+        <item>Automatisch weiter</item>
+    </string-array>
+    <string-array name="video_settings_resume_entries">
+        <item>Fragen</item>
+        <item>Immer automatisch</item>
+        <item>Nie</item>
+    </string-array>
+    <string-array name="video_settings_speed_entries">
+        <item>0,5×</item>
+        <item>0,75×</item>
+        <item>1× (normal)</item>
+        <item>1,25×</item>
+        <item>1,5×</item>
+        <item>2×</item>
+    </string-array>
+    <string-array name="video_settings_jump_entries">
+        <item>5 s</item>
+        <item>10 s</item>
+        <item>15 s</item>
+        <item>30 s</item>
+    </string-array>
+    <string-array name="video_settings_resize_entries">
+        <item>Einpassen</item>
+        <item>Füllen</item>
+        <item>Strecken</item>
+    </string-array>
+    <string-array name="video_settings_orientation_entries">
+        <item>Nach Video</item>
+        <item>Wie System</item>
+        <item>Immer quer</item>
+    </string-array>
+    <string-array name="video_settings_hold_speed_entries">
+        <item>1,5×</item>
+        <item>2×</item>
+        <item>3×</item>
+    </string-array>
+    <string-array name="video_settings_audio_language_entries">
+        <item>Gerätesprache</item>
+        <item>Original</item>
+        <item>Deutsch</item>
+        <item>Englisch</item>
+    </string-array>
+    <string-array name="video_settings_sort_entries">
+        <item>Neueste</item>
+        <item>Name</item>
+        <item>Größe</item>
+        <item>Länge</item>
+    </string-array>
+    <string-array name="video_settings_view_entries">
+        <item>Raster</item>
+        <item>Liste</item>
+    </string-array>
+    <string name="video_player_seek_back_n">%1$d Sekunden zurück</string>
+    <string name="video_player_seek_ahead_n">%1$d Sekunden vor</string>
+    <string name="video_info_title">Videoinfos</string>
+    <string name="video_info_name">Titel</string>
+    <string name="video_info_file_name">Dateiname</string>
+    <string name="video_info_duration">Dauer</string>
+    <string name="video_info_resolution">Auflösung</string>
+    <string name="video_info_hdr">HDR</string>
+    <string name="video_info_codec">Video-Codec</string>
+    <string name="video_info_bitrate">Bitrate</string>
+    <string name="video_info_audio">Tonspuren</string>
+    <string name="video_info_subtitles">Untertitel</string>
+    <string name="video_info_size">Größe</string>
+    <string name="video_info_folder">Ordner</string>
+    <string name="video_info_recorded">Aufnahmedatum</string>
+    <string name="video_info_yes">Ja</string>
+    <string name="video_info_no">Nein</string>
+    <string name="video_info_none">Keine</string>
+    <string name="video_info_copied">Kopiert</string>
+    <string name="video_info_not_playable">auf diesem Gerät nicht abspielbar</string>
+    <string name="video_info_all_details">Alle Dateidetails</string>
+    <string name="video_library_continue">Weiterschauen</string>
+    <string name="video_library_all">Alle</string>
+    <string name="video_library_all_videos">Alle Videos</string>
+    <string name="video_library_folders">Ordner</string>
+    <string name="video_library_left_format">Noch %1$s</string>
+    <string name="video_library_empty">Noch keine Videos gefunden. Lege Videos in einen Ordner wie Movies, DCIM oder Download, dann erscheinen sie hier.</string>
+    <string name="video_library_access_message">Erlaube den Speicherzugriff, damit Ordo deine Videos findet.</string>
+</resources>

@@ -16,6 +16,100 @@
         <item>violet</item>
         <item>amber</item>
     </string-array>
+    <!-- Ordo Video's settings page (settings_video.xml); meanings in viewer/video/VideoPrefs.kt. -->
+    <string name="pref_key_video_end">key_video_end</string>
+    <string name="pref_default_value_video_end">STOP</string>
+    <string-array name="pref_entry_values_video_end">
+        <item>STOP</item>
+        <item>ONE</item>
+        <item>NEXT</item>
+    </string-array>
+    <string name="pref_key_video_resume">key_video_resume</string>
+    <string name="pref_default_value_video_resume">ask</string>
+    <string-array name="pref_entry_values_video_resume">
+        <item>ask</item>
+        <item>always</item>
+        <item>never</item>
+    </string-array>
+    <string name="pref_key_video_speed">key_video_speed</string>
+    <string name="pref_default_value_video_speed">1</string>
+    <string-array name="pref_entry_values_video_speed">
+        <item>0.5</item>
+        <item>0.75</item>
+        <item>1</item>
+        <item>1.25</item>
+        <item>1.5</item>
+        <item>2</item>
+    </string-array>
+    <string name="pref_key_video_jump">key_video_jump</string>
+    <string name="pref_default_value_video_jump">10</string>
+    <string-array name="pref_entry_values_video_jump">
+        <item>5</item>
+        <item>10</item>
+        <item>15</item>
+        <item>30</item>
+    </string-array>
+    <string name="pref_key_video_resize">key_video_resize</string>
+    <string name="pref_default_value_video_resize">fit</string>
+    <string-array name="pref_entry_values_video_resize">
+        <item>fit</item>
+        <item>fill</item>
+        <item>stretch</item>
+    </string-array>
+    <string name="pref_key_video_orientation">key_video_orientation</string>
+    <string name="pref_default_value_video_orientation">video</string>
+    <string-array name="pref_entry_values_video_orientation">
+        <item>video</item>
+        <item>system</item>
+        <item>landscape</item>
+    </string-array>
+    <string name="pref_key_video_keep_screen_on">key_video_keep_screen_on</string>
+    <string name="pref_key_video_gesture_brightness">key_video_gesture_brightness</string>
+    <string name="pref_key_video_gesture_volume">key_video_gesture_volume</string>
+    <string name="pref_key_video_gesture_seek">key_video_gesture_seek</string>
+    <string name="pref_key_video_gesture_double_tap">key_video_gesture_double_tap</string>
+    <string name="pref_key_video_gesture_hold">key_video_gesture_hold</string>
+    <string name="pref_key_video_hold_speed">key_video_hold_speed</string>
+    <string name="pref_default_value_video_hold_speed">2</string>
+    <string-array name="pref_entry_values_video_hold_speed">
+        <item>1.5</item>
+        <item>2</item>
+        <item>3</item>
+    </string-array>
+    <string name="pref_key_video_remember_brightness">key_video_remember_brightness</string>
+    <string name="pref_key_video_audio_language">key_video_audio_language</string>
+    <string name="pref_default_value_video_audio_language">device</string>
+    <string-array name="pref_entry_values_video_audio_language">
+        <item>device</item>
+        <item>original</item>
+        <item>de</item>
+        <item>en</item>
+    </string-array>
+    <string name="pref_key_video_sort">key_video_sort</string>
+    <string name="pref_default_value_video_sort">newest</string>
+    <string-array name="pref_entry_values_video_sort">
+        <item>newest</item>
+        <item>name</item>
+        <item>size</item>
+        <item>length</item>
+    </string-array>
+    <string name="pref_key_video_view">key_video_view</string>
+    <string name="pref_default_value_video_view">grid</string>
+    <string-array name="pref_entry_values_video_view">
+        <item>grid</item>
+        <item>list</item>
+    </string-array>
+    <string name="pref_key_video_show_continue">key_video_show_continue</string>
+    <string name="pref_key_video_camera_names">key_video_camera_names</string>
+    <string name="pref_key_video_hidden_folders">key_video_hidden_folders</string>
+    <string-array name="pref_default_value_video_hidden_folders" />
+    <string name="pref_key_video_no_history">key_video_no_history</string>
+    <bool name="pref_default_value_true">true</bool>
+    <bool name="pref_default_value_false">false</bool>
+    <!-- Ordo Musik's and Ordo Video's own accent: "ordo" follows Ordo (its accent or the wallpaper's colours). -->
+    <string name="pref_key_music_accent">key_music_accent</string>
+    <string name="pref_key_video_accent">key_video_accent</string>
+    <string name="pref_default_value_app_accent">ordo</string>
     <!-- Ordo Musik: player and mini player take the playing cover's colours (on) or the chosen accent (off). -->
     <string name="pref_key_music_cover_colors">key_music_cover_colors</string>
     <bool name="pref_default_value_music_cover_colors">true</bool>

@@ -15,7 +15,7 @@
 
 <p align="center">
 <!-- AUTO:badges -->
-  <a href="https://github.com/BEKO2210/ordo/releases/tag/v0.14.4"><img alt="Version 0.14.4" src="https://img.shields.io/badge/Version-0.14.4-2563EB"></a>
+  <a href="https://github.com/BEKO2210/ordo/releases/tag/v0.15.0"><img alt="Version 0.15.0" src="https://img.shields.io/badge/Version-0.15.0-2563EB"></a>
   <img alt="Android 7.0+" src="https://img.shields.io/badge/Android-7.0%2B-3DDC84">
   <a href="LICENSE"><img alt="Lizenz: GPL-3.0-or-later" src="https://img.shields.io/badge/Lizenz-GPL--3.0--or--later-blue"></a>
 <!-- /AUTO:badges -->
@@ -33,18 +33,18 @@
 </p>
 
 <!-- AUTO:new -->
-> **Neu in 0.14.4**
-> - Mitlaufende Songtexte, groß und mittig; Songtext-Symbol in der Liste
-> - Bibliothek mit Wiedergabelisten und Favoriten als Reiter, weicher Rand beim Scrollen, Tablets nutzen die Breite
-> - Cover wischen für das nächste Lied, Warteschlange zum Sortieren
-> - Aussehen: Farben aus dem Cover, Akzentfarbe, Stufe für visuelle Effekte
-> - Klang-Blatt neu geordnet, knackfreie Effekte, getestet bis 24 Bit/192 kHz
+> **Neu in 0.15.0**
+> - Eigener Video-Player mit Weiterschauen, Doppeltipp, Wischgesten für Helligkeit, Lautstärke und Spulen
+> - Bibliothek mit Ordnern, lesbaren Kameranamen und Videoinfos
+> - Am Ende anhalten, wiederholen oder automatisch weiter
+> - Klare Hinweise, wenn ein Format auf dem Gerät nicht läuft
+> - Viele Einstellungen und eigenes Symbol „Ordo Video“
 <!-- /AUTO:new -->
 
 ## Stand
 
 <!-- AUTO:status -->
-Aktuelle Version 0.14.4 · [Release v0.14.4](https://github.com/BEKO2210/ordo/releases/tag/v0.14.4) · ab Android 7.0 (minSdk 24, targetSdk 36 = Android 16) · [GPL-3.0-or-later](LICENSE)
+Aktuelle Version 0.15.0 · [Release v0.15.0](https://github.com/BEKO2210/ordo/releases/tag/v0.15.0) · ab Android 7.0 (minSdk 24, targetSdk 36 = Android 16) · [GPL-3.0-or-later](LICENSE)
 <!-- /AUTO:status -->
 
 Ordo ist in Entwicklung. Bei Google Play läuft ein geschlossener Test; Testversionen erscheinen auch als
@@ -204,7 +204,7 @@ Aus dem Play-Eintrag, `fastlane/metadata/android/de-DE/full_description.txt`.
 
 **Dateien finden**
 
-- Startseite mit zuletzt verwendeten Dateien, Kategorien und Speicher auf einen Blick
+- Startseite mit zuletzt verwendeten Dateien, Kategorien und Speicher
 - Suche nach Namen oder nach Text in Dateien
 - Liste oder Raster, Lesezeichen und Schnellzugriff auf häufige Ordner
 
@@ -218,17 +218,18 @@ Aus dem Play-Eintrag, `fastlane/metadata/android/de-DE/full_description.txt`.
 
 **Mit Dateien arbeiten**
 
-- Kopieren, verschieben, umbenennen und teilen – mit Tempo und Restzeit
+- Kopieren, verschieben, umbenennen und teilen
 - Viele Dateien auf einmal nach Muster umbenennen
 - ZIP-, TAR- und 7z-Archive erstellen und entpacken
 - Eingebaute Ansicht für Bilder, PDF und Text
 
-**Musik hören**
+**Musik und Videos**
 
 - Musik-Player mit Cover, Warteschlange und Steuerung auf dem Sperrbildschirm und per Kopfhörer
-- Klang: 10-Band-Equalizer, Bass, Lautstärke angleichen, Tempo, Einschlaf-Timer
+- Klang: 10-Band-Equalizer, Bass, Lautstärke angleichen, Einschlaf-Timer
+- Video-Player mit Weiterschauen, Wischgesten, Schleife und Videoinfos
 - „Abspielen auf …“: Musik an Bluetooth-Kopfhörer, Lautsprecher oder ein Cast-Gerät schicken
-- Auf Wunsch eigenes Symbol „Ordo Musik“
+- Auf Wunsch eigene Symbole „Ordo Musik“ und „Ordo Video“
 
 **Dateien schützen**
 
@@ -498,13 +499,13 @@ Unit-Tests:
 ```
 
 <!-- AUTO:tests -->
-Gerätetests: 32 Skripte in [`e2e/`](e2e/README.md), gestartet mit `e2e/run.sh`: 15 nur lesend (`first-run`, `smoke`, `settings-visual`, `category-search`, `back-navigation`, `bars-replay`, `home-header`, `header-position`, `home-pull`, `drawer`, `selection-more`, `tablet-landscape`, `analysis`, `ai-show-guard`, `documents-provider`) und 17 weitere mit `--write` (`stress-delete`, `backup-restore`, `home-auto-refresh`, `audio-player`, `cast`, `klang`, `klang-landscape`, `klang-stress`, `music-formats`, `music-library`, `launcher-icons`, `icon-colors`, `ai-show`, `pick-file`, `no-midword-breaks`, `player-seek`, `player-stage2`). Unit-Tests: 86 Testklassen in `app/src/test`.
+Gerätetests: 33 Skripte in [`e2e/`](e2e/README.md), gestartet mit `e2e/run.sh`: 15 nur lesend (`first-run`, `smoke`, `settings-visual`, `category-search`, `back-navigation`, `bars-replay`, `home-header`, `header-position`, `home-pull`, `drawer`, `selection-more`, `tablet-landscape`, `analysis`, `ai-show-guard`, `documents-provider`) und 18 weitere mit `--write` (`stress-delete`, `backup-restore`, `home-auto-refresh`, `audio-player`, `cast`, `klang`, `klang-landscape`, `klang-stress`, `music-formats`, `music-library`, `launcher-icons`, `icon-colors`, `ai-show`, `pick-file`, `no-midword-breaks`, `player-seek`, `player-stage2`, `video-player`). Unit-Tests: 94 Testklassen in `app/src/test`.
 <!-- /AUTO:tests -->
 
 ## Ausblick
 
-Als Nächstes geplant: Tabs und Zwei-Fenster-Ansicht, ein Video-Player, Sicherung nach Zeitplan und
-Cloud-Speicher. Der ganze Plan steht in [docs/ROADMAP.md](docs/ROADMAP.md).
+Als Nächstes geplant: Tabs und Zwei-Fenster-Ansicht, Untertitel und Bild-in-Bild für den Video-Player, Sicherung
+nach Zeitplan und Cloud-Speicher. Der ganze Plan steht in [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ## Mitmachen
 

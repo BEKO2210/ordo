@@ -15,7 +15,7 @@
 
 <p align="center">
 <!-- AUTO:badges -->
-  <a href="https://github.com/BEKO2210/ordo/releases/tag/v0.14.4"><img alt="release 0.14.4" src="https://img.shields.io/badge/release-0.14.4-2563EB"></a>
+  <a href="https://github.com/BEKO2210/ordo/releases/tag/v0.15.0"><img alt="release 0.15.0" src="https://img.shields.io/badge/release-0.15.0-2563EB"></a>
   <img alt="Android 7.0+" src="https://img.shields.io/badge/Android-7.0%2B-3DDC84">
   <a href="LICENSE"><img alt="License: GPL-3.0-or-later" src="https://img.shields.io/badge/license-GPL--3.0--or--later-blue"></a>
 <!-- /AUTO:badges -->
@@ -33,18 +33,18 @@
 </p>
 
 <!-- AUTO:new -->
-> **New in 0.14.4**
-> - Synced lyrics, large and centred; a lyrics mark in the song list
-> - Library with Playlists and Favorites as tabs, a soft edge when scrolling, tablets use the full width
-> - Swipe the cover for the next song, reorder the queue
-> - Appearance: colours from the cover, accent colour, a level for visual effects
-> - Sound sheet reworked, click-free effects, tested up to 24-bit/192 kHz
+> **New in 0.15.0**
+> - Own video player with continue watching, double tap, swipe gestures for brightness, volume and seeking
+> - Library with folders, readable camera names and video details
+> - At the end stop, repeat or play on
+> - Clear notices when a format can't play on the device
+> - Many settings and an optional "Ordo Video" icon
 <!-- /AUTO:new -->
 
 ## Status
 
 <!-- AUTO:status -->
-Current version 0.14.4 · [release v0.14.4](https://github.com/BEKO2210/ordo/releases/tag/v0.14.4) · Android 7.0 and later (minSdk 24, targetSdk 36 = Android 16) · [GPL-3.0-or-later](LICENSE)
+Current version 0.15.0 · [release v0.15.0](https://github.com/BEKO2210/ordo/releases/tag/v0.15.0) · Android 7.0 and later (minSdk 24, targetSdk 36 = Android 16) · [GPL-3.0-or-later](LICENSE)
 <!-- /AUTO:status -->
 
 Ordo is in development. A closed test runs on Google Play; test builds are also published as
@@ -223,12 +223,13 @@ From the Play listing, `fastlane/metadata/android/en-US/full_description.txt`.
 - Create and extract ZIP, TAR and 7z archives
 - Built-in viewers for images, PDF and text
 
-**Listen to music**
+**Music and videos**
 
 - Music player with cover art, a queue and controls in the notification, on the lock screen and on headphone buttons
 - Sound: 10-band equalizer with presets, bass boost, loudness levelling, speed that keeps the pitch, sleep timer
+- Video player with continue watching, swipe gestures, repeat and video details
 - “Play on…”: send music to Bluetooth headphones, a speaker or a cast device
-- Optional own “Ordo Music” icon on your home screen
+- Optional own “Ordo Music” and “Ordo Video” icons on your home screen
 
 **Keep files safe**
 
@@ -491,13 +492,13 @@ Run the unit tests with:
 ```
 
 <!-- AUTO:tests -->
-Device tests: 32 scripts in [`e2e/`](e2e/README.md), run with `e2e/run.sh`: 15 read-only (`first-run`, `smoke`, `settings-visual`, `category-search`, `back-navigation`, `bars-replay`, `home-header`, `header-position`, `home-pull`, `drawer`, `selection-more`, `tablet-landscape`, `analysis`, `ai-show-guard`, `documents-provider`) and 17 more with `--write` (`stress-delete`, `backup-restore`, `home-auto-refresh`, `audio-player`, `cast`, `klang`, `klang-landscape`, `klang-stress`, `music-formats`, `music-library`, `launcher-icons`, `icon-colors`, `ai-show`, `pick-file`, `no-midword-breaks`, `player-seek`, `player-stage2`). Unit tests: 86 test classes in `app/src/test`.
+Device tests: 33 scripts in [`e2e/`](e2e/README.md), run with `e2e/run.sh`: 15 read-only (`first-run`, `smoke`, `settings-visual`, `category-search`, `back-navigation`, `bars-replay`, `home-header`, `header-position`, `home-pull`, `drawer`, `selection-more`, `tablet-landscape`, `analysis`, `ai-show-guard`, `documents-provider`) and 18 more with `--write` (`stress-delete`, `backup-restore`, `home-auto-refresh`, `audio-player`, `cast`, `klang`, `klang-landscape`, `klang-stress`, `music-formats`, `music-library`, `launcher-icons`, `icon-colors`, `ai-show`, `pick-file`, `no-midword-breaks`, `player-seek`, `player-stage2`, `video-player`). Unit tests: 94 test classes in `app/src/test`.
 <!-- /AUTO:tests -->
 
 ## Roadmap
 
-Planned next: tabs and a two-pane view, a video player, scheduled backups, and cloud storage. The full plan is in
-[docs/ROADMAP.md](docs/ROADMAP.md) (German).
+Planned next: tabs and a two-pane view, subtitles and picture-in-picture for the video player, scheduled backups,
+and cloud storage. The full plan is in [docs/ROADMAP.md](docs/ROADMAP.md) (German).
 
 ## Contributing
 

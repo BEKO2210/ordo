@@ -38,22 +38,38 @@ import androidx.preference.PreferenceViewHolder
 import com.google.android.material.color.MaterialColors
 import kotlinx.parcelize.Parcelize
 import me.zhanghai.android.files.R
+import me.zhanghai.android.files.theme.custom.AppAccent
+import me.zhanghai.android.files.util.valueCompat
 import me.zhanghai.android.files.colorpicker.ColorPreviewView
 import me.zhanghai.android.files.ui.Motion
 import me.zhanghai.android.files.util.ParcelableState
 import me.zhanghai.android.files.util.getColorByAttr
 
-/** Ordo's accent colours as five round swatches with a live miniature of the resulting theme. */
-class AccentPreference @JvmOverloads constructor(
+/**
+ * Ordo's accent colours as five round swatches with a live miniature of the resulting theme. [AppAccentPreference]
+ * adds "Same as Ordo" in front, for Ordo Musik's and Ordo Video's own choice.
+ */
+open class AccentPreference @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null
 ) : Preference(context, attrs) {
-    private val values = context.resources.getStringArray(R.array.pref_entry_values_accent)
-    private val names = context.resources.getStringArray(R.array.settings_accent_entries)
-    private val colors = intArrayOf(
+    /** A getter, not a field: the base class reads it while it is constructed. */
+    protected open val followsOrdo: Boolean
+        get() = false
+    private val ordoValues = context.resources.getStringArray(R.array.pref_entry_values_accent).toList()
+    private val ordoColors = listOf(
         R.color.accent_aurora_primary, R.color.accent_blue_primary, R.color.accent_mint_primary,
         R.color.accent_violet_primary, R.color.accent_amber_primary
     )
+    private val values: List<String> =
+        (if (followsOrdo) listOf(AppAccent.FOLLOW) else emptyList()) + ordoValues
+    private val names: List<String> =
+        (if (followsOrdo) listOf(context.getString(R.string.settings_accent_same_as_ordo)) else emptyList()) +
+            context.resources.getStringArray(R.array.settings_accent_entries)
+    // "Same as Ordo" shows the colour Ordo has now.
+    private val colors: List<Int> =
+        (if (followsOrdo) listOf(ordoColors[ordoValues.indexOf(Settings.ACCENT.valueCompat).coerceAtLeast(0)])
+        else emptyList()) + ordoColors
     private val boundSwatches = mutableListOf<BoundSwatch>()
     private var boundRoot: View? = null
     private var boundPreview: ColorPreviewView? = null
@@ -76,7 +92,11 @@ class AccentPreference @JvmOverloads constructor(
     }
 
     private val selected: String
-        get() = getPersistedString(context.getString(R.string.pref_default_value_accent))
+        get() = getPersistedString(
+            context.getString(
+                if (followsOrdo) R.string.pref_default_value_app_accent else R.string.pref_default_value_accent
+            )
+        )
 
     override fun onAttached() {
         super.onAttached()
@@ -127,6 +147,9 @@ class AccentPreference @JvmOverloads constructor(
             val touchTarget = FrameLayout(context).apply {
                 layoutParams = LinearLayout.LayoutParams(cell, cell)
                 addView(swatch)
+                // "Same as Ordo" is not a colour of its own: a link badge sets it apart from the accent it currently
+                // equals (Aurora beside Aurora looked like one swatch twice).
+                if (followsOrdo && value == AppAccent.FOLLOW) addView(followGlyph())
                 contentDescription = names[index]
                 isSelected = chosen
                 ViewCompat.setAccessibilityDelegate(this, object : AccessibilityDelegateCompat() {
@@ -211,6 +234,33 @@ class AccentPreference @JvmOverloads constructor(
         }
         boundSwatches.clear()
         boundPreview = null
+    }
+
+    /**
+     * A small link badge at the swatch's lower end corner, on the page's surface: the centre stays free for the
+     * selection check the swatch draws.
+     */
+    private fun followGlyph(): View {
+        val density = context.resources.displayMetrics.density
+        val size = (20 * density).toInt()
+        val surface = MaterialColors.getColor(context, com.google.android.material.R.attr.colorSurface, Color.WHITE)
+        val onSurface = MaterialColors.getColor(context, com.google.android.material.R.attr.colorOnSurface, Color.BLACK)
+        return android.widget.ImageView(context).apply {
+            setImageResource(R.drawable.settings_link_icon_white_24dp)
+            imageTintList = android.content.res.ColorStateList.valueOf(onSurface)
+            background = android.graphics.drawable.GradientDrawable().apply {
+                shape = android.graphics.drawable.GradientDrawable.OVAL
+                setColor(surface)
+                setStroke((1 * density).toInt().coerceAtLeast(1), onSurface)
+            }
+            val padding = (3 * density).toInt()
+            setPadding(padding, padding, padding, padding)
+            importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+            layoutParams = FrameLayout.LayoutParams(size, size, Gravity.BOTTOM or Gravity.END).apply {
+                val margin = (4 * density).toInt()
+                setMargins(margin, margin, margin, margin)
+            }
+        }
     }
 
     @ColorInt
@@ -388,4 +438,13 @@ internal class AccentSwatchView(
         private fun lerp(start: Float, end: Float, fraction: Float): Float =
             start + (end - start) * fraction
     }
+}
+
+/** Ordo Musik's or Ordo Video's own colour: "Same as Ordo" first, then Ordo's accents. */
+class AppAccentPreference @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null
+) : AccentPreference(context, attrs) {
+    override val followsOrdo: Boolean
+        get() = true
 }

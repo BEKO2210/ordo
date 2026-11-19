@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- Ordo Video's start screen: title, one row of folder chips (scrolls sideways), and one list: "Continue watching" as
+     a sideways row of cards, then every video as a grid that grows with the window (VideoLauncherActivity). -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?colorSurface"
+    android:fitsSystemWindows="true"
+    android:orientation="vertical">
+
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?actionBarSize"
+        android:theme="?actionBarTheme"
+        app:menu="@menu/video_library"
+        app:popupTheme="?actionBarPopupTheme"
+        app:title="@string/launcher_video_label" />
+
+    <HorizontalScrollView
+        android:id="@+id/folderScroller"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:clipToPadding="false"
+        android:contentDescription="@string/video_library_folders"
+        android:paddingStart="@dimen/space_gutter"
+        android:paddingEnd="@dimen/space_gutter"
+        android:scrollbars="none"
+        android:visibility="gone">
+
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/folders"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:selectionRequired="true"
+            app:singleLine="true"
+            app:singleSelection="true" />
+    </HorizontalScrollView>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:fadingEdgeLength="@dimen/phi_55"
+            android:paddingBottom="@dimen/phi_21"
+            android:requiresFadingEdge="vertical" />
+
+        <LinearLayout
+            android:id="@+id/emptyGroup"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:paddingStart="@dimen/space_section"
+            android:paddingEnd="@dimen/space_section"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/emptyText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:hyphenationFrequency="none"
+                android:maxWidth="@dimen/phi_377"
+                android:textAppearance="?textAppearanceBody1"
+                android:textColor="?android:textColorSecondary" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/accessButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/phi_21"
+                android:minHeight="@dimen/phi_55"
+                android:text="@string/home_permission_action"
+                android:visibility="gone" />
+        </LinearLayout>
+    </FrameLayout>
+</LinearLayout>

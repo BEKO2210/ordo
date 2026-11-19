@@ -125,6 +125,8 @@ private sealed class SyntacticLrc {
             var pos = 0
             val out = mutableListOf<SyntacticLrc>()
             var isBgSpeaker = false
+            // Text runs grow here and go into out after the loop: re-concatenating per token was quadratic.
+            val runs = HashMap<Int, StringBuilder>()
             while (pos < text.length) {
                 var pendingBgNewLine = false
                 if (isBgSpeaker && text[pos] == ']') {
@@ -257,12 +259,12 @@ private sealed class SyntacticLrc {
                     pos += wmMatch.value.length
                     continue
                 }
-                val firstUnsafeCharPos = (text.substring(pos).indexOfFirst {
-                    it == '[' ||
-                            it == '<' || it == '\r' || it == '\n' || (isBgSpeaker && it == ']')
-                } + pos)
-                    .let { if (it == pos - 1) text.length else it }
-                    .let { if (it == pos) it + 1 else it }
+                // Scans in place: a substring per token made a crafted single-line .lrc quadratic.
+                var firstUnsafeCharPos = pos
+                while (firstUnsafeCharPos < text.length && text[firstUnsafeCharPos].let {
+                        !(it == '[' || it == '<' || it == '\r' || it == '\n' || (isBgSpeaker && it == ']'))
+                    }) firstUnsafeCharPos++
+                if (firstUnsafeCharPos == pos) firstUnsafeCharPos++
                 val subText = text.substring(pos, firstUnsafeCharPos)
                 val last = out.lastOrNull()
                 // Only count lyric text as lyric text if there is at least one kind of timestamp
@@ -270,18 +272,23 @@ private sealed class SyntacticLrc {
                 if (out.indexOfLast { it is NewLine } <
                     out.indexOfLast { it is SyncPoint || it is WordSyncPoint }) {
                     if (last is LyricText) {
-                        out[out.size - 1] = LyricText(last.text + subText)
+                        runs.getValue(out.size - 1).append(subText)
                     } else {
-                        out.add(LyricText(subText))
+                        out.add(LyricText(""))
+                        runs[out.size - 1] = StringBuilder(subText)
                     }
                 } else {
                     if (last is InvalidText) {
-                        out[out.size - 1] = InvalidText(last.text + subText)
+                        runs.getValue(out.size - 1).append(subText)
                     } else {
-                        out.add(InvalidText(subText))
+                        out.add(InvalidText(""))
+                        runs[out.size - 1] = StringBuilder(subText)
                     }
                 }
                 pos = firstUnsafeCharPos
+            }
+            for ((index, run) in runs) {
+                out[index] = if (out[index] is LyricText) LyricText(run.toString()) else InvalidText(run.toString())
             }
             if (out.lastOrNull() is SyncPoint || out.lastOrNull() is LineEndSyncPoint)
                 out.add(InvalidText(""))

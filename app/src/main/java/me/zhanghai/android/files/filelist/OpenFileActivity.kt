@@ -13,6 +13,7 @@ import me.zhanghai.android.files.app.application
 import me.zhanghai.android.files.file.MimeType
 import me.zhanghai.android.files.file.asMimeTypeOrNull
 import me.zhanghai.android.files.file.fileProviderUri
+import me.zhanghai.android.files.file.isVideo
 import me.zhanghai.android.files.player.isPlayableAudio
 import me.zhanghai.android.files.provider.archive.isArchivePath
 import me.zhanghai.android.files.provider.linux.isLinuxPath
@@ -23,6 +24,7 @@ import me.zhanghai.android.files.util.createViewIntent
 import me.zhanghai.android.files.util.extraPath
 import me.zhanghai.android.files.util.startActivitySafe
 import me.zhanghai.android.files.viewer.audio.AudioPlayerActivity
+import me.zhanghai.android.files.viewer.video.VideoPlayerActivity
 
 class OpenFileActivity : AppActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -58,6 +60,9 @@ class OpenFileActivity : AppActivity() {
                 if (mimeType.isPlayableAudio) {
                     setClass(this@OpenFileActivity, AudioPlayerActivity::class.java)
                     AudioPlayerActivity.putExtras(this, listOf(path), 0)
+                } else if (mimeType.isVideo) {
+                    setClass(this@OpenFileActivity, VideoPlayerActivity::class.java)
+                    VideoPlayerActivity.putExtras(this, listOf(path), 0)
                 }
             }
         startActivitySafe(intent)

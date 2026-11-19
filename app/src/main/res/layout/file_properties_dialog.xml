@@ -27,9 +27,11 @@
             android:id="@+id/tabLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:tabMode="scrollable"
-            app:tabPaddingStart="?dialogPreferredPadding"
-            app:tabPaddingEnd="?dialogPreferredPadding" />
+            android:fadingEdgeLength="@dimen/phi_34"
+            android:requiresFadingEdge="horizontal"
+            app:tabMode="auto"
+            app:tabPaddingStart="@dimen/phi_13"
+            app:tabPaddingEnd="@dimen/phi_13" />
     </FrameLayout>
 
     <me.zhanghai.android.files.ui.WrapFirstPageContentViewPager

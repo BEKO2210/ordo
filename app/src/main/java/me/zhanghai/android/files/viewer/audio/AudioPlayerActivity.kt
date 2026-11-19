@@ -5,6 +5,8 @@
 
 package me.zhanghai.android.files.viewer.audio
 
+import me.zhanghai.android.files.theme.custom.AppAccentActivity
+import me.zhanghai.android.files.settings.SettingLiveData
 import android.animation.ArgbEvaluator
 import android.annotation.SuppressLint
 import android.animation.ValueAnimator
@@ -91,7 +93,10 @@ import me.zhanghai.android.files.util.startActivitySafe
  * the intent; from any other caller only a `content://` URI with a read grant is played, and every path extra is ignored.
  */
 @OptIn(UnstableApi::class)
-class AudioPlayerActivity : AppActivity() {
+class AudioPlayerActivity : AppActivity(), AppAccentActivity {
+    override val appAccent: SettingLiveData<String>
+        get() = OrdoSettings.MUSIC_ACCENT
+
     private lateinit var binding: AudioPlayerActivityBinding
     private var controllerFuture: ListenableFuture<MediaController>? = null
     private var controller: MediaController? = null
@@ -474,6 +479,8 @@ class AudioPlayerActivity : AppActivity() {
         val authority = uri.authority
         return uri.scheme == ContentResolver.SCHEME_CONTENT
             && !authority.isNullOrEmpty()
+            // "userId@authority" would slip past the own-authority check.
+            && '@' !in authority
             && !isOwnAuthority(authority)
             && intent.flags and Intent.FLAG_GRANT_READ_URI_PERMISSION != 0
     }

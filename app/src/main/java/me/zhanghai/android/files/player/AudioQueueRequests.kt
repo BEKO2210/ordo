@@ -10,9 +10,9 @@ import java.util.concurrent.ConcurrentHashMap
 import java8.nio.file.Path
 
 /**
- * The queue Ordo's own screens hand to the player. AudioPlayerActivity is exported, so the queue never travels in
- * the intent: the intent only carries a random token for a request kept in this process. Another app cannot forge
- * one, and after the process is gone the token is void.
+ * The queue Ordo's own screens hand to a player. AudioPlayerActivity and VideoPlayerActivity are exported, so the
+ * queue never travels in the intent: the intent only carries a random token for a request kept in this process.
+ * Another app cannot forge one, and after the process is gone the token is void.
  */
 object AudioQueueRequests {
     class Request(val paths: List<Path>, val startIndex: Int)

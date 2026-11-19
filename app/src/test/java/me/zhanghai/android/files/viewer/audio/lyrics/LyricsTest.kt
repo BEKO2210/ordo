@@ -133,6 +133,24 @@ class LyricsTest {
     }
 
     @Test
+    fun strayMarksStayText() {
+        assertEquals(listOf("a<b [c", "d"), synced("[00:01.00]a<b [c\n[00:02.00]d").text.map { it.text })
+        assertEquals(listOf("x<y[z]"), synced("[00:01.00]x<y[z]").text.map { it.text })
+        assertEquals(listOf("<", "<<a"), synced("[00:01.00]<\n[00:02.00]<<a").text.map { it.text })
+        assertEquals(
+            "x<y[z", (parseLrc("x<y[z", trimEnabled = true, multiLineEnabled = false) as UnsyncedLyrics)
+                .unsyncedText.single().first
+        )
+    }
+
+    @Test(timeout = 5_000)
+    fun longLineOfStrayMarksIsLinear() {
+        // A crafted 512 KB single-line .lrc: one token per '<'.
+        val line = synced("[00:01.00]" + "<".repeat(512 * 1024)).text.single()
+        assertEquals(512 * 1024, line.text.length)
+    }
+
+    @Test
     fun positionFlowEmitsOnlyLineChanges() = runBlocking {
         val lyrics = lyrics("[00:01.00]A\n[00:03.50]B")
         val indices = flowOf(0L, 500L, 1000L, 1200L, 3500L, 4000L).lyricsLineIndex(lyrics).toList()

@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- One video: a 16:9 picture with its length in the corner (and, under "Continue watching", how far it was watched),
+     the name in one line and a second line. TalkBack reads the whole card as one item. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?selectableItemBackground"
+    android:clickable="true"
+    android:focusable="true"
+    android:minHeight="48dp"
+    android:orientation="vertical"
+    android:paddingBottom="@dimen/phi_8">
+
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:importantForAccessibility="noHideDescendants"
+        app:cardBackgroundColor="?colorSurfaceVariant"
+        app:cardCornerRadius="@dimen/phi_13"
+        app:cardElevation="0dp"
+        app:strokeWidth="0dp">
+
+        <me.zhanghai.android.files.ui.AspectRatioFrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:aspectRatio="1.7778">
+
+            <ImageView
+                android:id="@+id/thumbnail"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:contentDescription="@null"
+                android:scaleType="centerCrop" />
+
+            <TextView
+                android:id="@+id/duration"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|end"
+                android:layout_margin="@dimen/phi_8"
+                android:background="@drawable/audio_player_seek_bubble"
+                android:backgroundTint="#b3000000"
+                android:fontFeatureSettings="tnum"
+                android:paddingStart="@dimen/phi_5"
+                android:paddingEnd="@dimen/phi_5"
+                android:textAppearance="?textAppearanceCaption"
+                android:textColor="@android:color/white" />
+
+            <com.google.android.material.progressindicator.LinearProgressIndicator
+                android:id="@+id/progress"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom"
+                android:max="1000"
+                android:visibility="gone"
+                app:trackCornerRadius="0dp"
+                app:trackThickness="4dp" />
+        </me.zhanghai.android.files.ui.AspectRatioFrameLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <TextView
+        android:id="@+id/title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/phi_8"
+        android:ellipsize="end"
+        android:hyphenationFrequency="none"
+        android:maxLines="1"
+        android:textAppearance="?textAppearanceBody1"
+        android:textColor="?colorOnSurface" />
+
+    <TextView
+        android:id="@+id/info"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/phi_5"
+        android:ellipsize="end"
+        android:hyphenationFrequency="none"
+        android:maxLines="1"
+        android:textAppearance="?textAppearanceCaption"
+        android:textColor="?android:textColorSecondary" />
+</LinearLayout>

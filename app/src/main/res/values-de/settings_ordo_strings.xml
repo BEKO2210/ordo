@@ -59,11 +59,12 @@
     <string name="settings_section_launcher_icons_summary">Eigene Symbole für eingebaute Apps, dazu Icon-Farben</string>
     <string name="launcher_icons_info">Ordo schaltet nie selbst ein Symbol ein.</string>
     <string name="launcher_music_label">Ordo Musik</string>
-    <string name="launcher_video_label">Video</string>
+    <string name="launcher_video_label">Ordo Video</string>
     <string name="launcher_images_label">Bilder</string>
     <string name="launcher_pdf_label">PDF</string>
     <string name="launcher_notes_label">Notizen</string>
     <string name="launcher_music_summary">Eigenes Symbol in deiner App-Liste, direkt zu deiner Musiksammlung</string>
+    <string name="launcher_video_summary">Eigenes Symbol in deiner App-Liste, direkt zu all deinen Videos</string>
     <string name="launcher_coming_soon">Kommt, sobald die App fertig ist</string>
     <string name="launcher_soon_title">Bald verfügbar</string>
     <string name="launcher_icon_enabled_message">„%1$s“ ist eingeschaltet. Dein Startbildschirm braucht manchmal einen Moment, bis das Symbol erscheint.</string>
@@ -171,6 +172,9 @@
     <string name="music_selection_close">Auswahl beenden</string>
     <string name="music_now_playing">Läuft gerade: %1$s, %2$s. Öffnet den Player</string>
     <string name="settings_music_title">Ordo Musik</string>
+    <string name="settings_video_title">Ordo Video</string>
+    <string name="settings_accent_same_as_ordo">Wie Ordo</string>
+    <string name="settings_app_accent_title">Farbe</string>
     <string name="settings_music_cover_colors_title">Farben aus dem Cover</string>
     <string name="settings_music_cover_colors_on">Player und Mini-Player nehmen die Farbe des laufenden Covers an</string>
     <string name="settings_music_cover_colors_off">Der Player nutzt die unten gewählte Akzentfarbe</string>

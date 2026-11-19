@@ -14,4 +14,11 @@
         android:title="@string/launcher_music_label"
         android:summary="@string/launcher_music_summary"
         android:persistent="false" />
+
+    <SwitchPreferenceCompat
+        android:key="launcher_video"
+        android:icon="@drawable/video_icon_white_24dp"
+        android:title="@string/launcher_video_label"
+        android:summary="@string/launcher_video_summary"
+        android:persistent="false" />
 </PreferenceScreen>

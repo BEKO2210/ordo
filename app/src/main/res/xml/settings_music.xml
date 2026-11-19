@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later -->
-<!-- Ordo Musik's settings (its side menu): appearance with a live mini player picture. Accent, wallpaper colours and
-     dark mode use Ordo's own keys, so both apps always look alike; Ordo has no per-app colours to keep apart. -->
+<!-- Ordo Musik's settings (its side menu): appearance with a live mini player picture. Its colour is its own
+     ("Same as Ordo" by default); wallpaper colours and dark mode use Ordo's own keys. -->
 <PreferenceScreen
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
@@ -36,12 +36,11 @@
             android:disableDependentsState="true"
             app:isPreferenceVisible="@bool/pref_visible_wallpaper_colors" />
 
-        <me.zhanghai.android.files.settings.AccentPreference
-            android:key="@string/pref_key_accent"
+        <me.zhanghai.android.files.settings.AppAccentPreference
+            android:key="@string/pref_key_music_accent"
             android:icon="@drawable/palette_icon_white_24dp"
-            android:title="@string/settings_accent_title"
-            android:defaultValue="@string/pref_default_value_accent"
-            android:dependency="@string/pref_key_wallpaper_colors" />
+            android:title="@string/settings_app_accent_title"
+            android:defaultValue="@string/pref_default_value_app_accent" />
 
         <me.zhanghai.android.files.settings.VisualListPreference
             android:key="@string/pref_key_night_mode"

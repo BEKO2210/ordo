@@ -100,7 +100,10 @@ duration_ok() { local d; d=$(shown_duration); [ -n "$d" ] && [ $((d - DURATION))
 seek_three_quarters() {
     local l t r b
     read -r l t r b < <(ui bounds seekBar | head -1) || return 1
-    a shell input tap $((l + (r - l) * 3 / 4)) $(((t + b) / 2)); sleep 1
+    # A tap never seeks (house rule, PlayerSeekSlider): hold 400 ms, then drag to 3/4, like player-seek.sh.
+    local y=$(((t + b) / 2)) xa=$((l + (r - l) / 4)) xb=$((l + (r - l) * 3 / 4))
+    a shell "input motionevent DOWN $xa $y; sleep 0.4; input motionevent MOVE $(((xa + xb) / 2)) $y; \
+        input motionevent MOVE $xb $y; sleep 0.3; input motionevent UP $xb $y"; sleep 1
     local p; p=$(session_field position)
     # 3/4 of 12 s is 9 s; the bar's own padding moves the tap a little.
     [ -n "$p" ] && [ "$p" -ge 7500 ] && [ "$p" -le 10500 ]
@@ -132,7 +135,7 @@ play_file() { # name file label
     a shell input keyevent KEYCODE_MEDIA_PREVIOUS >/dev/null; sleep 0.5 # back to 0:00 for the duration
     pause_playback; sleep 0.5
     check "$3: shows ${DURATION} s" duration_ok
-    check "$3: a seek bar tap at 3/4 lands there" seek_three_quarters
+    check "$3: held and dragged to 3/4, the bar lands there" seek_three_quarters
     local seek; seek=$(session_field position)
     a shell input keyevent KEYCODE_MEDIA_PLAY >/dev/null
     check "$3: plays on from there" moves_on "$seek"

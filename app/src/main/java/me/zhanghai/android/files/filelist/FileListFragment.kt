@@ -83,6 +83,7 @@ import me.zhanghai.android.files.file.extension
 import me.zhanghai.android.files.file.fileProviderUri
 import me.zhanghai.android.files.file.isApk
 import me.zhanghai.android.files.file.isImage
+import me.zhanghai.android.files.file.isVideo
 import me.zhanghai.android.files.filejob.FileJobService
 import me.zhanghai.android.files.home.HomeCategory
 import me.zhanghai.android.files.filelist.FileSortOptions.By
@@ -150,6 +151,7 @@ import me.zhanghai.android.files.util.viewModels
 import me.zhanghai.android.files.util.withChooser
 import me.zhanghai.android.files.viewer.image.ImageViewerActivity
 import me.zhanghai.android.files.viewer.audio.AudioPlayerActivity
+import me.zhanghai.android.files.viewer.video.VideoPlayerActivity
 import me.zhanghai.android.files.viewer.pdf.PdfViewerActivity
 
 class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.Listener,
@@ -1575,11 +1577,14 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
                     extraPath = path
                     maybeAddImageViewerActivityExtras(this, path, mimeType)
                     if (!withChooser) maybeAddAudioPlayerActivityExtras(this, path, mimeType)
+                    if (!withChooser) maybeAddVideoPlayerActivityExtras(this, path, mimeType)
                     // PDFs open in Ordo's own viewer; "Open with" still offers every other app.
                     if (!withChooser && mimeType.value == "application/pdf") {
                         setClass(requireContext(), PdfViewerActivity::class.java)
                     } else if (!withChooser && mimeType.isPlayableAudio) {
                         setClass(requireContext(), AudioPlayerActivity::class.java)
+                    } else if (!withChooser && mimeType.isVideo) {
+                        setClass(requireContext(), VideoPlayerActivity::class.java)
                     }
                 }
                 .let {
@@ -1635,6 +1640,20 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
         }
         val queue = audioQueue(audioPaths, path) ?: return
         AudioPlayerActivity.putExtras(intent, queue.paths, queue.startIndex)
+    }
+
+    // The folder's videos in the list's order, cut like the music queue; formats ExoPlayer cannot play still open
+    // here and get the player's "open with another app".
+    private fun maybeAddVideoPlayerActivityExtras(intent: Intent, path: Path, mimeType: MimeType) {
+        if (!mimeType.isVideo) return
+        val videoPaths = buildList {
+            for (index in 0..<adapter.itemCount) {
+                val file = adapter.getItem(index)
+                if (file.mimeType.isVideo) add(file.path)
+            }
+        }
+        val queue = audioQueue(videoPaths, path) ?: return
+        VideoPlayerActivity.putExtras(intent, queue.paths, queue.startIndex)
     }
 
     override fun cutFile(file: FileItem) {

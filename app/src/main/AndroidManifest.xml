@@ -441,6 +441,21 @@
             </intent-filter>
         </activity>
 
+        <!-- Owns its player, so rotating and resizing must not recreate it (configChanges). Picture-in-picture comes
+             with phase 3. -->
+        <activity
+            android:name="me.zhanghai.android.files.viewer.video.VideoPlayerActivity"
+            android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboard|keyboardHidden|navigation"
+            android:exported="true"
+            android:label="@string/video_player_title"
+            android:theme="@style/Theme.MaterialFiles.Immersive">
+            <intent-filter tools:ignore="AppLinkUrlError">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="video/*" />
+            </intent-filter>
+        </activity>
+
         <!--
           Ordo Musik is its own app: own task (taskAffinity, documentLaunchMode), so Recents shows it as a separate card
           with its own name and icon, and back from the library leaves it. The player opened from the library stays in
@@ -473,6 +488,35 @@
             android:label="@string/launcher_music_label"
             android:roundIcon="@mipmap/ic_launcher_music"
             android:targetActivity="me.zhanghai.android.files.viewer.audio.MusicLauncherActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+
+        <!--
+          Ordo Video is its own app like Ordo Musik: own task (taskAffinity, documentLaunchMode), so Recents shows it as a
+          separate card; the player opened from its library stays in that task. The alias is disabled here: only the
+          user's switch in Settings > Built-in apps ever enables it.
+          -->
+        <activity
+            android:name="me.zhanghai.android.files.viewer.video.VideoLauncherActivity"
+            android:documentLaunchMode="intoExisting"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_video"
+            android:label="@string/launcher_video_label"
+            android:roundIcon="@mipmap/ic_launcher_video"
+            android:taskAffinity="me.zhanghai.android.files.video"
+            android:theme="@style/Theme.MaterialFiles" />
+
+        <activity-alias
+            android:name="me.zhanghai.android.files.launcher.VideoAlias"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_video"
+            android:label="@string/launcher_video_label"
+            android:roundIcon="@mipmap/ic_launcher_video"
+            android:targetActivity="me.zhanghai.android.files.viewer.video.VideoLauncherActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -603,6 +647,19 @@
             </intent-filter>
         </activity-alias>
         <activity-alias
+            android:name="me.zhanghai.android.files.launcher.VideoTeal"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_video_teal"
+            android:label="@string/launcher_video_label"
+            android:roundIcon="@mipmap/ic_launcher_video_teal"
+            android:targetActivity="me.zhanghai.android.files.viewer.video.VideoLauncherActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
             android:name="me.zhanghai.android.files.launcher.HomeGreen"
             android:enabled="false"
             android:exported="true"
@@ -623,6 +680,19 @@
             android:label="@string/launcher_music_label"
             android:roundIcon="@mipmap/ic_launcher_music_green"
             android:targetActivity="me.zhanghai.android.files.viewer.audio.MusicLauncherActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name="me.zhanghai.android.files.launcher.VideoGreen"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_video_green"
+            android:label="@string/launcher_video_label"
+            android:roundIcon="@mipmap/ic_launcher_video_green"
+            android:targetActivity="me.zhanghai.android.files.viewer.video.VideoLauncherActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -655,6 +725,19 @@
             </intent-filter>
         </activity-alias>
         <activity-alias
+            android:name="me.zhanghai.android.files.launcher.VideoAmber"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_video_amber"
+            android:label="@string/launcher_video_label"
+            android:roundIcon="@mipmap/ic_launcher_video_amber"
+            android:targetActivity="me.zhanghai.android.files.viewer.video.VideoLauncherActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
             android:name="me.zhanghai.android.files.launcher.HomeRed"
             android:enabled="false"
             android:exported="true"
@@ -675,6 +758,19 @@
             android:label="@string/launcher_music_label"
             android:roundIcon="@mipmap/ic_launcher_music_red"
             android:targetActivity="me.zhanghai.android.files.viewer.audio.MusicLauncherActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name="me.zhanghai.android.files.launcher.VideoRed"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_video_red"
+            android:label="@string/launcher_video_label"
+            android:roundIcon="@mipmap/ic_launcher_video_red"
+            android:targetActivity="me.zhanghai.android.files.viewer.video.VideoLauncherActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -707,6 +803,19 @@
             </intent-filter>
         </activity-alias>
         <activity-alias
+            android:name="me.zhanghai.android.files.launcher.VideoPink"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_video_pink"
+            android:label="@string/launcher_video_label"
+            android:roundIcon="@mipmap/ic_launcher_video_pink"
+            android:targetActivity="me.zhanghai.android.files.viewer.video.VideoLauncherActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
             android:name="me.zhanghai.android.files.launcher.HomeViolet"
             android:enabled="false"
             android:exported="true"
@@ -733,6 +842,19 @@
             </intent-filter>
         </activity-alias>
         <activity-alias
+            android:name="me.zhanghai.android.files.launcher.VideoViolet"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_video_violet"
+            android:label="@string/launcher_video_label"
+            android:roundIcon="@mipmap/ic_launcher_video_violet"
+            android:targetActivity="me.zhanghai.android.files.viewer.video.VideoLauncherActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
             android:name="me.zhanghai.android.files.launcher.HomeGraphite"
             android:enabled="false"
             android:exported="true"
@@ -753,6 +875,19 @@
             android:label="@string/launcher_music_label"
             android:roundIcon="@mipmap/ic_launcher_music_graphite"
             android:targetActivity="me.zhanghai.android.files.viewer.audio.MusicLauncherActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name="me.zhanghai.android.files.launcher.VideoGraphite"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_video_graphite"
+            android:label="@string/launcher_video_label"
+            android:roundIcon="@mipmap/ic_launcher_video_graphite"
+            android:targetActivity="me.zhanghai.android.files.viewer.video.VideoLauncherActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />

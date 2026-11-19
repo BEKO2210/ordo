@@ -53,6 +53,7 @@ class SettingsFragment : Fragment() {
             SettingsActivity.SECTION_TRASH -> R.string.settings_trash_title
             SettingsActivity.SECTION_LAUNCHER_ICONS -> R.string.settings_section_launcher_icons
             SettingsActivity.SECTION_MUSIC -> R.string.settings_music_title
+            SettingsActivity.SECTION_VIDEO -> R.string.settings_video_title
             else -> null
         }?.let { activity.title = getString(it) }
     }
