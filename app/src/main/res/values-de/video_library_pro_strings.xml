@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later -->
+<resources>
+    <string name="video_library_series">Serien</string>
+    <string name="video_library_films">Filme</string>
+    <string name="video_library_recent">Kürzlich hinzugefügt</string>
+    <string name="video_library_season_format">Staffel %1$d</string>
+    <string name="video_library_episode_format">Folge %1$d</string>
+    <string name="video_library_next_episode_format">Als Nächstes · S%1$d F%2$d</string>
+    <string name="video_library_next_episode_description_format">Nächste Folge: Staffel %1$d, Folge %2$d</string>
+    <string name="video_library_series_info_format">%1$s · %2$s</string>
+    <plurals name="video_library_seasons_format">
+        <item quantity="one">%1$d Staffel</item>
+        <item quantity="other">%1$d Staffeln</item>
+    </plurals>
+    <plurals name="video_library_episodes_format">
+        <item quantity="one">%1$d Folge</item>
+        <item quantity="other">%1$d Folgen</item>
+    </plurals>
+    <string name="video_library_watched">Gesehen</string>
+    <string name="video_library_unwatched">Ungesehen</string>
+    <string name="video_library_unwatched_only">Nur ungesehene</string>
+    <string name="video_library_search">Suchen</string>
+    <string name="video_library_search_hint">Videos, Ordner, Serien</string>
+    <string name="video_library_results">Treffer</string>
+    <string name="video_library_no_results">Keine Videos passen zu deiner Suche.</string>
+    <string name="video_library_no_unwatched">Du hast hier alles gesehen.</string>
+    <plurals name="video_library_selected_format">
+        <item quantity="one">%1$d ausgewählt</item>
+        <item quantity="other">%1$d ausgewählt</item>
+    </plurals>
+    <string name="video_library_select">Auswählen</string>
+    <string name="video_library_deselect">Abwählen</string>
+    <string name="video_library_selected">Ausgewählt</string>
+    <string name="video_library_close_selection">Auswahl beenden</string>
+    <string name="video_library_play_selection">Abspielen</string>
+    <string name="video_library_mark_watched">Als gesehen markieren</string>
+    <string name="video_library_mark_unwatched">Als ungesehen markieren</string>
+    <string name="video_library_share">Teilen</string>
+    <string name="video_library_trash">In den Papierkorb</string>
+    <string name="video_library_delete">Löschen</string>
+    <plurals name="video_library_trash_title_format">
+        <item quantity="one">%1$d Video in den Papierkorb verschieben?</item>
+        <item quantity="other">%1$d Videos in den Papierkorb verschieben?</item>
+    </plurals>
+    <string name="video_library_trash_message">Aus Ordos Papierkorb kannst du sie zurückholen.</string>
+    <plurals name="video_library_delete_title_format">
+        <item quantity="one">%1$d Video löschen?</item>
+        <item quantity="other">%1$d Videos löschen?</item>
+    </plurals>
+    <string name="video_library_delete_message">Der Papierkorb ist ausgeschaltet, das lässt sich nicht rückgängig machen.</string>
+</resources>

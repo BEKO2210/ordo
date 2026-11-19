@@ -125,6 +125,42 @@ Bitte mit Knopf wie in der Musik, ohne Videos ein ruhiger Hinweis. Ein Tipp spie
 Namen sortiert) als Warteschlange; aus „Weiterschauen“ springt der Player gleich an die Stelle (`EXTRA_RESUME`, nur
 zusammen mit Ordos Token wirksam). Logik ohne Android in `VideoLibrary`, getestet in `VideoLibraryTest`.
 
+## Serien, Gesehen, Suche, Auswahl (Bibliothek Pro)
+
+- **Serien:** `library/VideoEpisodes` liest Folgen aus Datei- und Ordnernamen: `S01E02`/`s2e10`/`S01.E03`, `1x02`
+  (nicht `1920x1080`, nicht `10x264`), „Folge 3“, „Episode 9“, „Ep. 4“, „E03“, „Teil 2“ (mit „Staffel 2“/„Season 2“/
+  „S2“ im Namen oder im Ordner), Fansub-Anime „[Gruppe] Name - 03“ (mindestens zwei Ziffern, keine Auflösung wie
+  720). Staffelordner „Staffel 1“, „Season_02“, „S3“; „Specials“/„OVA“ sind Staffel 0. Fehlt der Serienname vor der
+  Nummer, gilt der Ordner (über dem Staffelordner). Eine Serie braucht mindestens zwei Folgen. Getestet mit 56 Namen
+  in `VideoEpisodesTest` (gebaut von GitHub Copilot, Regeln nach einer Prüfung durch agy/Gemini nachgeschärft).
+- **Regale** (`library/VideoShelves`, getestet in `VideoShelvesTest`): Weiterschauen, Serien (Karte → eigene Seite
+  mit Staffeln und Folgen), Filme (über 40 min, in keiner Serie), Kürzlich hinzugefügt (30 Tage, höchstens 20), dann
+  die Ordner-Chips und alle Videos. Eine Folge spielt mit ihrer Staffel als Warteschlange: mit „Automatisch weiter“
+  läuft die Staffel durch. Ist die zuletzt gesehene Folge einer Serie fertig, bietet „Weiterschauen“ die nächste an
+  („Als Nächstes · S1 F3“), außer eine Folge der Serie hat schon eine gemerkte Stelle.
+- **Gesehen** (`library/VideoWatchedStore`, SharedPreferences `video_watched`, Schlüssel Pfad + Größe): der Player
+  markiert bei 95 % oder weniger als 10 s Rest (nicht bei „Keine Stellen merken“ und nicht beim Wiederholen eines
+  Videos), von Hand über die Auswahl. Jede Karte zeigt ihren Fortschritt, gesehene einen vollen Balken, nie
+  begonnene einen Punkt in der Akzentfarbe; ⋮ › „Nur ungesehene“ filtert. Eine Stelle, die älter ist als die
+  Gesehen-Marke, fällt aus „Weiterschauen“.
+- **Suche** (Lupe): jedes Wort muss in Titel, Ordnername oder Serienname stehen, Groß-/Kleinschreibung und Akzente
+  egal („lowenzahn“ findet „Löwenzahn“).
+- **Auswahl:** Langes Drücken wählt aus (TalkBack-Aktion „Auswählen“), danach wählt jeder Tipp. Oben: Abspielen (die
+  Auswahl als Warteschlange), Teilen, In den Papierkorb (mit Rückfrage; ist der Papierkorb aus: „Löschen“ mit
+  Hinweis), Als gesehen/ungesehen markieren, In den Tresor (Rückfrage wie in der Dateiliste), Videoinfos (bei
+  einem). Zurück beendet erst die Auswahl, dann die Suche, dann die Serienseite.
+
+## Tresor-Videos
+
+Ein Video im Tresor öffnet sich (Tresor entsperrt) in Ordos Player, die Videos des Tresors sind die Warteschlange.
+`vault/VaultVideos` streamt es über Tinks `newSeekableDecryptingChannel` (`VaultStore.openSeekable`) als Media3-
+`DataSource`: entschlüsselt wird segmentweise im Speicher, kein Klartext auf dem Speicher (anders als bei Bildern
+und PDFs, die `vault-open` im Cache nutzen). Lesen darf der Player nur Einträge, die der entsperrte Tresor freigegeben
+hat; Sperren (auch nach 2 min im Hintergrund) und Prozessende nehmen die Freigabe zurück. Tresor-Videos bekommen
+keine gemerkte Stelle, keine Gesehen-Marke, keine Vorschau und erscheinen nie in der Sammlung (MediaStore sieht den
+Tresor nicht); der Player-Bildschirm ist dann `FLAG_SECURE` (keine Bildschirmfotos, leere Vorschau in „Zuletzt“),
+„Mit anderer App öffnen“ fehlt. Verlässt man den Player, schließt er sich (wie der Tresor sich sperrt).
+
 ## Gerätetest
 
 `e2e/video-player.sh` (`--write`) prüft die Ziele 1–7 und 9 des Plans mit Clips aus `ffmpeg`;
@@ -168,7 +204,7 @@ Zahnrad in seiner Sammlung, Ordo Musiks über sein Seitenmenü.
 
 ## Videoinfos
 
-⋮ › „Videoinfos“ im Player und langes Drücken auf eine Karte der Sammlung öffnen ein Blatt statt der technischen
+⋮ › „Videoinfos“ im Player und in der Sammlung „Videoinfos“ der Auswahl (ein Video lang drücken) öffnen ein Blatt statt der technischen
 Dateieigenschaften: Titel (und echter Dateiname), Dauer, Auflösung mit Bildrate („1920 × 1080 · 30 fps“), HDR,
 Video-Codec in Worten (H.264, HEVC 10-Bit, AV1 …), Bitrate, Tonspuren (Codec, Kanäle „5.1“, Sprache), Untertitel,
 Größe, Ordner, Aufnahmedatum (aus der Datei, sonst Änderungsdatum). Im Player stammen die Spuren aus dem, was gerade

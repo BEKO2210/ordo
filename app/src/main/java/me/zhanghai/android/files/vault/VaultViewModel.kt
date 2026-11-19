@@ -15,6 +15,7 @@ import java.io.IOException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import me.zhanghai.android.files.viewer.video.vault.VaultVideos
 
 class VaultViewModel : ViewModel() {
     private val _isUnlocked = MutableLiveData(false)
@@ -60,6 +61,8 @@ class VaultViewModel : ViewModel() {
         _items.value = emptyList()
         selectedIds.clear()
         clearOpenedFiles()
+        // A player still open loses its videos too.
+        VaultVideos.revokeAll()
     }
 
     // A viewer on top of the vault must not lock it right away, or the file it shows would be
@@ -131,6 +134,11 @@ class VaultViewModel : ViewModel() {
 
     fun consumeOpenedFile() {
         _openedFile.value = null
+        onViewerStarted()
+    }
+
+    /** A viewer is on top: stopping now must not lock the vault under it. */
+    fun onViewerStarted() {
         viewerStartedAt = SystemClock.elapsedRealtime()
     }
 
@@ -157,6 +165,7 @@ class VaultViewModel : ViewModel() {
 
     override fun onCleared() {
         clearOpenedFiles()
+        VaultVideos.revokeAll()
     }
 
     companion object {

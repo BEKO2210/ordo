@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- Ordo Video's library: series, films, watched marks, search and selection (VideoLauncherActivity). -->
+<resources>
+    <string name="video_library_series">Series</string>
+    <string name="video_library_films">Movies</string>
+    <string name="video_library_recent">Recently added</string>
+    <string name="video_library_season_format">Season %1$d</string>
+    <string name="video_library_episode_format">Episode %1$d</string>
+    <string name="video_library_next_episode_format">Up next · S%1$d E%2$d</string>
+    <string name="video_library_next_episode_description_format">Next episode: season %1$d, episode %2$d</string>
+    <string name="video_library_series_info_format">%1$s · %2$s</string>
+    <plurals name="video_library_seasons_format">
+        <item quantity="one">%1$d season</item>
+        <item quantity="other">%1$d seasons</item>
+    </plurals>
+    <plurals name="video_library_episodes_format">
+        <item quantity="one">%1$d episode</item>
+        <item quantity="other">%1$d episodes</item>
+    </plurals>
+    <string name="video_library_watched">Watched</string>
+    <string name="video_library_unwatched">Unwatched</string>
+    <string name="video_library_unwatched_only">Unwatched only</string>
+    <string name="video_library_search">Search</string>
+    <string name="video_library_search_hint">Videos, folders, series</string>
+    <string name="video_library_results">Results</string>
+    <string name="video_library_no_results">No videos match your search.</string>
+    <string name="video_library_no_unwatched">You\'ve watched everything here.</string>
+    <plurals name="video_library_selected_format">
+        <item quantity="one">%1$d selected</item>
+        <item quantity="other">%1$d selected</item>
+    </plurals>
+    <string name="video_library_select">Select</string>
+    <string name="video_library_deselect">Deselect</string>
+    <string name="video_library_selected">Selected</string>
+    <string name="video_library_close_selection">Close selection</string>
+    <string name="video_library_play_selection">Play</string>
+    <string name="video_library_mark_watched">Mark as watched</string>
+    <string name="video_library_mark_unwatched">Mark as unwatched</string>
+    <string name="video_library_share">Share</string>
+    <string name="video_library_trash">Move to trash</string>
+    <string name="video_library_delete">Delete</string>
+    <plurals name="video_library_trash_title_format">
+        <item quantity="one">Move %1$d video to the trash?</item>
+        <item quantity="other">Move %1$d videos to the trash?</item>
+    </plurals>
+    <string name="video_library_trash_message">You can restore them from Ordo\'s trash.</string>
+    <plurals name="video_library_delete_title_format">
+        <item quantity="one">Delete %1$d video?</item>
+        <item quantity="other">Delete %1$d videos?</item>
+    </plurals>
+    <string name="video_library_delete_message">The trash is turned off, so this can\'t be undone.</string>
+</resources>
