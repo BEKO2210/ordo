@@ -91,6 +91,8 @@ import me.zhanghai.android.files.ui.Motion
 import me.zhanghai.android.files.util.valueCompat
 import me.zhanghai.android.files.util.createViewIntent
 import me.zhanghai.android.files.util.startActivitySafe
+import me.zhanghai.android.files.viewer.video.subtitles.VideoSubtitles
+import me.zhanghai.android.files.viewer.video.subtitles.showSubtitleSheet
 
 /**
  * Ordo's video player. The activity owns its ExoPlayer and a MediaSession (media keys, `dumpsys media_session`); the
@@ -108,6 +110,7 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity {
     private var session: MediaSession? = null
     private lateinit var controls: VideoControls
     private lateinit var resumeStore: VideoResumeStore
+    private var subtitles: VideoSubtitles? = null
     private val handler = Handler(Looper.getMainLooper())
     private val timeBuilder = StringBuilder()
     private val timeFormatter = Formatter(timeBuilder)
@@ -284,6 +287,8 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity {
             }
         }.build()
         applyRepeatMode(VideoRepeatMode.decode(Settings.VIDEO_END.valueCompat))
+        // Before the items: it hears the first one start (files next to it, the remembered choice).
+        subtitles = VideoSubtitles(this, player, binding.playerView, binding.bottomBar)
         player.setMediaItems(queue.items, queue.startIndex, queue.positionMs)
         player.playWhenReady = savedInstanceState?.getBoolean(STATE_PLAY_WHEN_READY) ?: true
         player.prepare()
@@ -334,6 +339,7 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity {
 
     override fun onDestroy() {
         handler.removeCallbacksAndMessages(null)
+        subtitles?.release()
         session?.release()
         session = null
         player?.release()
@@ -454,6 +460,7 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity {
             },
             onShownChanged = { shown ->
                 val insetsController = WindowCompat.getInsetsController(window, window.decorView)
+                subtitles?.onControlsShown(shown)
                 if (shown) {
                     insetsController.show(WindowInsetsCompat.Type.systemBars())
                 } else {
@@ -508,6 +515,7 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity {
             when (it.itemId) {
                 R.id.actionOpenWith -> openWithOtherApp()
                 R.id.actionFileInfo -> showFileInfo()
+                R.id.actionSubtitles -> subtitles?.let { showSubtitleSheet(this, it) }
                 else -> return@setOnMenuItemClickListener false
             }
             true
@@ -1138,7 +1146,7 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity {
         val info = VideoInfo.fromTracks(
             binding.toolbar.title?.toString().orEmpty(), name, currentDuration(), player.currentTracks,
             getString(R.string.video_info_not_playable)
-        )
+        ).let { it.copy(subtitles = it.subtitles + subtitles?.infoRows().orEmpty()) }
         lifecycleScope.launch {
             val withFile = if (path == null) info else withContext(Dispatchers.IO) {
                 runCatching {

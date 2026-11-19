@@ -143,6 +143,7 @@ open class SettingsPreferenceFragment : PreferenceFragmentCompat() {
                 .setMessage(R.string.video_settings_clear_history_confirm)
                 .setPositiveButton(R.string.video_settings_clear_history_action) { _, _ ->
                     me.zhanghai.android.files.viewer.video.VideoResumeStore(requireContext()).clear()
+                    me.zhanghai.android.files.viewer.video.subtitles.SubtitleStore(requireContext()).clearChoices()
                     android.widget.Toast.makeText(
                         requireContext(), R.string.video_settings_clear_history_done, android.widget.Toast.LENGTH_SHORT
                     ).show()
