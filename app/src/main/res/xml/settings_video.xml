@@ -128,6 +128,28 @@
             android:title="@string/video_settings_subtitles_auto"
             android:summary="@string/video_settings_subtitles_auto_summary"
             android:defaultValue="@bool/pref_default_value_true" />
+        <ListPreference
+            android:key="@string/pref_key_video_subtitle_reading"
+            android:title="@string/video_settings_subtitle_reading"
+            android:defaultValue="@string/pref_default_value_video_subtitle_reading"
+            android:entries="@array/video_settings_subtitle_reading_entries"
+            android:entryValues="@array/pref_entry_values_video_subtitle_reading"
+            app:useSimpleSummaryProvider="true" />
+        <SwitchPreferenceCompat
+            android:key="@string/pref_key_video_subtitle_slow_down"
+            android:title="@string/video_settings_subtitle_slow_down"
+            android:summary="@string/video_settings_subtitle_slow_down_summary"
+            android:defaultValue="@bool/pref_default_value_false" />
+        <SwitchPreferenceCompat
+            android:key="@string/pref_key_video_subtitle_sounds"
+            android:title="@string/video_settings_subtitle_sounds"
+            android:summary="@string/video_settings_subtitle_sounds_summary"
+            android:defaultValue="@bool/pref_default_value_true" />
+        <SwitchPreferenceCompat
+            android:key="@string/pref_key_video_subtitle_speaker_colors"
+            android:title="@string/video_settings_subtitle_speaker_colors"
+            android:summary="@string/video_settings_subtitle_speaker_colors_summary"
+            android:defaultValue="@bool/pref_default_value_true" />
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/video_settings_cat_library">

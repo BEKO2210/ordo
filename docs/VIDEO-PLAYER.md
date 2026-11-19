@@ -215,6 +215,38 @@ für eine Datei Verzögerung und Zeichenkodierung, für alle Filme Größe (Klei
 - **Schnittstelle für später:** `VideoSubtitles.choices()`, `currentChoice()`, `choose()`, `pickFile()`; keine KI im
   Player.
 
+### Lese-Hilfe, Hörgeschädigte, Kontrast (aus `ordo-team/WISSENSCHAFT.md` §3)
+
+Gilt für Untertitel-Dateien (deren Zeiten Ordo selbst führt); Spuren im Film zeigt Media3 mit ihren eigenen Zeiten.
+
+- **Lese-Hilfe** (`ReadingAid`, Einstellung Aus / Normal 17 / Langsam 13 / Schnell 20 Zeichen pro Sekunde, Standard 17):
+  Jede Zeile braucht das Längste aus Zeichen ÷ Grenze, **0,3 s pro Wort** und **1 s pro Zeile**. Zeigt die Datei sie
+  kürzer, bleibt sie länger stehen, aber höchstens bis zum Beginn der nächsten Zeile (nie überlappend; Überlappungen,
+  die die Datei selbst hat, bleiben). Zeichen zählen mit Leerzeichen, ein Zeilenumbruch als eines. Stücke einer Zeile
+  (WebVTT/TTML liefern Abschnitte) werden vorher zusammengelegt. Die Zeiten des Films ändern sich nie, Bild und Ton
+  bleiben synchron.
+- **Bei schnellem Text kurz langsamer** (Standard aus): Solange eine Zeile über der Grenze steht, läuft der Film mit
+  0,9× seines Tempos (Tonhöhe bleibt), danach wieder wie vorher. Hat der Nutzer das Tempo inzwischen selbst geändert,
+  bleibt seins.
+- **Geräuschbeschreibungen zeigen** (Standard an): aus, so verschwinden `[…]` und `(GROSSBUCHSTABEN)` samt leer
+  gewordener Zeilen; `(klein geschrieben)` ist Dialog und bleibt (`Sdh`).
+- **Sprechernamen farbig** (Standard an): `ANNA:` am Zeilenanfang bekommt je Sprecher eine Farbe in der Reihenfolge der
+  BBC (Gelb, Cyan, Grün; Weiß ist der Text), über den ganzen Film gleich.
+- **Kontrast:** Standard ist jetzt „Kasten“ (Weiß auf Schwarz wie bei der BBC). Sein Alpha ist mindestens 0,75 und so
+  hoch, dass Weiß und Gelb auch über reinem Weiß **≥ 4,5:1** erreichen (WCAG 2.2, 1.4.3; geprüft in `ReadingAidTest`
+  über zehn Hintergründe: Weiß 10,5:1, Gelb 8,6:1). „Ohne“ und „Schatten“ hängen vom Bild ab und halten das nicht
+  sicher ein.
+- Von den Dateien bleiben nur Kursiv, Fett und Unterstrichen; Farben und Größen der Datei weichen der Wahl im Blatt.
+
+Quellen (geprüft laut `WISSENSCHAFT.md` §7): Netflix *English (USA) Timed Text Style Guide* (≤ 20 Z/s Erwachsene,
+≤ 17 Kinder) und *Swedish Timed Text Style Guide* (≤ 17 / ≤ 13); *BBC Subtitle Guidelines*
+(bbc.co.uk/accessibility/forproducts/guides/subtitles: 0,3 s pro Wort, Weiß auf Schwarz, Sprecherfarben); Szarkowska,
+Gerber-Morón 2018, PLOS ONE, doi:10.1371/journal.pone.0199331 (20 Z/s für die meisten lesbar, zu langsame Untertitel
+stören); Jensema 1998, American Annals of the Deaf, doi:10.1353/aad.2012.0073 (≈ 145 Wörter/min angenehm, Probleme ab
+170); Burnham et al. 2008, J. Deaf Stud. Deaf Educ., doi:10.1093/deafed/enn003 (Lesekompetenz wichtigster Faktor,
+darum Stufen nach Wunsch statt nach Alter); W3C *WCAG 2.2* 1.4.3. Annahme, nicht belegt: dass das Verlängern selbst
+das Verstehen verbessert (Nutzertest offen).
+
 ## Nächster Schritt (entschieden, noch nicht begonnen)
 
 Media3-FFmpeg-Erweiterung nur für Ton, gebaut mit den Decodern ac3, eac3, dts, truehd und mlp: günstige Geräte (W90)

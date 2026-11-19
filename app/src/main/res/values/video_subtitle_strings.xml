@@ -54,6 +54,19 @@
     </string-array>
     <string name="video_settings_subtitles_auto">Subtitles automatically</string>
     <string name="video_settings_subtitles_auto_summary">When the sound is in another language, subtitles in your language come on: a file next to the video first, then a track inside it.</string>
+    <string name="video_settings_subtitle_reading">Reading aid</string>
+    <string-array name="video_settings_subtitle_reading_entries">
+        <item>Off</item>
+        <item>Normal (17 characters per second)</item>
+        <item>Slow (13 characters per second)</item>
+        <item>Fast (20 characters per second)</item>
+    </string-array>
+    <string name="video_settings_subtitle_slow_down">Slow down briefly for fast text</string>
+    <string name="video_settings_subtitle_slow_down_summary">While a subtitle line is faster than the reading aid allows, the video plays at 0.9×. The pitch stays the same.</string>
+    <string name="video_settings_subtitle_sounds">Show sound descriptions</string>
+    <string name="video_settings_subtitle_sounds_summary">Notes such as [MUSIC] or (DOOR SLAMS) in subtitle files</string>
+    <string name="video_settings_subtitle_speaker_colors">Colour speaker names</string>
+    <string name="video_settings_subtitle_speaker_colors_summary">Each speaker name, such as ANNA:, gets its own colour: yellow, cyan, green</string>
 
     <string name="pref_key_video_subtitle_language" translatable="false">key_video_subtitle_language</string>
     <string name="pref_default_value_video_subtitle_language" translatable="false">device</string>
@@ -63,4 +76,15 @@
         <item>en</item>
     </string-array>
     <string name="pref_key_video_subtitles_auto" translatable="false">key_video_subtitles_auto</string>
+    <string name="pref_key_video_subtitle_reading" translatable="false">key_video_subtitle_reading</string>
+    <string name="pref_default_value_video_subtitle_reading" translatable="false">17</string>
+    <string-array name="pref_entry_values_video_subtitle_reading" translatable="false">
+        <item>0</item>
+        <item>17</item>
+        <item>13</item>
+        <item>20</item>
+    </string-array>
+    <string name="pref_key_video_subtitle_slow_down" translatable="false">key_video_subtitle_slow_down</string>
+    <string name="pref_key_video_subtitle_sounds" translatable="false">key_video_subtitle_sounds</string>
+    <string name="pref_key_video_subtitle_speaker_colors" translatable="false">key_video_subtitle_speaker_colors</string>
 </resources>
