@@ -6,6 +6,7 @@
 package me.zhanghai.android.files.viewer.video.sound
 
 import me.zhanghai.android.files.player.KlangStage
+import me.zhanghai.android.files.player.LoudnessMeter
 import kotlin.math.abs
 import kotlin.math.log10
 import kotlin.math.max
@@ -63,106 +64,203 @@ internal class Compressor {
     }
 }
 
+/** One biquad in transposed direct form II, in floats. */
+internal class BiquadFilter(private val c: VideoSoundMath.Biquad) {
+    private var z1 = 0f
+    private var z2 = 0f
+
+    fun process(x: Float): Float {
+        val y = c.b0 * x + z1
+        z1 = c.b1 * x - c.a1 * y + z2
+        z2 = c.b2 * x - c.a2 * y
+        return y
+    }
+
+    fun clear() {
+        z1 = 0f
+        z2 = 0f
+    }
+}
+
+/** BS.1770 K-weighting (the two stages of [LoudnessMeter], for any sample rate). */
+internal class KWeighting(sampleRate: Int) {
+    private val shelf = BiquadFilter(VideoSoundMath.Biquad(LoudnessMeter.shelfCoefficients(sampleRate)))
+    private val highPass = BiquadFilter(VideoSoundMath.Biquad(LoudnessMeter.highPassCoefficients(sampleRate)))
+
+    fun process(x: Float): Float = highPass.process(shelf.process(x))
+
+    fun clear() {
+        shelf.clear()
+        highPass.clear()
+    }
+}
+
 /**
- * "Dialog-Verstärker": voices sit in the centre (mid = (L + R) / 2) and carry their intelligibility at 1–4 kHz. The
- * mid signal gets a gentle compressor and a presence peak (RBJ peaking EQ), the side signal (music, effects, room)
- * stays as it is. With 5.1 sources the downmix also raises the centre channel ([VideoSoundMath.centreGain]).
- *
- * Light ↔ Strong glides: presence gain, threshold, ratio and make-up move towards the new level with a time constant
- * of [RAMP_SECONDS] (one-pole, per frame); the filter is recomputed every [COEFFICIENTS_EVERY] frames on the way.
+ * The dialog-to-rest loudness distance and the gains that steer it to a target in LU. Both parts are K-weighted and
+ * averaged over [WINDOW_SECONDS] (BS.1770 short-term); every buffer the missing distance ([VideoSoundMath.dialogBoostDb])
+ * is split, half up for dialog and half down for the rest, and the applied gains glide there with [GLIDE_SECONDS].
+ * Gains move only while dialog is heard; in silence they hold, so a pause does not pump the music.
+ */
+internal class DialogSteering {
+    /** Target in LU; NaN = off (the gains glide back to 0 dB). */
+    @Volatile
+    var targetLu = Float.NaN
+
+    /** Tests freeze the gains to measure stems with the reached setting. */
+    @Volatile
+    var hold = false
+
+    /** Last measured distance before the gains, LU (NaN while no dialog is heard); published after each update. */
+    @Volatile
+    var distanceLu = Float.NaN
+        private set
+
+    /** The distance reached with the gains of the same update (one consistent pair for the main thread). */
+    @Volatile
+    var reachedLu = Float.NaN
+        private set
+
+    /** A new film: forget the measured energy, the distance and the gains (set on main, done on the audio thread). */
+    @Volatile
+    var resetRequested = false
+
+    var dialogDb = 0f
+        private set
+    var restDb = 0f
+        private set
+
+    private var dialogSquare = 0.0
+    private var restSquare = 0.0
+    private var average = 0.0
+    private var sampleRate = 48_000
+
+    fun configure(sampleRate: Int) {
+        this.sampleRate = sampleRate
+        average = 1.0 - kotlin.math.exp(-1.0 / (sampleRate * WINDOW_SECONDS))
+    }
+
+    fun clear() {
+        dialogSquare = 0.0
+        restSquare = 0.0
+    }
+
+    /** One frame of K-weighted dialog and rest energy (sums over the output channels). */
+    fun measure(dialogEnergy: Float, restEnergy: Float) {
+        dialogSquare += (dialogEnergy - dialogSquare) * average
+        restSquare += (restEnergy - restSquare) * average
+    }
+
+    /** After a buffer of [frames]: new distance, new gains. */
+    fun update(frames: Int) {
+        if (resetRequested) {
+            resetRequested = false
+            clear()
+            dialogDb = 0f
+            restDb = 0f
+            distanceLu = Float.NaN
+            reachedLu = Float.NaN
+        }
+        if (hold) return
+        val target = targetLu
+        distanceLu = VideoSoundMath.distanceLu(dialogSquare, restSquare)
+        val boost = if (target.isNaN()) 0f else VideoSoundMath.dialogBoostDb(distanceLu, target)
+        if (!target.isNaN() && distanceLu.isNaN()) {
+            reachedLu = Float.NaN
+            return
+        }
+        val step = (1.0 - kotlin.math.exp(-frames.toDouble() / (sampleRate * GLIDE_SECONDS))).toFloat()
+        dialogDb += (boost / 2 - dialogDb) * step
+        restDb += (-boost / 2 - restDb) * step
+        if (abs(dialogDb) < 0.001f && boost == 0f) dialogDb = 0f
+        if (abs(restDb) < 0.001f && boost == 0f) restDb = 0f
+        reachedLu = distanceLu + dialogDb - restDb
+    }
+
+    companion object {
+        const val WINDOW_SECONDS = 3.0
+        const val GLIDE_SECONDS = 0.5
+    }
+}
+
+/**
+ * "Dialog-Verstärker" for stereo (and 5.1 the system plays itself): a loudness distance in LU instead of "+x dB". Voices
+ * sit in the middle (mid = (L + R) / 2) and in the speech band; the mid is split with a band-pass applied twice
+ * ([VideoSoundMath.speechBand], [VideoSoundMath.SPEECH_LOW_HZ]–[VideoSoundMath.SPEECH_HIGH_HZ], 0 dB and no phase
+ * shift at its centre) into dialog and the rest of the mid (mid minus dialog), so the two add up to the mid exactly;
+ * twice, because bass in the middle leaked into a single band at about -15 dB and was then lifted with the voice. Dialog vs. rest (mid outside the band plus the side) is measured K-weighted and
+ * [DialogSteering] moves them apart to the target. A heuristic, no speech model: music in the middle and the speech
+ * band counts as dialog. With 5.1 the downmix steers the real centre channel instead.
  */
 class DialogStage : KlangStage() {
-    /** [VideoSoundMath.DIALOG_LIGHT] or [VideoSoundMath.DIALOG_STRONG]; Off is effectEnabled = false. */
+    /** [VideoSoundMath.DIALOG_LIGHT] (10 LU) or [VideoSoundMath.DIALOG_STRONG] (15 LU); Off is effectEnabled = false. */
     @Volatile
     var level: Int = VideoSoundMath.DIALOG_LIGHT
 
-    private var target = VideoSoundMath.dialogParams(VideoSoundMath.DIALOG_LIGHT)!!
-    private var presenceDb = 0f
-    private var snap = true
-    private var step = 1f
-    private var countdown = 0
-    private var b0 = 1f
-    private var b1 = 0f
-    private var b2 = 0f
-    private var a1 = 0f
-    private var a2 = 0f
-    private var z1 = 0f
-    private var z2 = 0f
-    private val compressor = Compressor()
+    internal val steering = DialogSteering()
+    private var band = BiquadFilter(VideoSoundMath.speechBand(48_000))
+    private var band2 = BiquadFilter(VideoSoundMath.speechBand(48_000))
+    private var kDialog = KWeighting(48_000)
+    private var kRest = KWeighting(48_000)
+    private var kSide = KWeighting(48_000)
+    private var dialogGain = 1f
+    private var restGain = 1f
+    private var dialogTarget = 1f
+    private var restTarget = 1f
+    private var frames = 0
+
+    /** What a sheet or the signal path shows: measured distance and the distance reached, in LU. */
+    val distanceLu: Float get() = steering.distanceLu
+    val reachedLu: Float get() = steering.reachedLu
 
     override fun onSampleRate(sampleRate: Int) {
-        step = (1.0 - kotlin.math.exp(-1.0 / (sampleRate * RAMP_SECONDS))).toFloat()
-        snap = true
+        band = BiquadFilter(VideoSoundMath.speechBand(sampleRate))
+        band2 = BiquadFilter(VideoSoundMath.speechBand(sampleRate))
+        kDialog = KWeighting(sampleRate)
+        kRest = KWeighting(sampleRate)
+        kSide = KWeighting(sampleRate)
+        steering.configure(sampleRate)
     }
 
     override fun prepare() {
-        target = VideoSoundMath.dialogParams(level) ?: VideoSoundMath.dialogParams(VideoSoundMath.DIALOG_LIGHT)!!
-        if (!snap) return
-        compressor.configure(VideoSoundMath.dialogCompressor(target), sampleRate)
-        presenceDb = target.presenceGainDb
-        setFilter()
-        snap = false
+        steering.targetLu = VideoSoundMath.dialogTargetLu(level) ?: Float.NaN
+        steering.update(frames)
+        frames = 0
+        dialogTarget = 10f.pow(steering.dialogDb / 20f)
+        restTarget = 10f.pow(steering.restDb / 20f)
     }
 
     override fun clear() {
-        z1 = 0f
-        z2 = 0f
-        compressor.clear()
-        snap = true
-    }
-
-    private fun setFilter() {
-        val peak = VideoSoundMath.peaking(sampleRate, target.presenceHz, target.presenceQ, presenceDb)
-        b0 = peak.b0
-        b1 = peak.b1
-        b2 = peak.b2
-        a1 = peak.a1
-        a2 = peak.a2
-    }
-
-    /** One glide step of every parameter; true while something still moves. */
-    private fun glideParameters(): Boolean {
-        var moving = false
-        fun toward(current: Float, goal: Float): Float {
-            if (abs(goal - current) < ARRIVED) return goal
-            moving = true
-            return current + (goal - current) * step
-        }
-        presenceDb = toward(presenceDb, target.presenceGainDb)
-        compressor.thresholdDb = toward(compressor.thresholdDb, target.thresholdDb)
-        compressor.ratio = toward(compressor.ratio, target.ratio)
-        compressor.makeUpDb = toward(compressor.makeUpDb, target.makeUpDb)
-        return moving
+        band.clear()
+        band2.clear()
+        kDialog.clear()
+        kRest.clear()
+        kSide.clear()
+        // The measured distance and the gains stay over a seek: they describe the film, not the last buffer.
+        frames = 0
     }
 
     override fun processFrame(left: Float, right: Float) {
-        if (presenceDb != target.presenceGainDb || compressor.makeUpDb != target.makeUpDb ||
-            compressor.thresholdDb != target.thresholdDb || compressor.ratio != target.ratio
-        ) {
-            val moving = glideParameters()
-            if (--countdown <= 0 || !moving) {
-                countdown = COEFFICIENTS_EVERY
-                setFilter()
-            }
-        }
-        // Evened out first, then the presence peak: the compressor sees the level, not the boosted band.
         val mid = (left + right) * 0.5f
-        val even = mid * compressor.gain(abs(mid))
         val side = (left - right) * 0.5f
-        // Transposed direct form II.
-        val voice = b0 * even + z1
-        z1 = b1 * even - a1 * voice + z2
-        z2 = b2 * even - a2 * voice
-        outLeft = voice + side
-        outRight = voice - side
+        val dialog = band2.process(band.process(mid))
+        val restMid = mid - dialog
+        // Energy of each part in both output channels: mid and side each appear in L and R.
+        val d = kDialog.process(dialog)
+        val r = kRest.process(restMid)
+        val s = kSide.process(side)
+        steering.measure(2 * d * d, 2 * (r * r + s * s))
+        frames++
+        // Between buffers the gains move in small per-frame steps, never in one jump.
+        dialogGain += (dialogTarget - dialogGain) * GAIN_STEP
+        restGain += (restTarget - restGain) * GAIN_STEP
+        val outMid = dialog * dialogGain + restMid * restGain
+        val outSide = side * restGain
+        outLeft = outMid + outSide
+        outRight = outMid - outSide
     }
 
-    internal val presenceGainDb: Float get() = presenceDb
-
-    companion object {
-        internal const val RAMP_SECONDS = 0.03
-        private const val COEFFICIENTS_EVERY = 32
-        private const val ARRIVED = 0.01f
+    private companion object {
+        const val GAIN_STEP = 0.002f
     }
 }
 

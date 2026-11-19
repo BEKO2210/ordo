@@ -6,7 +6,15 @@
     <string name="video_sound_menu">Sound</string>
     <string name="video_sound_own_settings">Only for videos – your music sound stays as it is</string>
     <string name="video_sound_dialog">Clear dialogue</string>
-    <string name="video_sound_dialog_summary">Brings voices forward and evens them out</string>
+    <string name="video_sound_dialog_summary">Moves voices 10 LU (Light) or 15 LU (Strong) above music and noise</string>
+    <string name="video_sound_dialog_light">Light · 10 LU</string>
+    <string name="video_sound_dialog_strong">Strong · 15 LU</string>
+    <string name="video_sound_dialog_state">Voices now %1$s LU above the rest (before: %2$s LU)</string>
+    <string name="video_sound_understand">Hear dialogue better</string>
+    <string name="video_sound_understand_summary">Voices 15 LU above the rest and night mode in one tap. Subtitles help as well.</string>
+    <string name="loudness_target_original">Original · −23 LUFS</string>
+    <string name="loudness_target_on_the_go">On the go · −16 LUFS</string>
+    <string name="video_sound_level_measured">Target %1$s LUFS · this film %2$s LUFS</string>
     <string name="video_sound_night">Night mode</string>
     <string name="video_sound_night_summary">Softens loud scenes and lifts quiet speech</string>
     <string name="video_sound_bass_summary">More low end for small speakers</string>

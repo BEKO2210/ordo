@@ -28,21 +28,40 @@ internal object VideoSoundMath {
         else -> 1.4125f // +3 dB
     }
 
-    class DialogParams(
-        val presenceGainDb: Float,
-        val presenceHz: Float,
-        val presenceQ: Float,
-        val thresholdDb: Float,
-        val ratio: Float,
-        val makeUpDb: Float
-    )
-
-    /** Presence + compressor settings for a dialog level; Off returns null. */
-    fun dialogParams(level: Int): DialogParams? = when (level.coerceIn(0, 2)) {
+    /**
+     * Dialog-over-rest loudness distance the enhancer aims at, in LU: Light 10 LU (preferred speech-over-music distance),
+     * Strong 15 LU (speech over ambience, also the hearing-help level). Torcoli, Freke-Morin, Paulus, Simon, Shirley,
+     * "Preferred Levels for Background Ducking to Produce Esthetically Pleasing Audio for TV with Clear Speech",
+     * JAES 67(12), 2019, doi:10.17743/jaes.2019.0052. Off: null.
+     */
+    fun dialogTargetLu(level: Int): Float? = when (level.coerceIn(0, 2)) {
         DIALOG_OFF -> null
-        DIALOG_LIGHT -> DialogParams(4f, 2500f, 0.8f, -24f, 2f, 2f)
-        else -> DialogParams(7f, 2500f, 0.8f, -30f, 3f, 4f)
+        DIALOG_LIGHT -> 10f
+        else -> 15f
     }
+
+    /** The most the enhancer moves dialog and rest apart, in dB (half up for dialog, half down for the rest). */
+    const val DIALOG_CAP_DB = 18f
+
+    /** Speech band of the stereo heuristic (mid signal): the -3 dB edges of [speechBand]. */
+    const val SPEECH_LOW_HZ = 300f
+    const val SPEECH_HIGH_HZ = 4000f
+
+    /**
+     * How far dialog and rest must move apart: the missing distance to [targetLu], never negative, at most
+     * [DIALOG_CAP_DB]; 0 while no dialog is measured ([distanceLu] NaN).
+     */
+    fun dialogBoostDb(distanceLu: Float, targetLu: Float): Float =
+        if (distanceLu.isNaN()) 0f else (targetLu - distanceLu).coerceIn(0f, DIALOG_CAP_DB)
+
+    /** Loudness distance in LU of two K-weighted mean squares; NaN when the dialog part is silent (below -60 dB). */
+    fun distanceLu(dialogMeanSquare: Double, restMeanSquare: Double): Float = when {
+        dialogMeanSquare < SILENT_MEAN_SQUARE -> Float.NaN
+        restMeanSquare < SILENT_MEAN_SQUARE -> DIALOG_CAP_DB + 30f
+        else -> (10 * log10(dialogMeanSquare / restMeanSquare)).toFloat()
+    }
+
+    private const val SILENT_MEAN_SQUARE = 1e-6
 
     class CompressorParams(
         val thresholdDb: Float,
@@ -56,9 +75,6 @@ internal object VideoSoundMath {
     /** Night-mode linked compressor. */
     val NIGHT = CompressorParams(-30f, 4f, 6f, 5f, 250f, 9f)
 
-    /** Dialog-path compressor derived from [DialogParams]. */
-    fun dialogCompressor(p: DialogParams) =
-        CompressorParams(p.thresholdDb, p.ratio, 6f, 3f, 120f, p.makeUpDb)
 
     /**
      * Soft-knee feed-forward gain computer; returns gain change in dB (<= 0).
@@ -86,11 +102,27 @@ internal object VideoSoundMath {
         return exp(-1.0 / (sampleRate * timeMs / 1000.0)).toFloat()
     }
 
-    /** RBJ peakingEQ biquad, normalised so a0 = 1. */
-    class Peaking(val b0: Float, val b1: Float, val b2: Float, val a1: Float, val a2: Float)
+    /** A biquad, normalised so a0 = 1. */
+    class Biquad(val b0: Float, val b1: Float, val b2: Float, val a1: Float, val a2: Float) {
+        constructor(c: DoubleArray) : this(c[0].toFloat(), c[1].toFloat(), c[2].toFloat(), c[3].toFloat(), c[4].toFloat())
+    }
+
+    /**
+     * RBJ Audio EQ Cookbook band-pass (0 dB peak) over [SPEECH_LOW_HZ]..[SPEECH_HIGH_HZ]: centre at their geometric
+     * mean, Q = centre / bandwidth. Its complement (1 − H) is the cookbook notch with the same poles, and the two are
+     * power-complementary: the mid splits into "dialog" and "rest" that add up to it exactly.
+     */
+    fun speechBand(sampleRate: Int): Biquad {
+        val centre = kotlin.math.sqrt((SPEECH_LOW_HZ * SPEECH_HIGH_HZ).toDouble())
+        val q = centre / (SPEECH_HIGH_HZ - SPEECH_LOW_HZ)
+        val w0 = 2.0 * PI * centre / sampleRate
+        val alpha = sin(w0) / (2.0 * q)
+        val a0 = 1.0 + alpha
+        return Biquad(doubleArrayOf(alpha / a0, 0.0, -alpha / a0, -2 * cos(w0) / a0, (1 - alpha) / a0))
+    }
 
     /** RBJ Audio EQ Cookbook peakingEQ. */
-    fun peaking(sampleRate: Int, freqHz: Float, q: Float, gainDb: Float): Peaking {
+    fun peaking(sampleRate: Int, freqHz: Float, q: Float, gainDb: Float): Biquad {
         val a = 10.0.pow(gainDb / 40.0)
         val w0 = 2.0 * PI * freqHz / sampleRate
         val alpha = sin(w0) / (2.0 * q)
@@ -101,14 +133,14 @@ internal object VideoSoundMath {
         val a0 = 1.0 + alpha / a
         val a1 = -2.0 * cosW
         val a2 = 1.0 - alpha / a
-        return Peaking(
+        return Biquad(
             (b0 / a0).toFloat(), (b1 / a0).toFloat(), (b2 / a0).toFloat(),
             (a1 / a0).toFloat(), (a2 / a0).toFloat()
         )
     }
 
-    /** |H(e^jw)| of a peaking biquad in dB (for tests). */
-    fun peakingMagnitudeDb(p: Peaking, freqHz: Float, sampleRate: Int): Float {
+    /** |H(e^jw)| of a biquad in dB (for tests). */
+    fun magnitudeDb(p: Biquad, freqHz: Float, sampleRate: Int): Float {
         val w = 2.0 * PI * freqHz / sampleRate
         val c1 = cos(w)
         val s1 = sin(w)

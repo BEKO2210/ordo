@@ -24,16 +24,28 @@ import kotlin.math.sin
  * detection target is [CEILING_DB] = −1.6 dB: the gain ramp itself adds a little between the samples (clipped full-band
  * noise lands at about −1.5 dBTP, docs/VIDEO-SOUND.md). Constant latency [LATENCY] frames (1 ms at 48 kHz).
  *
- * While nothing processes the sound ([armed] false and [armedBy] answering false) no new reduction starts; once the gain is back at 1 every sample
- * passes bit for bit, so "everything off" stays bit-perfect (delayed by [LATENCY] frames). 16-bit stereo only; other
- * formats pass by.
+ * Before the detection it applies the loudness gain ([gainDb], EBU R 128 s2 targets, [LoudnessTargets]), gliding with a
+ * 50 ms time constant, so a raised level is caught by the same limiter (R 128 s2 k).
+ *
+ * While nothing processes the sound ([armed] false, [armedBy] answering false, no loudness gain) no new reduction
+ * starts; once the gain is back at 1 every sample passes bit for bit, so "everything off" stays bit-perfect (delayed by
+ * [LATENCY] frames). 16-bit mono and stereo; other formats pass by.
  */
 class TruePeakLimiter(private val armedBy: (() -> Boolean)? = null) : BaseAudioProcessor() {
     @Volatile
     var armed: Boolean = false
 
-    /** [armed] or [armedBy], read once per buffer on the audio thread. */
+    /** Loudness gain in dB applied before the limiter (0 = none). */
+    @Volatile
+    var gainDb: Float = 0f
+
+    /** [armed] or [armedBy] or a loudness gain, read once per buffer on the audio thread. */
     private var armedNow = false
+    private var channels = 2
+    private var inputGain = 1f
+    private var inputGainTarget = 1f
+    private var inputGlide = 0f
+    private val unity = BooleanArray(RING)
 
     private val left = FloatArray(RING)
     private val right = FloatArray(RING)
@@ -47,7 +59,7 @@ class TruePeakLimiter(private val armedBy: (() -> Boolean)? = null) : BaseAudioP
     private var release = 0f
 
     override fun onConfigure(inputAudioFormat: AudioProcessor.AudioFormat): AudioProcessor.AudioFormat =
-        if (inputAudioFormat.encoding == C.ENCODING_PCM_16BIT && inputAudioFormat.channelCount == 2) {
+        if (inputAudioFormat.encoding == C.ENCODING_PCM_16BIT && inputAudioFormat.channelCount in 1..2) {
             inputAudioFormat
         } else {
             AudioProcessor.AudioFormat.NOT_SET
@@ -61,17 +73,27 @@ class TruePeakLimiter(private val armedBy: (() -> Boolean)? = null) : BaseAudioP
         segment.fill(0f)
         required.fill(1f)
         held.fill(1f)
+        unity.fill(true)
         count = 0
         lastHeld = 1f
+        channels = inputAudioFormat.channelCount
         release = (1.0 - exp(-1.0 / (inputAudioFormat.sampleRate * RELEASE_SECONDS))).toFloat()
+        inputGlide = (1.0 - exp(-1.0 / (inputAudioFormat.sampleRate * GAIN_SECONDS))).toFloat()
+        // A stream starts at its level; only changes while it plays glide.
+        inputGain = Math.pow(10.0, gainDb / 20.0).toFloat()
     }
 
     override fun queueInput(inputBuffer: ByteBuffer) {
         if (!inputBuffer.hasRemaining()) return
-        val frames = inputBuffer.remaining() / 4
-        armedNow = armed || armedBy?.invoke() == true
-        val output = replaceOutputBuffer(frames * 4)
-        repeat(frames) { push(inputBuffer.getShort(), inputBuffer.getShort(), output) }
+        val frameBytes = 2 * channels
+        val frames = inputBuffer.remaining() / frameBytes
+        inputGainTarget = Math.pow(10.0, gainDb / 20.0).toFloat()
+        armedNow = armed || armedBy?.invoke() == true || inputGainTarget != 1f || inputGain != 1f
+        val output = replaceOutputBuffer(frames * frameBytes)
+        repeat(frames) {
+            val l = inputBuffer.getShort()
+            push(l, if (channels == 2) inputBuffer.getShort() else l, output)
+        }
         output.flip()
     }
 
@@ -79,7 +101,7 @@ class TruePeakLimiter(private val armedBy: (() -> Boolean)? = null) : BaseAudioP
     override fun onQueueEndOfStream() {
         val pending = minOf(count, LATENCY.toLong()).toInt()
         if (pending == 0) return
-        val output = replaceOutputBuffer(pending * 4)
+        val output = replaceOutputBuffer(pending * 2 * channels)
         repeat(LATENCY) { push(0, 0, output) }
         output.flip()
     }
@@ -89,8 +111,13 @@ class TruePeakLimiter(private val armedBy: (() -> Boolean)? = null) : BaseAudioP
         val i = (n and MASK).toInt()
         rawLeft[i] = l
         rawRight[i] = r
-        left[i] = l / PCM_SCALE
-        right[i] = r / PCM_SCALE
+        if (inputGain != inputGainTarget) {
+            inputGain += (inputGainTarget - inputGain) * inputGlide
+            if (abs(inputGain - inputGainTarget) < 1e-5f) inputGain = inputGainTarget
+        }
+        unity[i] = inputGain == 1f
+        left[i] = l / PCM_SCALE * inputGain
+        right[i] = r / PCM_SCALE * inputGain
         count++
         // Segment s (between frames s and s + 1) needs frames up to s + HALF = n.
         val s = n - HALF
@@ -144,12 +171,12 @@ class TruePeakLimiter(private val armedBy: (() -> Boolean)? = null) : BaseAudioP
             for (j in 0 until WINDOW) sum += held[((m - j) and MASK).toInt()]
             if (sum >= WINDOW.toFloat()) 1f else sum / WINDOW
         }
-        if (gain == 1f) {
+        if (gain == 1f && unity[mi]) {
             output.putShort(rawLeft[mi])
-            output.putShort(rawRight[mi])
+            if (channels == 2) output.putShort(rawRight[mi])
         } else {
             output.putShort(quantize(left[mi] * gain))
-            output.putShort(quantize(right[mi] * gain))
+            if (channels == 2) output.putShort(quantize(right[mi] * gain))
         }
     }
 
@@ -167,6 +194,7 @@ class TruePeakLimiter(private val armedBy: (() -> Boolean)? = null) : BaseAudioP
         private const val RING = 128
         private const val MASK = (RING - 1).toLong()
         private const val RELEASE_SECONDS = 0.08
+        private const val GAIN_SECONDS = 0.05
         internal const val CEILING_DB = -1.6f
         internal val CEILING = Math.pow(10.0, CEILING_DB / 20.0).toFloat()
 

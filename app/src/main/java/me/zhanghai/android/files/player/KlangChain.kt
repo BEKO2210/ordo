@@ -351,6 +351,11 @@ class KlangProcessors(dither: Boolean = true) {
     /**
      * Crossfeed only makes sense in headphones; crossfeed and width have nothing left to work on after the mono mix.
      */
+    /** Loudness levelling to the chosen R 128 s2 target, before the true-peak limiter. */
+    fun setLoudness(settings: AudioSettings, info: ReplayGainInfo?) {
+        truePeak.gainDb = LoudnessTargets.gainDb(settings, info)
+    }
+
     fun apply(settings: AudioSettings, headphones: Boolean) {
         mono.effectEnabled = settings.mono
         highs.level = settings.highsLevel
