@@ -11,6 +11,7 @@ import android.content.ContentResolver
 import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.content.res.Configuration
+import android.media.AudioManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -19,6 +20,7 @@ import android.os.Looper
 import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
+import android.view.ViewConfiguration
 import android.view.WindowManager
 import android.view.accessibility.AccessibilityManager
 import android.widget.FrameLayout
@@ -26,6 +28,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.annotation.OptIn
+import androidx.annotation.StringRes
 import androidx.core.content.getSystemService
 import androidx.core.graphics.Insets
 import androidx.core.view.ViewCompat
@@ -33,7 +36,9 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.core.view.accessibility.AccessibilityNodeInfoCompat
+import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
+import androidx.core.view.marginTop
 import androidx.core.view.updateLayoutParams
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.AudioAttributes
@@ -41,10 +46,14 @@ import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
+import androidx.media3.common.TrackSelectionOverride
+import androidx.media3.common.Tracks
 import androidx.media3.common.VideoSize
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.common.util.Util
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.mediacodec.MediaCodecDecoderException
+import androidx.media3.exoplayer.mediacodec.MediaCodecRenderer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.session.MediaSession
 import androidx.media3.ui.AspectRatioFrameLayout
@@ -126,6 +135,12 @@ class VideoPlayerActivity : AppActivity() {
 
     private val hideHint = Runnable { binding.hint.isVisible = false }
     private val hideResumePill = Runnable { binding.resumePill.isVisible = false }
+    private val hideNotice = Runnable { binding.notice.isVisible = false }
+    // The speed before "hold for 2×" while a finger holds; 0 otherwise.
+    private var speedBeforeHold = 0f
+    private var audioNoticeFor: String? = null
+    private var repeatMode = VideoRepeatMode.STOP
+    private val videoSettings by lazy { getSharedPreferences(SETTINGS_NAME, MODE_PRIVATE) }
 
     private val playerListener = object : Player.Listener {
         override fun onEvents(player: Player, events: Player.Events) {
@@ -146,26 +161,40 @@ class VideoPlayerActivity : AppActivity() {
             saveResume()
             startTracking(mediaItem)
             resumeDirectly = false
-            binding.errorPanel.isVisible = false
+            showError(null)
+            showEnd(false)
+            binding.notice.isVisible = false
             binding.resumePill.isVisible = false
             mediaItem?.let { offerResume(it, showPill = true) }
         }
 
         override fun onPlaybackStateChanged(playbackState: Int) {
             // A retry after an error got through.
-            if (playbackState == Player.STATE_READY) binding.errorPanel.isVisible = false
+            if (playbackState == Player.STATE_READY) showError(null)
             if (playbackState == Player.STATE_ENDED) {
                 // Watched to the end: the entry is forgotten (more than 95 %).
                 trackedPosition = trackedDuration
                 saveResume()
+                showEnd(true)
             }
         }
+
+        override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
+            // "Stop at the end" pauses on the last frame (pauseAtEndOfMediaItems).
+            if (reason == Player.PLAY_WHEN_READY_CHANGE_REASON_END_OF_MEDIA_ITEM) showEnd(true)
+        }
+
+        // Only real playback clears the end: play() on an ended player changes playWhenReady but plays nothing.
+        override fun onIsPlayingChanged(isPlaying: Boolean) {
+            if (isPlaying) showEnd(false)
+        }
+
+        override fun onTracksChanged(tracks: Tracks) = checkAudioTracks(tracks)
 
         override fun onVideoSizeChanged(videoSize: VideoSize) = followVideoOrientation(videoSize)
 
         override fun onPlayerError(error: PlaybackException) {
-            binding.errorText.setText(errorMessage(error))
-            binding.errorPanel.isVisible = true
+            showError(errorMessage(error))
             binding.resumePill.isVisible = false
             controls.setShown(true)
         }
@@ -220,6 +249,7 @@ class VideoPlayerActivity : AppActivity() {
             player.setPlaybackSpeed(it)
             ViewCompat.setStateDescription(binding.speed, formatSpeed(it))
         }
+        applyRepeatMode(VideoRepeatMode.decode(videoSettings.getString(KEY_REPEAT, null)))
         player.setMediaItems(queue.items, queue.startIndex, queue.positionMs)
         player.playWhenReady = savedInstanceState?.getBoolean(STATE_PLAY_WHEN_READY) ?: true
         player.prepare()
@@ -237,12 +267,19 @@ class VideoPlayerActivity : AppActivity() {
         outState.putInt(STATE_INDEX, player.currentMediaItemIndex)
         outState.putLong(STATE_POSITION, player.currentPosition)
         outState.putBoolean(STATE_PLAY_WHEN_READY, player.playWhenReady)
-        outState.putFloat(STATE_SPEED, player.playbackParameters.speed)
+        // During "hold for 2×" the speed to keep is the one before it.
+        outState.putFloat(STATE_SPEED, speedBeforeHold.takeIf { it > 0f } ?: player.playbackParameters.speed)
         outState.putInt(STATE_RESIZE_MODE, resizeMode)
         outState.putBoolean(STATE_USER_ORIENTATION, userOrientation)
     }
 
     override fun onStop() {
+        // A swipe's brightness belongs to the film: back to the system's when the screen goes (Next Player's
+        // rememberPlayerBrightness = false).
+        window.attributes = window.attributes.apply {
+            screenBrightness = WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE
+        }
+        if (::controls.isInitialized) controls.cancelGestures()
         // Phase 1 has no background playback: the film pauses with the screen, its place is kept.
         player?.let {
             trackedPosition = it.currentPosition
@@ -326,7 +363,9 @@ class VideoPlayerActivity : AppActivity() {
             || authority == getString(R.string.app_provider_authority)
 
     /**
-     * Edge to edge, system bars hidden with the controls and back by a swipe (the back gesture stays the system's).
+     * Edge to edge, system bars hidden with the controls. BEHAVIOR_DEFAULT, not "transient bars by swipe": from
+     * Android 12 the back gesture then goes straight through while the bars are hidden; the transient behaviour
+     * spent the first edge swipe on showing the bars, so back needed two (Pixel 11 Pro XL, Android 16, 19.11.2026).
      * Controls sit inside the bars and 8 dp above the gesture strip; no gesture exclusion rects anywhere.
      */
     private fun setUpWindow() {
@@ -337,7 +376,7 @@ class VideoPlayerActivity : AppActivity() {
             }
         }
         WindowCompat.getInsetsController(window, window.decorView).systemBarsBehavior =
-            WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+            WindowInsetsControllerCompat.BEHAVIOR_DEFAULT
         val gap = resources.getDimensionPixelSize(R.dimen.phi_8)
         ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, insets ->
             // Ignoring visibility: the controls must not jump when the bars come and go.
@@ -401,7 +440,9 @@ class VideoPlayerActivity : AppActivity() {
                 ViewCompat.setStateDescription(
                     binding.playerView, if (locked) getString(R.string.video_player_locked) else null
                 )
-            }
+            },
+            gesturesAllowed = { !touchExploration && player != null },
+            gestureHandler = gestureHandler
         )
         binding.root.setOnTouchListener(controls::onTouch)
         ViewCompat.replaceAccessibilityAction(
@@ -425,6 +466,18 @@ class VideoPlayerActivity : AppActivity() {
         binding.speed.setOnClickListener { showSpeedSheet() }
         binding.resize.setOnClickListener { cycleResizeMode() }
         binding.lock.setOnClickListener { controls.setLocked(true) }
+        binding.repeat.setOnClickListener {
+            val mode = repeatMode.next()
+            videoSettings.edit().putString(KEY_REPEAT, mode.name).apply()
+            applyRepeatMode(mode)
+            showHint(getString(repeatModeName(mode)), Gravity.CENTER)
+        }
+        binding.endReplay.setOnClickListener {
+            player?.let { it.seekTo(0L); it.play() }
+        }
+        binding.endNext.setOnClickListener {
+            player?.let { it.seekToNextMediaItem(); it.play() }
+        }
         binding.rotate.isVisible = isPhone
         binding.rotate.setOnClickListener {
             userOrientation = true
@@ -474,8 +527,122 @@ class VideoPlayerActivity : AppActivity() {
         ViewCompat.setStateDescription(binding.resize, getString(resizeModeName(resizeMode)))
     }
 
+    /** The message with "Open with another app"; the centre buttons step aside so they never cover it. */
+    private fun showError(message: String?) {
+        message?.let { binding.errorText.text = it }
+        binding.errorPanel.isVisible = message != null
+        if (message != null) binding.endPanel.isVisible = false
+        binding.centerControls.isInvisible = message != null || binding.endPanel.isVisible
+    }
+
+    /**
+     * Swipes on the picture: brightness of this window only (no permission, back to the system's in onStop), media
+     * volume without the system's slider, a seek that shows where it lands and jumps only on release, and 2× while a
+     * finger is held. Each shows its value in the hint pill; 0 and 100 % give a haptic tick.
+     */
+    private val gestureHandler = object : VideoControls.GestureHandler {
+        private var startLevel = 0f
+        private var lastLevel = -1f
+        private var startPositionMs = 0L
+        private var hinted = false
+        private val audioManager by lazy { getSystemService<AudioManager>() }
+
+        override fun begin(mode: VideoGestures.Mode) {
+            lastLevel = -1f
+            hinted = false
+            when (mode) {
+                VideoGestures.Mode.BRIGHTNESS -> startLevel = window.attributes.screenBrightness.takeIf { it >= 0f }
+                    ?: (android.provider.Settings.System.getInt(
+                        contentResolver, android.provider.Settings.System.SCREEN_BRIGHTNESS, 128
+                    ) / 255f)
+                VideoGestures.Mode.VOLUME -> {
+                    val audio = audioManager ?: return
+                    startLevel = audio.getStreamVolume(AudioManager.STREAM_MUSIC).toFloat() /
+                        audio.getStreamMaxVolume(AudioManager.STREAM_MUSIC).coerceAtLeast(1)
+                }
+                VideoGestures.Mode.SEEK -> startPositionMs = player?.currentPosition ?: 0L
+                else -> {}
+            }
+        }
+
+        override fun update(mode: VideoGestures.Mode, dx: Float, dy: Float) {
+            when (mode) {
+                VideoGestures.Mode.BRIGHTNESS -> {
+                    val level = VideoGestures.levelAfter(startLevel, dy, binding.root.height)
+                    // 0 would turn some screens fully off: the dimmest the window asks for is 1 %.
+                    window.attributes = window.attributes.apply { screenBrightness = level.coerceAtLeast(0.01f) }
+                    showLevel(level, R.string.video_player_brightness_format)
+                }
+                VideoGestures.Mode.VOLUME -> {
+                    val audio = audioManager ?: return
+                    if (audio.isVolumeFixed) return
+                    val max = audio.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
+                    val level = VideoGestures.levelAfter(startLevel, dy, binding.root.height)
+                    val steps = kotlin.math.round(level * max).toInt()
+                    if (steps != audio.getStreamVolume(AudioManager.STREAM_MUSIC)) {
+                        audio.setStreamVolume(AudioManager.STREAM_MUSIC, steps, 0)
+                    }
+                    showLevel(steps.toFloat() / max.coerceAtLeast(1), R.string.video_player_volume_format)
+                }
+                VideoGestures.Mode.SEEK -> {
+                    val target = VideoGestures.seekTarget(startPositionMs, dx, binding.root.width, currentDuration())
+                    val delta = target - startPositionMs
+                    val sign = if (delta < 0) "−" else "+"
+                    hinted = true
+                    showHint(
+                        getString(
+                            R.string.video_player_seek_preview_format, formatTime(target),
+                            sign + formatTime(kotlin.math.abs(delta))
+                        ),
+                        Gravity.CENTER, sticky = true
+                    )
+                }
+                else -> {}
+            }
+        }
+
+        override fun end(mode: VideoGestures.Mode, dx: Float, dy: Float) {
+            val slop = ViewConfiguration.get(this@VideoPlayerActivity).scaledTouchSlop.toFloat()
+            if (mode == VideoGestures.Mode.SEEK && !VideoGestures.isCancelled(dx, slop)) {
+                player?.seekTo(VideoGestures.seekTarget(startPositionMs, dx, binding.root.width, currentDuration()))
+                updateProgress()
+            }
+            // Only a value this swipe showed fades out (a fixed-volume device shows none).
+            if (hinted) showHint(binding.hint.text.toString(), Gravity.CENTER)
+        }
+
+        override fun hold(held: Boolean) {
+            val player = player ?: return
+            if (held) {
+                speedBeforeHold = player.playbackParameters.speed
+                player.setPlaybackSpeed(HOLD_SPEED)
+                binding.root.performHapticFeedback(android.view.HapticFeedbackConstants.LONG_PRESS)
+                showHint(formatSpeed(HOLD_SPEED), Gravity.CENTER, sticky = true)
+            } else if (speedBeforeHold > 0f) {
+                player.setPlaybackSpeed(speedBeforeHold)
+                speedBeforeHold = 0f
+                showHint(formatSpeed(player.playbackParameters.speed), Gravity.CENTER)
+            }
+        }
+
+        private fun showLevel(level: Float, @StringRes format: Int) {
+            val atEnd = level <= 0f || level >= 1f
+            if (atEnd && lastLevel != level) {
+                binding.root.performHapticFeedback(android.view.HapticFeedbackConstants.CLOCK_TICK)
+            }
+            lastLevel = level
+            hinted = true
+            showHint(getString(format, kotlin.math.round(level * 100).toInt()), Gravity.CENTER, sticky = true)
+        }
+    }
+
     private fun playPause() {
         val player = player ?: return
+        if (binding.endPanel.isVisible) {
+            player.seekTo(0L)
+            player.play()
+            return
+        }
         prepareAfterError(player)
         Util.handlePlayPauseButtonAction(player)
     }
@@ -504,7 +671,9 @@ class VideoPlayerActivity : AppActivity() {
         binding.next.alpha = if (binding.next.isEnabled) 1f else DISABLED_CONTROL_ALPHA
         binding.seekBar.isEnabled = player.isCommandAvailable(Player.COMMAND_SEEK_IN_CURRENT_MEDIA_ITEM)
             && player.duration != C.TIME_UNSET
-        val title = player.currentMediaItem?.mediaMetadata?.displayTitle
+        // The file name without its extension, as Ordo Video's library shows it.
+        val title = player.currentMediaItem?.mediaMetadata?.displayTitle?.toString()
+            ?.let { name -> name.substringBeforeLast('.').ifEmpty { name } }
         binding.toolbar.title = title
         binding.playerView.contentDescription = title
         binding.toolbar.menu.findItem(R.id.actionFileInfo)?.isVisible = currentPath() != null
@@ -559,6 +728,9 @@ class VideoPlayerActivity : AppActivity() {
     private fun saveResume() {
         // While "Resume at" is still offered nothing is decided: closing then must not forget the place.
         if (binding.resumePill.isVisible) return
+        // Looping one video passes its end again and again: that never makes it "watched".
+        if (repeatMode == VideoRepeatMode.ONE &&
+            !VideoResumeStore.isWorthKeeping(trackedPosition, trackedDuration)) return
         val key = trackedMediaId?.let { resumeKeys[it] } ?: return
         resumeStore.write(key, trackedPosition, trackedDuration)
     }
@@ -625,7 +797,8 @@ class VideoPlayerActivity : AppActivity() {
         else -> R.string.video_player_resize_fit
     }
 
-    private fun showHint(text: String, gravity: Int) {
+    /** [sticky]: stays while a finger moves it (a swipe's value), fades after the finger lifts. */
+    private fun showHint(text: String, gravity: Int, sticky: Boolean = false) {
         val hint = binding.hint
         hint.text = text
         hint.updateLayoutParams<FrameLayout.LayoutParams> { this.gravity = gravity }
@@ -633,6 +806,7 @@ class VideoPlayerActivity : AppActivity() {
         hint.alpha = 1f
         hint.isVisible = true
         handler.removeCallbacks(hideHint)
+        if (sticky) return
         if (Motion.any) {
             hint.animate().alpha(0f).setStartDelay(HINT_MS).setDuration(FADE_MS).withEndAction(hideHint).start()
         } else {
@@ -681,13 +855,105 @@ class VideoPlayerActivity : AppActivity() {
         dialog.show()
     }
 
-    private fun errorMessage(error: PlaybackException): Int = when (error.errorCode) {
-        PlaybackException.ERROR_CODE_PARSING_CONTAINER_MALFORMED,
-        PlaybackException.ERROR_CODE_IO_READ_POSITION_OUT_OF_RANGE -> R.string.video_player_error_damaged
-        // Media3's code ranges: 2xxx input/output, 3xxx parsing, 4xxx decoding.
-        in 2000..2999 -> R.string.video_player_error_read
-        in 3000..4999 -> R.string.video_player_error_format
-        else -> R.string.video_player_error
+    /**
+     * The reason in words. A decoder that cannot start often surfaces only as "Unexpected runtime error" (W90, HEVC
+     * 10-bit, 19.11.2026), so the cause chain and the tracks are read too: then the message names the format.
+     */
+    private fun errorMessage(error: PlaybackException): String {
+        val causes = generateSequence<Throwable>(error) { it.cause }.take(10).toList()
+        val decoderFailed = error.errorCode in 4000..4999 || causes.any {
+            it is MediaCodecRenderer.DecoderInitializationException || it is MediaCodecDecoderException ||
+                it is android.media.MediaCodec.CodecException
+        }
+        if (decoderFailed) {
+            val format = player?.currentTracks?.groups
+                ?.firstOrNull { it.type == C.TRACK_TYPE_VIDEO }?.mediaTrackGroup?.getFormat(0)
+            val mimeType = format?.sampleMimeType
+                ?: causes.firstNotNullOfOrNull { (it as? MediaCodecRenderer.DecoderInitializationException)?.mimeType }
+            videoCodecName(mimeType, format?.codecs, format?.colorInfo?.lumaBitdepth ?: -1)?.let { (name, tenBit) ->
+                val label = if (tenBit) getString(R.string.video_player_ten_bit_format, name) else name
+                return getString(R.string.video_player_error_device_format, label)
+            }
+        }
+        return getString(
+            when (error.errorCode) {
+                PlaybackException.ERROR_CODE_PARSING_CONTAINER_MALFORMED,
+                PlaybackException.ERROR_CODE_IO_READ_POSITION_OUT_OF_RANGE -> R.string.video_player_error_damaged
+                // Media3's code ranges: 2xxx input/output, 3xxx parsing, 4xxx decoding.
+                in 2000..2999 -> R.string.video_player_error_read
+                in 3000..4999 -> R.string.video_player_error_format
+                else -> if (decoderFailed) R.string.video_player_error_format else R.string.video_player_error
+            }
+        )
+    }
+
+    /**
+     * A sound track this device has no decoder for (AC3 on budget tablets) plays as silence without a word: say so
+     * calmly, and when another sound track can play, take that one.
+     */
+    private fun checkAudioTracks(tracks: Tracks) {
+        val player = player ?: return
+        val mediaId = player.currentMediaItem?.mediaId ?: return
+        // Per track, not per group: a group counts as supported as soon as any of its tracks is.
+        val audio = tracks.groups.filter { it.type == C.TRACK_TYPE_AUDIO }
+            .flatMap { group -> (0 until group.length).map { group to it } }
+        if (audio.isEmpty()) return
+        val selected = audio.firstOrNull { (group, index) -> group.isTrackSelected(index) }
+        if (selected != null && selected.first.isTrackSupported(selected.second)) return
+        val unsupported = selected ?: audio.firstOrNull { (group, index) -> !group.isTrackSupported(index) } ?: return
+        val format = unsupported.first.getTrackFormat(unsupported.second)
+        val name = audioCodecName(format.sampleMimeType) ?: format.sampleMimeType ?: return
+        val playable = audio.firstOrNull { (group, index) -> group.isTrackSupported(index) }
+        if (playable != null) {
+            player.trackSelectionParameters = player.trackSelectionParameters.buildUpon()
+                .setOverrideForType(TrackSelectionOverride(playable.first.mediaTrackGroup, playable.second))
+                .build()
+        }
+        if (audioNoticeFor == mediaId) return
+        audioNoticeFor = mediaId
+        binding.notice.text = getString(
+            if (playable != null) {
+                R.string.video_player_audio_switched_format
+            } else {
+                R.string.video_player_audio_unsupported_format
+            },
+            name
+        )
+        binding.notice.updateLayoutParams<FrameLayout.LayoutParams> { topMargin = binding.resumePill.marginTop }
+        binding.notice.isVisible = true
+        handler.removeCallbacks(hideNotice)
+        handler.postDelayed(hideNotice, NOTICE_MS)
+    }
+
+    /** What happens at the end: stay on the last frame, repeat this video, or go on to the next. */
+    private fun applyRepeatMode(mode: VideoRepeatMode) {
+        repeatMode = mode
+        player?.repeatMode = if (mode == VideoRepeatMode.ONE) Player.REPEAT_MODE_ONE else Player.REPEAT_MODE_OFF
+        player?.pauseAtEndOfMediaItems = mode == VideoRepeatMode.STOP
+        binding.repeat.setImageResource(
+            when (mode) {
+                VideoRepeatMode.STOP -> R.drawable.repeat_icon_24dp
+                VideoRepeatMode.ONE -> R.drawable.repeat_one_icon_24dp
+                VideoRepeatMode.NEXT -> R.drawable.video_autoplay_icon_24dp
+            }
+        )
+        // Off reads as off: the plain repeat symbol, dimmed like the music player's inactive toggles.
+        binding.repeat.alpha = if (mode == VideoRepeatMode.STOP) INACTIVE_CONTROL_ALPHA else 1f
+        ViewCompat.setStateDescription(binding.repeat, getString(repeatModeName(mode)))
+    }
+
+    private fun repeatModeName(mode: VideoRepeatMode): Int = when (mode) {
+        VideoRepeatMode.STOP -> R.string.video_player_repeat_stop
+        VideoRepeatMode.ONE -> R.string.video_player_repeat_one
+        VideoRepeatMode.NEXT -> R.string.video_player_repeat_next
+    }
+
+    /** The end of a video that does not go on: watch again, or the next one; the centre buttons step aside. */
+    private fun showEnd(shown: Boolean) {
+        binding.endPanel.isVisible = shown
+        binding.endNext.isVisible = shown && player?.hasNextMediaItem() == true
+        binding.centerControls.isInvisible = binding.errorPanel.isVisible || shown
+        if (shown) controls.setShown(true)
     }
 
     /** "Open with another app": every app but this player, with read access to the file. */
@@ -743,6 +1009,11 @@ class VideoPlayerActivity : AppActivity() {
         private const val HINT_MS = 700L
         private const val FADE_MS = 200L
         private const val DISABLED_CONTROL_ALPHA = 0.38f
+        private const val HOLD_SPEED = 2f
+        private const val SETTINGS_NAME = "video_settings"
+        private const val KEY_REPEAT = "repeat"
+        private const val NOTICE_MS = 6_000L
+        private const val INACTIVE_CONTROL_ALPHA = 0.70f
         private val SPEEDS = floatArrayOf(0.5f, 0.75f, 1f, 1.25f, 1.5f, 2f)
 
         /** The folder's videos stay in this process; the intent only carries the token to take them over. */

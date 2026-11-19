@@ -32,12 +32,15 @@ class VideoResumeStoreTest {
 
     @Test
     fun onlyTheMiddleOfAFilmIsKept() {
-        val duration = 100_000L
+        val duration = 200_000L
         assertFalse(VideoResumeStore.isWorthKeeping(9_999L, duration))
         assertTrue(VideoResumeStore.isWorthKeeping(10_000L, duration))
-        assertTrue(VideoResumeStore.isWorthKeeping(95_000L, duration))
-        assertFalse(VideoResumeStore.isWorthKeeping(95_001L, duration))
+        assertTrue(VideoResumeStore.isWorthKeeping(190_000L, duration))
+        assertFalse(VideoResumeStore.isWorthKeeping(190_001L, duration))
         assertFalse(VideoResumeStore.isWorthKeeping(41_000L, 0L))
+        // 95 % of a 3-minute film still leaves 9 s: that is the end too.
+        assertTrue(VideoResumeStore.isWorthKeeping(169_000L, 180_000L))
+        assertFalse(VideoResumeStore.isWorthKeeping(171_000L, 180_000L))
     }
 
     @Test

@@ -158,6 +158,7 @@ ICONS = {
     "usb_icon_white_24dp": "usb",
     "video_icon_white_24dp": "movie",
     "video_aspect_ratio_icon_24dp": "aspect_ratio",
+    "video_autoplay_icon_24dp": "playlist_play",
     "video_forward_10_icon_24dp": "forward_10",
     "video_replay_10_icon_24dp": "replay_10",
     "video_screen_rotation_icon_24dp": "screen_rotation",

@@ -11,7 +11,8 @@ import androidx.core.content.edit
 /**
  * Where each film was left, one entry per file: the key is path, size and modification time, so a replaced file of
  * the same name starts fresh. At most [MAX_ENTRIES] (the oldest go first); a film barely started or nearly finished
- * is forgotten. Only Ordo's own paths are kept, never `content://` items of another app.
+ * (under 10 s, over 95 % or less than 10 s left) is forgotten. Only Ordo's own paths are kept, never `content://`
+ * items of another app.
  */
 class VideoResumeStore(context: Context) {
     private val preferences = context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
@@ -50,6 +51,7 @@ class VideoResumeStore(context: Context) {
         private const val PREFERENCES_NAME = "video_resume"
         internal const val MAX_ENTRIES = 300
         internal const val MIN_POSITION_MS = 10_000L
+        internal const val MIN_LEFT_MS = 10_000L
         internal const val MAX_FRACTION = 0.95
 
         fun key(pathUri: String, size: Long, lastModifiedMs: Long): String = "$pathUri|$size|$lastModifiedMs"
@@ -62,8 +64,10 @@ class VideoResumeStore(context: Context) {
             return pathUri to size
         }
 
-        internal fun isWorthKeeping(positionMs: Long, durationMs: Long): Boolean =
-            durationMs > 0 && positionMs >= MIN_POSITION_MS && positionMs <= durationMs * MAX_FRACTION
+        /** Started (10 s) and not finished: less than 95 % seen and at least 10 s left. */
+        fun isWorthKeeping(positionMs: Long, durationMs: Long): Boolean =
+            durationMs > 0 && positionMs >= MIN_POSITION_MS && positionMs <= durationMs * MAX_FRACTION &&
+                durationMs - positionMs >= MIN_LEFT_MS
 
         /** The oldest keys beyond [keep], by the time they were saved. */
         internal fun keysToEvict(savedAtByKey: Map<String, Long>, keep: Int): List<String> =

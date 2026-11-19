@@ -33,6 +33,16 @@ class VideoLibraryTest {
     }
 
     @Test
+    fun cameraNamesGiveTheirMoment() {
+        assertEquals(listOf(2026, 11, 18, 14, 19), VideoLibrary.cameraTime("VID_20261118_141941_123")?.toList())
+        assertEquals(listOf(2026, 11, 18, 14, 19), VideoLibrary.cameraTime("PXL_20261118_141941123")?.toList())
+        assertEquals(listOf(2026, 1, 2, 3, 4), VideoLibrary.cameraTime("20260102_030405")?.toList())
+        assertEquals(null, VideoLibrary.cameraTime("Urlaub 2026"))
+        assertEquals(null, VideoLibrary.cameraTime("VID_20261318_141941"))
+        assertEquals(null, VideoLibrary.cameraTime("VID_20260231_120000"))
+    }
+
+    @Test
     fun theQueueIsTheFolderByName() {
         assertEquals(listOf(b, a), library.queueOf(a))
     }
@@ -44,7 +54,9 @@ class VideoLibraryTest {
             VideoResumeStore.Entry("file:///DCIM/Camera/clip.mp4", 100, 30_000, savedAtMs = 2),
             // Replaced by a file of another size: its place no longer counts.
             VideoResumeStore.Entry("file:///Movies/Serie/Folge%202.mp4", 999, 10_000, savedAtMs = 3),
-            VideoResumeStore.Entry("content://x/y", 100, 10_000, savedAtMs = 4)
+            VideoResumeStore.Entry("content://x/y", 100, 10_000, savedAtMs = 4),
+            // One second left: finished, never "1 s left".
+            VideoResumeStore.Entry("file:///Movies/Serie/Folge%201.mp4", 100, 59_000, savedAtMs = 0)
         )
         assertEquals(
             listOf(ContinueItem(c, 30_000), ContinueItem(b, 20_000)),

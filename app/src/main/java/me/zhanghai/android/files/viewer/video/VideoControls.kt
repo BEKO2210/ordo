@@ -20,8 +20,10 @@ import me.zhanghai.android.files.ui.Motion
  * The controls over the video: they show on a tap and hide after [HIDE_DELAY_MS] (never while [stayVisible], i.e.
  * paused or with TalkBack on), the lock that hides everything but one "hold to unlock" button, and the tap zones of
  * the picture: a double tap in the left or right [SIDE_ZONE] jumps 10 s (every further quick tap 10 s more), in the
- * middle it plays or pauses. A touch that starts inside the system's gesture areas or the status bar strip is never
- * taken as a gesture, so back and home swipes stay the system's ([isInGestureArea]).
+ * middle it plays or pauses. Swipes ([VideoGestures]) go to [gestureHandler]: vertical left brightness, right volume,
+ * horizontal seek; a finger held still for [HOLD_MS] plays at double speed until it lifts. A touch that starts inside
+ * the system's gesture areas or the status bar strip is never taken as a gesture, so back and home swipes stay the
+ * system's ([isInGestureArea]); locked or with TalkBack ([gesturesAllowed] false) there are no swipes either.
  */
 @SuppressLint("ClickableViewAccessibility")
 internal class VideoControls(
@@ -31,8 +33,18 @@ internal class VideoControls(
     private val onShownChanged: (Boolean) -> Unit,
     private val onSeekTap: (forward: Boolean, totalSeconds: Int) -> Unit,
     private val onPlayPauseTap: () -> Unit,
-    private val onLockedChanged: (Boolean) -> Unit
+    private val onLockedChanged: (Boolean) -> Unit,
+    private val gesturesAllowed: () -> Boolean,
+    private val gestureHandler: GestureHandler
 ) {
+    interface GestureHandler {
+        fun begin(mode: VideoGestures.Mode)
+        fun update(mode: VideoGestures.Mode, dx: Float, dy: Float)
+        /** [dx] and [dy] of the whole swipe; a seek back near its start is cancelled by the handler. */
+        fun end(mode: VideoGestures.Mode, dx: Float, dy: Float)
+        fun hold(held: Boolean)
+    }
+
     var isShown = true
         private set
     var isLocked = false
@@ -42,6 +54,15 @@ internal class VideoControls(
     var gestureInsets = IntArray(4)
 
     private val touchSlop = ViewConfiguration.get(controls.context).scaledTouchSlop
+    private val gestures = VideoGestures(touchSlop.toFloat())
+    private var held = false
+    private var touchView: View? = null
+    private val hold = Runnable {
+        held = true
+        tapCancelled = true
+        gestures.cancel()
+        gestureHandler.hold(true)
+    }
     private val hide = Runnable { if (!stayVisible()) setShown(false) }
     private val hideUnlock = Runnable { if (!stayVisible()) fade(unlockButton, false) }
     private val singleTap = Runnable { toggle() }
@@ -132,16 +153,61 @@ internal class VideoControls(
                 downX = event.x
                 downY = event.y
                 tapCancelled = false
+                held = false
+                touchView = view
+                // A new contact settles the last tap: it becomes part of a double tap or, if this one is a swipe or a
+                // hold, nothing (both actions at once would be worse).
+                view.removeCallbacks(singleTap)
                 val (left, top, right, bottom) = gestureInsets
                 inGestureArea = isInGestureArea(event.x, event.y, view.width, view.height, left, top, right, bottom)
+                val allowed = !inGestureArea && !isLocked && gesturesAllowed()
+                gestures.down(event.x, event.y, allowed)
+                if (allowed) view.postDelayed(hold, HOLD_MS)
             }
-            MotionEvent.ACTION_MOVE ->
-                if (hypot(event.x - downX, event.y - downY) > touchSlop) tapCancelled = true
-            MotionEvent.ACTION_CANCEL -> tapCancelled = true
-            MotionEvent.ACTION_UP -> if (!tapCancelled) onTap(view, event.x)
+            MotionEvent.ACTION_MOVE -> {
+                if (hypot(event.x - downX, event.y - downY) > touchSlop) {
+                    tapCancelled = true
+                    view.removeCallbacks(hold)
+                }
+                val before = gestures.mode
+                val mode = gestures.move(event.x, event.y, view.width)
+                if (mode != before && mode != VideoGestures.Mode.PENDING && mode != VideoGestures.Mode.NONE) {
+                    gestureHandler.begin(mode)
+                }
+                if (isSwipe(mode)) gestureHandler.update(mode, gestures.dx(event.x), gestures.dy(event.y))
+            }
+            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                view.removeCallbacks(hold)
+                val mode = gestures.mode
+                gestures.cancel()
+                when {
+                    held -> {
+                        held = false
+                        gestureHandler.hold(false)
+                    }
+                    isSwipe(mode) -> gestureHandler.end(
+                        mode, if (event.actionMasked == MotionEvent.ACTION_UP) gestures.dx(event.x) else 0f,
+                        gestures.dy(event.y)
+                    )
+                    event.actionMasked == MotionEvent.ACTION_UP && !tapCancelled -> onTap(view, event.x)
+                }
+            }
         }
         return true
     }
+
+    /** The screen goes away mid-gesture: no 2× left behind, no hold firing later. */
+    fun cancelGestures() {
+        touchView?.removeCallbacks(hold)
+        gestures.cancel()
+        if (held) {
+            held = false
+            gestureHandler.hold(false)
+        }
+    }
+
+    private fun isSwipe(mode: VideoGestures.Mode) =
+        mode == VideoGestures.Mode.BRIGHTNESS || mode == VideoGestures.Mode.VOLUME || mode == VideoGestures.Mode.SEEK
 
     private fun onTap(view: View, x: Float) {
         if (isLocked || inGestureArea) {
@@ -190,6 +256,8 @@ internal class VideoControls(
         const val HIDE_DELAY_MS = 4_000L
         const val DOUBLE_TAP_MS = 300L
         const val UNLOCK_HOLD_MS = 600L
+        // YouTube's and VLC's "hold for 2×": still for this long (plan P4: 400 ms).
+        const val HOLD_MS = 400L
         const val SEEK_STEP_S = 10
         private const val FADE_MS = 200L
         // mpv-android's tap zones: left 28 %, middle, right 28 %.

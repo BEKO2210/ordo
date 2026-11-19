@@ -152,7 +152,9 @@ class VideoLauncherActivity : AppActivity() {
         }
         adapter.submit(rows)
         val hasAccess = library != null || hasStorageAccess()
-        binding.emptyText.setText(if (hasAccess) R.string.video_library_empty else R.string.video_library_access_message)
+        binding.emptyText.setText(
+            if (hasAccess) R.string.video_library_empty else R.string.video_library_access_message
+        )
         binding.accessButton.isVisible = !hasAccess
         binding.emptyGroup.isVisible = rows.isEmpty() && (library != null || !hasAccess)
     }
@@ -217,7 +219,8 @@ class VideoLauncherActivity : AppActivity() {
         Util.getStringForTime(timeBuilder, timeFormatter, milliseconds.coerceAtLeast(0L))
 
     private fun bind(item: VideoLibraryItemBinding, video: VideoItem, positionMs: Long?) {
-        item.title.text = video.title
+        val title = displayTitle(video)
+        item.title.text = title
         val duration = video.durationMs.takeIf { it > 0 }?.let(::formatTime)
         item.duration.text = duration
         item.duration.isVisible = duration != null
@@ -231,7 +234,8 @@ class VideoLauncherActivity : AppActivity() {
         if (positionMs != null && video.durationMs > 0) {
             item.progress.progress = (positionMs * 1000 / video.durationMs).toInt()
         }
-        item.root.contentDescription = listOfNotNull(video.title, duration, item.info.text).joinToString(", ")
+        item.root.contentDescription =
+            listOfNotNull(title, video.title.takeIf { it != title }, duration, item.info.text).joinToString(", ")
         item.root.setOnClickListener {
             val library = library ?: return@setOnClickListener
             play(library.queueOf(video), video, resume = positionMs != null)
@@ -244,15 +248,51 @@ class VideoLauncherActivity : AppActivity() {
         (view.getTag(R.id.thumbnail) as? Job)?.cancel()
         val key = video.contentUri ?: video.path
         val cached = thumbnails.get(key)
-        view.setImageBitmap(cached)
+        showThumbnail(view, cached)
         if (cached != null) return
         val context = applicationContext
         val (width, height) = THUMBNAIL_WIDTH to THUMBNAIL_WIDTH * 9 / 16
         view.setTag(R.id.thumbnail, lifecycleScope.launch {
-            val bitmap = withContext(Dispatchers.IO) { loadVideoThumbnail(context, video, width, height) } ?: return@launch
+            val bitmap = withContext(Dispatchers.IO) { loadVideoThumbnail(context, video, width, height) }
+                ?: return@launch
             thumbnails.put(key, bitmap)
-            view.setImageBitmap(bitmap)
+            showThumbnail(view, bitmap)
         })
+    }
+
+    /** The picture, or until there is one (or for a file without any) a calm video glyph in the middle. */
+    private fun showThumbnail(view: android.widget.ImageView, bitmap: Bitmap?) {
+        if (bitmap != null) {
+            view.scaleType = android.widget.ImageView.ScaleType.CENTER_CROP
+            view.imageTintList = null
+            view.setImageBitmap(bitmap)
+        } else {
+            view.scaleType = android.widget.ImageView.ScaleType.CENTER
+            view.imageTintList = android.content.res.ColorStateList.valueOf(
+                com.google.android.material.color.MaterialColors.getColor(
+                    view, com.google.android.material.R.attr.colorOnSurfaceVariant
+                )
+            )
+            view.setImageResource(R.drawable.video_icon_white_24dp)
+        }
+    }
+
+    /**
+     * Camera names ("VID_20261118_141941_…") read as the moment they were taken, "18. Nov. · 14:19" in the
+     * device's language; any other name stays as it is. TalkBack still hears the real name.
+     */
+    private fun displayTitle(video: VideoItem): String {
+        val time = VideoLibrary.cameraTime(video.title) ?: return video.title
+        val calendar = java.util.Calendar.getInstance().apply {
+            clear()
+            set(time[0], time[1] - 1, time[2], time[3], time[4])
+        }
+        val millis = calendar.timeInMillis
+        return getString(
+            R.string.video_library_camera_title_format,
+            DateUtils.formatDateTime(this, millis, DateUtils.FORMAT_SHOW_DATE or DateUtils.FORMAT_ABBREV_MONTH),
+            android.text.format.DateFormat.getTimeFormat(this).format(java.util.Date(millis))
+        )
     }
 
     private sealed class Row {

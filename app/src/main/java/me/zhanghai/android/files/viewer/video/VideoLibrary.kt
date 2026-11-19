@@ -57,7 +57,10 @@ class VideoLibrary(videos: List<VideoItem>, showHiddenFiles: Boolean, private va
         return entries.sortedByDescending { it.savedAtMs }
             .mapNotNull { entry ->
                 val path = runCatching { URI.create(entry.pathUri) }.getOrNull()?.takeIf { it.scheme == "file" }?.path
-                byPath[path]?.takeIf { it.size == entry.size }?.let { ContinueItem(it, entry.positionMs) }
+                byPath[path]?.takeIf { it.size == entry.size }
+                    // Entries saved before the "10 s left" rule, or with another duration in MediaStore: done is done.
+                    ?.takeIf { it.durationMs <= 0 || VideoResumeStore.isWorthKeeping(entry.positionMs, it.durationMs) }
+                    ?.let { ContinueItem(it, entry.positionMs) }
             }
             .distinctBy { it.video.path }
             .take(max)
@@ -65,6 +68,22 @@ class VideoLibrary(videos: List<VideoItem>, showHiddenFiles: Boolean, private va
 
     companion object {
         const val CONTINUE_MAX = 20
+        private val CAMERA_NAME = Regex("""^(?:(?:VID|PXL|IMG|MVIMG)_)?(\d{4})(\d{2})(\d{2})_(\d{2})(\d{2})(\d{2})""")
+
+        /**
+         * The moment a camera wrote into a file name ("VID_20261118_141941_…", "PXL_20261118_141941123", Samsung's
+         * "20261118_141941") as year, month (1–12), day, hour, minute; null for any other name or an impossible date.
+         */
+        fun cameraTime(name: String): IntArray? {
+            val groups = CAMERA_NAME.find(name)?.groupValues ?: return null
+            val (year, month, day, hour, minute) = groups.drop(1).take(5).map { it.toInt() }
+            if (year < 1990 || hour > 23 || minute > 59) return null
+            // Not lenient: 31 February must not quietly become 3 March.
+            val valid = runCatching {
+                java.util.GregorianCalendar(year, month - 1, day).apply { isLenient = false }.timeInMillis
+            }.isSuccess
+            return if (valid) intArrayOf(year, month, day, hour, minute) else null
+        }
     }
 }
 

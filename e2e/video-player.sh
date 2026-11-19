@@ -5,10 +5,11 @@
 # A tap in the file list opens Ordo's player and it plays (dumpsys media_session); a tap, a quick swipe and a scroll on
 # the seek bar never move it, 400 ms held and dragged to 3/4 does; a double tap in the left 28 % jumps 10 s back, three
 # quick taps 20 s, the right 28 % ahead; the lock stops taps until its button is held; closing at 0:12 and opening again
-# offers "Resume at 0:12", a tap goes there; the end of a clip starts the next one of the folder; the 0-byte file and
+# offers "Resume at 0:12", a tap goes there; "Next video" at the end opens the next of the folder; the 0-byte file and
 # (if the device cannot play it) the AVI show the message with "Open with another app" instead of crashing; an
 # external file:// intent is refused, a content:// one with a read grant plays; the rotate button (phone) keeps
-# position and playback; buttons keep 48 dp, the play button 88 dp on a tablet. Headphones and audio focus are not
+# position and playback; at the end it stops with "Watch again"/"Next video"; one left-edge swipe goes back; a
+# vertical swipe on the right half changes the volume; buttons keep 48 dp, the play button 88 dp on a tablet. Headphones and audio focus are not
 # scriptable from adb: SKIP, by hand. Needs ffmpeg on the host.
 . "$(dirname "$0")/lib.sh" "$@"
 DIR=/storage/emulated/0/ordo-e2e-video
@@ -137,10 +138,33 @@ ui tap 01-clip.mp4 >/dev/null; wait_on viewer.video.VideoPlayerActivity 8; sleep
 a shell input keyevent KEYCODE_MEDIA_PAUSE; sleep 1
 ui tap resumePill >/dev/null 2>&1; sleep 1.5
 
-# 5. The end of a clip starts the next one of the folder.
-a shell input keyevent KEYCODE_MEDIA_PLAY; sleep 22; pause
-check "the next video of the folder follows" ui has 02-clip.mp4
-back 2
+# 5. The end of a clip: by default ("Stop at the end", the owner's choice) the player stays on the last frame with
+# "Watch again" and "Next video"; Next video opens the next clip of the folder (titles without the extension).
+a shell input keyevent KEYCODE_MEDIA_PLAY; sleep 22
+check "at the end the player stops with Watch again" ui wait endReplay 6
+check "and offers the next video" ui has endNext
+ui tap endNext >/dev/null; sleep 2; pause
+check "Next video opens the next one of the folder" ui has 02-clip
+
+# Swipes on the picture (plan P4 goals 2 and 1): one swipe from the left edge is the system's back, the first time;
+# a vertical swipe in the right half changes the media volume (restored afterwards).
+read -r W H < <(screen_size)
+vol() { a shell cmd media_session volume --stream 3 --get 2>/dev/null | grep -oE 'volume is [0-9]+' | grep -oE '[0-9]+'; }
+v0=$(vol)
+a shell input swipe $((W * 80 / 100)) $((H * 70 / 100)) $((W * 80 / 100)) $((H * 35 / 100)) 400; sleep 1; v1=$(vol)
+if [ -n "$v0" ] && [ -n "$v1" ]; then
+    check "a vertical swipe in the right half raises the volume ($v0 -> $v1)" test "$v1" -gt "$v0" -o "$v0" = "$(a shell cmd media_session volume --stream 3 --get | grep -oE 'max [0-9]+' | grep -oE '[0-9]+')"
+    a shell cmd media_session volume --stream 3 --set "$v0" >/dev/null 2>&1
+else
+    echo "SKIP volume swipe (cmd media_session volume is not readable here)"
+fi
+if [ "$(a shell settings get secure navigation_mode | tr -d '\r')" = 2 ]; then
+    a shell input swipe 2 $((H / 2)) $((W / 3)) $((H / 2)) 250; sleep 2
+    check "one edge swipe from the left leaves the player (back gesture)" not_on viewer.video.VideoPlayerActivity
+else
+    echo "SKIP edge-swipe back (three-button navigation)"
+    back 2
+fi
 
 # 7. Files the player cannot play explain themselves and offer another app.
 open_folder 03-empty.mp4
