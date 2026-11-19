@@ -25,6 +25,13 @@ class DownmixProcessor : BaseAudioProcessor() {
     @Volatile
     var centreGain: Float = VideoSoundMath.centreGain(VideoSoundMath.DIALOG_OFF)
 
+    /**
+     * Channel counts the system's spatializer renders for the current output ([VideoSpatial]): those pass untouched.
+     * Read when a format is configured (a new film or track), not in the middle of one.
+     */
+    @Volatile
+    var passThroughChannels: Set<Int> = emptySet()
+
     private var matrix: Array<FloatArray> = emptyArray()
     private var target: Array<FloatArray> = emptyArray()
     private var appliedCentre = Float.NaN
@@ -32,9 +39,12 @@ class DownmixProcessor : BaseAudioProcessor() {
     private var release = 0f
 
     override fun onConfigure(inputAudioFormat: AudioProcessor.AudioFormat): AudioProcessor.AudioFormat {
+        val channels = inputAudioFormat.channelCount
         if (inputAudioFormat.encoding != C.ENCODING_PCM_16BIT ||
-            VideoSoundMath.downmixMatrix(inputAudioFormat.channelCount, centreGain) == null
+            VideoSoundMath.downmixMatrix(channels, centreGain) == null
         ) return AudioProcessor.AudioFormat.NOT_SET
+        // Android's Log is not available in JVM tests; the engine logs the decision when the track arrives.
+        if (channels in passThroughChannels) return AudioProcessor.AudioFormat.NOT_SET
         return AudioProcessor.AudioFormat(inputAudioFormat.sampleRate, 2, C.ENCODING_PCM_16BIT)
     }
 

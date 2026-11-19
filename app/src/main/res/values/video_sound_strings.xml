@@ -10,7 +10,10 @@
     <string name="video_sound_night">Night mode</string>
     <string name="video_sound_night_summary">Softens loud scenes and lifts quiet speech</string>
     <string name="video_sound_bass_summary">More low end for small speakers</string>
-    <string name="video_sound_surround_format">%1$s sound is mixed for two speakers, with voices kept clear</string>
+    <string name="video_sound_surround_format">Ordo mix: %1$s sound is mixed for two speakers, with voices kept clear</string>
+    <string name="video_sound_spatial_format">System spatial audio: %1$s sound goes to Android unchanged</string>
+    <string name="video_sound_level">Even out volume</string>
+    <string name="video_sound_level_summary">Measures each film once in the background, so quiet and loud films play alike</string>
     <string name="video_audio_track_menu">Audio track</string>
     <string name="video_audio_track_title">Audio track</string>
     <string name="video_audio_track_unknown_language">Track %1$d</string>

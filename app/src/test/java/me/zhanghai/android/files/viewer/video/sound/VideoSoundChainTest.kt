@@ -12,6 +12,7 @@ import me.zhanghai.android.files.player.AudioSettings
 import me.zhanghai.android.files.player.EqualizerPreset
 import me.zhanghai.android.files.player.KlangAudioProcessor
 import me.zhanghai.android.files.player.KlangStage
+import me.zhanghai.android.files.player.TruePeakLimiter
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -142,7 +143,7 @@ class VideoSoundChainTest {
     }
 
     /**
-     * The whole video chain with everything on (5.1 downmix, mono off, dialog strong, night, delay), 60 s of 48 kHz
+     * The whole video chain with everything on (5.1 downmix, dialog strong, night, true-peak limiter, delay), 60 s of 48 kHz
      * 5.1 in 20 ms buffers. Prints the share of one core; a JVM figure, not a phone's (docs/VIDEO-SOUND.md).
      */
     @Test
@@ -152,17 +153,20 @@ class VideoSoundChainTest {
         val night = NightStage().apply { effectEnabled = true }
         val klang = KlangAudioProcessor(arrayOf(dialog, night))
         val delay = AvDelayProcessor().apply { delayMs = 100 }
+        val truePeak = TruePeakLimiter().apply { armed = true }
         downmix.configure(AudioProcessor.AudioFormat(rate, 6, C.ENCODING_PCM_16BIT))
         klang.configure(AudioProcessor.AudioFormat(rate, 2, C.ENCODING_PCM_16BIT))
+        truePeak.configure(AudioProcessor.AudioFormat(rate, 2, C.ENCODING_PCM_16BIT))
         delay.configure(AudioProcessor.AudioFormat(rate, 2, C.ENCODING_PCM_16BIT))
-        listOf(downmix, klang, delay).forEach { it.flush() }
+        listOf(downmix, klang, truePeak, delay).forEach { it.flush() }
         val frames = rate / 50
         val input = pcm(frames, 6) { frame, ch -> 0.3f * sin(2 * PI * (200 + ch * 150) * frame / rate).toFloat() }
         fun pass() {
             input.rewind()
             downmix.queueInput(input)
             klang.queueInput(downmix.output)
-            delay.queueInput(klang.output)
+            truePeak.queueInput(klang.output)
+            delay.queueInput(truePeak.output)
             delay.output.position(delay.output.limit())
         }
         repeat(500) { pass() } // warm-up for the JIT
@@ -170,8 +174,85 @@ class VideoSoundChainTest {
         val start = System.nanoTime()
         repeat(buffers) { pass() }
         val share = (System.nanoTime() - start) / 60e9 * 100
-        println("Video sound chain, all on, 48 kHz 5.1: %.2f %% of one core (JVM)".format(share))
+        println("Video sound chain (downmix, dialog, night, true peak, delay), all on, 48 kHz 5.1: %.2f %% of one core (JVM)".format(share))
         assertTrue("far below real time: $share %", share < 25)
+    }
+
+    /**
+     * A steady 1 kHz tone through one stage; [change] runs before buffer [at] (20 ms buffers). Returns the left channel
+     * and checks that no sample step around the change is bigger than the biggest step of the steady sound before or
+     * after it (+20 %), as ClickFreeTest does for Ordo Musik's stages.
+     */
+    private fun assertClickFree(name: String, stage: KlangStage, amplitude: Float, change: () -> Unit) {
+        val processor = KlangAudioProcessor(arrayOf(stage), dither = false)
+        processor.configure(AudioProcessor.AudioFormat(rate, 2, C.ENCODING_PCM_16BIT))
+        processor.flush()
+        val frames = rate / 50
+        val at = 25
+        val left = ArrayList<Float>()
+        for (buffer in 0 until 60) {
+            if (buffer == at) change()
+            val input = pcm(frames, 2) { frame, _ ->
+                amplitude * sin(2 * PI * 1_000 * (buffer * frames + frame) / rate).toFloat()
+            }
+            processor.queueInput(input)
+            val output = processor.output
+            while (output.hasRemaining()) {
+                left += output.getShort() / 32_768f
+                output.getShort()
+            }
+        }
+        fun maxDelta(from: Int, to: Int) = (from + 1 until to).maxOf { abs(left[it] - left[it - 1]) }
+        val changeAt = at * frames
+        val settle = rate / 5
+        val before = maxDelta(settle, changeAt - 100)
+        val after = maxDelta(changeAt + settle, left.size)
+        val around = maxDelta(changeAt - 100, changeAt + settle)
+        assertTrue(
+            "$name: step %.4f around the change, allowed %.4f".format(around, maxOf(before, after) * 1.2f),
+            around <= maxOf(before, after) * 1.2f
+        )
+    }
+
+    @Test
+    fun dialogLevelGlidesWithoutACrack() {
+        val dialog = DialogStage().apply { level = VideoSoundMath.DIALOG_LIGHT; effectEnabled = true }
+        assertClickFree("dialog light to strong", dialog, 0.05f) { dialog.level = VideoSoundMath.DIALOG_STRONG }
+        // Arrived: the presence peak is the strong level's after the ramp.
+        assertEquals(7f, dialog.presenceGainDb, 0.01f)
+        val back = DialogStage().apply { level = VideoSoundMath.DIALOG_STRONG; effectEnabled = true }
+        assertClickFree("dialog strong to light", back, 0.05f) { back.level = VideoSoundMath.DIALOG_LIGHT }
+    }
+
+    @Test
+    fun nightModeSwitchesWithoutACrack() {
+        val night = NightStage()
+        assertClickFree("night on over a loud tone", night, 0.5f) { night.effectEnabled = true }
+        assertClickFree("night off over a loud tone", night, 0.5f) { night.effectEnabled = false }
+        val quiet = NightStage()
+        assertClickFree("night on over a quiet tone", quiet, 0.02f) { quiet.effectEnabled = true }
+    }
+
+    @Test
+    fun delayStoreCodecAndSpatialDecision() {
+        assertEquals(150 to 42L, VideoDelayStore.decode(VideoDelayStore.encode(150, 42L)))
+        assertEquals(1000 to 1L, VideoDelayStore.decode("5000:1"))
+        assertEquals(null, VideoDelayStore.decode("x:1"))
+        assertEquals(null, VideoDelayStore.decode(null))
+        assertTrue(VideoSpatial.useSystemSpatializer(true, true, true, true))
+        assertFalse(VideoSpatial.useSystemSpatializer(true, true, false, true))
+        assertFalse(VideoSpatial.useSystemSpatializer(false, true, true, true))
+        assertFalse(VideoSpatial.useSystemSpatializer(true, true, true, false))
+    }
+
+    @Test
+    fun downmixPassesChannelsTheSystemSpatializes() {
+        val processor = DownmixProcessor().apply { passThroughChannels = setOf(6) }
+        assertEquals(
+            AudioProcessor.AudioFormat.NOT_SET,
+            processor.configure(AudioProcessor.AudioFormat(rate, 6, C.ENCODING_PCM_16BIT))
+        )
+        assertEquals(2, processor.configure(AudioProcessor.AudioFormat(rate, 8, C.ENCODING_PCM_16BIT)).channelCount)
     }
 
     @Test

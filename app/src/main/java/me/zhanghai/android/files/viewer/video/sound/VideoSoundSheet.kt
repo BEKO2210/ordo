@@ -85,6 +85,8 @@ class VideoSoundSheet : BottomSheetDialogFragment() {
         }
         bindRow(binding.nightRow, R.drawable.audio_moon_icon_24dp, R.string.video_sound_night,
             R.string.video_sound_night_summary) { copy(nightMode = it) }
+        bindRow(binding.levelRow, R.drawable.audio_graphic_eq_icon_24dp, R.string.video_sound_level,
+            R.string.video_sound_level_summary) { copy(klang = klang.copy(normalizationEnabled = it)) }
         bindRow(binding.bassRow, R.drawable.audio_speaker_icon_24dp, R.string.audio_sound_bass_boost,
             R.string.video_sound_bass_summary) { checked ->
             val strength = if (klang.bassBoostStrength > 0) klang.bassBoostStrength else VideoSoundMath.bassStrength(2)
@@ -112,6 +114,8 @@ class VideoSoundSheet : BottomSheetDialogFragment() {
         // A tap on the value re-centres.
         binding.balanceStepper.stepValue.setOnClickListener { update { copy(klang = klang.copy(balance = 0)) } }
         setColumns()
+        // The audio session (and with it bass and balance), the track and the measured level can arrive later.
+        engine.onChanged = { if (_binding != null) render() }
         render()
     }
 
@@ -194,6 +198,9 @@ class VideoSoundSheet : BottomSheetDialogFragment() {
         // The device decides on bass (BassBoost) and balance (per-channel gain in DynamicsProcessing, API 28+).
         binding.bassCard.isVisible = status?.bassBoostAvailable != false
         binding.monoRow.toggle.isChecked = klang.mono
+        binding.levelRow.toggle.isChecked = klang.normalizationEnabled
+        // Levelling needs an input-gain stage (DynamicsProcessing, or LoudnessEnhancer before API 28).
+        setActive(binding.levelRow.root, status?.inputGainAvailable != false)
         val balance = when {
             klang.balance < 0 -> getString(R.string.audio_sound_balance_left, -klang.balance)
             klang.balance > 0 -> getString(R.string.audio_sound_balance_right, klang.balance)
@@ -206,9 +213,14 @@ class VideoSoundSheet : BottomSheetDialogFragment() {
         val channels = engine?.sourceChannelCount ?: -1
         binding.surroundNote.isVisible = channels > 2
         if (channels > 2) {
+            val layout = VideoSoundMath.channelLayout(channels) ?: getString(R.string.video_audio_track_channels, channels)
             binding.surroundNote.text = getString(
-                R.string.video_sound_surround_format,
-                VideoSoundMath.channelLayout(channels) ?: getString(R.string.video_audio_track_channels, channels)
+                if (engine?.systemSpatializes(channels) == true) {
+                    R.string.video_sound_spatial_format
+                } else {
+                    R.string.video_sound_surround_format
+                },
+                layout
             )
         }
         rendering = false
@@ -256,6 +268,7 @@ class VideoSoundSheet : BottomSheetDialogFragment() {
     }
 
     override fun onDestroyView() {
+        engine?.onChanged = null
         binding.equalizerCurve.onGainChanged = null
         _binding = null
         super.onDestroyView()
