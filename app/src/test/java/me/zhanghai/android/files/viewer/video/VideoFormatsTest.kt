@@ -27,6 +27,9 @@ class VideoFormatsTest {
         assertEquals("Dolby Digital Plus (E-AC3)", audioCodecName("audio/eac3"))
         assertEquals("DTS", audioCodecName("audio/vnd.dts.hd"))
         assertEquals("Dolby TrueHD", audioCodecName("audio/true-hd"))
+        assertEquals("AAC", audioCodecName("audio/mp4a-latm"))
+        assertEquals("MP3", audioCodecName("audio/mpeg"))
+        assertEquals("Vorbis", audioCodecName("audio/vorbis"))
         assertNull(audioCodecName("audio/x-unknown"))
     }
 

@@ -72,6 +72,12 @@ data class VideoInfo(
             else -> "$count ch"
         }
 
+        /** "48 kHz", "44,1 kHz" (the device's number format). */
+        fun sampleRate(hz: Int, locale: Locale = Locale.getDefault()): String? {
+            if (hz <= 0) return null
+            return "${NumberFormat.getInstance(locale).apply { maximumFractionDigits = 1 }.format(hz / 1000.0)} kHz"
+        }
+
         /** "1920 × 1080 · 30 fps", "3840 × 2160 · 29,97 fps" (the device's number format), or without the rate. */
         fun resolution(width: Int, height: Int, frameRate: Float, locale: Locale = Locale.getDefault()): String? {
             if (width <= 0 || height <= 0) return null
@@ -117,7 +123,8 @@ data class VideoInfo(
                     C.TRACK_TYPE_AUDIO -> audio += listOfNotNull(
                         audioCodecName(format.sampleMimeType) ?: format.sampleMimeType?.substringAfter('/')
                             ?.uppercase(),
-                        channels(format.channelCount), language(format.language) ?: format.label
+                        channels(format.channelCount), sampleRate(format.sampleRate),
+                        language(format.language) ?: format.label
                     )
                     C.TRACK_TYPE_TEXT -> text += listOfNotNull(
                         language(format.language) ?: format.label ?: format.sampleMimeType?.substringAfter('/')
@@ -155,6 +162,7 @@ data class VideoInfo(
                         mime.startsWith("audio/") -> audio += listOfNotNull(
                             audioCodecName(mime) ?: mime.substringAfter('/').uppercase(),
                             channels(format.intOr(MediaFormat.KEY_CHANNEL_COUNT, 0)),
+                            sampleRate(format.intOr(MediaFormat.KEY_SAMPLE_RATE, 0)),
                             language(format.getStringOrNull(MediaFormat.KEY_LANGUAGE))
                         )
                         mime.startsWith("text/") || mime.contains("subrip") || mime.contains("ttml") ->
@@ -233,9 +241,22 @@ fun FragmentActivity.showVideoInfo(info: VideoInfo, path: Path?) {
         setTextAppearance(com.google.android.material.R.style.TextAppearance_MaterialComponents_Headline6)
         ViewCompat.setAccessibilityHeading(this, true)
     })
+    // On wide windows (sw600dp, landscape) the rows stand in two columns, not as one long thin list.
+    val twoColumns = resources.configuration.screenWidthDp >= 600
+    val grid = android.widget.GridLayout(this).apply { columnCount = if (twoColumns) 2 else 1 }
+    content.addView(grid, LinearLayout.LayoutParams(
+        LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT
+    ))
     fun row(label: Int, value: String?) {
         if (value.isNullOrBlank()) return
-        content.addView(LinearLayout(this).apply {
+        grid.addView(LinearLayout(this).apply {
+            layoutParams = android.widget.GridLayout.LayoutParams(
+                android.widget.GridLayout.spec(android.widget.GridLayout.UNDEFINED),
+                android.widget.GridLayout.spec(android.widget.GridLayout.UNDEFINED, 1f)
+            ).apply {
+                width = 0
+                marginEnd = padding
+            }
             orientation = LinearLayout.VERTICAL
             minimumHeight = resources.getDimensionPixelSize(R.dimen.phi_55)
             setPadding(0, padding / 2, 0, 0)

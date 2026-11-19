@@ -28,8 +28,14 @@ internal fun audioCodecName(mimeType: String?): String? = when (mimeType) {
     "audio/true-hd" -> "Dolby TrueHD"
     "audio/vnd.dts", "audio/vnd.dts.hd", "audio/vnd.dts.hd;profile=lbr", "audio/vnd.dts.uhd;profile=p2" -> "DTS"
     "audio/mpeg-L2" -> "MP2"
+    "audio/mpeg" -> "MP3"
+    "audio/mp4a-latm", "audio/aac", "audio/x-aac", "audio/aac-adts" -> "AAC"
     "audio/opus" -> "Opus"
+    "audio/vorbis" -> "Vorbis"
     "audio/flac" -> "FLAC"
+    "audio/raw" -> "PCM"
+    "audio/3gpp", "audio/amr-wb" -> "AMR"
+    "audio/alac" -> "ALAC"
     else -> null
 }
 

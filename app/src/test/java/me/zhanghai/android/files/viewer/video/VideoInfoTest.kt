@@ -22,6 +22,9 @@ class VideoInfoTest {
         assertEquals("8,2 Mbit/s", VideoInfo.bitrate(8_200_000, Locale.GERMAN))
         assertEquals("320 kbit/s", VideoInfo.bitrate(320_000, Locale.GERMAN))
         assertNull(VideoInfo.bitrate(0))
+        assertEquals("48 kHz", VideoInfo.sampleRate(48_000, Locale.GERMAN))
+        assertEquals("44,1 kHz", VideoInfo.sampleRate(44_100, Locale.GERMAN))
+        assertNull(VideoInfo.sampleRate(-1))
     }
 
     @Test
