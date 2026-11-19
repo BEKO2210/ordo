@@ -491,13 +491,13 @@ Run the unit tests with:
 ```
 
 <!-- AUTO:tests -->
-Device tests: 32 scripts in [`e2e/`](e2e/README.md), run with `e2e/run.sh`: 15 read-only (`first-run`, `smoke`, `settings-visual`, `category-search`, `back-navigation`, `bars-replay`, `home-header`, `header-position`, `home-pull`, `drawer`, `selection-more`, `tablet-landscape`, `analysis`, `ai-show-guard`, `documents-provider`) and 17 more with `--write` (`stress-delete`, `backup-restore`, `home-auto-refresh`, `audio-player`, `cast`, `klang`, `klang-landscape`, `klang-stress`, `music-formats`, `music-library`, `launcher-icons`, `icon-colors`, `ai-show`, `pick-file`, `no-midword-breaks`, `player-seek`, `player-stage2`). Unit tests: 86 test classes in `app/src/test`.
+Device tests: 33 scripts in [`e2e/`](e2e/README.md), run with `e2e/run.sh`: 15 read-only (`first-run`, `smoke`, `settings-visual`, `category-search`, `back-navigation`, `bars-replay`, `home-header`, `header-position`, `home-pull`, `drawer`, `selection-more`, `tablet-landscape`, `analysis`, `ai-show-guard`, `documents-provider`) and 18 more with `--write` (`stress-delete`, `backup-restore`, `home-auto-refresh`, `audio-player`, `cast`, `klang`, `klang-landscape`, `klang-stress`, `music-formats`, `music-library`, `launcher-icons`, `icon-colors`, `ai-show`, `pick-file`, `no-midword-breaks`, `player-seek`, `player-stage2`, `video-player`). Unit tests: 88 test classes in `app/src/test`.
 <!-- /AUTO:tests -->
 
 ## Roadmap
 
-Planned next: tabs and a two-pane view, a video player, scheduled backups, and cloud storage. The full plan is in
-[docs/ROADMAP.md](docs/ROADMAP.md) (German).
+Planned next: tabs and a two-pane view, subtitles and picture-in-picture for the video player, scheduled backups,
+and cloud storage. The full plan is in [docs/ROADMAP.md](docs/ROADMAP.md) (German).
 
 ## Contributing
 

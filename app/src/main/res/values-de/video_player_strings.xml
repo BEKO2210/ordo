@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later -->
+<resources>
+    <string name="video_player_title">Videoplayer</string>
+    <string name="video_player_back">Zurück</string>
+    <string name="video_player_play">Abspielen</string>
+    <string name="video_player_pause">Pause</string>
+    <string name="video_player_rewind">10 Sekunden zurück</string>
+    <string name="video_player_forward">10 Sekunden vor</string>
+    <string name="video_player_seek_back_format">−%1$d s</string>
+    <string name="video_player_seek_forward_format">+%1$d s</string>
+    <string name="video_player_position">Position</string>
+    <string name="video_player_progress_format">%1$s von %2$s</string>
+    <string name="video_player_show_remaining">Restzeit zeigen</string>
+    <string name="video_player_show_elapsed">Gespielte Zeit zeigen</string>
+    <string name="video_player_show_controls">Steuerung zeigen</string>
+    <string name="video_player_previous">Vorheriges Video</string>
+    <string name="video_player_next">Nächstes Video</string>
+    <string name="video_player_speed">Tempo</string>
+    <string name="video_player_speed_title">Wiedergabetempo</string>
+    <string name="video_player_speed_format">%1$s×</string>
+    <string name="video_player_resize">Bildformat</string>
+    <string name="video_player_resize_fit">Einpassen</string>
+    <string name="video_player_resize_fill">Füllen</string>
+    <string name="video_player_resize_stretch">Strecken</string>
+    <string name="video_player_rotate">Bildschirm drehen</string>
+    <string name="video_player_lock">Bedienung sperren</string>
+    <string name="video_player_locked">Gesperrt</string>
+    <string name="video_player_unlock">Entsperren</string>
+    <string name="video_player_unlock_hint">Zum Entsperren halten</string>
+    <string name="video_player_resume_format">Weiter bei %1$s</string>
+    <string name="video_player_open_with">Mit anderer App öffnen</string>
+    <string name="video_player_file_info">Dateiinfo</string>
+    <string name="video_player_external_refused">Ordo spielt von anderen Apps nur freigegebene Videos ab.</string>
+    <string name="video_player_error_format">Dieses Videoformat kann Ordo nicht abspielen.</string>
+    <string name="video_player_error_damaged">Die Datei scheint beschädigt oder unvollständig.</string>
+    <string name="video_player_error_read">Ordo kann diese Datei nicht lesen.</string>
+    <string name="video_player_error">Dieses Video lässt sich nicht abspielen.</string>
+</resources>

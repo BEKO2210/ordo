@@ -498,13 +498,13 @@ Unit-Tests:
 ```
 
 <!-- AUTO:tests -->
-Gerätetests: 32 Skripte in [`e2e/`](e2e/README.md), gestartet mit `e2e/run.sh`: 15 nur lesend (`first-run`, `smoke`, `settings-visual`, `category-search`, `back-navigation`, `bars-replay`, `home-header`, `header-position`, `home-pull`, `drawer`, `selection-more`, `tablet-landscape`, `analysis`, `ai-show-guard`, `documents-provider`) und 17 weitere mit `--write` (`stress-delete`, `backup-restore`, `home-auto-refresh`, `audio-player`, `cast`, `klang`, `klang-landscape`, `klang-stress`, `music-formats`, `music-library`, `launcher-icons`, `icon-colors`, `ai-show`, `pick-file`, `no-midword-breaks`, `player-seek`, `player-stage2`). Unit-Tests: 86 Testklassen in `app/src/test`.
+Gerätetests: 33 Skripte in [`e2e/`](e2e/README.md), gestartet mit `e2e/run.sh`: 15 nur lesend (`first-run`, `smoke`, `settings-visual`, `category-search`, `back-navigation`, `bars-replay`, `home-header`, `header-position`, `home-pull`, `drawer`, `selection-more`, `tablet-landscape`, `analysis`, `ai-show-guard`, `documents-provider`) und 18 weitere mit `--write` (`stress-delete`, `backup-restore`, `home-auto-refresh`, `audio-player`, `cast`, `klang`, `klang-landscape`, `klang-stress`, `music-formats`, `music-library`, `launcher-icons`, `icon-colors`, `ai-show`, `pick-file`, `no-midword-breaks`, `player-seek`, `player-stage2`, `video-player`). Unit-Tests: 88 Testklassen in `app/src/test`.
 <!-- /AUTO:tests -->
 
 ## Ausblick
 
-Als Nächstes geplant: Tabs und Zwei-Fenster-Ansicht, ein Video-Player, Sicherung nach Zeitplan und
-Cloud-Speicher. Der ganze Plan steht in [docs/ROADMAP.md](docs/ROADMAP.md).
+Als Nächstes geplant: Tabs und Zwei-Fenster-Ansicht, Untertitel und Bild-in-Bild für den Video-Player, Sicherung
+nach Zeitplan und Cloud-Speicher. Der ganze Plan steht in [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ## Mitmachen
 

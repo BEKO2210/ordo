@@ -3,8 +3,9 @@
 # The owner's rule: no word ever breaks in the middle ("Absp-ielen", "Zufäll-ig" on the Tab's narrow pane).
 # Debug builds only (MidwordWatchProvider logs every visible TextView whose layout breaks inside a word); WRITES one
 # silent test song with a cover in Music/OrdoE2E-Midword and removes it again. Walks home, settings, the music
-# library's six tabs, a folder page, an album page, the player, its Sound and queue sheets and Ordo Musik's settings,
-# then fails on any logged break.
+# library's six tabs, a folder page, an album page, the player, its Sound and queue sheets, Ordo Musik's settings and
+# (with ffmpeg on the host: a short test video beside the song) the video player, its lock and its speed sheet, then
+# fails on any logged break.
 # Run it once on a phone and once on a tablet.
 . "$(dirname "$0")/lib.sh" "$@"
 DIR=/storage/emulated/0/Music/OrdoE2E-Midword
@@ -62,6 +63,25 @@ sleep 2; back; back; sleep 2
 ui tap "Navigationsmenü öffnen|Open navigation drawer" > /dev/null; sleep 1
 check "Ordo Musik's settings open" eval 'ui tap "Einstellungen|Settings" && ui wait "Farben aus dem Cover|Colours from the cover" 5'
 sleep 1; back; sleep 1
+# The video player: controls, the locked screen's "hold to unlock" and the speed sheet.
+if command -v ffmpeg >/dev/null; then
+    ffmpeg -v error -f lavfi -i "testsrc=size=640x360:rate=25:duration=20" -c:v libx264 -pix_fmt yuv420p \
+        "$tmp/midword-video.mp4"
+    a push "$tmp/midword-video.mp4" "$DIR/" >/dev/null
+    a shell am start -W -a android.intent.action.VIEW -d "file://$DIR" -t inode/directory \
+        -n "$PKG/me.zhanghai.android.files.filelist.FileListActivity" >/dev/null
+    sleep 3; guard
+    ui tap midword-video.mp4 >/dev/null
+    check "the video player opens" wait_on viewer.video.VideoPlayerActivity 8
+    sleep 2; a shell input keyevent KEYCODE_MEDIA_PAUSE; sleep 1
+    check "the video player locks" eval 'ui tap lock && ui wait unlock 3'
+    read -r l t r b < <(ui bounds unlock | head -1)
+    a shell input swipe $(((l + r) / 2)) $(((t + b) / 2)) $(((l + r) / 2)) $(((t + b) / 2)) 900; sleep 1
+    check "the video player's speed sheet opens" ui tap speed
+    sleep 1; back 1; back 2
+else
+    echo "SKIP the video player (no ffmpeg on the host)"
+fi
 hits=$(a logcat -d -s OrdoMidword:W | grep MIDWORD)
 [ -n "$hits" ] && echo "$hits" | sed 's/.*MIDWORD/  MIDWORD/'
 check "no visible text breaks inside a word" test -z "$hits"

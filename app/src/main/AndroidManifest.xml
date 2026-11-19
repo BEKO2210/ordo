@@ -441,6 +441,21 @@
             </intent-filter>
         </activity>
 
+        <!-- Owns its player, so rotating and resizing must not recreate it (configChanges). Picture-in-picture comes
+             with phase 3. -->
+        <activity
+            android:name="me.zhanghai.android.files.viewer.video.VideoPlayerActivity"
+            android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboard|keyboardHidden|navigation"
+            android:exported="true"
+            android:label="@string/video_player_title"
+            android:theme="@style/Theme.MaterialFiles.Immersive">
+            <intent-filter tools:ignore="AppLinkUrlError">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="video/*" />
+            </intent-filter>
+        </activity>
+
         <!--
           Ordo Musik is its own app: own task (taskAffinity, documentLaunchMode), so Recents shows it as a separate card
           with its own name and icon, and back from the library leaves it. The player opened from the library stays in

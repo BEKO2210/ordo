@@ -1,0 +1,180 @@
+#!/bin/bash
+# Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later
+# Video player, phase 1, WRITES: creates /storage/emulated/0/ordo-e2e-video with files made by ffmpeg on the host (two
+# 30-s H.264/AAC 1080p clips with the time burnt in, a 0-byte .mp4, an AVI with MPEG-4 ASP/Xvid) and removes it again.
+# A tap in the file list opens Ordo's player and it plays (dumpsys media_session); a tap, a quick swipe and a scroll on
+# the seek bar never move it, 400 ms held and dragged to 3/4 does; a double tap in the left 28 % jumps 10 s back, three
+# quick taps 20 s, the right 28 % ahead; the lock stops taps until its button is held; closing at 0:12 and opening again
+# offers "Resume at 0:12", a tap goes there; the end of a clip starts the next one of the folder; the 0-byte file and
+# (if the device cannot play it) the AVI show the message with "Open with another app" instead of crashing; an
+# external file:// intent is refused, a content:// one with a read grant plays; the rotate button (phone) keeps
+# position and playback; buttons keep 48 dp, the play button 88 dp on a tablet. Headphones and audio focus are not
+# scriptable from adb: SKIP, by hand. Needs ffmpeg on the host.
+. "$(dirname "$0")/lib.sh" "$@"
+DIR=/storage/emulated/0/ordo-e2e-video
+PLAYER=me.zhanghai.android.files.viewer.video.VideoPlayerActivity
+tmp=$(mktemp -d); trap 'a shell "rm -rf $DIR"; rm -rf "$tmp"' EXIT
+command -v ffmpeg >/dev/null || { echo "SKIP video player (no ffmpeg on the host)"; exit 0; }
+
+# testsrc burns a running time into the picture, so a screenshot shows where the clip is.
+for n in 01 02; do
+    ffmpeg -v error -f lavfi -i "testsrc=size=1920x1080:rate=30:duration=30" \
+        -f lavfi -i "sine=frequency=$((330 + n * 110)):duration=30" -c:v libx264 -preset veryfast -pix_fmt yuv420p \
+        -c:a aac -b:a 128k -shortest "$tmp/$n-clip.mp4" || echo "FAIL ffmpeg could not make $n-clip.mp4"
+done
+: > "$tmp/03-empty.mp4"
+ffmpeg -v error -f lavfi -i "testsrc=size=640x360:rate=25:duration=10" -f lavfi -i "sine=frequency=550:duration=10" \
+    -c:v mpeg4 -vtag XVID -q:v 5 -c:a libmp3lame -b:a 128k -shortest "$tmp/04-xvid.avi" || echo "FAIL ffmpeg could not make the AVI"
+a shell "rm -rf $DIR; mkdir -p $DIR"
+a push "$tmp/." "$DIR/" >/dev/null
+
+wake; grant; a logcat -b crash -c
+# No music session in the way: the video session is the only one of Ordo's.
+a shell am force-stop "$PKG"
+pause() { a shell input keyevent KEYCODE_MEDIA_PAUSE >/dev/null; sleep 1.5; }
+# The video session's state line; its ID starts with "video." (messen: how dumpsys prints the tag), else Ordo's first
+# session.
+session() {
+    local d; d=$(a shell dumpsys media_session)
+    { grep -A25 "id\.video\.[-0-9a-f]* $PKG" <<<"$d" || grep -A25 "package=$PKG" <<<"$d"; } | grep -m1 'state=PlaybackState'
+}
+pos() { session | grep -oE '[{ ]position=[0-9]+' | head -1 | cut -d= -f2; }
+playing() { session | grep -q 'state=PLAYING'; }
+wait_playing() { local i; for i in $(seq 1 16); do playing && return 0; sleep 0.5; done; return 1; }
+not_on() { ! on "$@"; }
+open_folder() {
+    a shell am start -W -a android.intent.action.VIEW -d "file://$DIR" -t inode/directory \
+        -n "$PKG/me.zhanghai.android.files.filelist.FileListActivity" >/dev/null
+    sleep 3; guard; ui wait "$1" 10 >/dev/null
+}
+dp() { echo $(($1 * $(a shell wm density | tail -1 | sed 's/.*: //' | tr -d '\r') / 160)); }
+# touch_target ID DP: the control's box is at least DP x DP.
+touch_target() {
+    local l t r b min; min=$(dp "$2")
+    read -r l t r b < <(ui bounds "$1" | head -1) || return 1
+    [ $((r - l)) -ge "$min" ] && [ $((b - t)) -ge "$min" ]
+}
+within() { [ "$1" -ge "$2" ] && [ "$1" -le "$3" ]; }
+
+# 1. A tap in the file list opens Ordo's player, and it plays.
+open_folder 01-clip.mp4
+ui tap 01-clip.mp4 >/dev/null
+check "a video opens Ordo's player" wait_on viewer.video.VideoPlayerActivity 8
+guard
+check "the video plays (media_session state=PLAYING)" wait_playing
+pause
+check "paused, the controls stay up" ui has playPause
+check "play/pause keeps its 48 dp touch target" touch_target playPause 48
+check "the lock keeps its 48 dp touch target" touch_target lock 48
+check "speed keeps its 48 dp touch target" touch_target speed 48
+smallest=$(a shell dumpsys window displays | grep -oE 'sw[0-9]+dp' | head -1 | tr -dc 0-9)
+if [ -n "$smallest" ] && [ "$smallest" -ge 600 ]; then
+    check "on a tablet the play button is 88 dp" touch_target playPause 87
+fi
+
+# 2. The seek bar: MDC hides the slider's own node, so it lies between the two times.
+read -r _ y1 x1 y2 < <(ui bounds elapsed | head -1)
+read -r x2 _ _ _ < <(ui bounds duration | head -1)
+y=$(((y1 + y2) / 2)); w=$((x2 - x1)); xa=$((x1 + w / 4)); xb=$((x1 + w * 3 / 4))
+moved_less() { [ $(($2 - $1)) -lt 2000 ] && [ $(($1 - $2)) -lt 2000 ]; }
+p0=$(pos); a shell input tap $xb $y; sleep 1.5; p1=$(pos)
+check "a tap on the bar does not seek ($p0 -> $p1 ms)" moved_less "$p0" "$p1"
+a shell input swipe $xa $y $xb $y 120; sleep 1.5; p2=$(pos)
+check "a quick swipe along the bar does not seek ($p1 -> $p2 ms)" moved_less "$p1" "$p2"
+a shell input swipe $xb $((y - 200)) $xb $((y + 200)) 200; sleep 1.5; p3=$(pos)
+check "a vertical swipe over the bar does not seek ($p2 -> $p3 ms)" moved_less "$p2" "$p3"
+a shell "input motionevent DOWN $xa $y; sleep 0.4; input motionevent MOVE $((xa + w / 8)) $y; \
+    input motionevent MOVE $((xa + w / 4)) $y; input motionevent MOVE $xb $y; sleep 0.3; input motionevent UP $xb $y"
+sleep 1.5; p4=$(pos)
+# 3/4 of 30 s is 22.5 s; the slider's track inset leaves a little either way.
+check "held 400 ms and dragged, the bar seeks to three quarters ($p4 ms)" within "${p4:-0}" 19000 26000
+
+# 3. Tap zones on the picture, in the middle height, away from the controls and the system's gesture edges.
+read -r W H < <(screen_size)
+left=$((W * 14 / 100)); right=$((W * 86 / 100)); mid=$((H / 2))
+a shell "input tap $left $mid; input tap $left $mid; input tap $left $mid"; sleep 1.5; p5=$(pos)
+check "three quick taps on the left 28 % jump 20 s back ($p4 -> $p5 ms)" within $((p4 - p5)) 18000 22000
+a shell "input tap $right $mid; sleep 0.12; input tap $right $mid"; sleep 1.5; p6=$(pos)
+check "a double tap on the right 28 % jumps 10 s ahead ($p5 -> $p6 ms)" within $((p6 - p5)) 8000 12000
+
+# The lock: everything goes but "hold to unlock"; taps do nothing until it is held.
+pause
+ui tap lock >/dev/null; sleep 1
+check "locked, only the unlock button shows" eval 'ui has unlock && ! ui has playPause'
+a shell "input tap $right $mid; sleep 0.12; input tap $right $mid"; sleep 1.5; p7=$(pos)
+check "locked, a double tap does not seek ($p6 -> $p7 ms)" moved_less "$p6" "$p7"
+read -r l t r b < <(ui bounds unlock | head -1)
+a shell input swipe $(((l + r) / 2)) $(((t + b) / 2)) $(((l + r) / 2)) $(((t + b) / 2)) 900; sleep 1.5
+check "holding the unlock button brings the controls back" ui has playPause
+
+# 4. Resume: closed at ~0:12 (more than 10 s, less than 95 %), opened again it offers that place.
+back 2
+check "back closes the player" not_on viewer.video.VideoPlayerActivity
+ui tap 01-clip.mp4 >/dev/null; wait_on viewer.video.VideoPlayerActivity 8
+check "opened again, it offers to resume" ui wait resumePill 4
+check "the pill says where" eval "ui texts | grep -qE 'Weiter bei|Resume at'"
+ui tap resumePill >/dev/null; sleep 1.5; pause; p8=$(pos)
+check "a tap on the pill goes there ($p7 -> $p8 ms)" within "${p8:-0}" $((${p7:-0} - 1500)) $((${p7:-0} + 3000))
+
+# 5. The end of a clip starts the next one of the folder.
+a shell input keyevent KEYCODE_MEDIA_PLAY; sleep 22; pause
+check "the next video of the folder follows" ui has 02-clip.mp4
+back 2
+
+# 7. Files the player cannot play explain themselves and offer another app.
+open_folder 03-empty.mp4
+ui tap 03-empty.mp4 >/dev/null; wait_on viewer.video.VideoPlayerActivity 8
+check "a 0-byte video shows the message with Open with another app" ui wait errorOpenWith 8
+system_focus() {
+    local i; for i in 1 2 3 4 5 6; do
+        a shell dumpsys window | grep -m1 mCurrentFocus | grep -qv "$PKG" && return 0; sleep 0.5
+    done
+    return 1
+}
+ui tap errorOpenWith >/dev/null
+check "Open with another app hands over to the system chooser" system_focus
+a shell input keyevent KEYCODE_BACK; sleep 1; back 2
+open_folder 04-xvid.avi
+ui tap 04-xvid.avi >/dev/null; wait_on viewer.video.VideoPlayerActivity 8
+avi() { local i; for i in $(seq 1 10); do playing && return 0; ui has errorOpenWith && return 0; sleep 1; done; return 1; }
+check "the Xvid AVI plays or explains itself ($(playing && echo plays || echo message))" avi
+back 2
+
+# 6. External callers: file:// is refused, content:// with a read grant plays.
+a shell am force-stop "$PKG"
+a shell am start -W -a android.intent.action.VIEW -d "file://$DIR/01-clip.mp4" -t video/mp4 \
+    --es me.zhanghai.android.files.extra.PATH_URI "file://$DIR/02-clip.mp4" -n "$PKG/$PLAYER" >/dev/null; sleep 2
+check "an external file:// intent is refused and the player closes" not_on viewer.video.VideoPlayerActivity
+a shell am broadcast -a android.intent.action.MEDIA_SCANNER_SCAN_FILE -d "file://$DIR/02-clip.mp4" >/dev/null 2>&1
+sleep 3
+id=$(a shell content query --uri content://media/external/video/media --projection _id \
+    --where "_display_name=\'02-clip.mp4\'" 2>/dev/null | grep -oE '_id=[0-9]+' | head -1 | cut -d= -f2)
+if [ -n "$id" ]; then
+    a shell am start -W -a android.intent.action.VIEW -d "content://media/external/video/media/$id" -t video/mp4 \
+        --grant-read-uri-permission -n "$PKG/$PLAYER" >/dev/null; sleep 2
+    check "an external content:// intent with a read grant plays" wait_playing
+    pause; back 2
+else
+    echo "SKIP content:// intent (MediaStore has not indexed the clip)"
+fi
+
+# 9. Rotating (phone: the rotate button) keeps the position and playback.
+open_folder 02-clip.mp4
+ui tap 02-clip.mp4 >/dev/null; wait_on viewer.video.VideoPlayerActivity 8; pause
+if ui has rotate; then
+    read -r l t r b < <(ui bounds rotate | head -1)
+    a shell input keyevent KEYCODE_MEDIA_PLAY; sleep 1; p9=$(pos)
+    # The controls stay up 4 s after play: the button is still where it was read.
+    a shell input tap $(((l + r) / 2)) $(((t + b) / 2)); sleep 3
+    check "after rotating the player is still in front" on viewer.video.VideoPlayerActivity
+    check "after rotating it still plays" playing
+    pause; p10=$(pos)
+    check "after rotating the position went on ($p9 -> $p10 ms)" test "${p10:-0}" -ge "${p9:-0}"
+else
+    echo "SKIP rotate (tablet: Android 16 ignores orientation requests from 600 dp)"
+fi
+back 2
+
+echo "SKIP headphones unplugged / another app takes audio focus (not scriptable from adb; check by hand)"
+a shell am force-stop "$PKG"
+finish
