@@ -169,6 +169,13 @@
     </notice>
 
     <notice>
+        <name>Gramophone (lyrics parser)</name>
+        <url>https://github.com/FoedusProgramme/Gramophone</url>
+        <copyright>Copyright (C) 2024 nift4</copyright>
+        <license>GNU General Public License 3.0</license>
+    </notice>
+
+    <notice>
         <name>Coil</name>
         <url>https://github.com/coil-kt/coil</url>
         <copyright>Copyright 2020 Coil Contributors</copyright>
@@ -285,5 +292,12 @@
         <url>https://github.com/alexmarsev/libbs2b</url>
         <copyright>Copyright (c) 2005 Boris Mikhaylov</copyright>
         <license>MIT License</license>
+    </notice>
+
+    <notice>
+        <name>Auxio (WavySlider, the player's wavy seek bar)</name>
+        <url>https://github.com/OxygenCobalt/Auxio</url>
+        <copyright>Copyright (c) 2026 Auxio Project</copyright>
+        <license>GNU General Public License 3.0</license>
     </notice>
 </notices>

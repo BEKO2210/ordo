@@ -25,4 +25,13 @@
         <attr name="ordoCircleColor" format="color" />
         <attr name="ordoCircleColorEnd" format="color" />
     </declare-styleable>
+
+    <!-- WavySlider (from Auxio): the attributes are MDC's own wave attributes of the progress indicators. -->
+    <declare-styleable name="WavySlider">
+        <attr name="wavelength" />
+        <attr name="waveAmplitude" />
+        <attr name="waveSpeed" />
+        <attr name="waveAmplitudeRampProgressMax" />
+        <attr name="waveAmplitudeRampProgressMin" />
+    </declare-styleable>
 </resources>

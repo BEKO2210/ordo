@@ -185,18 +185,18 @@
     </style>
 
     <style name="Widget.Ordo.AudioPlayer.SecondaryControl" parent="">
-        <item name="android:layout_width">48dp</item>
-        <item name="android:layout_height">48dp</item>
+        <item name="android:layout_width">@dimen/audio_player_secondary_control_size</item>
+        <item name="android:layout_height">@dimen/audio_player_secondary_control_size</item>
         <item name="android:background">?attr/selectableItemBackgroundBorderless</item>
-        <item name="android:padding">12dp</item>
+        <item name="android:padding">@dimen/audio_player_secondary_control_padding</item>
         <item name="android:tint">?colorOnSurface</item>
     </style>
 
     <style name="Widget.Ordo.AudioPlayer.SkipControl" parent="">
-        <item name="android:layout_width">56dp</item>
-        <item name="android:layout_height">56dp</item>
+        <item name="android:layout_width">@dimen/audio_player_skip_control_size</item>
+        <item name="android:layout_height">@dimen/audio_player_skip_control_size</item>
         <item name="android:background">?attr/selectableItemBackgroundBorderless</item>
-        <item name="android:padding">16dp</item>
+        <item name="android:padding">@dimen/audio_player_skip_control_padding</item>
         <item name="android:tint">?colorOnSurface</item>
     </style>
 
@@ -204,8 +204,31 @@
         <item name="android:layout_width">@dimen/audio_player_play_control_size</item>
         <item name="android:layout_height">@dimen/audio_player_play_control_size</item>
         <item name="android:background">@drawable/audio_player_primary_control_background</item>
-        <item name="android:padding">20dp</item>
+        <item name="android:padding">@dimen/audio_player_play_control_padding</item>
         <item name="android:tint">?colorOnPrimary</item>
+    </style>
+
+    <!-- The wavy seek bar (Auxio's WavySlider): a slim bar thumb with a gap, the wave only while playing. The
+         colours come from the cover at runtime. -->
+    <style name="Widget.Ordo.AudioPlayer.Seek" parent="Widget.MaterialComponents.Slider">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">48dp</item>
+        <item name="android:valueFrom">0</item>
+        <item name="android:valueTo">1000</item>
+        <item name="trackHeight">5dp</item>
+        <item name="thumbWidth">5dp</item>
+        <item name="thumbHeight">34dp</item>
+        <item name="thumbTrackGapSize">5dp</item>
+        <item name="thumbElevation">0dp</item>
+        <item name="trackStopIndicatorSize">0dp</item>
+        <item name="haloRadius">0dp</item>
+        <item name="labelBehavior">floating</item>
+        <item name="wavelength">34dp</item>
+        <item name="waveAmplitude">3dp</item>
+        <item name="waveSpeed">10dp</item>
+        <item name="waveAmplitudeRampProgressMin">0.0</item>
+        <!-- The wave grows over the first tenth of the song: a few seconds in, half a wavelength looked like a hook. -->
+        <item name="waveAmplitudeRampProgressMax">0.1</item>
     </style>
 
     <style name="Widget.Ordo.OnboardingFeature" parent="">

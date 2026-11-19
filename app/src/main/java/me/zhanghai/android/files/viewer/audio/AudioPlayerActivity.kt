@@ -5,6 +5,8 @@
 
 package me.zhanghai.android.files.viewer.audio
 
+import android.animation.ArgbEvaluator
+import android.annotation.SuppressLint
 import android.animation.ValueAnimator
 import android.content.ComponentName
 import android.content.ContentResolver
@@ -12,19 +14,29 @@ import android.content.Context
 import android.content.Intent
 import android.content.res.ColorStateList
 import android.graphics.Bitmap
+import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.provider.Settings
 import android.util.TypedValue
+import android.view.GestureDetector
+import android.view.HapticFeedbackConstants
 import android.view.Gravity
+import android.view.MotionEvent
+import android.view.SurfaceView
+import android.view.View
+import android.view.ViewGroup
+import android.widget.FrameLayout
 import android.widget.ImageView
-import android.widget.SeekBar
+import android.widget.TextView
 import android.widget.Toast
 import androidx.annotation.OptIn
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.ColorUtils
 import androidx.core.graphics.drawable.toBitmap
 import androidx.core.os.bundleOf
 import androidx.core.view.MenuItemCompat
@@ -46,6 +58,7 @@ import coil.dispose
 import coil.load
 import com.google.android.material.chip.Chip
 import com.google.android.material.color.MaterialColors
+import com.google.android.material.slider.Slider
 import com.google.android.material.snackbar.Snackbar
 import com.google.common.util.concurrent.ListenableFuture
 import java8.nio.file.Path
@@ -66,7 +79,11 @@ import me.zhanghai.android.files.player.pathUriExists
 import me.zhanghai.android.files.player.restorableState
 import me.zhanghai.android.files.player.cast.CastManager
 import me.zhanghai.android.files.provider.common.readAttributes
+import me.zhanghai.android.files.settings.Settings as OrdoSettings
 import me.zhanghai.android.files.ui.Motion
+import me.zhanghai.android.files.util.valueCompat
+import me.zhanghai.android.files.viewer.audio.lyrics.Lyrics
+import me.zhanghai.android.files.viewer.audio.lyrics.LyricsRepository
 import me.zhanghai.android.files.util.startActivitySafe
 
 /**
@@ -80,8 +97,27 @@ class AudioPlayerActivity : AppActivity() {
     private var controller: MediaController? = null
     private var artworkJob: Job? = null
     private var artworkKey: String? = null
-    private var backgroundAnimator: ValueAnimator? = null
-    private var backgroundColor = 0
+    private lateinit var atmosphere: PlayerAtmosphereView
+    private var colorAnimator: ValueAnimator? = null
+    /** accent, onAccent, container: what the controls show now (animated between songs). */
+    private var colors = IntArray(3)
+    private var seekBubble: TextView? = null
+    private var wavePlaying: Boolean? = null
+    private lateinit var lyricsView: PlayerLyricsView
+    private var lyrics: Lyrics? = null
+    private var lyricsKey: String? = null
+    private var lyricsJob: Job? = null
+    private var lyricsShowPlay = true
+    private val lyricsBack = object : androidx.activity.OnBackPressedCallback(false) {
+        override fun handleOnBackPressed() = hideLyrics()
+    }
+    // While the lyrics show and music plays: four looks a second at the position. Views change only with the line.
+    private val lyricsTicker = object : Runnable {
+        override fun run() {
+            controller?.let { lyricsView.setPosition(it.currentPosition) }
+            if (lyricsView.isVisible && controller?.isPlaying == true) handler.postDelayed(this, LYRICS_TICK_MS)
+        }
+    }
     private var queueStarted = false
     private var launchQueue: LaunchQueue? = null
     private var progressDescription: String? = null
@@ -111,6 +147,8 @@ class AudioPlayerActivity : AppActivity() {
     private val progressUpdater = object : Runnable {
         override fun run() {
             updateProgress()
+            // The backdrop drifts one step in the same frame as the time, so it costs no frame of its own.
+            atmosphere.advance()
             if (controller?.isPlaying == true) handler.postDelayed(this, nextProgressDelay())
         }
     }
@@ -140,14 +178,52 @@ class AudioPlayerActivity : AppActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = AudioPlayerActivityBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-        backgroundColor = themeColor(com.google.android.material.R.attr.colorSurface)
-        binding.root.setBackgroundColor(backgroundColor)
+        // The atmosphere lies behind every layout variant of the player without touching their XML.
+        atmosphere = PlayerAtmosphereView(this)
+        lyricsView = PlayerLyricsView(
+            this, onSeek = { controller?.seekTo(it) }, onClose = ::hideLyrics,
+            onPlayPause = { controller?.let { Util.handlePlayPauseButtonAction(it) } }
+        ).apply {
+            isVisible = false
+        }
+        setContentView(FrameLayout(this).apply {
+            addView(atmosphere, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
+            // Before the player: it gets the window insets first (before Android 11 the player's fitsSystemWindows
+            // consumes them), and the player is invisible while the lyrics show, so the order does not matter there.
+            addView(lyricsView, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
+            addView(binding.root, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
+        })
+        onBackPressedDispatcher.addCallback(this, lyricsBack)
+        colors = themeColors()
+        // A hairline (24 % onSurface) keeps a pale cover apart from a pale backdrop (review panel 18.11.2026).
+        // The cover's shadow and clip follow its own rounded corners. Its outline was a plain rectangle, so the bottom
+        // corners carried a square shadow while the top ones looked round (owner's macro photo, 19.11.2026).
+        binding.artworkCard.outlineProvider = object : android.view.ViewOutlineProvider() {
+            override fun getOutline(view: View, outline: android.graphics.Outline) {
+                outline.setRoundRect(0, 0, view.width, view.height, binding.artworkCard.radius)
+            }
+        }
+        binding.artworkCard.clipToOutline = true
+        // No elevation shadow: on the Tab and the W90 its corners stayed square at the bottom (1:1 crops) while the
+        // cover's own corners are round, also with a rounded outline. Flat, with the hairline, all four corners match.
+        binding.artworkCard.cardElevation = 0f
+        binding.artworkCard.elevation = 0f
+        binding.artworkCard.strokeWidth = resources.displayMetrics.density.toInt().coerceAtLeast(1)
+        binding.artworkCard.strokeColor = ColorUtils.setAlphaComponent(
+            themeColor(com.google.android.material.R.attr.colorOnSurface), COVER_OUTLINE_ALPHA
+        )
+        applyColors(colors)
         binding.root.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> updateArtworkSize() }
         binding.toolbar.setNavigationOnClickListener { finish() }
         binding.toolbar.setOnMenuItemClickListener { item ->
             if (item.itemId == R.id.actionCast) {
                 showCastChooser()
+                true
+            } else if (item.itemId == R.id.actionQueue) {
+                PlayerQueueSheet().show(supportFragmentManager, PlayerQueueSheet.TAG)
+                true
+            } else if (item.itemId == R.id.actionLyrics) {
+                showLyrics()
                 true
             } else if (item.itemId == R.id.actionSound) {
                 AudioSoundSettingsSheet().show(supportFragmentManager, AudioSoundSettingsSheet.TAG)
@@ -189,28 +265,51 @@ class AudioPlayerActivity : AppActivity() {
             controller?.let { it.shuffleModeEnabled = !it.shuffleModeEnabled }
         }
         binding.repeat.setOnClickListener { cycleRepeatMode() }
-        binding.seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-            override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
-                if (!fromUser) return
-                val duration = controller?.duration?.takeIf { it > 0 && it != C.TIME_UNSET } ?: 0L
-                binding.elapsed.text = formatTime(duration * progress / SEEK_MAX)
-                binding.remaining.text = formatRemaining(duration - duration * progress / SEEK_MAX)
-            }
-
-            override fun onStartTrackingTouch(seekBar: SeekBar) {
+        // The slider keeps room for its thumb beside the track; pulled out by that much, the track lines up with the
+        // times below it.
+        (binding.seekBar.layoutParams as ViewGroup.MarginLayoutParams).apply {
+            marginStart = -binding.seekBar.trackSidePadding
+            marginEnd = -binding.seekBar.trackSidePadding
+        }
+        // From Android 11 the flowing wave draws into a small surface laid exactly over the slider, so it never redraws
+        // the window (a child surface there stays under dialogs and sheets). It only shows the wave: it takes no
+        // touches and is hidden from accessibility, both stay with the slider.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            val seek = binding.seekBar
+            val parent = seek.parent as ViewGroup
+            val index = parent.indexOfChild(seek)
+            val params = seek.layoutParams
+            parent.removeViewAt(index)
+            val frame = FrameLayout(this)
+            frame.addView(seek, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
+            val surface = SurfaceView(this).apply { importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO }
+            frame.addView(surface, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
+            parent.addView(frame, index, params)
+            seek.setWaveSurface(surface)
+        }
+        binding.seekBar.setLabelFormatter { formatTime((currentDuration() * it / SEEK_MAX).toLong()) }
+        binding.seekBar.addOnChangeListener { _, value, fromUser ->
+            if (!fromUser) return@addOnChangeListener
+            val duration = currentDuration()
+            val position = (duration * value / SEEK_MAX).toLong()
+            binding.elapsed.text = formatTime(position)
+            binding.remaining.text = formatRemaining(duration - position)
+            // Accessibility actions and keys step the bar without a touch; they seek straight away.
+            if (!userSeeking && duration > 0) controller?.seekTo(position)
+        }
+        binding.seekBar.addOnSliderTouchListener(object : Slider.OnSliderTouchListener {
+            override fun onStartTrackingTouch(slider: Slider) {
                 userSeeking = true
             }
 
-            override fun onStopTrackingTouch(seekBar: SeekBar) {
-                controller?.let { player ->
-                    val duration = player.duration
-                    if (duration > 0 && duration != C.TIME_UNSET) {
-                        player.seekTo(duration * seekBar.progress / SEEK_MAX)
-                    }
-                }
+            override fun onStopTrackingTouch(slider: Slider) {
+                val duration = currentDuration()
+                if (duration > 0) controller?.seekTo((duration * slider.value / SEEK_MAX).toLong())
                 userSeeking = false
             }
         })
+        setUpDoubleTapSeek()
+        setUpPills()
         castChip = createCastChip()
         queueStarted = savedInstanceState?.getBoolean(STATE_QUEUE_STARTED) == true
         if (!queueStarted) {
@@ -254,8 +353,9 @@ class AudioPlayerActivity : AppActivity() {
     override fun onStop() {
         CastManager.removeListener(castListener)
         handler.removeCallbacks(progressUpdater)
+        handler.removeCallbacks(lyricsTicker)
         artworkJob?.cancel()
-        backgroundAnimator?.cancel()
+        colorAnimator?.cancel()
         artworkKey = null
         controller?.removeListener(playerListener)
         controller = null
@@ -451,6 +551,7 @@ class AudioPlayerActivity : AppActivity() {
             }
         }
         val metadata = player.mediaMetadata
+        updateLyrics(player)
         val item = player.currentMediaItem
         binding.title.text = metadata.title?.takeIf { it.isNotBlank() }
             ?: metadata.displayTitle?.takeIf { it.isNotBlank() }
@@ -464,6 +565,10 @@ class AudioPlayerActivity : AppActivity() {
         // Kept in every layout for stable view binding; artist and album read as one calm line.
         binding.album.isVisible = false
         val showPlay = Util.shouldShowPlayButton(player)
+        lyricsShowPlay = showPlay
+        lyricsView.setSong(binding.title.text, binding.artist.text)
+        lyricsView.setPlayback(showPlay, colors[0], colors[1])
+        updatePills(player)
         binding.playPause.setImageResource(
             if (showPlay) R.drawable.play_icon_24dp else R.drawable.pause_icon_24dp
         )
@@ -476,6 +581,17 @@ class AudioPlayerActivity : AppActivity() {
         binding.next.alpha = if (binding.next.isEnabled) 1f else DISABLED_CONTROL_ALPHA
         binding.seekBar.isEnabled = player.isCommandAvailable(Player.COMMAND_SEEK_IN_CURRENT_MEDIA_ITEM)
             && player.duration != C.TIME_UNSET
+        // The wave flows only while music plays and flattens on pause; the atmosphere drifts with it.
+        // Only on a change: every call restarts the wave's spring and phase.
+        val effects = MusicEffects.level(this)
+        MusicEffects.waveFrameMs(effects).takeIf { it > 0 }?.let { binding.seekBar.phasePeriodMs = it }
+        atmosphere.frameMs = MusicEffects.backdropFrameMs(effects)
+        val flows = player.isPlaying && effects != MusicEffects.Level.SAVER
+        if (wavePlaying != flows) {
+            wavePlaying = flows
+            binding.seekBar.setWaveEnabled(flows)
+        }
+        atmosphere.playing = flows
         binding.shuffle.isActivated = player.shuffleModeEnabled
         binding.shuffle.contentDescription = getString(
             if (player.shuffleModeEnabled) R.string.audio_player_shuffle_on else R.string.audio_player_shuffle_off
@@ -510,7 +626,7 @@ class AudioPlayerActivity : AppActivity() {
         val player = controller ?: return
         val duration = player.duration.takeIf { it > 0 && it != C.TIME_UNSET } ?: 0L
         val position = player.currentPosition.coerceIn(0L, duration.coerceAtLeast(0L))
-        binding.seekBar.progress = if (duration > 0) (position * SEEK_MAX / duration).toInt() else 0
+        binding.seekBar.value = if (duration > 0) (position * SEEK_MAX / duration).toFloat() else 0f
         binding.elapsed.text = formatTime(position)
         binding.remaining.text = formatRemaining(duration - position)
         val description = getString(
@@ -568,7 +684,7 @@ class AudioPlayerActivity : AppActivity() {
     }
 
     private fun showPlaceholder() {
-        updateBackgroundWash(null)
+        updateBackgroundWash()
         binding.artworkCard.setCardBackgroundColor(
             themeColor(
                 com.google.android.material.R.attr.colorSurfaceContainerHigh,
@@ -577,8 +693,10 @@ class AudioPlayerActivity : AppActivity() {
         )
         binding.artwork.apply {
             dispose()
-            scaleType = ImageView.ScaleType.CENTER_INSIDE
-            val padding = resources.getDimensionPixelSize(R.dimen.audio_player_artwork_padding)
+            // A calm, large note (a third of the cover) instead of a tiny glyph that looked like a loading state.
+            scaleType = ImageView.ScaleType.FIT_CENTER
+            val padding = binding.artworkContainer.width.takeIf { it > 0 }?.let { it / 3 }
+                ?: resources.getDimensionPixelSize(R.dimen.audio_player_artwork_padding)
             setPadding(padding, padding, padding, padding)
             setImageResource(R.drawable.file_audio_icon)
             ImageViewCompat.setImageTintList(
@@ -593,33 +711,295 @@ class AudioPlayerActivity : AppActivity() {
         }
     }
 
+    /**
+     * Off the main thread: the cover's colour roles (WCAG-checked, else the theme's), its blurred atmosphere and the
+     * veil strength that keeps text and controls readable over it. Then everything fades over in 300 ms.
+     */
     private fun updateArtworkWash(drawable: Drawable) {
-        val bitmap = drawable.toBitmap(ARTWORK_SAMPLE_SIZE, ARTWORK_SAMPLE_SIZE, Bitmap.Config.ARGB_8888)
-        val pixels = IntArray(bitmap.width * bitmap.height)
-        bitmap.getPixels(pixels, 0, bitmap.width, 0, 0, bitmap.width, bitmap.height)
-        updateBackgroundWash(AudioPlayerColorWash.averageArgb(pixels))
-    }
-
-    private fun updateBackgroundWash(artworkColor: Int?) {
+        val key = artworkKey
+        val source = (drawable as? BitmapDrawable)?.bitmap
+            ?: drawable.toBitmap(CoverBlur.SIZE, CoverBlur.SIZE, Bitmap.Config.ARGB_8888)
         val surface = themeColor(com.google.android.material.R.attr.colorSurface)
         val onSurface = themeColor(com.google.android.material.R.attr.colorOnSurface)
-        val target = artworkColor?.let {
-            AudioPlayerColorWash.blendWithSurface(surface, it, onSurface)
-        } ?: surface
-        backgroundAnimator?.cancel()
-        if (!Motion.any || backgroundColor == target) {
-            backgroundColor = target
-            binding.root.setBackgroundColor(target)
+        val secondaryText = themeColor(android.R.attr.textColorSecondary)
+        val fallback = themeColors()
+        val isLight = ColorUtils.calculateLuminance(surface) > 0.5
+        val coverColors = OrdoSettings.MUSIC_COVER_COLORS.valueCompat
+        artworkJob = lifecycleScope.launch {
+            val (target, look) = withContext(Dispatchers.Default) {
+                val size = CoverBlur.SIZE
+                val small = Bitmap.createScaledBitmap(source, size, size, true)
+                val pixels = IntArray(size * size)
+                small.getPixels(pixels, 0, size, 0, 0, size, size)
+                if (small !== source) small.recycle()
+                // "Colours from the cover" off (Ordo Musik › Settings): the accent, the cover still behind.
+                val scheme = AudioPlayerColorWash.seed(pixels)?.takeIf { coverColors }
+                    ?.let { AudioPlayerColorWash.scheme(it, surface, onSurface, isLight) }
+                val target = scheme?.let {
+                    intArrayOf(it.accent, it.onAccent, AudioPlayerColorWash.inactiveTrack(it.accent, it.tint))
+                } ?: fallback
+                CoverBlur.blur(pixels, size, size)
+                val veil = scheme?.tint ?: surface
+                val fields = scheme?.let { intArrayOf(it.accent, it.container) } ?: IntArray(0)
+                val alpha = AudioPlayerColorWash.veilAlpha(
+                    pixels.filterIndexed { i, _ -> i % VEIL_SAMPLE_STEP == 0 }.toIntArray() + fields,
+                    veil, intArrayOf(onSurface, secondaryText), target[0],
+                    if (isLight) MIN_VEIL_LIGHT else MIN_VEIL_DARK
+                )
+                target to PlayerAtmosphereView.Look(
+                    Bitmap.createBitmap(pixels, size, size, Bitmap.Config.ARGB_8888), fields, veil, alpha
+                )
+            }
+            if (artworkKey != key || isFinishing) return@launch
+            atmosphere.show(look)
+            fadeColors(target)
+        }
+    }
+
+    /** No cover: the theme's own colours over the plain surface. */
+    private fun updateBackgroundWash() {
+        val surface = themeColor(com.google.android.material.R.attr.colorSurface)
+        atmosphere.show(PlayerAtmosphereView.Look(null, IntArray(0), surface, 1f))
+        fadeColors(themeColors())
+    }
+
+    private fun themeColors(): IntArray {
+        val primary = themeColor(androidx.appcompat.R.attr.colorPrimary)
+        return intArrayOf(
+            primary, themeColor(com.google.android.material.R.attr.colorOnPrimary),
+            AudioPlayerColorWash.inactiveTrack(primary, themeColor(com.google.android.material.R.attr.colorSurface))
+        )
+    }
+
+    private fun fadeColors(target: IntArray) {
+        colorAnimator?.cancel()
+        if (!Motion.any || target.contentEquals(colors)) {
+            applyColors(target)
             return
         }
-        backgroundAnimator = ValueAnimator.ofArgb(backgroundColor, target).apply {
+        val start = colors.copyOf()
+        val evaluator = ArgbEvaluator()
+        colorAnimator = ValueAnimator.ofFloat(0f, 1f).apply {
             duration = BACKGROUND_CROSSFADE_DURATION_MS
-            addUpdateListener {
-                backgroundColor = it.animatedValue as Int
-                binding.root.setBackgroundColor(backgroundColor)
+            addUpdateListener { animator ->
+                val f = animator.animatedFraction
+                applyColors(IntArray(target.size) { evaluator.evaluate(f, start[it], target[it]) as Int })
             }
             start()
         }
+    }
+
+    /** Loads the song's lyrics (a .lrc beside it or embedded) once per song; the toolbar offers them only if found. */
+    private fun updateLyrics(player: Player) {
+        val mediaId = player.currentMediaItem?.mediaId
+        if (mediaId != lyricsKey) {
+            lyricsKey = mediaId
+            lyrics = null
+            lyricsJob?.cancel()
+            binding.toolbar.menu.findItem(R.id.actionLyrics)?.isVisible = false
+            if (mediaId != null) {
+                lyricsJob = lifecycleScope.launch {
+                    val loaded = runCatching { LyricsRepository.load(mediaId) }.getOrNull()
+                    if (lyricsKey != mediaId) return@launch
+                    lyrics = loaded
+                    binding.toolbar.menu.findItem(R.id.actionLyrics)?.isVisible = loaded != null
+                    controller?.let { updatePills(it) }
+                    if (lyricsView.isVisible) {
+                        if (loaded == null) hideLyrics() else showLyrics()
+                    }
+                }
+            } else if (lyricsView.isVisible) {
+                hideLyrics()
+            }
+        }
+        handler.removeCallbacks(lyricsTicker)
+        if (lyricsView.isVisible) lyricsTicker.run()
+    }
+
+    private fun showLyrics() {
+        val lyrics = lyrics ?: return
+        lyricsView.show(lyrics, themeColor(com.google.android.material.R.attr.colorOnSurface),
+            themeColor(android.R.attr.textColorSecondary),
+            atmosphere.veilColor.takeIf { it != 0 } ?: themeColor(com.google.android.material.R.attr.colorSurface))
+        lyricsView.setSong(binding.title.text, binding.artist.text)
+        if (!lyricsView.isVisible) {
+            lyricsView.isVisible = true
+            lyricsBack.isEnabled = true
+            fade(lyricsView, binding.root)
+        }
+        controller?.let { lyricsView.setPosition(it.currentPosition) }
+        handler.removeCallbacks(lyricsTicker)
+        lyricsTicker.run()
+    }
+
+    private fun hideLyrics() {
+        if (!lyricsView.isVisible) return
+        lyricsBack.isEnabled = false
+        handler.removeCallbacks(lyricsTicker)
+        binding.root.isVisible = true
+        fade(binding.root, lyricsView)
+    }
+
+    /** Cross-fades from [from] to [to] in 200 ms (instantly without motion); [from] ends up gone or invisible. */
+    private fun fade(to: View, from: View) {
+        to.isVisible = true
+        if (!Motion.any) {
+            to.alpha = 1f
+            from.visibility = if (from === binding.root) View.INVISIBLE else View.GONE
+            return
+        }
+        to.alpha = 0f
+        to.animate().alpha(1f).setDuration(LYRICS_FADE_MS).start()
+        from.animate().alpha(0f).setDuration(LYRICS_FADE_MS).withEndAction {
+            from.visibility = if (from === binding.root) View.INVISIBLE else View.GONE
+            from.alpha = 1f
+        }.start()
+    }
+
+    private fun applyColors(newColors: IntArray) {
+        colors = newColors
+        val (accent, onAccent, container) = newColors
+        if (::lyricsView.isInitialized) lyricsView.setPlayback(lyricsShowPlay, accent, onAccent)
+        val accentList = ColorStateList.valueOf(accent)
+        ViewCompat.setBackgroundTintList(binding.playPause, accentList)
+        ImageViewCompat.setImageTintList(binding.playPause, ColorStateList.valueOf(onAccent))
+        binding.seekBar.trackActiveTintList = accentList
+        binding.seekBar.thumbTintList = accentList
+        binding.seekBar.trackInactiveTintList = ColorStateList.valueOf(container)
+        ViewCompat.setBackgroundTintList(binding.shuffleIndicator, accentList)
+        ViewCompat.setBackgroundTintList(binding.repeatIndicator, accentList)
+        if (binding.shuffle.isActivated) ImageViewCompat.setImageTintList(binding.shuffle, accentList)
+        if (binding.repeat.isActivated) ImageViewCompat.setImageTintList(binding.repeat, accentList)
+        seekBubble?.let {
+            ViewCompat.setBackgroundTintList(it, accentList)
+            it.setTextColor(onAccent)
+        }
+    }
+
+    private fun currentDuration(): Long =
+        controller?.duration?.takeIf { it > 0 && it != C.TIME_UNSET } ?: 0L
+
+    /**
+     * Swiping the cover sideways changes the song ([CoverSwipe]). Double-tapping its left or right half jumps 10 s back
+     * or ahead (as in video players): the precise way
+     * that never needs the seek bar. A short bubble on that side names the jump.
+     */
+    @SuppressLint("ClickableViewAccessibility")
+    private fun setUpDoubleTapSeek() {
+        val detector = GestureDetector(this, object : GestureDetector.SimpleOnGestureListener() {
+            override fun onDown(e: MotionEvent) = true
+
+            override fun onDoubleTap(e: MotionEvent): Boolean {
+                val player = controller ?: return false
+                val duration = currentDuration()
+                if (duration <= 0) return false
+                val rightHalf = e.x > binding.artworkCard.width / 2
+                val forward = rightHalf != (binding.artworkCard.layoutDirection == View.LAYOUT_DIRECTION_RTL)
+                val delta = if (forward) DOUBLE_TAP_SEEK_MS else -DOUBLE_TAP_SEEK_MS
+                player.seekTo((player.currentPosition + delta).coerceIn(0L, duration))
+                binding.artworkCard.performHapticFeedback(HapticFeedbackConstants.CONTEXT_CLICK)
+                showSeekBubble(forward)
+                updateProgress()
+                return true
+            }
+        })
+        binding.artworkContainer.cameraDistance = COVER_CAMERA_DISTANCE * resources.displayMetrics.density
+        val swipe = CoverSwipe(
+            binding.artworkContainer,
+            canGo = { forward ->
+                controller?.let { if (forward) it.hasNextMediaItem() else it.hasPreviousMediaItem() } == true
+            },
+            go = { forward -> controller?.let { if (forward) it.seekToNextMediaItem() else it.seekToPreviousMediaItem() } }
+        )
+        binding.artworkCard.setOnTouchListener { _, event ->
+            swipe.onTouch(event)
+            detector.onTouchEvent(event)
+            true
+        }
+    }
+
+    private lateinit var lyricsPill: com.google.android.material.button.MaterialButton
+    private lateinit var queuePill: com.google.android.material.button.MaterialButton
+
+    /**
+     * Under the title: labelled pills for the lyrics (only when the song has them) and for what plays next, so both
+     * are seen and not hidden behind small toolbar icons (as Apple Music and Spotify show them in the player).
+     */
+    private fun setUpPills() {
+        val parent = binding.artist.parent as android.widget.LinearLayout
+        val row = android.widget.LinearLayout(this).apply {
+            orientation = android.widget.LinearLayout.HORIZONTAL
+            gravity = binding.artist.gravity
+        }
+        fun pill(id: Int, icon: Int, onClick: () -> Unit) =
+            com.google.android.material.button.MaterialButton(
+                this, null, com.google.android.material.R.attr.materialButtonOutlinedStyle
+            ).apply {
+                this.id = id
+                setIconResource(icon)
+                iconSize = resources.getDimensionPixelSize(R.dimen.phi_21)
+                cornerRadius = resources.getDimensionPixelSize(R.dimen.phi_21)
+                minHeight = resources.getDimensionPixelSize(R.dimen.phi_row_min) - resources.getDimensionPixelSize(
+                    R.dimen.phi_5)
+                maxLines = 1
+                isAllCaps = false
+                isVisible = false
+                setOnClickListener { onClick() }
+            }
+        lyricsPill = pill(R.id.lyricsChip, R.drawable.tag_lyrics_icon_white_24dp) { showLyrics() }
+            .apply { setText(R.string.music_lyrics) }
+        queuePill = pill(R.id.queueChip, R.drawable.queue_music_icon_white_24dp) {
+            PlayerQueueSheet().show(supportFragmentManager, PlayerQueueSheet.TAG)
+        }
+        val gap = resources.getDimensionPixelSize(R.dimen.phi_8)
+        row.addView(lyricsPill, android.widget.LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { marginEnd = gap })
+        row.addView(queuePill)
+        parent.addView(row, parent.indexOfChild(binding.album) + 1, android.widget.LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT
+        ).apply { topMargin = resources.getDimensionPixelSize(R.dimen.phi_13) })
+    }
+
+    private fun updatePills(player: Player) {
+        if (!::queuePill.isInitialized) return
+        lyricsPill.isVisible = lyrics != null
+        val next = (player.mediaItemCount - player.currentMediaItemIndex - 1).coerceAtLeast(0)
+        // Always there, as the toolbar icon was: the queue also opens with a single song (to add more).
+        queuePill.isVisible = player.mediaItemCount > 0
+        queuePill.text = getString(R.string.music_queue_next, next)
+        val stroke = ColorStateList.valueOf(ColorUtils.setAlphaComponent(colors[0], PILL_STROKE_ALPHA))
+        for (pill in listOf(lyricsPill, queuePill)) {
+            pill.strokeColor = stroke
+            pill.iconTint = ColorStateList.valueOf(colors[0])
+            pill.setTextColor(themeColor(com.google.android.material.R.attr.colorOnSurface))
+        }
+    }
+
+    private fun showSeekBubble(forward: Boolean) {
+        val bubble = seekBubble ?: TextView(this).also { view ->
+            view.setBackgroundResource(R.drawable.audio_player_seek_bubble)
+            view.setTextAppearance(com.google.android.material.R.style.TextAppearance_MaterialComponents_Subtitle2)
+            val padding = resources.getDimensionPixelSize(R.dimen.phi_13)
+            view.setPadding(padding, padding / 2, padding, padding / 2)
+            view.importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+            binding.artworkContainer.addView(
+                view, FrameLayout.LayoutParams(
+                    ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT
+                )
+            )
+            seekBubble = view
+            applyColors(colors)
+        }
+        bubble.text = getString(if (forward) R.string.audio_player_seek_forward else R.string.audio_player_seek_back)
+        val margin = resources.getDimensionPixelSize(R.dimen.phi_21)
+        (bubble.layoutParams as FrameLayout.LayoutParams).apply {
+            gravity = Gravity.CENTER_VERTICAL or if (forward) Gravity.END else Gravity.START
+            setMargins(margin, 0, margin, 0)
+        }
+        bubble.requestLayout()
+        bubble.animate().cancel()
+        bubble.alpha = 1f
+        bubble.animate().alpha(0f).setStartDelay(SEEK_BUBBLE_MS).setDuration(if (Motion.any) 200L else 0L).start()
     }
 
     private fun setToggleAppearance(button: ImageView, indicator: android.view.View, active: Boolean) {
@@ -627,10 +1007,7 @@ class AudioPlayerActivity : AppActivity() {
         ImageViewCompat.setImageTintList(
             button,
             ColorStateList.valueOf(
-                themeColor(
-                    if (active) androidx.appcompat.R.attr.colorPrimary
-                    else com.google.android.material.R.attr.colorOnSurface
-                )
+                if (active) colors[0] else themeColor(com.google.android.material.R.attr.colorOnSurface)
             )
         )
         indicator.isVisible = active
@@ -653,7 +1030,9 @@ class AudioPlayerActivity : AppActivity() {
             minOf(parent.width - inset, parent.height - inset)
         } else {
             val contentHeight = binding.root.height - binding.toolbar.height
-            minOf(parent.width, (contentHeight * MAX_COLUMN_ARTWORK_HEIGHT_FRACTION).toInt())
+            // Inside the column's padding: wider, the cover was clipped at it and lost its rounded corners.
+            minOf(parent.width - parent.paddingLeft - parent.paddingRight,
+                (contentHeight * MAX_COLUMN_ARTWORK_HEIGHT_FRACTION).toInt())
         }.coerceAtLeast(resources.getDimensionPixelSize(R.dimen.audio_player_artwork_min_size))
         val params = container.layoutParams
         if (params.width == size && params.height == size) return
@@ -672,6 +1051,9 @@ class AudioPlayerActivity : AppActivity() {
             }
         }
     }
+
+    /** The session's player for the queue sheet. */
+    internal fun queuePlayer(): Player? = controller
 
     internal fun applySoundSettings(onApplied: (() -> Unit)? = null) {
         val player = controller ?: return
@@ -755,7 +1137,16 @@ class AudioPlayerActivity : AppActivity() {
         private const val PROGRESS_UPDATE_INTERVAL_MS = 1_000L
         private const val INACTIVE_CONTROL_ALPHA = 0.70f
         private const val DISABLED_CONTROL_ALPHA = 0.38f
-        private const val ARTWORK_SAMPLE_SIZE = 24
+        private const val VEIL_SAMPLE_STEP = 3
+        private const val MIN_VEIL_LIGHT = 0.42f
+        private const val COVER_OUTLINE_ALPHA = 0x3d
+        private const val MIN_VEIL_DARK = 0.4f
+        private const val DOUBLE_TAP_SEEK_MS = 10_000L
+        private const val LYRICS_TICK_MS = 250L
+        private const val COVER_CAMERA_DISTANCE = 8_000f
+        private const val LYRICS_FADE_MS = 200L
+        private const val PILL_STROKE_ALPHA = 0x8a
+        private const val SEEK_BUBBLE_MS = 600L
         private const val BACKGROUND_CROSSFADE_DURATION_MS = 300L
         private const val MAX_COLUMN_ARTWORK_HEIGHT_FRACTION = 0.60f
         private const val ARTWORK_LAYOUT_SPLIT = "split"

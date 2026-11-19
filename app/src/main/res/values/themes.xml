@@ -8,6 +8,10 @@
 <resources>
 
     <style name="Platform.V23.Theme.MaterialFiles" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <!-- Owner's rule: a word never breaks in the middle anywhere in the app, so no automatic hyphenation;
+             a label that does not fit has to size, stack or shorten itself instead. -->
+        <item name="android:hyphenationFrequency">none</item>
+        <item name="android:breakStrategy">simple</item>
         <item name="colorPrimaryDark">@color/system_window_scrim</item>
         <item name="android:windowLightStatusBar">?isLightTheme</item>
     </style>
@@ -63,6 +67,10 @@
     <style name="Theme.MaterialFiles.Translucent" parent="Base.Theme.MaterialFiles.Translucent" />
 
     <style name="Platform.V23.Theme.MaterialFiles.Immersive" parent="Theme.MaterialComponents.NoActionBar">
+        <!-- Owner's rule: a word never breaks in the middle anywhere in the app, so no automatic hyphenation;
+             a label that does not fit has to size, stack or shorten itself instead. -->
+        <item name="android:hyphenationFrequency">none</item>
+        <item name="android:breakStrategy">simple</item>
         <item name="android:navigationBarColor">?colorPrimaryDark</item>
 
         <item name="colorPrimaryDark">@color/dark_50_percent</item>

@@ -1,5 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <dimen name="audio_player_play_control_size">80dp</dimen>
-    <dimen name="audio_player_transport_row_height">96dp</dimen>
+    <!-- Tablets: an 88 dp play button with a 32 dp icon, 64 dp skip and 56 dp side controls (owner, stage 2). -->
+    <dimen name="audio_player_play_control_size">88dp</dimen>
+    <dimen name="audio_player_play_control_padding">28dp</dimen>
+    <dimen name="audio_player_skip_control_size">64dp</dimen>
+    <dimen name="audio_player_skip_control_padding">16dp</dimen>
+    <dimen name="audio_player_secondary_control_size">56dp</dimen>
+    <dimen name="audio_player_secondary_control_padding">14dp</dimen>
+    <dimen name="audio_player_secondary_frame_height">64dp</dimen>
+    <dimen name="audio_player_transport_row_height">104dp</dimen>
 </resources>

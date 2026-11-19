@@ -32,7 +32,8 @@ class SettingsActivity : AppActivity(), OnThemeChangedListener, OnNightModeChang
     /** Null for the overview; otherwise one of [SECTIONS]. */
     val section: String?
         // An intent from an older version or another app may not unparcel as these Args: then show the overview.
-        get() = runCatching { intent.extras?.getArgsOrNull<Args>()?.section }.getOrNull()?.takeIf { it in SECTIONS }
+        get() = runCatching { intent.extras?.getArgsOrNull<Args>()?.section }.getOrNull()
+            ?.takeIf { it in SECTIONS || it == SECTION_MUSIC }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // The state carried over by restart() stays in this process: this activity is exported, and a saved state
@@ -115,6 +116,8 @@ class SettingsActivity : AppActivity(), OnThemeChangedListener, OnNightModeChang
         const val SECTION_STORAGE = "storage"
         const val SECTION_TRASH = "trash"
         const val SECTION_LAUNCHER_ICONS = "launcher_icons"
+        /** Ordo Musik's own settings page (its side menu); not listed in Ordo's overview. */
+        const val SECTION_MUSIC = "music"
         val SECTIONS = listOf(
             SECTION_APPEARANCE, SECTION_AI, SECTION_LAUNCHER_ICONS, SECTION_FILES, SECTION_STORAGE, SECTION_TRASH
         )

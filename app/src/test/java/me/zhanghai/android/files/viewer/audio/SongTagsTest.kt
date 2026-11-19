@@ -162,4 +162,15 @@ class SongTagsTest {
         assertFalse(SongTagIo.isEditableFormat(File("a.wav")))
         assertTrue(SongTagIo.isEditableFormat(File("a.FLAC")))
     }
+
+    @Test
+    fun editingLyricsLeavesTheSidecarLrcAlone() {
+        val file = fixture("mp3")
+        val lrc = File(folder.root, "song.lrc").apply { writeText("[00:01.00]Zeile") }
+        lrc.setLastModified(1_000_000L)
+        SongTagIo.write(file, TagChanges(mapOf(TagField.LYRICS to "Erste Zeile\nZweite Zeile")), backups)
+        assertEquals("Erste Zeile\nZweite Zeile", SongTagIo.read(file)[TagField.LYRICS])
+        assertEquals("[00:01.00]Zeile", lrc.readText())
+        assertEquals(1_000_000L, lrc.lastModified())
+    }
 }

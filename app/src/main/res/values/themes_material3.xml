@@ -8,6 +8,10 @@
 <resources>
 
     <style name="Platform.V23.Theme.MaterialFiles.Material3" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Owner's rule: a word never breaks in the middle anywhere in the app, so no automatic hyphenation;
+             a label that does not fit has to size, stack or shorten itself instead. -->
+        <item name="android:hyphenationFrequency">none</item>
+        <item name="android:breakStrategy">simple</item>
         <!-- Fixed Ordo colours instead of wallpaper-based dynamic colour (ordo_m3_colors.xml). -->
         <item name="colorPrimary">@color/ordo_primary</item>
         <item name="colorOnPrimary">@color/ordo_on_primary</item>
@@ -106,6 +110,10 @@
     <style name="Theme.MaterialFiles.Material3.Translucent" parent="Base.Theme.MaterialFiles.Material3.Translucent" />
 
     <style name="Platform.V23.Theme.MaterialFiles.Material3.Immersive" parent="Theme.Material3.Dark.NoActionBar">
+        <!-- Owner's rule: a word never breaks in the middle anywhere in the app, so no automatic hyphenation;
+             a label that does not fit has to size, stack or shorten itself instead. -->
+        <item name="android:hyphenationFrequency">none</item>
+        <item name="android:breakStrategy">simple</item>
         <item name="android:navigationBarColor">?colorPrimaryDark</item>
         <item name="colorPrimary">@color/ordo_dark_primary</item>
         <item name="colorOnPrimary">@color/ordo_dark_on_primary</item>
