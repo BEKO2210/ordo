@@ -161,6 +161,7 @@ class VideoNetworkPlayback private constructor(val config: VideoBuffering.Config
     private val retry = Runnable {
         val player = player ?: return@Runnable
         if (player.playerError == null || player.playbackState != Player.STATE_IDLE) return@Runnable
+        // Not VideoPicture.prepare (#104): the same film resumes, its pipeline choice is already on the player.
         player.prepare()
     }
 

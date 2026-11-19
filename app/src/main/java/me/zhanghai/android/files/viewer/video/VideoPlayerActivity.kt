@@ -921,7 +921,11 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
 
     /** After an error the player is idle; the next button or play gives the (next) video a new try. */
     private fun prepareAfterError(player: Player) {
-        if (player.playbackState == Player.STATE_IDLE) player.prepare()
+        if (player.playbackState != Player.STATE_IDLE) return
+        // Through the picture (#104), which decides the pipeline first; a play press right after takes over at once.
+        val exoPlayer = this.player
+        val picture = picture
+        if (exoPlayer != null && exoPlayer === player && picture != null) picture.prepare(exoPlayer) else player.prepare()
     }
 
     private fun seekBy(deltaMs: Long) {

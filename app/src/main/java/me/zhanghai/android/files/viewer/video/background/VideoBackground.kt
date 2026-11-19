@@ -161,6 +161,7 @@ class VideoBackgroundController(
                     player.seekTo(0L)
                     player.play()
                 } else {
+                    // Not VideoPicture.prepare (#104): the PiP button resumes at once, the pipeline choice stays.
                     if (player.playbackState == Player.STATE_IDLE) player.prepare()
                     Util.handlePlayPauseButtonAction(player)
                 }
