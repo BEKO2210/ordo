@@ -360,7 +360,7 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
                 keepQueryOnCollapse = false
                 render()
                 // The item still counts as expanded while this runs.
-                backInLibrary.isEnabled = detailKey != null || playlistName != null || !inTabs()
+                backInLibrary.isEnabled = detailKey != null || section != SECTION_LIBRARY
                 binding.root.post { updateTitle() }
                 return true
             }
@@ -508,7 +508,7 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
 
         updateTitle()
         binding.content.tabs.isVisible = group == null && playlistName == null && inTabs()
-        backInLibrary.isEnabled = group != null || playlistName != null || !inTabs() || searchItem.isActionViewExpanded ||
+        backInLibrary.isEnabled = group != null || section != SECTION_LIBRARY || searchItem.isActionViewExpanded ||
             selection.isNotEmpty()
         updateToolbarMenu()
         // A page goes back; otherwise the button opens the side menu, as in Ordo's file list.
@@ -1132,8 +1132,18 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
         recycler.invalidateItemDecorations()
         if (wasTablet != tabletLayout) adapter.notifyDataSetChanged()
         val tabs = binding.content.tabs
-        val tabSide = if (tabletLayout) side else resources.getDimensionPixelSize(R.dimen.phi_13)
+        // The tablet column is a margin, not padding: a scrollable TabLayout stretches its strip to its full width
+        // including padding, so in a padded row that fits, the first pill could scroll away behind the padding.
+        val tabSide = if (tabletLayout) 0 else resources.getDimensionPixelSize(R.dimen.phi_13)
         tabs.setPaddingRelative(tabSide, tabs.paddingTop, tabSide, tabs.paddingBottom)
+        val tabMargin = if (tabletLayout) side else 0
+        (tabs.layoutParams as ViewGroup.MarginLayoutParams).let {
+            if (it.marginStart != tabMargin) {
+                it.marginStart = tabMargin
+                it.marginEnd = tabMargin
+                tabs.layoutParams = it
+            }
+        }
         tabs.clipToPadding = tabletLayout
         // Six pills with the icon beside the label need about 760 dp. A narrower tablet column (the Tab upright beside
         // the side menu) puts the icon above the label so all six still show; a phone scrolls the row instead.
@@ -1515,7 +1525,12 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
                     more.isVisible = selection.isEmpty()
                     more.contentDescription = getString(R.string.music_more_options, song.title)
                     root.tag = song.path
-                    lyrics.isVisible = selection.isEmpty() && hasLyrics[song.path] == true
+                    // Tablets keep the pictogram's slot in every song row: the durations of both columns line up.
+                    lyrics.visibility = when {
+                        selection.isEmpty() && hasLyrics[song.path] == true -> View.VISIBLE
+                        tabletLayout -> View.INVISIBLE
+                        else -> View.GONE
+                    }
                     lyrics.setOnClickListener { play(shownSongs, row.index, lyrics = true) }
                     lookUpLyrics(song)
                     more.setOnClickListener { showSongMenu(it, song) }
