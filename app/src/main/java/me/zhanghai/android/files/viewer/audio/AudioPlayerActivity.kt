@@ -199,6 +199,10 @@ class AudioPlayerActivity : AppActivity() {
             }
         }
         binding.artworkCard.clipToOutline = true
+        // No elevation shadow: on the Tab and the W90 its corners stayed square at the bottom (1:1 crops) while the
+        // cover's own corners are round, also with a rounded outline. Flat, with the hairline, all four corners match.
+        binding.artworkCard.cardElevation = 0f
+        binding.artworkCard.elevation = 0f
         binding.artworkCard.strokeWidth = resources.displayMetrics.density.toInt().coerceAtLeast(1)
         binding.artworkCard.strokeColor = ColorUtils.setAlphaComponent(
             themeColor(com.google.android.material.R.attr.colorOnSurface), COVER_OUTLINE_ALPHA

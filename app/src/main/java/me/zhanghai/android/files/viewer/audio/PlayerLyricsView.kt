@@ -106,6 +106,7 @@ class PlayerLyricsView(
         val padding = resources.getDimensionPixelSize(R.dimen.audio_player_play_control_padding)
         playPause.setPadding(padding, padding, padding, padding)
         playPause.scaleType = android.widget.ImageView.ScaleType.FIT_CENTER
+        playPause.id = R.id.lyricsPlayPause
         playPause.setOnClickListener { onPlayPause() }
         addView(bottomFade, LayoutParams(LayoutParams.MATCH_PARENT, play + 2 * resources.getDimensionPixelSize(
             R.dimen.phi_34), Gravity.BOTTOM))
@@ -124,9 +125,13 @@ class PlayerLyricsView(
         ViewCompat.setOnApplyWindowInsetsListener(this) { _, insets ->
             val bars = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.systemBars() or
                 androidx.core.view.WindowInsetsCompat.Type.displayCutout())
+            // The play button sits above the navigation bar and above the home gesture's strip alike (gesture or
+            // three-button navigation).
+            val gestures = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.mandatorySystemGestures())
+            val bottomInset = maxOf(bars.bottom, gestures.bottom)
             header.setPadding(bars.left, bars.top, headerRight + bars.right, headerBottom)
-            (playPause.layoutParams as LayoutParams).bottomMargin = buttonBottom + bars.bottom
-            bottomFade.layoutParams.height = fadeHeight + bars.bottom
+            (playPause.layoutParams as LayoutParams).bottomMargin = buttonBottom + bottomInset
+            bottomFade.layoutParams.height = fadeHeight + bottomInset
             requestLayout()
             insets
         }

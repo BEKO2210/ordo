@@ -10,4 +10,5 @@
     <item name="queue_remove" type="id" />
     <item name="lyricsChip" type="id" />
     <item name="queueChip" type="id" />
+    <item name="lyricsPlayPause" type="id" />
 </resources>

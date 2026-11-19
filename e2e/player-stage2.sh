@@ -1,5 +1,6 @@
 #!/bin/bash
 # Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later
+# Run it on one device with gesture navigation and one with three buttons (the Tab and the W90 here).
 # The player's lyrics, cover swipe and queue, WRITES: three silent songs in /storage/emulated/0/Music/OrdoE2E-Stage2,
 # the first with a synced .lrc beside it, the second with a 20,000-line .lrc (a crafted file: the app shows at most
 # 5,000 lines and must stay responsive), removed afterwards.
@@ -41,9 +42,17 @@ pause
 ui wait lyricsChip 10 > /dev/null || { echo "DIAG:"; ui texts | head -14 | sed "s/^/  /"; a shell ls $DIR | tr "\n" " "; echo; }
 check "a song with a .lrc offers lyrics" ui has lyricsChip
 check "the lyrics layer opens with the song's lines" eval 'ui tap lyricsChip && ui wait "Ordoe2e line 0" 5'
+# Gesture or three-button navigation (navigation_mode 2 or 0, whatever the device uses): the lyrics' play button
+# stays clear of the bottom strip where a swipe goes home, and nothing in the player needs a swipe up from the edge.
+nav=$(a shell settings get secure navigation_mode | tr -d '\r')
+read -r W H < <(screen_size)
+density=$(a shell wm density | tail -1 | grep -o '[0-9]*$')
+read -r _ _ _ pb < <(ui bounds lyricsPlayPause | head -1)
+check "the lyrics' play button sits above the home gesture strip (navigation_mode $nav)" \
+    test "${pb:-$H}" -le $((H - 24 * density / 160))
 back; pause
 check "back closes the lyrics, not the player" on viewer.audio.AudioPlayerActivity
-check "the queue sheet opens and lists the songs" eval 'ui tap queueChip && ui wait "Ordoe2e Lyrics B" 8'
+check "the labelled 'up next' pill opens the queue by a tap" eval 'ui tap queueChip && ui wait "Ordoe2e Lyrics B" 8'
 back; pause
 # Cover swipe: sideways changes the song, up and down never does.
 read -r c1 d1 c2 d2 < <(ui bounds artworkCard | head -1)
