@@ -191,6 +191,11 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
         get() = jumpSeconds * 1_000L
 
     private val playerListener = object : Player.Listener {
+        override fun onIsPlayingChanged(isPlaying: Boolean) {
+            // The session (#100) stays commandable while casting (#97): the TV plays, the phone stays paused.
+            if (isPlaying && castSession?.isCasting == true) player?.pause()
+        }
+
         override fun onEvents(player: Player, events: Player.Events) {
             if (events.containsAny(
                     Player.EVENT_PLAYBACK_STATE_CHANGED,

@@ -239,8 +239,10 @@ class VideoPicture(
         player.setVideoChangeFrameRateStrategy(plan.media3Strategy)
         frameRate?.setRate(plan.ownRate)
         val (width, height) = displaySize(format)
-        val surfaceWidth = surfaceView?.width ?: 0
-        val surfaceHeight = surfaceView?.height ?: 0
+        // Pinch zoom (#102) enlarges the view up to 5x; the pass only needs what the screen area can show.
+        val parent = playerView.parent as? View
+        val surfaceWidth = (surfaceView?.width ?: 0).let { if (parent != null && parent.width > 0) minOf(it, parent.width) else it }
+        val surfaceHeight = (surfaceView?.height ?: 0).let { if (parent != null && parent.height > 0) minOf(it, parent.height) else it }
         // Not laid out yet: the layout listener comes back.
         if (surfaceWidth == 0 || surfaceHeight == 0) return
         val level = PicturePolicy.level(Settings.VIDEO_PICTURE.valueCompat)
