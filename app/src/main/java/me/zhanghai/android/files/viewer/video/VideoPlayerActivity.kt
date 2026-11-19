@@ -333,6 +333,7 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
         applyRepeatMode(VideoRepeatMode.decode(Settings.VIDEO_END.valueCompat))
         // Before the items: it hears the first one start (files next to it, the remembered choice).
         subtitles = VideoSubtitles(this, player, binding.playerView, binding.bottomBar)
+            .apply { holdActive = { speedBeforeHold > 0f } }
         player.setMediaItems(queue.items, queue.startIndex, queue.positionMs)
         player.playWhenReady = savedInstanceState?.getBoolean(STATE_PLAY_WHEN_READY) ?: true
         // The picture decides first whether the player starts with its OpenGL pipeline (a quick probe of the file).
@@ -359,7 +360,10 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
         outState.putLong(STATE_POSITION, player.currentPosition)
         outState.putBoolean(STATE_PLAY_WHEN_READY, player.playWhenReady)
         // During "hold for 2×" the speed to keep is the one before it.
-        outState.putFloat(STATE_SPEED, speedBeforeHold.takeIf { it > 0f } ?: player.playbackParameters.speed)
+        outState.putFloat(
+            STATE_SPEED, speedBeforeHold.takeIf { it > 0f }
+                ?: subtitles?.userSpeed(player.playbackParameters.speed) ?: player.playbackParameters.speed
+        )
         outState.putInt(STATE_RESIZE_MODE, resizeMode)
         outState.putBoolean(STATE_USER_ORIENTATION, userOrientation)
         seekPro?.saveState(outState)
@@ -848,7 +852,8 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
         override fun hold(held: Boolean) {
             val player = player ?: return
             if (held) {
-                speedBeforeHold = player.playbackParameters.speed
+                speedBeforeHold = subtitles?.userSpeed(player.playbackParameters.speed)
+                    ?: player.playbackParameters.speed
                 val holdSpeed = VideoPrefs.holdSpeed(Settings.VIDEO_HOLD_SPEED.valueCompat)
                 player.setPlaybackSpeed(holdSpeed)
                 binding.root.performHapticFeedback(android.view.HapticFeedbackConstants.LONG_PRESS)

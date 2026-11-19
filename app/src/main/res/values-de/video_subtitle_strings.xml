@@ -53,4 +53,17 @@
     </string-array>
     <string name="video_settings_subtitles_auto">Untertitel automatisch an</string>
     <string name="video_settings_subtitles_auto_summary">Ist der Ton in einer anderen Sprache, kommen Untertitel in deiner Sprache: zuerst eine Datei neben dem Video, dann eine Spur im Video.</string>
+    <string name="video_settings_subtitle_reading">Lese-Hilfe</string>
+    <string-array name="video_settings_subtitle_reading_entries">
+        <item>Aus</item>
+        <item>Normal (17 Zeichen pro Sekunde)</item>
+        <item>Langsam (13 Zeichen pro Sekunde)</item>
+        <item>Schnell (20 Zeichen pro Sekunde)</item>
+    </string-array>
+    <string name="video_settings_subtitle_slow_down">Bei schnellem Text kurz langsamer</string>
+    <string name="video_settings_subtitle_slow_down_summary">Ist eine Untertitel-Zeile schneller, als die Lese-Hilfe erlaubt, läuft das Video so lange mit 0,9×. Die Tonhöhe bleibt gleich.</string>
+    <string name="video_settings_subtitle_sounds">Geräuschbeschreibungen zeigen</string>
+    <string name="video_settings_subtitle_sounds_summary">Hinweise wie [MUSIK] oder (TÜR KNALLT) in Untertitel-Dateien</string>
+    <string name="video_settings_subtitle_speaker_colors">Sprechernamen farbig</string>
+    <string name="video_settings_subtitle_speaker_colors_summary">Jeder Name wie ANNA: bekommt eine eigene Farbe: Gelb, Cyan, Grün</string>
 </resources>

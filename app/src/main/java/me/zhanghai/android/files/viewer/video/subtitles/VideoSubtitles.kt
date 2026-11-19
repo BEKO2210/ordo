@@ -11,6 +11,11 @@ import android.content.Intent
 import android.graphics.Color
 import android.os.Handler
 import android.os.Looper
+import android.text.SpannableStringBuilder
+import android.text.Spanned
+import android.text.style.ForegroundColorSpan
+import android.text.style.StyleSpan
+import android.text.style.UnderlineSpan
 import android.view.View
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContract
@@ -359,15 +364,21 @@ class VideoSubtitles(
         loadJob?.cancel()
         val forId = mediaId
         val charset = entry.charset
+        val options = Options(
+            ReadingAid.level(Settings.VIDEO_SUBTITLE_READING.valueCompat),
+            Settings.VIDEO_SUBTITLE_SOUNDS.valueCompat, Settings.VIDEO_SUBTITLE_SPEAKER_COLORS.valueCompat
+        )
         loadJob = activity.lifecycleScope.launch {
             val result = withContext(Dispatchers.IO) {
-                runCatching { parse(file, charset, file.language ?: Locale.getDefault().language) }
+                runCatching { parse(file, charset, file.language ?: Locale.getDefault().language, options) }
             }
             if (forId != mediaId) return@launch
             result.onSuccess { (parsed, used) ->
                 timeline = parsed
                 activeFile = file
                 usedCharset = used
+                // Our own cues carry only what prepare() kept: italics, underline, speaker colours.
+                playerView.subtitleView?.setApplyEmbeddedStyles(true)
                 showCues(force = true)
                 ticker.run()
             }.onFailure {
@@ -389,7 +400,11 @@ class VideoSubtitles(
     private fun stopFile() {
         loadJob?.cancel()
         handler.removeCallbacks(ticker)
-        if (timeline != null) playerView.subtitleView?.setCues(emptyList())
+        if (timeline != null) {
+            playerView.subtitleView?.setCues(emptyList())
+            playerView.subtitleView?.setApplyEmbeddedStyles(false)
+        }
+        slowDown(false)
         timeline = null
         activeFile = null
         usedCharset = null
@@ -399,9 +414,38 @@ class VideoSubtitles(
     private fun showCues(force: Boolean) {
         val timeline = timeline ?: return
         val cues = timeline.cuesAt(player.currentPosition * 1000, entry.delayMs * 1000)
+        slowDown(Settings.VIDEO_SUBTITLE_SLOW_DOWN.valueCompat &&
+            timeline.fastAt(player.currentPosition * 1000, entry.delayMs * 1000))
         if (!force && cues == shownCues) return
         shownCues = cues
         playerView.subtitleView?.setCues(cues)
+    }
+
+    // The speed before "slow down for fast text"; 0 while it is not slowed.
+    private var speedBeforeSlow = 0f
+
+    /** True while the screen's "hold for 2x" runs: it owns the speed then and restores the viewer's own after. */
+    var holdActive: () -> Boolean = { false }
+
+    /** The viewer's speed without the reading aid's 0.9x: for the saved state and for "hold for 2x". */
+    fun userSpeed(current: Float): Float = if (speedBeforeSlow > 0f) speedBeforeSlow else current
+
+    /** 0.9x while a too fast line shows (the pitch stays); the viewer's own speed change in between wins. */
+    private fun slowDown(slow: Boolean) {
+        if (holdActive()) {
+            speedBeforeSlow = 0f
+            return
+        }
+        val speed = player.playbackParameters.speed
+        if (slow && speedBeforeSlow == 0f) {
+            speedBeforeSlow = speed
+            player.setPlaybackSpeed(speed * ReadingAid.SLOW_FACTOR)
+        } else if (!slow && speedBeforeSlow > 0f) {
+            if (kotlin.math.abs(speed - speedBeforeSlow * ReadingAid.SLOW_FACTOR) < 0.001f) {
+                player.setPlaybackSpeed(speedBeforeSlow)
+            }
+            speedBeforeSlow = 0f
+        }
     }
 
     private fun applyStyle(style: SubtitleStyle) {
@@ -409,11 +453,13 @@ class VideoSubtitles(
         val (background, edge) = when (style.background) {
             SubtitleStyle.Background.NONE -> Color.TRANSPARENT to CaptionStyleCompat.EDGE_TYPE_NONE
             SubtitleStyle.Background.SHADOW -> Color.TRANSPARENT to CaptionStyleCompat.EDGE_TYPE_DROP_SHADOW
-            SubtitleStyle.Background.BOX -> BOX_COLOR to CaptionStyleCompat.EDGE_TYPE_NONE
+            SubtitleStyle.Background.BOX ->
+                ((SubtitleStyle.boxAlpha(style.color.argb) * 255).toInt() shl 24) to CaptionStyleCompat.EDGE_TYPE_NONE
         }
         view.setStyle(CaptionStyleCompat(style.color.argb, background, Color.TRANSPARENT, edge, Color.BLACK, null))
-        // The chosen colour and size win over a file's own; positions (ASS \pos, VTT lines) stay.
-        view.setApplyEmbeddedStyles(false)
+        // The chosen colour and size win over a track's own; positions (ASS \pos, VTT lines) stay. A file's cues are
+        // cleaned in prepare(), so their italics and speaker colours may show.
+        view.setApplyEmbeddedStyles(timeline != null)
         view.setFractionalTextSize(SubtitleView.DEFAULT_TEXT_SIZE_FRACTION * style.size.factor)
     }
 
@@ -434,7 +480,6 @@ class VideoSubtitles(
     companion object {
         private const val TICK_MS = 50L
         private const val MAX_LIFT = 0.5f
-        private const val BOX_COLOR = 0xB3000000.toInt()
 
         /** Bitmap subtitles (PGS, VobSub, DVB): Media3 draws them as pictures, the style cannot reach them. */
         fun isBitmap(format: Format?): Boolean = format?.sampleMimeType in setOf(
@@ -442,7 +487,15 @@ class VideoSubtitles(
         )
 
         /** Reads, decodes and parses a subtitle file; the timeline and the charset used. */
-        private fun parse(file: FileSubtitle, charset: String?, language: String): Pair<SubtitleTimeline<Cue>, String> {
+        /** What the settings ask of a file: reading aid limit (0 off), sound descriptions, speaker colours. */
+        private class Options(val cps: Int, val sounds: Boolean, val speakerColors: Boolean)
+
+        private fun parse(
+            file: FileSubtitle,
+            charset: String?,
+            language: String,
+            options: Options
+        ): Pair<SubtitleTimeline<Cue>, String> {
             val path = Paths.get(URI.create(file.uri))
             val bytes = path.newInputStream().use { input ->
                 val data = input.readNBytesCompat(SubtitleFiles.MAX_BYTES + 1)
@@ -453,11 +506,50 @@ class VideoSubtitles(
             val mimeType = SubtitleFiles.mimeType(file.fileName) ?: throw IOException("Not a subtitle: ${file.fileName}")
             val parser = DefaultSubtitleParserFactory().create(Format.Builder().setSampleMimeType(mimeType).build())
             val entries = ArrayList<SubtitleTimeline.Entry<Cue>>()
+            val speakers = Sdh.SpeakerColors()
             parser.parse(decoded.text.toByteArray(Charsets.UTF_8), SubtitleParser.OutputOptions.allCues()) {
                 val end = if (it.durationUs == C.TIME_UNSET) Long.MAX_VALUE else it.endTimeUs
-                entries += SubtitleTimeline.Entry(it.startTimeUs, end, it.cues)
+                val cues = it.cues.mapNotNull { cue -> prepare(cue, options, speakers) }
+                if (cues.isNotEmpty() && entries.size < SubtitleTimeline.MAX_CUES) {
+                    entries += SubtitleTimeline.Entry(it.startTimeUs, end, cues)
+                }
             }
-            return SubtitleTimeline(entries) to decoded.charset
+            val extended = ReadingAid.extend(entries, options.cps) { cues ->
+                cues.joinToString("\n") { it.text?.toString().orEmpty() }
+            }
+            return SubtitleTimeline(extended) to decoded.charset
+        }
+
+        /**
+         * A file's cue as Ordo shows it: only italics, bold and underline of its own styling stay (the chosen colour
+         * and size win), sound descriptions go if the setting says so, speaker names get their colour. null: nothing
+         * left to show.
+         */
+        private fun prepare(cue: Cue, options: Options, speakers: Sdh.SpeakerColors): Cue? {
+            val source = cue.text ?: return cue
+            // Only the cheap span cleanup for a giant crafted line; the Sdh rules skip it (Sdh.MAX_LINE).
+            val text = SpannableStringBuilder(source)
+            for (span in text.getSpans(0, text.length, Any::class.java)) {
+                if (span !is StyleSpan && span !is UnderlineSpan) text.removeSpan(span)
+            }
+            if (!options.sounds) {
+                deleteRanges(text, Sdh.soundRanges(text.toString()))
+                deleteRanges(text, Sdh.emptyLineRanges(text.toString()))
+                if (text.isBlank()) return null
+            }
+            if (options.speakerColors) {
+                for ((range, name) in Sdh.speakers(text.toString())) {
+                    text.setSpan(
+                        ForegroundColorSpan(speakers.colorOf(name)), range.first, range.last + 2,
+                        Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                    )
+                }
+            }
+            return cue.buildUpon().setText(text).setTextSize(Cue.DIMEN_UNSET, Cue.TYPE_UNSET).clearWindowColor().build()
+        }
+
+        private fun deleteRanges(text: SpannableStringBuilder, ranges: List<IntRange>) {
+            ranges.sortedByDescending { it.first }.forEach { text.delete(it.first, it.last + 1) }
         }
 
         private fun java.io.InputStream.readNBytesCompat(limit: Int): ByteArray {
