@@ -29,7 +29,8 @@ import kotlin.math.sin
  *
  * While nothing processes the sound ([armed] false, [armedBy] answering false, no loudness gain) no new reduction
  * starts; once the gain is back at 1 every sample passes bit for bit, so "everything off" stays bit-perfect (delayed by
- * [LATENCY] frames). 16-bit mono and stereo; other formats pass by.
+ * [LATENCY] frames). 16-bit PCM with 1 to [MAX_CHANNELS] channels (mono to 7.1): every channel is checked on its own,
+ * all share one gain, so the mix keeps its balance. Other formats pass by.
  */
 class TruePeakLimiter(private val armedBy: (() -> Boolean)? = null) : BaseAudioProcessor() {
     @Volatile
@@ -47,10 +48,10 @@ class TruePeakLimiter(private val armedBy: (() -> Boolean)? = null) : BaseAudioP
     private var inputGlide = 0f
     private val unity = BooleanArray(RING)
 
-    private val left = FloatArray(RING)
-    private val right = FloatArray(RING)
-    private val rawLeft = ShortArray(RING)
-    private val rawRight = ShortArray(RING)
+    // Per channel: the gained float samples and the untouched originals (bit-exact output at unity).
+    private var samples = Array(2) { FloatArray(RING) }
+    private var raw = Array(2) { ShortArray(RING) }
+    private val incoming = ShortArray(MAX_CHANNELS)
     private val segment = FloatArray(RING)
     private val required = FloatArray(RING)
     private val held = FloatArray(RING)
@@ -59,24 +60,22 @@ class TruePeakLimiter(private val armedBy: (() -> Boolean)? = null) : BaseAudioP
     private var release = 0f
 
     override fun onConfigure(inputAudioFormat: AudioProcessor.AudioFormat): AudioProcessor.AudioFormat =
-        if (inputAudioFormat.encoding == C.ENCODING_PCM_16BIT && inputAudioFormat.channelCount in 1..2) {
+        if (inputAudioFormat.encoding == C.ENCODING_PCM_16BIT && inputAudioFormat.channelCount in 1..MAX_CHANNELS) {
             inputAudioFormat
         } else {
             AudioProcessor.AudioFormat.NOT_SET
         }
 
     override fun onFlush() {
-        left.fill(0f)
-        right.fill(0f)
-        rawLeft.fill(0)
-        rawRight.fill(0)
+        channels = inputAudioFormat.channelCount
+        samples = Array(channels) { FloatArray(RING) }
+        raw = Array(channels) { ShortArray(RING) }
         segment.fill(0f)
         required.fill(1f)
         held.fill(1f)
         unity.fill(true)
         count = 0
         lastHeld = 1f
-        channels = inputAudioFormat.channelCount
         release = (1.0 - exp(-1.0 / (inputAudioFormat.sampleRate * RELEASE_SECONDS))).toFloat()
         inputGlide = (1.0 - exp(-1.0 / (inputAudioFormat.sampleRate * GAIN_SECONDS))).toFloat()
         // A stream starts at its level; only changes while it plays glide.
@@ -91,8 +90,8 @@ class TruePeakLimiter(private val armedBy: (() -> Boolean)? = null) : BaseAudioP
         armedNow = armed || armedBy?.invoke() == true || inputGainTarget != 1f || inputGain != 1f
         val output = replaceOutputBuffer(frames * frameBytes)
         repeat(frames) {
-            val l = inputBuffer.getShort()
-            push(l, if (channels == 2) inputBuffer.getShort() else l, output)
+            for (c in 0 until channels) incoming[c] = inputBuffer.getShort()
+            push(output)
         }
         output.flip()
     }
@@ -102,50 +101,48 @@ class TruePeakLimiter(private val armedBy: (() -> Boolean)? = null) : BaseAudioP
         val pending = minOf(count, LATENCY.toLong()).toInt()
         if (pending == 0) return
         val output = replaceOutputBuffer(pending * 2 * channels)
-        repeat(LATENCY) { push(0, 0, output) }
+        incoming.fill(0)
+        repeat(LATENCY) { push(output) }
         output.flip()
     }
 
-    private fun push(l: Short, r: Short, output: ByteBuffer) {
+    /** One frame from [incoming] in; once the ring is full, the frame [LATENCY] before it goes out. */
+    private fun push(output: ByteBuffer) {
         val n = count
         val i = (n and MASK).toInt()
-        rawLeft[i] = l
-        rawRight[i] = r
         if (inputGain != inputGainTarget) {
             inputGain += (inputGainTarget - inputGain) * inputGlide
             if (abs(inputGain - inputGainTarget) < 1e-5f) inputGain = inputGainTarget
         }
         unity[i] = inputGain == 1f
-        left[i] = l / PCM_SCALE * inputGain
-        right[i] = r / PCM_SCALE * inputGain
+        for (c in 0 until channels) {
+            raw[c][i] = incoming[c]
+            samples[c][i] = incoming[c] / PCM_SCALE * inputGain
+        }
         count++
         // Segment s (between frames s and s + 1) needs frames up to s + HALF = n.
         val s = n - HALF
         if (s >= 0) {
             var peak = 0f
-            // Only work while armed, and only where the window is loud enough that a point between the samples could
-            // reach the ceiling at all (|interpolated| <= max|x| * sum|kernel|): quiet film sound costs a scan.
-            var windowMax = 0f
-            if (armedNow) {
-                for (j in 0 until TAPS) {
-                    val index = ((s - HALF + 1 + j) and MASK).toInt()
-                    windowMax = maxOf(windowMax, abs(left[index]), abs(right[index]))
-                }
-            }
-            if (windowMax * KERNEL_GAIN > CEILING) for (phase in 0 until 3) {
-                val kernel = KERNELS[phase]
-                var sumL = 0f
-                var sumR = 0f
-                for (j in 0 until TAPS) {
-                    val index = ((s - HALF + 1 + j) and MASK).toInt()
-                    sumL += left[index] * kernel[j]
-                    sumR += right[index] * kernel[j]
-                }
-                peak = maxOf(peak, abs(sumL), abs(sumR))
-            }
+            // Only work while armed, and per channel only where its window is loud enough that a point between the
+            // samples could reach the ceiling at all (|interpolated| <= max|x| * sum|kernel|): quiet sound costs a scan.
             val si = (s and MASK).toInt()
+            var samplePeak = 0f
+            for (c in 0 until channels) {
+                val channel = samples[c]
+                samplePeak = maxOf(samplePeak, abs(channel[si]))
+                if (!armedNow) continue
+                var windowMax = 0f
+                for (j in 0 until TAPS) windowMax = maxOf(windowMax, abs(channel[((s - HALF + 1 + j) and MASK).toInt()]))
+                if (windowMax * KERNEL_GAIN <= CEILING) continue
+                for (phase in 0 until 3) {
+                    val kernel = KERNELS[phase]
+                    var sum = 0f
+                    for (j in 0 until TAPS) sum += channel[((s - HALF + 1 + j) and MASK).toInt()] * kernel[j]
+                    peak = maxOf(peak, abs(sum))
+                }
+            }
             segment[si] = peak
-            val samplePeak = maxOf(abs(left[si]), abs(right[si]))
             val framePeak = maxOf(samplePeak, peak, segment[((s - 1) and MASK).toInt()])
             required[si] = if (armedNow && framePeak > CEILING) CEILING / framePeak else 1f
         }
@@ -172,11 +169,9 @@ class TruePeakLimiter(private val armedBy: (() -> Boolean)? = null) : BaseAudioP
             if (sum >= WINDOW.toFloat()) 1f else sum / WINDOW
         }
         if (gain == 1f && unity[mi]) {
-            output.putShort(rawLeft[mi])
-            if (channels == 2) output.putShort(rawRight[mi])
+            for (c in 0 until channels) output.putShort(raw[c][mi])
         } else {
-            output.putShort(quantize(left[mi] * gain))
-            if (channels == 2) output.putShort(quantize(right[mi] * gain))
+            for (c in 0 until channels) output.putShort(quantize(samples[c][mi] * gain))
         }
     }
 
@@ -185,6 +180,8 @@ class TruePeakLimiter(private val armedBy: (() -> Boolean)? = null) : BaseAudioP
 
     companion object {
         private const val PCM_SCALE = 32_768f
+        /** Up to 7.1. */
+        const val MAX_CHANNELS = 8
         /** 64 taps per phase, the same interpolator as the 4x reference meter in the tests. */
         private const val HALF = 32
         private const val TAPS = 2 * HALF

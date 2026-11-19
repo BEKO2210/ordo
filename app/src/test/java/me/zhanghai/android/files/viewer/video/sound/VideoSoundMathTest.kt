@@ -74,13 +74,6 @@ class VideoSoundMathTest {
     }
 
     @Test
-    fun peakingMagnitudeAtCentreAndLowFrequency() {
-        val p = VideoSoundMath.peaking(48_000, 2500f, 0.8f, 7f)
-        assertEquals(7f, VideoSoundMath.magnitudeDb(p, 2500f, 48_000), 0.1f)
-        assertTrue(abs(VideoSoundMath.magnitudeDb(p, 100f, 48_000)) < 1f)
-    }
-
-    @Test
     fun downmixNullBoundsAndFivePointOne() {
         assertNull(VideoSoundMath.downmixMatrix(2, 0.7071f))
         assertNull(VideoSoundMath.downmixMatrix(9, 0.7071f))

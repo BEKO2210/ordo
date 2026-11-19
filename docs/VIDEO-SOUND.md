@@ -59,8 +59,12 @@ und Lautstärke angleichen.
   `TruePeakLimiter` (gleitet mit 50 ms), nicht mehr im `DynamicsProcessing` des Audio-Servers: nur so hält derselbe
   Limiter −1 dBTP. Gemessen (`LoudnessTargetTest`, 30 s musikähnliches Material mit Kick, Snare, Bass, Akkorden und
   leiserem Mittelteil, −32,07 LUFS): Original −23,00 LUFS bei −5,32 dBTP, Unterwegs −16,23 LUFS bei −1,59 dBTP (Ziel
-  ±0,5 LU, ≤ −1 dBTP). Tech-3341-Fälle 1–5 je ±0,1 LU (`tech3341GatingCases`). Grenze: 3–8-kanalige Musikdateien (nicht
-  Video, dort mischt Ordo vorher ab) bekommen keine Angleichung, der Limiter rechnet Mono und Stereo.
+  ±0,5 LU, ≤ −1 dBTP). Tech-3341-Fälle 1–5 je ±0,1 LU (`tech3341GatingCases`). Der Limiter rechnet 1 bis 8 Kanäle:
+  jeder Kanal wird einzeln auf Zwischenspitzen geprüft, alle teilen eine Verstärkung (die Mischung behält ihr
+  Verhältnis). Gemessen (`surroundTargetsAreHeldAndEveryChannelStaysBelowMinus1`, dasselbe Material als 5.1 und 7.1,
+  20.11.2026): 5.1 −27,58 → −23,00 / −16,11 LUFS, 7.1 −27,05 → −23,00 / −16,03 LUFS, jeder Kanal ≤ −1,60 dBTP; eine
+  Zwischenspitze nur im Center senkt alle Kanäle um denselben Wert ±0,3 dB, ohne Verstärkung bitgenau
+  (`surroundIntersamplePeakInOneChannelPullsAllDownTogether`).
   Filme haben selten ReplayGain-Tags. `LoudnessAnalysis` (die
   BS.1770-Messung von Ordo Musik) misst eine Datei auf diesem Gerät einmal im Hintergrund und merkt sich das Ergebnis
   (gleicher Cache wie Musik); für Filme mit bis zu 10 min statt 30 s Rechenzeit, auf eigenem Thread, ein Filmwechsel
@@ -116,7 +120,8 @@ Film −27,3 LUFS“) und den Dialog-Abstand („Stimmen jetzt 10,0 LU über dem
 
 `VideoSoundChainTest.cpuOfTheWholeChain` (JVM auf belkis-home bzw. dem Build-Rechner, 48 kHz 5.1, alles an: Downmix,
 Dialog-Steuerung 15 LU im Downmix und Stereo-Dialog, Nacht, True-Peak-Limiter, 100 ms Versatz, 20-ms-Puffer, 60 s
-Audio): 0,88 % eines Kerns (pop-os, Ryzen 7 5800X, 20.11.2026; vorher 0,80 %, ohne Limiter 0,20 %). Der Limiter allein schwankte zwischen den Läufen (geteilter Build-Rechner) zwischen 1,46 und 2,08 %. Der 64-Tap-Limiter allein, beim
+Audio): 0,88–1,15 % eines Kerns (pop-os, Ryzen 7 5800X, 20.11.2026, geteilter Build-Rechner, schwankt je Lauf;
+ohne Limiter 0,20 %). Der Limiter allein, Stereo beim Begrenzen: 1,46–2,34 %. Der 64-Tap-Limiter allein, beim
 Begrenzen lauten Rauschens, 48 kHz Stereo: 1,48 % inklusive Umwandlung im Test (`TruePeakLimiterTest.cpuOfTheLimiter`). Auf einem schwachen ARM-Gerät
 (W90) ist die Kette **noch nicht gemessen**: dafür `e2e/video-sound.sh` laufen lassen und währenddessen
 `dumpsys cpuinfo` für Ordo lesen; Vergleich: die Musik-Kette mit allem an lag auf dem Emulator bei 2,7–2,8 %.
