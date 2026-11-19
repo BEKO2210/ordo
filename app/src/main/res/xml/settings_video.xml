@@ -63,6 +63,18 @@
             android:title="@string/video_settings_keep_screen_on"
             android:summary="@string/video_settings_keep_screen_on_summary"
             android:defaultValue="@bool/pref_default_value_true" />
+        <ListPreference
+            android:key="@string/pref_key_video_background"
+            android:title="@string/video_settings_background"
+            android:defaultValue="@string/pref_default_value_video_background"
+            android:entries="@array/video_settings_background_entries"
+            android:entryValues="@array/pref_entry_values_video_background"
+            app:useSimpleSummaryProvider="true" />
+        <SwitchPreferenceCompat
+            android:key="@string/pref_key_video_pip"
+            android:title="@string/video_settings_pip"
+            android:summary="@string/video_settings_pip_summary"
+            android:defaultValue="@bool/pref_default_value_true" />
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/video_settings_cat_gestures">

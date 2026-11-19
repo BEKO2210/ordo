@@ -24,8 +24,8 @@ Medientasten und `dumpsys media_session`. Controller dürfen spielen und spulen,
 (`onAddMediaItems` schlägt fehl), sonst ginge die Startregel unten verloren. Audiofokus übernimmt
 ExoPlayer (`setAudioAttributes(…, true)`, Inhaltstyp Film), abgezogene Kopfhörer pausieren
 (`setHandleAudioBecomingNoisy`), `WAKE_MODE_NETWORK` wie bei der Musik. Gelesen wird über `PathDataSource`: lokaler
-Speicher, SD-Karte, SMB, SFTP, WebDAV, FTP; `content://` über Media3. `onStop` sichert die Position und pausiert;
-Hintergrund-Ton kommt in Phase 3.
+Speicher, SD-Karte, SMB, SFTP, WebDAV, FTP; `content://` über Media3. `onStop` sichert die Position und pausiert
+(außer bei „Nur Ton“, siehe Phase 3).
 
 `PlayerView` mit `surface_view`, ohne Media3-Steuerung (`use_controller="false"`): Media3s `DefaultTimeBar` springt
 schon beim Antippen und bricht die Hausregel. Drehen und Größenänderung bauen die Activity nicht neu
@@ -176,6 +176,59 @@ spielt (jede Quelle, auch SMB/SFTP und `content://`), in der Sammlung aus `Media
 Zeile kopiert den Wert. Unten „Alle Dateidetails“ öffnet die bisherigen Eigenschaften für Besitzer, Rechte und
 Prüfsummen; deren Reiter passen sich jetzt an (`tabMode="auto"`, schmalere Ränder, weiche Kante, wenn gescrollt werden
 kann), auch für Audiodateien (dasselbe Fenster).
+
+## Hintergrund, Bild-in-Bild, Schlaf-Timer (Phase 3)
+
+Code in `viewer/video/background/`; die Activity ruft nur `VideoBackgroundController` auf (Session bauen, `onStop`,
+`onUserLeaveHint`, `onPictureInPictureModeChanged`, ⋮-Einträge, `release`). Der Player bleibt der Activity (kleinster
+Umbau, kein Controller-Umweg); der Dienst beherbergt nur ihre Session.
+
+- **Im Hintergrund weiterspielen** (Einstellungen › Wiedergabe, `VideoBackgroundPrefs.BACKGROUND`): Aus (Standard) /
+  Nur Ton. Bei „Nur Ton“ startet `onStart` den eigenen `VideoPlaybackService` (`MediaSessionService`, FGS
+  `mediaPlayback`) und hängt die Session des Players an; Ordo Musiks `AudioPlaybackService` und seine Warteschlange
+  bleiben unberührt. Der Dienst startet, solange der Bildschirm vorn ist, weil Android 12+ das Wechseln in den
+  Vordergrund aus dem Hintergrund verbietet; darum steht die Medien-Benachrichtigung bei „Nur Ton“ schon während
+  des Schauens. `onStop` lässt ein laufendes Video dann weiterspielen und schaltet nur die Bildspur ab
+  (`setTrackTypeDisabled(C.TRACK_TYPE_VIDEO, true)`), `onStart` schaltet sie wieder ein, ohne Neustart. Schließen des
+  Players oder seines Bild-in-Bild-Fensters pausiert immer (`VideoBackgroundRules.keepsPlaying`, getestet).
+  Benachrichtigung: eigener Kanal `video_playback`, eigene ID 2001 (Media3s Standard 1001 ist die der Musik). Ihr
+  Cover ist ein Bild des Videos (`VideoFrameLoader`: `MediaMetadataRetriever` an der aktuellen Stelle, mindestens
+  10 % hinein; nur lokale Dateien und `content://`, übers Netz ohne Cover). Tippen auf Benachrichtigung oder
+  Sperrbildschirm führt über `VideoSessionActivity` (zeigt nichts) zur Aufgabe des laufenden Players zurück.
+  Der Dienst hat bewusst keinen `MediaSessionService`-Intent-Filter: Media3s `MediaButtonReceiver` erwartet genau
+  einen solchen Dienst (den der Musik).
+- **Bild-in-Bild** (Schalter, Standard an, `VideoBackgroundPrefs.PIP`; nur mit `FEATURE_PICTURE_IN_PICTURE`, sonst
+  fehlt auch ⋮ › „Bild-in-Bild“): ab Android 12 `setAutoEnterEnabled` nur während der Wiedergabe, Android 8–11 über
+  `onUserLeaveHint`. Seitenverhältnis des Videos (mit Pixelform, auf Androids 1:2,39–2,39:1 gekappt,
+  `VideoBackgroundRules.pipAspect`), `sourceRectHint` aus der Bildfläche, `setSeamlessResizeEnabled(false)`. Aktionen
+  −Sprung · Abspielen/Pause · +Sprung (Sprungweite aus den Einstellungen) über einen nicht exportierten Receiver.
+  Im Fenster zeichnen Leiste, Hinweise und Pillen nichts (leere `clipBounds`, ihre Logik läuft unverändert weiter),
+  Untertitel bleiben. Positionsspeicher läuft weiter (5-s-Takt). Fenster schließen pausiert.
+- **Schlaf-Timer** (⋮ › „Schlaf-Timer“, `VideoSleepTimer`): Chips Aus · 15 · 30 · 45 · 60 Min. · Ende des Videos;
+  läuft er, nennt das Blatt die Restzeit. Die letzten 10 s blendet der Ton aus (`SleepTimerSchedule` der Musik), dann
+  Pause. „Ende des Videos“ hält auch bei „Wiederholen“ oder „Automatisch weiter“ an.
+- **Audiofokus, Kopfhörer:** wie bisher ExoPlayer (`handleAudioFocus`, `setHandleAudioBecomingNoisy`) – das entspricht
+  den Standards der Musik (Ducken, Pause bei kurzem Verlust und weiter danach, Pause beim Abziehen), auch im
+  Hintergrund. Die Musik-Schalter „Fokus: Pause statt leiser“ und „Weiter bei Kopfhörern“ gelten für Videos nicht.
+- **Medientasten bei Musik und Video:** Android schickt sie an die zuletzt aktive Session (die zuletzt gespielt hat);
+  wer zuletzt gestartet wurde, gewinnt. Weil Video den Audiofokus nimmt, pausiert die Musik beim Start eines Videos.
+  Ist der Video-Player geschlossen, gehört die Session wieder allein der Musik.
+
+### Öffentliche Schnittstelle (Haken für spätere Automatisierung, keine KI)
+
+`viewer/video/background/VideoActions.kt` wie `MusicActions`: `VideoActions` (Datei/Ordner spielen, springen, Tempo,
+Ton- und Untertitelsprache, Wiederholen setzen/weiterschalten, Schlaf-Timer, Zustand abfragen), `VideoSelection`
+(ohne Android, getestet in `VideoSelectionTest`: Sprachkürzel normalisieren „deu“/„de-DE“ → „de“, passende Spur
+wählen, Ordner-Warteschlange nach Namen), `ControllerVideoActions` auf einem verbundenen `MediaController`;
+`VideoBackground.actions(context, controller)` liefert sie fertig (Token: `VideoBackground.session?.token`). Eigene
+Session-Befehle (`VideoCommands`: `SLEEP_TIMER`, `SET_AUDIO_LANGUAGE`, `SET_SUBTITLE_LANGUAGE`, `SET_REPEAT`,
+`CYCLE_REPEAT`, `GET_STATE`) bekommen nur Ordos eigene Controller (nicht die Benachrichtigung) und vertrauenswürdige
+System-Controller (`isTrusted`); alle anderen dürfen wie bisher nur spielen und spulen, nie eigene Einträge setzen.
+
+**Gerätetest:** `e2e/video-background.sh` (`--write`): Schlaf-Timer-Blatt, Home → `pinned` und spielt, Medientaste
+im Bild-in-Bild, „Nur Ton“ mit Bildschirm aus (spielt, Position läuft, Kanal da), Aufwachen zeigt den Player. Danach
+`e2e/audio-player.sh` (Musik-Warteschlange unberührt). Offen (messen): ob Samsung One UI Bild-in-Bild für Ordo
+abschaltet; Medientasten bei zwei Sessions auf echten Geräten; ob `dumpsys` `mode=pinned` so schreibt.
 
 ## Nächster Schritt (entschieden, noch nicht begonnen)
 

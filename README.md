@@ -227,7 +227,8 @@ From the Play listing, `fastlane/metadata/android/en-US/full_description.txt`.
 
 - Music player with cover art, a queue and controls in the notification, on the lock screen and on headphone buttons
 - Sound: 10-band equalizer with presets, bass boost, loudness levelling, speed that keeps the pitch, sleep timer
-- Video player with continue watching, swipe gestures, repeat and video details
+- Video player with continue watching, swipe gestures, repeat, video details, picture-in-picture, sound in the
+  background and a sleep timer
 - “Play on…”: send music to Bluetooth headphones, a speaker or a cast device
 - Optional own “Ordo Music” and “Ordo Video” icons on your home screen
 
@@ -492,12 +493,12 @@ Run the unit tests with:
 ```
 
 <!-- AUTO:tests -->
-Device tests: 33 scripts in [`e2e/`](e2e/README.md), run with `e2e/run.sh`: 15 read-only (`first-run`, `smoke`, `settings-visual`, `category-search`, `back-navigation`, `bars-replay`, `home-header`, `header-position`, `home-pull`, `drawer`, `selection-more`, `tablet-landscape`, `analysis`, `ai-show-guard`, `documents-provider`) and 18 more with `--write` (`stress-delete`, `backup-restore`, `home-auto-refresh`, `audio-player`, `cast`, `klang`, `klang-landscape`, `klang-stress`, `music-formats`, `music-library`, `launcher-icons`, `icon-colors`, `ai-show`, `pick-file`, `no-midword-breaks`, `player-seek`, `player-stage2`, `video-player`). Unit tests: 94 test classes in `app/src/test`.
+Device tests: 34 scripts in [`e2e/`](e2e/README.md), run with `e2e/run.sh`: 15 read-only (`first-run`, `smoke`, `settings-visual`, `category-search`, `back-navigation`, `bars-replay`, `home-header`, `header-position`, `home-pull`, `drawer`, `selection-more`, `tablet-landscape`, `analysis`, `ai-show-guard`, `documents-provider`) and 19 more with `--write` (`stress-delete`, `backup-restore`, `home-auto-refresh`, `audio-player`, `cast`, `klang`, `klang-landscape`, `klang-stress`, `music-formats`, `music-library`, `launcher-icons`, `icon-colors`, `ai-show`, `pick-file`, `no-midword-breaks`, `player-seek`, `player-stage2`, `video-player`, `video-background`). Unit tests: 96 test classes in `app/src/test`.
 <!-- /AUTO:tests -->
 
 ## Roadmap
 
-Planned next: tabs and a two-pane view, subtitles and picture-in-picture for the video player, scheduled backups,
+Planned next: tabs and a two-pane view, subtitles for the video player, scheduled backups,
 and cloud storage. The full plan is in [docs/ROADMAP.md](docs/ROADMAP.md) (German).
 
 ## Contributing

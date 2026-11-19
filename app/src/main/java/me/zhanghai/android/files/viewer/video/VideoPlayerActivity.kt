@@ -64,8 +64,6 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
 import com.google.android.material.slider.Slider
-import com.google.common.util.concurrent.Futures
-import com.google.common.util.concurrent.ListenableFuture
 import java.net.URI
 import java.text.NumberFormat
 import java.util.Formatter
@@ -91,10 +89,12 @@ import me.zhanghai.android.files.ui.Motion
 import me.zhanghai.android.files.util.valueCompat
 import me.zhanghai.android.files.util.createViewIntent
 import me.zhanghai.android.files.util.startActivitySafe
+import me.zhanghai.android.files.viewer.video.background.VideoBackgroundController
 
 /**
  * Ordo's video player. The activity owns its ExoPlayer and a MediaSession (media keys, `dumpsys media_session`); the
- * video stops with the screen. Exported for ACTION_VIEW of every video type, with the same rule as the music player:
+ * video stops with the screen unless "Sound only" or picture-in-picture keeps it (VideoBackgroundController).
+ * Exported for ACTION_VIEW of every video type, with the same rule as the music player:
  * Ordo's own screens pass the folder's videos through [AudioQueueRequests] and only a token in the intent; from any
  * other caller only a `content://` URI with a read grant is played, and path extras are ignored.
  */
@@ -106,6 +106,7 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity {
     private lateinit var binding: VideoPlayerActivityBinding
     private var player: ExoPlayer? = null
     private var session: MediaSession? = null
+    private var background: VideoBackgroundController? = null
     private lateinit var controls: VideoControls
     private lateinit var resumeStore: VideoResumeStore
     private val handler = Handler(Looper.getMainLooper())
@@ -258,17 +259,12 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity {
         // Its own ID: the music service's session lives in the same process.
         // Unique per screen (two can overlap while one closes). Controllers (media keys, the system) may play and seek
         // but never hand the player items of their own: that would bypass the launch rule above.
-        session = MediaSession.Builder(this, player)
-            .setId("$SESSION_ID.${UUID.randomUUID()}")
-            .setCallback(object : MediaSession.Callback {
-                override fun onAddMediaItems(
-                    mediaSession: MediaSession,
-                    controller: MediaSession.ControllerInfo,
-                    mediaItems: MutableList<MediaItem>
-                ): ListenableFuture<MutableList<MediaItem>> =
-                    Futures.immediateFailedFuture(UnsupportedOperationException())
-            })
-            .build()
+        // Background sound, picture-in-picture, sleep timer and the session (VideoBackgroundController).
+        background = VideoBackgroundController(
+            this, binding, player, "$SESSION_ID.${UUID.randomUUID()}", { repeatMode },
+            { mode -> Settings.VIDEO_END.putValue(mode.name); applyRepeatMode(mode) }
+        )
+        session = background?.session
         binding.playerView.player = player
         (savedInstanceState?.getFloat(STATE_SPEED)?.takeIf { it > 0f }
             ?: VideoPrefs.speed(Settings.VIDEO_SPEED.valueCompat)).let {
@@ -323,23 +319,35 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity {
             screenBrightness = WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE
         }
         if (::controls.isInitialized) controls.cancelGestures()
-        // Phase 1 has no background playback: the film pauses with the screen, its place is kept.
+        // The film pauses with the screen, its place is kept; "Sound only" keeps it playing without the picture.
         player?.let {
             trackedPosition = it.currentPosition
             saveResume()
-            it.pause()
+            if (background?.onStop() != true) it.pause()
         }
         super.onStop()
     }
 
     override fun onDestroy() {
         handler.removeCallbacksAndMessages(null)
+        background?.release()
+        background = null
         session?.release()
         session = null
         player?.release()
         player = null
         if (isFinishing) AudioQueueRequests.release(intent.getStringExtra(EXTRA_QUEUE_TOKEN))
         super.onDestroy()
+    }
+
+    override fun onUserLeaveHint() {
+        super.onUserLeaveHint()
+        background?.onUserLeaveHint()
+    }
+
+    override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean, newConfig: Configuration) {
+        super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
+        background?.onPictureInPictureModeChanged(isInPictureInPictureMode)
     }
 
     override fun dispatchTouchEvent(event: MotionEvent): Boolean {
@@ -508,6 +516,8 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity {
             when (it.itemId) {
                 R.id.actionOpenWith -> openWithOtherApp()
                 R.id.actionFileInfo -> showFileInfo()
+                R.id.actionSleepTimer -> background?.showSleepTimerSheet()
+                R.id.actionPip -> background?.enterPip()
                 else -> return@setOnMenuItemClickListener false
             }
             true
