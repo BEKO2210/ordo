@@ -1,7 +1,6 @@
-Neu in dieser Testversion:
-• Musik auf den Fernseher streamen: Chromecast und Google TV, ohne Google-Dienste
-• Fernseher zeigt Titel, Interpret, Album und Cover
-• Steuerung über Benachrichtigung, Sperrbildschirm und Lautstärketasten
-• Beim Beenden geht die Musik an derselben Stelle aufs Handy zurück
-• Sicher: Ordo prüft, dass der Chromecast echt ist, und gibt nur das laufende Lied frei
-Rückmeldungen gern an: nullmesh@protonmail.com
+Ordo Musik in neuem Look:
+• Mitlaufende Songtexte, groß und mittig; Songtext-Symbol in der Liste
+• Bibliothek mit Wiedergabelisten und Favoriten als Reiter, weicher Rand beim Scrollen, Tablets nutzen die Breite
+• Cover wischen für das nächste Lied, Warteschlange zum Sortieren
+• Aussehen: Farben aus dem Cover, Akzentfarbe, Stufe für visuelle Effekte
+• Klang-Blatt neu geordnet, knackfreie Effekte, getestet bis 24 Bit/192 kHz

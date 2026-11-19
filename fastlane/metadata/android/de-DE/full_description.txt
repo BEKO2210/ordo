@@ -57,4 +57,4 @@ Ein Dateimanager muss die Dateien lesen und ändern können, die du mit ihm öff
 Open Source
 Ordo ist freie Software unter der GNU GPL 3.0 und baut auf Material Files von Hai Zhang auf. Quellcode: https://github.com/BEKO2210/ordo
 
-Auf Deutsch und Englisch. Ab Android 6.0.
+Auf Deutsch und Englisch. Ab Android 7.0.

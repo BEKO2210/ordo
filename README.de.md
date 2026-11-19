@@ -15,7 +15,7 @@
 
 <p align="center">
 <!-- AUTO:badges -->
-  <a href="https://github.com/BEKO2210/ordo/releases/tag/v0.14.2"><img alt="Version 0.14.2" src="https://img.shields.io/badge/Version-0.14.2-2563EB"></a>
+  <a href="https://github.com/BEKO2210/ordo/releases/tag/v0.14.4"><img alt="Version 0.14.4" src="https://img.shields.io/badge/Version-0.14.4-2563EB"></a>
   <img alt="Android 7.0+" src="https://img.shields.io/badge/Android-7.0%2B-3DDC84">
   <a href="LICENSE"><img alt="Lizenz: GPL-3.0-or-later" src="https://img.shields.io/badge/Lizenz-GPL--3.0--or--later-blue"></a>
 <!-- /AUTO:badges -->
@@ -33,18 +33,18 @@
 </p>
 
 <!-- AUTO:new -->
-> **Neu in 0.14.2**
-> - Musik auf den Fernseher streamen: Chromecast und Google TV, ohne Google-Dienste
-> - Fernseher zeigt Titel, Interpret, Album und Cover
-> - Steuerung über Benachrichtigung, Sperrbildschirm und Lautstärketasten
-> - Beim Beenden geht die Musik an derselben Stelle aufs Handy zurück
-> - Sicher: Ordo prüft, dass der Chromecast echt ist, und gibt nur das laufende Lied frei
+> **Neu in 0.14.4**
+> - Mitlaufende Songtexte, groß und mittig; Songtext-Symbol in der Liste
+> - Bibliothek mit Wiedergabelisten und Favoriten als Reiter, weicher Rand beim Scrollen, Tablets nutzen die Breite
+> - Cover wischen für das nächste Lied, Warteschlange zum Sortieren
+> - Aussehen: Farben aus dem Cover, Akzentfarbe, Stufe für visuelle Effekte
+> - Klang-Blatt neu geordnet, knackfreie Effekte, getestet bis 24 Bit/192 kHz
 <!-- /AUTO:new -->
 
 ## Stand
 
 <!-- AUTO:status -->
-Aktuelle Version 0.14.2 · [Release v0.14.2](https://github.com/BEKO2210/ordo/releases/tag/v0.14.2) · ab Android 7.0 (minSdk 24, targetSdk 36 = Android 16) · [GPL-3.0-or-later](LICENSE)
+Aktuelle Version 0.14.4 · [Release v0.14.4](https://github.com/BEKO2210/ordo/releases/tag/v0.14.4) · ab Android 7.0 (minSdk 24, targetSdk 36 = Android 16) · [GPL-3.0-or-later](LICENSE)
 <!-- /AUTO:status -->
 
 Ordo ist in Entwicklung. Bei Google Play läuft ein geschlossener Test; Testversionen erscheinen auch als
@@ -498,7 +498,7 @@ Unit-Tests:
 ```
 
 <!-- AUTO:tests -->
-Gerätetests: 27 Skripte in [`e2e/`](e2e/README.md), gestartet mit `e2e/run.sh`: 15 nur lesend (`first-run`, `smoke`, `settings-visual`, `category-search`, `back-navigation`, `bars-replay`, `home-header`, `header-position`, `home-pull`, `drawer`, `selection-more`, `tablet-landscape`, `analysis`, `ai-show-guard`, `documents-provider`) und 12 weitere mit `--write` (`stress-delete`, `backup-restore`, `home-auto-refresh`, `audio-player`, `cast`, `klang`, `klang-landscape`, `music-library`, `launcher-icons`, `icon-colors`, `ai-show`, `pick-file`). Unit-Tests: 79 Testklassen in `app/src/test`.
+Gerätetests: 32 Skripte in [`e2e/`](e2e/README.md), gestartet mit `e2e/run.sh`: 15 nur lesend (`first-run`, `smoke`, `settings-visual`, `category-search`, `back-navigation`, `bars-replay`, `home-header`, `header-position`, `home-pull`, `drawer`, `selection-more`, `tablet-landscape`, `analysis`, `ai-show-guard`, `documents-provider`) und 17 weitere mit `--write` (`stress-delete`, `backup-restore`, `home-auto-refresh`, `audio-player`, `cast`, `klang`, `klang-landscape`, `klang-stress`, `music-formats`, `music-library`, `launcher-icons`, `icon-colors`, `ai-show`, `pick-file`, `no-midword-breaks`, `player-seek`, `player-stage2`). Unit-Tests: 86 Testklassen in `app/src/test`.
 <!-- /AUTO:tests -->
 
 ## Ausblick
