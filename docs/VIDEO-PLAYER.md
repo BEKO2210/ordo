@@ -159,7 +159,10 @@ und PDFs, die `vault-open` im Cache nutzen). Lesen darf der Player nur Einträge
 hat; Sperren (auch nach 2 min im Hintergrund) und Prozessende nehmen die Freigabe zurück. Tresor-Videos bekommen
 keine gemerkte Stelle, keine Gesehen-Marke, keine Vorschau und erscheinen nie in der Sammlung (MediaStore sieht den
 Tresor nicht); der Player-Bildschirm ist dann `FLAG_SECURE` (keine Bildschirmfotos, leere Vorschau in „Zuletzt“),
-„Mit anderer App öffnen“ fehlt. Verlässt man den Player, schließt er sich (wie der Tresor sich sperrt).
+„Mit anderer App öffnen“ fehlt. Verlässt man den Player, schließt er sich (wie der Tresor sich sperrt); darum startet nie Hintergrund-Ton,
+Benachrichtigung oder Bild-im-Bild mit einem Tresor-Video. Der Dateiname verlässt den Tresor nicht: das Medien-Item
+hat die ID `ordo-vault:///<id>` und den Titel „Tresor-Video“, kein Cover, das Format nur als MIME-Typ; MediaSession,
+Sperrbildschirm, Benachrichtigungs-Listener und Bluetooth sehen nur das (Test `VaultVideosTest`).
 
 ## Gerätetest
 

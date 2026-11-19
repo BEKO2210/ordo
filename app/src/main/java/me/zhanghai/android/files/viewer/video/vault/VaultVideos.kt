@@ -9,6 +9,8 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import androidx.media3.common.C
+import androidx.media3.common.MediaItem
+import androidx.media3.common.MediaMetadata
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.BaseDataSource
@@ -21,7 +23,8 @@ import java.io.IOException
 import java.nio.ByteBuffer
 import java.nio.channels.SeekableByteChannel
 import java.util.Collections
-import me.zhanghai.android.files.player.AudioQueueRequests
+import me.zhanghai.android.files.file.MimeType
+import me.zhanghai.android.files.file.guessFromPath
 import me.zhanghai.android.files.vault.Vault
 import me.zhanghai.android.files.vault.VaultEntry
 import me.zhanghai.android.files.viewer.video.VideoPlayerActivity
@@ -30,15 +33,36 @@ import me.zhanghai.android.files.viewer.video.VideoPlayerActivity
  * Videos of Ordo's Tresor in Ordo's video player, decrypted while they stream ([VaultDataSource]); no plaintext
  * file, no resume place, no thumbnail. Only entries the unlocked vault screen handed over ([grant]) can be read, and
  * locking the vault takes that back ([revokeAll]); after the process ends nothing is granted.
+ *
+ * The file name never leaves the vault screen: the player's item has an opaque ID and a generic title ([item]), so
+ * the MediaSession (dumpsys, lock screen, notification listeners, Bluetooth AVRCP) only ever sees "Vault video".
+ * A Tresor queue must never reach a background service, notification or picture-in-picture: the player closes
+ * when left (VideoPlayerActivity.onStop) — keep that guard if background playback (#100) comes.
  */
 object VaultVideos {
     const val SCHEME = "ordo-vault"
 
-    private val granted: MutableSet<String> = Collections.synchronizedSet(HashSet())
+    // Granted entry IDs with their MIME type (the player's format hint, instead of an extension in the URI).
+    private val granted: MutableMap<String, String?> = Collections.synchronizedMap(HashMap())
 
-    /** `ordo-vault:///<id>/<name>`: the name keeps the extension (the player's format guess) and the title. */
-    fun uri(entry: VaultEntry): String =
-        Uri.Builder().scheme(SCHEME).authority("").appendPath(entry.id).appendPath(entry.name).build().toString()
+    /** `ordo-vault:///<id>`: opaque, no name and no extension. */
+    fun uri(id: String): String = "$SCHEME:///$id"
+
+    /**
+     * The player's item for a Tresor video without its URI (the caller adds `setUri`): opaque media ID, [title] the
+     * generic "Vault video", no other metadata and no artwork, the format only as [mimeType].
+     */
+    fun item(id: String, mimeType: String?, title: String): MediaItem.Builder =
+        MediaItem.Builder()
+            .setMediaId(uri(id))
+            .setMimeType(mimeType)
+            .setMediaMetadata(MediaMetadata.Builder().setTitle(title).setDisplayTitle(title).setIsPlayable(true).build())
+
+    /** [item] with its URI, for a media ID from [uri]; the MIME type comes from the grant. */
+    fun mediaItem(mediaId: String, title: String): MediaItem {
+        val id = Uri.parse(mediaId).pathSegments.firstOrNull().orEmpty()
+        return item(id, granted[id], title).setUri(Uri.parse(mediaId)).build()
+    }
 
     fun isVault(uri: String?): Boolean = uri?.startsWith("$SCHEME:") == true
 
@@ -46,13 +70,15 @@ object VaultVideos {
 
     /** Plays [entries] (the vault's videos, in its order) from [start]; the vault must be unlocked. */
     fun play(context: Context, entries: List<VaultEntry>, start: VaultEntry) {
-        granted += entries.map { it.id }
+        entries.forEach { granted[it.id] = MimeType.guessFromPath(it.name).value }
         val intent = Intent(context, VideoPlayerActivity::class.java)
-        VideoPlayerActivity.putVaultExtras(intent, entries.map(::uri), entries.indexOf(start).coerceAtLeast(0))
+        VideoPlayerActivity.putVaultExtras(
+            intent, entries.map { uri(it.id) }, entries.indexOf(start).coerceAtLeast(0)
+        )
         context.startActivity(intent)
     }
 
-    internal fun idOf(uri: Uri): String? = uri.pathSegments.firstOrNull()?.takeIf { it in granted }
+    internal fun idOf(uri: Uri): String? = uri.pathSegments.firstOrNull()?.takeIf { it in granted.keys }
 
     /** Routes `ordo-vault:` to [VaultDataSource] and everything else to [upstream]. */
     @UnstableApi

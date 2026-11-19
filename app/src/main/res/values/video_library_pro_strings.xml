@@ -31,6 +31,7 @@
         <item quantity="other">%1$d selected</item>
     </plurals>
     <string name="video_library_select">Select</string>
+    <string name="video_library_vault_title">Vault video</string>
     <string name="video_library_deselect">Deselect</string>
     <string name="video_library_selected">Selected</string>
     <string name="video_library_close_selection">Close selection</string>

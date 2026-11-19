@@ -342,6 +342,7 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity {
             saveResume()
             it.pause()
         }
+        // Also the guard against background playback (#100) or PiP showing a Tresor video: none outlives the screen.
         if (isVault && !isChangingConfigurations) finish()
         super.onStop()
     }
@@ -385,7 +386,7 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity {
             when {
                 request != null && (request.paths.isNotEmpty() || request.uris.isNotEmpty()) -> {
                     val items = request.uris.ifEmpty { request.paths.map { it.toUri().toString() } }
-                        .map { AudioPlaybackService.mediaItem(it) }
+                        .map(::queueItem)
                     if (savedInstanceState != null) {
                         LaunchQueue(items, savedIndex.coerceIn(items.indices), savedPosition)
                     } else {
@@ -394,7 +395,7 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity {
                 }
                 // Written by this activity itself, so it is trusted like the token was.
                 savedMediaId != null ->
-                    LaunchQueue(listOf(AudioPlaybackService.mediaItem(savedMediaId)), 0, savedPosition)
+                    LaunchQueue(listOf(queueItem(savedMediaId)), 0, savedPosition)
                 else -> intent.data?.takeIf(::isAllowedExternalUri)
                     ?.let { LaunchQueue(listOf(AudioPlaybackService.mediaItem(it.toString())), 0, 0L) }
             }
@@ -402,6 +403,11 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity {
             e.printStackTrace()
             null
         }
+
+    /** A Tresor video gets an opaque item titled "Vault video" (its name never reaches the MediaSession). */
+    private fun queueItem(mediaId: String): MediaItem =
+        if (VaultVideos.isVault(mediaId)) VaultVideos.mediaItem(mediaId, getString(R.string.video_library_vault_title))
+        else AudioPlaybackService.mediaItem(mediaId)
 
     // The same rule as AudioPlayerActivity: a caller never gets to point Ordo at a file through Ordo's own access.
     private fun isAllowedExternalUri(uri: Uri): Boolean {
