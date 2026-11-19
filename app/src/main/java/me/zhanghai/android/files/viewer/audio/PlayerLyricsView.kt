@@ -121,6 +121,7 @@ class PlayerLyricsView(
         val headerRight = header.paddingRight
         val headerBottom = header.paddingBottom
         val buttonBottom = (playPause.layoutParams as LayoutParams).bottomMargin
+        val fadeLength = bottomFade.layoutParams.height
         // The lines end above the control zone and fade out there, so none runs behind the button.
         val listBottom = buttonBottom + (playPause.layoutParams as LayoutParams).height +
             resources.getDimensionPixelSize(R.dimen.phi_13)
@@ -134,7 +135,8 @@ class PlayerLyricsView(
             header.setPadding(bars.left, bars.top, headerRight + bars.right, headerBottom)
             (playPause.layoutParams as LayoutParams).bottomMargin = buttonBottom + bottomInset
             (list.layoutParams as LayoutParams).bottomMargin = listBottom + bottomInset
-            (bottomFade.layoutParams as LayoutParams).bottomMargin = listBottom + bottomInset
+            // The fade runs on to the screen's edge (a band ending above the button left a visible step).
+            bottomFade.layoutParams.height = fadeLength + listBottom + bottomInset
             requestLayout()
             insets
         }
