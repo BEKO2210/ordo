@@ -42,6 +42,8 @@ check "the video player has a TV button" ui tap actionCast
 check "its sheet offers this phone" settled "This phone|Dieses Handy"
 check "its sheet speaks of this video" settled "only this video|nur dieses Video"
 check "no sound-effects note for a film" absent "Sound effects only|Klangeffekte wirken"
+# A TV plays the clip's sound out loud: casting only with E2E_ALLOW_VOLUME=1.
+[ "${E2E_ALLOW_VOLUME:-}" = 1 ] || { [ -n "$TV" ] && echo "SKIP casting to $TV (sound on the TV: only with E2E_ALLOW_VOLUME=1)"; TV=; }
 if [ -z "$TV" ]; then
     echo "SKIP casting: set CAST_TV to the name of a Chromecast or Google TV on this Wi-Fi"
     back 1; back 1
