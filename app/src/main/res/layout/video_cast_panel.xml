@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- The remote control while a film plays on a TV (VideoCastSession): covers the player, scrolls in landscape. -->
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/castPanel"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?colorSurface"
+    android:clickable="true"
+    android:fillViewport="true"
+    android:focusable="false">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
+        android:paddingStart="24dp"
+        android:paddingTop="16dp"
+        android:paddingEnd="24dp"
+        android:paddingBottom="16dp">
+
+        <ImageView
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:importantForAccessibility="no"
+            android:src="@drawable/cast_connected_icon_24dp"
+            app:tint="?colorPrimary" />
+
+        <TextView
+            android:id="@+id/castDevice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:accessibilityHeading="true"
+            android:gravity="center"
+            android:hyphenationFrequency="none"
+            android:textAppearance="?textAppearanceSubtitle1"
+            android:textColor="?colorPrimary" />
+
+        <TextView
+            android:id="@+id/castTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:ellipsize="end"
+            android:gravity="center"
+            android:hyphenationFrequency="none"
+            android:maxLines="2"
+            android:textAppearance="?textAppearanceHeadline6"
+            android:textColor="?colorOnSurface" />
+
+        <TextView
+            android:id="@+id/castStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:accessibilityLiveRegion="polite"
+            android:gravity="center"
+            android:hyphenationFrequency="none"
+            android:minHeight="20dp"
+            android:textAppearance="?textAppearanceBody2"
+            android:textColor="?android:textColorSecondary" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+            <TextView
+                android:id="@+id/castElapsed"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:importantForAccessibility="no"
+                android:textAppearance="?textAppearanceCaption"
+                android:textColor="?colorOnSurface" />
+            <me.zhanghai.android.files.viewer.audio.PlayerSeekSlider
+                android:id="@+id/castSeekBar"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:contentDescription="@string/video_player_position"
+                android:valueFrom="0"
+                android:valueTo="1000"
+                app:labelBehavior="gone" />
+            <TextView
+                android:id="@+id/castDuration"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:importantForAccessibility="no"
+                android:textAppearance="?textAppearanceCaption"
+                android:textColor="?colorOnSurface" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:gravity="center"
+            android:orientation="horizontal">
+            <ImageButton android:id="@+id/castRewind" style="@style/Widget.Ordo.AudioPlayer.SkipControl"
+                android:contentDescription="@string/video_player_rewind" android:src="@drawable/video_replay_10_icon_24dp" />
+            <Space android:layout_width="24dp" android:layout_height="1dp" />
+            <ImageButton android:id="@+id/castPlayPause" style="@style/Widget.Ordo.AudioPlayer.PrimaryControl"
+                android:contentDescription="@string/video_player_pause" android:src="@drawable/pause_icon_24dp" />
+            <Space android:layout_width="24dp" android:layout_height="1dp" />
+            <ImageButton android:id="@+id/castForward" style="@style/Widget.Ordo.AudioPlayer.SkipControl"
+                android:contentDescription="@string/video_player_forward" android:src="@drawable/video_forward_10_icon_24dp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+            <ImageButton android:id="@+id/castVolumeDown" style="@style/Widget.Ordo.AudioPlayer.SecondaryControl"
+                android:contentDescription="@string/video_cast_volume_down" android:src="@drawable/video_cast_volume_down_icon_24dp" />
+            <TextView
+                android:id="@+id/castVolume"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="8dp"
+                android:accessibilityLiveRegion="polite"
+                android:gravity="center"
+                android:hyphenationFrequency="none"
+                android:minWidth="96dp"
+                android:textAppearance="?textAppearanceBody2"
+                android:textColor="?colorOnSurface" />
+            <ImageButton android:id="@+id/castVolumeUp" style="@style/Widget.Ordo.AudioPlayer.SecondaryControl"
+                android:contentDescription="@string/video_cast_volume_up" android:src="@drawable/audio_volume_icon_24dp" />
+        </LinearLayout>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/castStop"
+            style="?materialButtonOutlinedStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:minHeight="48dp"
+            android:text="@string/video_cast_watch_here"
+            android:textAllCaps="false"
+            app:icon="@drawable/cast_phone_icon_24dp" />
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

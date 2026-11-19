@@ -27,12 +27,47 @@ import me.zhanghai.android.files.player.cast.CastManager
 /** Lists this phone and the cast devices on the Wi-Fi; picking one moves playback there. */
 @OptIn(UnstableApi::class)
 class CastChooserSheet : BottomSheetDialogFragment() {
+    /** What the sheet drives: Ordo Music's [CastManager], or the screen that hosts it (Ordo Video). */
+    interface Controller {
+        val phase: CastManager.Phase
+        val device: CastDevice?
+        val confirmation: CastDevice?
+        fun addListener(listener: () -> Unit)
+        fun removeListener(listener: () -> Unit)
+        fun isUnfamiliar(target: CastDevice): Boolean
+        fun dismissConfirmation()
+        fun connect(target: CastDevice, confirmed: Boolean)
+        fun disconnect()
+        val privacyText: Int get() = R.string.cast_privacy
+        val showsEffectsNote: Boolean get() = true
+    }
+
+    /** An activity with its own cast session implements this; any other host gets the music's. */
+    interface Host {
+        val castController: Controller
+    }
+
+    private object MusicController : Controller {
+        override val phase get() = CastManager.phase
+        override val device get() = CastManager.device
+        override val confirmation get() = CastManager.confirmation
+        override fun addListener(listener: () -> Unit) = CastManager.addListener(listener)
+        override fun removeListener(listener: () -> Unit) = CastManager.removeListener(listener)
+        override fun isUnfamiliar(target: CastDevice) = CastManager.isUnfamiliar(target)
+        override fun dismissConfirmation() = CastManager.dismissConfirmation()
+        override fun connect(target: CastDevice, confirmed: Boolean) = CastManager.connect(target, confirmed)
+        override fun disconnect() = CastManager.disconnect()
+    }
+
+    private val cast: Controller
+        get() = (activity as? Host)?.castController ?: MusicController
+
     private var _binding: CastChooserSheetBinding? = null
     private val binding get() = checkNotNull(_binding)
     private var discovery: CastDiscovery? = null
     private var devices = emptyList<CastDevice>()
     private var searchedLong = false
-    private var lastPhase = CastManager.phase
+    private var lastPhase = CastManager.Phase.IDLE
     private val handler = Handler(Looper.getMainLooper())
     private val searchedLongEnough = Runnable {
         searchedLong = true
@@ -40,10 +75,10 @@ class CastChooserSheet : BottomSheetDialogFragment() {
     }
     private val castListener: () -> Unit = {
         // Once the TV plays, the sheet has done its job.
-        if (lastPhase == CastManager.Phase.CONNECTING && CastManager.phase == CastManager.Phase.CASTING) {
+        if (lastPhase == CastManager.Phase.CONNECTING && cast.phase == CastManager.Phase.CASTING) {
             dismissAllowingStateLoss()
         }
-        lastPhase = CastManager.phase
+        lastPhase = cast.phase
         render()
         askAboutChangedDevice()
     }
@@ -59,20 +94,22 @@ class CastChooserSheet : BottomSheetDialogFragment() {
             devices = it
             render()
         }
-        binding.stop.setOnClickListener { CastManager.disconnect() }
+        binding.stop.setOnClickListener { cast.disconnect() }
+        binding.privacy.setText(cast.privacyText)
+        lastPhase = cast.phase
         render()
     }
 
     override fun onStart() {
         super.onStart()
         discovery?.start()
-        CastManager.addListener(castListener)
+        cast.addListener(castListener)
         handler.postDelayed(searchedLongEnough, NONE_FOUND_AFTER_MS)
     }
 
     override fun onStop() {
         handler.removeCallbacks(searchedLongEnough)
-        CastManager.removeListener(castListener)
+        cast.removeListener(castListener)
         discovery?.stop()
         super.onStop()
     }
@@ -87,8 +124,8 @@ class CastChooserSheet : BottomSheetDialogFragment() {
 
     private fun render() {
         val binding = _binding ?: return
-        val active = CastManager.device
-        val phase = CastManager.phase
+        val active = cast.device
+        val phase = cast.phase
         // The device in use stays listed even when its mDNS record has not come in yet.
         val shown = devices.filter { it.id != active?.id }.let { if (active != null) listOf(active) + it else it }
         binding.search.found = shown.isNotEmpty()
@@ -100,10 +137,10 @@ class CastChooserSheet : BottomSheetDialogFragment() {
         addRow(
             R.drawable.cast_phone_icon_24dp, getString(R.string.cast_this_phone),
             getString(R.string.cast_this_phone_summary), phase == CastManager.Phase.IDLE, false
-        ) { CastManager.disconnect() }
+        ) { cast.disconnect() }
         for (device in shown) {
             val isActive = device.id == active?.id
-            val unfamiliar = !isActive && CastManager.isUnfamiliar(device)
+            val unfamiliar = !isActive && cast.isUnfamiliar(device)
             val summary = when {
                 isActive && phase == CastManager.Phase.CONNECTING -> getString(R.string.cast_connecting)
                 isActive -> getString(R.string.cast_playing_here)
@@ -114,10 +151,10 @@ class CastChooserSheet : BottomSheetDialogFragment() {
                 if (device.hasVideo) R.drawable.cast_tv_icon_24dp else R.drawable.audio_speaker_icon_24dp,
                 device.name, summary, isActive && phase == CastManager.Phase.CASTING,
                 isActive && phase == CastManager.Phase.CONNECTING, unfamiliar
-            ) { if (!isActive) CastManager.connect(device) }
+            ) { if (!isActive) cast.connect(device, false) }
         }
         binding.stop.isVisible = phase != CastManager.Phase.IDLE
-        binding.effectsNote.isVisible = phase == CastManager.Phase.CASTING
+        binding.effectsNote.isVisible = phase == CastManager.Phase.CASTING && cast.showsEffectsNote
     }
 
     private fun addRow(
@@ -144,15 +181,15 @@ class CastChooserSheet : BottomSheetDialogFragment() {
 
     /** A familiar name with another device behind it: connect only when the user says so. */
     private fun askAboutChangedDevice() {
-        val device = CastManager.confirmation ?: return
+        val device = cast.confirmation ?: return
         if (confirmDialog?.isShowing == true || !isAdded) return
         confirmDialog = MaterialAlertDialogBuilder(requireContext())
             .setIcon(R.drawable.cast_tv_icon_24dp)
             .setTitle(getString(R.string.cast_changed_title, device.name))
             .setMessage(getString(R.string.cast_changed_message, device.name))
-            .setPositiveButton(R.string.cast_changed_connect) { _, _ -> CastManager.connect(device, confirmed = true) }
-            .setNegativeButton(android.R.string.cancel) { _, _ -> CastManager.dismissConfirmation() }
-            .setOnCancelListener { CastManager.dismissConfirmation() }
+            .setPositiveButton(R.string.cast_changed_connect) { _, _ -> cast.connect(device, confirmed = true) }
+            .setNegativeButton(android.R.string.cancel) { _, _ -> cast.dismissConfirmation() }
+            .setOnCancelListener { cast.dismissConfirmation() }
             .show()
     }
 

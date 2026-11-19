@@ -48,6 +48,13 @@ class CastFileServer(bindAddress: InetAddress, private val allowedClient: InetAd
         return url(trackPath) to coverPath?.let(::url)
     }
 
+    /** Like [serve] for any number of files (a film and its subtitles); returns their URLs in the same order. */
+    fun serveAll(sources: List<Source>): List<String> {
+        val paths = sources.map { "/" + token() }
+        files = paths.zip(sources).toMap()
+        return paths.map(::url)
+    }
+
     override fun close() {
         files = emptyMap()
         runCatching { serverSocket.close() }

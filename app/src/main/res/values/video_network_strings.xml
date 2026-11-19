@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- Ordo Video: films from network locations and on a TV (viewer/video/network, viewer/video/cast). -->
+<resources>
+    <string name="video_network_buffering_format">Loading … %1$d %% · %2$s</string>
+    <string name="video_network_reconnecting">Connection interrupted. Reconnecting …</string>
+    <string name="video_network_error_unreachable">Server not reachable. Ordo tries again as soon as the network is back.</string>
+    <string name="video_network_error_missing">This video is no longer on the server.</string>
+    <string name="video_library_network">Network</string>
+    <string name="video_library_network_empty">No videos in your bookmarked server folders.</string>
+    <string name="video_cast_privacy">Ordo shares only this video and its subtitles, only with this TV and only while it plays. Nothing leaves your Wi-Fi.</string>
+    <string name="video_cast_no_screen">%1$s has no screen. Choose a TV.</string>
+    <string name="video_cast_format_unsupported">TVs can\'t play %1$s videos. MP4, WebM and MKV work.</string>
+    <string name="video_cast_error_format">The TV can\'t play this video. Try another format or watch it here.</string>
+    <string name="video_cast_error_lost">Lost the connection to %1$s. The video is paused here.</string>
+    <string name="video_cast_watch_here">Watch on this phone</string>
+    <string name="video_cast_loading">Loading on the TV …</string>
+    <string name="video_cast_paused">Paused</string>
+    <string name="video_cast_subtitles">Subtitles</string>
+    <string name="video_cast_volume_format">Volume %1$d %%</string>
+    <string name="video_cast_volume_down">Quieter</string>
+    <string name="video_cast_volume_up">Louder</string>
+</resources>

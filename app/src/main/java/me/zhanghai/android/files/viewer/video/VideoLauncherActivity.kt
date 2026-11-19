@@ -31,6 +31,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.chip.Chip
 import java.text.Collator
 import java.util.Formatter
+import java.net.URI
 import java8.nio.file.Paths
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -47,6 +48,8 @@ import me.zhanghai.android.files.util.startActivitySafe
 import me.zhanghai.android.files.util.supportsExternalStorageManager
 import me.zhanghai.android.files.util.valueCompat
 import me.zhanghai.android.files.viewer.audio.musicContentWidthDp
+import me.zhanghai.android.files.viewer.video.network.VideoBuffering
+import me.zhanghai.android.files.viewer.video.network.VideoNetworkLibrary
 
 /**
  * What the "Ordo Video" icon opens: "Continue watching" from the player's saved places, then every video on the
@@ -60,6 +63,9 @@ class VideoLauncherActivity : AppActivity(), AppAccentActivity {
     private var library: VideoLibrary? = null
     private var continueItems = emptyList<ContinueItem>()
     private var folder: String? = null
+    // The "Network" chip's videos (bookmarked server folders), read only once it is tapped.
+    private var networkVideos: List<VideoItem>? = null
+    private var networkLoading = false
     private val adapter = Adapter()
     private val timeBuilder = StringBuilder()
     private val timeFormatter = Formatter(timeBuilder)
@@ -155,10 +161,19 @@ class VideoLauncherActivity : AppActivity(), AppAccentActivity {
     private fun render() {
         val library = library
         val folders = library?.folders.orEmpty()
-        if (folder != null && folders.none { it.path == folder }) folder = null
-        renderFolders(folders)
+        val hasNetwork = VideoNetworkLibrary.folders().isNotEmpty()
+        if (folder == NETWORK && !hasNetwork) folder = null
+        if (folder != null && folder != NETWORK && folders.none { it.path == folder }) folder = null
+        renderFolders(folders, hasNetwork)
         val rows = ArrayList<Row>()
-        if (library != null) {
+        if (folder == NETWORK) {
+            val videos = networkVideos ?: VideoNetworkLibrary.cachedOrNull()?.also { networkVideos = it }
+            if (videos == null) loadNetwork()
+            if (!videos.isNullOrEmpty()) {
+                rows += Row.Section(getString(R.string.video_library_network))
+                videos.mapTo(rows) { Row.Video(it) }
+            }
+        } else if (library != null) {
             val shownContinue = continueItems.filter { folder == null || it.video.folder == folder }
                 .takeIf { Settings.VIDEO_SHOW_CONTINUE.valueCompat }.orEmpty()
             if (shownContinue.isNotEmpty()) {
@@ -176,24 +191,37 @@ class VideoLauncherActivity : AppActivity(), AppAccentActivity {
         adapter.submit(rows)
         val hasAccess = library != null || hasStorageAccess()
         binding.emptyText.setText(
-            if (hasAccess) R.string.video_library_empty else R.string.video_library_access_message
+            when {
+                folder == NETWORK -> R.string.video_library_network_empty
+                hasAccess -> R.string.video_library_empty
+                else -> R.string.video_library_access_message
+            }
         )
-        binding.accessButton.isVisible = !hasAccess
-        binding.emptyGroup.isVisible = rows.isEmpty() && (library != null || !hasAccess)
+        binding.accessButton.isVisible = !hasAccess && folder != NETWORK
+        binding.emptyGroup.isVisible = if (folder == NETWORK) {
+            rows.isEmpty() && networkVideos != null
+        } else {
+            rows.isEmpty() && (library != null || !hasAccess)
+        }
     }
 
-    /** "All" and one chip per folder (newest video first); hidden with fewer than two folders. */
-    private fun renderFolders(folders: List<VideoFolder>) {
+    /**
+     * "All", one chip per folder (newest video first) and "Network" when there are bookmarked server folders; hidden
+     * when there is nothing to choose.
+     */
+    private fun renderFolders(folders: List<VideoFolder>, hasNetwork: Boolean) {
         val group = binding.folders
-        binding.folderScroller.isVisible = folders.size > 1
-        val wanted = listOf<String?>(null) + folders.map { it.path }
+        binding.folderScroller.isVisible = folders.size > 1 || hasNetwork
+        val wanted = listOf<String?>(null) + folders.map { it.path } + listOfNotNull(NETWORK.takeIf { hasNetwork })
         if (group.childCount != wanted.size || wanted.indices.any { group.getChildAt(it).tag != wanted[it] }) {
             group.removeAllViews()
             for (path in wanted) {
                 group.addView(Chip(this, null, com.google.android.material.R.attr.chipStyle).apply {
                     id = View.generateViewId()
                     tag = path
-                    text = folders.find { it.path == path }?.name ?: getString(R.string.video_library_all)
+                    text = folders.find { it.path == path }?.name ?: getString(
+                        if (path == NETWORK) R.string.video_library_network else R.string.video_library_all
+                    )
                     isCheckable = true
                     setOnClickListener {
                         if (folder != path) {
@@ -234,10 +262,27 @@ class VideoLauncherActivity : AppActivity(), AppAccentActivity {
         adapter.notifyDataSetChanged()
     }
 
+    /** Reads the bookmarked server folders once the "Network" chip is chosen; a server that is away is skipped. */
+    private fun loadNetwork() {
+        if (networkLoading) return
+        networkLoading = true
+        lifecycleScope.launch {
+            val videos = try {
+                withContext(Dispatchers.IO) { VideoNetworkLibrary.load() }
+            } finally {
+                networkLoading = false
+            }
+            networkVideos = videos
+            if (folder == NETWORK) render()
+        }
+    }
+
     private fun play(queue: List<VideoItem>, video: VideoItem, resume: Boolean) {
         val index = queue.indexOf(video).coerceAtLeast(0)
         val intent = Intent(this, VideoPlayerActivity::class.java)
-        VideoPlayerActivity.putExtras(intent, queue.map { Paths.get(it.path) }, index, resume)
+        // Network videos carry their path's URI (smb://…); MediaStore's are plain file paths.
+        val paths = queue.map { if (VideoBuffering.isNetwork(it.path)) Paths.get(URI.create(it.path)) else Paths.get(it.path) }
+        VideoPlayerActivity.putExtras(intent, paths, index, resume)
         startActivitySafe(intent)
     }
 
@@ -284,11 +329,17 @@ class VideoLauncherActivity : AppActivity(), AppAccentActivity {
         item.root.contentDescription =
             listOfNotNull(title, video.title.takeIf { it != title }, duration, item.info.text).joinToString(", ")
         item.root.setOnClickListener {
+            if (VideoBuffering.isNetwork(video.path)) {
+                // The videos of the same server folder, by name, as the queue.
+                val queue = networkVideos.orEmpty().filter { it.folder == video.folder }.sortedBy { it.title.lowercase() }
+                return@setOnClickListener play(queue, video, resume = false)
+            }
             val library = library ?: return@setOnClickListener
             play(library.queueOf(video), video, resume = positionMs != null)
         }
-        // A long press shows "Video info" (TalkBack names the action).
+        // A long press shows "Video info" (TalkBack names the action); not for server videos (it would read the file).
         item.root.setOnLongClickListener {
+            if (VideoBuffering.isNetwork(video.path)) return@setOnLongClickListener false
             lifecycleScope.launch {
                 // The same tracks the player shows (Media3's extractors), the file's own size, folder and date.
                 val path = Paths.get(video.path)
@@ -474,6 +525,7 @@ class VideoLauncherActivity : AppActivity(), AppAccentActivity {
 
     companion object {
         private const val STATE_FOLDER = "folder"
+        private const val NETWORK = "ordo:network"
         private const val TYPE_SECTION = 0
         private const val TYPE_CONTINUE = 1
         private const val TYPE_VIDEO = 2
