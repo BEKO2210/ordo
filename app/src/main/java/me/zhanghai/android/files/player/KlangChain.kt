@@ -362,6 +362,11 @@ class AudioRenderersFactory(
     context: Context,
     private val audioProcessors: Array<AudioProcessor>
 ) : DefaultRenderersFactory(context) {
+    init {
+        // Platform decoders first, FFmpeg (AC3/E-AC3/DTS/TrueHD) only for what the device cannot decode.
+        setExtensionRendererMode(EXTENSION_RENDERER_MODE_ON)
+    }
+
     override fun buildAudioSink(
         context: Context,
         enableFloatOutput: Boolean,

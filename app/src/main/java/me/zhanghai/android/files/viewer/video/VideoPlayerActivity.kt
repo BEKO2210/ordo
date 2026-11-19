@@ -54,6 +54,7 @@ import androidx.media3.common.Tracks
 import androidx.media3.common.VideoSize
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.common.util.Util
+import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.mediacodec.MediaCodecDecoderException
 import androidx.media3.exoplayer.mediacodec.MediaCodecRenderer
@@ -246,6 +247,11 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity {
         userOrientation = savedInstanceState?.getBoolean(STATE_USER_ORIENTATION) == true
         val player = ExoPlayer.Builder(this)
             .setMediaSourceFactory(DefaultMediaSourceFactory(PathDataSource.Factory(this)))
+            // Platform decoders first, FFmpeg (AC3/E-AC3/DTS/TrueHD) only for what the device cannot decode.
+            .setRenderersFactory(
+                DefaultRenderersFactory(this)
+                    .setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON)
+            )
             .setAudioAttributes(
                 AudioAttributes.Builder().setUsage(C.USAGE_MEDIA).setContentType(C.AUDIO_CONTENT_TYPE_MOVIE).build(),
                 true

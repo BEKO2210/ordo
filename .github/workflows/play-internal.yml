@@ -74,6 +74,9 @@ jobs:
           fi
           echo "upload=$upload" >> "$GITHUB_OUTPUT"
 
+      - name: Install the NDK for FFmpeg (utils/ffmpeg-audio/build.sh runs before AGP would fetch it)
+        run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --install 'ndk;30.0.16248370' > /dev/null
+
       - name: Unit tests
         run: ./gradlew testDebugUnitTest
 

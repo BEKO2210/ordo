@@ -19,6 +19,8 @@ jobs:
       with:
         distribution: 'temurin'
         java-version: '21'
+    - name: Install the NDK for FFmpeg (utils/ffmpeg-audio/build.sh runs before AGP would fetch it)
+      run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --install 'ndk;30.0.16248370' > /dev/null
     - name: Build with Gradle
       run: ./gradlew assembleDebug testDebugUnitTest lintVitalRelease
     - name: Upload artifact
