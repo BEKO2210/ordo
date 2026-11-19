@@ -101,4 +101,14 @@ class SubtitleLogicTest {
         assertEquals(SubtitleStyle(), SubtitleStyle.decode("??"))
         assertEquals(SubtitleStyle(), SubtitleStyle.decode(null))
     }
+
+    @Test
+    fun understandBetterPicksPreferredEvenWhenAudioIsInIt() {
+        // VideoSubtitles.turnOnForUnderstanding passes no audio language and no remembered choice.
+        val de = SubtitleChoice.Candidate(SubtitleChoice.File("file:///f.de.srt"), "de")
+        val en = SubtitleChoice.Candidate(SubtitleChoice.Track("1", "en"), "en")
+        assertEquals(de.choice, SubtitleChoice.pick(null, true, "de", null, listOf(de), listOf(en)))
+        assertEquals(null, SubtitleChoice.pick(null, true, "de", null, emptyList(), listOf(en)))
+    }
 }
+

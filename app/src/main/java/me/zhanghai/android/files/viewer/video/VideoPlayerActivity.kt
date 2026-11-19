@@ -334,6 +334,12 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
         // Before the items: it hears the first one start (files next to it, the remembered choice).
         subtitles = VideoSubtitles(this, player, binding.playerView, binding.bottomBar)
             .apply { holdActive = { speedBeforeHold > 0f } }
+        // "Besser verstehen" (#98) also switches subtitles on (#99); without any, the sheet's hint says they help.
+        sound.onUnderstandBetter = { on ->
+            if (on && subtitles?.turnOnForUnderstanding() != true) {
+                showHint(getString(R.string.video_sound_understand_summary), Gravity.CENTER)
+            }
+        }
         player.setMediaItems(queue.items, queue.startIndex, queue.positionMs)
         player.playWhenReady = savedInstanceState?.getBoolean(STATE_PLAY_WHEN_READY) ?: true
         // The picture decides first whether the player starts with its OpenGL pipeline (a quick probe of the file).

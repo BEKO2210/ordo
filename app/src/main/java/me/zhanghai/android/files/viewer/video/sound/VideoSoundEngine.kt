@@ -135,21 +135,44 @@ class VideoSoundEngine(private val context: Context) {
 
     /**
      * The chain's active stages in plain words, in signal order, for the picture's "Signal path" sheet (#104). The
-     * true-peak limiter is left out: it only acts on peaks above -1 dBTP and is always armed.
+     * true-peak limiter shows only through the loudness line (it applies the target); it is always armed.
      */
     fun signalStages(): List<String> {
         val value = settings
         val klang = value.klang
+        val number = java.text.NumberFormat.getInstance().apply { maximumFractionDigits = 1; minimumFractionDigits = 1 }
+        val channels = sourceChannelCount
+        // The same lines as the Klang sheet: spatializer or Ordo's mix, dialog distance, film and target loudness.
+        val layout = if (channels > 2) {
+            VideoSoundMath.channelLayout(channels) ?: context.getString(R.string.video_audio_track_channels, channels)
+        } else null
+        val reached = dialogReachedLu
+        val measured = dialogDistanceLu
+        val filmLufs = filmLufs
         return listOfNotNull(
-            context.getString(R.string.video_signal_stage_downmix)
-                .takeIf { sourceChannelCount > 2 && !systemSpatializes(sourceChannelCount) },
+            layout?.let {
+                context.getString(
+                    if (systemSpatializes(channels)) R.string.video_sound_spatial_format
+                    else R.string.video_sound_surround_format,
+                    it
+                )
+            },
             context.getString(R.string.audio_sound_mono).takeIf { klang.mono },
-            context.getString(R.string.video_sound_dialog).takeIf { value.dialogLevel != VideoSoundMath.DIALOG_OFF },
+            if (value.dialogLevel == VideoSoundMath.DIALOG_OFF) null
+            else if (reached.isNaN() || measured.isNaN()) context.getString(R.string.video_sound_dialog)
+            else context.getString(
+                R.string.video_sound_dialog_state, number.format(reached.toDouble()), number.format(measured.toDouble())
+            ),
             context.getString(R.string.video_sound_night).takeIf { value.nightMode },
             context.getString(R.string.audio_sound_equalizer).takeIf { klang.equalizerEnabled },
             context.getString(R.string.audio_sound_bass_boost).takeIf { klang.bassBoostEnabled },
             context.getString(R.string.audio_sound_balance).takeIf { klang.balance != 0 },
-            context.getString(R.string.video_sound_level).takeIf { levelled },
+            if (!klang.normalizationEnabled) null
+            else if (filmLufs == null) context.getString(R.string.video_sound_level)
+            else context.getString(
+                R.string.video_sound_level_measured, number.format(klang.loudnessTarget.lufs.toDouble()),
+                number.format(filmLufs.toDouble())
+            ),
             when {
                 delayMs > 0 -> context.getString(R.string.video_audio_sync_later, delayMs)
                 delayMs < 0 -> context.getString(R.string.video_audio_sync_earlier, -delayMs)

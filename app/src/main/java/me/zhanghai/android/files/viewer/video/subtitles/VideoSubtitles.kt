@@ -180,6 +180,20 @@ class VideoSubtitles(
         }?.first?.choice ?: SubtitleChoice.Off
     }
 
+    /**
+     * "Besser verstehen" (#98): subtitles in the preferred language (else a file without a language), unless some
+     * already show. Not remembered for the film. False when there is nothing to show.
+     */
+    fun turnOnForUnderstanding(): Boolean {
+        if (currentChoice() != SubtitleChoice.Off) return true
+        // No audio language: the "sound is already in my language" rule of the automatic choice does not apply.
+        val choice = SubtitleChoice.pick(
+            null, true, preferredLanguage(), null, fileCandidates(), trackCandidates().map { it.first }
+        ) ?: return false
+        choose(choice, remember = false)
+        return true
+    }
+
     /** Takes a subtitle file off the screen when something else picks the subtitles (#100's session command). */
     fun dropFile() = stopFile()
 
