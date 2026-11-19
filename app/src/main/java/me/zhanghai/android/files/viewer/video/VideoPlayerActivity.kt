@@ -1000,7 +1000,7 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity {
             LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT
         ).apply { topMargin = padding / 2 })
         dialog.setContentView(content)
-        dialog.show()
+        dialog.showExpanded()
     }
 
     /**

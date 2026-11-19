@@ -302,5 +302,36 @@ fun FragmentActivity.showVideoInfo(info: VideoInfo, path: Path?) {
             .apply { topMargin = padding / 2 })
     }
     dialog.setContentView(androidx.core.widget.NestedScrollView(this).apply { addView(content) })
-    dialog.show()
+    dialog.showExpanded()
+}
+
+/**
+ * Opens a sheet fully and readable everywhere: expanded at once (no peek, the W90 in landscape showed only 60 px
+ * under the navigation bar), at most 90 % of the window high with its own scrolling, above the navigation bar, and
+ * on wide windows centred at the Klang sheet's width.
+ */
+internal fun BottomSheetDialog.showExpanded() {
+    setOnShowListener {
+        val sheet = findViewById<View>(com.google.android.material.R.id.design_bottom_sheet) ?: return@setOnShowListener
+        val metrics = context.resources.displayMetrics
+        val width = minOf(metrics.widthPixels, context.resources.getDimensionPixelSize(R.dimen.klang_sheet_max_width))
+        sheet.layoutParams = sheet.layoutParams.apply { this.width = width }
+        (sheet.layoutParams as? android.widget.FrameLayout.LayoutParams)?.gravity =
+            android.view.Gravity.CENTER_HORIZONTAL
+        behavior.maxWidth = width
+        behavior.maxHeight = (metrics.heightPixels * 0.9f).toInt()
+        behavior.skipCollapsed = true
+        behavior.isFitToContents = true
+        behavior.state = com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_EXPANDED
+        // The last row and the button stay above the navigation bar (gesture strip or three buttons).
+        val content = (sheet as? android.view.ViewGroup)?.getChildAt(0) ?: return@setOnShowListener
+        val basePadding = content.paddingBottom
+        androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(content) { view, insets ->
+            val bottom = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.navigationBars()).bottom
+            view.setPadding(view.paddingLeft, view.paddingTop, view.paddingRight, basePadding + bottom)
+            insets
+        }
+        androidx.core.view.ViewCompat.requestApplyInsets(content)
+    }
+    show()
 }
