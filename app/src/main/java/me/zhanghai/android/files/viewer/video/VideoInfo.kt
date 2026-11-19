@@ -289,7 +289,7 @@ data class VideoInfo(
  * The sheet itself: label over value, a long press copies the value; at the bottom "All file details" opens the file
  * manager's properties for whoever wants owner, permissions and checksums.
  */
-fun FragmentActivity.showVideoInfo(info: VideoInfo, path: Path?) {
+fun FragmentActivity.showVideoInfo(info: VideoInfo, path: Path?, onSignalPath: (() -> Unit)? = null) {
     val dialog = BottomSheetDialog(this)
     val padding = resources.getDimensionPixelSize(R.dimen.phi_21)
     val content = LinearLayout(this).apply {
@@ -364,6 +364,19 @@ fun FragmentActivity.showVideoInfo(info: VideoInfo, path: Path?) {
         DateUtils.formatDateTime(this, it, DateUtils.FORMAT_SHOW_DATE or DateUtils.FORMAT_SHOW_TIME or
             DateUtils.FORMAT_SHOW_YEAR)
     })
+    // From the player: what happens to picture and sound on the way (viewer/video/picture).
+    if (onSignalPath != null) {
+        content.addView(MaterialButton(this, null, androidx.appcompat.R.attr.borderlessButtonStyle).apply {
+            setText(R.string.video_info_signal_path)
+            isAllCaps = false
+            minHeight = resources.getDimensionPixelSize(R.dimen.phi_55)
+            setOnClickListener {
+                dialog.dismiss()
+                onSignalPath()
+            }
+        }, LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+            .apply { topMargin = padding / 2 })
+    }
     if (path != null) {
         content.addView(MaterialButton(this, null, androidx.appcompat.R.attr.borderlessButtonStyle).apply {
             setText(R.string.video_info_all_details)

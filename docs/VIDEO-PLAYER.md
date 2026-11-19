@@ -177,6 +177,47 @@ Zeile kopiert den Wert. Unten „Alle Dateidetails“ öffnet die bisherigen Eig
 Prüfsummen; deren Reiter passen sich jetzt an (`tabMode="auto"`, schmalere Ränder, weiche Kante, wenn gescrollt werden
 kann), auch für Audiodateien (dasselbe Fenster).
 
+## Bild (`viewer/video/picture/`)
+
+Quelle der Entscheidungen: `ordo-team/QUALITAET-PANEL.md`, Ideen 1–4. Logik ohne Android in `PicturePolicy` und
+`SignalPath`, getestet in `PicturePolicyTest`.
+
+- **Bildrate anpassen** (Einstellungen › Bild): Aus / Nur nahtlos (Standard) / Immer. „Nur nahtlos“ ist Media3s eigenes
+  Verhalten (`Surface.setFrameRate` mit `ONLY_IF_SEAMLESS`, Bildrate × Tempo). „Immer“ schaltet Media3s Strategie aus und
+  ruft ab API 31 selbst `setFrameRate(fps, FIXED_SOURCE, CHANGE_FRAME_RATE_ALWAYS)` mit der Bildrate der Datei (nicht
+  × Tempo, sonst schaltet „Halten für 2×“ den Bildschirm jedes Mal um); auf API 30 gilt dann „nur nahtlos“. Beim
+  Verlassen des Players, im Bild-im-Bild und bei neuer Oberfläche wird die eigene Rate zurückgenommen bzw. neu gesetzt
+  (`FrameRateMatcher`). Wie lange der Bildschirm beim Umschalten schwarz wird, ist nicht gemessen.
+- **Bildverbesserung** (Einstellungen › Bild: Aus / Ausgewogen (Standard) / Maximal; ⋮ › „Bildverbesserung“ zum
+  Vergleichen): nur bei SDR ohne DRM, wenn das Video mindestens 1,15-fach vergrößert gezeigt wird. Dann
+  `LanczosResample` (Media3, Radius 3) genau auf die Größe der Oberfläche und danach **ein** eigener Shader-Pass
+  (`PictureShader`): Entbändern nach libplacebo (`pl_shader_deband`), Schärfen nach AMD FidelityFX CAS, Körnung und
+  TPDF-Dither ±1 LSB. Ein Pass, weil Media3s SDR-Kette jeden Pass in 8 bit speichert. Wo das Entbändern eine glatte
+  Fläche erkennt, wird nicht geschärft (CAS verstärkt sonst genau die Stufenkanten). Werte: Ausgewogen CAS 0,4, ein
+  Schritt, Schwelle 3/1000, Körnung 2/1000; Maximal CAS 0,8, zwei Schritte, Schwelle 4/1000, Körnung 4/1000; Radius 16
+  Quellpixel × Vergrößerung, höchstens 64.
+- **Pipeline:** Der Player startet ohne Media3s OpenGL-Kette (HDR, Dolby Vision und große Videos gehen direkt vom
+  Decoder auf den Bildschirm). Media3 baut die Kette nur beim Zurücksetzen des Renderers und behält sie danach
+  (`MediaCodecVideoRenderer.onEnabled`): Einschalten setzt die Effekte und bereitet einmal neu vor (`stop()` +
+  `prepare()`, Stelle bleibt); ein weiteres SDR-Video ohne Verbesserung bekommt eine leere Effektliste; ein HDR- oder
+  DRM-Video danach baut den Bildschirm neu auf (`recreate()`), der wieder ohne Kette startet. Pausiert wird nach dem
+  Umschalten an dieselbe Stelle gesprungen, damit das stehende Bild die neuen Effekte zeigt.
+- **Ruckeln:** Meldet Media3 mehr als 2 verworfene Bilder pro Sekunde (in einem Block von mindestens 10), schaltet die
+  Verbesserung für diesen Bildschirm ab, mit einem ruhigen Hinweis oben (einmal). Scheitert die GPU an der Kette
+  (Fehler 7000/7001), versucht Ordo es bis zum nächsten Prozessstart nicht wieder.
+- **Messen am Gerät:** `adb shell setprop log.tag.OrdoVideoPicture DEBUG`, Video neu öffnen, `adb logcat -s
+  OrdoVideoPicture`: Entscheidung je Video, GPU-Zeit je Bild (nur mit Log, per `glFinish`) und alle 120 Bilder
+  Mittel und Maximum. Wert bisher **nicht gemessen**.
+- **Signalweg** (⋮ › „Signalweg“ und Knopf in „Videoinfos“): Bild: Decoder (Hardware/Software, Name), Format,
+  Auflösung ein → aus (Lanczos oder vom Bildschirm skaliert), HDR-Art und ob der Bildschirm sie zeigt oder Android auf
+  SDR umrechnet, Bildrate mit Bildschirm-Hz und Modus, aktive Stufen bzw. der Grund, warum nicht, verworfene Bilder.
+  Ton: Format, Decoder (bei Durchreichen „keiner“), Klang-Stufen (im Video-Player bisher nur Tempo), Ausgabegerät (ab
+  API 33 von Android, davor das wahrscheinlichste angeschlossene), Abtastrate gegen Androids Ausgaberate, Kanäle mit
+  Abmischung oder System-Raumklang. „Unverfälscht“ steht nur, wenn nichts verändert. Aktualisiert sich jede Sekunde.
+- **Lizenzen:** CAS MIT (Text im Kopf von `PictureShader.kt`), libplacebo LGPL-2.1-or-later (nach §3 als GPL-3.0
+  weitergegeben); beide in `res/raw/licenses.xml`. Neue Abhängigkeit `media3-effect` 1.11.1.
+- **Gerätetest:** `e2e/video-picture.sh` (`--write`-Liste in `e2e/run.sh`).
+
 ## Nächster Schritt (entschieden, noch nicht begonnen)
 
 Media3-FFmpeg-Erweiterung nur für Ton, gebaut mit den Decodern ac3, eac3, dts, truehd und mlp: günstige Geräte (W90)

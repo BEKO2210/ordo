@@ -10,4 +10,13 @@
         android:id="@+id/actionFileInfo"
         android:title="@string/video_player_file_info"
         app:showAsAction="never" />
+    <item
+        android:id="@+id/actionPictureEnhance"
+        android:title="@string/video_picture_toggle"
+        android:checkable="true"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/actionSignalPath"
+        android:title="@string/video_signal_title"
+        app:showAsAction="never" />
 </menu>

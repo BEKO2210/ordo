@@ -1,0 +1,134 @@
+#!/bin/bash
+# Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later
+# Ordo Video's picture, WRITES: creates /storage/emulated/0/ordo-e2e-picture with clips made by ffmpeg on the host and
+# removes it again; switches the debug log on (setprop log.tag.OrdoVideoPicture DEBUG) and off.
+# A 640x360 24p SDR clip (a slow gradient, where banding shows) gets the enhancement: the log says ENGAGE, frames are
+# processed and their GPU time is printed (mean and maximum per 120 frames, to compare devices); ⋮ › Signal path names
+# the decoder, "Lanczos 3" and the sound; ⋮ › Picture enhancement switches it off (CLEAR) and on again (APPLY) with a
+# hint; a clip exactly the screen's size is left alone (NOT_SMALLER); with "Match frame rate: Always" Ordo asks for
+# 24 fps itself (API 31+), "Only when seamless" is put back; an HDR10 clip (if ffmpeg has libx265) stays plain; Video
+# info links to the signal path; the settings page has the "Picture" group. Whether the picture LOOKS better, and how
+# long the screen blinks under "Always", is judged by eye: screenshots are saved for that. Needs ffmpeg on the host.
+. "$(dirname "$0")/lib.sh" "$@"
+DIR=/storage/emulated/0/ordo-e2e-picture
+TAG=OrdoVideoPicture
+tmp=$(mktemp -d)
+out=${OUT:-/tmp/ordo-e2e-picture}; mkdir -p "$out"
+trap 'a shell "rm -rf $DIR"; a shell setprop log.tag.$TAG "\"\""; rm -rf "$tmp"' EXIT
+command -v ffmpeg >/dev/null || { echo "SKIP video picture (no ffmpeg on the host)"; exit 0; }
+
+read -r W H < <(screen_size)
+long=$(( (W > H ? W : H) / 2 * 2 )); short=$(( (W > H ? H : W) / 2 * 2 ))
+# A slow dark gradient in 8 bit bands visibly on every screen; the moving box gives the sharpening edges.
+ffmpeg -v error -f lavfi -i "gradients=size=640x360:rate=24:duration=20:c0=0x101820:c1=0x283848:speed=0.002" \
+    -f lavfi -i "sine=frequency=440:duration=20" -vf "drawbox=x=t*20:y=150:w=60:h=60:color=white@0.8:t=fill" \
+    -c:v libx264 -preset veryfast -pix_fmt yuv420p -c:a aac -b:a 128k -shortest "$tmp/01-small.mp4" \
+    || echo "FAIL ffmpeg could not make 01-small.mp4"
+ffmpeg -v error -f lavfi -i "testsrc2=size=${long}x${short}:rate=30:duration=8" -f lavfi -i "sine=frequency=550:duration=8" \
+    -c:v libx264 -preset ultrafast -pix_fmt yuv420p -c:a aac -shortest "$tmp/02-screen.mp4" \
+    || echo "FAIL ffmpeg could not make 02-screen.mp4"
+hdr=0
+if ffmpeg -v error -hide_banner -encoders 2>/dev/null | grep -q libx265; then
+    ffmpeg -v error -f lavfi -i "testsrc2=size=1280x720:rate=30:duration=8" -c:v libx265 -preset ultrafast \
+        -pix_fmt yuv420p10le -x265-params "colorprim=bt2020:transfer=smpte2084:colormatrix=bt2020nc:log-level=error" \
+        -tag:v hvc1 "$tmp/03-hdr.mp4" && hdr=1
+fi
+a shell "rm -rf $DIR; mkdir -p $DIR"
+a push "$tmp/." "$DIR/" >/dev/null
+
+wake; grant; a logcat -b crash -c
+a shell am force-stop "$PKG"
+a shell setprop log.tag.$TAG DEBUG
+log() { a logcat -d -s "$TAG:D" | tr -d '\r'; }
+open_folder() {
+    a shell am start -W -a android.intent.action.VIEW -d "file://$DIR" -t inode/directory \
+        -n "$PKG/me.zhanghai.android.files.filelist.FileListActivity" >/dev/null
+    sleep 3; guard; ui wait "$1" 10 >/dev/null
+}
+menu() { ui tap "Weitere Optionen|More options" >/dev/null; sleep 1; ui tap "$1" >/dev/null; sleep 1.5; }
+settings_pick() {
+    a shell am start -W -n "$PKG/me.zhanghai.android.files.viewer.video.VideoLauncherActivity" >/dev/null; sleep 2; guard
+    ui tap actionSettings >/dev/null; sleep 2
+    ui tap "$1" >/dev/null; sleep 1.5
+    ui tap "$2" >/dev/null; sleep 1.5
+    back 1; back 1
+}
+
+# 1. The settings page has the Picture group with both rows and their defaults.
+a shell am start -W -n "$PKG/me.zhanghai.android.files.viewer.video.VideoLauncherActivity" >/dev/null; sleep 2; guard
+ui tap actionSettings >/dev/null; sleep 2
+check "the settings have Picture enhancement, balanced by default" ui wait "Ausgewogen|Balanced" 5
+check "and Match frame rate, only when seamless by default" ui has "Nur nahtlos|Only when seamless"
+back 1; back 1
+
+# 2. A small SDR clip: the pipeline engages and frames are processed; their GPU time goes to the report.
+a logcat -c
+open_folder 01-small.mp4
+ui tap 01-small.mp4 >/dev/null
+check "the small clip opens Ordo's player" wait_on viewer.video.VideoPlayerActivity 8
+sleep 8
+check "a 360p clip on this screen engages the enhancement" eval 'log | grep -q -- "-> ENGAGE"'
+check "frames go through the enhancement pass" eval 'log | grep -qE "frame [0-9]+ [0-9]+x[0-9]+ [0-9.]+ ms"'
+log | grep "last 120 frames" | tail -3 | sed 's/^/INFO GPU time /'
+log | grep "dropped" | tail -2 | sed 's/^/INFO /'
+a shell input keyevent KEYCODE_MEDIA_PAUSE; sleep 1
+a exec-out screencap -p > "$out/small-enhanced.png"
+
+# 3. The signal path: decoder, Lanczos, sound.
+menu "Signalweg|Signal path"
+check "Signal path opens" ui wait "Signalweg|Signal path" 5
+check "it names the decoder as hardware or software" ui has "Decoder: Hardware|Decoder: Software"
+check "it shows the Lanczos upscale" ui has "Lanczos 3"
+check "it has the sound section with the output" ui has "Ausgabe: |Output: "
+a exec-out screencap -p > "$out/signal-path.png"
+back 1
+
+# 4. The ⋮ toggle compares: off clears the effects, on applies them again.
+a logcat -c
+menu "Bildverbesserung|Picture enhancement"
+check "the toggle switches it off with a hint" ui wait "Bildverbesserung aus|Picture enhancement off" 3
+check "and clears the effects" eval 'log | grep -q -- "-> CLEAR"'
+a exec-out screencap -p > "$out/small-plain.png"
+menu "Bildverbesserung|Picture enhancement"
+check "switched on again it applies them" eval 'log | grep -q -- "-> APPLY"'
+back 2
+
+# 5. A clip as large as the screen gets nothing.
+a logcat -c
+open_folder 02-screen.mp4
+ui tap 02-screen.mp4 >/dev/null; wait_on viewer.video.VideoPlayerActivity 8; sleep 4
+check "a clip as large as the screen is left alone (${long}x$short)" eval 'log | grep -q "NOT_SMALLER"'
+back 2
+
+# 6. "Always" asks for 24 fps itself from API 31; "Only when seamless" leaves it to Media3.
+sdk=$(a shell getprop ro.build.version.sdk | tr -d '\r')
+settings_pick "Bildrate anpassen|Match frame rate" "Immer|Always"
+a logcat -c
+open_folder 01-small.mp4
+ui tap 01-small.mp4 >/dev/null; wait_on viewer.video.VideoPlayerActivity 8; sleep 4
+if [ "${sdk:-0}" -ge 31 ]; then
+    check "under Always Ordo asks the screen for 24 fps" eval 'log | grep -q "setFrameRate 24.0 ALWAYS"'
+    a shell dumpsys display | grep -m2 -oE "renderFrameRate [0-9.]+|mActiveRenderFrameRate=[0-9.]+|refreshRate=[0-9.]+" \
+        | sed 's/^/INFO display /'
+else
+    echo "SKIP frame rate Always (API $sdk < 31: only seamless exists)"
+fi
+back 2
+settings_pick "Bildrate anpassen|Match frame rate" "Nur nahtlos|Only when seamless"
+
+# 7. HDR stays plain, and Video info links to the signal path.
+if [ "$hdr" = 1 ]; then
+    a logcat -c
+    open_folder 03-hdr.mp4
+    ui tap 03-hdr.mp4 >/dev/null; wait_on viewer.video.VideoPlayerActivity 8; sleep 4
+    check "an HDR10 clip is not processed" eval 'log | grep -q "off=HDR" && ! log | grep -q -- "-> ENGAGE"'
+    a shell input keyevent KEYCODE_MEDIA_PAUSE; sleep 1
+    menu "Videoinfos|Video info"
+    ui tap "Signalweg|Signal path" >/dev/null; sleep 1.5
+    check "Video info opens the signal path, which names HDR10" ui wait "HDR: HDR10" 5
+    back 1; back 2
+else
+    echo "SKIP HDR clip (ffmpeg without libx265)"
+fi
+
+finish

@@ -300,4 +300,18 @@
         <copyright>Copyright (c) 2026 Auxio Project</copyright>
         <license>GNU General Public License 3.0</license>
     </notice>
+
+    <notice>
+        <name>AMD FidelityFX CAS (Ordo Video's sharpening)</name>
+        <url>https://github.com/GPUOpen-Effects/FidelityFX-CAS</url>
+        <copyright>Copyright (c) 2020 Advanced Micro Devices, Inc.</copyright>
+        <license>MIT License</license>
+    </notice>
+
+    <notice>
+        <name>libplacebo (Ordo Video's debanding)</name>
+        <url>https://github.com/haasn/libplacebo</url>
+        <copyright>Copyright Niklas Haas and the libplacebo contributors</copyright>
+        <license>GNU Lesser General Public License 2.1</license>
+    </notice>
 </notices>

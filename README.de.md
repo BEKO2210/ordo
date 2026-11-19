@@ -228,6 +228,7 @@ Aus dem Play-Eintrag, `fastlane/metadata/android/de-DE/full_description.txt`.
 - Musik-Player mit Cover, Warteschlange und Steuerung auf dem Sperrbildschirm und per Kopfhörer
 - Klang: 10-Band-Equalizer, Bass, Lautstärke angleichen, Einschlaf-Timer
 - Video-Player mit Weiterschauen, Wischgesten, Schleife und Videoinfos
+- Schärfere kleine Videos (Lanczos-Hochskalieren, Schärfen, Entbändern), Bildrate passend zum Film und ein „Signalweg“, der zeigt, was mit Bild und Ton passiert
 - „Abspielen auf …“: Musik an Bluetooth-Kopfhörer, Lautsprecher oder ein Cast-Gerät schicken
 - Auf Wunsch eigene Symbole „Ordo Musik“ und „Ordo Video“
 

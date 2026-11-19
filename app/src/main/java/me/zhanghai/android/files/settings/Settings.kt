@@ -193,6 +193,11 @@ object Settings {
         StringSettingLiveData(R.string.pref_key_video_resize, R.string.pref_default_value_video_resize)
     val VIDEO_ORIENTATION: SettingLiveData<String> =
         StringSettingLiveData(R.string.pref_key_video_orientation, R.string.pref_default_value_video_orientation)
+    /** Ordo Video's picture (viewer/video/picture/PicturePolicy.kt): frame rate matching and enhancement. */
+    val VIDEO_FRAME_RATE: SettingLiveData<String> =
+        StringSettingLiveData(R.string.pref_key_video_frame_rate, R.string.pref_default_value_video_frame_rate)
+    val VIDEO_PICTURE: SettingLiveData<String> =
+        StringSettingLiveData(R.string.pref_key_video_picture, R.string.pref_default_value_video_picture)
     val VIDEO_KEEP_SCREEN_ON: SettingLiveData<Boolean> =
         BooleanSettingLiveData(R.string.pref_key_video_keep_screen_on, R.bool.pref_default_value_true)
     val VIDEO_GESTURE_BRIGHTNESS: SettingLiveData<Boolean> =
