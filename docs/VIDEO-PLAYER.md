@@ -200,10 +200,15 @@ Decodern.
   --disable-v4l2-m2m --disable-vulkan --enable-decoder=…` je Decoder.
 - **Nicht in git:** Die `.so` (je ABI gut 1 MB, zusammen über 3 MB) baut Gradle selbst: `:ffmpeg:buildFfmpegAudio`
   läuft vor `preBuild`, einmal je Checkout (rund eine Minute, braucht Netz, git, make, cmake und das NDK) und legt sie
-  in `ffmpeg/build/ffmpeg-audio/<abi>/`. Neu nur, wenn sich das Skript ändert oder `clean` lief. Die CI installiert
-  vorher das NDK (`android.yml`, `play-internal.yml`). In git liegen nur Media3s Java-Quellen und
-  `proguard-rules.txt`, unverändert; das Skript schreibt sie bei jedem Lauf neu, ein Media3-Update zeigt sich also als
-  Diff.
+  in `ffmpeg/build/ffmpeg-audio/<abi>/`. Neu nur, wenn sich das Skript ändert oder `clean` lief. In git liegen
+  Media3s Java-Quellen und `proguard-rules.txt` (aus `libraries/decoder_ffmpeg` des Tags, unverändert); bei einem
+  Media3-Update von Hand neu kopieren, das Skript fasst sie nicht an.
+- **Lieferkette:** Das Skript führt fremde Skripte aus (`build_ffmpeg.sh`, FFmpegs `configure`). Darum sind beide
+  Quellen auf Commits festgenagelt (`MEDIA3_SHA` 8c6678b6… für Tag 1.11.1, `FFMPEG_SHA` c41ff724… für n6.0.1); nach
+  dem Klonen bricht es ab, wenn `git rev-parse HEAD` abweicht (ein umgehängter Tag fällt so auf). In der CI läuft der
+  Bau in einem eigenen Schritt „Build FFmpeg audio decoders“ (NDK installieren, `:ffmpeg:buildFfmpegAudio`, `.so`
+  prüfen), in `play-internal.yml` vor dem Schritt, der den Signierschlüssel schreibt; spätere Gradle-Aufrufe
+  überspringen ihn mit `-x :ffmpeg:buildFfmpegAudio`.
 - **16 KB:** NDK 30 linkt mit 16-KB-Seiten; `utils/check-16k.sh` auf Beta-APK und -AAB grün
   (`libffmpegJNI.so` LOAD align 0x4000).
 - **Größe** (Beta, 19.11.2026, `bundletool get-size total --dimensions=ABI`, Download MIN): arm64-v8a
