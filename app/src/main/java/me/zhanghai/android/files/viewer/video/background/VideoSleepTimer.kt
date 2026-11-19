@@ -71,6 +71,15 @@ class VideoSleepTimer(private val player: Player, private val handler: Handler) 
         if (isActive) handler.post(tick)
     }
 
+    /** Picks up a running timer on a recreated screen: the same [minutes] (for the sheet), [remainingMs] left. */
+    fun restore(minutes: Int, remainingMs: Long, endOfVideo: Boolean) {
+        set(0, endOfVideo)
+        if (minutes <= 0) return
+        this.minutes = minutes
+        deadlineElapsedMs = SystemClock.elapsedRealtime() + remainingMs.coerceAtLeast(0L)
+        handler.post(tick)
+    }
+
     fun cancel() {
         handler.removeCallbacks(tick)
         deadlineElapsedMs = null

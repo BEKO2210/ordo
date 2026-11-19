@@ -113,7 +113,9 @@ class VideoBackgroundController(
     private val repeat: () -> VideoRepeatMode,
     private val setRepeat: (VideoRepeatMode) -> Unit,
     // Tresor videos: no "Sound only" service and notification, no picture-in-picture (library-pro, #101).
-    private val vault: Boolean = false
+    private val vault: Boolean = false,
+    // A subtitle language set by command replaces the subtitle file on screen (#99): one source at a time.
+    private val onSubtitleTracksChosen: () -> Unit = {}
 ) {
     private val handler = Handler(Looper.getMainLooper())
     val sleepTimer = VideoSleepTimer(player, handler)
@@ -395,11 +397,15 @@ class VideoBackgroundController(
     private fun setLanguage(type: Int, language: String?): Boolean {
         val builder = player.trackSelectionParameters.buildUpon().clearOverridesOfType(type)
         if (language.isNullOrBlank()) {
-            if (type == C.TRACK_TYPE_TEXT) builder.setTrackTypeDisabled(C.TRACK_TYPE_TEXT, true)
+            if (type == C.TRACK_TYPE_TEXT) {
+                onSubtitleTracksChosen()
+                builder.setTrackTypeDisabled(C.TRACK_TYPE_TEXT, true)
+            }
             player.trackSelectionParameters = builder.build()
             return true
         }
         val track = VideoSelection.matchTrack(tracks(type), language) ?: return false
+        if (type == C.TRACK_TYPE_TEXT) onSubtitleTracksChosen()
         val group = player.currentTracks.groups[track.groupIndex]
         builder.setTrackTypeDisabled(type, false)
             .setOverrideForType(TrackSelectionOverride(group.mediaTrackGroup, track.trackIndex))

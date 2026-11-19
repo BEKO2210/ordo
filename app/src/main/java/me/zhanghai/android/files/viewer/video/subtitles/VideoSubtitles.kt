@@ -175,6 +175,9 @@ class VideoSubtitles(
         }?.first?.choice ?: SubtitleChoice.Off
     }
 
+    /** Takes a subtitle file off the screen when something else picks the subtitles (#100's session command). */
+    fun dropFile() = stopFile()
+
     /** Shows [choice]; a choice by the viewer is remembered for this film. */
     fun choose(choice: SubtitleChoice, remember: Boolean = true) {
         val parameters = player.trackSelectionParameters.buildUpon().clearOverridesOfType(C.TRACK_TYPE_TEXT)

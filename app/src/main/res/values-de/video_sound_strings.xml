@@ -27,4 +27,5 @@
     <string name="video_audio_sync_later_button">Ton später</string>
     <string name="video_sound_balance_left_button">Mehr links</string>
     <string name="video_sound_balance_right_button">Mehr rechts</string>
+    <string name="video_signal_stage_downmix">Ordo-Mix auf Stereo</string>
 </resources>

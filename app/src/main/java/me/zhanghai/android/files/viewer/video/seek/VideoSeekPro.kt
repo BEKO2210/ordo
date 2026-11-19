@@ -14,6 +14,7 @@ import android.media.AudioManager
 import android.media.MediaScannerConnection
 import android.net.Uri
 import android.os.Build
+import android.os.Bundle
 import android.os.Environment
 import android.os.Handler
 import android.os.Looper
@@ -460,6 +461,23 @@ internal class VideoSeekPro(
         ?.let { group -> (0 until group.length).firstOrNull(group::isTrackSelected)?.let(group::getTrackFormat) }
         ?.frameRate?.takeIf { it > 0f } ?: SeekLogic.FALLBACK_FPS
 
+    /** A-B loop and zoom across a recreated screen (the picture's pipeline rebuild, #104). */
+    fun saveState(outState: Bundle) {
+        outState.putLongArray(STATE_AB, longArrayOf(ab.aMs, ab.bMs))
+        outState.putFloatArray(STATE_ZOOM, floatArrayOf(zoom, panX, panY))
+    }
+
+    fun restoreState(state: Bundle?) {
+        state?.getLongArray(STATE_AB)?.takeIf { it.size == 2 }?.let { setAb(SeekLogic.AbRepeat(it[0], it[1])) }
+        state?.getFloatArray(STATE_ZOOM)?.takeIf { it.size == 3 }?.let {
+            zoom = SeekLogic.clampZoom(it[0])
+            panX = it[1]
+            panY = it[2]
+            // Before layout the pan would clamp to 0; the root's layout listener applies it then.
+            if (binding.root.width > 0) applyZoom()
+        }
+    }
+
     // ---- A-B ----
 
     private fun pressAb() {
@@ -777,6 +795,8 @@ internal class VideoSeekPro(
     }
 
     companion object {
+        private const val STATE_AB = "seekPro.ab"
+        private const val STATE_ZOOM = "seekPro.zoom"
         private const val MAX_SNAPSHOT_PX = 3840
         private const val JPEG_QUALITY = 95
         private const val TWO_FINGER_TAP_MS = 300L

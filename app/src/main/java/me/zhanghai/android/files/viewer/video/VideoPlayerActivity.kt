@@ -306,11 +306,14 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
         // Background sound, picture-in-picture, sleep timer and the session (VideoBackgroundController).
         background = VideoBackgroundController(
             this, binding, player, "$SESSION_ID.${UUID.randomUUID()}", { repeatMode },
-            { mode -> Settings.VIDEO_END.putValue(mode.name); applyRepeatMode(mode) }, vault = isVault
+            { mode -> Settings.VIDEO_END.putValue(mode.name); applyRepeatMode(mode) }, vault = isVault,
+            onSubtitleTracksChosen = { subtitles?.dropFile() }
         )
         session = background?.session
         binding.playerView.player = player
-        picture = VideoPicture(this, binding.playerView, ::showPictureNotice).also {
+        picture = VideoPicture(
+            this, binding.playerView, ::showPictureNotice, { videoSound?.signalStages().orEmpty() }
+        ).also {
             it.attach(player)
             binding.toolbar.menu.findItem(R.id.actionPictureEnhance)?.isChecked = it.switchedOn
         }
@@ -338,6 +341,10 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
         seekPro = VideoSeekPro(
             this, binding, player, ::playPause, ::seekBy, { jumpMs }, controls::toggle, { controls.isLocked }
         ) { showHint(it, Gravity.CENTER) }
+        seekPro?.restoreState(savedInstanceState)
+        savedInstanceState?.getLongArray(STATE_SLEEP)?.takeIf { it.size == 3 }?.let {
+            background?.sleepTimer?.restore(it[0].toInt(), it[1], it[2] == 1L)
+        }
         startTracking(player.currentMediaItem)
         player.currentMediaItem?.let { offerResume(it, showPill = savedInstanceState == null) }
         updateUi(player)
@@ -354,6 +361,10 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
         outState.putFloat(STATE_SPEED, speedBeforeHold.takeIf { it > 0f } ?: player.playbackParameters.speed)
         outState.putInt(STATE_RESIZE_MODE, resizeMode)
         outState.putBoolean(STATE_USER_ORIENTATION, userOrientation)
+        seekPro?.saveState(outState)
+        background?.sleepTimer?.takeIf { it.isActive }?.let {
+            outState.putLongArray(STATE_SLEEP, longArrayOf(it.minutes.toLong(), it.remainingMs, if (it.endOfVideo) 1 else 0))
+        }
     }
 
     override fun onStart() {
@@ -1324,6 +1335,7 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
         private const val STATE_POSITION = "position"
         private const val STATE_PLAY_WHEN_READY = "playWhenReady"
         private const val STATE_SPEED = "speed"
+        private const val STATE_SLEEP = "sleepTimer"
         private const val STATE_RESIZE_MODE = "resizeMode"
         private const val STATE_USER_ORIENTATION = "userOrientation"
         private const val SESSION_ID = "video"

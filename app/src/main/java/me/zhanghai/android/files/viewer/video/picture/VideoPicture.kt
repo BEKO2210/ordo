@@ -107,6 +107,7 @@ class VideoPicture(
     private val pipListener = Consumer<PictureInPictureModeChangedInfo> {
         inPip = it.isInPictureInPictureMode
         frameRate?.setActive(started && !inPip)
+        if (!inPip) scheduleEvaluate()
     }
 
     init {
@@ -188,7 +189,8 @@ class VideoPicture(
                 player.setVideoEffects(emptyList())
                 redrawIfPaused(player)
             }
-            Pipeline.RECREATE -> {
+            // Not in the picture-in-picture window (#100): it would leave it; it happens once the window closes.
+            Pipeline.RECREATE -> if (!inPip) {
                 recreating = true
                 activity.recreate()
             }

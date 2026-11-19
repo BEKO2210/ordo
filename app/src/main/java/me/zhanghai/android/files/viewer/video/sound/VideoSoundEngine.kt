@@ -20,6 +20,7 @@ import androidx.media3.exoplayer.RenderersFactory
 import java8.nio.file.Paths
 import java8.nio.file.attribute.BasicFileAttributes
 import me.zhanghai.android.files.BuildConfig
+import me.zhanghai.android.files.R
 import me.zhanghai.android.files.player.AudioRenderersFactory
 import me.zhanghai.android.files.player.KlangAudioProcessor
 import me.zhanghai.android.files.player.LoudnessAnalysis
@@ -128,6 +129,31 @@ class VideoSoundEngine(private val context: Context) {
 
     /** Levelling is on and this film's level is known (measured or cached). */
     val levelled: Boolean get() = settings.klang.normalizationEnabled && replayGain != null
+
+    /**
+     * The chain's active stages in plain words, in signal order, for the picture's "Signal path" sheet (#104). The
+     * true-peak limiter is left out: it only acts on peaks above -1 dBTP and is always armed.
+     */
+    fun signalStages(): List<String> {
+        val value = settings
+        val klang = value.klang
+        return listOfNotNull(
+            context.getString(R.string.video_signal_stage_downmix)
+                .takeIf { sourceChannelCount > 2 && !systemSpatializes(sourceChannelCount) },
+            context.getString(R.string.audio_sound_mono).takeIf { klang.mono },
+            context.getString(R.string.video_sound_dialog).takeIf { value.dialogLevel != VideoSoundMath.DIALOG_OFF },
+            context.getString(R.string.video_sound_night).takeIf { value.nightMode },
+            context.getString(R.string.audio_sound_equalizer).takeIf { klang.equalizerEnabled },
+            context.getString(R.string.audio_sound_bass_boost).takeIf { klang.bassBoostEnabled },
+            context.getString(R.string.audio_sound_balance).takeIf { klang.balance != 0 },
+            context.getString(R.string.video_sound_level).takeIf { levelled },
+            when {
+                delayMs > 0 -> context.getString(R.string.video_audio_sync_later, delayMs)
+                delayMs < 0 -> context.getString(R.string.video_audio_sync_earlier, -delayMs)
+                else -> null
+            }
+        )
+    }
 
     fun renderersFactory(): RenderersFactory =
         AudioRenderersFactory(context, arrayOf(downmix, klang, truePeak, delay))
