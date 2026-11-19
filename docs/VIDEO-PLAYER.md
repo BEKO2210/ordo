@@ -187,3 +187,41 @@ haben keinen AC3-Decoder. Größe vor und nach messen, bevor sie kommt.
 Ruckler beim Drehen auf dem Tab; AC3/E-AC3/DTS in MKV auf Tab S9 Ultra und S21; Puffer und Spulen großer Filme über
 SMB/SFTP; Vergleich mit Samsung Video und Google Fotos; ob `sensorLandscape` auf dem Tab unter Android 16 wirkt;
 APK/AAB-Größe vorher/nachher (`bundletool get-size total`); wie `dumpsys media_session` die Session `video.<UUID>` benennt.
+
+## Profi-Spulen (`viewer/video/seek`)
+
+Alles in `VideoSeekPro` (Bedienung), `SeekThumbnails`, `SeekBarMarks`, `SeekKeys` und `SeekLogic` (ohne Android,
+getestet in `SeekLogicTest`). Der Player-Bildschirm reicht nur Berührungen, Tasten und die Wisch-Vorschau durch;
+die neuen Einträge hängt `VideoSeekPro` selbst ins ⋮-Menü und in die Ansicht.
+
+- **Vorschaubild:** Beim Ziehen am Balken (nach dem 150-ms-Halten) und beim waagrechten Spul-Wisch steht über dem
+  Balken ein Bild der Zielstelle mit dem Kapitelnamen. `MediaMetadataRetriever` auf einem Hintergrund-Thread, nächstes
+  Schlüsselbild (`OPTION_CLOSEST_SYNC`, schnell, bis zu einem Schlüsselbild-Abstand daneben), 160 dp breit (Tablet
+  220 dp), LRU im Speicher (12 MB). Raster: Länge / 200, mindestens 1 s, höchstens 10 s. Nur lokale Dateien und
+  `content://`; SMB/SFTP/WebDAV/FTP zeigen kein Bild (ein zweiter Leser über das Netz würde mit der Wiedergabe
+  konkurrieren), nur den Kapitelnamen, wenn es einen gibt.
+- **Kapitel:** Media3 1.11 liest Kapitel aus MP4 (Nero/QuickTime) und Matroska als `Chapter` in den Metadaten der
+  Spuren. Ab zwei Kapiteln: Striche im Balken, ⋮ › „Kapitel“ als Blatt (aktuelles fett, „Läuft gerade“ für TalkBack,
+  Tippen springt), Name in der Vorschau.
+- **Einzelbild:** ⋮ › „Einzelbild“ pausiert und zeigt unter der Titelleiste ‹ Bild n › ✕; Tasten `,` und `.` gehen
+  auch ohne die Leiste. Ziel = Anfang des nächsten/vorigen Bildes aus der Bildrate der Videospur (sonst 30 fps),
+  abgerundet auf ms; ExoPlayer sucht standardmäßig exakt (`SeekParameters.DEFAULT` = `EXACT`), dekodiert ab dem
+  Schlüsselbild davor und zeigt das erste Bild ab dem Ziel. Genau bei fester Bildrate; bei variabler kann ein Schritt
+  ein Bild überspringen oder wiederholen. Rückwärts kostet einen Schlüsselbild-Abstand Dekodierzeit. Abspielen beendet
+  den Modus.
+- **A-B-Wiederholung:** ⋮ › „Schleifenstart A setzen“ → „Schleifenende B setzen“ → „A-B-Schleife beenden“. B vor A
+  tauscht, unter 0,5 s Abstand wartet sie weiter auf B. Ein `PlayerMessage` an B (`deleteAfterDelivery = false`)
+  springt bildgenau zu A, jedes Mal. Marken und Band im Balken in der Akzentfarbe. Videowechsel löscht die Schleife.
+- **Standbild speichern:** ⋮ › „Standbild speichern“: `PixelCopy` aus der `SurfaceView` in Videogröße (höchstens
+  3840 px), JPEG 95 nach `Pictures/Ordo` (ab Android 10 über MediaStore, darunter Datei + Medienscan), Snackbar mit
+  „Öffnen“. HDR kommt als SDR heraus (PixelCopy-Grenze).
+- **Zoom:** Zwei Finger zoomen (1–5×) und verschieben; die Ein-Finger-Gesten bekommen dabei ein Abbrechen, es spult
+  also nichts mit. Kurzer Zwei-Finger-Tipp oder die Pille „1,8×“ oben rechts setzen zurück; Videowechsel auch. Gezoomt
+  wird über die Größe von `PlayerView` (nicht über eine View-Skalierung, der die SurfaceView nicht sicher folgt),
+  darin gilt das Bildformat (Einpassen/Füllen/Strecken) weiter. Gesperrt kein Zoom.
+- **Tasten** (Tablet-Tastatur, Chromebook, TV-Fernbedienung): Leertaste/K Abspielen, ←/→ und J/L ± Sprungweite,
+  ↑/↓ Lautstärke, F Steuerung ein/aus, M stumm, `,`/`.` Einzelbild. Hat eine Taste den Fokus (Fernbedienung
+  navigiert), bleiben Pfeile und Leertaste bei der Navigation; mit Strg/Alt/Meta gar nichts. Gesperrt keine Tasten.
+
+Gerätetest: `e2e/video-seek.sh` (`--write`); Vorschaubild und Zoom sind von Hand zu prüfen (kein Bedienungshilfe-
+Knoten, `adb input` kann keine zwei Finger).

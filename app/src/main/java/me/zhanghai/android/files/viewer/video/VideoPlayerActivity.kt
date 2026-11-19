@@ -21,6 +21,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.view.Gravity
+import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewConfiguration
@@ -91,6 +92,7 @@ import me.zhanghai.android.files.ui.Motion
 import me.zhanghai.android.files.util.valueCompat
 import me.zhanghai.android.files.util.createViewIntent
 import me.zhanghai.android.files.util.startActivitySafe
+import me.zhanghai.android.files.viewer.video.seek.VideoSeekPro
 
 /**
  * Ordo's video player. The activity owns its ExoPlayer and a MediaSession (media keys, `dumpsys media_session`); the
@@ -107,6 +109,7 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity {
     private var player: ExoPlayer? = null
     private var session: MediaSession? = null
     private lateinit var controls: VideoControls
+    private var seekPro: VideoSeekPro? = null
     private lateinit var resumeStore: VideoResumeStore
     private val handler = Handler(Looper.getMainLooper())
     private val timeBuilder = StringBuilder()
@@ -289,6 +292,9 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity {
         player.prepare()
         // After setMediaItems, so the first item is not announced twice; a recreated screen offers no pill.
         player.addListener(playerListener)
+        seekPro = VideoSeekPro(
+            this, binding, player, ::playPause, ::seekBy, { jumpMs }, controls::toggle, { controls.isLocked }
+        ) { showHint(it, Gravity.CENTER) }
         startTracking(player.currentMediaItem)
         player.currentMediaItem?.let { offerResume(it, showPill = savedInstanceState == null) }
         updateUi(player)
@@ -334,6 +340,7 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity {
 
     override fun onDestroy() {
         handler.removeCallbacksAndMessages(null)
+        seekPro?.release()
         session?.release()
         session = null
         player?.release()
@@ -349,8 +356,13 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity {
                 MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> controls.scheduleHide()
             }
         }
+        // Two fingers pinch and pan the picture (viewer/video/seek).
+        if (seekPro?.onTouch(event) == true) return true
         return super.dispatchTouchEvent(event)
     }
+
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean =
+        seekPro?.onKey(event) == true || super.dispatchKeyEvent(event)
 
     private class LaunchQueue(val items: List<MediaItem>, val startIndex: Int, val positionMs: Long)
 
@@ -651,6 +663,7 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity {
                     val delta = target - startPositionMs
                     val sign = if (delta < 0) "−" else "+"
                     hinted = true
+                    seekPro?.previewAt(target)
                     showHint(
                         getString(
                             R.string.video_player_seek_preview_format, formatTime(target),
@@ -668,6 +681,7 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity {
             if (mode == VideoGestures.Mode.VOLUME) audioManager?.let { if (lastIndex > 0) unmute(it) }
             val slop = ViewConfiguration.get(this@VideoPlayerActivity).scaledTouchSlop.toFloat()
             val jumped = mode == VideoGestures.Mode.SEEK && !VideoGestures.isCancelled(dx, slop)
+            if (mode == VideoGestures.Mode.SEEK) seekPro?.hidePreview()
             if (jumped) {
                 player?.seekTo(VideoGestures.seekTarget(startPositionMs, dx, binding.root.width, currentDuration()))
                 updateProgress()

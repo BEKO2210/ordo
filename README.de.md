@@ -228,6 +228,7 @@ Aus dem Play-Eintrag, `fastlane/metadata/android/de-DE/full_description.txt`.
 - Musik-Player mit Cover, Warteschlange und Steuerung auf dem Sperrbildschirm und per Kopfhörer
 - Klang: 10-Band-Equalizer, Bass, Lautstärke angleichen, Einschlaf-Timer
 - Video-Player mit Weiterschauen, Wischgesten, Schleife und Videoinfos
+- Profi-Spulen: Vorschaubilder am Balken, Kapitel, Einzelbild, A-B-Schleife, Standbild speichern, Zoomen mit zwei Fingern und Tastenkürzel
 - „Abspielen auf …“: Musik an Bluetooth-Kopfhörer, Lautsprecher oder ein Cast-Gerät schicken
 - Auf Wunsch eigene Symbole „Ordo Musik“ und „Ordo Video“
 
@@ -499,7 +500,7 @@ Unit-Tests:
 ```
 
 <!-- AUTO:tests -->
-Gerätetests: 33 Skripte in [`e2e/`](e2e/README.md), gestartet mit `e2e/run.sh`: 15 nur lesend (`first-run`, `smoke`, `settings-visual`, `category-search`, `back-navigation`, `bars-replay`, `home-header`, `header-position`, `home-pull`, `drawer`, `selection-more`, `tablet-landscape`, `analysis`, `ai-show-guard`, `documents-provider`) und 18 weitere mit `--write` (`stress-delete`, `backup-restore`, `home-auto-refresh`, `audio-player`, `cast`, `klang`, `klang-landscape`, `klang-stress`, `music-formats`, `music-library`, `launcher-icons`, `icon-colors`, `ai-show`, `pick-file`, `no-midword-breaks`, `player-seek`, `player-stage2`, `video-player`). Unit-Tests: 94 Testklassen in `app/src/test`.
+Gerätetests: 34 Skripte in [`e2e/`](e2e/README.md), gestartet mit `e2e/run.sh`: 15 nur lesend (`first-run`, `smoke`, `settings-visual`, `category-search`, `back-navigation`, `bars-replay`, `home-header`, `header-position`, `home-pull`, `drawer`, `selection-more`, `tablet-landscape`, `analysis`, `ai-show-guard`, `documents-provider`) und 19 weitere mit `--write` (`stress-delete`, `backup-restore`, `home-auto-refresh`, `audio-player`, `cast`, `klang`, `klang-landscape`, `klang-stress`, `music-formats`, `music-library`, `launcher-icons`, `icon-colors`, `ai-show`, `pick-file`, `no-midword-breaks`, `player-seek`, `player-stage2`, `video-player`, `video-seek`). Unit-Tests: 95 Testklassen in `app/src/test`.
 <!-- /AUTO:tests -->
 
 ## Ausblick
