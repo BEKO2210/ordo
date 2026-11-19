@@ -11,7 +11,7 @@ import me.zhanghai.android.files.player.isPlayableAudioMimeType
 
 /**
  * One song as MediaStore lists it. [artist] and [album] are null when unknown; [track] is MediaStore's TRACK
- * (disc × 1000 + track number); [artUri] is the album's cover as a MediaStore URI.
+ * (disc × 1000 + track number); [artUri] is the album's cover as a MediaStore URI. [genre] needs Android 11.
  */
 data class MusicSong(
     val path: String,
@@ -22,7 +22,12 @@ data class MusicSong(
     val durationMs: Long,
     val track: Int,
     val mimeType: String,
-    val artUri: String?
+    val artUri: String?,
+    val genre: String? = null,
+    /** 0 when unknown. */
+    val year: Int = 0,
+    val dateAddedMs: Long = 0,
+    val dateModifiedMs: Long = 0
 ) {
     val folder: String
         get() = path.substringBeforeLast('/', "")

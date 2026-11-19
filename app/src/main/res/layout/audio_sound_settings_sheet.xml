@@ -94,6 +94,14 @@
                 android:paddingTop="@dimen/klang_space_md"
                 android:paddingEnd="@dimen/klang_space_lg"
                 android:paddingBottom="@dimen/klang_space_md">
+                <TextView
+                    android:id="@+id/curveOffLabel"
+                    style="@style/Widget.Ordo.Klang.Info"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_horizontal"
+                    android:maxLines="1"
+                    android:visibility="invisible" />
                 <me.zhanghai.android.files.viewer.audio.EqualizerCurveView
                     android:id="@+id/equalizerCurve"
                     android:layout_width="match_parent"
@@ -144,9 +152,11 @@
                 android:layout_marginStart="@dimen/klang_space_lg_neg"
                 android:layout_marginEnd="@dimen/klang_space_lg_neg"
                 android:clipToPadding="false"
+                android:fadingEdgeLength="@dimen/klang_space_xl"
                 android:overScrollMode="never"
                 android:paddingStart="@dimen/klang_space_lg"
                 android:paddingEnd="@dimen/klang_space_lg"
+                android:requiresFadingEdge="horizontal"
                 android:scrollbars="none">
                 <LinearLayout
                     android:id="@+id/presets"
@@ -241,15 +251,14 @@
                 android:drawableTint="?colorPrimary"
                 android:gravity="center_vertical"
                 android:text="@string/audio_sound_effects_heading" />
-            <GridLayout
+            <me.zhanghai.android.files.ui.MasonryLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="@dimen/klang_card_gap_half_neg"
                 android:layout_marginTop="@dimen/klang_card_gap_half_neg"
                 android:layout_marginEnd="@dimen/klang_card_gap_half_neg"
                 android:layout_marginBottom="@dimen/klang_card_gap_half_neg"
-                android:id="@+id/effectsGrid"
-                android:columnCount="1">
+                android:id="@+id/effectsGrid">
                 <include
                     android:id="@+id/bassCard"
                     layout="@layout/klang_effect_card"
@@ -306,7 +315,7 @@
                     android:layout_columnWeight="1"
                     android:layout_gravity="fill_horizontal"
                     android:layout_margin="@dimen/klang_card_gap_half" />
-            </GridLayout>
+            </me.zhanghai.android.files.ui.MasonryLayout>
             <TextView
                 android:id="@+id/bassUnavailable"
                 style="@style/Widget.Ordo.Klang.Info"
@@ -501,15 +510,14 @@
             android:text="@string/audio_sound_playback_heading" />
 
         <!-- Tempo and sleep timer side by side when each card gets at least 320 dp (the sheet sets the columns). -->
-        <GridLayout
+        <me.zhanghai.android.files.ui.MasonryLayout
             android:id="@+id/playbackGrid"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/klang_card_gap_half_neg"
             android:layout_marginTop="@dimen/klang_card_gap_half_neg"
             android:layout_marginEnd="@dimen/klang_card_gap_half_neg"
-            android:layout_marginBottom="@dimen/klang_card_gap_half_neg"
-            android:columnCount="1">
+            android:layout_marginBottom="@dimen/klang_card_gap_half_neg">
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/speedCard"
                 style="@style/Widget.Ordo.Klang.Card"
@@ -736,7 +744,7 @@
                     </com.google.android.material.button.MaterialButtonToggleGroup>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
-        </GridLayout>
+        </me.zhanghai.android.files.ui.MasonryLayout>
 
         <!-- Three small cards, 21 dp apart: each option has its own picture instead of sharing one crowded card. -->
         <com.google.android.material.card.MaterialCardView
