@@ -1,6 +1,7 @@
-Ordo Musik in neuem Look:
-• Mitlaufende Songtexte, groß und mittig; Songtext-Symbol in der Liste
-• Bibliothek mit Wiedergabelisten und Favoriten als Reiter, weicher Rand beim Scrollen, Tablets nutzen die Breite
-• Cover wischen für das nächste Lied, Warteschlange zum Sortieren
-• Aussehen: Farben aus dem Cover, Akzentfarbe, Stufe für visuelle Effekte
-• Klang-Blatt neu geordnet, knackfreie Effekte, getestet bis 24 Bit/192 kHz
+Neu: Ordo Video
+• Eigener Video-Player mit Weiterschauen, Doppeltipp, Wischgesten für Helligkeit, Lautstärke und Spulen
+• Bibliothek mit Ordnern, lesbaren Kameranamen und Videoinfos
+• Am Ende anhalten, wiederholen oder automatisch weiter
+• Klare Hinweise, wenn ein Format auf dem Gerät nicht läuft
+• Viele Einstellungen und eigenes Symbol „Ordo Video“
+Musik und Video mit eigener Farbe. Cover in der Musik verrutschen nicht mehr.

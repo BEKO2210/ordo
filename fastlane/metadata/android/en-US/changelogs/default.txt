@@ -1,6 +1,7 @@
-Ordo Music, new look:
-• Synced lyrics, large and centred; a lyrics mark in the song list
-• Library with Playlists and Favorites as tabs, a soft edge when scrolling, tablets use the full width
-• Swipe the cover for the next song, reorder the queue
-• Appearance: colours from the cover, accent colour, a level for visual effects
-• Sound sheet reworked, click-free effects, tested up to 24-bit/192 kHz
+New: Ordo Video
+• Own video player with continue watching, double tap, swipe gestures for brightness, volume and seeking
+• Library with folders, readable camera names and video details
+• At the end stop, repeat or play on
+• Clear notices when a format can't play on the device
+• Many settings and an optional "Ordo Video" icon
+Music and video can have their own colour. Music covers no longer shift.
