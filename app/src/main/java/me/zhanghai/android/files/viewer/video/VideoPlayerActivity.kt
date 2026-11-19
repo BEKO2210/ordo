@@ -101,6 +101,7 @@ import me.zhanghai.android.files.viewer.video.subtitles.VideoSubtitles
 import me.zhanghai.android.files.viewer.video.subtitles.showSubtitleSheet
 import me.zhanghai.android.files.viewer.video.background.VideoBackgroundController
 import me.zhanghai.android.files.viewer.video.seek.VideoSeekPro
+import me.zhanghai.android.files.viewer.video.picture.VideoPicture
 
 /**
  * Ordo's video player. The activity owns its ExoPlayer and a MediaSession (media keys, `dumpsys media_session`); the
@@ -125,6 +126,8 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
     private var player: ExoPlayer? = null
     override var videoSound: VideoSoundEngine? = null
         private set
+    // Frame rate matching, picture enhancement and the signal path (viewer/video/picture).
+    private var picture: VideoPicture? = null
     private var session: MediaSession? = null
     private var background: VideoBackgroundController? = null
     private lateinit var controls: VideoControls
@@ -307,6 +310,10 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
         )
         session = background?.session
         binding.playerView.player = player
+        picture = VideoPicture(this, binding.playerView, ::showPictureNotice).also {
+            it.attach(player)
+            binding.toolbar.menu.findItem(R.id.actionPictureEnhance)?.isChecked = it.switchedOn
+        }
         (savedInstanceState?.getFloat(STATE_SPEED)?.takeIf { it > 0f }
             ?: VideoPrefs.speed(Settings.VIDEO_SPEED.valueCompat)).let {
             player.setPlaybackSpeed(it)
@@ -644,6 +651,11 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
                 R.id.actionSubtitles -> subtitles?.let { showSubtitleSheet(this, it) }
                 R.id.actionSleepTimer -> background?.showSleepTimerSheet()
                 R.id.actionPip -> background?.enterPip()
+                R.id.actionPictureEnhance -> picture?.let { picture ->
+                    it.isChecked = picture.toggle()
+                    showHint(picture.stateText(), Gravity.CENTER)
+                }
+                R.id.actionSignalPath -> picture?.showSignalPath()
                 else -> return@setOnMenuItemClickListener false
             }
             true
@@ -1212,6 +1224,15 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
         handler.postDelayed(hideNotice, NOTICE_MS)
     }
 
+    /** The picture's one-time notice (the enhancement paused on a slow device), where the sound notices show. */
+    private fun showPictureNotice(text: String) {
+        binding.notice.text = text
+        binding.notice.updateLayoutParams<FrameLayout.LayoutParams> { topMargin = binding.resumePill.marginTop }
+        binding.notice.isVisible = true
+        handler.removeCallbacks(hideNotice)
+        handler.postDelayed(hideNotice, NOTICE_MS)
+    }
+
     /** What happens at the end: stay on the last frame, repeat this video, or go on to the next. */
     private fun applyRepeatMode(mode: VideoRepeatMode) {
         repeatMode = mode
@@ -1291,7 +1312,7 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
                 }.getOrDefault(info)
             }
             if (isFinishing || supportFragmentManager.isStateSaved) return@launch
-            showVideoInfo(withFile, path)
+            showVideoInfo(withFile, path, onSignalPath = picture?.let { it::showSignalPath })
         }
     }
 

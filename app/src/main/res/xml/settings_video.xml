@@ -77,6 +77,23 @@
             android:defaultValue="@bool/pref_default_value_true" />
     </PreferenceCategory>
 
+    <PreferenceCategory android:title="@string/video_settings_cat_picture">
+        <ListPreference
+            android:key="@string/pref_key_video_picture"
+            android:title="@string/video_settings_picture"
+            android:defaultValue="@string/pref_default_value_video_picture"
+            android:entries="@array/video_settings_picture_entries"
+            android:entryValues="@array/pref_entry_values_video_picture"
+            app:useSimpleSummaryProvider="true" />
+        <ListPreference
+            android:key="@string/pref_key_video_frame_rate"
+            android:title="@string/video_settings_frame_rate"
+            android:defaultValue="@string/pref_default_value_video_frame_rate"
+            android:entries="@array/video_settings_frame_rate_entries"
+            android:entryValues="@array/pref_entry_values_video_frame_rate"
+            app:useSimpleSummaryProvider="true" />
+    </PreferenceCategory>
+
     <PreferenceCategory android:title="@string/video_settings_cat_gestures">
         <SwitchPreferenceCompat
             android:key="@string/pref_key_video_gesture_brightness"

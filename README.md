@@ -228,6 +228,7 @@ From the Play listing, `fastlane/metadata/android/en-US/full_description.txt`.
 - Music player with cover art, a queue and controls in the notification, on the lock screen and on headphone buttons
 - Sound: 10-band equalizer with presets, bass boost, loudness levelling, speed that keeps the pitch, sleep timer
 - Video player with continue watching, swipe gestures, repeat and video details
+- Sharper small videos (Lanczos upscaling, sharpening, debanding), frame rate matching and a “Signal path” that shows what happens to picture and sound
 - “Play on…”: send music to Bluetooth headphones, a speaker or a cast device
 - Optional own “Ordo Music” and “Ordo Video” icons on your home screen
 
