@@ -18,6 +18,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.fragment.app.commit
 import kotlinx.parcelize.Parcelize
 import me.zhanghai.android.files.app.AppActivity
+import me.zhanghai.android.files.theme.custom.AppAccentActivity
 import me.zhanghai.android.files.theme.custom.CustomThemeHelper.OnThemeChangedListener
 import me.zhanghai.android.files.theme.night.NightModeHelper.OnNightModeChangedListener
 import me.zhanghai.android.files.util.ParcelableArgs
@@ -26,14 +27,22 @@ import me.zhanghai.android.files.util.getArgsOrNull
 import me.zhanghai.android.files.util.putArgs
 import me.zhanghai.android.files.util.startActivitySafe
 
-class SettingsActivity : AppActivity(), OnThemeChangedListener, OnNightModeChangedListener {
+class SettingsActivity : AppActivity(), OnThemeChangedListener, OnNightModeChangedListener, AppAccentActivity {
+    // Ordo Musik's and Ordo Video's pages are drawn in that app's colour, so its choice shows at once.
+    override val appAccent: SettingLiveData<String>?
+        get() = when (section) {
+            SECTION_MUSIC -> Settings.MUSIC_ACCENT
+            SECTION_VIDEO -> Settings.VIDEO_ACCENT
+            else -> null
+        }
+
     private var isRestarting = false
 
     /** Null for the overview; otherwise one of [SECTIONS]. */
     val section: String?
         // An intent from an older version or another app may not unparcel as these Args: then show the overview.
         get() = runCatching { intent.extras?.getArgsOrNull<Args>()?.section }.getOrNull()
-            ?.takeIf { it in SECTIONS || it == SECTION_MUSIC }
+            ?.takeIf { it in SECTIONS || it == SECTION_MUSIC || it == SECTION_VIDEO }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // The state carried over by restart() stays in this process: this activity is exported, and a saved state
@@ -118,6 +127,8 @@ class SettingsActivity : AppActivity(), OnThemeChangedListener, OnNightModeChang
         const val SECTION_LAUNCHER_ICONS = "launcher_icons"
         /** Ordo Musik's own settings page (its side menu); not listed in Ordo's overview. */
         const val SECTION_MUSIC = "music"
+        /** Ordo Video's own settings page (its library's menu); not listed in Ordo's overview. */
+        const val SECTION_VIDEO = "video"
         val SECTIONS = listOf(
             SECTION_APPEARANCE, SECTION_AI, SECTION_LAUNCHER_ICONS, SECTION_FILES, SECTION_STORAGE, SECTION_TRASH
         )

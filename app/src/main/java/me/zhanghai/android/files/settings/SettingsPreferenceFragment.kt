@@ -59,6 +59,7 @@ open class SettingsPreferenceFragment : PreferenceFragmentCompat() {
                 SettingsActivity.SECTION_TRASH -> R.xml.settings_trash
                 SettingsActivity.SECTION_LAUNCHER_ICONS -> R.xml.settings_launcher_icons
                 SettingsActivity.SECTION_MUSIC -> R.xml.settings_music
+                SettingsActivity.SECTION_VIDEO -> R.xml.settings_video
                 else -> R.xml.settings
             }
         )
@@ -178,6 +179,8 @@ open class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         Settings.BLACK_NIGHT_MODE.observe(viewLifecycleOwner, this::onBlackNightModeChanged)
         Settings.ACCENT.observe(viewLifecycleOwner, this::onAccentChanged)
         Settings.WALLPAPER_COLORS.observe(viewLifecycleOwner, this::onWallpaperColorsChanged)
+        Settings.MUSIC_ACCENT.observe(viewLifecycleOwner, this::onAccentChanged)
+        Settings.VIDEO_ACCENT.observe(viewLifecycleOwner, this::onAccentChanged)
         Settings.MUSIC_COVER_COLORS.observe(viewLifecycleOwner, this::onMusicCoverColorsChanged)
     }
 

@@ -59,16 +59,26 @@ object CustomThemeHelper {
         }
     }
 
-    private fun overlaySignature(): String =
-        "${Settings.ACCENT.valueCompat}/${Settings.WALLPAPER_COLORS.valueCompat}"
+    /** Ordo Musik's or Ordo Video's own accent for this activity, or null when it shows Ordo's colours. */
+    private fun ownAccent(activity: Activity): String? =
+        (activity as? AppAccentActivity)?.appAccent?.let { setting ->
+            AppAccent.own(
+                setting.valueCompat, activity.resources.getStringArray(R.array.pref_entry_values_accent).toList()
+            )
+        }
+
+    private fun overlaySignature(activity: Activity): String =
+        "${Settings.ACCENT.valueCompat}/${Settings.WALLPAPER_COLORS.valueCompat}/${ownAccent(activity)}"
 
     private fun applyOverlays(activity: Activity) {
-        activityOverlays[activity] = overlaySignature()
-        if (Settings.WALLPAPER_COLORS.valueCompat && DynamicColors.isDynamicColorAvailable()) {
+        activityOverlays[activity] = overlaySignature(activity)
+        // An app's own accent is an explicit choice: it wins over the wallpaper's colours as well.
+        val own = ownAccent(activity)
+        if (own == null && Settings.WALLPAPER_COLORS.valueCompat && DynamicColors.isDynamicColorAvailable()) {
             DynamicColors.applyToActivityIfAvailable(activity)
             return
         }
-        val accent = when (Settings.ACCENT.valueCompat) {
+        val accent = when (own ?: Settings.ACCENT.valueCompat) {
             "blue" -> R.style.ThemeOverlay_Ordo_Accent_Blue
             "mint" -> R.style.ThemeOverlay_Ordo_Accent_Mint
             "violet" -> R.style.ThemeOverlay_Ordo_Accent_Violet
@@ -82,11 +92,11 @@ object CustomThemeHelper {
         for ((activity, baseThemeRes) in activityBaseThemes) {
             val currentThemeRes = activity.themeResIdCompat
             val customThemeRes = getCustomThemeRes(baseThemeRes, activity)
-            if (currentThemeRes != customThemeRes || activityOverlays[activity] != overlaySignature()) {
+            if (currentThemeRes != customThemeRes || activityOverlays[activity] != overlaySignature(activity)) {
                 // Ignore ".Black" theme changes when not in night mode, unless the accent changed as well.
                 if (!NightModeHelper.isInNightMode(activity as AppCompatActivity)
                     && isBlackThemeChange(currentThemeRes, customThemeRes, activity)
-                    && activityOverlays[activity] == overlaySignature()) {
+                    && activityOverlays[activity] == overlaySignature(activity)) {
                     continue
                 }
                 if (activity is OnThemeChangedListener) {

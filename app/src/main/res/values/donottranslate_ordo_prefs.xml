@@ -16,6 +16,10 @@
         <item>violet</item>
         <item>amber</item>
     </string-array>
+    <!-- Ordo Musik's and Ordo Video's own accent: "ordo" follows Ordo (its accent or the wallpaper's colours). -->
+    <string name="pref_key_music_accent">key_music_accent</string>
+    <string name="pref_key_video_accent">key_video_accent</string>
+    <string name="pref_default_value_app_accent">ordo</string>
     <!-- Ordo Musik: player and mini player take the playing cover's colours (on) or the chosen accent (off). -->
     <string name="pref_key_music_cover_colors">key_music_cover_colors</string>
     <bool name="pref_default_value_music_cover_colors">true</bool>

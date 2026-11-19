@@ -5,6 +5,9 @@
 
 package me.zhanghai.android.files.viewer.video
 
+import me.zhanghai.android.files.theme.custom.AppAccentActivity
+import me.zhanghai.android.files.settings.SettingLiveData
+import me.zhanghai.android.files.settings.Settings
 import android.annotation.SuppressLint
 import android.content.ComponentName
 import android.content.ContentResolver
@@ -96,7 +99,10 @@ import me.zhanghai.android.files.util.startActivitySafe
  * other caller only a `content://` URI with a read grant is played, and path extras are ignored.
  */
 @OptIn(UnstableApi::class)
-class VideoPlayerActivity : AppActivity() {
+class VideoPlayerActivity : AppActivity(), AppAccentActivity {
+    override val appAccent: SettingLiveData<String>
+        get() = Settings.VIDEO_ACCENT
+
     private lateinit var binding: VideoPlayerActivityBinding
     private var player: ExoPlayer? = null
     private var session: MediaSession? = null
@@ -590,10 +596,11 @@ class VideoPlayerActivity : AppActivity() {
                     if (audio.isVolumeFixed) return
                     val max = audio.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
                     val index = VideoGestures.volumeIndex(startIndex, max, dy, binding.root.height)
-                    // On a device: adb shell setprop log.tag.OrdoVideoGesture DEBUG, then logcat -s OrdoVideoGesture.
+                    // Device check: setprop log.tag.OrdoVideoGesture DEBUG, logcat -s OrdoVideoGesture.
                     if (android.util.Log.isLoggable(GESTURE_TAG, android.util.Log.DEBUG)) {
                         android.util.Log.d(
-                            GESTURE_TAG, "volume dy=$dy height=${binding.root.height} start=$startIndex index=$index/$max"
+                            GESTURE_TAG,
+                            "volume dy=$dy height=${binding.root.height} start=$startIndex index=$index/$max"
                         )
                     }
                     if (index != lastIndex) setVolume(audio, index)

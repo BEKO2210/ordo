@@ -9,7 +9,8 @@
 # (if the device cannot play it) the AVI show the message with "Open with another app" instead of crashing; an
 # external file:// intent is refused, a content:// one with a read grant plays; the rotate button (phone) keeps
 # position and playback; at the end it stops with "Watch again"/"Next video"; one left-edge swipe goes back; a
-# vertical swipe on the right half changes the volume; buttons keep 48 dp, the play button 88 dp on a tablet. Headphones and audio focus are not
+# vertical swipe on the right half changes the volume; Ordo Video's own colour (Amber) changes the play button's
+# tint and is put back to "Same as Ordo"; buttons keep 48 dp, the play button 88 dp on a tablet. Headphones and audio focus are not
 # scriptable from adb: SKIP, by hand. Needs ffmpeg on the host.
 . "$(dirname "$0")/lib.sh" "$@"
 DIR=/storage/emulated/0/ordo-e2e-video
@@ -153,15 +154,15 @@ check "Next video opens the next one of the folder" ui has 02-clip
 # a vertical swipe in the right half changes the media volume (restored afterwards).
 read -r W H < <(screen_size)
 vol() { a shell cmd media_session volume --stream 3 --get 2>/dev/null | grep -oE 'volume is [0-9]+' | grep -oE '[0-9]+'; }
-# Back to the volume before the test: --set first, then step down or up until it is there (the W90 kept 9 after
-# "--set 0"), and unmuted only when it was not 0.
+# Back to the volume before the test with the volume keys: on the W90 and the Pixel neither --set nor --adjust of
+# `cmd media_session volume` changed it reliably, the keys did. The player is in front, so they act on media.
 restore_volume() {
     local i v
-    a shell cmd media_session volume --stream 3 --set "$1" >/dev/null 2>&1
     for i in $(seq 1 30); do
         v=$(vol); [ -z "$v" ] || [ "$v" = "$1" ] && break
-        if [ "$v" -gt "$1" ]; then a shell cmd media_session volume --stream 3 --adjust lower >/dev/null 2>&1
-        else a shell cmd media_session volume --stream 3 --adjust raise >/dev/null 2>&1; fi
+        if [ "$v" -gt "$1" ]; then a shell input keyevent KEYCODE_VOLUME_DOWN
+        else a shell input keyevent KEYCODE_VOLUME_UP; fi
+        sleep 0.3
     done
     v=$(vol); [ "$v" = "$1" ] || echo "INFO volume left at $v instead of $1"
 }
@@ -217,6 +218,44 @@ if [ -n "$id" ]; then
 else
     echo "SKIP content:// intent (MediaStore has not indexed the clip)"
 fi
+
+# Ordo Video's own colour (library menu > Settings): Amber tints the player's play button differently from "Same as
+# Ordo"; put back to "Same as Ordo" afterwards. Read from a raw screenshot (RGBA after a 12- or 16-byte header).
+pixel() {
+    a exec-out screencap > "$tmp/screen.raw"
+    python3 - "$tmp/screen.raw" "$1" "$2" <<'PY'
+import os, struct, sys
+data = open(sys.argv[1], "rb").read()
+w, h = struct.unpack("<II", data[:8])
+head = len(data) - w * h * 4
+x, y = int(sys.argv[2]), int(sys.argv[3])
+r, g, b = data[head + (y * w + x) * 4: head + (y * w + x) * 4 + 3]
+print("%02x%02x%02x" % (r, g, b))
+PY
+}
+# The play button's own colour: just inside its round background, left of the icon.
+play_colour() {
+    local l t r b
+    read -r l t r b < <(ui bounds playPause | head -1) || return 1
+    pixel $((l + (r - l) / 8)) $(((t + b) / 2))
+}
+set_video_colour() {
+    a shell am start -W -n "$PKG/me.zhanghai.android.files.viewer.video.VideoLauncherActivity" >/dev/null; sleep 2; guard
+    ui tap actionSettings >/dev/null; sleep 2
+    ui tap "$1" >/dev/null; sleep 1.5
+    back 1; back 1
+}
+open_paused() {
+    open_folder 02-clip.mp4
+    ui tap 02-clip.mp4 >/dev/null; wait_on viewer.video.VideoPlayerActivity 8; pause
+}
+set_video_colour "Wie Ordo|Same as Ordo"
+open_paused; c_ordo=$(play_colour); back 2
+set_video_colour "Bernstein|Amber"
+open_paused; c_amber=$(play_colour); back 2
+set_video_colour "Wie Ordo|Same as Ordo"
+check "Ordo Video's own colour tints the play button ($c_ordo -> $c_amber)" \
+    test -n "$c_ordo" -a -n "$c_amber" -a "$c_ordo" != "$c_amber"
 
 # 9. Rotating (phone: the rotate button) keeps the position and playback.
 open_folder 02-clip.mp4

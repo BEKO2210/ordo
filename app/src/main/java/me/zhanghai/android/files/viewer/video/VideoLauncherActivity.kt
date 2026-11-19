@@ -5,6 +5,8 @@
 
 package me.zhanghai.android.files.viewer.video
 
+import me.zhanghai.android.files.theme.custom.AppAccentActivity
+import me.zhanghai.android.files.settings.SettingLiveData
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -49,7 +51,10 @@ import me.zhanghai.android.files.viewer.audio.musicContentWidthDp
  * What the "Ordo Video" icon opens: "Continue watching" from the player's saved places, then every video on the
  * device (MediaStore, newest first), filterable by folder. A tap plays the video with its folder as the queue.
  */
-class VideoLauncherActivity : AppActivity() {
+class VideoLauncherActivity : AppActivity(), AppAccentActivity {
+    override val appAccent: SettingLiveData<String>
+        get() = Settings.VIDEO_ACCENT
+
     private lateinit var binding: VideoLauncherActivityBinding
     private var library: VideoLibrary? = null
     private var continueItems = emptyList<ContinueItem>()
@@ -74,6 +79,16 @@ class VideoLauncherActivity : AppActivity() {
         setContentView(binding.root)
         folder = savedInstanceState?.getString(STATE_FOLDER)
         binding.accessButton.setOnClickListener { requestAccess() }
+        // Ordo Video's own settings: its colour ("Same as Ordo" or one of Ordo's accents).
+        binding.toolbar.setOnMenuItemClickListener {
+            if (it.itemId != R.id.actionSettings) return@setOnMenuItemClickListener false
+            startActivitySafe(
+                me.zhanghai.android.files.settings.SettingsActivity.createIntent(
+                    me.zhanghai.android.files.settings.SettingsActivity.SECTION_VIDEO
+                )
+            )
+            true
+        }
         val recycler = binding.recyclerView
         recycler.adapter = adapter
         recycler.layoutManager = GridLayoutManager(this, columns).apply {

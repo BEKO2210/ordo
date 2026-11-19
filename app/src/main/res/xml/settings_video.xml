@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- Ordo Video's settings (its library's menu): its own colour, "Same as Ordo" by default. -->
+<PreferenceScreen
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <PreferenceCategory android:title="@string/settings_section_appearance">
+
+        <me.zhanghai.android.files.settings.AppAccentPreference
+            android:key="@string/pref_key_video_accent"
+            android:icon="@drawable/palette_icon_white_24dp"
+            android:title="@string/settings_app_accent_title"
+            android:defaultValue="@string/pref_default_value_app_accent" />
+    </PreferenceCategory>
+</PreferenceScreen>

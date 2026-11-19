@@ -172,6 +172,9 @@
     <string name="music_selection_close">Auswahl beenden</string>
     <string name="music_now_playing">Läuft gerade: %1$s, %2$s. Öffnet den Player</string>
     <string name="settings_music_title">Ordo Musik</string>
+    <string name="settings_video_title">Ordo Video</string>
+    <string name="settings_accent_same_as_ordo">Wie Ordo</string>
+    <string name="settings_app_accent_title">Farbe</string>
     <string name="settings_music_cover_colors_title">Farben aus dem Cover</string>
     <string name="settings_music_cover_colors_on">Player und Mini-Player nehmen die Farbe des laufenden Covers an</string>
     <string name="settings_music_cover_colors_off">Der Player nutzt die unten gewählte Akzentfarbe</string>
