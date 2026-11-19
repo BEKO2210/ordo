@@ -64,6 +64,16 @@ internal class VideoGestures(private val slopPx: Float) {
         /** Back near where it started: the swipe is cancelled and nothing jumps. */
         fun isCancelled(dxPx: Float, slopPx: Float): Boolean = abs(dxPx) < 2 * slopPx
 
+        /**
+         * The volume step after a vertical swipe of [dyPx] from where it started: always measured from the start, so
+         * a finger back at its starting point (also in one big jump) is the starting volume again.
+         */
+        fun volumeIndex(startIndex: Int, maxIndex: Int, dyPx: Float, heightPx: Int): Int {
+            if (maxIndex <= 0) return 0
+            val start = startIndex.coerceIn(0, maxIndex).toFloat() / maxIndex
+            return kotlin.math.round(levelAfter(start, dyPx, heightPx) * maxIndex).toInt().coerceIn(0, maxIndex)
+        }
+
         /** Brightness or volume (0..1) after a vertical swipe of [dyPx] (up is negative, so up raises it). */
         fun levelAfter(start: Float, dyPx: Float, heightPx: Int): Float {
             if (heightPx <= 0) return start

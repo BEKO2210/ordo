@@ -542,6 +542,8 @@ class VideoPlayerActivity : AppActivity() {
      */
     private val gestureHandler = object : VideoControls.GestureHandler {
         private var startLevel = 0f
+        private var startIndex = 0
+        private var lastIndex = 0
         private var lastLevel = -1f
         private var startPositionMs = 0L
         private var hinted = false
@@ -558,8 +560,8 @@ class VideoPlayerActivity : AppActivity() {
                     ) / 255f)
                 VideoGestures.Mode.VOLUME -> {
                     val audio = audioManager ?: return
-                    startLevel = audio.getStreamVolume(AudioManager.STREAM_MUSIC).toFloat() /
-                        audio.getStreamMaxVolume(AudioManager.STREAM_MUSIC).coerceAtLeast(1)
+                    startIndex = audio.getStreamVolume(AudioManager.STREAM_MUSIC)
+                    lastIndex = startIndex
                 }
                 VideoGestures.Mode.SEEK -> startPositionMs = player?.currentPosition ?: 0L
                 else -> {}
@@ -578,12 +580,15 @@ class VideoPlayerActivity : AppActivity() {
                     val audio = audioManager ?: return
                     if (audio.isVolumeFixed) return
                     val max = audio.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
-                    val level = VideoGestures.levelAfter(startLevel, dy, binding.root.height)
-                    val steps = kotlin.math.round(level * max).toInt()
-                    if (steps != audio.getStreamVolume(AudioManager.STREAM_MUSIC)) {
-                        audio.setStreamVolume(AudioManager.STREAM_MUSIC, steps, 0)
+                    val index = VideoGestures.volumeIndex(startIndex, max, dy, binding.root.height)
+                    // On a device: adb shell setprop log.tag.OrdoVideoGesture DEBUG, then logcat -s OrdoVideoGesture.
+                    if (android.util.Log.isLoggable(GESTURE_TAG, android.util.Log.DEBUG)) {
+                        android.util.Log.d(
+                            GESTURE_TAG, "volume dy=$dy height=${binding.root.height} start=$startIndex index=$index/$max"
+                        )
                     }
-                    showLevel(steps.toFloat() / max.coerceAtLeast(1), R.string.video_player_volume_format)
+                    if (index != lastIndex) setVolume(audio, index)
+                    showLevel(index.toFloat() / max.coerceAtLeast(1), R.string.video_player_volume_format)
                 }
                 VideoGestures.Mode.SEEK -> {
                     val target = VideoGestures.seekTarget(startPositionMs, dx, binding.root.width, currentDuration())
@@ -603,6 +608,8 @@ class VideoPlayerActivity : AppActivity() {
         }
 
         override fun end(mode: VideoGestures.Mode, dx: Float, dy: Float) {
+            // The swipe never leaves the stream muted: whatever volume it ends on above 0 is heard.
+            if (mode == VideoGestures.Mode.VOLUME) audioManager?.let { if (lastIndex > 0) unmute(it) }
             val slop = ViewConfiguration.get(this@VideoPlayerActivity).scaledTouchSlop.toFloat()
             val jumped = mode == VideoGestures.Mode.SEEK && !VideoGestures.isCancelled(dx, slop)
             if (jumped) {
@@ -628,6 +635,22 @@ class VideoPlayerActivity : AppActivity() {
                 speedBeforeHold = 0f
                 showHint(formatSpeed(player.playbackParameters.speed), GESTURE_PILL)
                 restoreAfterGesture(keepEnd = true)
+            }
+        }
+
+        /**
+         * Index 0 mutes the stream on Android (Pixel 11, 19.11.2026: still muted after `volume --set 8`); any step
+         * above it unmutes first, so a swipe that passed 0 and came back is never silent.
+         */
+        private fun setVolume(audio: AudioManager, index: Int) {
+            if (index > 0) unmute(audio)
+            audio.setStreamVolume(AudioManager.STREAM_MUSIC, index, 0)
+            lastIndex = index
+        }
+
+        private fun unmute(audio: AudioManager) {
+            if (audio.isStreamMute(AudioManager.STREAM_MUSIC)) {
+                audio.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_UNMUTE, 0)
             }
         }
 
@@ -1044,6 +1067,7 @@ class VideoPlayerActivity : AppActivity() {
         private const val FADE_MS = 200L
         private const val DISABLED_CONTROL_ALPHA = 0.38f
         private const val HOLD_SPEED = 2f
+        private const val GESTURE_TAG = "OrdoVideoGesture"
         // Not a real gravity: showHint's marker for "a gesture's value, upper third".
         private const val GESTURE_PILL = -1
         private const val SETTINGS_NAME = "video_settings"

@@ -51,6 +51,17 @@ class VideoGesturesTest {
     }
 
     @Test
+    fun volumeFollowsTheFingerAndABigJumpBackIsTheStartAgain() {
+        // Pixel 11 landscape, 1344 px tall, media volume 8 of 25: 290 px up is about 68 %.
+        assertEquals(17, VideoGestures.volumeIndex(8, 25, -290f, 1344))
+        // Then one jump back to where the finger started: exactly the starting volume, never 0.
+        assertEquals(8, VideoGestures.volumeIndex(8, 25, 0f, 1344))
+        assertEquals(0, VideoGestures.volumeIndex(8, 25, 2000f, 1344))
+        assertEquals(25, VideoGestures.volumeIndex(8, 25, -2000f, 1344))
+        assertEquals(0, VideoGestures.volumeIndex(3, 0, -100f, 1344))
+    }
+
+    @Test
     fun levelsFollowTheFingerAndStopAtTheEnds() {
         assertEquals(0.75f, VideoGestures.levelAfter(0.5f, -150f, 1000), 0.001f)
         assertEquals(1f, VideoGestures.levelAfter(0.9f, -900f, 1000), 0f)
