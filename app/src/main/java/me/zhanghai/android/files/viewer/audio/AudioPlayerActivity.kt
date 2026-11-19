@@ -474,6 +474,8 @@ class AudioPlayerActivity : AppActivity() {
         val authority = uri.authority
         return uri.scheme == ContentResolver.SCHEME_CONTENT
             && !authority.isNullOrEmpty()
+            // "userId@authority" would slip past the own-authority check.
+            && '@' !in authority
             && !isOwnAuthority(authority)
             && intent.flags and Intent.FLAG_GRANT_READ_URI_PERMISSION != 0
     }
