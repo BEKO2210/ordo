@@ -964,7 +964,8 @@ class AudioPlayerActivity : AppActivity() {
         if (!::queuePill.isInitialized) return
         lyricsPill.isVisible = lyrics != null
         val next = (player.mediaItemCount - player.currentMediaItemIndex - 1).coerceAtLeast(0)
-        queuePill.isVisible = player.mediaItemCount > 1
+        // Always there, as the toolbar icon was: the queue also opens with a single song (to add more).
+        queuePill.isVisible = player.mediaItemCount > 0
         queuePill.text = getString(R.string.music_queue_next, next)
         val stroke = ColorStateList.valueOf(ColorUtils.setAlphaComponent(colors[0], PILL_STROKE_ALPHA))
         for (pill in listOf(lyricsPill, queuePill)) {
