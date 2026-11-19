@@ -5,7 +5,6 @@
 
 package me.zhanghai.android.files.player
 
-import kotlin.math.log10
 import org.json.JSONArray
 import org.json.JSONObject
 import me.zhanghai.android.files.settings.Settings
@@ -239,14 +238,6 @@ object ReplayGain {
      * loudness value specified by ReplayGain" and that R128 gains "are referenced to -23 LUFS instead of -18 LUFS").
      */
     const val R128_TO_REPLAYGAIN_DB = 5f
-
-    /** Limits ReplayGain plus its user pre-amp so a known peak never exceeds 0 dBFS. */
-    fun effectiveGainDb(trackGainDb: Float, preampDb: Float, peak: Float?): Float {
-        val requested = trackGainDb + preampDb
-        if (peak == null || !peak.isFinite() || peak <= 0f) return requested
-        val headroomDb = (-20.0 * log10(peak.toDouble())).toFloat()
-        return minOf(requested, headroomDb)
-    }
 
     fun parseDb(value: String?): Float? = value?.trim()
         ?.let { if (it.endsWith("dB", ignoreCase = true)) it.dropLast(2).trim() else it }

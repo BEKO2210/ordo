@@ -100,10 +100,7 @@ class AudioSettingsTest {
     }
 
     @Test
-    fun replayGainHonorsPeakClippingProtection() {
-        assertEquals(4f, ReplayGain.effectiveGainDb(-2f, 6f, null), 0.0001f)
-        assertEquals(0f, ReplayGain.effectiveGainDb(6f, 0f, 1f), 0.0001f)
-        assertEquals(6.0206f, ReplayGain.effectiveGainDb(12f, 0f, 0.5f), 0.001f)
+    fun replayGainTagsParse() {
         assertEquals(-7.5f, ReplayGain.parseDb("-7.5 dB")!!, 0f)
         assertEquals(1.5f, ReplayGain.parseDb("+1.5dB")!!, 0f)
         assertEquals(-2f, ReplayGain.parseR128("-512")!!, 0f)

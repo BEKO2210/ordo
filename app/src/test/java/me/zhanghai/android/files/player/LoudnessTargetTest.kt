@@ -50,38 +50,35 @@ class LoudnessTargetTest {
         return arrayOf(left, right)
     }
 
-    private fun measure(left: FloatArray, right: FloatArray, from: Int = 0): Double {
-        val meter = LoudnessMeter(rate, 2)
-        val frame = FloatArray(2)
-        for (n in from until left.size) {
-            frame[0] = left[n]
-            frame[1] = right[n]
+    /** BS.1770 integrated loudness of all channels (weight 1 each, the same meter for input and output). */
+    private fun measure(channels: Array<FloatArray>): Double {
+        val meter = LoudnessMeter(rate, channels.size)
+        val frame = FloatArray(channels.size)
+        for (n in channels[0].indices) {
+            for (c in channels.indices) frame[c] = channels[c][n]
             meter.add(frame)
         }
         return meter.integrated()!!
     }
 
+    /** Runs [input] (one array per channel) through a limiter with [gainDb] in 1024-frame buffers and drains it. */
     private fun limit(input: Array<FloatArray>, gainDb: Float): Array<FloatArray> {
+        val channels = input.size
         val limiter = TruePeakLimiter().apply { this.gainDb = gainDb }
-        limiter.configure(AudioProcessor.AudioFormat(rate, 2, C.ENCODING_PCM_16BIT))
+        limiter.configure(AudioProcessor.AudioFormat(rate, channels, C.ENCODING_PCM_16BIT))
         limiter.flush()
-        val left = ArrayList<Float>()
-        val right = ArrayList<Float>()
+        val out = Array(channels) { ArrayList<Float>() }
         fun drain() {
             val output = limiter.output
-            while (output.hasRemaining()) {
-                left += output.getShort() / 32_768f
-                right += output.getShort() / 32_768f
-            }
+            while (output.hasRemaining()) for (c in 0 until channels) out[c] += output.getShort() / 32_768f
         }
         val frames = input[0].size
         var position = 0
         while (position < frames) {
             val count = minOf(1_024, frames - position)
-            val buffer = ByteBuffer.allocateDirect(count * 4).order(ByteOrder.nativeOrder())
+            val buffer = ByteBuffer.allocateDirect(count * 2 * channels).order(ByteOrder.nativeOrder())
             for (i in 0 until count) {
-                buffer.putShort((input[0][position + i] * 32_767).toInt().toShort())
-                buffer.putShort((input[1][position + i] * 32_767).toInt().toShort())
+                for (c in 0 until channels) buffer.putShort((input[c][position + i] * 32_767).toInt().toShort())
             }
             buffer.flip()
             limiter.queueInput(buffer)
@@ -90,7 +87,30 @@ class LoudnessTargetTest {
         }
         limiter.queueEndOfStream()
         drain()
-        return arrayOf(left.toFloatArray(), right.toFloatArray())
+        return Array(channels) { out[it].toFloatArray() }
+    }
+
+    /**
+     * 5.1 or 7.1 from the stereo material, in Android's channel order: L, R, centre (their mix), LFE (the low end),
+     * surrounds a little quieter; 7.1 adds side channels.
+     */
+    private fun surround(stereo: Array<FloatArray>, channels: Int): Array<FloatArray> {
+        val (left, right) = stereo
+        val frames = left.size
+        var low = 0f
+        val lfe = FloatArray(frames) { n -> low += ((left[n] + right[n]) * 0.5f - low) * 0.01f; low * 2f }
+        return Array(channels) { c ->
+            FloatArray(frames) { n ->
+                when (c) {
+                    0 -> left[n]
+                    1 -> right[n]
+                    2 -> (left[n] + right[n]) * 0.5f
+                    3 -> lfe[n]
+                    4, 6 -> left[n] * 0.6f
+                    else -> right[n] * 0.6f
+                }
+            }
+        }
     }
 
     private fun truePeakDb(signal: FloatArray): Double {
@@ -127,15 +147,78 @@ class LoudnessTargetTest {
     @Test
     fun targetsAreHeldWithinHalfAnLuAndTruePeakStaysBelowMinus1() {
         val input = material()
-        val inputLufs = measure(input[0], input[1])
+        val inputLufs = measure(input)
         val info = ReplayGainInfo((LoudnessMeter.REFERENCE_LUFS - inputLufs).toFloat())
         for (target in LoudnessTarget.entries) {
             val output = limit(input, LoudnessTargets.gainDb(info, target, 0f))
-            val lufs = measure(output[0], output[1])
-            val peak = maxOf(truePeakDb(output[0]), truePeakDb(output[1]))
+            val lufs = measure(output)
+            val peak = output.maxOf(::truePeakDb)
             println("loudness target %s: in %.2f LUFS, out %.2f LUFS, %.2f dBTP".format(target, inputLufs, lufs, peak))
             assertEquals(target.name, target.lufs.toDouble(), lufs, 0.5)
             assertTrue("${target.name}: %.2f dBTP".format(peak), peak <= -1.0)
         }
+    }
+
+    @Test
+    fun surroundTargetsAreHeldAndEveryChannelStaysBelowMinus1() {
+        for (channels in listOf(6, 8)) {
+            val input = surround(material(), channels)
+            val inputLufs = measure(input)
+            val info = ReplayGainInfo((LoudnessMeter.REFERENCE_LUFS - inputLufs).toFloat())
+            for (target in LoudnessTarget.entries) {
+                val output = limit(input, LoudnessTargets.gainDb(info, target, 0f))
+                val lufs = measure(output)
+                val peak = output.maxOf(::truePeakDb)
+                println("%d channels, target %s: in %.2f LUFS, out %.2f LUFS, %.2f dBTP".format(
+                    channels, target, inputLufs, lufs, peak
+                ))
+                assertEquals("$channels ch ${target.name}", target.lufs.toDouble(), lufs, 0.5)
+                assertTrue("$channels ch ${target.name}: %.2f dBTP".format(peak), peak <= -1.0)
+            }
+        }
+    }
+
+    @Test
+    fun surroundIntersamplePeakInOneChannelPullsAllDownTogether() {
+        // fs/4 at 45 degrees, full scale, only in the centre of a 5.1 frame; the other channels play a quiet tone.
+        val frames = rate / 2
+        val input = Array(6) { c ->
+            FloatArray(frames) { n ->
+                if (c == 2) (sin(PI / 2 * n + PI / 4) / sin(PI / 4) * 0.999).toFloat()
+                else (0.1 * sin(2 * PI * 440 * n / rate)).toFloat()
+            }
+        }
+        val output = limit(input, 0f)
+        // With no gain and not armed nothing may change: bit for bit.
+        for (c in 0 until 6) {
+            assertTrue(output[c].indices.all { abs(output[c][it] - (input[c][it] * 32_767).toInt() / 32_768f) < 1e-6f })
+        }
+        // Armed, the centre's peak between the samples is caught and the quiet channels go down by the same gain.
+        val armedOutput = limitArmed(input)
+        assertTrue(truePeakDb(armedOutput[2]) <= -1.0)
+        val quietIn = input[0].copyOfRange(rate / 10, frames - 2_000).maxOf { abs(it) }
+        val quietOut = armedOutput[0].copyOfRange(rate / 10, frames - 2_000).maxOf { abs(it) }
+        val centreReduction = 20 * log10(armedOutput[2].maxOf { abs(it) } / 0.999)
+        assertEquals(centreReduction, 20 * log10((quietOut / quietIn).toDouble()), 0.3)
+    }
+
+    private fun limitArmed(input: Array<FloatArray>): Array<FloatArray> {
+        val channels = input.size
+        val limiter = TruePeakLimiter().apply { armed = true }
+        limiter.configure(AudioProcessor.AudioFormat(rate, channels, C.ENCODING_PCM_16BIT))
+        limiter.flush()
+        val out = Array(channels) { ArrayList<Float>() }
+        val buffer = ByteBuffer.allocateDirect(input[0].size * 2 * channels).order(ByteOrder.nativeOrder())
+        for (i in input[0].indices) for (c in 0 until channels) buffer.putShort((input[c][i] * 32_767).toInt().toShort())
+        buffer.flip()
+        limiter.queueInput(buffer)
+        fun drain() {
+            val output = limiter.output
+            while (output.hasRemaining()) for (c in 0 until channels) out[c] += output.getShort() / 32_768f
+        }
+        drain()
+        limiter.queueEndOfStream()
+        drain()
+        return Array(channels) { out[it].toFloatArray() }
     }
 }

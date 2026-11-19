@@ -10,7 +10,6 @@ import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.exp
 import kotlin.math.log10
-import kotlin.math.pow
 import kotlin.math.roundToInt
 import kotlin.math.sin
 import kotlin.math.sqrt
@@ -75,7 +74,6 @@ internal object VideoSoundMath {
     /** Night-mode linked compressor. */
     val NIGHT = CompressorParams(-30f, 4f, 6f, 5f, 250f, 9f)
 
-
     /**
      * Soft-knee feed-forward gain computer; returns gain change in dB (<= 0).
      * Giannoulis, Massberg, Reiss, JAES 60(6) 2012, eq. 4.
@@ -119,24 +117,6 @@ internal object VideoSoundMath {
         val alpha = sin(w0) / (2.0 * q)
         val a0 = 1.0 + alpha
         return Biquad(doubleArrayOf(alpha / a0, 0.0, -alpha / a0, -2 * cos(w0) / a0, (1 - alpha) / a0))
-    }
-
-    /** RBJ Audio EQ Cookbook peakingEQ. */
-    fun peaking(sampleRate: Int, freqHz: Float, q: Float, gainDb: Float): Biquad {
-        val a = 10.0.pow(gainDb / 40.0)
-        val w0 = 2.0 * PI * freqHz / sampleRate
-        val alpha = sin(w0) / (2.0 * q)
-        val cosW = cos(w0)
-        val b0 = 1.0 + alpha * a
-        val b1 = -2.0 * cosW
-        val b2 = 1.0 - alpha * a
-        val a0 = 1.0 + alpha / a
-        val a1 = -2.0 * cosW
-        val a2 = 1.0 - alpha / a
-        return Biquad(
-            (b0 / a0).toFloat(), (b1 / a0).toFloat(), (b2 / a0).toFloat(),
-            (a1 / a0).toFloat(), (a2 / a0).toFloat()
-        )
     }
 
     /** |H(e^jw)| of a biquad in dB (for tests). */
