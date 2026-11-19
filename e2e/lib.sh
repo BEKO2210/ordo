@@ -128,3 +128,10 @@ finish() {
     [ "$FAILS" = 0 ] && exit 0
     exit 1
 }
+
+# Night rule (20.11.2026, a test device was heard): every suite starts with media at 0 or does not start at all.
+# Volume keys first (on the W90 and the Pixel `cmd media_session volume --set` was unreliable), then --set as a fallback.
+media_volume() { a shell cmd media_session volume --stream 3 --get 2>/dev/null | grep -oE 'volume is [0-9]+' | grep -oE '[0-9]+'; }
+a shell 'for i in $(seq 25); do input keyevent KEYCODE_VOLUME_DOWN; done'
+[ "$(media_volume)" = 0 ] || a shell cmd media_session volume --stream 3 --set 0 >/dev/null 2>&1
+[ "$(media_volume)" = 0 ] || { echo "ABORT: media volume is $(media_volume), not 0"; exit 2; }
