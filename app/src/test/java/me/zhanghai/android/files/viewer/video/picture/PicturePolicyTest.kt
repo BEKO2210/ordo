@@ -12,6 +12,7 @@ import me.zhanghai.android.files.viewer.video.picture.PicturePolicy.Off
 import me.zhanghai.android.files.viewer.video.picture.PicturePolicy.Pipeline
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -144,6 +145,55 @@ class PicturePolicyTest {
         assertEquals(Pipeline.CLEAR, PicturePolicy.pipeline(true, decide(video = 3840 to 2160)))
         assertEquals(Pipeline.RECREATE, PicturePolicy.pipeline(true, decide(hdr = true)))
         assertEquals(Pipeline.RECREATE, PicturePolicy.pipeline(true, decide(drm = true)))
+    }
+
+    @Test
+    fun probeReadsHdrFromTheTransferOrTheCodec() {
+        fun hdr(mime: String, transfer: Int? = null, profile: Int? = null) =
+            PicturePolicy.probeFrom(mime, 1280, 720, 0, transfer, profile, drm = false)?.hdr
+        assertEquals(true, hdr("video/hevc", transfer = 6))
+        assertEquals(true, hdr("video/hevc", transfer = 7))
+        assertEquals(false, hdr("video/hevc", transfer = 3))
+        assertEquals(true, hdr("video/dolby-vision", transfer = 3))
+        assertEquals(false, hdr("video/avc"))
+        assertEquals(false, hdr("video/hevc", profile = 1))
+        // HEVC Main 10 without a transfer may be HDR: unknown, nothing is decided ahead.
+        assertNull(hdr("video/hevc", profile = 2))
+        assertNull(hdr("video/x-vnd.on2.vp9"))
+        assertNull(PicturePolicy.probeFrom("video/avc", 0, 0, 0, null, null, false))
+        // A phone video recorded upright: 1920x1080 turned by 90° shows as 1080x1920.
+        val turned = PicturePolicy.probeFrom("video/avc", 1920, 1080, 90, null, null, false)
+        assertEquals(1080, turned?.width)
+        assertEquals(1920, turned?.height)
+    }
+
+    @Test
+    fun preEngageDecidesBeforePrepare() {
+        val small = PicturePolicy.Probe(640, 360, hdr = false, drm = false)
+        val big = PicturePolicy.Probe(2400, 1080, hdr = false, drm = false)
+        val hdr = PicturePolicy.Probe(640, 360, hdr = true, drm = false)
+        val unknown = PicturePolicy.Probe(640, 360, hdr = null, drm = false)
+        val drm = PicturePolicy.Probe(640, 360, hdr = false, drm = true)
+        fun pre(
+            current: PicturePolicy.Probe?,
+            next: PicturePolicy.Probe? = null,
+            on: Boolean = true,
+            failed: Boolean = false
+        ) = PicturePolicy.preEngage(on, failed, current, next, 1080, 2400)
+        assertTrue(pre(small))
+        // A phone in portrait: the film will be shown in landscape, both orientations count.
+        assertTrue(pre(PicturePolicy.Probe(1280, 720, hdr = false, drm = false)))
+        assertFalse(pre(big))
+        // A big SDR video first and a small one next: the pipeline starts with it, the first passes through.
+        assertTrue(pre(big, next = small))
+        assertFalse(pre(big, next = hdr))
+        // HDR, unknown HDR, DRM or no probe: plain, the re-prepare stays the fallback.
+        assertFalse(pre(hdr, next = small))
+        assertFalse(pre(unknown))
+        assertFalse(pre(drm))
+        assertFalse(pre(null, next = small))
+        assertFalse(pre(small, on = false))
+        assertFalse(pre(small, failed = true))
     }
 
     @Test

@@ -165,6 +165,76 @@ object PicturePolicy {
     fun tooSlow(droppedFrames: Int, elapsedMs: Long): Boolean =
         droppedFrames >= MIN_DROPS && droppedFrames * 1000L > DROPS_PER_SECOND * elapsedMs.coerceAtLeast(1L)
 
+    /**
+     * What a quick look into the file says before the player opens it: the picture as shown (rotation applied),
+     * [hdr] null when the file does not say (then nothing is decided ahead), [drm] when it carries PSSH data.
+     */
+    data class Probe(val width: Int, val height: Int, val hdr: Boolean?, val drm: Boolean)
+
+    // MediaFormat's values, repeated so this stays free of Android.
+    private const val TRANSFER_ST2084 = 6
+    private const val TRANSFER_HLG = 7
+    private const val HEVC_MAIN = 0x1
+    private const val VP9_PROFILE_0 = 0x1
+    private const val AV1_MAIN_8 = 0x1
+
+    /**
+     * The probe from MediaExtractor's video format. HDR is the colour transfer when the file names it; without it only
+     * codecs and profiles that cannot carry HDR count as SDR (H.264, MPEG-4/2, VP8, HEVC Main, VP9 profile 0, AV1
+     * Main 8); Dolby Vision is always HDR. Anything else stays unknown.
+     */
+    fun probeFrom(
+        mimeType: String?,
+        width: Int,
+        height: Int,
+        rotationDegrees: Int,
+        colorTransfer: Int?,
+        profile: Int?,
+        drm: Boolean
+    ): Probe? {
+        if (width <= 0 || height <= 0) return null
+        val hdr = when {
+            mimeType == "video/dolby-vision" -> true
+            colorTransfer != null && colorTransfer > 0 ->
+                colorTransfer == TRANSFER_ST2084 || colorTransfer == TRANSFER_HLG
+            mimeType in EIGHT_BIT_CODECS -> false
+            mimeType == "video/hevc" -> if (profile == HEVC_MAIN) false else null
+            mimeType == "video/x-vnd.on2.vp9" -> if (profile == VP9_PROFILE_0) false else null
+            mimeType == "video/av01" -> if (profile == AV1_MAIN_8) false else null
+            else -> null
+        }
+        val turned = rotationDegrees % 180 == 90
+        return Probe(if (turned) height else width, if (turned) width else height, hdr, drm)
+    }
+
+    private val EIGHT_BIT_CODECS = setOf("video/avc", "video/mp4v-es", "video/mpeg2", "video/x-vnd.on2.vp8")
+
+    /** Would this video be enhanced on a window of this size, in either orientation (phones turn for the film)? */
+    fun probeEligible(probe: Probe?, windowWidth: Int, windowHeight: Int): Boolean =
+        probe != null && probe.hdr == false && !probe.drm &&
+            maxOf(
+                scale(probe.width, probe.height, windowWidth, windowHeight),
+                scale(probe.width, probe.height, windowHeight, windowWidth)
+            ) >= MIN_SCALE
+
+    /**
+     * Whether the player starts with Media3's OpenGL pipeline, decided before prepare() so no video has to be
+     * prepared twice: yes when the first video is SDR without DRM and it or the next one in the queue gets the
+     * enhancement (an SDR video in between passes through the pipeline untouched). An unknown or HDR first video
+     * starts plain; then the re-prepare in [pipeline] stays the fallback.
+     */
+    fun preEngage(
+        switchedOn: Boolean,
+        failed: Boolean,
+        current: Probe?,
+        next: Probe?,
+        windowWidth: Int,
+        windowHeight: Int
+    ): Boolean {
+        if (!switchedOn || failed || current == null || current.hdr != false || current.drm) return false
+        return probeEligible(current, windowWidth, windowHeight) || probeEligible(next, windowWidth, windowHeight)
+    }
+
     private inline fun <reified E : Enum<E>> enumOf(value: String?, default: E): E =
         enumValues<E>().firstOrNull { it.name.equals(value, ignoreCase = true) } ?: default
 }

@@ -293,7 +293,8 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity {
         applyRepeatMode(VideoRepeatMode.decode(Settings.VIDEO_END.valueCompat))
         player.setMediaItems(queue.items, queue.startIndex, queue.positionMs)
         player.playWhenReady = savedInstanceState?.getBoolean(STATE_PLAY_WHEN_READY) ?: true
-        player.prepare()
+        // The picture decides first whether the player starts with its OpenGL pipeline (a quick probe of the file).
+        picture?.prepare(player) ?: player.prepare()
         // After setMediaItems, so the first item is not announced twice; a recreated screen offers no pill.
         player.addListener(playerListener)
         startTracking(player.currentMediaItem)

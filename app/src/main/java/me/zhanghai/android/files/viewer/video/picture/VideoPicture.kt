@@ -27,11 +27,13 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.isVisible
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.C
 import androidx.media3.common.ColorInfo
 import androidx.media3.common.Format
 import androidx.media3.common.MimeTypes
 import androidx.media3.common.PlaybackException
+import androidx.media3.common.Player
 import androidx.media3.common.Tracks
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.common.util.Util
@@ -44,6 +46,8 @@ import androidx.media3.exoplayer.mediacodec.MediaCodecUtil
 import androidx.media3.ui.PlayerView
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import java.text.NumberFormat
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
 import me.zhanghai.android.files.R
 import me.zhanghai.android.files.settings.Settings
 import me.zhanghai.android.files.util.valueCompat
@@ -61,9 +65,11 @@ import me.zhanghai.android.files.viewer.video.picture.PicturePolicy.Pipeline
  *
  * The player starts without Media3's OpenGL pipeline, so HDR, Dolby Vision and every video the enhancement does not
  * help reach the screen straight from the decoder. Media3 only builds the pipeline when the video renderer is reset
- * and keeps it for the renderer's lifetime (MediaCodecVideoRenderer.onEnabled), so: switching it on sets the effects
- * and re-prepares once; switching it off for another SDR video sets an empty list; an HDR or DRM video after it
- * rebuilds the screen, which then starts plain again ([PicturePolicy.pipeline]).
+ * and keeps it for the renderer's lifetime (MediaCodecVideoRenderer.onEnabled), so the choice is made before
+ * prepare() from a probe of the first and next video ([prepare], [PicturePolicy.preEngage]). Only when that was not
+ * possible (network sources, timeout, a wrong probe, the ⋮ toggle or a rotation later) does switching it on set the
+ * effects and re-prepare once; switching it off for another SDR video sets an empty list; an HDR or DRM video after
+ * it rebuilds the screen, which then starts plain again ([PicturePolicy.pipeline]).
  */
 @OptIn(UnstableApi::class)
 class VideoPicture(
@@ -120,6 +126,38 @@ class VideoPicture(
         this.player = player
         player.addAnalyticsListener(this)
         evaluate()
+    }
+
+    /**
+     * Prepares [player] (instead of calling prepare() directly), after deciding whether it starts with Media3's
+     * OpenGL pipeline: the first video and the next one are probed (local files and content://, at most 400 ms), so
+     * an enhanced video is never prepared twice. An empty effect list is enough to build the pipeline; the real
+     * effects follow as soon as the tracks and the surface are known. Unknown sources start plain.
+     */
+    fun prepare(player: ExoPlayer) {
+        if (!switchedOn || failedInProcess || player.mediaItemCount == 0) {
+            player.prepare()
+            return
+        }
+        val index = player.currentMediaItemIndex
+        val currentId = player.getMediaItemAt(index).mediaId
+        val nextId = if (index + 1 < player.mediaItemCount) player.getMediaItemAt(index + 1).mediaId else null
+        activity.lifecycleScope.launch {
+            val next = nextId?.let { async { PictureProbe.probe(activity, it) } }
+            val current = PictureProbe.probe(activity, currentId)
+            val metrics = activity.resources.displayMetrics
+            // Someone pressed play meanwhile (prepare after an error): too late for the pipeline, the fallback rules.
+            if (this@VideoPicture.player !== player || player.playbackState != Player.STATE_IDLE) return@launch
+            if (PicturePolicy.preEngage(
+                    switchedOn, failedInProcess, current, next?.await(), metrics.widthPixels, metrics.heightPixels
+                )) {
+                player.setVideoEffects(emptyList())
+                engaged = true
+                appliedKey = CLEARED
+            }
+            if (Log.isLoggable(PICTURE_LOG_TAG, Log.DEBUG)) Log.d(PICTURE_LOG_TAG, "prepare: pipeline $engaged")
+            player.prepare()
+        }
     }
 
     /** The ⋮ toggle: compare with and without. Switching it on again also forgets "too slow". */
@@ -217,7 +255,7 @@ class VideoPicture(
      * renderer does not switch on.
      */
     private fun redrawIfPaused(player: ExoPlayer) {
-        if (!player.isPlaying && player.playbackState == androidx.media3.common.Player.STATE_READY) {
+        if (!player.isPlaying && player.playbackState == Player.STATE_READY) {
             player.seekTo(player.currentPosition)
         }
     }

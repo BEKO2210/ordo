@@ -196,10 +196,16 @@ Quelle der Entscheidungen: `ordo-team/QUALITAET-PANEL.md`, Ideen 1–4. Logik oh
   Fläche erkennt, wird nicht geschärft (CAS verstärkt sonst genau die Stufenkanten). Werte: Ausgewogen CAS 0,4, ein
   Schritt, Schwelle 3/1000, Körnung 2/1000; Maximal CAS 0,8, zwei Schritte, Schwelle 4/1000, Körnung 4/1000; Radius 16
   Quellpixel × Vergrößerung, höchstens 64.
-- **Pipeline:** Der Player startet ohne Media3s OpenGL-Kette (HDR, Dolby Vision und große Videos gehen direkt vom
-  Decoder auf den Bildschirm). Media3 baut die Kette nur beim Zurücksetzen des Renderers und behält sie danach
-  (`MediaCodecVideoRenderer.onEnabled`): Einschalten setzt die Effekte und bereitet einmal neu vor (`stop()` +
-  `prepare()`, Stelle bleibt); ein weiteres SDR-Video ohne Verbesserung bekommt eine leere Effektliste; ein HDR- oder
+- **Pipeline:** Media3 baut seine OpenGL-Kette nur beim Zurücksetzen des Renderers und behält sie danach
+  (`MediaCodecVideoRenderer.onEnabled`). Darum wird vor `prepare()` entschieden (`PictureProbe`, `PicturePolicy.preEngage`):
+  `MediaExtractor` liest bei lokalen Dateien und `content://` Größe, Drehung, Farbübertragung, Profil und PSSH des
+  aktuellen und des nächsten Videos (höchstens 400 ms, je Datei gemerkt). Ist das erste Video SDR ohne DRM und wird
+  es oder das nächste vergrößert (in einer der beiden Ausrichtungen), startet der Player mit der Kette (leere
+  Effektliste, die echten Effekte folgen mit Spuren und Oberfläche); sonst ohne (HDR, Dolby Vision, große Videos
+  gehen direkt vom Decoder auf den Bildschirm). Ohne Probe (SMB/SFTP/WebDAV/FTP/Archive, Zeitüberschreitung, HEVC
+  Main 10 ohne Farbangabe), bei falscher Probe, beim Einschalten über ⋮ aus einem kettenlosen Start und bei einem
+  späteren Video der Warteschlange, das als erstes vergrößert wird, setzt Ordo ersatzweise die Effekte und bereitet
+  einmal neu vor (`stop()` + `prepare()`, Stelle bleibt); ein weiteres SDR-Video ohne Verbesserung bekommt eine leere Effektliste; ein HDR- oder
   DRM-Video danach baut den Bildschirm neu auf (`recreate()`), der wieder ohne Kette startet. Pausiert wird nach dem
   Umschalten an dieselbe Stelle gesprungen, damit das stehende Bild die neuen Effekte zeigt.
 - **Ruckeln:** Meldet Media3 mehr als 2 verworfene Bilder pro Sekunde (in einem Block von mindestens 10), schaltet die

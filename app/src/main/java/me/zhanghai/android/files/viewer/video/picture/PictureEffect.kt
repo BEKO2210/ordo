@@ -99,7 +99,9 @@ private class PictureShaderProgram(private val params: PicturePolicy.ShaderParam
         Log.d(PICTURE_LOG_TAG, "frame $frame ${width}x$height ${ms.twoDigits()} ms $params")
         if (frame % SUMMARY_FRAMES == 0) {
             val mean = sumMs / SUMMARY_FRAMES
-            Log.d(PICTURE_LOG_TAG, "last $SUMMARY_FRAMES frames: mean ${mean.twoDigits()} ms, max ${maxMs.twoDigits()} ms")
+            Log.d(
+                PICTURE_LOG_TAG, "last $SUMMARY_FRAMES frames: mean ${mean.twoDigits()} ms, max ${maxMs.twoDigits()} ms"
+            )
             sumMs = 0.0
             maxMs = 0.0
         }
