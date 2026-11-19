@@ -28,4 +28,13 @@
         android:icon="@drawable/video_subtitles_icon_24dp"
         android:title="@string/video_subtitles_title"
         app:showAsAction="always" />
+    <item
+        android:id="@+id/actionSleepTimer"
+        android:title="@string/video_player_sleep_timer"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/actionPip"
+        android:title="@string/video_player_pip"
+        android:visible="false"
+        app:showAsAction="never" />
 </menu>

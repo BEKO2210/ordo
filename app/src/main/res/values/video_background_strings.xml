@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later -->
+<resources>
+    <string name="video_settings_background">Keep playing in the background</string>
+    <string-array name="video_settings_background_entries">
+        <item>Off</item>
+        <item>Sound only</item>
+    </string-array>
+    <string name="video_settings_pip">Picture-in-picture</string>
+    <string name="video_settings_pip_summary">Going home while a video plays keeps it running in a small window</string>
+    <string name="video_background_channel">Video playback</string>
+    <string name="video_player_pip">Picture-in-picture</string>
+    <string name="video_player_sleep_timer">Sleep timer</string>
+    <string name="video_sleep_off">Off</string>
+    <string name="video_sleep_minutes_format">%1$d min</string>
+    <string name="video_sleep_end_of_video">End of video</string>
+    <string name="video_sleep_remaining_format">Stops in %1$d min</string>
+    <string name="video_sleep_remaining_end">Stops at the end of this video</string>
+    <string name="video_sleep_set_format">The video stops in %1$d min.</string>
+    <string name="video_sleep_set_end">The video stops at its end.</string>
+    <string name="video_sleep_cancelled">Sleep timer off.</string>
+</resources>
