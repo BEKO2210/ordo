@@ -32,14 +32,28 @@ data class VideoFolder(val path: String, val name: String, val videos: List<Vide
 data class ContinueItem(val video: VideoItem, val positionMs: Long)
 
 /** Sorting, folders and "Continue watching" of Ordo Video; no Android in here, so it is unit-tested. */
-class VideoLibrary(videos: List<VideoItem>, showHiddenFiles: Boolean, private val collator: Comparator<in String>) {
-    /** Newest first; hidden files (a "." folder or name) only when the user shows them, as in the file list. */
+class VideoLibrary(
+    videos: List<VideoItem>,
+    showHiddenFiles: Boolean,
+    private val collator: Comparator<in String>,
+    sort: VideoPrefs.Sort = VideoPrefs.Sort.NEWEST,
+    /** Folders the user hid in the settings (WhatsApp, Telegram …): none of their videos show. */
+    hiddenFolders: Set<String> = emptySet()
+) {
+    /** In the chosen order (newest first by default); hidden files only when the user shows them, as in the list. */
     val videos: List<VideoItem> = videos
-        .filter { showHiddenFiles || !it.path.contains("/.") }
+        .filter { (showHiddenFiles || !it.path.contains("/.")) && it.folder !in hiddenFolders }
         .distinctBy { it.path }
-        .sortedWith(compareByDescending<VideoItem> { it.dateAddedMs }.thenBy { it.path })
+        .sortedWith(
+            when (sort) {
+                VideoPrefs.Sort.NEWEST -> compareByDescending<VideoItem> { it.dateAddedMs }
+                VideoPrefs.Sort.NAME -> compareBy<VideoItem, String>(collator) { it.title }
+                VideoPrefs.Sort.SIZE -> compareByDescending { it.size }
+                VideoPrefs.Sort.LENGTH -> compareByDescending { it.durationMs }
+            }.thenBy { it.path }
+        )
 
-    /** Folders in the order of their newest video. */
+    /** Folders in the order of the list (by their newest video in the default order). */
     val folders: List<VideoFolder> = this.videos.groupBy { it.folder }
         .map { (folder, list) -> VideoFolder(folder, folder.substringAfterLast('/'), list) }
 

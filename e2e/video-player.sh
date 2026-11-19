@@ -10,7 +10,7 @@
 # external file:// intent is refused, a content:// one with a read grant plays; the rotate button (phone) keeps
 # position and playback; at the end it stops with "Watch again"/"Next video"; one left-edge swipe goes back; a
 # vertical swipe on the right half changes the volume; Ordo Video's own colour (Amber) changes the play button's
-# tint and is put back to "Same as Ordo"; buttons keep 48 dp, the play button 88 dp on a tablet. Headphones and audio focus are not
+# tint and is put back to "Same as Ordo"; the settings page and the player's "Video info" open; buttons keep 48 dp, the play button 88 dp on a tablet. Headphones and audio focus are not
 # scriptable from adb: SKIP, by hand. Needs ffmpeg on the host.
 . "$(dirname "$0")/lib.sh" "$@"
 DIR=/storage/emulated/0/ordo-e2e-video
@@ -256,6 +256,20 @@ open_paused; c_amber=$(play_colour); back 2
 set_video_colour "Wie Ordo|Same as Ordo"
 check "Ordo Video's own colour tints the play button ($c_ordo -> $c_amber)" \
     test -n "$c_ordo" -a -n "$c_amber" -a "$c_ordo" != "$c_amber"
+
+# Ordo Video's settings page has its groups; the player's ⋮ › Video info names resolution and codec in plain words
+# (each row is one node "label: value" for TalkBack).
+a shell am start -W -n "$PKG/me.zhanghai.android.files.viewer.video.VideoLauncherActivity" >/dev/null; sleep 2; guard
+ui tap actionSettings >/dev/null; sleep 2
+check "Ordo Video's settings offer the end of a video" ui wait "Am Ende|At the end" 5
+back 1; back 1
+open_paused
+ui tap "Weitere Optionen|More options" >/dev/null; sleep 1
+ui tap "Videoinfos|Video info" >/dev/null; sleep 2
+check "Video info shows resolution and frame rate" \
+    ui wait "Auflösung: 1920 × 1080 · 30 fps|Resolution: 1920 × 1080 · 30 fps" 5
+check "Video info names the codec in words" ui has "Video-Codec: H.264|Video codec: H.264"
+back 1; back 2
 
 # 9. Rotating (phone: the rotate button) keeps the position and playback.
 open_folder 02-clip.mp4

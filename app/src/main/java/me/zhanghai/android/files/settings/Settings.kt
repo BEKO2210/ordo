@@ -180,6 +180,52 @@ object Settings {
     val VIDEO_ACCENT: SettingLiveData<String> =
         StringSettingLiveData(R.string.pref_key_video_accent, R.string.pref_default_value_app_accent)
 
+    /** Ordo Video's settings page (settings_video.xml); what the values mean: viewer/video/VideoPrefs.kt. */
+    val VIDEO_END: SettingLiveData<String> =
+        StringSettingLiveData(R.string.pref_key_video_end, R.string.pref_default_value_video_end)
+    val VIDEO_RESUME: SettingLiveData<String> =
+        StringSettingLiveData(R.string.pref_key_video_resume, R.string.pref_default_value_video_resume)
+    val VIDEO_SPEED: SettingLiveData<String> =
+        StringSettingLiveData(R.string.pref_key_video_speed, R.string.pref_default_value_video_speed)
+    val VIDEO_JUMP: SettingLiveData<String> =
+        StringSettingLiveData(R.string.pref_key_video_jump, R.string.pref_default_value_video_jump)
+    val VIDEO_RESIZE: SettingLiveData<String> =
+        StringSettingLiveData(R.string.pref_key_video_resize, R.string.pref_default_value_video_resize)
+    val VIDEO_ORIENTATION: SettingLiveData<String> =
+        StringSettingLiveData(R.string.pref_key_video_orientation, R.string.pref_default_value_video_orientation)
+    val VIDEO_KEEP_SCREEN_ON: SettingLiveData<Boolean> =
+        BooleanSettingLiveData(R.string.pref_key_video_keep_screen_on, R.bool.pref_default_value_true)
+    val VIDEO_GESTURE_BRIGHTNESS: SettingLiveData<Boolean> =
+        BooleanSettingLiveData(R.string.pref_key_video_gesture_brightness, R.bool.pref_default_value_true)
+    val VIDEO_GESTURE_VOLUME: SettingLiveData<Boolean> =
+        BooleanSettingLiveData(R.string.pref_key_video_gesture_volume, R.bool.pref_default_value_true)
+    val VIDEO_GESTURE_SEEK: SettingLiveData<Boolean> =
+        BooleanSettingLiveData(R.string.pref_key_video_gesture_seek, R.bool.pref_default_value_true)
+    val VIDEO_GESTURE_DOUBLE_TAP: SettingLiveData<Boolean> =
+        BooleanSettingLiveData(R.string.pref_key_video_gesture_double_tap, R.bool.pref_default_value_true)
+    val VIDEO_GESTURE_HOLD: SettingLiveData<Boolean> =
+        BooleanSettingLiveData(R.string.pref_key_video_gesture_hold, R.bool.pref_default_value_true)
+    val VIDEO_HOLD_SPEED: SettingLiveData<String> =
+        StringSettingLiveData(R.string.pref_key_video_hold_speed, R.string.pref_default_value_video_hold_speed)
+    val VIDEO_REMEMBER_BRIGHTNESS: SettingLiveData<Boolean> =
+        BooleanSettingLiveData(R.string.pref_key_video_remember_brightness, R.bool.pref_default_value_false)
+    val VIDEO_AUDIO_LANGUAGE: SettingLiveData<String> =
+        StringSettingLiveData(R.string.pref_key_video_audio_language, R.string.pref_default_value_video_audio_language)
+    val VIDEO_SORT: SettingLiveData<String> =
+        StringSettingLiveData(R.string.pref_key_video_sort, R.string.pref_default_value_video_sort)
+    val VIDEO_VIEW: SettingLiveData<String> =
+        StringSettingLiveData(R.string.pref_key_video_view, R.string.pref_default_value_video_view)
+    val VIDEO_SHOW_CONTINUE: SettingLiveData<Boolean> =
+        BooleanSettingLiveData(R.string.pref_key_video_show_continue, R.bool.pref_default_value_true)
+    val VIDEO_CAMERA_NAMES: SettingLiveData<Boolean> =
+        BooleanSettingLiveData(R.string.pref_key_video_camera_names, R.bool.pref_default_value_true)
+    val VIDEO_HIDDEN_FOLDERS: SettingLiveData<Set<String>> =
+        StringSetSettingLiveData(
+            R.string.pref_key_video_hidden_folders, R.array.pref_default_value_video_hidden_folders
+        )
+    val VIDEO_NO_HISTORY: SettingLiveData<Boolean> =
+        BooleanSettingLiveData(R.string.pref_key_video_no_history, R.bool.pref_default_value_false)
+
     /** Ordo Musik: the player's colours from the playing cover (default) or the chosen accent everywhere. */
     val MUSIC_COVER_COLORS: SettingLiveData<Boolean> =
         BooleanSettingLiveData(R.string.pref_key_music_cover_colors, R.bool.pref_default_value_music_cover_colors)

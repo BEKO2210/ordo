@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later -->
-<!-- Ordo Video's settings (its library's menu): its own colour, "Same as Ordo" by default. -->
+<!-- Ordo Video's settings (its library's menu). Lists and switches only, no sliders (house rule); each row's summary
+     shows its value. What each value does: viewer/video/VideoPrefs.kt and the player/library code that reads it. -->
 <PreferenceScreen
-    xmlns:android="http://schemas.android.com/apk/res/android">
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <PreferenceCategory android:title="@string/settings_section_appearance">
 
@@ -11,5 +13,149 @@
             android:icon="@drawable/palette_icon_white_24dp"
             android:title="@string/settings_app_accent_title"
             android:defaultValue="@string/pref_default_value_app_accent" />
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/video_settings_cat_playback">
+        <ListPreference
+            android:key="@string/pref_key_video_end"
+            android:title="@string/video_settings_end"
+            android:defaultValue="@string/pref_default_value_video_end"
+            android:entries="@array/video_settings_end_entries"
+            android:entryValues="@array/pref_entry_values_video_end"
+            app:useSimpleSummaryProvider="true" />
+        <ListPreference
+            android:key="@string/pref_key_video_resume"
+            android:title="@string/video_settings_resume"
+            android:defaultValue="@string/pref_default_value_video_resume"
+            android:entries="@array/video_settings_resume_entries"
+            android:entryValues="@array/pref_entry_values_video_resume"
+            app:useSimpleSummaryProvider="true" />
+        <ListPreference
+            android:key="@string/pref_key_video_speed"
+            android:title="@string/video_settings_speed"
+            android:defaultValue="@string/pref_default_value_video_speed"
+            android:entries="@array/video_settings_speed_entries"
+            android:entryValues="@array/pref_entry_values_video_speed"
+            app:useSimpleSummaryProvider="true" />
+        <ListPreference
+            android:key="@string/pref_key_video_jump"
+            android:title="@string/video_settings_jump"
+            android:defaultValue="@string/pref_default_value_video_jump"
+            android:entries="@array/video_settings_jump_entries"
+            android:entryValues="@array/pref_entry_values_video_jump"
+            app:useSimpleSummaryProvider="true" />
+        <ListPreference
+            android:key="@string/pref_key_video_resize"
+            android:title="@string/video_settings_resize"
+            android:defaultValue="@string/pref_default_value_video_resize"
+            android:entries="@array/video_settings_resize_entries"
+            android:entryValues="@array/pref_entry_values_video_resize"
+            app:useSimpleSummaryProvider="true" />
+        <ListPreference
+            android:key="@string/pref_key_video_orientation"
+            android:title="@string/video_settings_orientation"
+            android:defaultValue="@string/pref_default_value_video_orientation"
+            android:entries="@array/video_settings_orientation_entries"
+            android:entryValues="@array/pref_entry_values_video_orientation"
+            app:useSimpleSummaryProvider="true" />
+        <SwitchPreferenceCompat
+            android:key="@string/pref_key_video_keep_screen_on"
+            android:title="@string/video_settings_keep_screen_on"
+            android:summary="@string/video_settings_keep_screen_on_summary"
+            android:defaultValue="@bool/pref_default_value_true" />
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/video_settings_cat_gestures">
+        <SwitchPreferenceCompat
+            android:key="@string/pref_key_video_gesture_brightness"
+            android:title="@string/video_settings_g_brightness"
+            android:summary="@string/video_settings_g_brightness_summary"
+            android:defaultValue="@bool/pref_default_value_true" />
+        <SwitchPreferenceCompat
+            android:key="@string/pref_key_video_gesture_volume"
+            android:title="@string/video_settings_g_volume"
+            android:summary="@string/video_settings_g_volume_summary"
+            android:defaultValue="@bool/pref_default_value_true" />
+        <SwitchPreferenceCompat
+            android:key="@string/pref_key_video_gesture_seek"
+            android:title="@string/video_settings_g_seek"
+            android:summary="@string/video_settings_g_seek_summary"
+            android:defaultValue="@bool/pref_default_value_true" />
+        <SwitchPreferenceCompat
+            android:key="@string/pref_key_video_gesture_double_tap"
+            android:title="@string/video_settings_g_double_tap"
+            android:summary="@string/video_settings_g_double_tap_summary"
+            android:defaultValue="@bool/pref_default_value_true" />
+        <SwitchPreferenceCompat
+            android:key="@string/pref_key_video_gesture_hold"
+            android:title="@string/video_settings_g_hold"
+            android:summary="@string/video_settings_g_hold_summary"
+            android:defaultValue="@bool/pref_default_value_true" />
+        <ListPreference
+            android:key="@string/pref_key_video_hold_speed"
+            android:title="@string/video_settings_hold_speed"
+            android:defaultValue="@string/pref_default_value_video_hold_speed"
+            android:entries="@array/video_settings_hold_speed_entries"
+            android:entryValues="@array/pref_entry_values_video_hold_speed"
+            app:useSimpleSummaryProvider="true" />
+        <SwitchPreferenceCompat
+            android:key="@string/pref_key_video_remember_brightness"
+            android:title="@string/video_settings_remember_brightness"
+            android:summary="@string/video_settings_remember_brightness_summary"
+            android:defaultValue="@bool/pref_default_value_false" />
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/video_settings_cat_sound">
+        <ListPreference
+            android:key="@string/pref_key_video_audio_language"
+            android:title="@string/video_settings_audio_language"
+            android:defaultValue="@string/pref_default_value_video_audio_language"
+            android:entries="@array/video_settings_audio_language_entries"
+            android:entryValues="@array/pref_entry_values_video_audio_language"
+            app:useSimpleSummaryProvider="true" />
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/video_settings_cat_library">
+        <ListPreference
+            android:key="@string/pref_key_video_sort"
+            android:title="@string/video_settings_sort"
+            android:defaultValue="@string/pref_default_value_video_sort"
+            android:entries="@array/video_settings_sort_entries"
+            android:entryValues="@array/pref_entry_values_video_sort"
+            app:useSimpleSummaryProvider="true" />
+        <ListPreference
+            android:key="@string/pref_key_video_view"
+            android:title="@string/video_settings_view"
+            android:defaultValue="@string/pref_default_value_video_view"
+            android:entries="@array/video_settings_view_entries"
+            android:entryValues="@array/pref_entry_values_video_view"
+            app:useSimpleSummaryProvider="true" />
+        <SwitchPreferenceCompat
+            android:key="@string/pref_key_video_show_continue"
+            android:title="@string/video_settings_show_continue"
+            android:summary="@string/video_settings_show_continue_summary"
+            android:defaultValue="@bool/pref_default_value_true" />
+        <SwitchPreferenceCompat
+            android:key="@string/pref_key_video_camera_names"
+            android:title="@string/video_settings_camera_names"
+            android:summary="@string/video_settings_camera_names_summary"
+            android:defaultValue="@bool/pref_default_value_true" />
+        <MultiSelectListPreference
+            android:key="@string/pref_key_video_hidden_folders"
+            android:title="@string/video_settings_hidden_folders"
+            android:defaultValue="@array/pref_default_value_video_hidden_folders" />
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/video_settings_cat_privacy">
+
+        <Preference
+            android:key="video_clear_history"
+            android:title="@string/video_settings_clear_history"
+            android:summary="@string/video_settings_clear_history_summary" />
+        <SwitchPreferenceCompat
+            android:key="@string/pref_key_video_no_history"
+            android:title="@string/video_settings_no_history"
+            android:summary="@string/video_settings_no_history_summary"
+            android:defaultValue="@bool/pref_default_value_false" />
     </PreferenceCategory>
 </PreferenceScreen>

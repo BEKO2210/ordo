@@ -27,6 +27,23 @@ class VideoLibraryTest {
     }
 
     @Test
+    fun sortModesAndHiddenFolders() {
+        fun order(sort: VideoPrefs.Sort, hidden: Set<String> = emptySet()) =
+            VideoLibrary(
+                listOf(
+                    a.copy(size = 50, durationMs = 9), b.copy(size = 70, durationMs = 5),
+                    c.copy(size = 60, durationMs = 7)
+                ),
+                false, Collator.getInstance(Locale.GERMAN), sort, hidden
+            ).videos.map { it.path }
+        assertEquals(listOf(c.path, a.path, b.path), order(VideoPrefs.Sort.NEWEST))
+        assertEquals(listOf(c.path, b.path, a.path), order(VideoPrefs.Sort.NAME))
+        assertEquals(listOf(b.path, c.path, a.path), order(VideoPrefs.Sort.SIZE))
+        assertEquals(listOf(a.path, c.path, b.path), order(VideoPrefs.Sort.LENGTH))
+        assertEquals(listOf(c.path), order(VideoPrefs.Sort.NEWEST, setOf("/Movies/Serie")))
+    }
+
+    @Test
     fun foldersFollowTheirNewestVideo() {
         assertEquals(listOf("Camera", "Serie"), library.folders.map { it.name })
         assertEquals(listOf(a, b), library.folders[1].videos)

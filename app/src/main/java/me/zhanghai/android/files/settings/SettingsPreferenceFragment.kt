@@ -77,6 +77,7 @@ open class SettingsPreferenceFragment : PreferenceFragmentCompat() {
                 true
             }
         }
+        if (section == SettingsActivity.SECTION_VIDEO) bindVideo()
         if (section == null) {
             bindOverview()
         } else {
@@ -102,6 +103,53 @@ open class SettingsPreferenceFragment : PreferenceFragmentCompat() {
             }
         } else {
             super.onDisplayPreferenceDialog(preference)
+        }
+    }
+
+    /**
+     * Ordo Video's page: the folders to hide come from the device's videos (read in the background), the summary
+     * names the hidden ones; clearing "Continue watching" asks first.
+     */
+    private fun bindVideo() {
+        val hidden = preferenceScreen.findPreference<androidx.preference.MultiSelectListPreference>(
+            getString(R.string.pref_key_video_hidden_folders)
+        )
+        if (hidden != null) {
+            hidden.summaryProvider = Preference.SummaryProvider<androidx.preference.MultiSelectListPreference> {
+                it.values.map { path -> path.substringAfterLast('/') }.sorted().joinToString(", ")
+                    .ifEmpty { getString(R.string.video_settings_hidden_folders_none) }
+            }
+            hidden.isEnabled = false
+            val context = requireContext().applicationContext
+            lifecycleScope.launch {
+                val folders = withContext(Dispatchers.IO) {
+                    // Every folder with videos, hidden ones included, so a hidden folder can be shown again.
+                    me.zhanghai.android.files.viewer.video.VideoLibrary(
+                        me.zhanghai.android.files.viewer.video.queryVideos(context), true,
+                        java.text.Collator.getInstance(), me.zhanghai.android.files.viewer.video.VideoPrefs.Sort.NAME
+                    ).folders.sortedBy { it.name.lowercase() }
+                }
+                val paths = (folders.map { it.path } + hidden.values).distinct()
+                hidden.entries = paths.map { path ->
+                    val folder = folders.find { it.path == path }
+                    if (folder != null) "${folder.name} (${folder.videos.size})" else path.substringAfterLast('/')
+                }.toTypedArray()
+                hidden.entryValues = paths.toTypedArray()
+                hidden.isEnabled = paths.isNotEmpty()
+            }
+        }
+        preferenceScreen.findPreference<Preference>("video_clear_history")?.setOnPreferenceClickListener {
+            com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
+                .setMessage(R.string.video_settings_clear_history_confirm)
+                .setPositiveButton(R.string.video_settings_clear_history_action) { _, _ ->
+                    me.zhanghai.android.files.viewer.video.VideoResumeStore(requireContext()).clear()
+                    android.widget.Toast.makeText(
+                        requireContext(), R.string.video_settings_clear_history_done, android.widget.Toast.LENGTH_SHORT
+                    ).show()
+                }
+                .setNegativeButton(android.R.string.cancel, null)
+                .show()
+            true
         }
     }
 

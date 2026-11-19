@@ -27,6 +27,11 @@ class VideoResumeStore(context: Context) {
             Entry(pathUri, size, position, savedAt)
         }
 
+    /** "Clear Continue watching" in Ordo Video's settings: every saved place goes. */
+    fun clear() {
+        preferences.edit { clear() }
+    }
+
     data class Entry(val pathUri: String, val size: Long, val positionMs: Long, val savedAtMs: Long)
 
     fun write(key: String, positionMs: Long, durationMs: Long, nowMs: Long = System.currentTimeMillis()) {

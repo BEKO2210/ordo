@@ -35,7 +35,12 @@ internal class VideoControls(
     private val onPlayPauseTap: () -> Unit,
     private val onLockedChanged: (Boolean) -> Unit,
     private val gesturesAllowed: () -> Boolean,
-    private val gestureHandler: GestureHandler
+    private val gestureHandler: GestureHandler,
+    /** Ordo Video's settings: each gesture can be switched off, and the jump has its own size. */
+    private val gestureEnabled: (VideoGestures.Mode) -> Boolean = { true },
+    private val doubleTapEnabled: () -> Boolean = { true },
+    private val holdEnabled: () -> Boolean = { true },
+    private val seekStepSeconds: () -> Int = { SEEK_STEP_S }
 ) {
     interface GestureHandler {
         fun begin(mode: VideoGestures.Mode)
@@ -162,7 +167,7 @@ internal class VideoControls(
                 inGestureArea = isInGestureArea(event.x, event.y, view.width, view.height, left, top, right, bottom)
                 val allowed = !inGestureArea && !isLocked && gesturesAllowed()
                 gestures.down(event.x, event.y, allowed)
-                if (allowed) view.postDelayed(hold, HOLD_MS)
+                if (allowed && holdEnabled()) view.postDelayed(hold, HOLD_MS)
             }
             MotionEvent.ACTION_MOVE -> {
                 if (hypot(event.x - downX, event.y - downY) > touchSlop) {
@@ -170,7 +175,12 @@ internal class VideoControls(
                     view.removeCallbacks(hold)
                 }
                 val before = gestures.mode
-                val mode = gestures.move(event.x, event.y, view.width)
+                var mode = gestures.move(event.x, event.y, view.width)
+                // A swipe switched off in the settings does nothing at all (and is no tap either).
+                if (isSwipe(mode) && !gestureEnabled(mode)) {
+                    gestures.cancel()
+                    mode = VideoGestures.Mode.NONE
+                }
                 if (mode != before && mode != VideoGestures.Mode.PENDING && mode != VideoGestures.Mode.NONE) {
                     gestureHandler.begin(mode)
                 }
@@ -210,7 +220,7 @@ internal class VideoControls(
         mode == VideoGestures.Mode.BRIGHTNESS || mode == VideoGestures.Mode.VOLUME || mode == VideoGestures.Mode.SEEK
 
     private fun onTap(view: View, x: Float) {
-        if (isLocked || inGestureArea) {
+        if (isLocked || inGestureArea || !doubleTapEnabled()) {
             // No double taps here: a plain tap only shows or hides.
             seriesTaps = 0
             toggle()
@@ -223,7 +233,7 @@ internal class VideoControls(
             seriesTaps++
             if (zone != 0) {
                 view.performHapticFeedback(HapticFeedbackConstants.CONTEXT_CLICK)
-                onSeekTap(zone > 0, (seriesTaps - 1) * SEEK_STEP_S)
+                onSeekTap(zone > 0, (seriesTaps - 1) * seekStepSeconds())
             } else if (seriesTaps == 2) {
                 onPlayPauseTap()
             }

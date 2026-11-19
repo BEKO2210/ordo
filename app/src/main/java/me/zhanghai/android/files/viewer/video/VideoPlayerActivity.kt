@@ -82,14 +82,14 @@ import me.zhanghai.android.files.app.AppActivity
 import me.zhanghai.android.files.databinding.VideoPlayerActivityBinding
 import me.zhanghai.android.files.file.fileProviderUri
 import me.zhanghai.android.files.file.loadFileItem
-import me.zhanghai.android.files.fileproperties.FilePropertiesDialogFragment
 import me.zhanghai.android.files.player.AudioPlaybackService
 import me.zhanghai.android.files.player.AudioQueueRequests
 import me.zhanghai.android.files.player.PathDataSource
 import me.zhanghai.android.files.provider.common.readAttributes
+import me.zhanghai.android.files.provider.linux.isLinuxPath
 import me.zhanghai.android.files.ui.Motion
+import me.zhanghai.android.files.util.valueCompat
 import me.zhanghai.android.files.util.createViewIntent
-import me.zhanghai.android.files.util.putArgs
 import me.zhanghai.android.files.util.startActivitySafe
 
 /**
@@ -156,6 +156,10 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity {
     private var audioNoticeFor: String? = null
     private var repeatMode = VideoRepeatMode.STOP
     private val videoSettings by lazy { getSharedPreferences(SETTINGS_NAME, MODE_PRIVATE) }
+    private val jumpSeconds: Int
+        get() = VideoPrefs.jumpSeconds(Settings.VIDEO_JUMP.valueCompat)
+    private val jumpMs: Long
+        get() = jumpSeconds * 1_000L
 
     private val playerListener = object : Player.Listener {
         override fun onEvents(player: Player, events: Player.Events) {
@@ -229,7 +233,13 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity {
             finish()
             return
         }
-        resizeMode = savedInstanceState?.getInt(STATE_RESIZE_MODE, resizeMode) ?: resizeMode
+        // "Picture format at start" from the settings; a recreated screen keeps what the button chose.
+        resizeMode = savedInstanceState?.getInt(STATE_RESIZE_MODE)
+            ?: when (Settings.VIDEO_RESIZE.valueCompat) {
+                "fill" -> AspectRatioFrameLayout.RESIZE_MODE_ZOOM
+                "stretch" -> AspectRatioFrameLayout.RESIZE_MODE_FILL
+                else -> AspectRatioFrameLayout.RESIZE_MODE_FIT
+            }
         setUpWindow()
         setUpControls()
         binding.playerView.resizeMode = resizeMode
@@ -260,11 +270,20 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity {
             })
             .build()
         binding.playerView.player = player
-        savedInstanceState?.getFloat(STATE_SPEED)?.takeIf { it > 0f }?.let {
+        (savedInstanceState?.getFloat(STATE_SPEED)?.takeIf { it > 0f }
+            ?: VideoPrefs.speed(Settings.VIDEO_SPEED.valueCompat)).let {
             player.setPlaybackSpeed(it)
             ViewCompat.setStateDescription(binding.speed, formatSpeed(it))
         }
-        applyRepeatMode(VideoRepeatMode.decode(videoSettings.getString(KEY_REPEAT, null)))
+        // The preferred sound track: the device's language, the film's main track, or German/English.
+        player.trackSelectionParameters = player.trackSelectionParameters.buildUpon().apply {
+            when (val language = Settings.VIDEO_AUDIO_LANGUAGE.valueCompat) {
+                "original" -> setPreferredAudioRoleFlags(C.ROLE_FLAG_MAIN)
+                "de", "en" -> setPreferredAudioLanguage(language)
+                else -> setPreferredAudioLanguage(java.util.Locale.getDefault().language)
+            }
+        }.build()
+        applyRepeatMode(VideoRepeatMode.decode(Settings.VIDEO_END.valueCompat))
         player.setMediaItems(queue.items, queue.startIndex, queue.positionMs)
         player.playWhenReady = savedInstanceState?.getBoolean(STATE_PLAY_WHEN_READY) ?: true
         player.prepare()
@@ -286,6 +305,15 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity {
         outState.putFloat(STATE_SPEED, speedBeforeHold.takeIf { it > 0f } ?: player.playbackParameters.speed)
         outState.putInt(STATE_RESIZE_MODE, resizeMode)
         outState.putBoolean(STATE_USER_ORIENTATION, userOrientation)
+    }
+
+    override fun onStart() {
+        super.onStart()
+        if (Settings.VIDEO_REMEMBER_BRIGHTNESS.valueCompat) {
+            videoSettings.getFloat(KEY_BRIGHTNESS, -1f).takeIf { it > 0f }?.let { level ->
+                window.attributes = window.attributes.apply { screenBrightness = level }
+            }
+        }
     }
 
     override fun onStop() {
@@ -433,7 +461,7 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity {
                 }
             },
             onSeekTap = { forward, seconds ->
-                seekBy(if (forward) SEEK_STEP_MS else -SEEK_STEP_MS)
+                seekBy(if (forward) jumpMs else -jumpMs)
                 showHint(
                     getString(
                         if (forward) {
@@ -457,7 +485,18 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity {
                 )
             },
             gesturesAllowed = { !touchExploration && player != null },
-            gestureHandler = gestureHandler
+            gestureHandler = gestureHandler,
+            gestureEnabled = { mode ->
+                when (mode) {
+                    VideoGestures.Mode.BRIGHTNESS -> Settings.VIDEO_GESTURE_BRIGHTNESS.valueCompat
+                    VideoGestures.Mode.VOLUME -> Settings.VIDEO_GESTURE_VOLUME.valueCompat
+                    VideoGestures.Mode.SEEK -> Settings.VIDEO_GESTURE_SEEK.valueCompat
+                    else -> true
+                }
+            },
+            doubleTapEnabled = { Settings.VIDEO_GESTURE_DOUBLE_TAP.valueCompat },
+            holdEnabled = { Settings.VIDEO_GESTURE_HOLD.valueCompat },
+            seekStepSeconds = { jumpSeconds }
         )
         binding.root.setOnTouchListener(controls::onTouch)
         ViewCompat.replaceAccessibilityAction(
@@ -474,8 +513,9 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity {
             true
         }
         binding.playPause.setOnClickListener { playPause() }
-        binding.rewind.setOnClickListener { seekBy(-SEEK_STEP_MS) }
-        binding.forward.setOnClickListener { seekBy(SEEK_STEP_MS) }
+        binding.rewind.setOnClickListener { seekBy(-jumpMs) }
+        binding.forward.setOnClickListener { seekBy(jumpMs) }
+        applyJumpButtons()
         binding.previous.setOnClickListener { player?.let { it.seekToPreviousMediaItem(); prepareAfterError(it) } }
         binding.next.setOnClickListener { player?.let { it.seekToNextMediaItem(); prepareAfterError(it) } }
         binding.speed.setOnClickListener { showSpeedSheet() }
@@ -483,7 +523,7 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity {
         binding.lock.setOnClickListener { controls.setLocked(true) }
         binding.repeat.setOnClickListener {
             val mode = repeatMode.next()
-            videoSettings.edit().putString(KEY_REPEAT, mode.name).apply()
+            Settings.VIDEO_END.putValue(mode.name)
             applyRepeatMode(mode)
             showHint(getString(repeatModeName(mode)), Gravity.CENTER)
         }
@@ -529,12 +569,12 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity {
             }
         })
         // TalkBack: the picture offers what the double taps do, and a way to bring the controls back.
-        ViewCompat.addAccessibilityAction(binding.playerView, getString(R.string.video_player_rewind)) { _, _ ->
-            seekBy(-SEEK_STEP_MS); true
-        }
-        ViewCompat.addAccessibilityAction(binding.playerView, getString(R.string.video_player_forward)) { _, _ ->
-            seekBy(SEEK_STEP_MS); true
-        }
+        ViewCompat.addAccessibilityAction(
+            binding.playerView, getString(R.string.video_player_seek_back_n, jumpSeconds)
+        ) { _, _ -> seekBy(-jumpMs); true }
+        ViewCompat.addAccessibilityAction(
+            binding.playerView, getString(R.string.video_player_seek_ahead_n, jumpSeconds)
+        ) { _, _ -> seekBy(jumpMs); true }
         ViewCompat.addAccessibilityAction(binding.playerView, getString(R.string.video_player_show_controls)) { _, _ ->
             controls.setShown(true); true
         }
@@ -632,6 +672,11 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity {
                 player?.seekTo(VideoGestures.seekTarget(startPositionMs, dx, binding.root.width, currentDuration()))
                 updateProgress()
             }
+            // "Remember brightness": the next video (and the next visit) starts with it.
+            if (mode == VideoGestures.Mode.BRIGHTNESS && Settings.VIDEO_REMEMBER_BRIGHTNESS.valueCompat) {
+                window.attributes.screenBrightness.takeIf { it >= 0f }
+                    ?.let { videoSettings.edit().putFloat(KEY_BRIGHTNESS, it).apply() }
+            }
             // Only a value this swipe showed fades out (a fixed-volume device shows none).
             if (hinted) showHint(binding.hint.text.toString(), GESTURE_PILL)
             // A jump leaves the end behind; otherwise what was there comes back.
@@ -642,10 +687,11 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity {
             val player = player ?: return
             if (held) {
                 speedBeforeHold = player.playbackParameters.speed
-                player.setPlaybackSpeed(HOLD_SPEED)
+                val holdSpeed = VideoPrefs.holdSpeed(Settings.VIDEO_HOLD_SPEED.valueCompat)
+                player.setPlaybackSpeed(holdSpeed)
                 binding.root.performHapticFeedback(android.view.HapticFeedbackConstants.LONG_PRESS)
                 hideForGesture()
-                showHint(formatSpeed(HOLD_SPEED), GESTURE_PILL, sticky = true)
+                showHint(formatSpeed(holdSpeed), GESTURE_PILL, sticky = true)
             } else if (speedBeforeHold > 0f) {
                 player.setPlaybackSpeed(speedBeforeHold)
                 speedBeforeHold = 0f
@@ -740,8 +786,7 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity {
             ?.let { name -> name.substringBeforeLast('.').ifEmpty { name } }
         binding.toolbar.title = title
         binding.playerView.contentDescription = title
-        binding.toolbar.menu.findItem(R.id.actionFileInfo)?.isVisible = currentPath() != null
-        binding.playerView.keepScreenOn = player.isPlaying
+        binding.playerView.keepScreenOn = player.isPlaying && Settings.VIDEO_KEEP_SCREEN_ON.valueCompat
         handler.removeCallbacks(progressUpdater)
         updateProgress()
         if (player.isPlaying) handler.postDelayed(progressUpdater, PROGRESS_UPDATE_INTERVAL_MS)
@@ -790,6 +835,8 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity {
     }
 
     private fun saveResume() {
+        // "Don't remember places" in the settings.
+        if (Settings.VIDEO_NO_HISTORY.valueCompat) return
         // While "Resume at" is still offered nothing is decided: closing then must not forget the place.
         if (binding.resumePill.isVisible) return
         // Looping one video passes its end again and again: that never makes it "watched".
@@ -812,10 +859,12 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity {
             } ?: return@launch
             resumeKeys[mediaId] = key
             if (!showPill) return@launch
+            val resume = VideoPrefs.resume(Settings.VIDEO_RESUME.valueCompat)
+            if (Settings.VIDEO_NO_HISTORY.valueCompat || resume == VideoPrefs.Resume.NEVER) return@launch
             val position = resumeStore.read(key) ?: return@launch
             val player = player ?: return@launch
             if (player.currentMediaItem?.mediaId != mediaId || player.currentPosition >= position) return@launch
-            if (resumeDirectly) {
+            if (resumeDirectly || resume == VideoPrefs.Resume.ALWAYS) {
                 resumeDirectly = false
                 player.seekTo(position)
                 return@launch
@@ -835,12 +884,38 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity {
 
     private fun followVideoOrientation(videoSize: VideoSize) {
         if (!isPhone || userOrientation || videoSize.width == 0 || videoSize.height == 0) return
+        when (VideoPrefs.orientation(Settings.VIDEO_ORIENTATION.valueCompat)) {
+            // "Like the system": the player never asks; the rotate button still can.
+            VideoPrefs.Orientation.SYSTEM -> return
+            VideoPrefs.Orientation.LANDSCAPE -> {
+                requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+                return
+            }
+            VideoPrefs.Orientation.VIDEO -> {}
+        }
         // Like Next Player's "video orientation": wide films turn the phone, tall ones keep it upright.
         requestedOrientation = if (videoSize.width * videoSize.pixelWidthHeightRatio > videoSize.height) {
             ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
         } else {
             ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
         }
+    }
+
+    /** The ±buttons show and say the jump from the settings: 5, 10 and 30 have their own symbol, 15 the plain one. */
+    private fun applyJumpButtons() {
+        val seconds = jumpSeconds
+        val (back, ahead) = when (seconds) {
+            5 -> R.drawable.video_replay_5_icon_24dp to R.drawable.video_forward_5_icon_24dp
+            30 -> R.drawable.video_replay_30_icon_24dp to R.drawable.video_forward_30_icon_24dp
+            15 -> R.drawable.reset_icon_white_24dp to R.drawable.reset_icon_white_24dp
+            else -> R.drawable.video_replay_10_icon_24dp to R.drawable.video_forward_10_icon_24dp
+        }
+        binding.rewind.setImageResource(back)
+        binding.forward.setImageResource(ahead)
+        // The plain replay arrow, mirrored, points ahead.
+        binding.forward.scaleX = if (seconds == 15) -1f else 1f
+        binding.rewind.contentDescription = getString(R.string.video_player_seek_back_n, seconds)
+        binding.forward.contentDescription = getString(R.string.video_player_seek_ahead_n, seconds)
     }
 
     private fun cycleResizeMode() {
@@ -1052,13 +1127,30 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity {
         ))
     }
 
+    /**
+     * "Video info": what plays (from the player's tracks, any source), plus size, folder and recording date for Ordo's
+     * own paths. The raw file properties stay one tap further ("All file details").
+     */
     private fun showFileInfo() {
-        val path = currentPath() ?: return
+        val player = player ?: return
+        val path = currentPath()
+        val name = player.currentMediaItem?.mediaMetadata?.displayTitle?.toString()
+        val info = VideoInfo.fromTracks(
+            binding.toolbar.title?.toString().orEmpty(), name, currentDuration(), player.currentTracks
+        )
         lifecycleScope.launch {
-            val file = withContext(Dispatchers.IO) { runCatching { path.loadFileItem() }.getOrNull() } ?: return@launch
+            val withFile = if (path == null) info else withContext(Dispatchers.IO) {
+                runCatching {
+                    val attributes = path.readAttributes(BasicFileAttributes::class.java)
+                    info.copy(
+                        size = attributes.size(), folder = path.parent?.toString(),
+                        recordedMs = if (path.isLinuxPath) VideoInfo.recordedAt(path.toString())
+                        else attributes.lastModifiedTime().toMillis()
+                    )
+                }.getOrDefault(info)
+            }
             if (isFinishing || supportFragmentManager.isStateSaved) return@launch
-            FilePropertiesDialogFragment().putArgs(FilePropertiesDialogFragment.Args(file))
-                .show(supportFragmentManager, null)
+            showVideoInfo(withFile, path)
         }
     }
 
@@ -1074,7 +1166,6 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity {
         private const val STATE_USER_ORIENTATION = "userOrientation"
         private const val SESSION_ID = "video"
         private const val SEEK_MAX = 1_000
-        private const val SEEK_STEP_MS = VideoControls.SEEK_STEP_S * 1_000L
         private const val PROGRESS_UPDATE_INTERVAL_MS = 1_000L
         // The place is written every 5 s while the film plays (and when it stops or changes).
         private const val SAVE_EVERY_TICKS = 5
@@ -1082,12 +1173,11 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity {
         private const val HINT_MS = 700L
         private const val FADE_MS = 200L
         private const val DISABLED_CONTROL_ALPHA = 0.38f
-        private const val HOLD_SPEED = 2f
         private const val GESTURE_TAG = "OrdoVideoGesture"
         // Not a real gravity: showHint's marker for "a gesture's value, upper third".
         private const val GESTURE_PILL = -1
         private const val SETTINGS_NAME = "video_settings"
-        private const val KEY_REPEAT = "repeat"
+        private const val KEY_BRIGHTNESS = "brightness"
         private const val NOTICE_MS = 6_000L
         private const val INACTIVE_CONTROL_ALPHA = 0.70f
         private val SPEEDS = floatArrayOf(0.5f, 0.75f, 1f, 1.25f, 1.5f, 2f)

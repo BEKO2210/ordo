@@ -40,6 +40,7 @@ import me.zhanghai.android.files.R
 import me.zhanghai.android.files.app.AppActivity
 import me.zhanghai.android.files.databinding.VideoLauncherActivityBinding
 import me.zhanghai.android.files.databinding.VideoLibraryItemBinding
+import me.zhanghai.android.files.databinding.VideoLibraryRowBinding
 import me.zhanghai.android.files.settings.Settings
 import me.zhanghai.android.files.util.createManageAppAllFilesAccessPermissionIntent
 import me.zhanghai.android.files.util.startActivitySafe
@@ -63,6 +64,7 @@ class VideoLauncherActivity : AppActivity(), AppAccentActivity {
     private val timeBuilder = StringBuilder()
     private val timeFormatter = Formatter(timeBuilder)
     private var columns = 2
+    private var listMode = false
     private var side = 0
     // A few screens of 16:9 thumbnails; the platform caches them on disk anyway (MediaStore).
     private val thumbnails = object : LruCache<String, Bitmap>((Runtime.getRuntime().maxMemory() / 16).toInt()) {
@@ -94,7 +96,7 @@ class VideoLauncherActivity : AppActivity(), AppAccentActivity {
         recycler.layoutManager = GridLayoutManager(this, columns).apply {
             spanSizeLookup = object : GridLayoutManager.SpanSizeLookup() {
                 override fun getSpanSize(position: Int): Int =
-                    if (adapter.getItemViewType(position) == TYPE_VIDEO) 1 else spanCount
+                    if (adapter.getItemViewType(position).let { it == TYPE_VIDEO || it == TYPE_ROW }) 1 else spanCount
             }
         }
         recycler.addItemDecoration(Spacing())
@@ -134,13 +136,18 @@ class VideoLauncherActivity : AppActivity(), AppAccentActivity {
         }
         val context = applicationContext
         val showHiddenFiles = Settings.FILE_LIST_SHOW_HIDDEN_FILES.valueCompat
+        val sort = VideoPrefs.sort(Settings.VIDEO_SORT.valueCompat)
+        val hiddenFolders = Settings.VIDEO_HIDDEN_FOLDERS.valueCompat
         lifecycleScope.launch {
             val (loaded, resume) = withContext(Dispatchers.IO) {
-                val loaded = VideoLibrary(queryVideos(context), showHiddenFiles, Collator.getInstance())
+                val loaded =
+                    VideoLibrary(queryVideos(context), showHiddenFiles, Collator.getInstance(), sort, hiddenFolders)
                 loaded to loaded.continueWatching(VideoResumeStore(context).readAll())
             }
             library = loaded
             continueItems = resume
+            // The view (grid or list) may have changed on the settings page.
+            if (listMode != (Settings.VIDEO_VIEW.valueCompat == "list")) updateWidths()
             render()
         }
     }
@@ -153,6 +160,7 @@ class VideoLauncherActivity : AppActivity(), AppAccentActivity {
         val rows = ArrayList<Row>()
         if (library != null) {
             val shownContinue = continueItems.filter { folder == null || it.video.folder == folder }
+                .takeIf { Settings.VIDEO_SHOW_CONTINUE.valueCompat }.orEmpty()
             if (shownContinue.isNotEmpty()) {
                 rows += Row.Section(getString(R.string.video_library_continue))
                 rows += Row.Continue(shownContinue)
@@ -215,12 +223,15 @@ class VideoLauncherActivity : AppActivity(), AppAccentActivity {
             gutter
         }
         val content = width - 2 * side
-        columns = (content / (CELL_DP * density)).toInt().coerceAtLeast(2)
+        listMode = Settings.VIDEO_VIEW.valueCompat == "list"
+        columns = if (listMode) 1 else (content / (CELL_DP * density)).toInt().coerceAtLeast(2)
         val recycler = binding.recyclerView
         recycler.setPaddingRelative(side, recycler.paddingTop, side, recycler.paddingBottom)
         (recycler.layoutManager as GridLayoutManager).spanCount = columns
         binding.folderScroller.setPaddingRelative(side, 0, side, 0)
         recycler.invalidateItemDecorations()
+        @android.annotation.SuppressLint("NotifyDataSetChanged")
+        adapter.notifyDataSetChanged()
     }
 
     private fun play(queue: List<VideoItem>, video: VideoItem, resume: Boolean) {
@@ -233,7 +244,28 @@ class VideoLauncherActivity : AppActivity(), AppAccentActivity {
     private fun formatTime(milliseconds: Long): String =
         Util.getStringForTime(timeBuilder, timeFormatter, milliseconds.coerceAtLeast(0L))
 
-    private fun bind(item: VideoLibraryItemBinding, video: VideoItem, positionMs: Long?) {
+    /** The parts of a card, from the grid's card or the list's row (same ids). */
+    private class CardViews(
+        val root: View,
+        val thumbnail: android.widget.ImageView,
+        val duration: TextView,
+        val progress: com.google.android.material.progressindicator.LinearProgressIndicator,
+        val title: TextView,
+        val info: TextView
+    )
+
+    private fun cardViews(view: View, row: Boolean): CardViews =
+        if (row) {
+            VideoLibraryRowBinding.bind(view).let {
+                CardViews(it.root, it.thumbnail, it.duration, it.progress, it.title, it.info)
+            }
+        } else {
+            VideoLibraryItemBinding.bind(view).let {
+                CardViews(it.root, it.thumbnail, it.duration, it.progress, it.title, it.info)
+            }
+        }
+
+    private fun bind(item: CardViews, video: VideoItem, positionMs: Long?) {
         val title = displayTitle(video)
         item.title.text = title
         val duration = video.durationMs.takeIf { it > 0 }?.let(::formatTime)
@@ -255,11 +287,22 @@ class VideoLauncherActivity : AppActivity(), AppAccentActivity {
             val library = library ?: return@setOnClickListener
             play(library.queueOf(video), video, resume = positionMs != null)
         }
-        loadThumbnail(item, video)
+        // A long press shows "Video info" (TalkBack names the action).
+        item.root.setOnLongClickListener {
+            lifecycleScope.launch {
+                val info = withContext(Dispatchers.IO) { VideoInfo.fromFile(video) }
+                if (!isFinishing && !supportFragmentManager.isStateSaved) showVideoInfo(info, Paths.get(video.path))
+            }
+            true
+        }
+        ViewCompat.replaceAccessibilityAction(
+            item.root, androidx.core.view.accessibility.AccessibilityNodeInfoCompat.AccessibilityActionCompat
+                .ACTION_LONG_CLICK, getString(R.string.video_info_title), null
+        )
+        loadThumbnail(item.thumbnail, video)
     }
 
-    private fun loadThumbnail(item: VideoLibraryItemBinding, video: VideoItem) {
-        val view = item.thumbnail
+    private fun loadThumbnail(view: android.widget.ImageView, video: VideoItem) {
         (view.getTag(R.id.thumbnail) as? Job)?.cancel()
         val key = video.contentUri ?: video.path
         val cached = thumbnails.get(key)
@@ -297,6 +340,7 @@ class VideoLauncherActivity : AppActivity(), AppAccentActivity {
      * device's language; any other name stays as it is. TalkBack still hears the real name.
      */
     private fun displayTitle(video: VideoItem): String {
+        if (!Settings.VIDEO_CAMERA_NAMES.valueCompat) return video.title
         val time = VideoLibrary.cameraTime(video.title) ?: return video.title
         val calendar = java.util.Calendar.getInstance().apply {
             clear()
@@ -332,7 +376,7 @@ class VideoLauncherActivity : AppActivity(), AppAccentActivity {
         override fun getItemViewType(position: Int): Int = when (rows[position]) {
             is Row.Section -> TYPE_SECTION
             is Row.Continue -> TYPE_CONTINUE
-            is Row.Video -> TYPE_VIDEO
+            is Row.Video -> if (listMode) TYPE_ROW else TYPE_VIDEO
         }
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder =
@@ -354,6 +398,8 @@ class VideoLauncherActivity : AppActivity(), AppAccentActivity {
                         ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT
                     )
                 })
+                TYPE_ROW ->
+                    Holder(VideoLibraryRowBinding.inflate(LayoutInflater.from(parent.context), parent, false).root)
                 else -> Holder(VideoLibraryItemBinding.inflate(LayoutInflater.from(parent.context), parent, false).root)
             }
 
@@ -369,7 +415,7 @@ class VideoLauncherActivity : AppActivity(), AppAccentActivity {
                     list.setPaddingRelative(side, 0, side, 0)
                     list.adapter = ContinueAdapter(row.items)
                 }
-                is Row.Video -> bind(VideoLibraryItemBinding.bind(holder.itemView), row.video, null)
+                is Row.Video -> bind(cardViews(holder.itemView, holder.itemViewType == TYPE_ROW), row.video, null)
             }
         }
     }
@@ -390,7 +436,7 @@ class VideoLauncherActivity : AppActivity(), AppAccentActivity {
 
         override fun onBindViewHolder(holder: Holder, position: Int) {
             val entry = items[position]
-            bind(VideoLibraryItemBinding.bind(holder.itemView), entry.video, entry.positionMs)
+            bind(cardViews(holder.itemView, row = false), entry.video, entry.positionMs)
         }
     }
 
@@ -416,6 +462,7 @@ class VideoLauncherActivity : AppActivity(), AppAccentActivity {
         private const val TYPE_SECTION = 0
         private const val TYPE_CONTINUE = 1
         private const val TYPE_VIDEO = 2
+        private const val TYPE_ROW = 3
         private const val CELL_DP = 180
         private const val THUMBNAIL_WIDTH = 512
     }
