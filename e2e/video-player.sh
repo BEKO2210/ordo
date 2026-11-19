@@ -111,8 +111,11 @@ check "holding the unlock button brings the controls back" ui has playPause
 # 4. Resume: closed at ~0:12 (more than 10 s, less than 95 %), opened again it offers that place.
 back 2
 check "back closes the player" not_on viewer.video.VideoPlayerActivity
+# Paused at once: the pill stays while paused, and a playing screen is slow to read on a budget tablet (the W90 run
+# found the pill only after it had gone, 5 s into playback).
 ui tap 01-clip.mp4 >/dev/null; wait_on viewer.video.VideoPlayerActivity 8
-check "opened again, it offers to resume" ui wait resumePill 4
+a shell input keyevent KEYCODE_MEDIA_PAUSE; sleep 1
+check "opened again, it offers to resume" ui wait resumePill 6
 check "the pill says where" eval "ui texts | grep -qE 'Weiter bei|Resume at'"
 ui tap resumePill >/dev/null; sleep 1.5; pause; p8=$(pos)
 check "a tap on the pill goes there ($p7 -> $p8 ms)" within "${p8:-0}" $((${p7:-0} - 1500)) $((${p7:-0} + 3000))
@@ -150,11 +153,23 @@ check "Next video opens the next one of the folder" ui has 02-clip
 # a vertical swipe in the right half changes the media volume (restored afterwards).
 read -r W H < <(screen_size)
 vol() { a shell cmd media_session volume --stream 3 --get 2>/dev/null | grep -oE 'volume is [0-9]+' | grep -oE '[0-9]+'; }
+# Back to the volume before the test: --set first, then step down or up until it is there (the W90 kept 9 after
+# "--set 0"), and unmuted only when it was not 0.
+restore_volume() {
+    local i v
+    a shell cmd media_session volume --stream 3 --set "$1" >/dev/null 2>&1
+    for i in $(seq 1 30); do
+        v=$(vol); [ -z "$v" ] || [ "$v" = "$1" ] && break
+        if [ "$v" -gt "$1" ]; then a shell cmd media_session volume --stream 3 --adjust lower >/dev/null 2>&1
+        else a shell cmd media_session volume --stream 3 --adjust raise >/dev/null 2>&1; fi
+    done
+    v=$(vol); [ "$v" = "$1" ] || echo "INFO volume left at $v instead of $1"
+}
 v0=$(vol)
 a shell input swipe $((W * 80 / 100)) $((H * 70 / 100)) $((W * 80 / 100)) $((H * 35 / 100)) 400; sleep 1; v1=$(vol)
 if [ -n "$v0" ] && [ -n "$v1" ]; then
     check "a vertical swipe in the right half raises the volume ($v0 -> $v1)" test "$v1" -gt "$v0" -o "$v0" = "$(a shell cmd media_session volume --stream 3 --get | grep -oE 'max [0-9]+' | grep -oE '[0-9]+')"
-    a shell cmd media_session volume --stream 3 --set "$v0" >/dev/null 2>&1
+    restore_volume "$v0"
 else
     echo "SKIP volume swipe (cmd media_session volume is not readable here)"
 fi

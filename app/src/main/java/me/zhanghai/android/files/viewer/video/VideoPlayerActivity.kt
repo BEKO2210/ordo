@@ -134,7 +134,16 @@ class VideoPlayerActivity : AppActivity() {
     }
 
     private val hideHint = Runnable { binding.hint.isVisible = false }
-    private val hideResumePill = Runnable { binding.resumePill.isVisible = false }
+    // The offer stays while the film is paused (nothing decided yet); it goes 5 s into playback.
+    private val hideResumePill: Runnable = object : Runnable {
+        override fun run() {
+            if (player?.isPlaying == false) {
+                handler.postDelayed(this, RESUME_PILL_MS)
+            } else {
+                binding.resumePill.isVisible = false
+            }
+        }
+    }
     private val hideNotice = Runnable { binding.notice.isVisible = false }
     // The speed before "hold for 2×" while a finger holds; 0 otherwise.
     private var speedBeforeHold = 0f

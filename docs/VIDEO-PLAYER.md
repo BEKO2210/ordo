@@ -99,7 +99,7 @@ Speicherzeit. Höchstens 300 Einträge, die ältesten fliegen; unter 10 s, über
 der Eintrag gelöscht. „Weiterschauen“ prüft dieselbe Regel beim Lesen noch einmal mit der Länge aus MediaStore (nie
 „Noch 0:01“).
 Geschrieben wird alle 5 s während der Wiedergabe, bei `onStop` und beim Wechsel zum nächsten Video; `content://`
-anderer Apps wird nie gemerkt. Beim Öffnen erscheint für 5 s eine Pille „Weiter bei 0:41“; Tippen springt dorthin,
+anderer Apps wird nie gemerkt. Beim Öffnen erscheint eine Pille „Weiter bei 0:41“ (bis 5 s Wiedergabe, pausiert bleibt sie); Tippen springt dorthin,
 sonst beginnt das Video vorn. Getestet in `VideoResumeStoreTest` (Schlüssel, Kappung, 95-%-Regel) und
 `VideoControlsTest` (Tipp-Zonen, Gestenränder).
 
