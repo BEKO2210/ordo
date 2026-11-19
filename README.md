@@ -37,7 +37,7 @@
 
 ## Status
 
-Ordo is in development (version 0.14.1). A closed test runs on Google Play; test builds are also published as
+Ordo is in development (version 0.14.2). A closed test runs on Google Play; test builds are also published as
 [pre-releases](https://github.com/BEKO2210/ordo/releases); you can also [build it from source](#build).
 What comes next is in the [living roadmap](docs/ROADMAP-LIVE.md): every goal has a check command and closes itself. The research behind the music player and the planned video player, PDF reader and editors is in [docs/MEDIEN-RECHERCHE.md](docs/MEDIEN-RECHERCHE.md) (German).
 
@@ -216,8 +216,12 @@ All pictures above come from `utils/readme-shots.sh` on the Android 16 emulator 
   system volume goes down. Every card of the
   lower Sound sheet shows a small live picture of what it does; it holds still when Ordo’s animations are off
 - “Play on…” in the player opens Android’s output picker: Bluetooth headphones and speakers, wired and cast devices,
-  without Google services (Android 11 and later; Android 6–10 opens the Bluetooth settings). Streaming music to
-  Chromecast, TVs and receivers is planned, see [docs/STREAMING-RECHERCHE.md](docs/STREAMING-RECHERCHE.md) (German)
+  without Google services (Android 11 and later; Android 6–10 opens the Bluetooth settings)
+- “Play on a TV” casts your music to a Chromecast or Google TV on the same Wi-Fi, with Ordo's own sender and no Google
+  services: the notification, the lock screen and the volume keys then control the TV. Ordo shares only the song that
+  is playing, under a random address, only with that TV and only while it plays; sound effects stay on the phone. See
+  [docs/AUDIO-PLAYER.md](docs/AUDIO-PLAYER.md#streaming-an-chromecast-und-google-tv) (German). TVs and receivers via
+  DLNA are planned, see [docs/STREAMING-RECHERCHE.md](docs/STREAMING-RECHERCHE.md) (German)
 - Ordo Music, a music app of its own with its own card in Recents: all your music in the tabs Songs, Albums, Artists
   and Folders, with a large title that folds into the bar as you scroll, search, “Shuffle all”, album pages with a
   big cover and the songs in track order with Play and Shuffle, round artist pictures and folder tiles made of album
