@@ -71,7 +71,9 @@ Knopf nicht.
 - **Tonspur ohne Decoder** (AC3 auf dem W90 lief stumm): `onTracksChanged` sieht eine gewählte oder einzige
   Tonspur, die das Gerät nicht dekodieren kann; dann steht oben 6 s lang ruhig „Tonspur Dolby Digital (AC3) wird auf
   diesem Gerät nicht unterstützt.“ (AC3, E-AC3, DTS, TrueHD, AC-4 mit Namen). Gibt es eine abspielbare andere
-  Tonspur, wird sie gewählt und der Hinweis sagt das. Das Video läuft weiter.
+  Tonspur, wird sie gewählt und der Hinweis sagt das. Das Video läuft weiter. Seit dem FFmpeg-Ton (unten) dekodiert
+  Ordo AC3, E-AC3, DTS und TrueHD selbst; der Hinweis bleibt für AC-4 und alles andere, was weder Gerät noch FFmpeg
+  kann.
 - **Wischgesten** (Phase 4 vorgezogen, `VideoGestures`, getestet in `VideoGesturesTest`): Ein Wisch beginnt erst nach
   2× Touch-Slop und nur entlang einer klaren Achse (|dy| > 2·|dx| bzw. umgekehrt). Senkrecht links: Helligkeit nur
   dieses Fensters (`screenBrightness`, keine Berechtigung, mindestens 1 %, zurück auf die des Systems in `onStop`);
@@ -177,13 +179,48 @@ Zeile kopiert den Wert. Unten „Alle Dateidetails“ öffnet die bisherigen Eig
 Prüfsummen; deren Reiter passen sich jetzt an (`tabMode="auto"`, schmalere Ränder, weiche Kante, wenn gescrollt werden
 kann), auch für Audiodateien (dasselbe Fenster).
 
-## Nächster Schritt (entschieden, noch nicht begonnen)
+## FFmpeg-Ton
 
-Media3-FFmpeg-Erweiterung nur für Ton, gebaut mit den Decodern ac3, eac3, dts, truehd und mlp: günstige Geräte (W90)
-haben keinen AC3-Decoder. Größe vor und nach messen, bevor sie kommt.
+Günstige Geräte (Unisoc W90) haben keine Decoder für AC3, E-AC3, DTS und TrueHD; MKV-Filme liefen dort stumm. Ordo
+bringt dafür Media3s FFmpeg-Erweiterung (`decoder_ffmpeg`, nicht auf Maven) mit, nur für Ton und nur mit diesen
+Decodern.
+
+- **Wahl des Decoders:** `DefaultRenderersFactory` mit `EXTENSION_RENDERER_MODE_ON` im Video-Player, in der
+  Spurprüfung der Videoinfos (`VideoInfo.probeTracks`, damit „unterstützt“ stimmt) und im Musik-Player
+  (`AudioRenderersFactory`, die Klang-Kette wirkt auch auf FFmpeg-Ton). Der Plattform-Decoder kommt zuerst, FFmpeg nur,
+  wenn das Gerät die Spur nicht kann (Media3-README, „Using the module with ExoPlayer“). `FfmpegRendererTest` prüft
+  den Konstruktor, den Media3 per Reflexion sucht.
+- **Bau:** `utils/ffmpeg-audio/build.sh` folgt `libraries/decoder_ffmpeg/README.md` von Media3 1.11.1: Media3-Tag
+  `1.11.1`, FFmpeg-Tag `n6.0.1` (Zweig release/6.0, wie das README empfiehlt), Media3s `build_ffmpeg.sh` mit
+  `ANDROID_ABI=24` (minSdk) und den Decodern `ac3 eac3 dca truehd mlp`, NDK 30.0.16248370, danach `ffmpeg_jni.cc`
+  über Media3s `CMakeLists.txt` und gestrippt. ABIs: arm64-v8a, armeabi-v7a, x86_64 (wie die übrigen nativen Teile;
+  x86 nicht). Die Configure-Zeile ist die von `build_ffmpeg.sh`: `--target-os=android --enable-static
+  --disable-shared --disable-doc --disable-programs --disable-everything --disable-avdevice --disable-avformat
+  --disable-swscale --disable-postproc --disable-avfilter --disable-symver --enable-swresample --extra-ldexeflags=-pie
+  --disable-v4l2-m2m --disable-vulkan --enable-decoder=…` je Decoder.
+- **Nicht in git:** Die `.so` (je ABI gut 1 MB, zusammen über 3 MB) baut Gradle selbst: `:ffmpeg:buildFfmpegAudio`
+  läuft vor `preBuild`, einmal je Checkout (rund eine Minute, braucht Netz, git, make, cmake und das NDK) und legt sie
+  in `ffmpeg/build/ffmpeg-audio/<abi>/`. Neu nur, wenn sich das Skript ändert oder `clean` lief. Die CI installiert
+  vorher das NDK (`android.yml`, `play-internal.yml`). In git liegen nur Media3s Java-Quellen und
+  `proguard-rules.txt`, unverändert; das Skript schreibt sie bei jedem Lauf neu, ein Media3-Update zeigt sich also als
+  Diff.
+- **16 KB:** NDK 30 linkt mit 16-KB-Seiten; `utils/check-16k.sh` auf Beta-APK und -AAB grün
+  (`libffmpegJNI.so` LOAD align 0x4000).
+- **Größe** (Beta, 19.11.2026, `bundletool get-size total --dimensions=ABI`, Download MIN): arm64-v8a
+  10 078 893 → 10 633 839 B (+554 946), armeabi-v7a 7 563 956 → 8 111 850 B (+547 894), x86_64 10 295 238 →
+  10 857 989 B (+562 751), x86 +12 420 (nur Java). Universal-APK 19 081 336 → 20 726 236 B (+1 644 900), AAB
+  29 617 397 → 31 277 543 B (+1 660 146). `libffmpegJNI.so` entpackt: arm64 1 160 616, armv7 1 060 880, x86_64
+  1 209 128 B.
+- **Lizenz:** FFmpeg ohne `--enable-gpl`, `--enable-nonfree` und `--enable-version3`, also LGPL-2.1-or-later;
+  statisch gelinkt, was bei Ordos offenem GPL-3.0-Quelltext erlaubt ist (LGPL-2.1 § 3/§ 6). Über › Lizenzen nennt
+  „This software uses libraries from the FFmpeg project under the LGPLv2.1“ mit Link auf den Quell-Tarball
+  `ffmpeg-6.0.1.tar.xz` (Checkliste https://ffmpeg.org/legal.html). Media3s Wrapper ist Apache-2.0 (schon gelistet).
+  Patente ungeprüft (FFmpeg selbst: „We do not know“).
+- **Updates:** Bei einem Media3-Update `MEDIA3_TAG` im Skript mitziehen; `FfmpegRendererTest` schlägt an, wenn der
+  Konstruktor nicht mehr passt.
 
 ## Offen (messen)
 
 Ruckler beim Drehen auf dem Tab; AC3/E-AC3/DTS in MKV auf Tab S9 Ultra und S21; Puffer und Spulen großer Filme über
 SMB/SFTP; Vergleich mit Samsung Video und Google Fotos; ob `sensorLandscape` auf dem Tab unter Android 16 wirkt;
-APK/AAB-Größe vorher/nachher (`bundletool get-size total`); wie `dumpsys media_session` die Session `video.<UUID>` benennt.
+AC3/DTS über FFmpeg auf dem W90 (Ton, CPU-Last); wie `dumpsys media_session` die Session `video.<UUID>` benennt.

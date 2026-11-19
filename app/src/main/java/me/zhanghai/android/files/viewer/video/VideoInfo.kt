@@ -169,6 +169,12 @@ data class VideoInfo(
                                 me.zhanghai.android.files.player.PathDataSource.Factory(context)
                             )
                         )
+                        // As the player, so FFmpeg's AC3/DTS tracks count as supported.
+                        .setRenderersFactory(
+                            androidx.media3.exoplayer.DefaultRenderersFactory(context).setExtensionRendererMode(
+                                androidx.media3.exoplayer.DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON
+                            )
+                        )
                         .build()
                     player.trackSelectionParameters = player.trackSelectionParameters.buildUpon()
                         .setTrackTypeDisabled(C.TRACK_TYPE_VIDEO, true)
