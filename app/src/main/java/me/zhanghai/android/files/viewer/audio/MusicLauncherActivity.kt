@@ -1156,6 +1156,22 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener, AppAccentA
         // the side menu) puts the icon above the label so all six still show; a phone scrolls the row instead.
         val inline = !tabletLayout || contentWidthDp >= TABS_INLINE_MIN_WIDTH_DP
         if (tabs.isInlineLabel != inline) tabs.isInlineLabel = inline
+        // All pills equally wide when each fits into an equal share of the row (measured, so it holds for every
+        // language and font size); otherwise the row scrolls with natural widths and keeps the chosen tab in view.
+        val rowWidth = (tabs.parent as View).width - 2 * tabMargin - 2 * tabSide
+        val widest = (0 until tabs.tabCount).maxOfOrNull { index ->
+            tabs.getTabAt(index)?.view?.let {
+                it.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
+                it.measuredWidth
+            } ?: 0
+        } ?: 0
+        val equal = rowWidth > 0 && widest * tabs.tabCount <= rowWidth
+        val mode = if (equal) TabLayout.MODE_FIXED else TabLayout.MODE_SCROLLABLE
+        if (tabs.tabMode != mode) {
+            tabs.tabMode = mode
+            tabs.tabGravity = if (equal) TabLayout.GRAVITY_FILL else TabLayout.GRAVITY_START
+            if (!equal) tabs.post { tabs.setScrollPosition(tabs.selectedTabPosition, 0f, true) }
+        }
         val titleSide = if (tabletLayout) side else resources.getDimensionPixelSize(R.dimen.space_gutter)
         binding.content.collapsingToolbar.expandedTitleMarginStart = titleSide
         binding.content.collapsingToolbar.expandedTitleMarginEnd = titleSide
