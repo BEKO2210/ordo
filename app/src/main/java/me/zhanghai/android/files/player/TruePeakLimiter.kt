@@ -18,19 +18,22 @@ import kotlin.math.sin
 
 /**
  * The last stage of the Klang chain: keeps the output at or below −1 dBTP (EBU R 128), measured between the samples
- * too. Peaks are found with 4x oversampling (BS.1770-4 Annex 2 method; here a 16-tap Hann-windowed sinc per phase),
+ * too. Peaks are found with 4x oversampling (BS.1770-4 Annex 2 method; here a 64-tap Hann-windowed sinc per phase),
  * the gain is the lookahead minimum over [WINDOW] frames, averaged over [WINDOW] frames, so it ramps down before a peak
  * instead of stepping (a step makes new intersample peaks); then it recovers with an 80 ms time constant. The
- * detection target is [CEILING_DB] = −1.6 dB: the short interpolator under-reads band-limited and clipped material by
- * up to ~0.5 dB (prototype, docs/VIDEO-SOUND.md). Constant latency [LATENCY] frames (0.5 ms at 48 kHz).
+ * detection target is [CEILING_DB] = −1.6 dB: the gain ramp itself adds a little between the samples (clipped full-band
+ * noise lands at about −1.5 dBTP, docs/VIDEO-SOUND.md). Constant latency [LATENCY] frames (1 ms at 48 kHz).
  *
- * While nothing processes the sound ([armed] false) no new reduction starts; once the gain is back at 1 every sample
+ * While nothing processes the sound ([armed] false and [armedBy] answering false) no new reduction starts; once the gain is back at 1 every sample
  * passes bit for bit, so "everything off" stays bit-perfect (delayed by [LATENCY] frames). 16-bit stereo only; other
  * formats pass by.
  */
-class TruePeakLimiter : BaseAudioProcessor() {
+class TruePeakLimiter(private val armedBy: (() -> Boolean)? = null) : BaseAudioProcessor() {
     @Volatile
     var armed: Boolean = false
+
+    /** [armed] or [armedBy], read once per buffer on the audio thread. */
+    private var armedNow = false
 
     private val left = FloatArray(RING)
     private val right = FloatArray(RING)
@@ -66,6 +69,7 @@ class TruePeakLimiter : BaseAudioProcessor() {
     override fun queueInput(inputBuffer: ByteBuffer) {
         if (!inputBuffer.hasRemaining()) return
         val frames = inputBuffer.remaining() / 4
+        armedNow = armed || armedBy?.invoke() == true
         val output = replaceOutputBuffer(frames * 4)
         repeat(frames) { push(inputBuffer.getShort(), inputBuffer.getShort(), output) }
         output.flip()
@@ -92,7 +96,16 @@ class TruePeakLimiter : BaseAudioProcessor() {
         val s = n - HALF
         if (s >= 0) {
             var peak = 0f
-            for (phase in 0 until 3) {
+            // Only work while armed, and only where the window is loud enough that a point between the samples could
+            // reach the ceiling at all (|interpolated| <= max|x| * sum|kernel|): quiet film sound costs a scan.
+            var windowMax = 0f
+            if (armedNow) {
+                for (j in 0 until TAPS) {
+                    val index = ((s - HALF + 1 + j) and MASK).toInt()
+                    windowMax = maxOf(windowMax, abs(left[index]), abs(right[index]))
+                }
+            }
+            if (windowMax * KERNEL_GAIN > CEILING) for (phase in 0 until 3) {
                 val kernel = KERNELS[phase]
                 var sumL = 0f
                 var sumR = 0f
@@ -107,7 +120,7 @@ class TruePeakLimiter : BaseAudioProcessor() {
             segment[si] = peak
             val samplePeak = maxOf(abs(left[si]), abs(right[si]))
             val framePeak = maxOf(samplePeak, peak, segment[((s - 1) and MASK).toInt()])
-            required[si] = if (armed && framePeak > CEILING) CEILING / framePeak else 1f
+            required[si] = if (armedNow && framePeak > CEILING) CEILING / framePeak else 1f
         }
         // Held gain for frame m: the minimum required over m..m + WINDOW - 1, with the slow release on top.
         val m = s - WINDOW + 1
@@ -145,12 +158,13 @@ class TruePeakLimiter : BaseAudioProcessor() {
 
     companion object {
         private const val PCM_SCALE = 32_768f
-        private const val HALF = 8
+        /** 64 taps per phase, the same interpolator as the 4x reference meter in the tests. */
+        private const val HALF = 32
         private const val TAPS = 2 * HALF
         internal const val WINDOW = 16
         /** Frames between input and output. */
         const val LATENCY = HALF + WINDOW - 1
-        private const val RING = 64
+        private const val RING = 128
         private const val MASK = (RING - 1).toLong()
         private const val RELEASE_SECONDS = 0.08
         internal const val CEILING_DB = -1.6f
@@ -165,5 +179,8 @@ class TruePeakLimiter : BaseAudioProcessor() {
                 (sinc * (0.5 + 0.5 * cos(PI * x / HALF))).toFloat()
             }
         }
+
+        /** The largest sum of |kernel| over the phases: a point between samples is at most this times the window peak. */
+        private val KERNEL_GAIN = KERNELS.maxOf { kernel -> kernel.sumOf { abs(it).toDouble() } }.toFloat()
     }
 }

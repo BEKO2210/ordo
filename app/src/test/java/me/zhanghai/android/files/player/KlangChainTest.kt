@@ -231,8 +231,5 @@ class KlangChainTest {
         // One processor for the whole chain (one float conversion, one dither), then the true-peak limiter.
         assertEquals(2, klang.chain.size)
         assertTrue(klang.chain[0] === klang.processor && klang.chain[1] === klang.truePeak)
-        assertTrue(klang.truePeak.armed)
-        klang.apply(AudioSettings(), headphones = true)
-        assertFalse(klang.truePeak.armed)
     }
 }

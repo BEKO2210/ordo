@@ -34,7 +34,11 @@ internal class VideoSpatial(
         override fun onAudioDevicesRemoved(removedDevices: Array<out AudioDeviceInfo>?) = check()
     }
 
+    private var started = false
+
     fun start() {
+        if (started) return
+        started = true
         if (Build.VERSION.SDK_INT < 32) return onChannels(emptySet())
         startV32()
         context.getSystemService(AudioManager::class.java)?.registerAudioDeviceCallback(deviceCallback, handler)
@@ -42,6 +46,8 @@ internal class VideoSpatial(
     }
 
     fun stop() {
+        if (!started) return
+        started = false
         if (Build.VERSION.SDK_INT < 32) return
         context.getSystemService(AudioManager::class.java)?.unregisterAudioDeviceCallback(deviceCallback)
         stopV32()
