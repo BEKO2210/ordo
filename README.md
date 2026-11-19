@@ -227,7 +227,7 @@ From the Play listing, `fastlane/metadata/android/en-US/full_description.txt`.
 
 - Music player with cover art, a queue and controls in the notification, on the lock screen and on headphone buttons
 - Sound: 10-band equalizer with presets, bass boost, loudness levelling, speed that keeps the pitch, sleep timer
-- Video player with continue watching, swipe gestures, repeat and video details; its own sound: equalizer, clear dialogue, night mode, 5.1 mixed for two speakers (or handed to the system's spatial audio), volume levelling, audio track choice and audio sync per video
+- Video player with continue watching, swipe gestures, repeat and video details
 - “Play on…”: send music to Bluetooth headphones, a speaker or a cast device
 - Optional own “Ordo Music” and “Ordo Video” icons on your home screen
 
@@ -492,7 +492,7 @@ Run the unit tests with:
 ```
 
 <!-- AUTO:tests -->
-Device tests: 39 scripts in [`e2e/`](e2e/README.md), run with `e2e/run.sh`: 15 read-only (`first-run`, `smoke`, `settings-visual`, `category-search`, `back-navigation`, `bars-replay`, `home-header`, `header-position`, `home-pull`, `drawer`, `selection-more`, `tablet-landscape`, `analysis`, `ai-show-guard`, `documents-provider`) and 24 more with `--write` (`stress-delete`, `backup-restore`, `home-auto-refresh`, `audio-player`, `cast`, `klang`, `klang-landscape`, `klang-stress`, `music-formats`, `music-library`, `launcher-icons`, `icon-colors`, `ai-show`, `pick-file`, `no-midword-breaks`, `player-seek`, `player-stage2`, `video-player`, `video-network`, `video-sound`, `video-subtitles`, `video-background`, `video-library`, `video-seek`). Unit tests: 109 test classes in `app/src/test`.
+Device tests: 39 scripts in [`e2e/`](e2e/README.md), run with `e2e/run.sh`: 15 read-only (`first-run`, `smoke`, `settings-visual`, `category-search`, `back-navigation`, `bars-replay`, `home-header`, `header-position`, `home-pull`, `drawer`, `selection-more`, `tablet-landscape`, `analysis`, `ai-show-guard`, `documents-provider`) and 24 more with `--write` (`stress-delete`, `backup-restore`, `home-auto-refresh`, `audio-player`, `cast`, `klang`, `klang-landscape`, `klang-stress`, `music-formats`, `music-library`, `launcher-icons`, `icon-colors`, `ai-show`, `pick-file`, `no-midword-breaks`, `player-seek`, `player-stage2`, `video-player`, `video-network`, `video-sound`, `video-subtitles`, `video-background`, `video-library`, `video-seek`). Unit tests: 110 test classes in `app/src/test`.
 <!-- /AUTO:tests -->
 
 ## Roadmap

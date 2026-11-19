@@ -227,7 +227,7 @@ Aus dem Play-Eintrag, `fastlane/metadata/android/de-DE/full_description.txt`.
 
 - Musik-Player mit Cover, Warteschlange und Steuerung auf dem Sperrbildschirm und per Kopfhörer
 - Klang: 10-Band-Equalizer, Bass, Lautstärke angleichen, Einschlaf-Timer
-- Video-Player mit Weiterschauen, Wischgesten, Schleife und Videoinfos; eigener Klang: Equalizer, Dialog-Verstärker, Nachtmodus, 5.1 für zwei Lautsprecher gemischt (oder an den Raumklang des Systems übergeben), Lautstärke angleichen, Tonspur-Wahl und Ton-Synchronisation je Video
+- Video-Player mit Weiterschauen, Wischgesten, Schleife und Videoinfos
 - „Abspielen auf …“: Musik an Bluetooth-Kopfhörer, Lautsprecher oder ein Cast-Gerät schicken
 - Auf Wunsch eigene Symbole „Ordo Musik“ und „Ordo Video“
 
@@ -499,7 +499,7 @@ Unit-Tests:
 ```
 
 <!-- AUTO:tests -->
-Gerätetests: 39 Skripte in [`e2e/`](e2e/README.md), gestartet mit `e2e/run.sh`: 15 nur lesend (`first-run`, `smoke`, `settings-visual`, `category-search`, `back-navigation`, `bars-replay`, `home-header`, `header-position`, `home-pull`, `drawer`, `selection-more`, `tablet-landscape`, `analysis`, `ai-show-guard`, `documents-provider`) und 24 weitere mit `--write` (`stress-delete`, `backup-restore`, `home-auto-refresh`, `audio-player`, `cast`, `klang`, `klang-landscape`, `klang-stress`, `music-formats`, `music-library`, `launcher-icons`, `icon-colors`, `ai-show`, `pick-file`, `no-midword-breaks`, `player-seek`, `player-stage2`, `video-player`, `video-network`, `video-sound`, `video-subtitles`, `video-background`, `video-library`, `video-seek`). Unit-Tests: 109 Testklassen in `app/src/test`.
+Gerätetests: 39 Skripte in [`e2e/`](e2e/README.md), gestartet mit `e2e/run.sh`: 15 nur lesend (`first-run`, `smoke`, `settings-visual`, `category-search`, `back-navigation`, `bars-replay`, `home-header`, `header-position`, `home-pull`, `drawer`, `selection-more`, `tablet-landscape`, `analysis`, `ai-show-guard`, `documents-provider`) und 24 weitere mit `--write` (`stress-delete`, `backup-restore`, `home-auto-refresh`, `audio-player`, `cast`, `klang`, `klang-landscape`, `klang-stress`, `music-formats`, `music-library`, `launcher-icons`, `icon-colors`, `ai-show`, `pick-file`, `no-midword-breaks`, `player-seek`, `player-stage2`, `video-player`, `video-network`, `video-sound`, `video-subtitles`, `video-background`, `video-library`, `video-seek`). Unit-Tests: 110 Testklassen in `app/src/test`.
 <!-- /AUTO:tests -->
 
 ## Ausblick
