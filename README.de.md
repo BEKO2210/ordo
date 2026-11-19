@@ -100,7 +100,7 @@ Was als Nächstes kommt, steht in der [lebenden Roadmap](docs/ROADMAP-LIVE.md): 
 
 ### Ordo Musik – eine eigene Musik-App
 
-- Titel, Alben, Interpreten und Ordner mit Suche, „Alle zufällig“ und Mini-Player
+- Titel, Alben, Interpreten, Wiedergabelisten, Favoriten und Ordner mit Suche, „Alle zufällig“ und Mini-Player
 - Ein Player, der seine Farbe vom Cover nimmt, vor einem sanft bewegten Hintergrund aus dem Cover, mit einer Wellen-Zeitleiste, die sich nur nach Festhalten bewegt, Warteschlange und Steuerung im Hintergrund
 - Synchrone Liedtexte aus einer .lrc neben dem Lied oder eingebettet, Cover wischen wechselt das Lied, eine sortierbare Warteschlange und eigene Einstellungen für Ordo Musik mit „Farben aus dem Cover“
 - Klang: 10-Band-Equalizer, direkt an der Kurve geformt, Voreinstellungen, Geräteeffekte, ReplayGain/R128 und ein ausblendender Einschlaf-Timer

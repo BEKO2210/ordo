@@ -100,7 +100,7 @@ What comes next is in the [living roadmap](docs/ROADMAP-LIVE.md): every goal has
 
 ### Ordo Music – a music app of its own
 
-- Songs, Albums, Artists and Folders with search, “Shuffle all” and a mini player
+- Songs, Albums, Artists, Playlists, Favorites and Folders with search, “Shuffle all” and a mini player
 - A player that takes its colour from the cover, over a softly moving backdrop made from it, with a wavy seek bar that moves only when you hold it, queue and background controls
 - Synced lyrics from a .lrc beside the song or embedded in it, swipe the cover to change songs, a queue you can reorder, and Ordo Music settings with “Colours from the cover”
 - Sound: a 10-band EQ you shape on the curve, presets, device effects, ReplayGain/R128, a fading sleep timer

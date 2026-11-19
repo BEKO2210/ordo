@@ -3,7 +3,7 @@
 # The owner's rule: no word ever breaks in the middle ("Absp-ielen", "Zufäll-ig" on the Tab's narrow pane).
 # Debug builds only (MidwordWatchProvider logs every visible TextView whose layout breaks inside a word); WRITES one
 # silent test song with a cover in Music/OrdoE2E-Midword and removes it again. Walks home, settings, the music
-# library's four tabs, a folder page, an album page, the player, its Sound and queue sheets and Ordo Musik's settings,
+# library's six tabs, a folder page, an album page, the player, its Sound and queue sheets and Ordo Musik's settings,
 # then fails on any logged break.
 # Run it once on a phone and once on a tablet.
 . "$(dirname "$0")/lib.sh" "$@"
@@ -39,7 +39,8 @@ a shell am start -n "$PKG/me.zhanghai.android.files.settings.SettingsActivity" >
 ui tap "Aussehen|Appearance" >/dev/null && sleep 2 && back
 back
 a shell am start -W -n "$PKG/$LIBRARY" >/dev/null; sleep 3; guard
-for t in "Titel|Songs" "Alben|Albums" "Interpreten|Artists" "Ordner|Folders"; do ui tap "$t" >/dev/null; sleep 2; done
+for t in "Titel|Songs" "Alben|Albums" "Interpreten|Artists" "Wiedergabelisten|Playlists" "Favoriten|Favorites" \
+    "Ordner|Folders"; do ui tap "$t" >/dev/null; sleep 2; done
 check "a folder page opens" eval 'ui tap OrdoE2E-Midword title || { swipe_up; ui tap OrdoE2E-Midword title; }'
 sleep 2; back
 ui tap "Alben|Albums" >/dev/null; sleep 2
