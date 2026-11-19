@@ -1,0 +1,335 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- Ordo Video › Sound: Ordo Musik's Klang look (stage with the curve, presets, cards in a MasonryLayout), with the
+     video effects. Every control is a switch, a segment or "−  value  +"; no sliders. -->
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:clipToPadding="false"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingStart="@dimen/klang_space_lg"
+        android:paddingTop="@dimen/klang_space_md"
+        android:paddingEnd="@dimen/klang_space_lg"
+        android:paddingBottom="@dimen/klang_space_xl">
+
+        <View
+            android:layout_width="@dimen/klang_handle_width"
+            android:layout_height="@dimen/klang_handle_height"
+            android:layout_gravity="center_horizontal"
+            android:alpha="0.4"
+            android:background="@drawable/klang_handle"
+            android:backgroundTint="?colorOnSurface"
+            android:importantForAccessibility="no" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/klang_space_sm"
+            android:gravity="center_vertical"
+            android:minHeight="@dimen/klang_row_min_height"
+            android:orientation="horizontal">
+            <ImageView
+                android:layout_width="@dimen/klang_icon_column"
+                android:layout_height="@dimen/klang_icon_size"
+                android:importantForAccessibility="no"
+                android:scaleType="center"
+                android:src="@drawable/audio_equalizer_icon_24dp"
+                app:tint="?colorPrimary" />
+            <TextView
+                style="@style/Widget.Ordo.Klang.Text"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:accessibilityHeading="true"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:paddingStart="@dimen/klang_space_sm"
+                android:text="@string/video_sound_menu"
+                android:textAppearance="@style/TextAppearance.Ordo.Klang.Title" />
+            <com.google.android.material.materialswitch.MaterialSwitch
+                android:id="@+id/equalizerEnabled"
+                android:layout_width="wrap_content"
+                android:layout_height="@dimen/klang_touch_target"
+                android:contentDescription="@string/audio_sound_equalizer"
+                android:gravity="center" />
+            <ImageButton
+                android:id="@+id/close"
+                android:layout_width="@dimen/klang_touch_target"
+                android:layout_height="@dimen/klang_touch_target"
+                android:layout_marginStart="@dimen/klang_space_sm"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/close"
+                android:padding="@dimen/klang_space_md"
+                android:src="@drawable/close_icon_control_normal_24dp"
+                app:tint="?colorOnSurface" />
+        </LinearLayout>
+        <TextView
+            style="@style/Widget.Ordo.Klang.Info"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/klang_text_edge"
+            android:layout_marginBottom="@dimen/klang_space_md"
+            android:text="@string/video_sound_own_settings" />
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/equalizerStage"
+            style="@style/Widget.Ordo.Klang.Stage"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingStart="@dimen/klang_space_lg"
+                android:paddingTop="@dimen/klang_space_md"
+                android:paddingEnd="@dimen/klang_space_lg"
+                android:paddingBottom="@dimen/klang_space_md">
+                <me.zhanghai.android.files.viewer.audio.EqualizerCurveView
+                    android:id="@+id/equalizerCurve"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/klang_curve_height" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/klang_space_xs"
+                    android:gravity="center_vertical"
+                    android:minHeight="@dimen/klang_touch_target"
+                    android:orientation="horizontal">
+                    <TextView
+                        style="@style/Widget.Ordo.Klang.Info"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:paddingEnd="@dimen/klang_space_sm"
+                        android:text="@string/audio_sound_curve_hint" />
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/equalizerReset"
+                        style="@style/Widget.Ordo.Klang.TextButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/audio_sound_reset"
+                        android:visibility="invisible"
+                        app:icon="@drawable/restart_icon_white_24dp"
+                        app:iconSize="18dp" />
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <TextView
+            style="@style/Widget.Ordo.Klang.Section"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/klang_space_xl"
+            android:layout_marginBottom="@dimen/klang_space_sm"
+            android:accessibilityHeading="true"
+            android:text="@string/audio_sound_presets" />
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/klang_space_lg_neg"
+            android:layout_marginEnd="@dimen/klang_space_lg_neg"
+            android:clipToPadding="false"
+            android:overScrollMode="never"
+            android:paddingStart="@dimen/klang_space_lg"
+            android:paddingEnd="@dimen/klang_space_lg"
+            android:scrollbars="none">
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/presets"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:selectionRequired="true"
+                app:singleLine="true"
+                app:singleSelection="true" />
+        </HorizontalScrollView>
+
+        <TextView
+            android:id="@+id/surroundNote"
+            style="@style/Widget.Ordo.Klang.Info"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/klang_space_lg"
+            android:drawableStart="@drawable/audio_surround_icon_24dp"
+            android:drawablePadding="@dimen/klang_space_sm"
+            android:drawableTint="?colorPrimary"
+            android:gravity="center_vertical"
+            android:minHeight="@dimen/klang_row_min_height"
+            android:visibility="gone" />
+
+        <me.zhanghai.android.files.ui.MasonryLayout
+            android:id="@+id/effectsGrid"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/klang_card_gap_half_neg"
+            android:layout_marginTop="@dimen/klang_space_lg"
+            android:layout_marginEnd="@dimen/klang_card_gap_half_neg">
+
+            <com.google.android.material.card.MaterialCardView
+                style="@style/Widget.Ordo.Klang.Card"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="@dimen/klang_card_gap_half">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:paddingStart="@dimen/klang_space_lg"
+                    android:paddingTop="@dimen/klang_space_md"
+                    android:paddingEnd="@dimen/klang_space_lg"
+                    android:paddingBottom="@dimen/klang_space_md">
+                    <include
+                        android:id="@+id/dialogRow"
+                        layout="@layout/klang_switch_row"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
+                    <com.google.android.material.button.MaterialButtonToggleGroup
+                        android:id="@+id/dialogGroup"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/klang_space_sm"
+                        android:spacing="@dimen/klang_space_xs"
+                        app:innerCornerSize="@dimen/klang_space_md"
+                        app:selectionRequired="true"
+                        app:singleSelection="true">
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/dialogLight"
+                            style="@style/Widget.Ordo.Klang.Segment"
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:text="@string/audio_sound_level_light" />
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/dialogStrong"
+                            style="@style/Widget.Ordo.Klang.Segment"
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:text="@string/audio_sound_level_strong" />
+                    </com.google.android.material.button.MaterialButtonToggleGroup>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                style="@style/Widget.Ordo.Klang.Card"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="@dimen/klang_card_gap_half">
+                <include
+                    android:id="@+id/nightRow"
+                    layout="@layout/klang_switch_row"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/klang_space_lg"
+                    android:layout_marginTop="@dimen/klang_space_md"
+                    android:layout_marginEnd="@dimen/klang_space_lg"
+                    android:layout_marginBottom="@dimen/klang_space_md" />
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/bassCard"
+                style="@style/Widget.Ordo.Klang.Card"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="@dimen/klang_card_gap_half">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:paddingStart="@dimen/klang_space_lg"
+                    android:paddingTop="@dimen/klang_space_md"
+                    android:paddingEnd="@dimen/klang_space_lg"
+                    android:paddingBottom="@dimen/klang_space_md">
+                    <include
+                        android:id="@+id/bassRow"
+                        layout="@layout/klang_switch_row"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
+                    <com.google.android.material.button.MaterialButtonToggleGroup
+                        android:id="@+id/bassGroup"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/klang_space_sm"
+                        android:spacing="@dimen/klang_space_xs"
+                        app:innerCornerSize="@dimen/klang_space_md"
+                        app:selectionRequired="true"
+                        app:singleSelection="true">
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/bassLight"
+                            style="@style/Widget.Ordo.Klang.Segment"
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:text="@string/audio_sound_level_light" />
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/bassMedium"
+                            style="@style/Widget.Ordo.Klang.Segment"
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:text="@string/audio_sound_level_medium" />
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/bassStrong"
+                            style="@style/Widget.Ordo.Klang.Segment"
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:text="@string/audio_sound_level_strong" />
+                    </com.google.android.material.button.MaterialButtonToggleGroup>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                style="@style/Widget.Ordo.Klang.Card"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="@dimen/klang_card_gap_half">
+                <include
+                    android:id="@+id/monoRow"
+                    layout="@layout/klang_switch_row"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/klang_space_lg"
+                    android:layout_marginTop="@dimen/klang_space_md"
+                    android:layout_marginEnd="@dimen/klang_space_lg"
+                    android:layout_marginBottom="@dimen/klang_space_md" />
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/balanceCard"
+                style="@style/Widget.Ordo.Klang.Card"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="@dimen/klang_card_gap_half">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:paddingStart="@dimen/klang_space_lg"
+                    android:paddingTop="@dimen/klang_space_md"
+                    android:paddingEnd="@dimen/klang_space_lg"
+                    android:paddingBottom="@dimen/klang_space_md">
+                    <TextView
+                        style="@style/Widget.Ordo.Klang.Title"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:drawableStart="@drawable/audio_balance_icon_24dp"
+                        android:drawablePadding="@dimen/klang_space_sm"
+                        android:drawableTint="?colorPrimary"
+                        android:gravity="center_vertical"
+                        android:minHeight="@dimen/klang_touch_target"
+                        android:text="@string/audio_sound_balance" />
+                    <include
+                        android:id="@+id/balanceStepper"
+                        layout="@layout/klang_value_stepper"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+        </me.zhanghai.android.files.ui.MasonryLayout>
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

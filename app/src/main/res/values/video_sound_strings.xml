@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- Ordo Video › Sound and Audio track sheets. Shared words (On, Off, Light, Strong, Mono, Balance, presets) come
+     from Ordo Musik's audio_sound_* strings. -->
+<resources>
+    <string name="video_sound_menu">Sound</string>
+    <string name="video_sound_own_settings">Only for videos – your music sound stays as it is</string>
+    <string name="video_sound_dialog">Clear dialogue</string>
+    <string name="video_sound_dialog_summary">Brings voices forward and evens them out</string>
+    <string name="video_sound_night">Night mode</string>
+    <string name="video_sound_night_summary">Softens loud scenes and lifts quiet speech</string>
+    <string name="video_sound_bass_summary">More low end for small speakers</string>
+    <string name="video_sound_surround_format">%1$s sound is mixed for two speakers, with voices kept clear</string>
+    <string name="video_audio_track_menu">Audio track</string>
+    <string name="video_audio_track_title">Audio track</string>
+    <string name="video_audio_track_unknown_language">Track %1$d</string>
+    <string name="video_audio_track_channels">%1$d channels</string>
+    <string name="video_audio_track_unplayable">can\'t play on this device</string>
+    <string name="video_audio_track_none">This video has no audio track.</string>
+    <string name="video_audio_sync">Audio sync</string>
+    <string name="video_audio_sync_summary">If lips and voice don\'t match, move the sound in 50 ms steps.</string>
+    <string name="video_audio_sync_zero">In sync (0 ms)</string>
+    <string name="video_audio_sync_later">Sound %1$d ms later</string>
+    <string name="video_audio_sync_earlier">Sound %1$d ms earlier</string>
+    <string name="video_audio_sync_earlier_button">Sound earlier</string>
+    <string name="video_audio_sync_later_button">Sound later</string>
+    <string name="video_sound_balance_left_button">More left</string>
+    <string name="video_sound_balance_right_button">More right</string>
+</resources>

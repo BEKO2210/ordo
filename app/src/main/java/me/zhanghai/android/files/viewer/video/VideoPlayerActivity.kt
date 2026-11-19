@@ -55,8 +55,11 @@ import androidx.media3.common.Tracks
 import androidx.media3.common.VideoSize
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.common.util.Util
-import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
+import me.zhanghai.android.files.viewer.video.sound.VideoAudioTrackSheet
+import me.zhanghai.android.files.viewer.video.sound.VideoSoundEngine
+import me.zhanghai.android.files.viewer.video.sound.VideoSoundHost
+import me.zhanghai.android.files.viewer.video.sound.VideoSoundSheet
 import androidx.media3.exoplayer.mediacodec.MediaCodecDecoderException
 import androidx.media3.exoplayer.mediacodec.MediaCodecRenderer
 import androidx.media3.session.MediaSession
@@ -102,7 +105,7 @@ import me.zhanghai.android.files.util.startActivitySafe
  * other caller only a `content://` URI with a read grant is played, and path extras are ignored.
  */
 @OptIn(UnstableApi::class)
-class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.Host {
+class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.Host, VideoSoundHost {
     override val appAccent: SettingLiveData<String>
         get() = Settings.VIDEO_ACCENT
 
@@ -115,6 +118,8 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
 
     private lateinit var binding: VideoPlayerActivityBinding
     private var player: ExoPlayer? = null
+    override var videoSound: VideoSoundEngine? = null
+        private set
     private var session: MediaSession? = null
     private lateinit var controls: VideoControls
     private lateinit var resumeStore: VideoResumeStore
@@ -256,12 +261,10 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
         userOrientation = savedInstanceState?.getBoolean(STATE_USER_ORIENTATION) == true
         val network = VideoNetworkPlayback.forUri(queue.items.getOrNull(queue.startIndex)?.mediaId)
         this.network = network
+        val sound = VideoSoundEngine(this).also { videoSound = it }
+        // Klang chain + FFmpeg extension (AudioRenderersFactory sets EXTENSION_RENDERER_MODE_ON).
         val player = network.applyTo(ExoPlayer.Builder(this), this)
-            // Platform decoders first, FFmpeg (AC3/E-AC3/DTS/TrueHD) only for what the device cannot decode.
-            .setRenderersFactory(
-                DefaultRenderersFactory(this)
-                    .setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON)
-            )
+            .setRenderersFactory(sound.renderersFactory())
             .setAudioAttributes(
                 AudioAttributes.Builder().setUsage(C.USAGE_MEDIA).setContentType(C.AUDIO_CONTENT_TYPE_MOVIE).build(),
                 true
@@ -272,6 +275,7 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
             .build()
         this.player = player
         network.attach(player, binding.root)
+        sound.attach(player)
         // Its own ID: the music service's session lives in the same process.
         // Unique per screen (two can overlap while one closes). Controllers (media keys, the system) may play and seek
         // but never hand the player items of their own: that would bypass the launch rule above.
@@ -355,6 +359,8 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
         castSession?.release()
         session?.release()
         session = null
+        videoSound?.release()
+        videoSound = null
         player?.release()
         player = null
         if (isFinishing) AudioQueueRequests.release(intent.getStringExtra(EXTRA_QUEUE_TOKEN))
@@ -574,6 +580,8 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
                 R.id.actionOpenWith -> openWithOtherApp()
                 R.id.actionFileInfo -> showFileInfo()
                 R.id.actionCast -> showCastChooser()
+                R.id.actionSound -> VideoSoundSheet.show(this)
+                R.id.actionAudioTrack -> player?.let { VideoAudioTrackSheet.show(this, it, videoSound) }
                 else -> return@setOnMenuItemClickListener false
             }
             true
