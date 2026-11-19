@@ -174,12 +174,9 @@ class SoundEffectController(
     }
 
     private fun applyEqualizer() {
-        val normalizationDb = if (currentSettings.normalizationEnabled && replayGain != null) {
-            ReplayGain.effectiveGainDb(
-                replayGain!!.gainDb, currentSettings.normalizationPreampDb, replayGain!!.peak
-            )
-        } else 0f
-        val inputGainDb = currentSettings.preGainDb + normalizationDb
+        // Loudness levelling is applied in Ordo's own chain, before the true-peak limiter (TruePeakLimiter.gainDb,
+        // LoudnessTargets), so a raised level never passes -1 dBTP; the platform's input gain keeps the pre-gain.
+        val inputGainDb = currentSettings.preGainDb
         if (Build.VERSION.SDK_INT >= 28 && applyDynamicsProcessing(inputGainDb)) return
         equalizer?.let { effect ->
             val range = effect.bandLevelRange

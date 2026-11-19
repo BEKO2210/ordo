@@ -22,17 +22,26 @@ class VideoSoundMathTest {
     }
 
     @Test
-    fun dialogParamsOffNullAndStrongLouderThanLight() {
-        assertNull(VideoSoundMath.dialogParams(VideoSoundMath.DIALOG_OFF))
-        val light = VideoSoundMath.dialogParams(VideoSoundMath.DIALOG_LIGHT)!!
-        val strong = VideoSoundMath.dialogParams(VideoSoundMath.DIALOG_STRONG)!!
-        assertTrue(strong.presenceGainDb > light.presenceGainDb)
-        assertNull(VideoSoundMath.dialogParams(-5))
-        assertEquals(7f, VideoSoundMath.dialogParams(9)!!.presenceGainDb, 0f)
-        val c = VideoSoundMath.dialogCompressor(strong)
-        assertEquals(strong.thresholdDb, c.thresholdDb, 0f)
-        assertEquals(6f, c.kneeDb, 0f)
+    fun dialogTargetsAndBoost() {
+        assertNull(VideoSoundMath.dialogTargetLu(VideoSoundMath.DIALOG_OFF))
+        assertEquals(10f, VideoSoundMath.dialogTargetLu(VideoSoundMath.DIALOG_LIGHT)!!, 0f)
+        assertEquals(15f, VideoSoundMath.dialogTargetLu(9)!!, 0f)
+        assertEquals(8f, VideoSoundMath.dialogBoostDb(2f, 10f), 0f)
+        assertEquals(0f, VideoSoundMath.dialogBoostDb(12f, 10f), 0f)
+        assertEquals(VideoSoundMath.DIALOG_CAP_DB, VideoSoundMath.dialogBoostDb(-30f, 15f), 0f)
+        assertEquals(0f, VideoSoundMath.dialogBoostDb(Float.NaN, 15f), 0f)
+        assertEquals(10f, VideoSoundMath.distanceLu(1e-2, 1e-3), 1e-4f)
+        assertTrue(VideoSoundMath.distanceLu(1e-8, 1e-3).isNaN())
         assertEquals(-30f, VideoSoundMath.NIGHT.thresholdDb, 0f)
+    }
+
+    @Test
+    fun speechBandFilter() {
+        val band = VideoSoundMath.speechBand(48_000)
+        assertEquals(0f, VideoSoundMath.magnitudeDb(band, 1_095f, 48_000), 0.05f)
+        assertEquals(-3f, VideoSoundMath.magnitudeDb(band, 300f, 48_000), 0.3f)
+        assertEquals(-3f, VideoSoundMath.magnitudeDb(band, 4_000f, 48_000), 0.3f)
+        assertTrue(VideoSoundMath.magnitudeDb(band, 60f, 48_000) < -12f)
     }
 
     @Test
@@ -67,8 +76,8 @@ class VideoSoundMathTest {
     @Test
     fun peakingMagnitudeAtCentreAndLowFrequency() {
         val p = VideoSoundMath.peaking(48_000, 2500f, 0.8f, 7f)
-        assertEquals(7f, VideoSoundMath.peakingMagnitudeDb(p, 2500f, 48_000), 0.1f)
-        assertTrue(abs(VideoSoundMath.peakingMagnitudeDb(p, 100f, 48_000)) < 1f)
+        assertEquals(7f, VideoSoundMath.magnitudeDb(p, 2500f, 48_000), 0.1f)
+        assertTrue(abs(VideoSoundMath.magnitudeDb(p, 100f, 48_000)) < 1f)
     }
 
     @Test

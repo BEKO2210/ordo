@@ -24,6 +24,8 @@ import me.zhanghai.android.files.R
 import me.zhanghai.android.files.player.AudioRenderersFactory
 import me.zhanghai.android.files.player.KlangAudioProcessor
 import me.zhanghai.android.files.player.LoudnessAnalysis
+import me.zhanghai.android.files.player.LoudnessMeter
+import me.zhanghai.android.files.player.LoudnessTargets
 import me.zhanghai.android.files.player.MonoStage
 import me.zhanghai.android.files.player.ReplayGainInfo
 import me.zhanghai.android.files.player.SoundEffectController
@@ -103,6 +105,7 @@ class VideoSoundEngine(private val context: Context) {
                 else "Ordo's BS.775 downmix to stereo"
                 Log.i(TAG, "$sourceChannelCount channels: $way")
             }
+            applyToChain()
             notifyChanged()
         }
     }
@@ -155,6 +158,36 @@ class VideoSoundEngine(private val context: Context) {
         )
     }
 
+    /** This film's integrated loudness in LUFS once measured (BS.1770), else null; for the sheet and signal path. */
+    val filmLufs: Float? get() = replayGain?.let { LoudnessMeter.REFERENCE_LUFS.toFloat() - it.gainDb }
+
+    /** Dialog-over-rest distance in LU: measured before and reached after the enhancer; NaN while unknown. */
+    val dialogDistanceLu: Float get() = if (centreSteered()) downmix.distanceLu else dialog.distanceLu
+    val dialogReachedLu: Float get() = if (centreSteered()) downmix.reachedLu else dialog.reachedLu
+
+    /** 5.0-7.1 with a centre channel: the downmix steers it; stereo, mono and quad (no centre) use the heuristic. */
+    private fun centreSteered(): Boolean = sourceChannelCount > 2 && sourceChannelCount != 4
+
+    /**
+     * "Besser verstehen" (Ward, Shirley 2019: speech-to-background distance, plus redundancy): dialog at 15 LU and
+     * night mode in one tap; [onUnderstandBetter] lets the subtitle feature switch subtitles on with it.
+     */
+    fun setUnderstandBetter(on: Boolean) {
+        update(
+            settings.copy(
+                dialogLevel = if (on) VideoSoundMath.DIALOG_STRONG else VideoSoundMath.DIALOG_OFF,
+                nightMode = on
+            )
+        )
+        onUnderstandBetter?.invoke(on)
+    }
+
+    val understandBetter: Boolean
+        get() = settings.dialogLevel == VideoSoundMath.DIALOG_STRONG && settings.nightMode
+
+    /** Hook for the subtitle feature: called with true when "Besser verstehen" goes on, false when off. */
+    var onUnderstandBetter: ((Boolean) -> Unit)? = null
+
     fun renderersFactory(): RenderersFactory =
         AudioRenderersFactory(context, arrayOf(downmix, klang, truePeak, delay))
 
@@ -201,6 +234,9 @@ class VideoSoundEngine(private val context: Context) {
 
     /** A new film: its own delay (from the store) and its own level. */
     private fun onItem(item: MediaItem?) {
+        // The dialog distance belongs to the film: the next one starts measuring from nothing.
+        dialog.steering.resetRequested = true
+        downmix.steering.resetRequested = true
         currentKey = null
         delayChangedByUser = false
         replayGain = null
@@ -269,12 +305,14 @@ class VideoSoundEngine(private val context: Context) {
         val value = settings
         mono.effectEnabled = value.klang.mono
         if (value.dialogLevel != VideoSoundMath.DIALOG_OFF) dialog.level = value.dialogLevel
-        dialog.effectEnabled = value.dialogLevel != VideoSoundMath.DIALOG_OFF
+        // 5.1/7.1: the downmix steers the real centre; the stereo heuristic only for stereo (and mono) tracks.
+        dialog.effectEnabled = value.dialogLevel != VideoSoundMath.DIALOG_OFF && !centreSteered()
+        downmix.dialogTargetLu = VideoSoundMath.dialogTargetLu(value.dialogLevel) ?: Float.NaN
         night.effectEnabled = value.nightMode
-        downmix.centreGain = VideoSoundMath.centreGain(value.dialogLevel)
         delay.delayMs = delayMs
-        // Mono is the chain's job here; the controller has no mono of its own.
+        // Mono is the chain's job here; the controller has no mono of its own. Levelling is the limiter's input gain.
         effects.apply(value.klang, replayGain)
+        truePeak.gainDb = LoudnessTargets.gainDb(value.klang, replayGain)
     }
 
     private fun notifyChanged() {
@@ -284,6 +322,7 @@ class VideoSoundEngine(private val context: Context) {
     fun release() {
         released = true
         onChanged = null
+        onUnderstandBetter = null
         spatial.stop()
         player?.removeListener(listener)
         player = null

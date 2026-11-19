@@ -192,7 +192,7 @@ class AudioPlaybackService : MediaSessionService() {
             }
             if (events.contains(Player.EVENT_TRACKS_CHANGED)) {
                 replayGain = ReplayGainMetadata.fromTracks(player.currentTracks)
-                soundEffects.apply(soundSettings, replayGain)
+                applyEffects()
                 measureLoudnessIfUntagged()
             }
             if (events.contains(Player.EVENT_PLAY_WHEN_READY_CHANGED)) {
@@ -344,7 +344,7 @@ class AudioPlaybackService : MediaSessionService() {
         player.playbackParameters = PlaybackParameters(soundSettings.speed, 1f)
         // https://developer.android.com/reference/androidx/media3/exoplayer/ExoPlayer#setSkipSilenceEnabled(boolean)
         player.skipSilenceEnabled = soundSettings.skipSilence
-        soundEffects.apply(soundSettings, replayGain)
+        applyEffects()
         measureLoudnessIfUntagged()
     }
 
@@ -366,7 +366,7 @@ class AudioPlaybackService : MediaSessionService() {
         when (val cached = loudness.cached(file)) {
             is LoudnessAnalysis.Cached.Measured -> {
                 replayGain = cached.info
-                soundEffects.apply(soundSettings, replayGain)
+                applyEffects()
                 return
             }
             LoudnessAnalysis.Cached.Failed -> return
@@ -381,10 +381,16 @@ class AudioPlaybackService : MediaSessionService() {
                 if (result != null && player.currentMediaItem?.localConfiguration?.uri?.path == path &&
                     replayGain == null) {
                     replayGain = result
-                    soundEffects.apply(soundSettings, replayGain)
+                    applyEffects()
                 }
             }
         })
+    }
+
+    /** Platform effects and the chain's loudness gain, from the settings and this song's level. */
+    private fun applyEffects() {
+        soundEffects.apply(soundSettings, replayGain)
+        klang.setLoudness(soundSettings, replayGain)
     }
 
     private fun updatePlayerVolume() {

@@ -135,11 +135,114 @@ class VideoSoundChainTest {
         assertTrue("the range shrinks (${loudIn - quietIn} -> ${loud - quiet})", loud - quiet < (loudIn - quietIn) / 2)
     }
 
+    // ---- Dialog distance in LU (Torcoli et al., JAES 2019): synthetic speech and music with a known mix ----------
+
+    /** "Speech": 15 partials 800-1500 Hz with a 4 Hz syllable envelope; deterministic. */
+    private fun speech(n: Int): Float {
+        var sum = 0.0
+        for (k in 0 until 15) sum += sin(2 * PI * (800 + 50 * k) * n / rate + k * 1.3)
+        return (sum / 15 * (0.55 + 0.45 * sin(2 * PI * 4 * n / rate))).toFloat()
+    }
+
+    /** "Music": partials away from the speech band (60-120 Hz and 7-9 kHz), a different one per [voice]. */
+    private fun music(n: Int, voice: Int): Float {
+        var sum = 0.0
+        for (k in 0 until 4) {
+            sum += sin(2 * PI * (60 + 20 * k + 3 * voice) * n / rate + voice + k)
+            sum += sin(2 * PI * (7_000 + 500 * k + 37 * voice) * n / rate + 2 * voice + k)
+        }
+        return (sum / 8).toFloat()
+    }
+
+    /** Integrated loudness (BS.1770) of interleaved stereo shorts, leaving out the first [skipFrames]. */
+    private fun lufs(samples: List<Short>, skipFrames: Int): Double {
+        val meter = me.zhanghai.android.files.player.LoudnessMeter(rate, 2)
+        val frame = FloatArray(2)
+        for (i in skipFrames until samples.size / 2) {
+            frame[0] = samples[2 * i] / 32_768f
+            frame[1] = samples[2 * i + 1] / 32_768f
+            meter.add(frame)
+        }
+        return meter.integrated()!!
+    }
+
+    /** Feeds [seconds] of [channels]-channel PCM made by [sample] in 20 ms buffers and returns the output shorts. */
+    private fun feed(
+        processor: AudioProcessor,
+        channels: Int,
+        seconds: Int,
+        sample: (n: Int, channel: Int) -> Float
+    ): List<Short> {
+        val out = ArrayList<Short>()
+        val frames = rate / 50
+        for (buffer in 0 until seconds * 50) {
+            processor.queueInput(pcm(frames, channels) { frame, channel -> sample(buffer * frames + frame, channel) })
+            val output = processor.output
+            while (output.hasRemaining()) out += output.getShort()
+        }
+        return out
+    }
+
     @Test
-    fun dialogLiftsThePresenceBandMoreThanTheLows() {
-        fun gain(frequency: Double) = levelDb(DialogStage().apply { level = VideoSoundMath.DIALOG_STRONG }, frequency, 0.05f) -
-            20 * log10(0.05 / sqrt(2.0))
-        assertTrue(gain(2_500.0) > gain(100.0) + 4)
+    fun stereoDialogReachesItsTargetDistance() {
+        for ((level, target) in listOf(VideoSoundMath.DIALOG_LIGHT to 10.0, VideoSoundMath.DIALOG_STRONG to 15.0)) {
+            val stage = DialogStage().apply { this.level = level; effectEnabled = true }
+            val processor = KlangAudioProcessor(arrayOf(stage), dither = false)
+            processor.configure(AudioProcessor.AudioFormat(rate, 2, C.ENCODING_PCM_16BIT))
+            processor.flush()
+            // Speech in the middle, music mostly at the sides plus a little in the middle: about 0 LU apart.
+            val speechPart = { n: Int, _: Int -> 0.12f * speech(n) }
+            val musicPart = { n: Int, channel: Int ->
+                0.02f * music(n, 0) + (if (channel == 0) 0.05f else -0.05f) * music(n, 1)
+            }
+            feed(processor, 2, 20) { n, channel -> speechPart(n, channel) + musicPart(n, channel) }
+            val before = stage.distanceLu
+            stage.steering.hold = true
+            val speechOut = lufs(feed(processor, 2, 8, speechPart), rate)
+            val musicOut = lufs(feed(processor, 2, 8, musicPart), rate)
+            val reached = speechOut - musicOut
+            println("dialog stereo, target %.0f LU: measured before %.1f LU, reached %.2f LU".format(target, before, reached))
+            assertEquals("stereo, target $target", target, reached, 1.0)
+        }
+    }
+
+    @Test
+    fun surroundDialogReachesItsTargetDistance() {
+        for ((level, target) in listOf(VideoSoundMath.DIALOG_LIGHT to 10.0, VideoSoundMath.DIALOG_STRONG to 15.0)) {
+            val downmix = DownmixProcessor().apply {
+                dialogTargetLu = VideoSoundMath.dialogTargetLu(level)!!
+            }
+            downmix.configure(AudioProcessor.AudioFormat(rate, 6, C.ENCODING_PCM_16BIT))
+            downmix.flush()
+            // 5.1: speech only in the centre, music in the four other main channels, LFE silent.
+            val speechPart = { n: Int, channel: Int -> if (channel == 2) 0.2f * speech(n) else 0f }
+            val musicPart = { n: Int, channel: Int ->
+                if (channel == 2 || channel == 3) 0f else 0.05f * music(n, channel)
+            }
+            feed(downmix, 6, 20) { n, channel -> speechPart(n, channel) + musicPart(n, channel) }
+            val before = downmix.distanceLu
+            downmix.steering.hold = true
+            val speechOut = lufs(feed(downmix, 6, 8, speechPart), rate)
+            val musicOut = lufs(feed(downmix, 6, 8, musicPart), rate)
+            val reached = speechOut - musicOut
+            println("dialog 5.1, target %.0f LU: measured before %.1f LU, reached %.2f LU".format(target, before, reached))
+            assertEquals("5.1, target $target", target, reached, 1.0)
+        }
+    }
+
+    @Test
+    fun dialogAlreadyFarEnoughIsLeftAlone() {
+        val stage = DialogStage().apply { level = VideoSoundMath.DIALOG_LIGHT; effectEnabled = true }
+        val processor = KlangAudioProcessor(arrayOf(stage), dither = false)
+        processor.configure(AudioProcessor.AudioFormat(rate, 2, C.ENCODING_PCM_16BIT))
+        processor.flush()
+        val input = { n: Int, channel: Int ->
+            0.1f * speech(n) + (if (channel == 0) 0.002f else -0.002f) * music(n, 1)
+        }
+        feed(processor, 2, 10, input)
+        assertTrue(stage.distanceLu > 10f)
+        assertEquals(0f, stage.steering.dialogDb, 0.01f)
+        assertEquals(0f, stage.steering.restDb, 0.01f)
     }
 
     /**
@@ -148,7 +251,7 @@ class VideoSoundChainTest {
      */
     @Test
     fun cpuOfTheWholeChain() {
-        val downmix = DownmixProcessor().apply { centreGain = VideoSoundMath.centreGain(VideoSoundMath.DIALOG_STRONG) }
+        val downmix = DownmixProcessor().apply { dialogTargetLu = 15f }
         val dialog = DialogStage().apply { level = VideoSoundMath.DIALOG_STRONG; effectEnabled = true }
         val night = NightStage().apply { effectEnabled = true }
         val klang = KlangAudioProcessor(arrayOf(dialog, night))
@@ -215,13 +318,18 @@ class VideoSoundChainTest {
     }
 
     @Test
-    fun dialogLevelGlidesWithoutACrack() {
+    fun dialogSteeringMovesWithoutACrack() {
+        // Speech plus side music: the change of target moves both gains; no step bigger than the steady sound's.
         val dialog = DialogStage().apply { level = VideoSoundMath.DIALOG_LIGHT; effectEnabled = true }
-        assertClickFree("dialog light to strong", dialog, 0.05f) { dialog.level = VideoSoundMath.DIALOG_STRONG }
-        // Arrived: the presence peak is the strong level's after the ramp.
-        assertEquals(7f, dialog.presenceGainDb, 0.01f)
-        val back = DialogStage().apply { level = VideoSoundMath.DIALOG_STRONG; effectEnabled = true }
-        assertClickFree("dialog strong to light", back, 0.05f) { back.level = VideoSoundMath.DIALOG_LIGHT }
+        val processor = KlangAudioProcessor(arrayOf(dialog), dither = false)
+        processor.configure(AudioProcessor.AudioFormat(rate, 2, C.ENCODING_PCM_16BIT))
+        processor.flush()
+        val input = { n: Int, channel: Int -> 0.08f * speech(n) + (if (channel == 0) 0.07f else -0.07f) * music(n, 1) }
+        val settled = feed(processor, 2, 10, input)
+        dialog.level = VideoSoundMath.DIALOG_STRONG
+        val moving = feed(processor, 2, 3, input)
+        fun maxStep(samples: List<Short>) = (2 until samples.size step 2).maxOf { abs(samples[it] - samples[it - 2]) }
+        assertTrue(maxStep(moving) <= maxStep(settled.takeLast(settled.size / 2)) * 2.2)
     }
 
     @Test

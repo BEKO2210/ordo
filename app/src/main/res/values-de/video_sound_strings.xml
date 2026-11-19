@@ -4,7 +4,15 @@
     <string name="video_sound_menu">Klang</string>
     <string name="video_sound_own_settings">Nur für Videos – dein Musik-Klang bleibt, wie er ist</string>
     <string name="video_sound_dialog">Dialog-Verstärker</string>
-    <string name="video_sound_dialog_summary">Holt Stimmen nach vorn und gleicht sie an</string>
+    <string name="video_sound_dialog_summary">Rückt Stimmen 10 LU (Leicht) oder 15 LU (Stark) über Musik und Geräusche</string>
+    <string name="video_sound_dialog_light">Leicht · 10 LU</string>
+    <string name="video_sound_dialog_strong">Stark · 15 LU</string>
+    <string name="video_sound_dialog_state">Stimmen jetzt %1$s LU über dem Rest (vorher %2$s LU)</string>
+    <string name="video_sound_understand">Besser verstehen</string>
+    <string name="video_sound_understand_summary">Stimmen 15 LU über dem Rest und Nachtmodus mit einem Tipp. Untertitel helfen zusätzlich.</string>
+    <string name="loudness_target_original">Original · −23 LUFS</string>
+    <string name="loudness_target_on_the_go">Unterwegs · −16 LUFS</string>
+    <string name="video_sound_level_measured">Ziel %1$s LUFS · dieser Film %2$s LUFS</string>
     <string name="video_sound_night">Nachtmodus</string>
     <string name="video_sound_night_summary">Dämpft laute Szenen, hebt leise Sprache an</string>
     <string name="video_sound_bass_summary">Mehr Tiefe für kleine Lautsprecher</string>

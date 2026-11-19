@@ -13,11 +13,29 @@ und Lautstärke angleichen.
 
 - **Eigene Einstellungen:** `VideoSoundStore` (SharedPreferences `video_sound`, JSON mit dem `AudioSettings`-Codec der
   Musik für den Klang-Teil). Der Video-EQ ändert den Musik-EQ nicht und umgekehrt.
-- **Dialog-Verstärker** (`DialogStage`, Aus/Leicht/Stark): Mitte (L+R)/2 erst sanft komprimiert (Leicht 2:1 ab −24 dB,
-  Stark 3:1 ab −30 dB, Soft-Knee 6 dB, Giannoulis/Massberg/Reiss 2012), dann Präsenz-Anhebung bei 2,5 kHz, Q 0,8
-  (+4/+7 dB, RBJ-Peaking-EQ). Die Seite (Musik, Effekte, Raum) bleibt unberührt. Bei 5.1/7.1 hebt er zusätzlich den
-  Center im Downmix (−3 → 0 → +3 dB). Leicht ↔ Stark gleitet: Präsenz, Schwelle, Ratio und Make-up laufen mit 30 ms
-  Zeitkonstante zum neuen Wert, das Filter wird alle 32 Frames neu berechnet (`dialogLevelGlidesWithoutACrack`).
+- **Dialog-Verstärker als Abstand in LU** (Aus / Leicht 10 LU / Stark 15 LU): nicht „Dialog +x dB“, sondern ein
+  Zielabstand der Lautheit von Sprache über dem Rest. 10 LU ist der bevorzugte Abstand Sprache über Musik, 15 LU über
+  Atmo; Laien wollen im Mittel 4 LU mehr als Profis, daher zwei Stufen [Torcoli 2019]. `DialogSteering` misst Dialog und
+  Rest K-gewichtet (BS.1770) über 3 s (Short-term), teilt den fehlenden Abstand halb als Anhebung des Dialogs, halb als
+  Absenkung des Rests (Ducking), höchstens 18 dB zusammen, gleitet mit 0,5 s Zeitkonstante; ohne hörbaren Dialog
+  (unter −60 dB) halten die Verstärkungen still, damit Pausen nicht pumpen.
+  - **5.1/7.1** (`DownmixProcessor`): Dialog = der echte Center-Kanal, Rest = alle übrigen außer LFE, beide so gemessen,
+    wie sie im Stereo-Ausgang landen; die Matrix gleitet je Puffer (Clean-Audio-Ansatz über den getrennten Center
+    [Shirley 2006, 2015]).
+  - **Stereo** (`DialogStage`): Näherung ohne Sprachmodell (Annahme: Sprache liegt meist in der Mitte). Mitte (L+R)/2
+    durch ein zweimal angewandtes Bandpass 300–4000 Hz (RBJ, 0 dB und ohne Phasendrehung in der Mitte) = Dialog; Rest =
+    Mitte minus Dialog plus Seite. Dialog und Rest ergeben zusammen genau das Original. Einmal angewandt rutschte Bass
+    aus der Mitte mit etwa −15 dB in den Dialog und wurde mit angehoben (Test zuerst 6,3 statt 10 LU).
+  - Gemessen (`stereoDialogReachesItsTargetDistance`, `surroundDialogReachesItsTargetDistance`, 20 s Mischung, dann
+    Verstärkungen gehalten und Sprache und Musik getrennt nach BS.1770 gemessen): Stereo vorher −1,1 LU → 10,50 bzw.
+    15,52 LU; 5.1 vorher −0,4 LU → 9,99 bzw. 14,99 LU (Ziel ±1 LU). Ist der Abstand schon groß genug, bleibt alles
+    unverändert (`dialogAlreadyFarEnoughIsLeftAlone`).
+  - Grenzen: Musik in der Mitte und im Sprachband zählt bei Stereo als Dialog; wird der Ton vom System räumlich
+    wiedergegeben (Durchreichen), wirkt der Verstärker nicht.
+- **„Besser verstehen“** (ein Tipp, oben im Klang-Blatt): Dialog auf 15 LU plus Nachtmodus. Drei belegte Hebel für
+  Schwerhörige sind Sprache-zu-Hintergrund-Abstand, räumliche Trennung und Redundanz, etwa Untertitel [Ward 2019]. Ordo
+  setzt den Abstand und weist auf Untertitel hin; für das Einschalten der Untertitel gibt es den Haken
+  `VideoSoundEngine.onUnderstandBetter` (die Untertitel-Funktion liegt auf einem anderen Branch).
 - **Nachtmodus** (`NightStage`): ein verkoppelter Kompressor auf beiden Kanälen, 4:1 ab −30 dB, Attack 5 ms, Release
   250 ms, +9 dB Make-up; der Limiter der Kette fängt den Rest. An/Aus blendet über 30 ms (`KlangStage`); die Hüllkurve
   startet mit dem Pegel des ersten Frames, so kommt beim Einschalten über lauter Szene kein Make-up-Stoß durch
@@ -33,7 +51,17 @@ und Lautstärke angleichen.
   Gemessen (`TruePeakLimiterTest`, 4×-Referenz mit 64 Taps, Eingang voll ausgesteuert, 19.11.2026): fs/4 bei 45°
   +3,00 → −1,60 dBTP; 0,3/0,45 fs → −1,60; Rechteck +2,08 → −1,60; bandbegrenztes Rauschen +0,83 → −1,59; geclipptes
   bandbegrenztes Rauschen +5,89 → −1,58; geclipptes Vollband-Rauschen +7,13 → −1,52 dBTP.
-- **Lautstärke angleichen** (Schalter im Klang-Blatt): Filme haben selten ReplayGain-Tags. `LoudnessAnalysis` (die
+- **Lautheitsziele nach EBU R 128 s2-2023** (Musik und Video, Schalter „Lautstärke angleichen“ mit zwei Segmenten):
+  „Original“ −23 LUFS (Bezugspegel, Empfehlung e) und „Unterwegs“ −16 LUFS (oberes Ende der Übergangsspanne −20 bis
+  −16 LUFS; das Gerät darf das Ziel bei wenig Reserve oder lauter Umgebung anheben, j, mit True-Peak-Limiter, k)
+  [R 128 s2]; „Aus“ ist der Schalter aus. Die Verstärkung (`LoudnessTargets.gainDb`: ReplayGain-artiger Wert zu −18 LUFS
+  plus Zielabstand plus Vorverstärkung) wirkt jetzt in Ordos eigener Kette als Eingangsverstärkung des
+  `TruePeakLimiter` (gleitet mit 50 ms), nicht mehr im `DynamicsProcessing` des Audio-Servers: nur so hält derselbe
+  Limiter −1 dBTP. Gemessen (`LoudnessTargetTest`, 30 s musikähnliches Material mit Kick, Snare, Bass, Akkorden und
+  leiserem Mittelteil, −32,07 LUFS): Original −23,00 LUFS bei −5,32 dBTP, Unterwegs −16,23 LUFS bei −1,59 dBTP (Ziel
+  ±0,5 LU, ≤ −1 dBTP). Tech-3341-Fälle 1–5 je ±0,1 LU (`tech3341GatingCases`). Grenze: 3–8-kanalige Musikdateien (nicht
+  Video, dort mischt Ordo vorher ab) bekommen keine Angleichung, der Limiter rechnet Mono und Stereo.
+  Filme haben selten ReplayGain-Tags. `LoudnessAnalysis` (die
   BS.1770-Messung von Ordo Musik) misst eine Datei auf diesem Gerät einmal im Hintergrund und merkt sich das Ergebnis
   (gleicher Cache wie Musik); für Filme mit bis zu 10 min statt 30 s Rechenzeit, auf eigenem Thread, ein Filmwechsel
   bricht die Messung ab. Nur Dateien auf dem Gerät (`file:`), nie Tresor-Einträge (`ordo-vault:`) oder Netzwerk;
@@ -62,11 +90,33 @@ und Lautstärke angleichen.
 - Bedienung: ⋮ › Klang, ⋮ › Tonspur. Keine Schieberegler (Schalter, Segmente, −/+), 48 dp, Texte Deutsch/Englisch.
 - Schnittstelle für später (keine KI im Player): `VideoSoundEngine.settings`/`update()`/`setDelay()`.
 
+## Signalweg
+
+Eine Signalweg-Anzeige gibt es in Ordo noch nicht (Idee 4 im Qualitäts-Panel). Was sie zeigen soll, liefert
+`VideoSoundEngine` schon: `filmLufs` (gemessen), das Ziel (`settings.klang.loudnessTarget`), `dialogDistanceLu` und
+`dialogReachedLu`, `systemSpatializes()`. Das Klang-Blatt zeigt Ziel und gemessene Lautheit („Ziel −16 LUFS · dieser
+Film −27,3 LUFS“) und den Dialog-Abstand („Stimmen jetzt 10,0 LU über dem Rest (vorher −1,1 LU)“, jede Sekunde neu).
+
+## Quellen
+
+- [R 128 s2] EBU R 128 s2-2023, Loudness in Streaming, Empfehlungen e–l; EBU R 128-2023 (V5): −23 LUFS ±0,5 LU,
+  ≤ −1 dBTP.
+- [BS.1770] ITU-R BS.1770-5 (11/2023), Lautheit und True Peak; EBU Tech 3341-2023, Testsignale.
+- [Torcoli 2019] Torcoli, Freke-Morin, Paulus, Simon, Shirley: Preferred Levels for Background Ducking to Produce
+  Esthetically Pleasing Audio for TV with Clear Speech, JAES 67(12), 2019, doi:10.17743/jaes.2019.0052.
+- [Ward 2019] Ward, Shirley: Personalization in Object-based Audio for Accessibility: A Review of Advancements for
+  Hearing Impaired Listeners, JAES 67(7/8), 2019, doi:10.17743/jaes.2019.0021.
+- [Shirley 2006, 2015] Shirley, Kendrick: The Clean Audio Project, Technology and Disability 18(1), 2006,
+  doi:10.3233/TAD-2006-18105; Shirley, Oldfield: Clean Audio for TV broadcast, JAES 63(4), 2015,
+  doi:10.17743/jaes.2015.0017.
+- [BS.775] ITU-R BS.775-4 (12/2022), Abmischung 5.1 → 2.0.
+- Quellenprüfung: /home/belkis/ordo-team/WISSENSCHAFT.md, Abschnitt 2.
+
 ## Rechenlast
 
 `VideoSoundChainTest.cpuOfTheWholeChain` (JVM auf belkis-home bzw. dem Build-Rechner, 48 kHz 5.1, alles an: Downmix,
-Dialog Stark, Nacht, True-Peak-Limiter, 100 ms Versatz, 20-ms-Puffer, 60 s Audio): 0,80 % eines Kerns (pop-os,
-Ryzen 7 5800X, 19.11.2026; ohne Limiter 0,20 %, mit 16-Tap-Limiter 0,49 %). Der 64-Tap-Limiter allein, beim
+Dialog-Steuerung 15 LU im Downmix und Stereo-Dialog, Nacht, True-Peak-Limiter, 100 ms Versatz, 20-ms-Puffer, 60 s
+Audio): 0,88 % eines Kerns (pop-os, Ryzen 7 5800X, 20.11.2026; vorher 0,80 %, ohne Limiter 0,20 %). Der Limiter allein schwankte zwischen den Läufen (geteilter Build-Rechner) zwischen 1,46 und 2,08 %. Der 64-Tap-Limiter allein, beim
 Begrenzen lauten Rauschens, 48 kHz Stereo: 1,48 % inklusive Umwandlung im Test (`TruePeakLimiterTest.cpuOfTheLimiter`). Auf einem schwachen ARM-Gerät
 (W90) ist die Kette **noch nicht gemessen**: dafür `e2e/video-sound.sh` laufen lassen und währenddessen
 `dumpsys cpuinfo` für Ordo lesen; Vergleich: die Musik-Kette mit allem an lag auf dem Emulator bei 2,7–2,8 %.

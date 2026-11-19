@@ -26,6 +26,7 @@ import me.zhanghai.android.files.R
 import me.zhanghai.android.files.databinding.KlangSwitchRowBinding
 import me.zhanghai.android.files.databinding.VideoSoundSheetBinding
 import me.zhanghai.android.files.player.EqualizerPreset
+import me.zhanghai.android.files.player.LoudnessTarget
 import me.zhanghai.android.files.ui.Motion
 import me.zhanghai.android.files.viewer.audio.KlangMath
 
@@ -44,6 +45,14 @@ class VideoSoundSheet : BottomSheetDialogFragment() {
     private val engine get() = (activity as? VideoSoundHost)?.videoSound
     private var settings = VideoSoundSettings()
     private var rendering = false
+    private val handler = android.os.Handler(android.os.Looper.getMainLooper())
+    // The measured and reached dialog distance move with the film: shown fresh once a second while the sheet is open.
+    private val ticker = object : Runnable {
+        override fun run() {
+            if (_binding != null) renderDialogState()
+            handler.postDelayed(this, TICK_MS)
+        }
+    }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog = BottomSheetDialog(requireContext(), theme)
 
@@ -87,6 +96,22 @@ class VideoSoundSheet : BottomSheetDialogFragment() {
             R.string.video_sound_night_summary) { copy(nightMode = it) }
         bindRow(binding.levelRow, R.drawable.audio_graphic_eq_icon_24dp, R.string.video_sound_level,
             R.string.video_sound_level_summary) { copy(klang = klang.copy(normalizationEnabled = it)) }
+        binding.levelTargetGroup.addOnButtonCheckedListener { _, id, checked ->
+            if (checked) update {
+                copy(
+                    klang = klang.copy(
+                        loudnessTarget = if (id == R.id.levelTargetOnTheGo) LoudnessTarget.ON_THE_GO
+                        else LoudnessTarget.ORIGINAL
+                    )
+                )
+            }
+        }
+        binding.understand.setOnClickListener {
+            if (rendering) return@setOnClickListener
+            engine.setUnderstandBetter(!engine.understandBetter)
+            settings = engine.settings
+            render()
+        }
         bindRow(binding.bassRow, R.drawable.audio_speaker_icon_24dp, R.string.audio_sound_bass_boost,
             R.string.video_sound_bass_summary) { checked ->
             val strength = if (klang.bassBoostStrength > 0) klang.bassBoostStrength else VideoSoundMath.bassStrength(2)
@@ -127,6 +152,8 @@ class VideoSoundSheet : BottomSheetDialogFragment() {
         val width = minOf(resources.displayMetrics.widthPixels, resources.getDimensionPixelSize(R.dimen.klang_sheet_max_width))
         sheet.layoutParams = sheet.layoutParams.apply { this.width = width }
         (sheet.layoutParams as? FrameLayout.LayoutParams)?.gravity = Gravity.CENTER_HORIZONTAL
+        handler.removeCallbacks(ticker)
+        handler.postDelayed(ticker, TICK_MS)
         BottomSheetBehavior.from(sheet).apply {
             maxWidth = width
             skipCollapsed = true
@@ -199,8 +226,26 @@ class VideoSoundSheet : BottomSheetDialogFragment() {
         binding.bassCard.isVisible = status?.bassBoostAvailable != false
         binding.monoRow.toggle.isChecked = klang.mono
         binding.levelRow.toggle.isChecked = klang.normalizationEnabled
-        // Levelling needs an input-gain stage (DynamicsProcessing, or LoudnessEnhancer before API 28).
-        setActive(binding.levelRow.root, status?.inputGainAvailable != false)
+        binding.levelTargetGroup.check(
+            if (klang.loudnessTarget == LoudnessTarget.ON_THE_GO) R.id.levelTargetOnTheGo else R.id.levelTargetOriginal
+        )
+        setActive(binding.levelTargetGroup, klang.normalizationEnabled)
+        val number = java.text.NumberFormat.getInstance().apply { maximumFractionDigits = 1; minimumFractionDigits = 1 }
+        val filmLufs = engine?.filmLufs
+        binding.levelRow.summary.text = if (klang.normalizationEnabled && filmLufs != null) {
+            getString(
+                R.string.video_sound_level_measured, number.format(klang.loudnessTarget.lufs.toDouble()),
+                number.format(filmLufs.toDouble())
+            )
+        } else {
+            getString(R.string.video_sound_level_summary)
+        }
+        val understand = engine?.understandBetter == true
+        binding.understand.isChecked = understand
+        ViewCompat.setStateDescription(
+            binding.understand, getString(if (understand) R.string.audio_sound_on else R.string.audio_sound_off)
+        )
+        renderDialogState()
         val balance = when {
             klang.balance < 0 -> getString(R.string.audio_sound_balance_left, -klang.balance)
             klang.balance > 0 -> getString(R.string.audio_sound_balance_right, klang.balance)
@@ -224,6 +269,19 @@ class VideoSoundSheet : BottomSheetDialogFragment() {
             )
         }
         rendering = false
+    }
+
+    /** The measured and reached dialog distance (they move with the film; the ticker refreshes only this line). */
+    private fun renderDialogState() {
+        val number = java.text.NumberFormat.getInstance().apply { maximumFractionDigits = 1; minimumFractionDigits = 1 }
+        val reached = engine?.dialogReachedLu ?: Float.NaN
+        val measured = engine?.dialogDistanceLu ?: Float.NaN
+        binding.dialogState.isVisible = settings.dialogLevel != VideoSoundMath.DIALOG_OFF && !reached.isNaN()
+        if (binding.dialogState.isVisible) {
+            binding.dialogState.text = getString(
+                R.string.video_sound_dialog_state, number.format(reached.toDouble()), number.format(measured.toDouble())
+            )
+        }
     }
 
     private fun setActive(view: View, active: Boolean) {
@@ -261,10 +319,16 @@ class VideoSoundSheet : BottomSheetDialogFragment() {
             view, com.google.android.material.R.attr.colorSurfaceContainerHigh, MaterialColors.layer(surface, onSurface, 0.08f)
         )
         binding.equalizerStage.setCardBackgroundColor(stage)
+        binding.understandCard.setCardBackgroundColor(card)
         binding.equalizerCurve.ringColor = stage
         for (index in 0 until binding.effectsGrid.childCount) {
             (binding.effectsGrid.getChildAt(index) as? MaterialCardView)?.setCardBackgroundColor(card)
         }
+    }
+
+    override fun onStop() {
+        handler.removeCallbacks(ticker)
+        super.onStop()
     }
 
     override fun onDestroyView() {
@@ -277,6 +341,7 @@ class VideoSoundSheet : BottomSheetDialogFragment() {
     companion object {
         private const val TAG = "video_sound"
         private const val BALANCE_STEP = 10
+        private const val TICK_MS = 1_000L
         private const val OFF_ALPHA = 0.38f
 
         fun show(activity: FragmentActivity) {

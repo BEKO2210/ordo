@@ -37,6 +37,8 @@ data class AudioSettings(
     /** "Full sound when quiet" (equal-loudness compensation tied to the system volume), off by default. */
     val quietFullEnabled: Boolean = false,
     val normalizationEnabled: Boolean = false,
+    /** Where levelling aims (EBU R 128 s2): the broadcast reference or the louder "on the go" level. */
+    val loudnessTarget: LoudnessTarget = LoudnessTarget.ORIGINAL,
     val normalizationPreampDb: Float = 0f,
     val speed: Float = 1f,
     val skipSilence: Boolean = false,
@@ -77,6 +79,31 @@ data class AudioSettings(
 }
 
 enum class AudioFocusBehavior { PAUSE, DUCK }
+
+/**
+ * Playback loudness targets after EBU R 128 s2-2023: content is delivered at -23 LUFS (e), the device may raise the
+ * target where there is little headroom or a loud environment (j), with a true-peak limiter (k); -16 LUFS is the upper
+ * end of the interim range -20 to -16 LUFS.
+ */
+enum class LoudnessTarget(val lufs: Float) {
+    ORIGINAL(-23f),
+    ON_THE_GO(-16f)
+}
+
+object LoudnessTargets {
+    /**
+     * The gain that brings a file measured or tagged as [info] (a ReplayGain-style gain to -18 LUFS) to [target], plus
+     * the user's pre-amp. No peak cap: the true-peak limiter after it keeps -1 dBTP.
+     */
+    fun gainDb(info: ReplayGainInfo, target: LoudnessTarget, preampDb: Float): Float =
+        info.gainDb + (target.lufs - LoudnessMeter.REFERENCE_LUFS.toFloat()) + preampDb
+
+    /** The chain's loudness gain for [settings]: 0 while levelling is off or the file's level is unknown. */
+    fun gainDb(settings: AudioSettings, info: ReplayGainInfo?): Float =
+        if (settings.normalizationEnabled && info != null) {
+            gainDb(info, settings.loudnessTarget, settings.normalizationPreampDb)
+        } else 0f
+}
 
 /** Freeverb room size and damping (0..1 each, the original's user scale); bigger rooms ring longer and darker. */
 enum class ReverbPreset(val roomSize: Float, val damping: Float) {
@@ -127,6 +154,7 @@ object AudioSettingsCodec {
             .put("highs", highsLevel)
             .put("quietFull", quietFullEnabled)
             .put("normalization", normalizationEnabled)
+            .put("loudnessTarget", loudnessTarget.name)
             .put("normalizationPreamp", normalizationPreampDb.toDouble())
             .put("speed", speed.toDouble())
             .put("skipSilence", skipSilence)
@@ -171,6 +199,7 @@ object AudioSettingsCodec {
                 highsLevel = json.optInt("highs", 1),
                 quietFullEnabled = json.optBoolean("quietFull", false),
                 normalizationEnabled = json.optBoolean("normalization", false),
+                loudnessTarget = enumValueOrDefault(json.optString("loudnessTarget"), LoudnessTarget.ORIGINAL),
                 normalizationPreampDb = json.optDouble("normalizationPreamp", 0.0).toFloat(),
                 speed = json.optDouble("speed", 1.0).toFloat(),
                 skipSilence = json.optBoolean("skipSilence", false),
