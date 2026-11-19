@@ -85,11 +85,16 @@ a shell am force-stop "$PKG"; sleep 1
 set_background "Nur Ton|Sound only"
 open_clip; guard
 check "the video plays with Sound only" wait_playing
+# Screen off can lock a device with a PIN, and a test never unlocks one: only with E2E_ALLOW_SLEEP=1.
+if [ "${E2E_ALLOW_SLEEP:-}" = 1 ]; then
 before=$(pos)
 a shell input keyevent KEYCODE_SLEEP; sleep 6
 check "screen off: still state=PLAYING" playing
 after=$(pos)
 check "screen off: the position moves on (${before:-?} -> ${after:-?} ms)" test "${after:-0}" -gt "${before:-0}"
+else
+    echo "SKIP screen off (KEYCODE_SLEEP may lock the device: only with E2E_ALLOW_SLEEP=1)"
+fi
 check "Ordo Video's own notification channel exists" bash -c \
     "'$ADB' -s '$SERIAL' shell dumpsys notification | grep -q 'video_playback'"
 wake
