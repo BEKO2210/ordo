@@ -274,6 +274,8 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
         // Tresor videos never leave Ordo: no "Open with another app".
         if (isVault) {
             binding.toolbar.menu.findItem(R.id.actionOpenWith)?.isVisible = false
+            // Nor to a TV: the cast server would hand the decrypted file to the network (#97).
+            binding.toolbar.menu.findItem(R.id.actionCast)?.isVisible = false
             binding.errorOpenWith.isVisible = false
         }
         binding.playerView.resizeMode = resizeMode
@@ -301,7 +303,7 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
         // Background sound, picture-in-picture, sleep timer and the session (VideoBackgroundController).
         background = VideoBackgroundController(
             this, binding, player, "$SESSION_ID.${UUID.randomUUID()}", { repeatMode },
-            { mode -> Settings.VIDEO_END.putValue(mode.name); applyRepeatMode(mode) }
+            { mode -> Settings.VIDEO_END.putValue(mode.name); applyRepeatMode(mode) }, vault = isVault
         )
         session = background?.session
         binding.playerView.player = player
@@ -404,11 +406,13 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
             if (event.action == KeyEvent.ACTION_DOWN) cast.onVolumeKey(up)
             return true
         }
-        // Keyboard shortcuts (viewer/video/seek).
-        return seekPro?.onKey(event) == true || super.dispatchKeyEvent(event)
+        // Keyboard shortcuts (viewer/video/seek); not while casting, where the D-pad moves through the TV panel.
+        if (cast == null && seekPro?.onKey(event) == true) return true
+        return super.dispatchKeyEvent(event)
     }
 
     private fun showCastChooser() {
+        if (isVault) return
         if (supportFragmentManager.findFragmentByTag(CastChooserSheet.TAG) == null) {
             CastChooserSheet().show(supportFragmentManager, CastChooserSheet.TAG)
         }
@@ -417,6 +421,7 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
     /** Phone → TV at the current place, TV → phone (paused) where the TV was. */
     private val castHost = object : VideoCastSession.Host {
         override fun castMedia(): VideoCastSession.Media? {
+            if (isVault) return null
             val player = player ?: return null
             val item = player.currentMediaItem ?: return null
             return VideoCastSession.Media(
@@ -450,6 +455,12 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
     override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean, newConfig: Configuration) {
         super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
         background?.onPictureInPictureModeChanged(isInPictureInPictureMode)
+        // The small window shows the whole picture: no swipe preview, no pinch zoom (the frame row is clipped
+        // with the other controls).
+        if (isInPictureInPictureMode) {
+            seekPro?.hidePreview()
+            seekPro?.resetZoom()
+        }
     }
 
     override fun dispatchTouchEvent(event: MotionEvent): Boolean {

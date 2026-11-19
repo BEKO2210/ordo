@@ -111,12 +111,14 @@ class VideoBackgroundController(
     private val player: ExoPlayer,
     sessionId: String,
     private val repeat: () -> VideoRepeatMode,
-    private val setRepeat: (VideoRepeatMode) -> Unit
+    private val setRepeat: (VideoRepeatMode) -> Unit,
+    // Tresor videos: no "Sound only" service and notification, no picture-in-picture (library-pro, #101).
+    private val vault: Boolean = false
 ) {
     private val handler = Handler(Looper.getMainLooper())
     val sleepTimer = VideoSleepTimer(player, handler)
     private val frameLoader = VideoFrameLoader(activity.applicationContext) { player }
-    private val pipSupported = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
+    private val pipSupported = !vault && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
         activity.packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)
     // Picture-in-picture was used since the screen was last in front: closing that window pauses.
     private var pipUsed = false
@@ -185,7 +187,7 @@ class VideoBackgroundController(
                     soundOnly = false
                     setVideoDisabled(false)
                 }
-                if (VideoBackgroundPrefs.BACKGROUND.valueCompat == VideoBackgroundPrefs.BACKGROUND_AUDIO) {
+                if (!vault && VideoBackgroundPrefs.BACKGROUND.valueCompat == VideoBackgroundPrefs.BACKGROUND_AUDIO) {
                     // Started while the screen is in front, so the service may go to the foreground when the video
                     // plays; Android 12+ forbids that from the background.
                     runCatching { activity.startService(Intent(activity, VideoPlaybackService::class.java)) }
@@ -204,7 +206,7 @@ class VideoBackgroundController(
     /** From the activity's onStop: true when the video keeps playing as sound only, false when it should pause. */
     fun onStop(): Boolean {
         val keep = VideoBackgroundRules.keepsPlaying(
-            VideoBackgroundPrefs.BACKGROUND.valueCompat, player.isPlaying, pipUsed, activity.isFinishing
+            VideoBackgroundPrefs.BACKGROUND.valueCompat, player.isPlaying, pipUsed, activity.isFinishing, vault
         )
         if (keep) {
             soundOnly = true

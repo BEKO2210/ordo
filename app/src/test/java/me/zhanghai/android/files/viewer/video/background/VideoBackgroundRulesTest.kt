@@ -20,6 +20,10 @@ class VideoBackgroundRulesTest {
         // Closing the picture-in-picture window or the player pauses, whatever the setting.
         assertFalse(VideoBackgroundRules.keepsPlaying("audio", playing = true, wasInPip = true, finishing = false))
         assertFalse(VideoBackgroundRules.keepsPlaying("audio", playing = true, wasInPip = false, finishing = true))
+        // A Tresor video never keeps playing without its screen.
+        assertFalse(
+            VideoBackgroundRules.keepsPlaying("audio", playing = true, wasInPip = false, finishing = false, vault = true)
+        )
     }
 
     @Test

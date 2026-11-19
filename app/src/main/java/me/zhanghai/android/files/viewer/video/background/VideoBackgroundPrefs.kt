@@ -29,10 +29,11 @@ object VideoBackgroundRules {
 
     /**
      * On leaving the screen: only "Sound only" keeps a playing video going. Closing it, or closing its
-     * picture-in-picture window, always pauses.
+     * picture-in-picture window, always pauses. A Tresor video never outlives its screen.
      */
-    fun keepsPlaying(setting: String, playing: Boolean, wasInPip: Boolean, finishing: Boolean): Boolean =
-        setting == VideoBackgroundPrefs.BACKGROUND_AUDIO && playing && !wasInPip && !finishing
+    fun keepsPlaying(
+        setting: String, playing: Boolean, wasInPip: Boolean, finishing: Boolean, vault: Boolean = false
+    ): Boolean = !vault && setting == VideoBackgroundPrefs.BACKGROUND_AUDIO && playing && !wasInPip && !finishing
 
     /** Home while playing goes to picture-in-picture when the device can and the setting is on. */
     fun entersPip(enabled: Boolean, supported: Boolean, playing: Boolean): Boolean = enabled && supported && playing
