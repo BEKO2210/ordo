@@ -22,6 +22,7 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.view.ViewCompat
+import androidx.core.view.doOnLayout
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.util.Util
@@ -289,7 +290,8 @@ class VideoLauncherActivity : AppActivity(), AppAccentActivity {
         val group = binding.folders
         binding.folderScroller.isVisible = (folders.size > 1 || hasNetwork) && openSeries == null && query.isBlank()
         val wanted = listOf<String?>(null) + folders.map { it.path } + listOfNotNull(NETWORK.takeIf { hasNetwork })
-        if (group.childCount != wanted.size || wanted.indices.any { group.getChildAt(it).tag != wanted[it] }) {
+        val rebuilt = group.childCount != wanted.size || wanted.indices.any { group.getChildAt(it).tag != wanted[it] }
+        if (rebuilt) {
             group.removeAllViews()
             for (path in wanted) {
                 group.addView(Chip(this, null, com.google.android.material.R.attr.chipStyle).apply {
@@ -312,6 +314,10 @@ class VideoLauncherActivity : AppActivity(), AppAccentActivity {
         for (index in 0 until group.childCount) {
             val chip = group.getChildAt(index) as Chip
             chip.isChecked = chip.tag == folder
+            // Fresh chips (first load, also after a restore or rotation): the chosen folder scrolls into view.
+            if (rebuilt && chip.isChecked) {
+                chip.doOnLayout { chip.requestRectangleOnScreen(Rect(0, 0, chip.width, chip.height), true) }
+            }
         }
     }
 
