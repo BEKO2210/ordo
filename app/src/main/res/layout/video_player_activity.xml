@@ -141,6 +141,7 @@
         android:visibility="gone" />
 
     <com.google.android.material.button.MaterialButton
+        android:textAllCaps="false"
         android:id="@+id/resumePill"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -181,6 +182,7 @@
         android:orientation="horizontal"
         android:visibility="gone">
         <com.google.android.material.button.MaterialButton
+            android:textAllCaps="false"
             android:id="@+id/endReplay"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -189,6 +191,7 @@
             app:cornerRadius="28dp"
             app:icon="@drawable/reset_icon_white_24dp" />
         <com.google.android.material.button.MaterialButton
+            android:textAllCaps="false"
             android:id="@+id/endNext"
             style="@style/Widget.MaterialComponents.Button.OutlinedButton"
             android:layout_width="wrap_content"
@@ -201,6 +204,7 @@
     </LinearLayout>
 
     <com.google.android.material.button.MaterialButton
+        android:textAllCaps="false"
         android:id="@+id/unlock"
         style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
         android:layout_width="wrap_content"
@@ -230,6 +234,7 @@
             android:textAppearance="?textAppearanceBody1"
             android:textColor="?colorOnSurface" />
         <com.google.android.material.button.MaterialButton
+            android:textAllCaps="false"
             android:id="@+id/errorOpenWith"
             style="@style/Widget.MaterialComponents.Button.OutlinedButton"
             android:layout_width="wrap_content"

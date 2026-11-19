@@ -550,6 +550,7 @@ class VideoPlayerActivity : AppActivity() {
         override fun begin(mode: VideoGestures.Mode) {
             lastLevel = -1f
             hinted = false
+            hideForGesture()
             when (mode) {
                 VideoGestures.Mode.BRIGHTNESS -> startLevel = window.attributes.screenBrightness.takeIf { it >= 0f }
                     ?: (android.provider.Settings.System.getInt(
@@ -594,7 +595,7 @@ class VideoPlayerActivity : AppActivity() {
                             R.string.video_player_seek_preview_format, formatTime(target),
                             sign + formatTime(kotlin.math.abs(delta))
                         ),
-                        Gravity.CENTER, sticky = true
+                        GESTURE_PILL, sticky = true
                     )
                 }
                 else -> {}
@@ -603,12 +604,15 @@ class VideoPlayerActivity : AppActivity() {
 
         override fun end(mode: VideoGestures.Mode, dx: Float, dy: Float) {
             val slop = ViewConfiguration.get(this@VideoPlayerActivity).scaledTouchSlop.toFloat()
-            if (mode == VideoGestures.Mode.SEEK && !VideoGestures.isCancelled(dx, slop)) {
+            val jumped = mode == VideoGestures.Mode.SEEK && !VideoGestures.isCancelled(dx, slop)
+            if (jumped) {
                 player?.seekTo(VideoGestures.seekTarget(startPositionMs, dx, binding.root.width, currentDuration()))
                 updateProgress()
             }
             // Only a value this swipe showed fades out (a fixed-volume device shows none).
-            if (hinted) showHint(binding.hint.text.toString(), Gravity.CENTER)
+            if (hinted) showHint(binding.hint.text.toString(), GESTURE_PILL)
+            // A jump leaves the end behind; otherwise what was there comes back.
+            restoreAfterGesture(keepEnd = mode != VideoGestures.Mode.SEEK || !jumped)
         }
 
         override fun hold(held: Boolean) {
@@ -617,11 +621,13 @@ class VideoPlayerActivity : AppActivity() {
                 speedBeforeHold = player.playbackParameters.speed
                 player.setPlaybackSpeed(HOLD_SPEED)
                 binding.root.performHapticFeedback(android.view.HapticFeedbackConstants.LONG_PRESS)
-                showHint(formatSpeed(HOLD_SPEED), Gravity.CENTER, sticky = true)
+                hideForGesture()
+                showHint(formatSpeed(HOLD_SPEED), GESTURE_PILL, sticky = true)
             } else if (speedBeforeHold > 0f) {
                 player.setPlaybackSpeed(speedBeforeHold)
                 speedBeforeHold = 0f
-                showHint(formatSpeed(player.playbackParameters.speed), Gravity.CENTER)
+                showHint(formatSpeed(player.playbackParameters.speed), GESTURE_PILL)
+                restoreAfterGesture(keepEnd = true)
             }
         }
 
@@ -632,8 +638,27 @@ class VideoPlayerActivity : AppActivity() {
             }
             lastLevel = level
             hinted = true
-            showHint(getString(format, kotlin.math.round(level * 100).toInt()), Gravity.CENTER, sticky = true)
+            showHint(getString(format, kotlin.math.round(level * 100).toInt()), GESTURE_PILL, sticky = true)
         }
+    }
+
+    // While a finger swipes or holds, the centre buttons and the end panel make room for its value.
+    private var gestureHid = false
+    private var endBeforeGesture = false
+
+    private fun hideForGesture() {
+        if (gestureHid) return
+        gestureHid = true
+        endBeforeGesture = binding.endPanel.isVisible
+        binding.endPanel.isVisible = false
+        binding.centerControls.isInvisible = true
+    }
+
+    private fun restoreAfterGesture(keepEnd: Boolean) {
+        if (!gestureHid) return
+        gestureHid = false
+        if (keepEnd && endBeforeGesture) showEnd(true)
+        binding.centerControls.isInvisible = binding.errorPanel.isVisible || binding.endPanel.isVisible
     }
 
     private fun playPause() {
@@ -801,7 +826,16 @@ class VideoPlayerActivity : AppActivity() {
     private fun showHint(text: String, gravity: Int, sticky: Boolean = false) {
         val hint = binding.hint
         hint.text = text
-        hint.updateLayoutParams<FrameLayout.LayoutParams> { this.gravity = gravity }
+        hint.updateLayoutParams<FrameLayout.LayoutParams> {
+            // A gesture's value sits in the upper third, below the title bar, clear of the centre buttons.
+            if (gravity == GESTURE_PILL) {
+                this.gravity = Gravity.TOP or Gravity.CENTER_HORIZONTAL
+                topMargin = maxOf(binding.resumePill.marginTop, binding.root.height / 6)
+            } else {
+                this.gravity = gravity
+                topMargin = 0
+            }
+        }
         hint.animate().cancel()
         hint.alpha = 1f
         hint.isVisible = true
@@ -1010,6 +1044,8 @@ class VideoPlayerActivity : AppActivity() {
         private const val FADE_MS = 200L
         private const val DISABLED_CONTROL_ALPHA = 0.38f
         private const val HOLD_SPEED = 2f
+        // Not a real gravity: showHint's marker for "a gesture's value, upper third".
+        private const val GESTURE_PILL = -1
         private const val SETTINGS_NAME = "video_settings"
         private const val KEY_REPEAT = "repeat"
         private const val NOTICE_MS = 6_000L
