@@ -84,4 +84,13 @@
     <string name="video_signal_device_other">Other device</string>
     <string name="video_signal_waiting">Waiting for playback</string>
     <string name="video_info_signal_path">Signal path</string>
+    <string name="video_settings_ambient_gamma">Adapt gamma to room light (experimental)</string>
+    <string name="video_settings_ambient_gamma_summary">Lifts mid-tones in bright rooms (ITU-R BT.2390), only while picture enhancement runs</string>
+    <string name="video_signal_pacing">Frame pacing</string>
+    <string name="video_signal_pacing_even_format">%1$s on %2$s Hz: %3$s even (%4$d vsyncs per frame, %5$d frames)</string>
+    <string name="video_signal_pacing_pulldown_format">%1$s on %2$s Hz: %3$d:%4$d pulldown in %5$s of frames, %6$s long (expected %7$s, %8$d frames)</string>
+    <string name="video_signal_pacing_measuring">Measuring …</string>
+    <string name="video_signal_ambient">Room light</string>
+    <string name="video_signal_ambient_format">%1$s lx → gamma %2$s (reference %3$s)</string>
+    <string name="video_signal_ambient_idle_format">%1$s lx, only works while picture enhancement runs</string>
 </resources>

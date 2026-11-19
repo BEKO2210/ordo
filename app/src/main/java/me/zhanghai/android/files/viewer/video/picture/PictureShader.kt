@@ -35,7 +35,8 @@ package me.zhanghai.android.files.viewer.video.picture
  * Single-pass SDR picture processing shader. [FRAGMENT] samples `uTexSampler` using
  * `uTexelSize`, controls CAS with `uSharpness`, controls debanding with
  * `uDebandIterations`, `uDebandThreshold`, and `uDebandRadius`, adds `uGrain`, applies
- * final TPDF noise scaled by `uDitherAmplitude`, and varies noise over `uFrame`.
+ * final TPDF noise scaled by `uDitherAmplitude`, and varies noise over `uFrame`. `uGammaRatio` (1 = off) is the
+ * bright-room gamma of [AmbientGamma].
  */
 internal object PictureShader {
     const val VERTEX = """#version 100
@@ -66,6 +67,7 @@ uniform float uDebandRadius;
 uniform float uGrain;
 uniform float uDitherAmplitude;
 uniform float uFrame;
+uniform float uGammaRatio;
 varying vec2 vTexSamplingCoord;
 
 float random(vec2 offset) {
@@ -131,6 +133,12 @@ void main() {
 
   // Keep sharpening away from the smooth gradients selected for debanding.
   vec3 res = mix(cas, deb, smoothness);
+
+  // Bright room (BT.2390-12): the gamma ratio on the luma, as HLG's OOTF does; 1.0 leaves the picture as it is.
+  if (abs(uGammaRatio - 1.0) > 0.0001) {
+    float luma = max(dot(res, vec3(0.2126, 0.7152, 0.0722)), 0.0001);
+    res *= pow(luma, uGammaRatio - 1.0);
+  }
 
   // Hide residual steps without lifting true black.
   vec3 strength = min(abs(res), vec3(uGrain));

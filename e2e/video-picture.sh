@@ -116,6 +116,23 @@ if [ "${sdk:-0}" -ge 31 ]; then
 else
     echo "SKIP frame rate Always (API $sdk < 31: only seamless exists)"
 fi
+# Frame pacing, twice: Media3's scheduled release times (the log, every 240 frames; the Signal path row) and what the
+# panel really showed (SurfaceFlinger's present times of the video layer, last 127 frames).
+sleep 10
+log | grep "pacing fps" | tail -2 | sed 's/^/INFO /'
+layer=$(a shell dumpsys SurfaceFlinger --list | tr -d '\r' | grep -m1 "SurfaceView.*VideoPlayerActivity")
+if [ -n "$layer" ]; then
+    a shell dumpsys SurfaceFlinger --latency "\"$layer\"" | tr -d '\r' | awk '
+        NR == 1 { period = $1; next }
+        $2 > 0 && $2 < 9e18 { if (last) { n = int(($2 - last) / period + 0.5); c[n]++; total++ } last = $2 }
+        END { if (total) for (k in c) printf "INFO SurfaceFlinger: %d frames held %d vsyncs (%.1f %%)\n", c[k], k, 100 * c[k] / total }'
+else
+    echo "INFO SurfaceFlinger layer of the player not found"
+fi
+menu "Signalweg|Signal path"
+check "Signal path shows the frame pacing" ui wait "Bildtakt: .*(gleichmäßig|Pulldown)|Frame pacing: .*(even|pulldown)" 5
+a exec-out screencap -p > "$out/signal-pacing.png"
+back 1
 back 2
 settings_pick "Bildrate anpassen|Match frame rate" "Nur nahtlos|Only when seamless"
 
