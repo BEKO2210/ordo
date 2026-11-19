@@ -115,6 +115,21 @@
             app:useSimpleSummaryProvider="true" />
     </PreferenceCategory>
 
+    <PreferenceCategory android:title="@string/video_settings_cat_subtitles">
+        <ListPreference
+            android:key="@string/pref_key_video_subtitle_language"
+            android:title="@string/video_settings_subtitle_language"
+            android:defaultValue="@string/pref_default_value_video_subtitle_language"
+            android:entries="@array/video_settings_subtitle_language_entries"
+            android:entryValues="@array/pref_entry_values_video_subtitle_language"
+            app:useSimpleSummaryProvider="true" />
+        <SwitchPreferenceCompat
+            android:key="@string/pref_key_video_subtitles_auto"
+            android:title="@string/video_settings_subtitles_auto"
+            android:summary="@string/video_settings_subtitles_auto_summary"
+            android:defaultValue="@bool/pref_default_value_true" />
+    </PreferenceCategory>
+
     <PreferenceCategory android:title="@string/video_settings_cat_library">
         <ListPreference
             android:key="@string/pref_key_video_sort"

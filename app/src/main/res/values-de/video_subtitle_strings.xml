@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later -->
+<resources>
+    <string name="video_subtitles_title">Untertitel</string>
+    <string name="video_subtitles_off">Aus</string>
+    <string name="video_subtitles_load">Untertitel laden…</string>
+    <string name="video_subtitles_forced">erzwungen</string>
+    <string name="video_subtitles_track_format">Spur %1$d</string>
+    <string name="video_subtitles_delay">Verzögerung</string>
+    <string name="video_subtitles_earlier_format">%1$s früher zeigen</string>
+    <string name="video_subtitles_later_format">%1$s später zeigen</string>
+    <string name="video_subtitles_delay_files_only">Die Verzögerung gilt für Untertitel-Dateien. Spuren im Video behalten ihr eigenes Timing.</string>
+    <string name="video_subtitles_charset">Zeichenkodierung</string>
+    <string name="video_subtitles_charset_auto_format">Automatisch (%1$s)</string>
+    <string-array name="video_subtitles_charset_names">
+        <item>UTF-8</item>
+        <item>Westeuropäisch (Windows-1252)</item>
+        <item>Westeuropäisch (ISO-8859-15)</item>
+        <item>Mitteleuropäisch (Windows-1250)</item>
+        <item>Kyrillisch (Windows-1251)</item>
+        <item>Griechisch (Windows-1253)</item>
+        <item>Türkisch (Windows-1254)</item>
+    </string-array>
+    <string name="video_subtitles_size">Größe</string>
+    <string-array name="video_subtitles_size_names">
+        <item>Klein</item>
+        <item>Mittel</item>
+        <item>Groß</item>
+        <item>Sehr groß</item>
+    </string-array>
+    <string name="video_subtitles_background">Hintergrund</string>
+    <string-array name="video_subtitles_background_names">
+        <item>Ohne</item>
+        <item>Schatten</item>
+        <item>Kasten</item>
+    </string-array>
+    <string name="video_subtitles_color">Farbe</string>
+    <string-array name="video_subtitles_color_names">
+        <item>Weiß</item>
+        <item>Gelb</item>
+    </string-array>
+    <string name="video_subtitles_bitmap_note">Diese Spur besteht aus Bildern, Größe und Farbe ändern sie nicht.</string>
+    <string name="video_subtitles_not_subtitle">Diese Datei ist keine Untertitel-Datei (SRT, VTT, ASS, SSA oder TTML).</string>
+    <string name="video_subtitles_read_error">Die Untertitel ließen sich nicht lesen.</string>
+    <string name="video_subtitles_too_large">Die Untertitel-Datei ist zu groß.</string>
+
+    <string name="video_settings_cat_subtitles">Untertitel</string>
+    <string name="video_settings_subtitle_language">Bevorzugte Untertitel-Sprache</string>
+    <string-array name="video_settings_subtitle_language_entries">
+        <item>Gerätesprache</item>
+        <item>Deutsch</item>
+        <item>Englisch</item>
+    </string-array>
+    <string name="video_settings_subtitles_auto">Untertitel automatisch an</string>
+    <string name="video_settings_subtitles_auto_summary">Ist der Ton in einer anderen Sprache, kommen Untertitel in deiner Sprache: zuerst eine Datei neben dem Video, dann eine Spur im Video.</string>
+</resources>

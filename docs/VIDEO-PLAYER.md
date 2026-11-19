@@ -163,6 +163,7 @@ Zahnrad in seiner Sammlung, Ordo Musiks über sein Seitenmenü.
   merken (die zuletzt gewischte Helligkeit gilt beim nächsten Video und beim Zurückkehren).
 - **Ton:** bevorzugte Tonspur-Sprache über `TrackSelectionParameters` (Gerätesprache, Original = Hauptspur, Deutsch,
   Englisch).
+- **Untertitel:** bevorzugte Untertitel-Sprache (Gerätesprache, Deutsch, Englisch), Untertitel automatisch an.
 - **Bibliothek:** Sortierung (Neueste / Name / Größe / Länge), Ansicht (Raster / Liste mit Vorschau links),
   „Weiterschauen“ anzeigen, Kameranamen lesbar, Ordner ausblenden (Auswahl aus allen Ordnern mit Videos, mit Anzahl).
 - **Datenschutz:** „Weiterschauen“ löschen (mit Rückfrage), keine Stellen merken (dann auch kein Angebot zum
@@ -178,6 +179,43 @@ spielt (jede Quelle, auch SMB/SFTP und `content://`), in der Sammlung aus `Media
 Zeile kopiert den Wert. Unten „Alle Dateidetails“ öffnet die bisherigen Eigenschaften für Besitzer, Rechte und
 Prüfsummen; deren Reiter passen sich jetzt an (`tabMode="auto"`, schmalere Ränder, weiche Kante, wenn gescrollt werden
 kann), auch für Audiodateien (dasselbe Fenster).
+
+## Untertitel (Phase 2)
+
+Code in `viewer/video/subtitles/`, ohne neue Bibliothek. Knopf „Untertitel“ oben in der Leiste öffnet ein Blatt:
+„Aus“, die Untertitel-Dateien, die Spuren im Film, „Untertitel laden…“ (Ordos eigene Auswahl, im Ordner des Films),
+für eine Datei Verzögerung und Zeichenkodierung, für alle Filme Größe (Klein/Mittel/Groß/Sehr groß), Hintergrund
+(Ohne/Schatten/Kasten) und Farbe (Weiß/Gelb) als Chips. Keine Regler.
+
+- **Dateien daneben** (`SubtitleFiles.sidecars`, getestet in `SubtitleFilesTest`): gleicher Name wie der Film, ohne
+  Groß-/Kleinschreibung, Endung `.srt .vtt .ass .ssa .ttml .dfxp`, dazwischen Kürzel wie `film.de.srt`,
+  `film.en.forced.srt`, `Film.DEU.ass`, `film.German.srt`, `film.mkv.srt`. Die erste Sprachangabe zählt (ISO 639-1/-2
+  samt `ger`/`fre` …, englische Namen); `hi`, `cc`, `sdh` gelten als Hörgeschädigten-Kennung, nicht als Hindi. Nur für
+  Ordos Pfade (auch SMB/SFTP), nie für `content://` anderer Apps; dort geht nur „Untertitel laden…“.
+- **Zeichensatz** (`SubtitleFiles.decode`): BOM (UTF-8, UTF-16), dann streng UTF-8 (`REPORT`), sonst die alte
+  Windows-Codepage der Gerätesprache (1250 Mitteleuropa, 1251 Kyrillisch, 1253 Griechisch, 1254 Türkisch, sonst 1252).
+  Im Blatt „Automatisch (windows-1252)“ zeigt, was erkannt wurde; UTF-8, ISO-8859-15 und die Codepages lassen sich je
+  Film erzwingen.
+- **Darstellung:** Die Datei wird selbst gelesen und mit Media3s eigenen Parsern (`DefaultSubtitleParserFactory`:
+  SubRip, SSA/ASS, WebVTT, TTML) zerlegt, dann alle 50 ms nach der Abspielstelle in die `SubtitleView` des
+  `PlayerView` gelegt (`SubtitleTimeline`); die Textspuren des Players sind dabei aus. ASS: nur Text und Lage
+  (`\an`, `\pos`), keine Effekte. Höchstens 8 MB je Datei.
+- **Verzögerung** ±0,1 s / ±1 s (höchstens ±10 min) verschiebt nur die Suche in der Zeitleiste, ohne Neuladen. **Grenze:**
+  Media3 hat keine Verzögerung für Spuren im Film (`TextRenderer`); das Blatt sagt bei einer Spur, dass sie für Dateien
+  gilt.
+- **Spuren im Film** (MKV/MP4: SRT, ASS, WebVTT, TX3G, PGS, VobSub, DVB) gehen über `TrackSelectionOverride`. Ohne Wahl
+  kommen nur „erzwungene“ Spuren von selbst (`setIgnoredTextSelectionFlags(SELECTION_FLAG_DEFAULT)`). Bild-Untertitel
+  (PGS, VobSub, DVB) nimmt der Stil nicht an; das Blatt sagt das.
+- **Automatisch** (`SubtitleChoice.pick`, getestet in `SubtitleLogicTest`): zuerst die für diesen Film gemerkte Wahl
+  (Spur nach ID, sonst nach Sprache); sonst bei „Untertitel automatisch an“ (Standard an), wenn der Ton nicht schon in
+  der bevorzugten Sprache ist: Datei in der Sprache, Spur in der Sprache, Datei ohne Sprachkürzel.
+- **Gemerkt je Film** (`SubtitleStore`, SharedPreferences `video_subtitles`, Schlüssel = Pfad-URI): Wahl, Verzögerung,
+  Zeichensatz; höchstens 300, älteste fliegen; nicht bei „Keine Stellen merken“, gelöscht mit „Weiterschauen löschen“.
+  Der Stil gilt für alle Filme.
+- **Lage:** Ist die Bedienleiste sichtbar, rücken die Untertitel über sie (`setBottomPaddingFraction`), sonst Media3s 8 %.
+- **Videoinfos** nennen die Dateien als weitere Untertitel-Zeilen („Deutsch · film.de.srt“).
+- **Schnittstelle für später:** `VideoSubtitles.choices()`, `currentChoice()`, `choose()`, `pickFile()`; keine KI im
+  Player.
 
 ## FFmpeg-Ton
 
