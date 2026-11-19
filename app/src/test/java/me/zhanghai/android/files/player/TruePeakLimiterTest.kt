@@ -108,6 +108,11 @@ class TruePeakLimiterTest {
             "band-limited noise" to bandLimitedNoise(frames, 7).let { n -> stereo(frames) { n[it] * 0.999 } },
             "clipped band-limited noise" to bandLimitedNoise(frames, 9).let { n ->
                 stereo(frames) { (n[it] * 3).coerceIn(-0.999, 0.999) }
+            },
+            // The worst case: white noise up to Nyquist, clipped hard; the short 16-tap detector let it through at
+            // about -0.6 dBTP (prototype), the 64-tap one holds it.
+            "clipped full-band white noise" to Random(11).let { random ->
+                DoubleArray(frames * 2) { (random.nextDouble(-1.0, 1.0) * 2).coerceIn(-0.999, 0.999) }
             }
         )
         for ((name, signal) in signals) {

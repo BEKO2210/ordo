@@ -30,6 +30,11 @@ class KlangAudioProcessor(
     private val dither: Boolean = true
 ) : BaseAudioProcessor() {
     private val active = BooleanArray(stages.size)
+
+    /** Whether the last buffer went through at least one stage (also while one fades out); audio thread. */
+    @Volatile
+    var processing = false
+        private set
     private var seed = 0x2545F491
     private var limiterGain = 1f
     private var release = 0f
@@ -61,6 +66,7 @@ class KlangAudioProcessor(
             active[index] = stages[index].begin()
             any = any || active[index]
         }
+        processing = any
         val output = replaceOutputBuffer(inputBuffer.remaining())
         if (!any) {
             output.put(inputBuffer)
@@ -336,7 +342,9 @@ class KlangProcessors(dither: Boolean = true) {
     val warmth = WarmthStage()
     val reverb = ReverbStage()
     val processor = KlangAudioProcessor(arrayOf(mono, highs, crossfeed, width, warmth, reverb), dither)
-    val truePeak = TruePeakLimiter()
+    // Armed by what the chain actually did with the buffer before, so a stage fading out is still caught;
+    // untouched music stays bit-perfect.
+    val truePeak = TruePeakLimiter { processor.processing }
 
     val chain: Array<AudioProcessor> get() = arrayOf(processor, truePeak)
 
@@ -356,9 +364,6 @@ class KlangProcessors(dither: Boolean = true) {
         reverb.preset = settings.reverbPreset
         reverb.mixPercent = settings.reverbMix
         reverb.effectEnabled = settings.reverbEnabled
-        // Only while something changes the sound; untouched music stays bit-perfect.
-        truePeak.armed = mono.effectEnabled || highs.effectEnabled || crossfeed.effectEnabled ||
-            width.effectEnabled || warmth.effectEnabled || reverb.effectEnabled
     }
 }
 

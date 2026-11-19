@@ -32,6 +32,11 @@ class DownmixProcessor : BaseAudioProcessor() {
     @Volatile
     var passThroughChannels: Set<Int> = emptySet()
 
+    /** Whether the format configured last went to the system untouched: what is really playing, for the sheet. */
+    @Volatile
+    var passingThrough = false
+        private set
+
     private var matrix: Array<FloatArray> = emptyArray()
     private var target: Array<FloatArray> = emptyArray()
     private var appliedCentre = Float.NaN
@@ -40,11 +45,15 @@ class DownmixProcessor : BaseAudioProcessor() {
 
     override fun onConfigure(inputAudioFormat: AudioProcessor.AudioFormat): AudioProcessor.AudioFormat {
         val channels = inputAudioFormat.channelCount
+        passingThrough = false
         if (inputAudioFormat.encoding != C.ENCODING_PCM_16BIT ||
             VideoSoundMath.downmixMatrix(channels, centreGain) == null
         ) return AudioProcessor.AudioFormat.NOT_SET
         // Android's Log is not available in JVM tests; the engine logs the decision when the track arrives.
-        if (channels in passThroughChannels) return AudioProcessor.AudioFormat.NOT_SET
+        if (channels in passThroughChannels) {
+            passingThrough = true
+            return AudioProcessor.AudioFormat.NOT_SET
+        }
         return AudioProcessor.AudioFormat(inputAudioFormat.sampleRate, 2, C.ENCODING_PCM_16BIT)
     }
 

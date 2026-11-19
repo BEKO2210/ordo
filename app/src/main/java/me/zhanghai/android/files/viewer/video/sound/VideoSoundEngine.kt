@@ -19,6 +19,7 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.RenderersFactory
 import java8.nio.file.Paths
 import java8.nio.file.attribute.BasicFileAttributes
+import me.zhanghai.android.files.BuildConfig
 import me.zhanghai.android.files.player.AudioRenderersFactory
 import me.zhanghai.android.files.player.KlangAudioProcessor
 import me.zhanghai.android.files.player.LoudnessAnalysis
@@ -48,7 +49,9 @@ import java.util.concurrent.Executors
  */
 class VideoSoundEngine(private val context: Context) {
     private val handler = Handler(Looper.getMainLooper())
+    // Small, quick jobs (the delay of a film); the loudness of a whole film has its own thread and never holds them up.
     private val worker = Executors.newSingleThreadExecutor()
+    private val loudnessWorker = Executors.newSingleThreadExecutor()
     private val mono = MonoStage()
     private val dialog = DialogStage()
     private val night = NightStage()
@@ -72,8 +75,12 @@ class VideoSoundEngine(private val context: Context) {
         if (player?.isPlaying == true) fader.duck(action) else fader.immediate(action)
     }
     private var replayGain: ReplayGainInfo? = null
+    /** Levels measured while this player is open, also those that "Don't remember places" keeps out of the cache. */
+    private val sessionLoudness = HashMap<String, ReplayGainInfo?>()
     private var measuringId: String? = null
+    private var measurement: java.util.concurrent.Future<*>? = null
     private var currentKey: String? = null
+    private var delayChangedByUser = false
     private var released = false
     private val listener = object : Player.Listener {
         override fun onAudioSessionIdChanged(audioSessionId: Int) {
@@ -117,7 +124,7 @@ class VideoSoundEngine(private val context: Context) {
     val status: SoundEffectController.Status get() = effects.status
 
     /** Whether a track of [channels] goes to the system's spatializer untouched instead of Ordo's downmix. */
-    fun systemSpatializes(channels: Int): Boolean = channels in downmix.passThroughChannels
+    fun systemSpatializes(channels: Int): Boolean = channels > 2 && downmix.passingThrough
 
     /** Levelling is on and this film's level is known (measured or cached). */
     val levelled: Boolean get() = settings.klang.normalizationEnabled && replayGain != null
@@ -136,6 +143,7 @@ class VideoSoundEngine(private val context: Context) {
     }
 
     fun update(value: VideoSoundSettings) {
+        if (released) return
         val wasLevelling = settings.klang.normalizationEnabled
         settings = value.copy(klang = value.klang.sanitized())
         VideoSoundStore.write(context, settings)
@@ -146,7 +154,12 @@ class VideoSoundEngine(private val context: Context) {
     /** A new delay takes effect with a flush: a seek to where the film is (one short re-buffer). Kept per film. */
     fun setDelay(value: Int) {
         if (released) return
+        delayChangedByUser = true
         applyDelay(VideoSoundMath.stepDelay(value, 0))
+        storeDelay()
+    }
+
+    private fun storeDelay() {
         val key = currentKey ?: return
         if (Settings.VIDEO_NO_HISTORY.valueCompat) return
         val stored = delayMs
@@ -163,11 +176,14 @@ class VideoSoundEngine(private val context: Context) {
     /** A new film: its own delay (from the store) and its own level. */
     private fun onItem(item: MediaItem?) {
         currentKey = null
+        delayChangedByUser = false
         replayGain = null
         applyToChain()
         val mediaId = item?.mediaId
-        if (mediaId == null) {
+        // "Don't remember places": no key, nothing looked up or stored; the delay lasts while the player is open.
+        if (mediaId == null || Settings.VIDEO_NO_HISTORY.valueCompat) {
             applyDelay(0)
+            if (mediaId != null) measureLoudness(item)
             return
         }
         measureLoudness(item)
@@ -177,7 +193,8 @@ class VideoSoundEngine(private val context: Context) {
             handler.post {
                 if (released || player?.currentMediaItem?.mediaId != mediaId) return@post
                 currentKey = key
-                applyDelay(stored)
+                // Set by hand while the key was being found: that wins, and is stored now.
+                if (delayChangedByUser) storeDelay() else applyDelay(stored)
                 notifyChanged()
             }
         }
@@ -187,23 +204,39 @@ class VideoSoundEngine(private val context: Context) {
         if (!settings.klang.normalizationEnabled) return
         val mediaId = item?.mediaId ?: return
         if (measuringId == mediaId) return
+        val policy = loudnessPolicy(mediaId, Settings.VIDEO_NO_HISTORY.valueCompat)
+        if (policy == LoudnessPolicy.SKIP) return
+        if (mediaId in sessionLoudness) {
+            replayGain = sessionLoudness[mediaId]
+            applyToChain()
+            return
+        }
         val file = localFile(mediaId) ?: return
+        // Another film: the measurement of the previous one stops (LoudnessAnalysis checks the interrupt).
+        measurement?.cancel(true)
         measuringId = mediaId
-        worker.execute {
-            val result = when (val cached = loudness.cached(file)) {
+        val remember = policy == LoudnessPolicy.CACHE
+        measurement = loudnessWorker.submit(Runnable {
+            // Without history even the cached value of an earlier session is not looked up again by path.
+            val cached = if (remember) loudness.cached(file) else null
+            val result = when (cached) {
                 is LoudnessAnalysis.Cached.Measured -> cached.info
                 LoudnessAnalysis.Cached.Failed -> null
-                null -> loudness.measure(file)
+                null -> loudness.measure(file, remember)
             }
-            Log.i(TAG, "loudness ${file.name}: ${result?.gainDb ?: "not measurable"} dB to -18 LUFS")
+            // Cancelled for the next film: nothing was learnt about this one.
+            if (Thread.currentThread().isInterrupted) return@Runnable
+            if (BuildConfig.DEBUG) Log.d(TAG, "loudness: ${result?.gainDb ?: "not measurable"} dB to -18 LUFS")
             handler.post {
                 if (measuringId == mediaId) measuringId = null
-                if (released || player?.currentMediaItem?.mediaId != mediaId) return@post
+                if (released) return@post
+                sessionLoudness[mediaId] = result
+                if (player?.currentMediaItem?.mediaId != mediaId) return@post
                 replayGain = result
                 applyToChain()
                 notifyChanged()
             }
-        }
+        })
     }
 
     private fun applyToChain() {
@@ -230,6 +263,7 @@ class VideoSoundEngine(private val context: Context) {
         player = null
         handler.removeCallbacksAndMessages(null)
         worker.shutdownNow()
+        loudnessWorker.shutdownNow()
         effects.release()
     }
 
@@ -238,7 +272,7 @@ class VideoSoundEngine(private val context: Context) {
         const val LOUDNESS_MAX_MILLIS = 10 * 60_000L
 
         /** The same key as "Continue watching": path, size and modification time. Not on the main thread. */
-        fun keyOf(mediaId: String): String? = if (mediaId.startsWith("content:")) null else runCatching {
+        fun keyOf(mediaId: String): String? = if (!remembersDelay(mediaId)) null else runCatching {
             val attributes = Paths.get(URI.create(mediaId)).readAttributes(BasicFileAttributes::class.java)
             VideoResumeStore.key(mediaId, attributes.size(), attributes.lastModifiedTime().toMillis())
         }.getOrNull()

@@ -70,8 +70,11 @@ class LoudnessAnalysis internal constructor(
 
     fun cached(file: File): Cached? = cache.get(key(file))?.let(::parse)
 
-    /** Decodes and measures [file]; null when it cannot be decoded or holds nothing loud enough. Slow: not on main. */
-    fun measure(file: File): ReplayGainInfo? {
+    /**
+     * Decodes and measures [file]; null when it cannot be decoded or holds nothing loud enough. Slow: not on main.
+     * With [remember] false nothing is written (Ordo Video's "Don't remember places").
+     */
+    fun measure(file: File, remember: Boolean = true): ReplayGainInfo? {
         val result = try {
             openSource(file)?.use { measure(it) }
         } catch (_: Throwable) {
@@ -79,7 +82,7 @@ class LoudnessAnalysis internal constructor(
             null
         }
         if (Thread.currentThread().isInterrupted) return null
-        cache.put(key(file), if (result == null) FAILED else "${result.gainDb};${result.peak ?: 0f}")
+        if (remember) cache.put(key(file), if (result == null) FAILED else "${result.gainDb};${result.peak ?: 0f}")
         return result
     }
 
