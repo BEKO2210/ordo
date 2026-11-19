@@ -87,13 +87,17 @@
         <com.google.android.material.progressindicator.LinearProgressIndicator
             android:id="@+id/progress"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="@dimen/phi_8"
             android:layout_marginStart="@dimen/phi_13"
             android:layout_marginEnd="@dimen/phi_13"
-            android:layout_marginBottom="@dimen/phi_5"
+            android:layout_marginBottom="@dimen/phi_3"
             android:importantForAccessibility="no"
             android:max="1000"
             app:trackCornerRadius="@dimen/phi_3"
-            app:trackThickness="@dimen/phi_3" />
+            app:trackStopIndicatorSize="0dp"
+            app:trackThickness="@dimen/phi_3"
+            app:waveAmplitude="0dp"
+            app:waveAmplitudeRampProgressMax="0.05"
+            app:wavelength="@dimen/phi_21" />
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

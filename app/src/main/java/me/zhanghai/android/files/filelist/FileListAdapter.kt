@@ -38,6 +38,7 @@ import me.zhanghai.android.files.provider.archive.isArchivePath
 import me.zhanghai.android.files.provider.common.isEncrypted
 import me.zhanghai.android.files.settings.Settings
 import me.zhanghai.android.files.ui.AnimatedListAdapter
+import me.zhanghai.android.files.ui.WordBreaks
 import me.zhanghai.android.files.ui.AspectRatioFrameLayout
 import me.zhanghai.android.files.ui.CheckableForegroundLinearLayout
 import me.zhanghai.android.files.ui.CheckableItemBackground
@@ -384,7 +385,16 @@ class FileListAdapter(
                 setImageDrawable(null)
             }
         }
-        holder.nameText.text = file.name
+        // The grid shows names on two lines; they wrap after a dot, dash, underscore or inner capital, never inside a
+        // word (a single long word becomes one line shortened in the middle).
+        if (viewType.isGrid) {
+            holder.nameText.maxLines = 2
+            holder.nameText.ellipsize = android.text.TextUtils.TruncateAt.END
+            holder.nameText.text = WordBreaks.breakableName(file.name)
+            WordBreaks.keepWordsWhole(holder.nameText)
+        } else {
+            holder.nameText.text = file.name
+        }
         holder.descriptionText?.text = if (isDirectory) {
             null
         } else {

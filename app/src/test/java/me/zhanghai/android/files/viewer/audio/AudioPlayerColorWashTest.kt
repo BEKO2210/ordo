@@ -7,6 +7,7 @@ package me.zhanghai.android.files.viewer.audio
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class AudioPlayerColorWashTest {
@@ -41,5 +42,63 @@ class AudioPlayerColorWashTest {
         )
         assertEquals(0xff6d6d6d.toInt(), unrestricted)
         assertEquals(0xff757575.toInt(), contrastSafe)
+    }
+
+    @Test
+    fun seedIsTheMostVividHueNotTheLargestArea() {
+        // The aurora cover: a teal band on a fifth of it over a large dull violet sky; the player takes the teal.
+        val pixels = IntArray(100) { if (it < 20) 0xff20c8a0.toInt() else 0xff281860.toInt() }
+        assertEquals(0xff20c8a0.toInt(), AudioPlayerColorWash.seed(pixels))
+        // Without a vivid part the large area still wins.
+        val calm = IntArray(100) { if (it < 20) 0xff606a70.toInt() else 0xff281860.toInt() }
+        assertEquals(0xff281860.toInt(), AudioPlayerColorWash.seed(calm))
+    }
+
+    @Test
+    fun greyCoverKeepsTheThemeColours() {
+        val pixels = IntArray(100) { if (it % 2 == 0) 0xff202020.toInt() else 0xffa0a0a0.toInt() }
+        assertNull(AudioPlayerColorWash.seed(pixels))
+        assertNull(AudioPlayerColorWash.seed(intArrayOf(0x00ff0000)))
+    }
+
+    @Test
+    fun unplayedTrackStandsThreeToOne() {
+        for ((accent, background) in listOf(
+            0xff5b5a9a.toInt() to 0xffe8e6f0.toInt(), 0xffc6c2ff.toInt() to 0xff1c1b2a.toInt(),
+            0xff006874.toInt() to 0xfff5f7fa.toInt()
+        )) {
+            val track = AudioPlayerColorWash.inactiveTrack(accent, background)
+            assertTrue(AudioPlayerColorWash.contrastRatio(track, background) >= 3.0)
+            assertTrue(track ushr 24 < 0xff || AudioPlayerColorWash.contrastRatio(accent, background) < 3.6)
+        }
+    }
+
+    @Test
+    fun schemePassesWcagInLightAndDark() {
+        val covers = intArrayOf(0xff102a80.toInt(), 0xffffee00.toInt(), 0xff00ff66.toInt(), 0xffff0055.toInt())
+        for (seed in covers) {
+            for ((surface, onSurface, light) in listOf(
+                Triple(0xfff5f7fa.toInt(), 0xff1a1c1e.toInt(), true),
+                Triple(0xff19181a.toInt(), 0xffe6e1e5.toInt(), false)
+            )) {
+                val scheme = AudioPlayerColorWash.scheme(seed, surface, onSurface, light) ?: continue
+                assertTrue(AudioPlayerColorWash.contrastRatio(onSurface, scheme.tint) >= 4.5)
+                assertTrue(AudioPlayerColorWash.contrastRatio(scheme.accent, scheme.tint) >= 3.0)
+                assertTrue(AudioPlayerColorWash.contrastRatio(scheme.onAccent, scheme.accent) >= 4.5)
+            }
+        }
+    }
+
+    @Test
+    fun veilGrowsUntilTextReadsOverEveryPixel() {
+        // White text over a cover that is pure white in places needs a strong dark veil; over black it needs none.
+        val veil = 0xff19181a.toInt()
+        val text = 0xffe6e1e5.toInt()
+        val overWhite = AudioPlayerColorWash.veilAlpha(intArrayOf(0xffffffff.toInt()), veil, intArrayOf(text), text, 0.5f)
+        val overBlack = AudioPlayerColorWash.veilAlpha(intArrayOf(0xff000000.toInt()), veil, intArrayOf(text), text, 0.5f)
+        assertEquals(0.5f, overBlack)
+        assertTrue(overWhite > 0.5f)
+        val seen = 0xff000000.toInt() or (((0xff * (1 - overWhite) + 0x19 * overWhite).toInt()) * 0x010101)
+        assertTrue(AudioPlayerColorWash.contrastRatio(text, seen) >= 4.4)
     }
 }

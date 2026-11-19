@@ -21,6 +21,8 @@ import android.view.ViewGroup
 import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.Rect
+import android.graphics.Bitmap
+import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.widget.ImageView
 import androidx.annotation.DrawableRes
@@ -56,6 +58,8 @@ import java.text.Collator
 import java8.nio.file.Paths
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
 import me.zhanghai.android.files.R
 import me.zhanghai.android.files.app.AppActivity
@@ -81,10 +85,18 @@ import me.zhanghai.android.files.settings.SettingsActivity
 import me.zhanghai.android.files.ui.DrawerLayoutOnBackPressedCallback
 import me.zhanghai.android.files.ui.Motion
 import me.zhanghai.android.files.ui.ThemedFastScroller
+import me.zhanghai.android.files.ui.WordBreaks
 import me.zhanghai.android.files.util.createManageAppAllFilesAccessPermissionIntent
 import me.zhanghai.android.files.util.startActivitySafe
 import me.zhanghai.android.files.util.supportsExternalStorageManager
 import me.zhanghai.android.files.util.valueCompat
+import me.zhanghai.android.files.viewer.audio.lyrics.LyricsRepository
+
+internal fun musicContentWidthDp(windowWidthDp: Int): Int = when {
+    windowWidthDp < 600 -> windowWidthDp.coerceAtLeast(0)
+    windowWidthDp < 840 -> windowWidthDp - 2 * 34
+    else -> maxOf((windowWidthDp * 0.618).toInt(), windowWidthDp - 2 * 55).coerceAtMost(1100)
+}
 
 /**
  * What the "Ordo Musik" icon opens: the music library (songs, albums, artists, folders from MediaStore) with a mini
@@ -132,9 +144,24 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
     private var shownGroup: MusicGroup? = null
     // A page on a wide window: header and buttons on the left, songs on the right.
     private var twoPane = false
+    private var tabletLayout = false
+    // Whether a song has lyrics, looked up lazily for the rows on screen (two at a time, off the main thread) and kept
+    // per path until the library reloads, so scrolling never waits for a file.
+    private val hasLyrics = HashMap<String, Boolean>()
+    private val lyricsLookups = HashSet<String>()
+    private val lyricsGate = Semaphore(2)
+    private var contentWidthDp = 0
+    private var albumGrid = false
+    private var toolbarInsetStart = 0
+    private var toolbarInsetEnd = 0
+    private var toolbarInsetWithNavigation = 0
+    private var toolbarTitleMarginStart = 0
     // The song in the session (by path) and whether it plays: its row shows the moving bars.
     private var playingPath: String? = null
     private var currentPlaying = false
+    private var miniAccent: Int? = null
+    private var miniCoverColors = true
+    private var miniColorAnimator: android.animation.ValueAnimator? = null
     private var saved: PlaybackStateStore.State? = null
     private var controllerFuture: ListenableFuture<MediaController>? = null
     private var controller: MediaController? = null
@@ -185,6 +212,10 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
         super.onCreate(savedInstanceState)
         binding = MusicLauncherActivityBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        toolbarInsetStart = binding.content.toolbar.contentInsetStart
+        toolbarInsetEnd = binding.content.toolbar.contentInsetEnd
+        toolbarInsetWithNavigation = binding.content.toolbar.contentInsetStartWithNavigation
+        toolbarTitleMarginStart = binding.content.toolbar.titleMarginStart
         savedInstanceState?.let {
             tab = it.getInt(STATE_TAB)
             detailKey = it.getString(STATE_DETAIL)
@@ -197,18 +228,26 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
         ThemedFastScroller.create(binding.content.recyclerView)
         setUpTabs()
         binding.content.recyclerView.addItemDecoration(GridSpacing())
-        // The list and the mini player keep a readable width on tablets: centred, at most 610 dp.
-        binding.content.recyclerView.addOnLayoutChangeListener { _, left, _, right, _, oldLeft, _, oldRight, _ ->
+        // The container still resizes when its centred content has reached the width cap.
+        binding.content.root.addOnLayoutChangeListener { _, left, _, right, _, oldLeft, _, oldRight, _ ->
             if (right - left != oldRight - oldLeft) binding.content.recyclerView.post { updateWidths() }
         }
         binding.content.recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
-            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) = updateTitle()
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                updateTitle()
+                parallaxHeader(recyclerView)
+            }
         })
         binding.content.tabs.getTabAt(tab)?.select()
         binding.content.tabs.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
             override fun onTabSelected(selected: TabLayout.Tab) {
+                // openSection selects the tab itself after it has set the tab and section.
+                if (selected.position == tab) return
                 tab = selected.position
+                section = sectionOfTab(tab)
+                playlistName = null
                 render(scrollToTop = true)
+                navigationAdapter.notifyCheckedChanged()
             }
 
             override fun onTabUnselected(tab: TabLayout.Tab) {}
@@ -242,6 +281,8 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
             R.string.music_tab_songs to R.drawable.audio_icon_white_24dp,
             R.string.music_tab_albums to R.drawable.album_icon_white_24dp,
             R.string.music_tab_artists to R.drawable.person_icon_white_24dp,
+            R.string.music_nav_playlists to R.drawable.queue_music_icon_white_24dp,
+            R.string.music_nav_favorites to R.drawable.favorite_icon_white_24dp,
             R.string.music_tab_folders to R.drawable.directory_icon_white_24dp
         ).forEach { (text, icon) -> binding.content.tabs.addTab(binding.content.tabs.newTab().setText(text).setIcon(icon)) }
         // The pill takes Material 3's secondary container; the Material 2 theme has none, so primary at 16 %.
@@ -262,6 +303,15 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
         tabs.setSelectedTabIndicatorColor(pill)
         tabs.tabTextColors = colors
         tabs.tabIconTint = colors
+        // TabLayout's own ripple fills the whole rectangular tab (owner: a square frame flashed around the pill), so
+        // it is off in the layout and every tab gets a ripple masked to exactly the pill's shape instead.
+        val highlight = MaterialColors.getColor(tabs, androidx.appcompat.R.attr.colorControlHighlight)
+        for (i in 0 until tabs.tabCount) {
+            tabs.getTabAt(i)?.view?.background = android.graphics.drawable.RippleDrawable(
+                ColorStateList.valueOf(highlight), null,
+                ContextCompat.getDrawable(this, R.drawable.music_tab_indicator)
+            )
+        }
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -279,6 +329,8 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
         (searchItem.actionView as SearchView).clearFocus()
         load()
         connectController()
+        // Back from Ordo Musik's settings with "Colours from the cover" switched: the mini player follows.
+        if (miniCoverColors != Settings.MUSIC_COVER_COLORS.valueCompat) miniArtKey = null
     }
 
     override fun onStop() {
@@ -364,6 +416,7 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
             }
             library = loaded
             songsByPath = loaded.songs.associateBy { it.path }
+            hasLyrics.clear()
             saved = savedState
             render()
             updateMiniPlayer()
@@ -449,18 +502,13 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
         if (binding.content.collapsingToolbar.layoutParams.height != headerHeight) {
             binding.content.collapsingToolbar.layoutParams = binding.content.collapsingToolbar.layoutParams.apply { height = headerHeight }
         }
-        val grid = group == null && section == SECTION_LIBRARY && tab == TAB_ALBUMS
-        val layoutManager = binding.content.recyclerView.layoutManager
-        if (layoutManager == null || (layoutManager is GridLayoutManager) != grid) {
-            binding.content.recyclerView.layoutManager =
-                if (grid) GridLayoutManager(this, albumColumns()) else LinearLayoutManager(this)
-        }
-        updateWidths()
+        albumGrid = group == null && section == SECTION_LIBRARY && tab == TAB_ALBUMS
         adapter.submit(rows)
+        updateWidths()
         if (scrollToTop) binding.content.recyclerView.scrollToPosition(0)
 
         updateTitle()
-        binding.content.tabs.isVisible = group == null && section == SECTION_LIBRARY
+        binding.content.tabs.isVisible = group == null && playlistName == null && inTabs()
         backInLibrary.isEnabled = group != null || section != SECTION_LIBRARY || searchItem.isActionViewExpanded ||
             selection.isNotEmpty()
         updateToolbarMenu()
@@ -524,7 +572,26 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
         binding.content.toolbar.title = if (headerGone && !searching) groupName(group, tab) else null
     }
 
+    /**
+     * A page's big cover drifts up at 40 % of the scroll and fades a little as the list moves over it (the hero's
+     * parallax); without motion it simply scrolls with the list.
+     */
+    private fun parallaxHeader(list: RecyclerView) {
+        val header = list.findViewHolderForAdapterPosition(0)?.itemView ?: return
+        val art = header.findViewById<View>(R.id.art) ?: return
+        if (!Motion.any || header.height == 0) {
+            art.translationY = 0f
+            art.alpha = 1f
+            return
+        }
+        val scrolled = (-header.top).coerceAtLeast(0).toFloat()
+        art.translationY = scrolled * HERO_PARALLAX
+        art.alpha = 1f - (scrolled / header.height).coerceIn(0f, 1f) * HERO_FADE
+    }
+
     private fun bindHeader(header: MusicLibraryHeaderBinding, group: MusicGroup) {
+        header.art.root.translationY = 0f
+        header.art.root.alpha = 1f
         // An album's cover about two thirds of a phone's width, 233 dp at most on a tablet.
         val size = minOf(
             resources.displayMetrics.widthPixels * 2 / 3,
@@ -534,7 +601,9 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
             width = size
             height = size
         }
-        header.title.text = groupName(group, tab)
+        // A folder name may wrap after its dashes in the narrow left pane, never inside a word.
+        header.title.text = WordBreaks.breakableName(groupName(group, tab))
+        WordBreaks.keepWordsWhole(header.title)
         header.subtitle.text = when (tab) {
             TAB_ALBUMS -> group.artist ?: getString(R.string.audio_player_unknown_artist)
             TAB_FOLDERS -> displayFolder(group.key)
@@ -609,15 +678,14 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
         )
         for (index in 0 until popup.menu.size()) MenuItemCompat.setIconTintList(popup.menu.getItem(index), iconTint)
         popup.setOnMenuItemClickListener { item ->
-            val player = controller
-            val mediaItem = AudioPlaybackService.mediaItem(Paths.get(song.path).toUri().toString())
+            val actions = musicActions()
             when (item.itemId) {
-                R.id.actionPlayNext -> if (player != null) {
-                    player.addMediaItem((player.currentMediaItemIndex + 1).coerceAtMost(player.mediaItemCount), mediaItem)
+                R.id.actionPlayNext -> if (actions != null) {
+                    actions.playNext(listOf(song.path))
                     confirm(R.string.music_added_next)
                 }
-                R.id.actionAddToQueue -> if (player != null) {
-                    player.addMediaItem(mediaItem)
+                R.id.actionAddToQueue -> if (actions != null) {
+                    actions.addToQueue(listOf(song.path))
                     confirm(R.string.music_added_to_queue)
                 }
                 R.id.actionFavorite -> changePlaylists(
@@ -648,8 +716,7 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
     private fun sectionTitle(): Int = when (section) {
         SECTION_RECENT -> R.string.music_nav_recent
         SECTION_MOST -> R.string.music_nav_most
-        SECTION_FAVORITES -> R.string.music_nav_favorites
-        SECTION_PLAYLISTS -> R.string.music_nav_playlists
+        // Favourites and playlists are tabs of the library: the tab names them, the title stays "Music".
         else -> R.string.launcher_music_start_title
     }
 
@@ -707,7 +774,7 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
         MusicNavigationItem(MusicNavigation.IDS[7]!!, R.drawable.audio_timer_icon_24dp, R.string.audio_sound_sleep_heading) { openSound(true) },
         null,
         MusicNavigationItem(MusicNavigation.IDS[9]!!, R.drawable.settings_icon_white_24dp, R.string.settings_title) {
-            launchIntent(SettingsActivity.createIntent(SettingsActivity.SECTION_LAUNCHER_ICONS))
+            launchIntent(SettingsActivity.createIntent(SettingsActivity.SECTION_MUSIC))
         },
         MusicNavigationItem(MusicNavigation.IDS[10]!!, R.drawable.directory_icon_white_24dp, R.string.music_nav_files) {
             packageManager.getLaunchIntentForPackage(packageName)?.let { launchIntent(it) }
@@ -727,11 +794,26 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
         section = newSection
         detailKey = null
         playlistName = null
+        tab = when (newSection) {
+            SECTION_FAVORITES -> TAB_FAVORITES
+            SECTION_PLAYLISTS -> TAB_PLAYLISTS
+            else -> tab.takeIf { sectionOfTab(it) == SECTION_LIBRARY } ?: TAB_SONGS
+        }
+        binding.content.tabs.getTabAt(tab)?.select()
         binding.content.appBar.setExpanded(true, Motion.any)
         render(scrollToTop = true)
         navigationAdapter.notifyCheckedChanged()
         closeNavigationDrawer()
     }
+
+    private fun sectionOfTab(tab: Int): Int = when (tab) {
+        TAB_FAVORITES -> SECTION_FAVORITES
+        TAB_PLAYLISTS -> SECTION_PLAYLISTS
+        else -> SECTION_LIBRARY
+    }
+
+    /** The library's top level, where the tabs show: everything but the history lists. */
+    private fun inTabs(): Boolean = section != SECTION_RECENT && section != SECTION_MOST
 
     /** Sound or the sleep timer, over the player: with the saved queue if there is one, so they apply to it. */
     private fun openSound(sleepTimer: Boolean) {
@@ -949,13 +1031,12 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
                     .setNegativeButton(android.R.string.cancel, null)
                     .show()
             }
-            R.id.actionSelectionPlayNext, R.id.actionSelectionQueue -> controller?.let { player ->
-                val items = paths.map { AudioPlaybackService.mediaItem(Paths.get(it).toUri().toString()) }
+            R.id.actionSelectionPlayNext, R.id.actionSelectionQueue -> musicActions()?.let { actions ->
                 if (itemId == R.id.actionSelectionPlayNext) {
-                    player.addMediaItems((player.currentMediaItemIndex + 1).coerceAtMost(player.mediaItemCount), items)
+                    actions.playNext(paths)
                     confirm(R.string.music_added_next)
                 } else {
-                    player.addMediaItems(items)
+                    actions.addToQueue(paths)
                     confirm(R.string.music_added_to_queue)
                 }
                 clearSelection()
@@ -989,27 +1070,97 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
             song.album ?: getString(R.string.music_unknown_album)
         )
 
-    // Columns of at least 144 dp between 21 dp edges and 13 dp gutters: two on a phone, four on a portrait tablet.
+    // Tablet covers use the shared content width, including space for the gaps between covers.
     private fun albumColumns(): Int {
-        val width = resources.configuration.screenWidthDp * resources.displayMetrics.density
-        val outer = resources.getDimension(R.dimen.phi_21)
+        val density = resources.displayMetrics.density
+        val width = contentWidthDp * density
+        val outer = if (tabletLayout) 0f else resources.getDimension(R.dimen.phi_21)
         val gutter = resources.getDimension(R.dimen.phi_13)
-        val cell = resources.getDimension(R.dimen.music_album_min_width)
-        return ((width - 2 * outer + gutter) / (cell + gutter)).toInt().coerceAtLeast(2)
+        val cell = if (tabletLayout) 180 * density else resources.getDimension(R.dimen.music_album_min_width)
+        return ((width - 2 * outer + gutter) / (cell + gutter)).toInt().coerceAtLeast(if (tabletLayout) 1 else 2)
     }
 
-    /** Lists and the mini player at most 610 dp wide and centred; the album grid uses the whole width. */
+    // A shared gutter keeps navigation, covers, rows and the mini player aligned on tablets.
     private fun updateWidths() {
-        val width = binding.content.root.width.takeIf { it > 0 } ?: return
-        val side = ((width - resources.getDimensionPixelSize(R.dimen.phi_content_max)) / 2).coerceAtLeast(0)
+        val density = resources.displayMetrics.density
+        val windowWidthDp = resources.configuration.screenWidthDp
+        val width = binding.content.root.width.takeIf { it > 0 } ?: (windowWidthDp * density).toInt()
+        val wasTablet = tabletLayout
+        tabletLayout = windowWidthDp >= 600
+        val side = if (tabletLayout) {
+            val minimum = resources.getDimensionPixelSize(if (windowWidthDp < 840) R.dimen.phi_34 else R.dimen.phi_55)
+            // The persistent drawer can leave less space than the window's target content width.
+            maxOf(minimum, (width - (musicContentWidthDp(windowWidthDp) * density).toInt()) / 2)
+        } else {
+            ((width - resources.getDimensionPixelSize(R.dimen.phi_content_max)) / 2).coerceAtLeast(0)
+        }
+        contentWidthDp = if (tabletLayout) ((width - 2 * side).coerceAtLeast(0) / density).toInt() else windowWidthDp
+        if (twoPane != twoPaneFor(shownGroup)) {
+            render()
+            return
+        }
+        val body = binding.content.libraryBody
+        val bodySide = if (tabletLayout) side else 0
+        if (body.paddingStart != bodySide) {
+            body.setPaddingRelative(bodySide, body.paddingTop, bodySide, body.paddingBottom)
+        }
         val recycler = binding.content.recyclerView
-        val listSide = if (recycler.layoutManager is GridLayoutManager || twoPane) 0 else side
+        val columns = if (albumGrid) albumColumns() else if (!twoPane && contentWidthDp >= 840) 2 else 1
+        val grid = albumGrid || columns > 1
+        val layoutManager = recycler.layoutManager
+        if (layoutManager == null || (layoutManager is GridLayoutManager) != grid) {
+            val state = layoutManager?.onSaveInstanceState()
+            recycler.layoutManager = if (grid) {
+                GridLayoutManager(this, columns).apply {
+                    spanSizeLookup = object : GridLayoutManager.SpanSizeLookup() {
+                        override fun getSpanSize(position: Int): Int = when (adapter.getItemViewType(position)) {
+                            TYPE_HEADER, TYPE_ACTIONS -> spanCount
+                            else -> 1
+                        }
+                    }
+                }
+            } else {
+                LinearLayoutManager(this)
+            }
+            if (state != null) recycler.layoutManager?.onRestoreInstanceState(state)
+        } else if (layoutManager is GridLayoutManager && layoutManager.spanCount != columns) {
+            layoutManager.spanCount = columns
+        }
+        val listSide = if (tabletLayout || grid || twoPane) 0 else side
         if (recycler.paddingStart != listSide) {
             recycler.setPaddingRelative(listSide, recycler.paddingTop, listSide, recycler.paddingBottom)
         }
+        recycler.invalidateItemDecorations()
+        if (wasTablet != tabletLayout) adapter.notifyDataSetChanged()
+        val tabs = binding.content.tabs
+        // The tablet column is a margin, not padding: a scrollable TabLayout stretches its strip to its full width
+        // including padding, so in a padded row that fits, the first pill could scroll away behind the padding.
+        val tabSide = if (tabletLayout) 0 else resources.getDimensionPixelSize(R.dimen.phi_13)
+        tabs.setPaddingRelative(tabSide, tabs.paddingTop, tabSide, tabs.paddingBottom)
+        val tabMargin = if (tabletLayout) side else 0
+        (tabs.layoutParams as ViewGroup.MarginLayoutParams).let {
+            if (it.marginStart != tabMargin) {
+                it.marginStart = tabMargin
+                it.marginEnd = tabMargin
+                tabs.layoutParams = it
+            }
+        }
+        tabs.clipToPadding = tabletLayout
+        // Six pills with the icon beside the label need about 760 dp. A narrower tablet column (the Tab upright beside
+        // the side menu) puts the icon above the label so all six still show; a phone scrolls the row instead.
+        val inline = !tabletLayout || contentWidthDp >= TABS_INLINE_MIN_WIDTH_DP
+        if (tabs.isInlineLabel != inline) tabs.isInlineLabel = inline
+        val titleSide = if (tabletLayout) side else resources.getDimensionPixelSize(R.dimen.space_gutter)
+        binding.content.collapsingToolbar.expandedTitleMarginStart = titleSide
+        binding.content.collapsingToolbar.expandedTitleMarginEnd = titleSide
+        binding.content.toolbar.setContentInsetsRelative(
+            if (tabletLayout) side else toolbarInsetStart, if (tabletLayout) side else toolbarInsetEnd
+        )
+        binding.content.toolbar.contentInsetStartWithNavigation = if (tabletLayout) side else toolbarInsetWithNavigation
+        binding.content.toolbar.titleMarginStart = if (tabletLayout) 0 else toolbarTitleMarginStart
         val mini = binding.content.miniPlayer.root
         val params = mini.layoutParams as ViewGroup.MarginLayoutParams
-        val margin = maxOf(side, resources.getDimensionPixelSize(R.dimen.phi_8))
+        val margin = if (tabletLayout) side else maxOf(side, resources.getDimensionPixelSize(R.dimen.phi_8))
         if (params.marginStart != margin) {
             params.marginStart = margin
             params.marginEnd = margin
@@ -1057,17 +1208,50 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
             formatDuration(songs.sumOf { it.durationMs })
         )
 
-    private fun play(songs: List<MusicSong>, index: Int) {
+    private fun play(songs: List<MusicSong>, index: Int, lyrics: Boolean = false) {
         // The song that is already in the session: the player opens and it plays on from where it is, in any list
         // (also in another list than the one it was started from); no new queue, no seek.
         if (MusicLibrary.isSameSong(songs[index].path, controller?.currentMediaItem?.mediaId)) {
-            startActivitySafe(AudioPlayerActivity.createResumeIntent(this))
+            val resume = AudioPlayerActivity.createResumeIntent(this)
+            startActivitySafe(if (lyrics) AudioPlayerActivity.withLyrics(resume) else resume)
             return
         }
         val window = queueWindow(songs.size, index)
         val intent = Intent(this, AudioPlayerActivity::class.java)
         AudioPlayerActivity.putExtras(intent, songs.slice(window).map { Paths.get(it.path) }, index - window.first)
-        startActivitySafe(intent)
+        startActivitySafe(if (lyrics) AudioPlayerActivity.withLyrics(intent) else intent)
+    }
+
+    /** Finds out once whether [song] has lyrics and shows the pictogram on its row if it is still on screen. */
+    private fun lookUpLyrics(song: MusicSong) {
+        if (song.path in hasLyrics || !lyricsLookups.add(song.path)) return
+        // Not immediate: the row being bound is attached only after this returns.
+        lifecycleScope.launch(Dispatchers.Main) {
+            val found = lyricsGate.withPermit {
+                // A row that scrolled away while it waited is looked up again when it comes back.
+                if (rowOnScreen(song.path) == null) null
+                else runCatching { LyricsRepository.load(song) != null }.getOrDefault(false)
+            }
+            lyricsLookups.remove(song.path)
+            if (found == null) return@launch
+            hasLyrics[song.path] = found
+            if (found && selection.isEmpty()) rowOnScreen(song.path)?.findViewById<View>(R.id.lyrics)?.isVisible = true
+        }
+    }
+
+    private fun rowOnScreen(path: String): View? {
+        val list = binding.content.recyclerView
+        for (i in 0 until list.childCount) {
+            list.getChildAt(i).takeIf { it.tag == path }?.let { return it }
+        }
+        return null
+    }
+
+    /** The music actions on the session, the same ones a voice command will use; null before it is connected. */
+    private fun musicActions(): MusicActions? = controller?.let { player ->
+        ControllerMusicActions(player, { command, args -> player.sendCustomCommand(command, args) }, {
+            MusicCatalog(library?.songs.orEmpty(), history, playlistData)
+        })
     }
 
     private fun connectController() {
@@ -1146,8 +1330,15 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
         if (artKey != miniArtKey || !mini.root.isVisible) {
             miniArtKey = artKey
             mini.art.collage.isVisible = false
-            mini.art.cover.loadCover(art, placeholder(album, R.drawable.audio_icon_white_24dp))
+            mini.art.cover.loadCover(art, placeholder(album, R.drawable.audio_icon_white_24dp)) {
+                tintMiniPlayer(it, artKey)
+            }
+            if (art == null) tintMiniPlayer(null, artKey)
         }
+        // A quiet, still wave while music plays, flat when paused. It does not flow: MDC moves it every display frame,
+        // which cost about 9 % of a core on the Galaxy Tab S9 Ultra (18.11.2026) for a 2 dp line.
+        mini.progress.waveAmplitude =
+            if (isPlaying) resources.getDimensionPixelSize(R.dimen.music_mini_wave_amplitude) else 0
         if (!mini.root.isVisible) {
             mini.root.isVisible = true
             if (Motion.any) {
@@ -1173,7 +1364,7 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
         binding.content.miniPlayer.progress.setProgressCompat(progress, false)
     }
 
-    private fun ImageView.loadCover(data: Any?, placeholder: Drawable?) {
+    private fun ImageView.loadCover(data: Any?, placeholder: Drawable?, onLoaded: ((Drawable?) -> Unit)? = null) {
         if (data == null) {
             dispose()
             setImageDrawable(placeholder)
@@ -1183,6 +1374,66 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
             placeholder(placeholder)
             error(placeholder)
             crossfade(Motion.any)
+            if (onLoaded != null) {
+                // The tint reads the cover's pixels, which a hardware bitmap does not allow.
+                allowHardware(false)
+                listener(onSuccess = { _, result -> onLoaded(result.drawable) }, onError = { _, _ -> onLoaded(null) })
+            }
+        }
+    }
+
+    /**
+     * The mini player takes on the playing cover's colour like the player: the card tinted towards it, the wave in its
+     * accent, both WCAG-checked by [AudioPlayerColorWash.scheme] and computed off the main thread; no cover or a failed
+     * check keeps the theme's colours.
+     */
+    private fun tintMiniPlayer(drawable: Drawable?, key: Any?) {
+        val mini = binding.content.miniPlayer
+        val surface = MaterialColors.getColor(mini.root, com.google.android.material.R.attr.colorSurfaceVariant)
+        val onSurface = MaterialColors.getColor(mini.root, com.google.android.material.R.attr.colorOnSurface)
+        val primary = MaterialColors.getColor(mini.root, androidx.appcompat.R.attr.colorPrimary)
+        miniCoverColors = Settings.MUSIC_COVER_COLORS.valueCompat
+        // "Colours from the cover" off (Ordo Musik › Settings): the chosen accent.
+        val bitmap = (drawable as? BitmapDrawable)?.bitmap?.takeIf { miniCoverColors }
+        if (bitmap == null) {
+            applyMiniColors(surface, primary)
+            return
+        }
+        val isLight = androidx.core.graphics.ColorUtils.calculateLuminance(surface) > 0.5
+        lifecycleScope.launch {
+            val scheme = withContext(Dispatchers.Default) {
+                val small = Bitmap.createScaledBitmap(bitmap, MINI_TINT_SAMPLE, MINI_TINT_SAMPLE, true)
+                val pixels = IntArray(MINI_TINT_SAMPLE * MINI_TINT_SAMPLE)
+                small.getPixels(pixels, 0, MINI_TINT_SAMPLE, 0, 0, MINI_TINT_SAMPLE, MINI_TINT_SAMPLE)
+                if (small !== bitmap) small.recycle()
+                AudioPlayerColorWash.seed(pixels)?.let { AudioPlayerColorWash.scheme(it, surface, onSurface, isLight) }
+            }
+            if (key != miniArtKey) return@launch
+            applyMiniColors(scheme?.tint ?: surface, scheme?.accent ?: primary)
+        }
+    }
+
+    private fun applyMiniColors(card: Int, accent: Int) {
+        val mini = binding.content.miniPlayer
+        val from = mini.root.cardBackgroundColor.defaultColor
+        val fromAccent = miniAccent ?: accent
+        miniAccent = accent
+        miniColorAnimator?.cancel()
+        val evaluator = android.animation.ArgbEvaluator()
+        fun apply(f: Float) {
+            mini.root.setCardBackgroundColor(evaluator.evaluate(f, from, card) as Int)
+            val a = evaluator.evaluate(f, fromAccent, accent) as Int
+            mini.progress.setIndicatorColor(a)
+            mini.progress.trackColor = androidx.core.graphics.ColorUtils.setAlphaComponent(a, MINI_TRACK_ALPHA)
+        }
+        if (!Motion.any || !mini.root.isShown) {
+            apply(1f)
+            return
+        }
+        miniColorAnimator = android.animation.ValueAnimator.ofFloat(0f, 1f).apply {
+            duration = MINI_TINT_FADE_MS
+            addUpdateListener { apply(it.animatedFraction) }
+            start()
         }
     }
 
@@ -1225,6 +1476,16 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
 
         override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
             val binding = (holder as Holder<*>).binding
+            if (binding is MusicLibraryRowBinding) {
+                val start = if (tabletLayout) 0 else resources.getDimensionPixelSize(R.dimen.space_gutter)
+                binding.root.setPaddingRelative(
+                    start, binding.root.paddingTop, binding.root.paddingEnd, binding.root.paddingBottom
+                )
+            } else if (binding is MusicLibraryActionsBinding) {
+                // "Shuffle all" starts and ends where the title, the tabs and the rows do.
+                val side = if (tabletLayout) 0 else resources.getDimensionPixelSize(R.dimen.space_gutter)
+                binding.root.setPaddingRelative(side, binding.root.paddingTop, side, binding.root.paddingBottom)
+            }
             when (val row = rows[position]) {
                 is Row.Actions -> bindActions(binding as MusicLibraryActionsBinding, row.shuffleOnly)
                 is Row.Header -> bindHeader(binding as MusicLibraryHeaderBinding, row.group)
@@ -1271,6 +1532,15 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
                     }
                     more.isVisible = selection.isEmpty()
                     more.contentDescription = getString(R.string.music_more_options, song.title)
+                    root.tag = song.path
+                    // Tablets keep the pictogram's slot in every song row: the durations of both columns line up.
+                    lyrics.visibility = when {
+                        selection.isEmpty() && hasLyrics[song.path] == true -> View.VISIBLE
+                        tabletLayout -> View.INVISIBLE
+                        else -> View.GONE
+                    }
+                    lyrics.setOnClickListener { play(shownSongs, row.index, lyrics = true) }
+                    lookUpLyrics(song)
                     more.setOnClickListener { showSongMenu(it, song) }
                     root.setPaddingRelative(
                         root.paddingStart, root.paddingTop, resources.getDimensionPixelSize(R.dimen.phi_5),
@@ -1293,6 +1563,8 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
                     duration.isVisible = false
                     numberSlot.isVisible = false
                     more.isVisible = false
+                    lyrics.isVisible = false
+                    root.tag = null
                     art.root.isVisible = true
                     art.bars.isVisible = false
                     art.selected.isVisible = false
@@ -1326,6 +1598,8 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
                     duration.isVisible = false
                     numberSlot.isVisible = false
                     more.isVisible = false
+                    lyrics.isVisible = false
+                    root.tag = null
                     art.root.isVisible = true
                     art.bars.isVisible = false
                     art.selected.isVisible = false
@@ -1357,19 +1631,25 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
         }
     }
 
-    /** The album grid's φ spacing: 21 dp at the edges, 13 dp between columns and rows, every cell equally wide. */
+    // Tablet edges already come from the shared gutter; only albums need cover spacing.
     private inner class GridSpacing : RecyclerView.ItemDecoration() {
+        private val phoneOuter = resources.getDimension(R.dimen.phi_21)
+        private val gutter = resources.getDimension(R.dimen.phi_13)
+        private val top = resources.getDimensionPixelSize(R.dimen.phi_8)
+
         override fun getItemOffsets(outRect: Rect, view: View, parent: RecyclerView, state: RecyclerView.State) {
+            outRect.setEmpty()
+            if (!albumGrid) return
             val layoutManager = parent.layoutManager as? GridLayoutManager ?: return
-            val position = parent.getChildAdapterPosition(view).takeIf { it >= 0 } ?: return
+            val position = parent.getChildAdapterPosition(view)
+            if (position < 0) return
             val columns = layoutManager.spanCount
             val column = position % columns
-            val outer = resources.getDimension(R.dimen.phi_21)
-            val gutter = resources.getDimension(R.dimen.phi_13)
+            val outer = if (tabletLayout) 0f else phoneOuter
             val perCell = (2 * outer + (columns - 1) * gutter) / columns
             val left = outer + column * (gutter - perCell)
             outRect.set(
-                left.toInt(), if (position < columns) resources.getDimensionPixelSize(R.dimen.phi_8) else 0,
+                left.toInt(), if (position < columns) top else 0,
                 (perCell - left).toInt(), gutter.toInt()
             )
         }
@@ -1424,7 +1704,10 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
         private const val TAB_SONGS = 0
         private const val TAB_ALBUMS = 1
         private const val TAB_ARTISTS = 2
-        private const val TAB_FOLDERS = 3
+        // In the order of use (owner, 19.11.2026); favourites and playlists are the side menu's sections as tabs.
+        private const val TAB_PLAYLISTS = 3
+        private const val TAB_FAVORITES = 4
+        private const val TAB_FOLDERS = 5
         private const val TYPE_HEADER = 3
         private const val TYPE_ACTIONS = 0
         private const val TYPE_ROW = 1
@@ -1433,7 +1716,13 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
         // Once a second, like the player: a screen that redraws more often never goes idle for accessibility tools.
         private const val PROGRESS_UPDATE_INTERVAL_MS = 1_000L
         private const val MINI_PLAYER_FADE_MS = 200L
+        private const val MINI_TINT_SAMPLE = 24
+        private const val HERO_PARALLAX = 0.4f
+        private const val HERO_FADE = 0.6f
+        private const val MINI_TINT_FADE_MS = 300L
+        private const val MINI_TRACK_ALPHA = 0x3d
         private const val DISABLED_ALPHA = 0.38f
         private const val TWO_PANE_MIN_WIDTH_DP = 600
+        private const val TABS_INLINE_MIN_WIDTH_DP = 760
     }
 }

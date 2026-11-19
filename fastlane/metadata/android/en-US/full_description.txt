@@ -57,4 +57,4 @@ A file manager has to read and change the files you open with it. Ordo never sen
 Open source
 Ordo is free software under the GNU GPL 3.0 and builds on Material Files by Hai Zhang. Source code: https://github.com/BEKO2210/ordo
 
-Available in English and German. Requires Android 6.0 or later.
+Available in English and German. Requires Android 7.0 or later.

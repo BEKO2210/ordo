@@ -5,4 +5,10 @@
     <item name="ordo_row_ripple" type="id" />
     <item name="klangLeftPane" type="id" />
     <item name="klangRightPane" type="id" />
+    <item name="queue_move_up" type="id" />
+    <item name="queue_move_down" type="id" />
+    <item name="queue_remove" type="id" />
+    <item name="lyricsChip" type="id" />
+    <item name="queueChip" type="id" />
+    <item name="lyricsPlayPause" type="id" />
 </resources>

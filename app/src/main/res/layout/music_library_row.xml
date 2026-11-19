@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later -->
 <!-- A song, an artist or a folder: cover (or track number), title, an info line if it says something new, and
-     for songs the duration and a ⋮ menu. -->
+     for songs a lyrics pictogram (if they have lyrics), the duration and a ⋮ menu. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
@@ -72,17 +72,34 @@
             android:layout_marginTop="@dimen/phi_3"
             android:ellipsize="end"
             android:hyphenationFrequency="none"
-            android:maxLines="2"
+            android:maxLines="1"
             android:textAppearance="?textAppearanceCaption"
             android:textColor="?android:textColorSecondary" />
     </LinearLayout>
+
+    <!-- Songs with lyrics (a .lrc beside them or embedded): a tap opens the player straight in the lyrics. -->
+    <ImageButton
+        android:id="@+id/lyrics"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_marginStart="@dimen/phi_5"
+        android:background="?selectableItemBackgroundBorderless"
+        android:contentDescription="@string/music_has_lyrics"
+        android:padding="@dimen/phi_13"
+        android:scaleType="fitCenter"
+        android:src="@drawable/tag_lyrics_icon_white_24dp"
+        android:visibility="gone"
+        app:tint="?android:textColorSecondary" />
 
     <TextView
         android:id="@+id/duration"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/space_card_v"
+        android:ellipsize="end"
         android:fontFeatureSettings="tnum"
+        android:hyphenationFrequency="none"
+        android:maxLines="1"
         android:textAppearance="?textAppearanceCaption"
         android:textColor="?android:textColorSecondary" />
 

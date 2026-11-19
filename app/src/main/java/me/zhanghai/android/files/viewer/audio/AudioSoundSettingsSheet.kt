@@ -237,7 +237,9 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment() {
         if (!Motion.any) dialog.window?.setWindowAnimations(0)
         val sheet = dialog.findViewById<View>(com.google.android.material.R.id.design_bottom_sheet) ?: return
         val split = isSplit()
-        val maxWidth = if (split) (SPLIT_MAX_DP * resources.displayMetrics.density).roundToInt()
+        // Two panes take the whole window: the player's own close button behind a narrower sheet looked like a
+        // second one, and the left pane needs the room.
+        val maxWidth = if (split) resources.displayMetrics.widthPixels
         else resources.getDimensionPixelSize(R.dimen.klang_sheet_max_width)
         val width = minOf(resources.displayMetrics.widthPixels, maxWidth)
         sheet.layoutParams = sheet.layoutParams.apply {
@@ -320,7 +322,7 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment() {
     private fun setColumns() {
         val density = resources.displayMetrics.density
         // Two panes: the cards get 61.8 % of the wide sheet.
-        val sheetDp = if (isSplit()) minOf(resources.configuration.screenWidthDp.toFloat(), SPLIT_MAX_DP) * 0.618f
+        val sheetDp = if (isSplit()) resources.configuration.screenWidthDp * 0.618f
         else minOf(
             resources.configuration.screenWidthDp.toFloat(),
             resources.getDimension(R.dimen.klang_sheet_max_width) / density
@@ -975,11 +977,14 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment() {
                     else getString(presetLabel(settings.preset))
             }
         }
-        binding.equalizerCurve.offText = when (kind) {
+        // The off state is a quiet line above the dimmed curve, never a pill over its handles.
+        val offText = when (kind) {
             EqualizerStatusKind.UNSUPPORTED -> getString(R.string.audio_sound_effect_unavailable)
             EqualizerStatusKind.OFF -> getString(R.string.audio_sound_curve_off)
             else -> null
         }
+        binding.curveOffLabel.text = offText
+        binding.curveOffLabel.isInvisible = offText == null // keeps its line: the curve does not jump
         setEnabledRecursively(binding.equalizerEnabled, status?.equalizerAvailable == true)
         val controlsEnabled = status?.let {
             equalizerControlsEnabled(it.equalizerAvailable, settings.equalizerEnabled)
@@ -1049,7 +1054,6 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment() {
         private const val HIGHS_REFRESH_MS = 2_500L
         private const val SNAP_DELAY_MS = 350L
         private const val SPLIT_MIN_DP = 840
-        private const val SPLIT_MAX_DP = 960f
         /** Off or held off in the lower sheet: dimmed, but graphic and value keep at least 3 : 1 against the card. */
         private const val OFF_ALPHA = 0.6f
         private const val SLEEP_REFRESH_MS = 30_000L

@@ -103,6 +103,7 @@
     <string name="music_add_to_queue">Add to queue</string>
     <string name="music_show_file">Show file</string>
     <string name="music_more_options">More options for %1$s</string>
+    <string name="music_has_lyrics">Lyrics available</string>
     <string name="music_added_next">Plays next</string>
     <string name="music_added_to_queue">Added to the queue</string>
     <string name="music_nav_library">Library</string>
@@ -169,4 +170,18 @@
     </plurals>
     <string name="music_selection_close">End selection</string>
     <string name="music_now_playing">Now playing: %1$s, %2$s. Opens the player</string>
+    <string name="settings_music_title">Ordo Music</string>
+    <string name="settings_music_cover_colors_title">Colours from the cover</string>
+    <string name="settings_music_cover_colors_on">The player and mini player take the colour of the cover that plays</string>
+    <string name="settings_music_cover_colors_off">The player uses the accent colour chosen below</string>
+    <string name="settings_music_preview_cover">The mini player in the playing cover’s colours</string>
+    <string name="settings_music_preview_accent">The mini player in the chosen accent colour</string>
+    <string name="settings_music_icon_colors_title">Ordo Music’s icon colour</string>
+    <string name="settings_music_icon_colors_summary">The colour of its own home-screen icon</string>
+    <string name="settings_music_effects_title">Visual effects</string>
+    <string-array name="settings_music_effects_entries">
+        <item>Maximal (a little more battery)</item>
+        <item>Balanced</item>
+        <item>Saver (easy on the battery)</item>
+    </string-array>
 </resources>

@@ -15,7 +15,7 @@
 
 <p align="center">
 <!-- AUTO:badges -->
-  <a href="https://github.com/BEKO2210/ordo/releases/tag/v0.14.2"><img alt="release 0.14.2" src="https://img.shields.io/badge/release-0.14.2-2563EB"></a>
+  <a href="https://github.com/BEKO2210/ordo/releases/tag/v0.14.4"><img alt="release 0.14.4" src="https://img.shields.io/badge/release-0.14.4-2563EB"></a>
   <img alt="Android 7.0+" src="https://img.shields.io/badge/Android-7.0%2B-3DDC84">
   <a href="LICENSE"><img alt="License: GPL-3.0-or-later" src="https://img.shields.io/badge/license-GPL--3.0--or--later-blue"></a>
 <!-- /AUTO:badges -->
@@ -33,18 +33,18 @@
 </p>
 
 <!-- AUTO:new -->
-> **New in 0.14.2**
-> - Stream music to your TV: Chromecast and Google TV, without Google services
-> - The TV shows title, artist, album and cover
-> - Control it from the notification, the lock screen and the volume keys
-> - Stopping hands the music back to the phone at the same spot
-> - Safe: Ordo checks the Chromecast is genuine and shares only the playing song
+> **New in 0.14.4**
+> - Synced lyrics, large and centred; a lyrics mark in the song list
+> - Library with Playlists and Favorites as tabs, a soft edge when scrolling, tablets use the full width
+> - Swipe the cover for the next song, reorder the queue
+> - Appearance: colours from the cover, accent colour, a level for visual effects
+> - Sound sheet reworked, click-free effects, tested up to 24-bit/192 kHz
 <!-- /AUTO:new -->
 
 ## Status
 
 <!-- AUTO:status -->
-Current version 0.14.2 · [release v0.14.2](https://github.com/BEKO2210/ordo/releases/tag/v0.14.2) · Android 7.0 and later (minSdk 24, targetSdk 36 = Android 16) · [GPL-3.0-or-later](LICENSE)
+Current version 0.14.4 · [release v0.14.4](https://github.com/BEKO2210/ordo/releases/tag/v0.14.4) · Android 7.0 and later (minSdk 24, targetSdk 36 = Android 16) · [GPL-3.0-or-later](LICENSE)
 <!-- /AUTO:status -->
 
 Ordo is in development. A closed test runs on Google Play; test builds are also published as
@@ -100,8 +100,9 @@ What comes next is in the [living roadmap](docs/ROADMAP-LIVE.md): every goal has
 
 ### Ordo Music – a music app of its own
 
-- Songs, Albums, Artists and Folders with search, “Shuffle all” and a mini player
-- A player that takes its colour from the cover, with queue and background controls
+- Songs, Albums, Artists, Playlists, Favorites and Folders with search, “Shuffle all” and a mini player
+- A player that takes its colour from the cover, over a softly moving backdrop made from it, with a wavy seek bar that moves only when you hold it, queue and background controls
+- Synced lyrics from a .lrc beside the song or embedded in it, swipe the cover to change songs, a queue you can reorder, and Ordo Music settings with “Colours from the cover”
 - Sound: a 10-band EQ you shape on the curve, presets, device effects, ReplayGain/R128, a fading sleep timer
 - “Play on…” sends the music to Bluetooth, wired and cast devices through Android's output picker (Android 11 and later)
 
@@ -490,7 +491,7 @@ Run the unit tests with:
 ```
 
 <!-- AUTO:tests -->
-Device tests: 27 scripts in [`e2e/`](e2e/README.md), run with `e2e/run.sh`: 15 read-only (`first-run`, `smoke`, `settings-visual`, `category-search`, `back-navigation`, `bars-replay`, `home-header`, `header-position`, `home-pull`, `drawer`, `selection-more`, `tablet-landscape`, `analysis`, `ai-show-guard`, `documents-provider`) and 12 more with `--write` (`stress-delete`, `backup-restore`, `home-auto-refresh`, `audio-player`, `cast`, `klang`, `klang-landscape`, `music-library`, `launcher-icons`, `icon-colors`, `ai-show`, `pick-file`). Unit tests: 79 test classes in `app/src/test`.
+Device tests: 32 scripts in [`e2e/`](e2e/README.md), run with `e2e/run.sh`: 15 read-only (`first-run`, `smoke`, `settings-visual`, `category-search`, `back-navigation`, `bars-replay`, `home-header`, `header-position`, `home-pull`, `drawer`, `selection-more`, `tablet-landscape`, `analysis`, `ai-show-guard`, `documents-provider`) and 17 more with `--write` (`stress-delete`, `backup-restore`, `home-auto-refresh`, `audio-player`, `cast`, `klang`, `klang-landscape`, `klang-stress`, `music-formats`, `music-library`, `launcher-icons`, `icon-colors`, `ai-show`, `pick-file`, `no-midword-breaks`, `player-seek`, `player-stage2`). Unit tests: 86 test classes in `app/src/test`.
 <!-- /AUTO:tests -->
 
 ## Roadmap
