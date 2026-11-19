@@ -504,7 +504,7 @@ Gerätetests: 39 Skripte in [`e2e/`](e2e/README.md), gestartet mit `e2e/run.sh`:
 
 ## Ausblick
 
-Als Nächstes geplant: Tabs und Zwei-Fenster-Ansicht, Untertitel für den Video-Player, Sicherung
+Als Nächstes geplant: Tabs und Zwei-Fenster-Ansicht, Sicherung
 nach Zeitplan und Cloud-Speicher. Der ganze Plan steht in [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ## Mitmachen

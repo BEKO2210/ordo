@@ -497,7 +497,7 @@ Device tests: 39 scripts in [`e2e/`](e2e/README.md), run with `e2e/run.sh`: 15 r
 
 ## Roadmap
 
-Planned next: tabs and a two-pane view, subtitles for the video player, scheduled backups,
+Planned next: tabs and a two-pane view, scheduled backups,
 and cloud storage. The full plan is in [docs/ROADMAP.md](docs/ROADMAP.md) (German).
 
 ## Contributing
