@@ -28,10 +28,16 @@ import java.nio.ByteOrder
 class LoudnessAnalysis internal constructor(
     private val cache: Cache,
     private val openSource: (File) -> Source?,
-    private val now: () -> Long = { System.nanoTime() / 1_000_000 }
+    private val now: () -> Long = { System.nanoTime() / 1_000_000 },
+    private val maxMillis: Long = MAX_MILLIS
 ) {
     constructor(context: Context) : this(
         PreferencesCache(context), ::openMediaCodec
+    )
+
+    /** With a longer time limit: a two-hour film's sound takes longer to decode than a song (Ordo Video). */
+    constructor(context: Context, maxMillis: Long) : this(
+        PreferencesCache(context), ::openMediaCodec, maxMillis = maxMillis
     )
 
     /** Key-value store of results; SharedPreferences in the app, a map in tests. */
@@ -87,7 +93,7 @@ class LoudnessAnalysis internal constructor(
         var frames = 0L
         var idle = 0
         while (true) {
-            if (Thread.currentThread().isInterrupted || now() - start > MAX_MILLIS) return null
+            if (Thread.currentThread().isInterrupted || now() - start > maxMillis) return null
             when (val step = source.next()) {
                 Step.End -> break
                 Step.TryAgain -> if (++idle > MAX_IDLE) return null

@@ -231,6 +231,22 @@
             </com.google.android.material.card.MaterialCardView>
 
             <com.google.android.material.card.MaterialCardView
+                style="@style/Widget.Ordo.Klang.Card"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="@dimen/klang_card_gap_half">
+                <include
+                    android:id="@+id/levelRow"
+                    layout="@layout/klang_switch_row"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/klang_space_lg"
+                    android:layout_marginTop="@dimen/klang_space_md"
+                    android:layout_marginEnd="@dimen/klang_space_lg"
+                    android:layout_marginBottom="@dimen/klang_space_md" />
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
                 android:id="@+id/bassCard"
                 style="@style/Widget.Ordo.Klang.Card"
                 android:layout_width="match_parent"

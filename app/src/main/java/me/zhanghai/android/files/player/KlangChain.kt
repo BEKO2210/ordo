@@ -336,8 +336,9 @@ class KlangProcessors(dither: Boolean = true) {
     val warmth = WarmthStage()
     val reverb = ReverbStage()
     val processor = KlangAudioProcessor(arrayOf(mono, highs, crossfeed, width, warmth, reverb), dither)
+    val truePeak = TruePeakLimiter()
 
-    val chain: Array<AudioProcessor> get() = arrayOf(processor)
+    val chain: Array<AudioProcessor> get() = arrayOf(processor, truePeak)
 
     /**
      * Crossfeed only makes sense in headphones; crossfeed and width have nothing left to work on after the mono mix.
@@ -355,6 +356,9 @@ class KlangProcessors(dither: Boolean = true) {
         reverb.preset = settings.reverbPreset
         reverb.mixPercent = settings.reverbMix
         reverb.effectEnabled = settings.reverbEnabled
+        // Only while something changes the sound; untouched music stays bit-perfect.
+        truePeak.armed = mono.effectEnabled || highs.effectEnabled || crossfeed.effectEnabled ||
+            width.effectEnabled || warmth.effectEnabled || reverb.effectEnabled
     }
 }
 

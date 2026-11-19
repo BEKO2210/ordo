@@ -67,7 +67,8 @@ class ClickFreeTest {
                 frame++
             }
         }
-        return arrayOf(left, right)
+        // The true-peak limiter holds back its last frames (TruePeakLimiter.LATENCY): only what came out counts.
+        return arrayOf(left.copyOf(frame), right.copyOf(frame))
     }
 
     private fun maxDelta(signal: FloatArray, from: Int, to: Int): Float {
