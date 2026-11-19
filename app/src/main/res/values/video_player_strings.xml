@@ -36,4 +36,11 @@
     <string name="video_player_error_damaged">This file looks damaged or incomplete.</string>
     <string name="video_player_error_read">Ordo can’t read this file.</string>
     <string name="video_player_error">This video couldn’t be played.</string>
+    <string name="video_library_continue">Continue watching</string>
+    <string name="video_library_all">All</string>
+    <string name="video_library_all_videos">All videos</string>
+    <string name="video_library_folders">Folders</string>
+    <string name="video_library_left_format">%1$s left</string>
+    <string name="video_library_empty">No videos found yet. Put videos in a folder such as Movies, DCIM or Download and they show up here.</string>
+    <string name="video_library_access_message">Allow storage access so Ordo can find your videos.</string>
 </resources>

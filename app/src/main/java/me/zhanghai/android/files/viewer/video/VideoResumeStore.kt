@@ -18,6 +18,16 @@ class VideoResumeStore(context: Context) {
 
     fun read(key: String): Long? = decode(preferences.getString(key, null))?.first
 
+    /** Every saved place, for Ordo Video's "Continue watching". */
+    fun readAll(): List<Entry> =
+        preferences.all.mapNotNull { (key, value) ->
+            val (pathUri, size) = parseKey(key) ?: return@mapNotNull null
+            val (position, savedAt) = decode(value as? String) ?: return@mapNotNull null
+            Entry(pathUri, size, position, savedAt)
+        }
+
+    data class Entry(val pathUri: String, val size: Long, val positionMs: Long, val savedAtMs: Long)
+
     fun write(key: String, positionMs: Long, durationMs: Long, nowMs: Long = System.currentTimeMillis()) {
         if (!isWorthKeeping(positionMs, durationMs)) {
             if (preferences.contains(key)) preferences.edit { remove(key) }
@@ -43,6 +53,14 @@ class VideoResumeStore(context: Context) {
         internal const val MAX_FRACTION = 0.95
 
         fun key(pathUri: String, size: Long, lastModifiedMs: Long): String = "$pathUri|$size|$lastModifiedMs"
+
+        /** Path URI and size back from a [key]; null for anything else. */
+        internal fun parseKey(key: String): Pair<String, Long>? {
+            val withoutTime = key.substringBeforeLast('|', "")
+            val size = withoutTime.substringAfterLast('|').toLongOrNull() ?: return null
+            val pathUri = withoutTime.substringBeforeLast('|', "").takeIf { it.isNotEmpty() } ?: return null
+            return pathUri to size
+        }
 
         internal fun isWorthKeeping(positionMs: Long, durationMs: Long): Boolean =
             durationMs > 0 && positionMs >= MIN_POSITION_MS && positionMs <= durationMs * MAX_FRACTION

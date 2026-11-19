@@ -24,10 +24,10 @@ class BuiltInAppTest {
     private fun Element.attr(name: String): String = getAttribute("android:$name")
 
     @Test
-    fun onlyTheMusicPlayerIsReadyAndTheOthersAreAnnounced() {
-        assertEquals(listOf(BuiltInApp.MUSIC), BuiltInApp.available)
+    fun musicAndVideoAreReadyAndTheOthersAreAnnounced() {
+        assertEquals(listOf(BuiltInApp.MUSIC, BuiltInApp.VIDEO), BuiltInApp.available)
         assertEquals(
-            listOf(BuiltInApp.VIDEO, BuiltInApp.IMAGES, BuiltInApp.PDF, BuiltInApp.NOTES),
+            listOf(BuiltInApp.IMAGES, BuiltInApp.PDF, BuiltInApp.NOTES),
             BuiltInApp.entries.filter { !it.isAvailable }
         )
     }

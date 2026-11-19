@@ -23,6 +23,14 @@ class VideoResumeStoreTest {
     }
 
     @Test
+    fun aKeyGivesBackItsPathAndSize() {
+        val key = VideoResumeStore.key("file:///Movies/a%7Cb.mp4", 1_000L, 5L)
+        assertEquals("file:///Movies/a%7Cb.mp4" to 1_000L, VideoResumeStore.parseKey(key))
+        assertNull(VideoResumeStore.parseKey("garbage"))
+        assertNull(VideoResumeStore.parseKey("file:///a.mp4|x|5"))
+    }
+
+    @Test
     fun onlyTheMiddleOfAFilmIsKept() {
         val duration = 100_000L
         assertFalse(VideoResumeStore.isWorthKeeping(9_999L, duration))

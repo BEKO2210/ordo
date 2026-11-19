@@ -107,6 +107,8 @@ class VideoPlayerActivity : AppActivity() {
     private var trackedPosition = 0L
     private var trackedDuration = 0L
     private var ticks = 0
+    // Opened from Ordo Video's "Continue watching": the first video goes straight to its place, no pill.
+    private var resumeDirectly = false
 
     private val isPhone: Boolean
         get() = resources.configuration.smallestScreenWidthDp < 600
@@ -143,6 +145,7 @@ class VideoPlayerActivity : AppActivity() {
             if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO) trackedPosition = trackedDuration
             saveResume()
             startTracking(mediaItem)
+            resumeDirectly = false
             binding.errorPanel.isVisible = false
             binding.resumePill.isVisible = false
             mediaItem?.let { offerResume(it, showPill = true) }
@@ -173,6 +176,7 @@ class VideoPlayerActivity : AppActivity() {
         binding = VideoPlayerActivityBinding.inflate(layoutInflater)
         setContentView(binding.root)
         resumeStore = VideoResumeStore(this)
+        resumeDirectly = savedInstanceState == null && intent.getBooleanExtra(EXTRA_RESUME, false)
         val queue = resolveLaunchQueue(savedInstanceState)
         if (queue == null) {
             if (hasLaunchContent()) {
@@ -575,6 +579,11 @@ class VideoPlayerActivity : AppActivity() {
             val position = resumeStore.read(key) ?: return@launch
             val player = player ?: return@launch
             if (player.currentMediaItem?.mediaId != mediaId || player.currentPosition >= position) return@launch
+            if (resumeDirectly) {
+                resumeDirectly = false
+                player.seekTo(position)
+                return@launch
+            }
             binding.resumePill.text = getString(R.string.video_player_resume_format, formatTime(position))
             binding.resumePill.setOnClickListener {
                 binding.resumePill.isVisible = false
@@ -716,6 +725,7 @@ class VideoPlayerActivity : AppActivity() {
 
     companion object {
         private const val EXTRA_QUEUE_TOKEN = "me.zhanghai.android.files.viewer.video.extra.QUEUE_TOKEN"
+        private const val EXTRA_RESUME = "me.zhanghai.android.files.viewer.video.extra.RESUME"
         private const val STATE_MEDIA_ID = "mediaId"
         private const val STATE_INDEX = "index"
         private const val STATE_POSITION = "position"
@@ -736,10 +746,12 @@ class VideoPlayerActivity : AppActivity() {
         private val SPEEDS = floatArrayOf(0.5f, 0.75f, 1f, 1.25f, 1.5f, 2f)
 
         /** The folder's videos stay in this process; the intent only carries the token to take them over. */
-        fun putExtras(intent: Intent, paths: List<Path>, position: Int) {
+        fun putExtras(intent: Intent, paths: List<Path>, position: Int, resume: Boolean = false) {
             intent.putExtra(
                 EXTRA_QUEUE_TOKEN, AudioQueueRequests.register(AudioQueueRequests.Request(paths, position))
             )
+            // Only seeks within the file the token names; a forged extra alone opens nothing.
+            if (resume) intent.putExtra(EXTRA_RESUME, true)
         }
     }
 }

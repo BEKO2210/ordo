@@ -36,4 +36,11 @@
     <string name="video_player_error_damaged">Die Datei scheint beschädigt oder unvollständig.</string>
     <string name="video_player_error_read">Ordo kann diese Datei nicht lesen.</string>
     <string name="video_player_error">Dieses Video lässt sich nicht abspielen.</string>
+    <string name="video_library_continue">Weiterschauen</string>
+    <string name="video_library_all">Alle</string>
+    <string name="video_library_all_videos">Alle Videos</string>
+    <string name="video_library_folders">Ordner</string>
+    <string name="video_library_left_format">Noch %1$s</string>
+    <string name="video_library_empty">Noch keine Videos gefunden. Lege Videos in einen Ordner wie Movies, DCIM oder Download, dann erscheinen sie hier.</string>
+    <string name="video_library_access_message">Erlaube den Speicherzugriff, damit Ordo deine Videos findet.</string>
 </resources>

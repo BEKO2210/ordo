@@ -59,7 +59,7 @@ Nicht im Manifest: Standort (`ACCESS_FINE_LOCATION`, `ACCESS_COARSE_LOCATION`, `
 | Komponente | Filter |
 | --- | --- |
 | `home.HomeActivity` | `MAIN` / `LEANBACK_LAUNCHER` |
-| `launcher.Home*`, `launcher.Music*` (`activity-alias`, je Icon-Farbe eines) | `MAIN` / `LAUNCHER`; nur das gewählte ist eingeschaltet, im Manifest nur `launcher.HomeAlias` |
+| `launcher.Home*`, `launcher.Music*`, `launcher.Video*` (`activity-alias`, je Icon-Farbe eines) | `MAIN` / `LAUNCHER`; nur das gewählte ist eingeschaltet, im Manifest nur `launcher.HomeAlias` |
 | `filelist.FileListActivity` | `VIEW` für Ordner-MIME-Typen und Archive, `GET_CONTENT`, `OPEN_DOCUMENT`, `CREATE_DOCUMENT`, `me.zhanghai.android.files.intent.action.VIEW_DOWNLOADS`. Zusätzlich `android:visibleToInstantApps="true"` |
 | `filelist.OpenFileActivity` | `me.zhanghai.android.files.intent.action.OPEN_FILE` |
 | `ftpserver.FtpServerActivity` | `me.zhanghai.android.files.intent.action.MANAGE_FTP_SERVER`, `android.service.quicksettings.action.QS_TILE_PREFERENCES` |
@@ -69,6 +69,7 @@ Nicht im Manifest: Standort (`ACCESS_FINE_LOCATION`, `ACCESS_COARSE_LOCATION`, `
 | `viewer.text.TextEditorActivity` | `VIEW` für Text- und verwandte MIME-Typen |
 | `viewer.image.ImageViewerActivity` | `VIEW` `image/*` |
 | `viewer.pdf.PdfViewerActivity` | `VIEW` `application/pdf` |
+| `viewer.video.VideoPlayerActivity` | `VIEW` `video/*` (nur `content://` mit Lese-Grant) |
 | `ftpserver.FtpServerTileService` | `android.service.quicksettings.action.QS_TILE` |
 | `rikka.shizuku.ShizukuProvider` | kein Filter. `android:permission="android.permission.INTERACT_ACROSS_USERS_FULL"`. Ordo fordert diese Berechtigung nicht selbst an |
 

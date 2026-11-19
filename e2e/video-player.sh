@@ -116,6 +116,27 @@ check "the pill says where" eval "ui texts | grep -qE 'Weiter bei|Resume at'"
 ui tap resumePill >/dev/null; sleep 1.5; pause; p8=$(pos)
 check "a tap on the pill goes there ($p7 -> $p8 ms)" within "${p8:-0}" $((${p7:-0} - 1500)) $((${p7:-0} + 3000))
 
+# Ordo Video (the library behind the launcher icon): the clip just left is under "Continue watching" and opens at
+# its place without the pill. MediaStore must know the clips first.
+for n in 01 02; do
+    a shell am broadcast -a android.intent.action.MEDIA_SCANNER_SCAN_FILE -d "file://$DIR/$n-clip.mp4" >/dev/null 2>&1
+done
+back 2; sleep 3
+a shell am start -W -n "$PKG/me.zhanghai.android.files.viewer.video.VideoLauncherActivity" >/dev/null; sleep 3; guard
+check "Ordo Video opens its library" on viewer.video.VideoLauncherActivity
+check "the library offers Continue watching" ui wait "Weiterschauen|Continue watching" 8
+check "the library lists the clip" ui has 01-clip
+ui tap 01-clip >/dev/null; wait_on viewer.video.VideoPlayerActivity 8; sleep 2; pause; p8b=$(pos)
+check "from Continue watching it starts at its place ($p8b ms)" within "${p8b:-0}" $((${p7:-0} - 1500)) $((${p7:-0} + 4000))
+check "and offers no pill" eval '! ui has resumePill'
+back 2
+check "back returns to the library" on viewer.video.VideoLauncherActivity
+back 2
+open_folder 01-clip.mp4
+ui tap 01-clip.mp4 >/dev/null; wait_on viewer.video.VideoPlayerActivity 8; sleep 1
+a shell input keyevent KEYCODE_MEDIA_PAUSE; sleep 1
+ui tap resumePill >/dev/null 2>&1; sleep 1.5
+
 # 5. The end of a clip starts the next one of the folder.
 a shell input keyevent KEYCODE_MEDIA_PLAY; sleep 22; pause
 check "the next video of the folder follows" ui has 02-clip.mp4
