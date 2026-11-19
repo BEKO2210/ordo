@@ -577,7 +577,8 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
      * parallax); without motion it simply scrolls with the list.
      */
     private fun parallaxHeader(list: RecyclerView) {
-        val header = list.findViewHolderForAdapterPosition(0)?.itemView ?: return
+        // Only a page's header: the first album cover or song row also has an R.id.art, and a recycled one kept the drift.
+        val header = list.findViewHolderForAdapterPosition(0)?.takeIf { it.itemViewType == TYPE_HEADER }?.itemView ?: return
         val art = header.findViewById<View>(R.id.art) ?: return
         if (!Motion.any || header.height == 0) {
             art.translationY = 0f
