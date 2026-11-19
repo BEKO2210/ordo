@@ -105,10 +105,26 @@ check "Ordo Musik opens its library, not the player" on viewer.audio.MusicLaunch
 # Ordo Musik is its own app: a task of its own affinity, a separate card in Recents next to the file manager.
 music_task() { a shell dumpsys activity recents | grep -Eq "A=[0-9]+:me\.zhanghai\.android\.files\.music([ }]|$)"; }
 check "Recents shows Ordo Musik as a task of its own" music_task
+# On a phone the six tabs scroll sideways: a tab off screen is swiped into view (towards the end, then back).
+show_tab() {
+    local i x1 y1 x2 y2 dir l r y
+    ui has "$1" && return 0
+    for dir in end start end start; do
+        read -r x1 y1 x2 y2 < <(ui bounds tabs | head -1); [ -n "$y2" ] || return 1
+        # Inside the middle half: a swipe from the screen's edge is the system back gesture.
+        l=$((x1 + (x2 - x1) / 4)); r=$((x2 - (x2 - x1) / 4)); y=$(((y1 + y2) / 2))
+        for i in 1 2; do
+            if [ $dir = end ]; then a shell input swipe $r $y $l $y 300; else a shell input swipe $l $y $r $y 300; fi
+            ui wait "$1" 1.5 >/dev/null 2>&1 && return 0
+        done
+    done
+    return 1
+}
 for t in "Titel|Songs" "Alben|Albums" "Interpreten|Artists" "Wiedergabelisten|Playlists" "Favoriten|Favorites" \
     "Ordner|Folders"; do
-    check "the tab $t is shown" ui has "$t"
+    check "the tab $t is shown" show_tab "$t"
 done
+show_tab "Titel|Songs" >/dev/null
 check "shuffle all is the first row" eval 'ui texts | grep -Eq "^(Alle zufällig|Shuffle all) \([0-9]+\)\|"'
 # A device has other music too: every list is narrowed by search to the test songs, which no other name contains.
 # Enter submits the search: the soft keyboard closes and no longer hides the lower rows (phones).
@@ -170,6 +186,7 @@ MENU="Navigationsmenü öffnen|Open navigation drawer"
 # From 840 dp width (a tablet in landscape, a Tab S9 Ultra even upright) the menu is a pane that is always there;
 # the button would close it. Otherwise the button slides it in.
 open_menu() { ui has "Bibliothek|Library" titleText && return 0; ui tap "$MENU" && sleep 1; }
+# The menu's entries by their id: Playlists and Favourites are also tabs, still in the screen dump behind the menu.
 check "the side menu is open or opens" open_menu
 check "the side menu names Ordo Musik" ui wait "Ordo Musik|Ordo Music" 5
 check "the side menu offers the library" ui has "Bibliothek|Library"
@@ -177,7 +194,7 @@ check "the side menu offers sound and the sleep timer" ui has "Einschlaf-Timer|S
 check "recently played opens" ui tap "Zuletzt gespielt|Recently played"
 check "the played song is in the history" ui wait "Ordoe2e Alpha" 5
 check "the menu goes back to the library" eval 'open_menu && ui tap "Bibliothek|Library"'
-check "the library tabs are back" ui wait "Ordner|Folders" 5
+check "the library tabs are back" ui wait "Alben|Albums" 5
 check "Sound opens from the side menu" eval 'open_menu && ui tap "Klang|Sound"'
 check "the Sound sheet opens over the player" ui wait "Equalizer" 8
 back 1.5; back 2
@@ -195,16 +212,16 @@ in_playlist() { a shell cat "\"$PLAYLISTS/Ordoe2e List.m3u8\"" | grep -q "OrdoE2
 check "the playlist is an M3U8 file in Music/Playlists" eval 'sleep 2; in_playlist'
 close_search
 ui has "$MENU" || ui has "Bibliothek|Library" titleText || { echo "DIAG before the side menu:"; ui texts | head -20 | sed 's/^/  /'; }
-check "the side menu lists the playlist" eval 'open_menu && ui tap "Wiedergabelisten|Playlists" && ui wait "Ordoe2e List" 5'
+check "the side menu lists the playlist" eval 'open_menu && ui tap "Wiedergabelisten|Playlists" titleText && ui wait "Ordoe2e List" 5'
 check "the playlist opens with its songs" eval 'ui tap "Ordoe2e List" && ui wait "Ordoe2e Alpha" 5 && ui has "Ordoe2e Beta"'
 back 1.5; back 1.5
 check "a song becomes a favourite from its menu" eval 'search Ordoe2e && ui tap "Weitere Optionen für Ordoe2e Gamma|More options for Ordoe2e Gamma" \
     && ui wait "Zu Favoriten|Add to favorites" 5 && ui tap "Zu Favoriten|Add to favorites"'
 close_search
-check "the favourites show it" eval 'open_menu && ui tap "Favoriten|Favorites" && ui wait "Ordoe2e Gamma" 5'
-# Favourites and playlists are tabs of the library: the tab row stays, with the other tabs beside them.
-check "the favourites keep the tab row" ui has "Alben|Albums"
-check "the menu returns to the library" eval 'open_menu && ui tap "Bibliothek|Library" && ui wait "Ordner|Folders" 5'
+check "the favourites show it" eval 'open_menu && ui tap "Favoriten|Favorites" titleText && ui wait "Ordoe2e Gamma" 5'
+# Favourites and playlists are tabs of the library: the tab row stays, the selected tab scrolled into view (phones).
+check "the favourites keep the tab row, their tab in view" ui has "Favoriten|Favorites"
+check "the menu returns to the library" eval 'open_menu && ui tap "Bibliothek|Library" && ui wait "Alben|Albums" 5'
 
 # The tag editor: a new title for the MP3 and the FLAC; the library shows it and the song still plays.
 edit_title() {
@@ -257,7 +274,7 @@ PY
 }
 own_covers() {
     local red blue
-    ui tap "Ordner|Folders" && search OrdoE2E-Covers && ui tap OrdoE2E-Covers title && ui wait "Ordoe2e Red" 5 || return 1
+    show_tab "Ordner|Folders" && ui tap "Ordner|Folders" && search OrdoE2E-Covers && ui tap OrdoE2E-Covers title && ui wait "Ordoe2e Red" 5 || return 1
     sleep 2
     red=$(cover_colour "Ordoe2e Red"); blue=$(cover_colour "Ordoe2e Blue")
     echo "covers: red row $red, blue row $blue" > "$tmp/covers.txt"
@@ -267,7 +284,7 @@ own_covers() {
 }
 check "a folder page shows each song's own cover" own_covers
 cat "$tmp/covers.txt" 2>/dev/null
-check "the Folders tab opens" ui tap "Ordner|Folders"
+check "the Folders tab opens" eval 'show_tab "Ordner|Folders" && ui tap "Ordner|Folders"'
 search OrdoE2E
 check "the first folder is listed" ui wait OrdoE2E-Rock 5
 check "the second folder is listed" ui has OrdoE2E-Jazz
@@ -277,7 +294,7 @@ check "the folder lists its WAV" ui has "Ordoe2e Delta"
 check "the folder offers play and shuffle" ui has "Abspielen|Play"
 back 1.5
 check "back leaves the folder, not the app" on viewer.audio.MusicLauncherActivity
-check "the tabs are back" ui has "Alben|Albums"
+check "the tabs are back" show_tab "Alben|Albums"
 check "the Albums tab opens" ui tap "Alben|Albums"
 search Ordoe2e
 check "the album is listed" ui wait "$ROCKS" 5
