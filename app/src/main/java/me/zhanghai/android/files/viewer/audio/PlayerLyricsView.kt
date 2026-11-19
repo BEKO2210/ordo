@@ -50,7 +50,13 @@ class PlayerLyricsView(
     private val bottomFade = View(context)
     // A RecyclerView: only the lines on screen have views, so even the longest file stays light (at most 5,000 lines,
     // see Lyrics).
-    private val list = RecyclerView(context)
+    // The framework's fading edges at the list's own top and bottom (not at its large centring padding): the lines
+    // fade out under the header and above the play button; only the edge strips go through a layer.
+    private val list = object : RecyclerView(context) {
+        override fun isPaddingOffsetRequired() = true
+        override fun getTopPaddingOffset() = -paddingTop
+        override fun getBottomPaddingOffset() = paddingBottom
+    }
     private val layoutManager = LinearLayoutManager(context)
     private val adapter = LineAdapter()
     private var lyrics: Lyrics? = null
@@ -67,6 +73,8 @@ class PlayerLyricsView(
         list.adapter = adapter
         list.itemAnimator = null
         list.clipToPadding = false
+        list.isVerticalFadingEdgeEnabled = true
+        list.setFadingEdgeLength(resources.getDimensionPixelSize(R.dimen.phi_55))
         list.isVerticalScrollBarEnabled = false
         list.updatePadding(left = side, right = side)
         list.addOnScrollListener(object : RecyclerView.OnScrollListener() {
