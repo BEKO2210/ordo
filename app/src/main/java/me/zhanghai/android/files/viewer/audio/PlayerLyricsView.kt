@@ -108,8 +108,8 @@ class PlayerLyricsView(
         playPause.scaleType = android.widget.ImageView.ScaleType.FIT_CENTER
         playPause.id = R.id.lyricsPlayPause
         playPause.setOnClickListener { onPlayPause() }
-        addView(bottomFade, LayoutParams(LayoutParams.MATCH_PARENT, play + 2 * resources.getDimensionPixelSize(
-            R.dimen.phi_34), Gravity.BOTTOM))
+        addView(bottomFade, LayoutParams(LayoutParams.MATCH_PARENT, resources.getDimensionPixelSize(R.dimen.phi_89),
+            Gravity.BOTTOM))
         addView(playPause, LayoutParams(play, play, Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL).apply {
             bottomMargin = resources.getDimensionPixelSize(R.dimen.phi_34)
         })
@@ -121,7 +121,9 @@ class PlayerLyricsView(
         val headerRight = header.paddingRight
         val headerBottom = header.paddingBottom
         val buttonBottom = (playPause.layoutParams as LayoutParams).bottomMargin
-        val fadeHeight = bottomFade.layoutParams.height
+        // The lines end above the control zone and fade out there, so none runs behind the button.
+        val listBottom = buttonBottom + (playPause.layoutParams as LayoutParams).height +
+            resources.getDimensionPixelSize(R.dimen.phi_13)
         ViewCompat.setOnApplyWindowInsetsListener(this) { _, insets ->
             val bars = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.systemBars() or
                 androidx.core.view.WindowInsetsCompat.Type.displayCutout())
@@ -131,7 +133,8 @@ class PlayerLyricsView(
             val bottomInset = maxOf(bars.bottom, gestures.bottom)
             header.setPadding(bars.left, bars.top, headerRight + bars.right, headerBottom)
             (playPause.layoutParams as LayoutParams).bottomMargin = buttonBottom + bottomInset
-            bottomFade.layoutParams.height = fadeHeight + bottomInset
+            (list.layoutParams as LayoutParams).bottomMargin = listBottom + bottomInset
+            (bottomFade.layoutParams as LayoutParams).bottomMargin = listBottom + bottomInset
             requestLayout()
             insets
         }
@@ -166,12 +169,19 @@ class PlayerLyricsView(
             resources.displayMetrics.density).toInt()) / 2)
         if (middle != centerY || list.paddingLeft != side) {
             centerY = middle
-            list.updatePadding(left = side, right = side, top = middle, bottom = (bottom - top) - middle)
+            list.updatePadding(left = side, right = side, top = middle, bottom = list.height - middle)
             post { center(animate = false, force = true) }
         }
     }
 
     private var centerY = 0
+
+    // Large lines as Apple Music and Spotify show them, scaled to the window: on a tablet the playing line 38 sp bold
+    // and the others about 28 sp; on a phone 30 sp and about 26 sp.
+    private val wide = resources.configuration.smallestScreenWidthDp >= 600
+    private val lineSp = if (wide) 38f else 30f
+    private val inactiveScale = if (wide) 0.74f else 0.86f
+    private val linePadding = resources.getDimensionPixelSize(if (wide) R.dimen.phi_21 else R.dimen.phi_13)
 
     @SuppressLint("NotifyDataSetChanged")
     fun show(lyrics: Lyrics, textColor: Int, dimColor: Int, veil: Int) {
@@ -240,8 +250,7 @@ class PlayerLyricsView(
     }
 
     private fun estimatedRow(): Int =
-        (LINE_TEXT_SP * resources.displayMetrics.scaledDensity * 1.3f).toInt() +
-            2 * resources.getDimensionPixelSize(R.dimen.phi_13)
+        (lineSp * resources.displayMetrics.scaledDensity * 1.3f).toInt() + 2 * linePadding
 
     /**
      * Emphasis by distance from the playing line, as the big players do: the line itself bold, full size, in the text
@@ -259,7 +268,7 @@ class PlayerLyricsView(
         val base = if (active) textColor else dimColor
         view.setTextColor(androidx.core.graphics.ColorUtils.setAlphaComponent(base, (Color.alpha(base) * alpha).toInt()))
         view.typeface = if (synced && distance == 0) BOLD else MEDIUM
-        val scale = if (active) 1f else INACTIVE_SCALE
+        val scale = if (active) 1f else inactiveScale
         if (animate) {
             view.animate().scaleX(scale).scaleY(scale).setDuration(STYLE_MS).start()
         } else {
@@ -274,11 +283,12 @@ class PlayerLyricsView(
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
             val view = TextView(context).apply {
-                setTextSize(TypedValue.COMPLEX_UNIT_SP, LINE_TEXT_SP)
+                setTextSize(TypedValue.COMPLEX_UNIT_SP, lineSp)
                 typeface = MEDIUM
                 setLineSpacing(0f, 1.15f)
-                val vertical = resources.getDimensionPixelSize(R.dimen.phi_13)
-                updatePadding(top = vertical, bottom = vertical)
+                // Wrap at word boundaries only, never inside a word.
+                hyphenationFrequency = android.text.Layout.HYPHENATION_FREQUENCY_NONE
+                updatePadding(top = linePadding, bottom = linePadding)
                 gravity = Gravity.CENTER_HORIZONTAL
                 textAlignment = View.TEXT_ALIGNMENT_CENTER
                 layoutParams = RecyclerView.LayoutParams(
@@ -322,8 +332,6 @@ class PlayerLyricsView(
 
     companion object {
         private const val ACTIVE = "active"
-        private const val LINE_TEXT_SP = 28f
-        private const val INACTIVE_SCALE = 0.86f
         private const val EMPHASIS_STEPS = 3
         // Opacity by distance from the playing line: 0 (itself), 1, 2, 3 and more.
         private val STEP_ALPHA = floatArrayOf(1f, 1f, 0.75f, 0.55f)
