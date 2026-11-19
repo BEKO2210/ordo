@@ -220,6 +220,31 @@ Quelle der Entscheidungen: `ordo-team/QUALITAET-PANEL.md`, Ideen 1–4. Logik oh
   Ton: Format, Decoder (bei Durchreichen „keiner“), Klang-Stufen (im Video-Player bisher nur Tempo), Ausgabegerät (ab
   API 33 von Android, davor das wahrscheinlichste angeschlossene), Abtastrate gegen Androids Ausgaberate, Kanäle mit
   Abmischung oder System-Raumklang. „Unverfälscht“ steht nur, wenn nichts verändert. Aktualisiert sich jede Sekunde.
+- **Bildtakt** (Zeile im Signalweg, `FramePacing`, getestet in `PictureMeasuresTest`): Abstände der von Media3
+  geplanten Freigabezeiten je Bild (`VideoFrameMetadataListener`, schon auf das Vsync-Raster gelegt) geteilt durch die
+  Vsync-Dauer der Anzeige, über die letzten 1200 Bilder, zurückgesetzt bei Sprung, neuem Video und Tempo. Teilt die
+  Bildrate die Bildwiederholrate, steht „24 fps auf 120 Hz: 99,9 % gleichmäßig (5 Vsyncs je Bild)“, sonst
+  „Pulldown 3:2“ mit Anteil und dem Anteil langer Bilder gegen den erwarteten (½ bei 3:2). Ab 48 Bildern. Das misst Ordos Planung; was das Panel wirklich zeigte, liest
+  `e2e/video-picture.sh` aus `dumpsys SurfaceFlinger --latency`. Ziel nach `ordo-team/WISSENSCHAFT.md` §1.2.6: 24p auf
+  120 Hz 99,9 % der Bilder genau 5 Vsyncs. Quellen: developer.android.com/media/optimize/performance/frame-rate (24p auf
+  120 Hz ohne Pulldown); Chapiro, Atkins, Daly, ACM TOG 2019, doi:10.1145/3338696 (Judder hängt von der Helligkeit ab).
+  **Nicht gemessen.** Debug-Log alle 240 Bilder: `pacing fps=… hz=… vsyncs={5=…}`.
+- **Gamma an Raumlicht** (Einstellungen › Bild, experimentell, Standard aus; `AmbientGamma`, getestet in
+  `PictureMeasuresTest`): ITU-R BT.2390-12 (03/2025), Abschnitt zu nicht genormten Umgebungen (BBC-Test, 21 Personen):
+  γ_hell = γ_ref − 0,076 · log10(L_Umgebung / 5) für Umgebungen über 5 cd/m², γ_ref = 1,2 (Systemgamma nach BT.2100).
+  Annahme, am Gerät zu kalibrieren: Lux des Lichtsensors → cd/m² über einen matten Raum mit 20 % Reflexion
+  (L = E · 0,2 / π); volles Sonnenlicht (100 000 lx) ergibt so γ 0,96. Geglättet mit 5 s Zeitkonstante und höchstens 0,01 Gamma pro Sekunde (kein
+  Pumpen). Im Shader als Exponent-Verhältnis auf der Luma wie HLGs OOTF: rgb · Y'^(γ/1,2 − 1), pro Bild gelesen, ohne
+  die Kette neu zu bauen. Wirkt nur, solange der Bildverbesserungs-Pass läuft; der Sensor hört nur bei sichtbarem
+  Player zu. Signalweg-Zeile „Raumlicht: 1 200 lx → Gamma 1,11 (Bezug 1,20)“.
+- **HDR→SDR mit eigener EETF (BT.2408-9 Anhang 5): nicht gebaut**, weil Media3 1.11.1 es nicht zulässt. Eigene Effekte
+  bekommen HDR nur dann linear (BT.2020, 16 bit), wenn die Ausgabe HDR ist (`GlEffect`-Javadoc,
+  `DefaultVideoFrameProcessor` L703–722). Ist die Ausgabe SDR, rechnet schon der Eingangs-Shader mit Media3s fester
+  Kurve um (`DefaultShaderProgram`, `uApplyHdrToSdrToneMapping`), bevor ein Effekt das Bild sieht. Welche Ausgabe gewählt
+  wird, entscheidet `PlaybackVideoGraphWrapper.registerInput` (L568–596) selbst; der Schalter
+  `setRequestOpenGlToneMapping` ist nicht öffentlich über ExoPlayer erreichbar. Mit HDR-Ausgabe würde Android die
+  Umrechnung für ein SDR-Display wieder selbst machen (doppelt), und die Kette verwirft HDR-Metadaten
+  (`setHdrStaticInfo(null)`) und Dolby Vision. Darum bleibt HDR wie bisher ohne Kette direkt beim Decoder.
 - **Lizenzen:** CAS MIT (Text im Kopf von `PictureShader.kt`), libplacebo LGPL-2.1-or-later (nach §3 als GPL-3.0
   weitergegeben); beide in `res/raw/licenses.xml`. Neue Abhängigkeit `media3-effect` 1.11.1.
 - **Gerätetest:** `e2e/video-picture.sh` (`--write`-Liste in `e2e/run.sh`).

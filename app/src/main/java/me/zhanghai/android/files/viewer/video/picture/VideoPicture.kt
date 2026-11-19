@@ -5,6 +5,10 @@
 
 package me.zhanghai.android.files.viewer.video.picture
 
+import android.hardware.Sensor
+import android.hardware.SensorEvent
+import android.hardware.SensorEventListener
+import android.hardware.SensorManager
 import android.media.AudioDeviceInfo
 import android.media.AudioFormat
 import android.media.AudioManager
@@ -43,6 +47,7 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.analytics.AnalyticsListener
 import androidx.media3.exoplayer.audio.AudioSink
 import androidx.media3.exoplayer.mediacodec.MediaCodecUtil
+import androidx.media3.exoplayer.video.VideoFrameMetadataListener
 import androidx.media3.ui.PlayerView
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import java.text.NumberFormat
@@ -106,6 +111,43 @@ class VideoPicture(
     private var audioTrack: AudioSink.AudioTrackConfig? = null
     private val hardware = HashMap<String, Boolean>()
 
+    // Frame pacing: how many vsyncs each frame stands (playback thread writes, the sheet reads).
+    private val pacing = FramePacing()
+    private val frameListener = VideoFrameMetadataListener { _, releaseTimeNs, _, _ ->
+        pacing.onFrame(releaseTimeNs)
+        // The player and the activity belong to the main thread.
+        if (++pacedFrames % PACING_LOG_FRAMES == 0L && Log.isLoggable(PICTURE_LOG_TAG, Log.DEBUG)) {
+            handler.post(::logPacing)
+        }
+    }
+    @Volatile
+    private var pacedFrames = 0L
+
+    // Room light (BT.2390-12): the sensor's lux, smoothed into the gamma the shader gets every frame.
+    private val live = PictureLive()
+    private val sensors = activity.getSystemService<SensorManager>()
+    private val lightSensor = sensors?.getDefaultSensor(Sensor.TYPE_LIGHT)
+    private var lux = -1f
+    private var gamma = AmbientGamma.REFERENCE_GAMMA
+    private var ambientActive = false
+    private val lightListener = object : SensorEventListener {
+        override fun onSensorChanged(event: SensorEvent) {
+            lux = event.values.firstOrNull() ?: return
+        }
+
+        override fun onAccuracyChanged(sensor: Sensor, accuracy: Int) {}
+    }
+    private val ambientTicker = object : Runnable {
+        override fun run() {
+            if (lux >= 0f) {
+                val target = AmbientGamma.gamma(AmbientGamma.surroundLuminance(lux))
+                gamma = AmbientGamma.step(gamma, target, AMBIENT_TICK_MS / 1000.0)
+                live.gammaRatio = AmbientGamma.ratio(gamma)
+            }
+            handler.postDelayed(this, AMBIENT_TICK_MS)
+        }
+    }
+
     private val evaluateRunnable = Runnable { evaluate() }
     private val layoutListener = View.OnLayoutChangeListener { _, l, t, r, b, ol, ot, or, ob ->
         if (r - l != or - ol || b - t != ob - ot) scheduleEvaluate()
@@ -125,6 +167,7 @@ class VideoPicture(
     fun attach(player: ExoPlayer) {
         this.player = player
         player.addAnalyticsListener(this)
+        player.setVideoFrameMetadataListener(frameListener)
         evaluate()
     }
 
@@ -245,7 +288,7 @@ class VideoPicture(
         if (appliedKey == key) return
         appliedKey = key
         // Lanczos fits the frame into the surface, so the final copy onto the screen is pixel for pixel.
-        player.setVideoEffects(listOf(LanczosResample.scaleToFit(width, height), PictureEnhanceEffect(params)))
+        player.setVideoEffects(listOf(LanczosResample.scaleToFit(width, height), PictureEnhanceEffect(params, live)))
         if (redraw) redrawIfPaused(player)
     }
 
@@ -280,7 +323,20 @@ class VideoPicture(
         decoderReuseEvaluation: DecoderReuseEvaluation?
     ) {
         videoFormat = format
+        pacing.reset()
     }
+
+    override fun onPositionDiscontinuity(
+        eventTime: AnalyticsListener.EventTime,
+        oldPosition: androidx.media3.common.Player.PositionInfo,
+        newPosition: androidx.media3.common.Player.PositionInfo,
+        reason: Int
+    ) = pacing.reset()
+
+    override fun onPlaybackParametersChanged(
+        eventTime: AnalyticsListener.EventTime,
+        playbackParameters: androidx.media3.common.PlaybackParameters
+    ) = pacing.reset()
 
     override fun onVideoDecoderInitialized(
         eventTime: AnalyticsListener.EventTime,
@@ -343,16 +399,45 @@ class VideoPicture(
     override fun onStart(owner: LifecycleOwner) {
         started = true
         frameRate?.setActive(!inPip)
+        setAmbient(Settings.VIDEO_AMBIENT_GAMMA.valueCompat)
         scheduleEvaluate()
     }
 
     override fun onStop(owner: LifecycleOwner) {
         started = false
         frameRate?.setActive(false)
+        setAmbient(false)
+    }
+
+    /** The light sensor only listens while the player is on screen and the setting is on. */
+    private fun setAmbient(on: Boolean) {
+        val active = on && lightSensor != null
+        if (active == ambientActive) return
+        ambientActive = active
+        if (active) {
+            sensors?.registerListener(lightListener, lightSensor, SensorManager.SENSOR_DELAY_NORMAL)
+            handler.postDelayed(ambientTicker, AMBIENT_TICK_MS)
+        } else {
+            sensors?.unregisterListener(lightListener)
+            handler.removeCallbacks(ambientTicker)
+            lux = -1f
+            gamma = AmbientGamma.REFERENCE_GAMMA
+            live.gammaRatio = 1f
+        }
+    }
+
+    private fun logPacing() {
+        val refresh = display()?.refreshRate ?: return
+        val summary = FramePacing.summarize(pacing.intervals(), 1e9 / refresh)
+        val fps = (videoFormat?.frameRate ?: 0f) * (player?.playbackParameters?.speed ?: 1f)
+        Log.d(PICTURE_LOG_TAG, "pacing fps=$fps hz=$refresh vsyncs=${summary.counts.toSortedMap()} " +
+            "verdict=${FramePacing.verdict(summary, fps, refresh)}")
     }
 
     override fun onDestroy(owner: LifecycleOwner) {
+        setAmbient(false)
         handler.removeCallbacksAndMessages(null)
+        player?.clearVideoFrameMetadataListener(frameListener)
         activity.removeOnPictureInPictureModeChangedListener(pipListener)
         surfaceView?.removeOnLayoutChangeListener(layoutListener)
         frameRate?.release()
@@ -475,6 +560,7 @@ class VideoPicture(
             } else {
                 activity.getString(R.string.video_signal_frame_rate_unknown_format, hz, mode)
             },
+            pacingText(format, hz),
             when {
                 decision == null -> null
                 enhanced -> activity.getString(
@@ -486,6 +572,7 @@ class VideoPicture(
                 )
                 else -> activity.getString(R.string.video_signal_off_format, offText(decision.off ?: Off.NO_VIDEO))
             },
+            ambientText(enhanced),
             player?.videoDecoderCounters?.droppedBufferCount?.toString(),
             resultText(changes.map {
                 when (it) {
@@ -559,6 +646,44 @@ class VideoPicture(
                     SignalPath.AudioChange.SPATIALIZED -> R.string.video_signal_change_spatialized
                 }
             })
+        )
+    }
+
+    /** "24 fps on 120 Hz: 99.9 % even (5 vsyncs per frame)" or the pulldown, once enough frames were seen. */
+    private fun pacingText(format: Format, hz: String): String? {
+        val refresh = display()?.refreshRate ?: return null
+        val fps = format.frameRate * (player?.playbackParameters?.speed ?: 1f)
+        if (fps <= 0f) return null
+        val verdict = FramePacing.verdict(FramePacing.summarize(pacing.intervals(), 1e9 / refresh), fps, refresh)
+            ?: return activity.getString(R.string.video_signal_pacing_measuring)
+        val rate = "${formatNumber(fps)} fps"
+        val percent = NumberFormat.getPercentInstance().apply { maximumFractionDigits = 1 }
+        return when (verdict) {
+            is FramePacing.Verdict.Even -> activity.getString(
+                R.string.video_signal_pacing_even_format, rate, hz, percent.format(verdict.share), verdict.vsyncs,
+                verdict.frames
+            )
+            is FramePacing.Verdict.Pulldown -> activity.getString(
+                R.string.video_signal_pacing_pulldown_format, rate, hz, verdict.longer, verdict.shorter,
+                percent.format(verdict.share), percent.format(verdict.longShare),
+                percent.format(verdict.expectedLongShare), verdict.frames
+            )
+        }
+    }
+
+    /** The room light and the gamma it gives; null while the setting is off. */
+    private fun ambientText(enhanced: Boolean): String? {
+        if (!ambientActive) return null
+        if (lux < 0f) return activity.getString(R.string.video_signal_pacing_measuring)
+        val luxText = NumberFormat.getIntegerInstance().format(lux.toDouble())
+        if (!enhanced) return activity.getString(R.string.video_signal_ambient_idle_format, luxText)
+        val number = NumberFormat.getInstance().apply {
+            minimumFractionDigits = 2
+            maximumFractionDigits = 2
+        }
+        return activity.getString(
+            R.string.video_signal_ambient_format, luxText, number.format(gamma),
+            number.format(AmbientGamma.REFERENCE_GAMMA)
         )
     }
 
@@ -677,14 +802,17 @@ class VideoPicture(
 
         private val CLEARED = Any()
         private const val SIGNAL_REFRESH_MS = 1_000L
+        private const val AMBIENT_TICK_MS = 250L
+        private const val PACING_LOG_FRAMES = 240L
         private val VIDEO_PROCESSING_ERRORS = setOf(
             PlaybackException.ERROR_CODE_VIDEO_FRAME_PROCESSOR_INIT_FAILED,
             PlaybackException.ERROR_CODE_VIDEO_FRAME_PROCESSING_FAILED
         )
         private val PICTURE_ROWS = listOf(
             R.string.video_signal_decoder, R.string.video_signal_codec, R.string.video_signal_resolution,
-            R.string.video_signal_hdr, R.string.video_signal_frame_rate, R.string.video_signal_enhancement,
-            R.string.video_signal_dropped, R.string.video_signal_result
+            R.string.video_signal_hdr, R.string.video_signal_frame_rate, R.string.video_signal_pacing,
+            R.string.video_signal_enhancement, R.string.video_signal_ambient, R.string.video_signal_dropped,
+            R.string.video_signal_result
         )
         private val SOUND_ROWS = listOf(
             R.string.video_signal_codec, R.string.video_signal_decoder, R.string.video_signal_sound_stages,

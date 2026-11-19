@@ -80,6 +80,11 @@
             android:entries="@array/video_settings_frame_rate_entries"
             android:entryValues="@array/pref_entry_values_video_frame_rate"
             app:useSimpleSummaryProvider="true" />
+        <SwitchPreferenceCompat
+            android:key="@string/pref_key_video_ambient_gamma"
+            android:title="@string/video_settings_ambient_gamma"
+            android:summary="@string/video_settings_ambient_gamma_summary"
+            android:defaultValue="@bool/pref_default_value_false" />
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/video_settings_cat_gestures">

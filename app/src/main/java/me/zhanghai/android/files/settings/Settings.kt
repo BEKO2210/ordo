@@ -198,6 +198,8 @@ object Settings {
         StringSettingLiveData(R.string.pref_key_video_frame_rate, R.string.pref_default_value_video_frame_rate)
     val VIDEO_PICTURE: SettingLiveData<String> =
         StringSettingLiveData(R.string.pref_key_video_picture, R.string.pref_default_value_video_picture)
+    val VIDEO_AMBIENT_GAMMA: SettingLiveData<Boolean> =
+        BooleanSettingLiveData(R.string.pref_key_video_ambient_gamma, R.bool.pref_default_value_false)
     val VIDEO_KEEP_SCREEN_ON: SettingLiveData<Boolean> =
         BooleanSettingLiveData(R.string.pref_key_video_keep_screen_on, R.bool.pref_default_value_true)
     val VIDEO_GESTURE_BRIGHTNESS: SettingLiveData<Boolean> =

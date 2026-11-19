@@ -26,9 +26,18 @@ import java.util.Locale
  * band again before the next. Equal parameters make equal effects, so an unchanged list is never set twice.
  */
 @OptIn(UnstableApi::class)
-internal data class PictureEnhanceEffect(val params: PicturePolicy.ShaderParams) : GlEffect {
+internal data class PictureEnhanceEffect(val params: PicturePolicy.ShaderParams, val live: PictureLive) : GlEffect {
     override fun toGlShaderProgram(context: Context, useHdr: Boolean): GlShaderProgram =
-        PictureShaderProgram(params)
+        PictureShaderProgram(params, live)
+}
+
+/**
+ * Values that change while the video plays and must not rebuild the pipeline (setVideoEffects would): read by the
+ * GL thread every frame. One instance per player screen, so equal effects stay equal.
+ */
+internal class PictureLive {
+    @Volatile
+    var gammaRatio = 1f
 }
 
 /**
@@ -36,7 +45,10 @@ internal data class PictureEnhanceEffect(val params: PicturePolicy.ShaderParams)
  * logs its GPU time (glFinish after the draw, so only while logging) and every 120 frames the mean and maximum.
  */
 @OptIn(UnstableApi::class)
-private class PictureShaderProgram(private val params: PicturePolicy.ShaderParams) :
+private class PictureShaderProgram(
+    private val params: PicturePolicy.ShaderParams,
+    private val live: PictureLive
+) :
     BaseGlShaderProgram(/* useHighPrecisionColorComponents= */ false, /* texturePoolCapacity= */ 1) {
     private val glProgram: GlProgram
     private val debug = Log.isLoggable(PICTURE_LOG_TAG, Log.DEBUG)
@@ -81,6 +93,7 @@ private class PictureShaderProgram(private val params: PicturePolicy.ShaderParam
             glProgram.setSamplerTexIdUniform("uTexSampler", inputTexId, /* texUnitIndex= */ 0)
             // Temporal noise: the grain and dither pattern changes every frame, so the eye averages it away.
             glProgram.setFloatUniform("uFrame", (frame % NOISE_PERIOD).toFloat())
+            glProgram.setFloatUniform("uGammaRatio", live.gammaRatio)
             glProgram.bindAttributesAndUniforms()
             GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, /* first= */ 0, /* count= */ 4)
             frame++

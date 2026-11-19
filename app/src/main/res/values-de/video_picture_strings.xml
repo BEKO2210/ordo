@@ -83,4 +83,13 @@
     <string name="video_signal_device_other">Anderes Gerät</string>
     <string name="video_signal_waiting">Wartet auf die Wiedergabe</string>
     <string name="video_info_signal_path">Signalweg</string>
+    <string name="video_settings_ambient_gamma">Gamma an Raumlicht anpassen (experimentell)</string>
+    <string name="video_settings_ambient_gamma_summary">Hellt mittlere Töne in hellen Räumen auf (ITU-R BT.2390), nur bei laufender Bildverbesserung</string>
+    <string name="video_signal_pacing">Bildtakt</string>
+    <string name="video_signal_pacing_even_format">%1$s auf %2$s Hz: %3$s gleichmäßig (%4$d Vsyncs je Bild, %5$d Bilder)</string>
+    <string name="video_signal_pacing_pulldown_format">%1$s auf %2$s Hz: Pulldown %3$d:%4$d bei %5$s der Bilder, %6$s lang (erwartet %7$s, %8$d Bilder)</string>
+    <string name="video_signal_pacing_measuring">Wird gemessen …</string>
+    <string name="video_signal_ambient">Raumlicht</string>
+    <string name="video_signal_ambient_format">%1$s lx → Gamma %2$s (Bezug %3$s)</string>
+    <string name="video_signal_ambient_idle_format">%1$s lx, wirkt nur bei laufender Bildverbesserung</string>
 </resources>
