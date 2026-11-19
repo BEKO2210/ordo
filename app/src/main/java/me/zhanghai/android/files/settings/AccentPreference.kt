@@ -147,6 +147,9 @@ open class AccentPreference @JvmOverloads constructor(
             val touchTarget = FrameLayout(context).apply {
                 layoutParams = LinearLayout.LayoutParams(cell, cell)
                 addView(swatch)
+                // "Same as Ordo" is not a colour of its own: a link badge sets it apart from the accent it currently
+                // equals (Aurora beside Aurora looked like one swatch twice).
+                if (followsOrdo && value == AppAccent.FOLLOW) addView(followGlyph())
                 contentDescription = names[index]
                 isSelected = chosen
                 ViewCompat.setAccessibilityDelegate(this, object : AccessibilityDelegateCompat() {
@@ -231,6 +234,33 @@ open class AccentPreference @JvmOverloads constructor(
         }
         boundSwatches.clear()
         boundPreview = null
+    }
+
+    /**
+     * A small link badge at the swatch's lower end corner, on the page's surface: the centre stays free for the
+     * selection check the swatch draws.
+     */
+    private fun followGlyph(): View {
+        val density = context.resources.displayMetrics.density
+        val size = (20 * density).toInt()
+        val surface = MaterialColors.getColor(context, com.google.android.material.R.attr.colorSurface, Color.WHITE)
+        val onSurface = MaterialColors.getColor(context, com.google.android.material.R.attr.colorOnSurface, Color.BLACK)
+        return android.widget.ImageView(context).apply {
+            setImageResource(R.drawable.settings_link_icon_white_24dp)
+            imageTintList = android.content.res.ColorStateList.valueOf(onSurface)
+            background = android.graphics.drawable.GradientDrawable().apply {
+                shape = android.graphics.drawable.GradientDrawable.OVAL
+                setColor(surface)
+                setStroke((1 * density).toInt().coerceAtLeast(1), onSurface)
+            }
+            val padding = (3 * density).toInt()
+            setPadding(padding, padding, padding, padding)
+            importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+            layoutParams = FrameLayout.LayoutParams(size, size, Gravity.BOTTOM or Gravity.END).apply {
+                val margin = (4 * density).toInt()
+                setMargins(margin, margin, margin, margin)
+            }
+        }
     }
 
     @ColorInt
