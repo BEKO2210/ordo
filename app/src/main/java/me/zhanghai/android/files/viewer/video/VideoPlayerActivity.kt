@@ -21,6 +21,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.view.Gravity
+import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewConfiguration
@@ -57,7 +58,6 @@ import androidx.media3.common.util.Util
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.mediacodec.MediaCodecDecoderException
 import androidx.media3.exoplayer.mediacodec.MediaCodecRenderer
-import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.session.MediaSession
 import androidx.media3.ui.AspectRatioFrameLayout
 import com.google.android.material.bottomsheet.BottomSheetDialog
@@ -84,7 +84,9 @@ import me.zhanghai.android.files.file.fileProviderUri
 import me.zhanghai.android.files.file.loadFileItem
 import me.zhanghai.android.files.player.AudioPlaybackService
 import me.zhanghai.android.files.player.AudioQueueRequests
-import me.zhanghai.android.files.player.PathDataSource
+import me.zhanghai.android.files.viewer.audio.CastChooserSheet
+import me.zhanghai.android.files.viewer.video.cast.VideoCastSession
+import me.zhanghai.android.files.viewer.video.network.VideoNetworkPlayback
 import me.zhanghai.android.files.provider.common.readAttributes
 import me.zhanghai.android.files.provider.linux.isLinuxPath
 import me.zhanghai.android.files.ui.Motion
@@ -99,9 +101,16 @@ import me.zhanghai.android.files.util.startActivitySafe
  * other caller only a `content://` URI with a read grant is played, and path extras are ignored.
  */
 @OptIn(UnstableApi::class)
-class VideoPlayerActivity : AppActivity(), AppAccentActivity {
+class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.Host {
     override val appAccent: SettingLiveData<String>
         get() = Settings.VIDEO_ACCENT
+
+    // Films from SMB/SFTP/WebDAV/FTP (buffer, reconnect) and on a TV; see docs/VIDEO-PLAYER.md.
+    private var network: VideoNetworkPlayback? = null
+    private var castSession: VideoCastSession? = null
+    override val castController: VideoCastSession
+        get() = castSession
+            ?: VideoCastSession(binding.root, binding.rewind, binding.forward, { jumpMs }, castHost).also { castSession = it }
 
     private lateinit var binding: VideoPlayerActivityBinding
     private var player: ExoPlayer? = null
@@ -213,7 +222,7 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity {
         override fun onVideoSizeChanged(videoSize: VideoSize) = followVideoOrientation(videoSize)
 
         override fun onPlayerError(error: PlaybackException) {
-            showError(errorMessage(error))
+            showError(network?.errorMessage(this@VideoPlayerActivity, error) ?: errorMessage(error))
             binding.resumePill.isVisible = false
             controls.setShown(true)
         }
@@ -244,8 +253,9 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity {
         setUpControls()
         binding.playerView.resizeMode = resizeMode
         userOrientation = savedInstanceState?.getBoolean(STATE_USER_ORIENTATION) == true
-        val player = ExoPlayer.Builder(this)
-            .setMediaSourceFactory(DefaultMediaSourceFactory(PathDataSource.Factory(this)))
+        val network = VideoNetworkPlayback.forUri(queue.items.getOrNull(queue.startIndex)?.mediaId)
+        this.network = network
+        val player = network.applyTo(ExoPlayer.Builder(this), this)
             .setAudioAttributes(
                 AudioAttributes.Builder().setUsage(C.USAGE_MEDIA).setContentType(C.AUDIO_CONTENT_TYPE_MOVIE).build(),
                 true
@@ -255,6 +265,7 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity {
             .setWakeMode(C.WAKE_MODE_NETWORK)
             .build()
         this.player = player
+        network.attach(player, binding.root)
         // Its own ID: the music service's session lives in the same process.
         // Unique per screen (two can overlap while one closes). Controllers (media keys, the system) may play and seek
         // but never hand the player items of their own: that would bypass the launch rule above.
@@ -334,12 +345,60 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity {
 
     override fun onDestroy() {
         handler.removeCallbacksAndMessages(null)
+        network?.release()
+        castSession?.release()
         session?.release()
         session = null
         player?.release()
         player = null
         if (isFinishing) AudioQueueRequests.release(intent.getStringExtra(EXTRA_QUEUE_TOKEN))
         super.onDestroy()
+    }
+
+    // While a film plays on the TV, the volume keys set the TV's volume.
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        val up = when (event.keyCode) {
+            KeyEvent.KEYCODE_VOLUME_UP -> true
+            KeyEvent.KEYCODE_VOLUME_DOWN -> false
+            else -> return super.dispatchKeyEvent(event)
+        }
+        val cast = castSession?.takeIf { it.isCasting } ?: return super.dispatchKeyEvent(event)
+        if (event.action == KeyEvent.ACTION_DOWN) cast.onVolumeKey(up)
+        return true
+    }
+
+    private fun showCastChooser() {
+        if (supportFragmentManager.findFragmentByTag(CastChooserSheet.TAG) == null) {
+            CastChooserSheet().show(supportFragmentManager, CastChooserSheet.TAG)
+        }
+    }
+
+    /** Phone → TV at the current place, TV → phone (paused) where the TV was. */
+    private val castHost = object : VideoCastSession.Host {
+        override fun castMedia(): VideoCastSession.Media? {
+            val player = player ?: return null
+            val item = player.currentMediaItem ?: return null
+            return VideoCastSession.Media(
+                item.mediaId, binding.toolbar.title?.toString().orEmpty(), player.currentPosition.coerceAtLeast(0L),
+                player.playWhenReady || player.playbackState == Player.STATE_IDLE
+            )
+        }
+
+        override fun onCastStarted() {
+            player?.pause()
+            controls.setShown(true)
+        }
+
+        override fun onCastEnded(positionMs: Long?) {
+            val player = player ?: return
+            if (positionMs != null) {
+                player.seekTo(positionMs)
+                trackedPosition = positionMs
+                saveResume()
+            }
+            prepareAfterError(player)
+            updateUi(player)
+        }
     }
 
     override fun dispatchTouchEvent(event: MotionEvent): Boolean {
@@ -508,6 +567,7 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity {
             when (it.itemId) {
                 R.id.actionOpenWith -> openWithOtherApp()
                 R.id.actionFileInfo -> showFileInfo()
+                R.id.actionCast -> showCastChooser()
                 else -> return@setOnMenuItemClickListener false
             }
             true
