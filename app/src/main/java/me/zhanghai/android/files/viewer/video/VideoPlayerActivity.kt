@@ -89,6 +89,8 @@ import me.zhanghai.android.files.player.AudioQueueRequests
 import me.zhanghai.android.files.viewer.audio.CastChooserSheet
 import me.zhanghai.android.files.viewer.video.cast.VideoCastSession
 import me.zhanghai.android.files.viewer.video.network.VideoNetworkPlayback
+import me.zhanghai.android.files.viewer.video.library.VideoWatchedStore
+import me.zhanghai.android.files.viewer.video.vault.VaultVideos
 import me.zhanghai.android.files.provider.common.readAttributes
 import me.zhanghai.android.files.provider.linux.isLinuxPath
 import me.zhanghai.android.files.ui.Motion
@@ -127,6 +129,9 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
     private lateinit var controls: VideoControls
     private lateinit var resumeStore: VideoResumeStore
     private var subtitles: VideoSubtitles? = null
+    private val watchedStore by lazy { VideoWatchedStore(this) }
+    // Playing Tresor videos: the screen closes when left, like the Tresor locks (no grant outlives it unseen).
+    private var isVault = false
     private val handler = Handler(Looper.getMainLooper())
     private val timeBuilder = StringBuilder()
     private val timeFormatter = Formatter(timeBuilder)
@@ -260,7 +265,15 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
                 else -> AspectRatioFrameLayout.RESIZE_MODE_FIT
             }
         setUpWindow()
+        // A Tresor video stays out of screenshots and the recent-apps preview.
+        isVault = queue.items.any { VaultVideos.isVault(it.mediaId) }
+        if (isVault) window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
         setUpControls()
+        // Tresor videos never leave Ordo: no "Open with another app".
+        if (isVault) {
+            binding.toolbar.menu.findItem(R.id.actionOpenWith)?.isVisible = false
+            binding.errorOpenWith.isVisible = false
+        }
         binding.playerView.resizeMode = resizeMode
         userOrientation = savedInstanceState?.getBoolean(STATE_USER_ORIENTATION) == true
         val network = VideoNetworkPlayback.forUri(queue.items.getOrNull(queue.startIndex)?.mediaId)
@@ -351,6 +364,8 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
             saveResume()
             if (background?.onStop() != true) it.pause()
         }
+        // Also the guard against background playback (#100) or PiP showing a Tresor video: none outlives the screen.
+        if (isVault && !isChangingConfigurations) finish()
         super.onStop()
     }
 
@@ -454,8 +469,9 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
             val request = AudioQueueRequests.from(intent.getStringExtra(EXTRA_QUEUE_TOKEN))
             val savedMediaId = savedInstanceState?.getString(STATE_MEDIA_ID)
             when {
-                request != null && request.paths.isNotEmpty() -> {
-                    val items = request.paths.map { AudioPlaybackService.mediaItem(it.toUri().toString()) }
+                request != null && (request.paths.isNotEmpty() || request.uris.isNotEmpty()) -> {
+                    val items = request.uris.ifEmpty { request.paths.map { it.toUri().toString() } }
+                        .map(::queueItem)
                     if (savedInstanceState != null) {
                         LaunchQueue(items, savedIndex.coerceIn(items.indices), savedPosition)
                     } else {
@@ -464,7 +480,7 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
                 }
                 // Written by this activity itself, so it is trusted like the token was.
                 savedMediaId != null ->
-                    LaunchQueue(listOf(AudioPlaybackService.mediaItem(savedMediaId)), 0, savedPosition)
+                    LaunchQueue(listOf(queueItem(savedMediaId)), 0, savedPosition)
                 else -> intent.data?.takeIf(::isAllowedExternalUri)
                     ?.let { LaunchQueue(listOf(AudioPlaybackService.mediaItem(it.toString())), 0, 0L) }
             }
@@ -472,6 +488,11 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
             e.printStackTrace()
             null
         }
+
+    /** A Tresor video gets an opaque item titled "Vault video" (its name never reaches the MediaSession). */
+    private fun queueItem(mediaId: String): MediaItem =
+        if (VaultVideos.isVault(mediaId)) VaultVideos.mediaItem(mediaId, getString(R.string.video_library_vault_title))
+        else AudioPlaybackService.mediaItem(mediaId)
 
     // The same rule as AudioPlayerActivity: a caller never gets to point Ordo at a file through Ordo's own access.
     private fun isAllowedExternalUri(uri: Uri): Boolean {
@@ -936,6 +957,7 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
             !VideoResumeStore.isWorthKeeping(trackedPosition, trackedDuration)) return
         val key = trackedMediaId?.let { resumeKeys[it] } ?: return
         resumeStore.write(key, trackedPosition, trackedDuration)
+        watchedStore.onProgress(key, trackedPosition, trackedDuration)
     }
 
     /** Finds the video's key in the background; a saved place shows as a pill for 5 s, a tap goes there. */
@@ -1198,6 +1220,7 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
 
     /** "Open with another app": every app but this player, with read access to the file. */
     private fun openWithOtherApp() {
+        if (VaultVideos.isVault(player?.currentMediaItem?.mediaId)) return
         player?.pause()
         val path = currentPath()
         if (path == null) {
@@ -1274,6 +1297,14 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
         private const val NOTICE_MS = 6_000L
         private const val INACTIVE_CONTROL_ALPHA = 0.70f
         private val SPEEDS = floatArrayOf(0.5f, 0.75f, 1f, 1.25f, 1.5f, 2f)
+
+        /** Tresor videos as `ordo-vault:` URIs ([VaultVideos]); same token as [putExtras]. */
+        fun putVaultExtras(intent: Intent, uris: List<String>, position: Int) {
+            intent.putExtra(
+                EXTRA_QUEUE_TOKEN,
+                AudioQueueRequests.register(AudioQueueRequests.Request(emptyList(), position, uris))
+            )
+        }
 
         /** The folder's videos stay in this process; the intent only carries the token to take them over. */
         fun putExtras(intent: Intent, paths: List<Path>, position: Int, resume: Boolean = false) {

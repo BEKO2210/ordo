@@ -33,6 +33,7 @@ import java.util.Locale
 import java.util.concurrent.atomic.AtomicLong
 import me.zhanghai.android.files.R
 import me.zhanghai.android.files.player.PathDataSource
+import me.zhanghai.android.files.viewer.video.vault.VaultVideos
 
 /**
  * Films from SMB, SFTP, WebDAV and FTP: a bigger buffer with a back buffer (seeking back a few seconds reads nothing
@@ -59,7 +60,8 @@ class VideoNetworkPlayback private constructor(val config: VideoBuffering.Config
         val dataSources = if (isNetwork) {
             ReadAheadDataSource.Factory(PathDataSource.Factory(context), config.readAheadBytes, bytesRead)
         } else {
-            PathDataSource.Factory(context)
+            // Local files and Tresor videos (ordo-vault:, never a network item).
+            VaultVideos.Factory(PathDataSource.Factory(context))
         }
         val mediaSources = DefaultMediaSourceFactory(dataSources)
         if (isNetwork) mediaSources.setLoadErrorHandlingPolicy(RetryPolicy(config.retries))

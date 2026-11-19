@@ -7,12 +7,14 @@ package me.zhanghai.android.files.vault
 
 import com.google.crypto.tink.StreamingAead
 import java.io.File
+import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.FilterOutputStream
 import java.io.IOException
 import java.io.InputStream
 import java.io.InterruptedIOException
 import java.io.OutputStream
+import java.nio.channels.SeekableByteChannel
 import java.security.GeneralSecurityException
 import java.util.Properties
 import java.util.UUID
@@ -60,6 +62,18 @@ class VaultStore(private val directory: File, private val aead: StreamingAead) {
 
     @Throws(IOException::class)
     fun open(entry: VaultEntry): InputStream = decrypt(File(directory, entry.id), entry.id)
+
+    /** Decrypts with random access (seeking in a video) and never writes the plaintext anywhere. */
+    @Throws(IOException::class)
+    fun openSeekable(id: String): SeekableByteChannel {
+        val channel = FileInputStream(File(directory, id)).channel
+        try {
+            return aead.newSeekableDecryptingChannel(channel, id.toByteArray())
+        } catch (e: GeneralSecurityException) {
+            channel.close()
+            throw IOException(e)
+        }
+    }
 
     fun entries(): List<VaultEntry> =
         directory.listFiles().orEmpty().mapNotNull { infoFile ->
