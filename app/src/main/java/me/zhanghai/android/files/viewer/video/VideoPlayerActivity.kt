@@ -1136,7 +1136,8 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity {
         val path = currentPath()
         val name = player.currentMediaItem?.mediaMetadata?.displayTitle?.toString()
         val info = VideoInfo.fromTracks(
-            binding.toolbar.title?.toString().orEmpty(), name, currentDuration(), player.currentTracks
+            binding.toolbar.title?.toString().orEmpty(), name, currentDuration(), player.currentTracks,
+            getString(R.string.video_info_not_playable)
         )
         lifecycleScope.launch {
             val withFile = if (path == null) info else withContext(Dispatchers.IO) {

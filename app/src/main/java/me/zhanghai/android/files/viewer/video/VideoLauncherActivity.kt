@@ -290,7 +290,22 @@ class VideoLauncherActivity : AppActivity(), AppAccentActivity {
         // A long press shows "Video info" (TalkBack names the action).
         item.root.setOnLongClickListener {
             lifecycleScope.launch {
-                val info = withContext(Dispatchers.IO) { VideoInfo.fromFile(video) }
+                // The same tracks the player shows (Media3's extractors), the file's own size, folder and date.
+                val path = Paths.get(video.path)
+                val tracks = VideoInfo.probeTracks(applicationContext, path.toUri().toString())
+                val info = if (tracks != null) {
+                    val recorded = withContext(Dispatchers.IO) { VideoInfo.recordedAt(video.path) }
+                    VideoInfo.fromTracks(
+                        video.title, video.path.substringAfterLast('/'), video.durationMs, tracks,
+                        getString(R.string.video_info_not_playable)
+                    ).copy(
+                        size = video.size, folder = video.folder, recordedMs = recorded,
+                        // The file's average rate, as for the platform path: what a viewer compares between copies.
+                        bitrate = if (video.durationMs > 0) video.size * 8_000 / video.durationMs else 0
+                    )
+                } else {
+                    withContext(Dispatchers.IO) { VideoInfo.fromFile(video) }
+                }
                 if (!isFinishing && !supportFragmentManager.isStateSaved) showVideoInfo(info, Paths.get(video.path))
             }
             true

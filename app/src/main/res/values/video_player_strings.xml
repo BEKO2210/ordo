@@ -165,6 +165,7 @@
     <string name="video_info_no">No</string>
     <string name="video_info_none">None</string>
     <string name="video_info_copied">Copied</string>
+    <string name="video_info_not_playable">not playable on this device</string>
     <string name="video_info_all_details">All file details</string>
     <string name="video_library_continue">Continue watching</string>
     <string name="video_library_all">All</string>

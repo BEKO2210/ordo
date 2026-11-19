@@ -100,13 +100,31 @@ data class VideoInfo(
                 ?.let { Locale.forLanguageTag(it).displayLanguage.ifBlank { it } }
 
         /** From the player's tracks: what is actually playing, whatever the source. */
-        fun fromTracks(title: String, fileName: String?, durationMs: Long, tracks: Tracks): VideoInfo {
+        fun fromTracks(
+            title: String,
+            fileName: String?,
+            durationMs: Long,
+            tracks: Tracks,
+            /** Added to a sound or subtitle track this device cannot decode ("not playable on this device"). */
+            notPlayable: String? = null
+        ): VideoInfo = fromFormats(
+            title, fileName, durationMs,
+            tracks.groups.map { Triple(it.type, it.getTrackFormat(0), it.isTrackSupported(0)) }, notPlayable
+        )
+
+        /** Per track: its type (C.TRACK_TYPE_*), its format and whether this device can decode it. */
+        internal fun fromFormats(
+            title: String,
+            fileName: String?,
+            durationMs: Long,
+            tracks: List<Triple<Int, Format, Boolean>>,
+            notPlayable: String?
+        ): VideoInfo {
             var info = VideoInfo(title, fileName, durationMs)
             val audio = mutableListOf<List<String>>()
             val text = mutableListOf<List<String>>()
-            for (group in tracks.groups) {
-                val format = group.getTrackFormat(0)
-                when (group.type) {
+            for ((type, format, supported) in tracks) {
+                when (type) {
                     C.TRACK_TYPE_VIDEO -> if (info.width == 0) {
                         info = info.copy(
                             width = format.width, height = format.height,
@@ -124,17 +142,59 @@ data class VideoInfo(
                         audioCodecName(format.sampleMimeType) ?: format.sampleMimeType?.substringAfter('/')
                             ?.uppercase(),
                         channels(format.channelCount), sampleRate(format.sampleRate),
-                        language(format.language) ?: format.label
+                        language(format.language) ?: format.label,
+                        notPlayable?.takeIf { !supported }
                     )
                     C.TRACK_TYPE_TEXT -> text += listOfNotNull(
-                        language(format.language) ?: format.label ?: format.sampleMimeType?.substringAfter('/')
+                        language(format.language) ?: format.label ?: format.sampleMimeType?.substringAfter('/'),
+                        notPlayable?.takeIf { !supported }
                     )
                 }
             }
             return info.copy(audio = audio, subtitles = text)
         }
 
-        /** From the file itself, for a card in the library (local files; the platform reads the container). */
+        /**
+         * The tracks of a file the way the player sees them: Media3's own extractors (the platform's MediaExtractor
+         * hid the AC3 track of an MKV on the W90) and this device's decoders for "supported". A player that only
+         * prepares, with every track type switched off, so no decoder starts; null after [TIMEOUT_MS] or an error.
+         * Main thread (ExoPlayer's looper).
+         */
+        suspend fun probeTracks(context: Context, pathUri: String): Tracks? =
+            kotlinx.coroutines.withTimeoutOrNull(TIMEOUT_MS) {
+                kotlinx.coroutines.suspendCancellableCoroutine { continuation ->
+                    val player = androidx.media3.exoplayer.ExoPlayer.Builder(context)
+                        .setMediaSourceFactory(
+                            androidx.media3.exoplayer.source.DefaultMediaSourceFactory(
+                                me.zhanghai.android.files.player.PathDataSource.Factory(context)
+                            )
+                        )
+                        .build()
+                    player.trackSelectionParameters = player.trackSelectionParameters.buildUpon()
+                        .setTrackTypeDisabled(C.TRACK_TYPE_VIDEO, true)
+                        .setTrackTypeDisabled(C.TRACK_TYPE_AUDIO, true)
+                        .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, true)
+                        .build()
+                    fun finish(tracks: Tracks?) {
+                        player.release()
+                        if (continuation.isActive) continuation.resumeWith(Result.success(tracks))
+                    }
+                    player.addListener(object : androidx.media3.common.Player.Listener {
+                        override fun onTracksChanged(tracks: Tracks) {
+                            if (!tracks.isEmpty) finish(tracks)
+                        }
+
+                        override fun onPlayerError(error: androidx.media3.common.PlaybackException) = finish(null)
+                    })
+                    continuation.invokeOnCancellation { player.release() }
+                    player.setMediaItem(androidx.media3.common.MediaItem.fromUri(pathUri))
+                    player.prepare()
+                }
+            }
+
+        private const val TIMEOUT_MS = 5_000L
+
+        /** From the file itself, when Media3 could not read it in time: the platform reads the container. */
         fun fromFile(video: VideoItem): VideoInfo {
             var info = VideoInfo(video.title, video.path.substringAfterLast('/'), video.durationMs,
                 size = video.size, folder = video.folder)
