@@ -507,7 +507,9 @@ class VideoSubtitles(
             parser.parse(decoded.text.toByteArray(Charsets.UTF_8), SubtitleParser.OutputOptions.allCues()) {
                 val end = if (it.durationUs == C.TIME_UNSET) Long.MAX_VALUE else it.endTimeUs
                 val cues = it.cues.mapNotNull { cue -> prepare(cue, options, speakers) }
-                if (cues.isNotEmpty()) entries += SubtitleTimeline.Entry(it.startTimeUs, end, cues)
+                if (cues.isNotEmpty() && entries.size < SubtitleTimeline.MAX_CUES) {
+                    entries += SubtitleTimeline.Entry(it.startTimeUs, end, cues)
+                }
             }
             val extended = ReadingAid.extend(entries, options.cps) { cues ->
                 cues.joinToString("\n") { it.text?.toString().orEmpty() }
@@ -522,6 +524,7 @@ class VideoSubtitles(
          */
         private fun prepare(cue: Cue, options: Options, speakers: Sdh.SpeakerColors): Cue? {
             val source = cue.text ?: return cue
+            // Only the cheap span cleanup for a giant crafted line; the Sdh rules skip it (Sdh.MAX_LINE).
             val text = SpannableStringBuilder(source)
             for (span in text.getSpans(0, text.length, Any::class.java)) {
                 if (span !is StyleSpan && span !is UnderlineSpan) text.removeSpan(span)

@@ -41,6 +41,8 @@ class SubtitleTimeline<T>(entries: List<Entry<T>>) {
     companion object {
         /** The delay steps of the sheet: ±0.1 s and ±1 s, capped at ±10 min. */
         const val MAX_DELAY_MS = 600_000L
+        /** More cues than any film has; a crafted file beyond it is cut off (like the lyrics parser's cap). */
+        const val MAX_CUES = 20_000
 
         fun clampDelay(delayMs: Long): Long = delayMs.coerceIn(-MAX_DELAY_MS, MAX_DELAY_MS)
     }

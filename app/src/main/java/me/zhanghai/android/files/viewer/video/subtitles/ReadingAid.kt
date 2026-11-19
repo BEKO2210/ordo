@@ -53,13 +53,21 @@ object ReadingAid {
     ): List<SubtitleTimeline.Entry<T>> {
         if (cps <= 0) return entries
         val joined = join(entries.sortedBy { it.startUs })
+        // The next entry that starts later, for every entry, in one backward pass (linear, not per entry).
+        val nextStarts = LongArray(joined.size)
+        for (index in joined.indices.reversed()) {
+            nextStarts[index] = when {
+                index == joined.lastIndex -> Long.MAX_VALUE
+                joined[index + 1].startUs > joined[index].startUs -> joined[index + 1].startUs
+                else -> nextStarts[index + 1]
+            }
+        }
         return joined.mapIndexed { index, entry ->
             val words = text(entry.cues)
             val duration = entry.endUs - entry.startUs
             val fast = words.isNotBlank() && cps(words, duration) > cps
             val wanted = entry.startUs + readingTimeUs(words, cps)
-            val nextStart = joined.asSequence().drop(index + 1).firstOrNull { it.startUs > entry.startUs }?.startUs
-                ?: Long.MAX_VALUE
+            val nextStart = nextStarts[index]
             val end = if (wanted > entry.endUs) maxOf(entry.endUs, minOf(wanted, nextStart)) else entry.endUs
             SubtitleTimeline.Entry(entry.startUs, end, entry.cues, fast)
         }

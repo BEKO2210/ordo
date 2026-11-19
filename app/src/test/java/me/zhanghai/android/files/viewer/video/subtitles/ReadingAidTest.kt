@@ -88,6 +88,36 @@ class ReadingAidTest {
     }
 
     @Test
+    fun craftedInputStaysFast() {
+        // 512 KB of openers without a close, and of nested parens: skipped (too long) and linear anyway.
+        for (crafted in listOf("(".repeat(512 * 1024), "(a".repeat(256 * 1024) + ")", "[".repeat(512 * 1024))) {
+            val start = System.nanoTime()
+            assertEquals(emptyList<IntRange>(), Sdh.soundRanges(crafted))
+            Sdh.emptyLineRanges(crafted)
+            Sdh.speakers(crafted)
+            assertTrue("took ${(System.nanoTime() - start) / 1_000_000} ms", System.nanoTime() - start < 1_000_000_000L)
+        }
+        // At the line cap the scan itself runs: 1000 openers stay fast and find nothing.
+        val start = System.nanoTime()
+        assertEquals(emptyList<IntRange>(), Sdh.soundRanges("(a".repeat(500)))
+        assertTrue(System.nanoTime() - start < 100_000_000L)
+        assertEquals(listOf(0..6), Sdh.soundRanges("(BANG) x"))
+    }
+
+    @Test
+    fun twentyThousandCuesAreLinear() {
+        val cues = (0 until SubtitleTimeline.MAX_CUES).map { i -> entry(i * 1_000L, i * 1_000L + 200, "Line $i is fast") }
+        val start = System.nanoTime()
+        val out = extend(17, *cues.toTypedArray())
+        assertTrue("took ${(System.nanoTime() - start) / 1_000_000} ms", System.nanoTime() - start < 1_000_000_000L)
+        assertEquals(SubtitleTimeline.MAX_CUES, out.size)
+        for (i in 0 until out.size - 1) assertTrue(out[i].endUs <= out[i + 1].startUs)
+        // Same start: each still stops at the next later start.
+        val same = extend(17, entry(0, 100, "A long fast line"), entry(0, 100, "Another one"), entry(500, 900, "B"))
+        assertEquals(listOf(500_000L, 500_000L), same.take(2).map { it.endUs })
+    }
+
+    @Test
     fun boxKeepsWcagContrastOverAnyPicture() {
         val backgrounds = listOf(
             0xFFFFFFFF, 0xFF000000, 0xFFFF0000, 0xFF00FF00, 0xFF0000FF, 0xFFFFFF00, 0xFF00FFFF, 0xFFFF00FF,
