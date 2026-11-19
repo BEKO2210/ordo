@@ -85,6 +85,7 @@ import me.zhanghai.android.files.settings.SettingsActivity
 import me.zhanghai.android.files.ui.DrawerLayoutOnBackPressedCallback
 import me.zhanghai.android.files.ui.Motion
 import me.zhanghai.android.files.ui.ThemedFastScroller
+import me.zhanghai.android.files.ui.WordBreaks
 import me.zhanghai.android.files.util.createManageAppAllFilesAccessPermissionIntent
 import me.zhanghai.android.files.util.startActivitySafe
 import me.zhanghai.android.files.util.supportsExternalStorageManager
@@ -600,7 +601,9 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener {
             width = size
             height = size
         }
-        header.title.text = groupName(group, tab)
+        // A folder name may wrap after its dashes in the narrow left pane, never inside a word.
+        header.title.text = WordBreaks.breakableName(groupName(group, tab))
+        WordBreaks.keepWordsWhole(header.title)
         header.subtitle.text = when (tab) {
             TAB_ALBUMS -> group.artist ?: getString(R.string.audio_player_unknown_artist)
             TAB_FOLDERS -> displayFolder(group.key)
