@@ -2,7 +2,8 @@
 # Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later
 # Ordo Video's picture, WRITES: creates /storage/emulated/0/ordo-e2e-picture with clips made by ffmpeg on the host and
 # removes it again; switches the debug log on (setprop log.tag.OrdoVideoPicture DEBUG) and off.
-# A 640x360 24p SDR clip (a slow gradient, where banding shows) gets the enhancement: the log says ENGAGE, frames are
+# A 640x360 24p SDR clip (a slow gradient, where banding shows) gets the enhancement decided before prepare (no
+# second prepare, no ENGAGE in the log), frames are
 # processed and their GPU time is printed (mean and maximum per 120 frames, to compare devices); ⋮ › Signal path names
 # the decoder, "Lanczos 3" and the sound; ⋮ › Picture enhancement switches it off (CLEAR) and on again (APPLY) with a
 # hint; a clip exactly the screen's size is left alone (NOT_SMALLER); with "Match frame rate: Always" Ordo asks for
@@ -67,7 +68,9 @@ open_folder 01-small.mp4
 ui tap 01-small.mp4 >/dev/null
 check "the small clip opens Ordo's player" wait_on viewer.video.VideoPlayerActivity 8
 sleep 8
-check "a 360p clip on this screen engages the enhancement" eval 'log | grep -q -- "-> ENGAGE"'
+check "a 360p clip starts with the pipeline, decided before prepare" eval 'log | grep -q "prepare: pipeline true"'
+check "and is not prepared a second time" eval '! log | grep -q -- "-> ENGAGE"'
+check "the enhancement is applied" eval 'log | grep -q -- "-> APPLY"'
 check "frames go through the enhancement pass" eval 'log | grep -qE "frame [0-9]+ [0-9]+x[0-9]+ [0-9.]+ ms"'
 log | grep "last 120 frames" | tail -3 | sed 's/^/INFO GPU time /'
 log | grep "dropped" | tail -2 | sed 's/^/INFO /'
