@@ -521,12 +521,16 @@ class VideoSubtitles(
             val parser = DefaultSubtitleParserFactory().create(Format.Builder().setSampleMimeType(mimeType).build())
             val entries = ArrayList<SubtitleTimeline.Entry<Cue>>()
             val speakers = Sdh.SpeakerColors()
-            parser.parse(decoded.text.toByteArray(Charsets.UTF_8), SubtitleParser.OutputOptions.allCues()) {
+            var characters = 0L
+            parser.parse(decoded.text.toByteArray(Charsets.UTF_8), SubtitleParser.OutputOptions.allCues()) cues@{
+                // The caps come before any work on a cue: a crafted file costs no more than a long film.
+                if (entries.size >= SubtitleTimeline.MAX_CUES || characters > SubtitleTimeline.MAX_CHARACTERS) {
+                    return@cues
+                }
+                characters += it.cues.sumOf { cue -> cue.text?.length ?: 0 }
                 val end = if (it.durationUs == C.TIME_UNSET) Long.MAX_VALUE else it.endTimeUs
                 val cues = it.cues.mapNotNull { cue -> prepare(cue, options, speakers) }
-                if (cues.isNotEmpty() && entries.size < SubtitleTimeline.MAX_CUES) {
-                    entries += SubtitleTimeline.Entry(it.startTimeUs, end, cues)
-                }
+                if (cues.isNotEmpty()) entries += SubtitleTimeline.Entry(it.startTimeUs, end, cues)
             }
             val extended = ReadingAid.extend(entries, options.cps) { cues ->
                 cues.joinToString("\n") { it.text?.toString().orEmpty() }

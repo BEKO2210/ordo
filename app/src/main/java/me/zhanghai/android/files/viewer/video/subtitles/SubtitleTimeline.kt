@@ -43,6 +43,8 @@ class SubtitleTimeline<T>(entries: List<Entry<T>>) {
         const val MAX_DELAY_MS = 600_000L
         /** More cues than any film has; a crafted file beyond it is cut off (like the lyrics parser's cap). */
         const val MAX_CUES = 20_000
+        /** Total text of all cues; a film's subtitles are a few hundred thousand characters. */
+        const val MAX_CHARACTERS = 2_000_000L
 
         fun clampDelay(delayMs: Long): Long = delayMs.coerceIn(-MAX_DELAY_MS, MAX_DELAY_MS)
     }

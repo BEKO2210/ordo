@@ -56,7 +56,8 @@ object Sdh {
                 ranges += i until end
                 i = end
             } else {
-                i++
+                // Dialogue in parentheses: past its closer, so every character is looked at once.
+                i = j + 1
             }
         }
         return ranges
