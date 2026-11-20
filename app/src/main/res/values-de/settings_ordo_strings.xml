@@ -188,4 +188,15 @@
         <item>Ausgewogen</item>
         <item>Sparsam (schont den Akku)</item>
     </string-array>
+
+    <string name="settings_rate_title">Ordo bewerten</string>
+    <string name="settings_rate_summary">Bei Google Play – das hilft anderen, Ordo zu finden</string>
+    <string name="settings_share_title">Ordo teilen</string>
+    <string name="settings_share_summary">Den Link an Freunde schicken</string>
+    <string name="settings_share_text">Ich nutze Ordo, einen kostenlosen Dateimanager ohne Werbung und ohne Tracking: %1$s</string>
+    <string name="settings_feedback_title">Feedback und Fehler melden</string>
+    <string name="settings_feedback_summary">Öffentlich auf GitHub, nur mit App-Version und Gerätetyp</string>
+    <string name="settings_feedback_body">Was ist passiert oder was wünschst du dir?\n\n\n---\nOrdo %1$s · %2$s · Android %3$s</string>
+    <string name="rate_hint_text">Gefällt dir Ordo? Eine Bewertung hilft anderen, die App zu finden.</string>
+    <string name="rate_hint_action">Bewerten</string>
 </resources>

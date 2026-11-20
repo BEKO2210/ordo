@@ -41,7 +41,7 @@ import me.zhanghai.android.files.util.createManageAppAllFilesAccessPermissionInt
 import me.zhanghai.android.files.util.supportsExternalStorageManager
 import kotlin.math.abs
 
-/** First start: four calm pages that explain Ordo and ask for file access at the end. */
+/** First start: five calm pages that explain Ordo and ask for file access at the end. */
 class OnboardingActivity : AppActivity() {
     private lateinit var binding: OnboardingActivityBinding
     private lateinit var pages: List<View>
@@ -59,7 +59,7 @@ class OnboardingActivity : AppActivity() {
         super.onCreate(savedInstanceState)
         binding = OnboardingActivityBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        pages = listOf(binding.pageWelcome, binding.pageSafety, binding.pageAi, binding.pageAccess)
+        pages = listOf(binding.pageWelcome, binding.pageSafety, binding.pageApps, binding.pageAi, binding.pageAccess)
         // On tablets a full-width column looks stretched; keep it at a phone-like reading width.
         val maxWidth = (520 * resources.displayMetrics.density).toInt()
         if (resources.displayMetrics.widthPixels > maxWidth) {
@@ -158,6 +158,8 @@ class OnboardingActivity : AppActivity() {
         when (pages[page]) {
             binding.pageWelcome -> binding.welcomeLogo.pop()
             binding.pageSafety -> listOf(binding.featureTrash, binding.featureVault, binding.featurePrivacy)
+                .forEachIndexed { i, view -> view.rise(150L + 110L * i) }
+            binding.pageApps -> listOf(binding.featureAnalysis, binding.featureMusic, binding.featureVideo)
                 .forEachIndexed { i, view -> view.rise(150L + 110L * i) }
             binding.pageAi -> typing = lifecycleScope.launch { typeExample() }
             binding.pageAccess -> binding.accessIcon.pop()
