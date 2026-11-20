@@ -558,9 +558,12 @@ class VideoPicture(
             Log.d(PICTURE_LOG_TAG, "dropped $droppedFrames frames in $elapsedMs ms, enhancement ${decision?.on}")
         }
         // The CPU can't keep up with FFmpeg: say it once per process, calmly; nothing else can be done.
-        if (player?.currentMediaItem?.mediaId in softwareMediaIds && !softwareNoticeShown && PicturePolicy.tooSlow(droppedFrames, elapsedMs)) {
-            softwareNoticeShown = true
-            onNotice(activity.getString(R.string.video_software_slow_notice))
+        // Never blamed on the enhancement or Detail plus, which a stale decision may still show as on.
+        if (player?.currentMediaItem?.mediaId in softwareMediaIds) {
+            if (!softwareNoticeShown && PicturePolicy.tooSlow(droppedFrames, elapsedMs)) {
+                softwareNoticeShown = true
+                onNotice(activity.getString(R.string.video_software_slow_notice))
+            }
             return
         }
         if (decision?.on != true || !PicturePolicy.tooSlow(droppedFrames, elapsedMs)) return
