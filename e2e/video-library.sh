@@ -50,16 +50,22 @@ check "an empty search says so" ui wait "Keine Videos passen zu deiner Suche.|No
 # The first back may only close the keyboard; the second only while the search field is still open.
 back; ui has search_src_text && back
 
+# Episodes watched in an earlier run (the R8 build cannot be reset through run-as) go back to unwatched first,
+# so "Up next" can only be S1 E2.
+for ep in Dark.S01E01 Dark.S01E02 Dark.S01E03; do
+    scroll_to "$ep" 4 || continue
+    ui longtap "$ep" >/dev/null; sleep 1
+    ui tap "Weitere Optionen|More options" >/dev/null; sleep 1
+    if ui has "Als ungesehen markieren|Mark as unwatched"; then
+        ui tap "Als ungesehen markieren|Mark as unwatched" >/dev/null; sleep 2
+    else
+        back 1; ui has "1 ausgewählt|1 selected" && back 1 # the menu, then the selection
+    fi
+done
 scroll_to Dark.S01E01 4 # on a phone "Recently added" starts at the newest episode, the grid lies below
 ui longtap "Dark.S01E01" >/dev/null; sleep 1
 check "a long press selects" ui wait "1 ausgewählt|1 selected" 4
 ui tap "Weitere Optionen|More options" >/dev/null; sleep 1
-# Watched from an earlier run (the R8 build cannot be reset through run-as): back to unwatched first.
-if ui has "Als ungesehen markieren|Mark as unwatched"; then
-    ui tap "Als ungesehen markieren|Mark as unwatched" >/dev/null; sleep 2
-    scroll_to Dark.S01E01 4; ui longtap "Dark.S01E01" >/dev/null; sleep 1
-    ui tap "Weitere Optionen|More options" >/dev/null; sleep 1
-fi
 ui tap "Als gesehen markieren|Mark as watched" >/dev/null; sleep 2
 check "the selection ends" eval "! ui has 'ausgewählt|selected'"
 check "with S01E01 watched, Continue watching offers the next episode" ui wait "Als Nächstes · S1 F2|Up next · S1 E2" 6
