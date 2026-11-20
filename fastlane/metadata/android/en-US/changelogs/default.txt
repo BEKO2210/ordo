@@ -1,10 +1,2 @@
-Ordo Video grows up
-• Subtitles: files and tracks, reading aid, easy to read
-• Picture-in-picture, sound in the background, sleep timer
-• Sound for video: clear dialogue, night mode, even volume
-• Dolby and DTS sound, even on low-cost devices
-• Preview frames while seeking, chapters, A-B loop, zoom
-• Films from network drives and on your TV
-• Series, watched marks, search, vault videos
-• Sharper picture, and the signal path shows what happens
-Music: tabs are equally wide on tablets.
+Fix:
+• Songs and videos with sound end on time again. Before, playback ran on silently after the end, and "Watch again" or the next song came too late.

@@ -1,10 +1,2 @@
-Ordo Video wird groß
-• Untertitel: Dateien und Spuren, Lese-Hilfe, gut lesbar
-• Bild-in-Bild, Ton im Hintergrund, Schlaf-Timer
-• Klang fürs Video: klare Dialoge, Nachtmodus, gleiche Lautstärke
-• Dolby- und DTS-Ton auch auf günstigen Geräten
-• Vorschaubilder beim Spulen, Kapitel, A-B-Schleife, Zoom
-• Filme vom Netzlaufwerk und auf den Fernseher
-• Serien, Gesehen-Markierung, Suche, Tresor-Videos
-• Schärferes Bild und der Signalweg zeigt, was passiert
-Musik: Reiter auf Tablets gleich breit.
+Fehlerbehebung:
+• Lieder und Videos mit Ton enden wieder pünktlich. Vorher lief die Wiedergabe nach dem Ende still weiter, und „Nochmal ansehen“ bzw. das nächste Lied kamen zu spät.
