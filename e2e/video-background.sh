@@ -51,6 +51,8 @@ no_pip_entry() { ! ui has "Bild-in-Bild|Picture-in-picture"; }
 # mode=pinned stands on the task line above the activity (W90) or in its config lines further below (S21, Tab).
 # No grep -q at the end: with pipefail its early exit fails the pipeline (SIGPIPE upstream, Tab 20.11.2026).
 pinned() { a shell dumpsys activity activities | grep -B3 -A20 'Hist.*VideoPlayerActivity' | grep -c 'mode=pinned\|windowingMode=pinned' >/dev/null; }
+# The window animates into place: on the Tab it was pinned only after the first look at 3 s (20.11.2026).
+wait_pinned() { local i; for i in $(seq 1 12); do pinned && return 0; sleep 0.5; done; return 1; }
 
 # 1. Sleep timer: chips, never a slider, and off again.
 open_clip; guard
@@ -67,7 +69,7 @@ ui tap "Aus|Off" >/dev/null; sleep 1
 wait_playing
 if a shell pm has-feature android.software.picture_in_picture | grep -q true; then
     a shell input keyevent KEYCODE_HOME; sleep 3
-    check "Home opens picture-in-picture (windowingMode=pinned)" pinned
+    check "Home opens picture-in-picture (windowingMode=pinned)" wait_pinned
     check "the video keeps playing in picture-in-picture" wait_playing
     a shell input keyevent KEYCODE_MEDIA_PAUSE; sleep 1.5
     check "media keys reach the video in picture-in-picture" not_playing

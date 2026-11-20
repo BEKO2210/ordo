@@ -51,7 +51,7 @@ upscaling() {
 upscaling "Standard \(Lanczos\)"
 a shell am start -W -n "$PKG/me.zhanghai.android.files.viewer.video.VideoLauncherActivity" >/dev/null; sleep 2; guard
 ui tap actionSettings >/dev/null; sleep 2
-scroll_to "Hochskalieren|Upscaling" >/dev/null
+scroll_to "Hochskalieren|Upscaling" >/dev/null; swipe_up # the summary sits below the title
 check "the settings have Upscaling, set to Standard (Lanczos)" ui wait "Standard \(Lanczos\)" 5
 back 1; back 1
 
@@ -62,12 +62,12 @@ open_file "$DIR" 01-film.mp4
 sleep 6
 check "the film network is set as an effect" eval 'log | grep "effects: detail plus FILM"'
 menu "Signalweg|Signal path"
-check "the signal path names Detail plus film" ui wait "Detail plus (Film|film) \(FSRCNNX x2\)" 5
+check "the signal path names Detail plus film" ui wait "Detail plus (Film|film) \(FSRCNNX x2\).*" 5
 screenshot "$out/signal-detailplus.png"
 
 # 3. Measurements: unfold, measure 20 s, read the rows, share the CSV, fold.
 # Swipe only inside the open sheet: on the bare picture a vertical swipe is the volume gesture (Tab went to 15).
-for i in 1 2; do ui has "Lanczos 3|Detail plus" && swipe_up; done
+for i in 1 2; do ui has "Signalweg|Signal path" && swipe_up; done # whole texts: the sheet's title
 ui tap "Messwerte|Measurements" >/dev/null; sleep 2
 check "unfolding starts measuring" ui wait "Misst\. Zum Beenden antippen\.|Measuring\. Tap to stop\." 5
 check "every pass is wrapped while measuring" eval 'log | grep "measuring true"'
