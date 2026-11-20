@@ -50,7 +50,8 @@ def say(kind, msg):
 def dump():
     for _ in range(3):
         xml = subprocess.run(ADB + ["exec-out", "uiautomator dump /data/local/tmp/ordo-crawl.xml >/dev/null && "
-                                    "cat /data/local/tmp/ordo-crawl.xml"], capture_output=True, text=True).stdout
+                                    "cat /data/local/tmp/ordo-crawl.xml"], capture_output=True, text=True,
+                             errors="replace").stdout  # a failed dump can return bytes that are not UTF-8
         if "<node" in xml:
             break
         time.sleep(1)
@@ -61,11 +62,19 @@ def dump():
                         desc=html.unescape(desc), checkable=checkable == "true", checked=checked == "true",
                         click=click == "true", enabled=enabled == "true", scroll=scroll == "true",
                         long=longc == "true", b=(int(x1), int(y1), int(x2), int(y2))))
+    # A card or row without its own text is named by the texts inside it ("More" sheet rows): so the skip lists
+    # below can see "Mit anderer App öffnen" or "Bild-in-Bild" on the row that opens it.
+    for n in out:
+        if not n["text"] and not n["desc"] and (n["click"] or n["long"]):
+            x1, y1, x2, y2 = n["b"]
+            inner = [m["text"] or m["desc"] for m in out if m is not n and (m["text"] or m["desc"])
+                     and m["b"][0] >= x1 and m["b"][1] >= y1 and m["b"][2] <= x2 and m["b"][3] <= y2]
+            n["inner"] = " · ".join(inner[:3])
     return out
 
 
 def label(n):
-    return n["text"] or n["desc"] or n["id"] or f'{n["cls"]}@{n["b"][0]},{n["b"][1]}'
+    return n["text"] or n["desc"] or n.get("inner") or n["id"] or f'{n["cls"]}@{n["b"][0]},{n["b"][1]}'
 
 
 def top():
@@ -133,7 +142,7 @@ def key(n):
 
 def clickables(nodes):
     return [n for n in nodes if n["pkg"] == PKG and n["enabled"] and (n["click"] or n["long"])
-            and n["id"] not in ("playerView",)]  # the picture itself: taps show/hide controls only
+            and n["id"] not in ("playerView", "touch_outside")]  # the picture itself: taps show/hide controls only
 
 
 def signature(nodes):
@@ -238,10 +247,16 @@ def crawl(name, setup):
                 continue
             seen.add(k)
             what = f"{name} › {label(n)}"
-            if DESTRUCTIVE.search(" ".join((n["text"], n["desc"], n["id"]))):
+            # Never tap while another app is in front (a launcher tap once opened another app).
+            if not front().startswith(PKG + "/"):
+                setup()
+                if not front().startswith(PKG + "/"):
+                    say("FAIL", f"{name}: Ordo not in front after opening it again, screen left")
+                    return
+            if DESTRUCTIVE.search(" ".join((label(n), n["id"]))):
                 skipped.add(what)
                 continue
-            leaves = bool(LEAVES.search(" ".join((n["text"], n["desc"]))))
+            leaves = bool(LEAVES.search(label(n)))
             was_checked = n["checked"]
             tap(n, long=n["long"] and not n["click"])
             pressed += 1
@@ -304,6 +319,9 @@ for page in range(3):
         break
 sh("input keyevent BACK")
 for entry in entries:
+    if DESTRUCTIVE.search(entry) or LEAVES.search(entry) or entry in ("Schließen", "Close"):
+        skipped.add(f"player › {entry}")  # opening it leaves Ordo (or only closes the sheet)
+        continue
     screens.append((f"player › {entry}", open_menu_entry(entry)))
 say("INFO", f"menu entries: {', '.join(entries)}")
 
