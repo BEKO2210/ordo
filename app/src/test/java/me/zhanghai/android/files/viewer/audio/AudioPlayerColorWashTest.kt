@@ -101,4 +101,33 @@ class AudioPlayerColorWashTest {
         val seen = 0xff000000.toInt() or (((0xff * (1 - overWhite) + 0x19 * overWhite).toInt()) * 0x010101)
         assertTrue(AudioPlayerColorWash.contrastRatio(text, seen) >= 4.4)
     }
+
+    @Test
+    fun veilKeepsBothThemesReadableOnLightGreyAndDarkCovers() {
+        // Light and grey backdrops from the owner's Pixel (20.11.2026) plus black, white and mid grey.
+        val covers = intArrayOf(0xffc8d6ea.toInt(), 0xffe4e4e8.toInt(), 0xff000000.toInt(), 0xffffffff.toInt(),
+            0xff777777.toInt(), 0xffb57bee.toInt())
+        // Ordo's light and dark surface, onSurface and secondary text (ordo_m3_colors.xml).
+        val themes = listOf(
+            intArrayOf(0xfffafbfc.toInt(), 0xff0f172a.toInt(), 0xff475569.toInt()),
+            intArrayOf(0xff0b1018.toInt(), 0xffe6edf5.toInt(), 0xff9aa8ba.toInt())
+        )
+        for ((surface, onSurface, secondary) in themes) {
+            val alpha = AudioPlayerColorWash.veilAlpha(covers, surface, intArrayOf(onSurface, secondary), onSurface, 0.4f)
+            for (cover in covers) {
+                val seen = mix(cover, surface, alpha)
+                assertTrue(AudioPlayerColorWash.contrastRatio(onSurface, seen) >= 4.4)
+                assertTrue(AudioPlayerColorWash.contrastRatio(secondary, seen) >= 4.4)
+            }
+        }
+        // What the expanded dark theme showed: the dark theme's text straight on the uninverted light backdrop.
+        assertTrue(AudioPlayerColorWash.contrastRatio(0xffe6edf5.toInt(), 0xffc8d6ea.toInt()) < 1.5)
+        assertTrue(AudioPlayerColorWash.contrastRatio(0xffe6edf5.toInt(), 0xffe4e4e8.toInt()) < 1.5)
+    }
+
+    private fun mix(bottom: Int, top: Int, alpha: Float): Int {
+        fun channel(shift: Int) =
+            ((bottom shr shift and 0xff) * (1 - alpha) + (top shr shift and 0xff) * alpha).toInt() shl shift
+        return -0x1000000 or channel(16) or channel(8) or channel(0)
+    }
 }

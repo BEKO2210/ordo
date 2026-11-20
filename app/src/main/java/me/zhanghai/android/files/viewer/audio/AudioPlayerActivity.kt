@@ -412,10 +412,16 @@ class AudioPlayerActivity : AppActivity(), AppAccentActivity {
             )
         }
         // The TV stays a TV (next to "Play on…", a second cast symbol would read as the same button); casting tints it.
+        // Not null when idle: that drops the icon's own tint as well, and its white fill vanished on a light backdrop.
         binding.toolbar.menu.findItem(R.id.actionCast)?.let { item ->
             MenuItemCompat.setIconTintList(
                 item,
-                if (device != null) ColorStateList.valueOf(themeColor(androidx.appcompat.R.attr.colorPrimary)) else null
+                ColorStateList.valueOf(
+                    themeColor(
+                        if (device != null) androidx.appcompat.R.attr.colorPrimary
+                        else com.google.android.material.R.attr.colorOnSurface
+                    )
+                )
             )
         }
     }
