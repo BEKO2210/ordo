@@ -72,6 +72,8 @@ class VideoCastSession(
         fun onCastStarted()
         /** Back on the phone at [positionMs] (null: unknown, stay where the phone was). */
         fun onCastEnded(positionMs: Long?)
+        /** Casting never started: the phone goes on where it paused, playing again if it was. */
+        fun onCastFailed(play: Boolean)
     }
 
     class Media(val mediaId: String, val title: String, val positionMs: Long, val playWhenReady: Boolean)
@@ -86,6 +88,7 @@ class VideoCastSession(
     private var status: CastProtocol.MediaStatus? = null
     private var statusAtMs = 0L
     @Volatile private var loadRequest = 0
+    private var resumeOnFailure = false
     private var volume: Double? = null
     private var title = ""
     private var failed = false
@@ -130,19 +133,12 @@ class VideoCastSession(
         if (phase != CastManager.Phase.IDLE && device?.id != target.id) end(stopReceiver = true)
         if (phase != CastManager.Phase.IDLE) return
         val media = host.castMedia() ?: return
-        val name = displayName(media.mediaId)
-        val contentType = VideoCastFormats.contentType(name)
-        when {
-            !target.hasVideo -> return toast(context.getString(R.string.video_cast_no_screen, target.name))
-            // Said before anything connects: the Default Media Receiver plays MP4, WebM and (on Google TV) MKV.
-            contentType == null -> return toast(context.getString(
-                R.string.video_cast_format_unsupported, VideoCastFormats.extension(name).ifEmpty { name }
-            ))
-        }
+        if (!target.hasVideo) return toast(context.getString(R.string.video_cast_no_screen, target.name))
         val currentAttempt = ++attempt
         device = target
         title = media.title
         failed = false
+        resumeOnFailure = media.playWhenReady
         setPhase(CastManager.Phase.CONNECTING)
         // The phone holds still while the TV gets ready, so the TV starts exactly where the phone stopped.
         host.onCastStarted()
@@ -170,6 +166,11 @@ class VideoCastSession(
         client = newClient
         Thread({
             val result = runCatching {
+                // Off the main thread: a content:// name comes from another app's provider.
+                val name = displayName(media.mediaId)
+                // Said before anything connects: the Default Media Receiver plays MP4, WebM and (on Google TV) MKV.
+                val contentType = VideoCastFormats.contentType(name)
+                    ?: throw UnsupportedFormat(VideoCastFormats.extension(name).ifEmpty { name })
                 val pin = newClient.connect().pin
                 val known = CastDeviceAuth.compare(pins().getString(target.name, null), target.id, pin)
                 if (known == CastDeviceAuth.Known.CHANGED && !confirmed) throw IdentityChanged()
@@ -178,7 +179,7 @@ class VideoCastSession(
                 val newServer = CastFileServer(newClient.localAddress, InetAddress.getByName(target.host))
                 try {
                     val subtitles = subtitles(media.mediaId, name)
-                    val urls = newServer.serveAll(listOf(source(media.mediaId, checkNotNull(contentType))) +
+                    val urls = newServer.serveAll(listOf(source(media.mediaId, contentType)) +
                         subtitles.map { it.second })
                     val tracks = subtitles.mapIndexed { index, (subtitle, _) ->
                         VideoCastProtocol.TextTrack(urls[index + 1], subtitle.language?.let(::languageName)
@@ -197,7 +198,11 @@ class VideoCastSession(
             }
             handler.post {
                 if (attempt != currentAttempt) {
-                    result.getOrNull()?.first?.close()
+                    // A newer attempt or end() took over; whatever this one opened is closed off the main thread.
+                    Thread({
+                        newClient.close()
+                        result.getOrNull()?.first?.close()
+                    }, "video-cast-drop").start()
                     return@post
                 }
                 result.onSuccess { (newServer, receiver) ->
@@ -210,17 +215,22 @@ class VideoCastSession(
                     setPhase(CastManager.Phase.CASTING)
                     showPanel()
                 }.onFailure {
-                    newClient.close()
+                    Thread(newClient::close, "video-cast-close").start()
                     client = null
                     device = null
                     if (it is IdentityChanged) confirmation = target
                     setPhase(CastManager.Phase.IDLE)
-                    when (it) {
-                        is IdentityChanged -> {}
+                    // The phone paused for the TV: it plays on where it stopped, and says so once.
+                    host.onCastFailed(resumeOnFailure)
+                    val reason = when (it) {
+                        // The sheet asks first; nothing to say yet.
+                        is IdentityChanged -> null
+                        is UnsupportedFormat -> context.getString(R.string.video_cast_format_unsupported, it.format)
                         is java.security.cert.CertificateException ->
-                            toast(context.getString(R.string.cast_error_identity, target.name))
-                        else -> toast(context.getString(R.string.cast_error_connect, target.name))
+                            context.getString(R.string.cast_error_identity, target.name)
+                        else -> context.getString(R.string.cast_error_connect, target.name)
                     }
+                    reason?.let { text -> toast(context.getString(R.string.video_cast_continues_here, text)) }
                 }
             }
         }, "video-cast-connect").start()
@@ -289,7 +299,12 @@ class VideoCastSession(
         device = null
         setPhase(CastManager.Phase.IDLE)
         if (wasCasting && handBack) host.onCastEnded(position)
-        if (lost && lostDevice != null) toast(context.getString(R.string.video_cast_error_lost, lostDevice.name))
+        if (!wasCasting && handBack) host.onCastFailed(resumeOnFailure)
+        if (lost && lostDevice != null) {
+            toast(if (wasCasting) context.getString(R.string.video_cast_error_lost, lostDevice.name)
+                else context.getString(R.string.video_cast_continues_here,
+                    context.getString(R.string.cast_error_connect, lostDevice.name)))
+        }
     }
 
     private fun setPhase(newPhase: CastManager.Phase) {
@@ -528,6 +543,8 @@ class VideoCastSession(
     }
 
     private class IdentityChanged : Exception()
+
+    private class UnsupportedFormat(val format: String) : Exception()
 
     companion object {
         private const val PINS = "cast_device_pins"

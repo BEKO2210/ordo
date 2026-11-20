@@ -20,4 +20,5 @@
     <string name="video_cast_volume_format">Volume %1$d %%</string>
     <string name="video_cast_volume_down">Quieter</string>
     <string name="video_cast_volume_up">Louder</string>
+    <string name="video_cast_continues_here">%1$s The video plays on here.</string>
 </resources>
