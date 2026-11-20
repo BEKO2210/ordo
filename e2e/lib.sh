@@ -20,8 +20,11 @@ back() { a shell input keyevent BACK; sleep "${1:-1.5}"; }
 # Ordo is the resumed activity and no keyguard shows. ordo_front checks that; screenshot FILE and raw_screenshot FILE
 # are the only ways the tests take one ("SKIP shot (not Ordo)" otherwise, and the file is not written).
 ordo_front() {
-    local s; s=$(a shell "dumpsys activity activities | grep -m1 topResumedActivity; dumpsys window | grep -m1 isKeyguardShowing")
-    grep -q "topResumedActivity=.* $PKG/" <<<"$s" && ! grep -q "isKeyguardShowing=true" <<<"$s"
+    local s; s=$(a shell "dumpsys activity activities | grep -m1 topResumedActivity; dumpsys window | grep -m1 isKeyguardShowing; dumpsys window | grep -m1 mCurrentFocus")
+    # The focused window too: Samsung's app drawer (opened from the taskbar) covers Ordo while Ordo stays the resumed
+    # activity (Tab A8, 20.11.2026: a drawer screenshot passed the check).
+    grep -q "topResumedActivity=.* $PKG/" <<<"$s" && ! grep -q "isKeyguardShowing=true" <<<"$s" &&
+        grep -q "mCurrentFocus=.* $PKG/" <<<"$s"
 }
 screenshot() { if ordo_front; then a exec-out screencap -p > "$1"; else echo "SKIP shot (not Ordo): $1"; return 1; fi; }
 raw_screenshot() { if ordo_front; then a exec-out screencap > "$1"; else echo "SKIP shot (not Ordo): $1"; return 1; fi; }
