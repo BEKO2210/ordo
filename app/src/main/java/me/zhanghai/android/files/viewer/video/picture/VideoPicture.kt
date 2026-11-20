@@ -38,6 +38,7 @@ import androidx.media3.common.Format
 import androidx.media3.common.MimeTypes
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
+import androidx.media3.common.Timeline
 import androidx.media3.common.Tracks
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.common.util.Util
@@ -179,7 +180,8 @@ class VideoPicture(
      * effects follow as soon as the tracks and the surface are known. Unknown sources start plain.
      */
     fun prepare(player: ExoPlayer) {
-        if (!switchedOn || failedInProcess || player.mediaItemCount == 0) {
+        if (!switchedOn || failedInProcess || player.mediaItemCount == 0 ||
+            player.currentMediaItem?.mediaId in softwareMediaIds) {
             player.prepare()
             return
         }
@@ -247,7 +249,7 @@ class VideoPicture(
         val isHdr = ColorInfo.isTransferHdr(format.colorInfo) || format.sampleMimeType == MimeTypes.VIDEO_DOLBY_VISION
         val decision = PicturePolicy.decide(
             level, switchedOn, isHdr, format.drmInitData != null, width, height, surfaceWidth, surfaceHeight, tooSlow,
-            failedInProcess
+            failedInProcess, player.currentMediaItem?.mediaId in softwareMediaIds
         )
         this.decision = decision
         val action = PicturePolicy.pipeline(engaged, decision)
@@ -347,6 +349,12 @@ class VideoPicture(
         initializationDurationMs: Long
     ) {
         videoDecoder = decoderName
+        // FFmpeg took over (the chip can't): never the GL pipeline for this video in this process, not even after
+        // the screen is rebuilt for it.
+        if (SignalPath.isFfmpegDecoderName(decoderName) && !eventTime.timeline.isEmpty) {
+            softwareMediaIds += eventTime.timeline.getWindow(eventTime.windowIndex, Timeline.Window()).mediaItem.mediaId
+            scheduleEvaluate()
+        }
     }
 
     override fun onAudioInputFormatChanged(
@@ -377,6 +385,12 @@ class VideoPicture(
     override fun onDroppedVideoFrames(eventTime: AnalyticsListener.EventTime, droppedFrames: Int, elapsedMs: Long) {
         if (Log.isLoggable(PICTURE_LOG_TAG, Log.DEBUG)) {
             Log.d(PICTURE_LOG_TAG, "dropped $droppedFrames frames in $elapsedMs ms, enhancement ${decision?.on}")
+        }
+        // The CPU can't keep up with FFmpeg: say it once per process, calmly; nothing else can be done.
+        if (player?.currentMediaItem?.mediaId in softwareMediaIds && !softwareNoticeShown && PicturePolicy.tooSlow(droppedFrames, elapsedMs)) {
+            softwareNoticeShown = true
+            onNotice(activity.getString(R.string.video_software_slow_notice))
+            return
         }
         if (decision?.on != true || !PicturePolicy.tooSlow(droppedFrames, elapsedMs)) return
         tooSlow = true
@@ -703,6 +717,7 @@ class VideoPicture(
             Off.NO_VIDEO -> R.string.video_picture_off_no_video
             Off.HDR -> R.string.video_picture_off_hdr
             Off.DRM -> R.string.video_picture_off_drm
+            Off.SOFTWARE -> R.string.video_picture_off_software
             Off.FAILED -> R.string.video_picture_off_failed
             Off.SETTING -> R.string.video_picture_off_setting
             Off.SWITCHED_OFF -> R.string.video_picture_off_switched
@@ -712,6 +727,7 @@ class VideoPicture(
     )
 
     private fun decoderText(name: String, mimeType: String?): String {
+        if (SignalPath.isFfmpegDecoderName(name)) return activity.getString(R.string.video_signal_ffmpeg_format, name)
         val isHardware = hardware.getOrPut(name) {
             runCatching {
                 mimeType?.let { mime ->
@@ -801,6 +817,10 @@ class VideoPicture(
         /** Set when the GPU failed the pipeline: no further attempt until the process restarts. */
         @Volatile
         private var failedInProcess = false
+
+        /** Videos FFmpeg decodes (main thread): they never get the pipeline in this process. */
+        private val softwareMediaIds = HashSet<String>()
+        private var softwareNoticeShown = false
 
         private val CLEARED = Any()
         private const val SIGNAL_REFRESH_MS = 1_000L

@@ -499,7 +499,7 @@ Unit-Tests:
 ```
 
 <!-- AUTO:tests -->
-Gerätetests: 40 Skripte in [`e2e/`](e2e/README.md), gestartet mit `e2e/run.sh`: 15 nur lesend (`first-run`, `smoke`, `settings-visual`, `category-search`, `back-navigation`, `bars-replay`, `home-header`, `header-position`, `home-pull`, `drawer`, `selection-more`, `tablet-landscape`, `analysis`, `ai-show-guard`, `documents-provider`) und 25 weitere mit `--write` (`stress-delete`, `backup-restore`, `home-auto-refresh`, `audio-player`, `cast`, `klang`, `klang-landscape`, `klang-stress`, `music-formats`, `music-library`, `launcher-icons`, `icon-colors`, `ai-show`, `pick-file`, `no-midword-breaks`, `player-seek`, `player-stage2`, `video-player`, `video-network`, `video-sound`, `video-subtitles`, `video-background`, `video-library`, `video-seek`, `video-picture`). Unit-Tests: 114 Testklassen in `app/src/test`.
+Gerätetests: 40 Skripte in [`e2e/`](e2e/README.md), gestartet mit `e2e/run.sh`: 15 nur lesend (`first-run`, `smoke`, `settings-visual`, `category-search`, `back-navigation`, `bars-replay`, `home-header`, `header-position`, `home-pull`, `drawer`, `selection-more`, `tablet-landscape`, `analysis`, `ai-show-guard`, `documents-provider`) und 25 weitere mit `--write` (`stress-delete`, `backup-restore`, `home-auto-refresh`, `audio-player`, `cast`, `klang`, `klang-landscape`, `klang-stress`, `music-formats`, `music-library`, `launcher-icons`, `icon-colors`, `ai-show`, `pick-file`, `no-midword-breaks`, `player-seek`, `player-stage2`, `video-player`, `video-network`, `video-sound`, `video-subtitles`, `video-background`, `video-library`, `video-seek`, `video-picture`). Unit-Tests: 115 Testklassen in `app/src/test`.
 <!-- /AUTO:tests -->
 
 ## Ausblick
@@ -539,4 +539,6 @@ Außerdem nutzt Ordo [llama.cpp](https://github.com/ggml-org/llama.cpp) (MIT) mi
 
 Diese Software nutzt Code von [FFmpeg](https://ffmpeg.org) unter der
 [LGPLv2.1](https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html); der Quelltext lässt sich
-[hier](https://ffmpeg.org/releases/ffmpeg-6.0.1.tar.xz) herunterladen (nur Ton-Decoder, gebaut von `utils/ffmpeg-audio/build.sh`).
+[hier](https://ffmpeg.org/releases/ffmpeg-6.0.1.tar.xz) herunterladen (einige Ton- und Video-Decoder, gebaut von `utils/ffmpeg-audio/build.sh`).
+Der Software-Video-Renderer (`ffmpeg/src/main/jni/ffvideo.cc`, `FfmpegVideoDecoder`, `DrainingDecoder`) stammt aus
+[nextlib](https://github.com/anilbeesetti/nextlib) (GPL-3.0).

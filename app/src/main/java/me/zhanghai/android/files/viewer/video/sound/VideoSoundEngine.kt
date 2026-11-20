@@ -16,7 +16,6 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.common.Tracks
 import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.exoplayer.RenderersFactory
 import java8.nio.file.Paths
 import java8.nio.file.attribute.BasicFileAttributes
 import me.zhanghai.android.files.BuildConfig
@@ -211,7 +210,7 @@ class VideoSoundEngine(private val context: Context) {
     /** Hook for the subtitle feature: called with true when "Besser verstehen" goes on, false when off. */
     var onUnderstandBetter: ((Boolean) -> Unit)? = null
 
-    fun renderersFactory(): RenderersFactory =
+    fun renderersFactory(): AudioRenderersFactory =
         AudioRenderersFactory(context, arrayOf(downmix, klang, truePeak, delay))
 
     fun attach(player: ExoPlayer) {

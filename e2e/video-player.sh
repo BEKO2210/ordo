@@ -1,12 +1,14 @@
 #!/bin/bash
 # Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later
 # Video player, phase 1, WRITES: creates /storage/emulated/0/ordo-e2e-video with files made by ffmpeg on the host (two
-# 30-s H.264/AAC 1080p clips with the time burnt in, a 0-byte .mp4, an AVI with MPEG-4 ASP/Xvid) and removes it again.
+# 30-s H.264/AAC 1080p clips with the time burnt in, a 0-byte .mp4, AVIs with Xvid and DivX 3, HEVC 10-bit MKV, MPEG-2 TS
+# and a WMV) and removes it again.
 # A tap in the file list opens Ordo's player and it plays (dumpsys media_session); a tap, a quick swipe and a scroll on
 # the seek bar never move it, 400 ms held and dragged to 3/4 does; a double tap in the left 28 % jumps 10 s back, three
 # quick taps 20 s, the right 28 % ahead; the lock stops taps until its button is held; closing at 0:12 and opening again
 # offers "Resume at 0:12", a tap goes there; "Next video" at the end opens the next of the folder; the 0-byte file and
-# (if the device cannot play it) the AVI show the message with "Open with another app" instead of crashing; an
+# the WMV show the message with "Open with another app" instead of crashing; Xvid, DivX 3, HEVC 10-bit and MPEG-2
+# play (device decoder or FFmpeg); an
 # external file:// intent is refused, a content:// one with a read grant plays; the rotate button (phone) keeps
 # position and playback; at the end it stops with "Watch again"/"Next video"; one left-edge swipe goes back; a
 # vertical swipe on the right half changes the volume; Ordo Video's own colour (Amber) changes the play button's
@@ -27,6 +29,20 @@ done
 : > "$tmp/03-empty.mp4"
 ffmpeg -v error -f lavfi -i "testsrc=size=640x360:rate=25:duration=10" -f lavfi -i "sine=frequency=550:duration=10" \
     -c:v mpeg4 -vtag XVID -q:v 5 -c:a libmp3lame -b:a 128k -shortest "$tmp/04-xvid.avi" || echo "FAIL ffmpeg could not make the AVI"
+# Formats budget chips often can't (Ordo's FFmpeg video fallback): HEVC 10-bit, MPEG-2 in TS, MS-MPEG-4 v3 (DivX 3) in
+# AVI. VC-1 has no encoder in ffmpeg (check by hand with a real file); WMV in ASF has no extractor and must explain.
+src() { echo "testsrc=size=$1:rate=25:duration=10"; }
+tone="sine=frequency=660:duration=10"
+if ffmpeg -v error -hide_banner -encoders 2>/dev/null | grep -q libx265; then
+    ffmpeg -v error -f lavfi -i "$(src 1280x720)" -f lavfi -i "$tone" -c:v libx265 -preset ultrafast -pix_fmt yuv420p10le \
+        -c:a aac -shortest "$tmp/05-hevc10.mkv" || echo "FAIL ffmpeg could not make the HEVC 10-bit MKV"
+fi
+ffmpeg -v error -f lavfi -i "$(src 720x576)" -f lavfi -i "$tone" -c:v mpeg2video -q:v 4 -c:a mp2 -shortest \
+    "$tmp/06-mpeg2.ts" || echo "FAIL ffmpeg could not make the MPEG-2 TS"
+ffmpeg -v error -f lavfi -i "$(src 640x360)" -f lavfi -i "$tone" -c:v msmpeg4 -vtag MP43 -q:v 5 -c:a libmp3lame \
+    -shortest "$tmp/07-divx3.avi" || echo "FAIL ffmpeg could not make the DivX 3 AVI"
+ffmpeg -v error -f lavfi -i "$(src 640x360)" -f lavfi -i "$tone" -c:v wmv2 -c:a wmav2 -shortest "$tmp/08-wmv.wmv" ||
+    echo "FAIL ffmpeg could not make the WMV"
 a shell "rm -rf $DIR; mkdir -p $DIR"
 a push "$tmp/." "$DIR/" >/dev/null
 
@@ -195,10 +211,19 @@ system_focus() {
 ui tap errorOpenWith >/dev/null
 check "Open with another app hands over to the system chooser" system_focus
 a shell input keyevent KEYCODE_BACK; sleep 1; back 2
-open_folder 04-xvid.avi
-ui tap 04-xvid.avi >/dev/null; wait_on viewer.video.VideoPlayerActivity 8
-avi() { local i; for i in $(seq 1 10); do playing && return 0; ui has errorOpenWith && return 0; sleep 1; done; return 1; }
-check "the Xvid AVI plays or explains itself ($(playing && echo plays || echo message))" avi
+# The device's decoder first, FFmpeg when it can't (or fails to start, W90 with HEVC 10-bit): these play everywhere.
+not_on_error() { ! ui has errorOpenWith; }
+for f in 04-xvid.avi 05-hevc10.mkv 06-mpeg2.ts 07-divx3.avi; do
+    [ -s "$tmp/$f" ] || { echo "SKIP $f (not made on this host)"; continue; }
+    open_folder "$f"
+    ui tap "$f" >/dev/null; wait_on viewer.video.VideoPlayerActivity 8
+    check "$f plays (device decoder or FFmpeg)" wait_playing
+    check "$f shows no error" not_on_error
+    back 2
+done
+open_folder 08-wmv.wmv
+ui tap 08-wmv.wmv >/dev/null; wait_on viewer.video.VideoPlayerActivity 8
+check "WMV (ASF, no extractor) explains itself with Open with another app" ui wait errorOpenWith 8
 back 2
 
 # 6. External callers: file:// is refused, content:// with a read grant plays.

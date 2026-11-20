@@ -9,3 +9,6 @@
 -keep, includedescriptorclasses class androidx.media3.decoder.ffmpeg.FfmpegAudioDecoder {
   private java.nio.ByteBuffer growOutputBuffer(androidx.media3.decoder.SimpleDecoderOutputBuffer, int);
 }
+
+# Ordo (not from Media3): ffvideo.cc reads and calls these by name (as Media3's decoder_vp9 keeps them).
+-keep class androidx.media3.decoder.VideoDecoderOutputBuffer { *; }

@@ -1,136 +1,113 @@
 /*
- * Copyright (C) 2020 The Android Open Source Project
+ * Copyright (c) 2026 Ordo contributors
+ * SPDX-License-Identifier: GPL-3.0-or-later
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Replaces Media3 1.11.1's placeholder of the same name (its supportsFormat always said "unsupported", PR 1591 is still
+ * open). The body is nextlib's FfmpegVideoRenderer (anilbeesetti/nextlib, GPL-3.0, tag v1.11.1-0.18.0, commit
+ * d774e7e6d65204d409dc679ab173c67030d4a7d4), renamed, so DefaultRenderersFactory finds it by reflection under
+ * EXTENSION_RENDERER_MODE_ON: after the platform's video renderer, used only for what no platform decoder takes.
  */
 package androidx.media3.decoder.ffmpeg;
 
-import static androidx.media3.exoplayer.DecoderReuseEvaluation.DISCARD_REASON_MIME_TYPE_CHANGED;
-import static androidx.media3.exoplayer.DecoderReuseEvaluation.REUSE_RESULT_NO;
-import static androidx.media3.exoplayer.DecoderReuseEvaluation.REUSE_RESULT_YES_WITHOUT_RECONFIGURATION;
+import static java.lang.Runtime.getRuntime;
 
 import android.os.Handler;
 import android.view.Surface;
 import androidx.annotation.Nullable;
 import androidx.media3.common.C;
 import androidx.media3.common.Format;
-import androidx.media3.common.util.ExperimentalApi;
+import androidx.media3.common.MimeTypes;
 import androidx.media3.common.util.TraceUtil;
+import androidx.media3.common.util.UnstableApi;
+import androidx.media3.common.util.Util;
 import androidx.media3.decoder.CryptoConfig;
 import androidx.media3.decoder.Decoder;
+import androidx.media3.decoder.DecoderException;
 import androidx.media3.decoder.DecoderInputBuffer;
 import androidx.media3.decoder.VideoDecoderOutputBuffer;
-import androidx.media3.exoplayer.DecoderReuseEvaluation;
 import androidx.media3.exoplayer.RendererCapabilities;
 import androidx.media3.exoplayer.video.DecoderVideoRenderer;
 import androidx.media3.exoplayer.video.VideoRendererEventListener;
-import java.util.Objects;
 
-// TODO: Merge actual implementation in https://github.com/androidx/media/pull/1591.
-/**
- * <b>NOTE: This class if under development and is not yet functional.</b>
- *
- * <p>Decodes and renders video using FFmpeg.
- */
-@ExperimentalApi // TODO: b/470357054 - Merge pull request and publish FfmpegVideoRenderer.
+/** Software video decoding with FFmpeg (H.264, HEVC incl. 10-bit, MPEG-2, MPEG-4 ASP/Xvid/DivX, H.263, MS-MPEG-4, VC-1). */
+@UnstableApi
 public final class ExperimentalFfmpegVideoRenderer extends DecoderVideoRenderer {
 
-  private static final String TAG = "ExperimentalFfmpegVideoRenderer";
+    private static final String TAG = "FfmpegVideoRenderer";
 
-  /**
-   * Creates a new instance.
-   *
-   * @param allowedJoiningTimeMs The maximum duration in milliseconds for which this video renderer
-   *     can attempt to seamlessly join an ongoing playback.
-   * @param eventHandler A handler to use when delivering events to {@code eventListener}. May be
-   *     null if delivery of events is not required.
-   * @param eventListener A listener of events. May be null if delivery of events is not required.
-   * @param maxDroppedFramesToNotify The maximum number of frames that can be dropped between
-   *     invocations of {@link VideoRendererEventListener#onDroppedFrames(int, long)}.
-   */
-  public ExperimentalFfmpegVideoRenderer(
-      long allowedJoiningTimeMs,
-      @Nullable Handler eventHandler,
-      @Nullable VideoRendererEventListener eventListener,
-      int maxDroppedFramesToNotify) {
-    super(allowedJoiningTimeMs, eventHandler, eventListener, maxDroppedFramesToNotify);
-    // TODO: Implement.
-  }
+    private static final int DEFAULT_NUM_OF_INPUT_BUFFERS = 4;
+    private static final int DEFAULT_NUM_OF_OUTPUT_BUFFERS = 4;
+    /* Default size based on 720p resolution video compressed by a factor of two. */
+    private static final int DEFAULT_INPUT_BUFFER_SIZE =
+            Util.ceilDivide(1280, 64) * Util.ceilDivide(720, 64) * (64 * 64 * 3 / 2) / 2;
 
-  @Override
-  public String getName() {
-    return TAG;
-  }
+    private final int threads;
 
-  @Override
-  public final @RendererCapabilities.Capabilities int supportsFormat(Format format) {
-    // TODO: Remove this line and uncomment the implementation below.
-    return RendererCapabilities.create(C.FORMAT_UNSUPPORTED_TYPE);
-    /*
-    String mimeType = Assertions.checkNotNull(format.sampleMimeType);
-    if (!FfmpegLibrary.isAvailable() || !MimeTypes.isVideo(mimeType)) {
-      return FORMAT_UNSUPPORTED_TYPE;
-    } else if (!FfmpegLibrary.supportsFormat(format.sampleMimeType)) {
-      return RendererCapabilities.create(FORMAT_UNSUPPORTED_SUBTYPE);
-    } else if (format.exoMediaCryptoType != null) {
-      return RendererCapabilities.create(FORMAT_UNSUPPORTED_DRM);
-    } else {
-      return RendererCapabilities.create(
-          FORMAT_HANDLED,
-          ADAPTIVE_SEAMLESS,
-          TUNNELING_NOT_SUPPORTED);
+    @Nullable private FfmpegVideoDecoder decoder;
+
+    /** The constructor DefaultRenderersFactory looks up by reflection (kept by Media3's own ProGuard rules). */
+    public ExperimentalFfmpegVideoRenderer(
+            long allowedJoiningTimeMs,
+            @Nullable Handler eventHandler,
+            @Nullable VideoRendererEventListener eventListener,
+            int maxDroppedFramesToNotify) {
+        super(allowedJoiningTimeMs, eventHandler, eventListener, maxDroppedFramesToNotify);
+        this.threads = getRuntime().availableProcessors();
     }
-    */
-  }
 
-  @SuppressWarnings("nullness:return")
-  @Override
-  protected Decoder<DecoderInputBuffer, VideoDecoderOutputBuffer, FfmpegDecoderException>
-      createDecoder(Format format, @Nullable CryptoConfig cryptoConfig)
-          throws FfmpegDecoderException {
-    TraceUtil.beginSection("createFfmpegVideoDecoder");
-    // TODO: Implement, remove the SuppressWarnings annotation, and update the return type to use
-    // the concrete type of the decoder (probably FfmepgVideoDecoder).
-    TraceUtil.endSection();
-    return null;
-  }
-
-  @Override
-  protected void renderOutputBufferToSurface(VideoDecoderOutputBuffer outputBuffer, Surface surface)
-      throws FfmpegDecoderException {
-    // TODO: Implement.
-  }
-
-  @Override
-  protected void setDecoderOutputMode(@C.VideoOutputMode int outputMode) {
-    // TODO: Uncomment the implementation below.
-    /*
-    if (decoder != null) {
-      decoder.setOutputMode(outputMode);
+    @Override
+    public String getName() {
+        return TAG;
     }
-    */
-  }
 
-  @Override
-  protected DecoderReuseEvaluation canReuseDecoder(
-      String decoderName, Format oldFormat, Format newFormat) {
-    boolean sameMimeType = Objects.equals(oldFormat.sampleMimeType, newFormat.sampleMimeType);
-    // TODO: Ability to reuse the decoder may be MIME type dependent.
-    return new DecoderReuseEvaluation(
-        decoderName,
-        oldFormat,
-        newFormat,
-        sameMimeType ? REUSE_RESULT_YES_WITHOUT_RECONFIGURATION : REUSE_RESULT_NO,
-        sameMimeType ? 0 : DISCARD_REASON_MIME_TYPE_CHANGED);
-  }
+    @Override
+    @RendererCapabilities.Capabilities
+    public final int supportsFormat(Format format) {
+        String mimeType = format.sampleMimeType;
+        if (!MimeTypes.isVideo(mimeType) || FfmpegVideoDecoder.getCodecName(mimeType) == null) {
+            return C.FORMAT_UNSUPPORTED_TYPE;
+        } else if (!FfmpegVideoDecoder.supportsMimeType(mimeType)) {
+            return RendererCapabilities.create(C.FORMAT_UNSUPPORTED_SUBTYPE);
+        } else if (format.cryptoType != C.CRYPTO_TYPE_NONE) {
+            return RendererCapabilities.create(C.FORMAT_UNSUPPORTED_DRM);
+        } else {
+            return RendererCapabilities.create(
+                    C.FORMAT_HANDLED,
+                    ADAPTIVE_NOT_SEAMLESS,
+                    TUNNELING_NOT_SUPPORTED);
+        }
+    }
+
+    @Override
+    protected void renderOutputBufferToSurface(VideoDecoderOutputBuffer outputBuffer, Surface surface)
+            throws FfmpegDecoderException {
+        try {
+            if (decoder == null) {
+                throw new FfmpegDecoderException(
+                        "Failed to render output buffer to surface: decoder is not initialized.");
+            }
+            decoder.renderToSurface(outputBuffer, surface);
+        } finally {
+            outputBuffer.release();
+        }
+    }
+
+    @Override
+    protected Decoder<DecoderInputBuffer, ? extends VideoDecoderOutputBuffer, ? extends DecoderException> createDecoder(
+            Format format, @Nullable CryptoConfig cryptoConfig) throws DecoderException {
+        TraceUtil.beginSection("createFfmpegVideoDecoder");
+        int initialInputBufferSize = format.maxInputSize != Format.NO_VALUE ? format.maxInputSize : DEFAULT_INPUT_BUFFER_SIZE;
+        FfmpegVideoDecoder decoder = new FfmpegVideoDecoder(
+                DEFAULT_NUM_OF_INPUT_BUFFERS, DEFAULT_NUM_OF_OUTPUT_BUFFERS, initialInputBufferSize, threads, format);
+        this.decoder = decoder;
+        TraceUtil.endSection();
+        return decoder;
+    }
+
+    @Override
+    protected void setDecoderOutputMode(@C.VideoOutputMode int outputMode) {
+        if (decoder != null) {
+            decoder.setOutputMode(outputMode);
+        }
+    }
 }
