@@ -55,7 +55,7 @@ ui tap "Helligkeit erhöhen|Brightness up" >/dev/null; sleep 0.5
 ui tap "Helligkeit erhöhen|Brightness up" >/dev/null; sleep 1
 check "two taps show +2" ui has "+2"
 sleep 3
-check "the pass is set although the enhancement has nothing to do" eval 'log | grep -qE -- "-> (ENGAGE|APPLY)"'
+check "the pass is set although the enhancement has nothing to do" eval 'log | grep -E -- "-> (ENGAGE|APPLY)"'
 back 1
 screenshot "$out/full-brighter.png"
 echo "INFO compare $out/full-before.png and $out/full-brighter.png (brighter)"
@@ -75,7 +75,7 @@ open_video 02-interlaced.mp4
 sheet
 check "the interlaced clip is detected" ui has \
     "Dieses Video hat Zeilensprung: Automatisch entfernt ihn.|This video is interlaced: automatic removes it."
-check "and runs the pass" eval 'log | grep -qE -- "-> (ENGAGE|APPLY)"'
+check "and runs the pass" eval 'log | grep -E -- "-> (ENGAGE|APPLY)"'
 back 1
 screenshot "$out/interlaced.png"
 echo "INFO look for comb lines on moving edges: $out/interlaced.png"

@@ -37,7 +37,7 @@ open_file() {
     sleep 3; guard; ui wait "$2" 10 >/dev/null; ui tap "$2" >/dev/null
     wait_on viewer.video.VideoPlayerActivity 8
 }
-menu() { ui tap "Weitere Optionen|More options" >/dev/null; sleep 1; ui tap "$1" >/dev/null; sleep 1.5; }
+menu() { video_menu "$1"; }
 upscaling() {
     a shell am start -W -n "$PKG/me.zhanghai.android.files.viewer.video.VideoLauncherActivity" >/dev/null; sleep 2; guard
     ui tap actionSettings >/dev/null; sleep 2
@@ -47,11 +47,12 @@ upscaling() {
     back 1; back 1
 }
 
-# 1. The setting exists, Standard by default.
+# 1. The setting exists and offers Standard. Its value persists: a run stopped early left "Automatic" (Tab, 20.11.2026).
+upscaling "Standard \(Lanczos\)"
 a shell am start -W -n "$PKG/me.zhanghai.android.files.viewer.video.VideoLauncherActivity" >/dev/null; sleep 2; guard
 ui tap actionSettings >/dev/null; sleep 2
 scroll_to "Hochskalieren|Upscaling" >/dev/null
-check "the settings have Upscaling, Standard (Lanczos) by default" ui wait "Standard \(Lanczos\)" 5
+check "the settings have Upscaling, set to Standard (Lanczos)" ui wait "Standard \(Lanczos\)" 5
 back 1; back 1
 
 # 2. Detail plus: film on a 360p clip.
@@ -59,16 +60,17 @@ upscaling "Detail plus: Film|Detail plus: film"
 a logcat -c
 open_file "$DIR" 01-film.mp4
 sleep 6
-check "the film network is set as an effect" eval 'log | grep -q "effects: detail plus FILM"'
+check "the film network is set as an effect" eval 'log | grep "effects: detail plus FILM"'
 menu "Signalweg|Signal path"
 check "the signal path names Detail plus film" ui wait "Detail plus (Film|film) \(FSRCNNX x2\)" 5
 screenshot "$out/signal-detailplus.png"
 
 # 3. Measurements: unfold, measure 20 s, read the rows, share the CSV, fold.
-swipe_up; swipe_up
+# Swipe only inside the open sheet: on the bare picture a vertical swipe is the volume gesture (Tab went to 15).
+for i in 1 2; do ui has "Lanczos 3|Detail plus" && swipe_up; done
 ui tap "Messwerte|Measurements" >/dev/null; sleep 2
 check "unfolding starts measuring" ui wait "Misst\. Zum Beenden antippen\.|Measuring\. Tap to stop\." 5
-check "every pass is wrapped while measuring" eval 'log | grep -q "measuring true"'
+check "every pass is wrapped while measuring" eval 'log | grep "measuring true"'
 sleep 20
 check "the timer kind is shown" ui has "GPU-Timer|GPU timer|CPU-Uhr|CPU clock"
 if ui has "Detail plus: [0-9]"; then echo "INFO Detail plus kept for 20 s"; else echo "INFO Detail plus not timed (fell back?)"; fi
@@ -89,7 +91,7 @@ upscaling "Automatisch|Automatic"
 a logcat -c
 open_file "$DIR/Anime" "[SubsPlease] Show - 01 (360p).mp4"
 sleep 6
-check "Automatic picks cartoon for an anime name" eval 'log | grep -q "effects: detail plus CARTOON"'
+check "Automatic picks cartoon for an anime name" eval 'log | grep "effects: detail plus CARTOON"'
 back 2
 
 upscaling "Standard \(Lanczos\)"

@@ -110,8 +110,16 @@ record() {
     ordo_front || { echo "SKIP recording (not Ordo): $2"; return 1; }
     a shell "screenrecord $size --time-limit $1 $2"
 }
-swipe_up() { read -r W H < <(screen_size); a shell input swipe $((W / 2)) $((H * 3 / 4)) $((W / 2)) $((H / 3)) 500; sleep 1.5; }
-swipe_down() { read -r W H < <(screen_size); a shell input swipe $((W / 2)) $((H / 3)) $((W / 2)) $((H * 3 / 4)) 500; sleep 1.5; }
+swipe_up() { read -r W H < <(screen_size); a shell input swipe $((W / 2)) $((H * 3 / 4)) $((W / 2)) $((H / 3)) 500; sleep 1.5; still_muted; }
+swipe_down() { read -r W H < <(screen_size); a shell input swipe $((W / 2)) $((H / 3)) $((W / 2)) $((H * 3 / 4)) 500; sleep 1.5; still_muted; }
+# A vertical swipe that misses a sheet lands on the video player's volume gesture (Tab went 0 -> 15 at 09:12,
+# 20.11.2026): unless volume steps are allowed, mute again at once and fail the run.
+still_muted() {
+    [ "${E2E_ALLOW_VOLUME:-}" = 1 ] && return 0
+    local v; v=$(media_volume); [ "${v:-0}" = 0 ] && return 0
+    a shell 'for i in $(seq 25); do input keyevent KEYCODE_VOLUME_DOWN; done'
+    fail "a swipe raised the media volume to $v (muted again)"
+}
 
 # The wand opens the command sheet. Below the model's RAM floor (CommandModel.MIN_RAM, 10 GB, compared with the
 # device's own MemTotal) it opens the setup page that says the AI can't run here: SKIP. Above it, without a model, the setup
