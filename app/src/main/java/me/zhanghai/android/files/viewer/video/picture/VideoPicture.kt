@@ -148,6 +148,16 @@ class VideoPicture(
         }
     }
 
+    // The "Bild" sheet: per video, remembered by PictureAdjustStore's rules.
+    private val adjustStore = PictureAdjustStore(activity)
+    private var adjustId: String? = null
+    var adjustments = PictureAdjustments()
+        private set
+    /** What the playing video's format says about interlacing: true, false or null (unknown). */
+    var deinterlaceDetected: Boolean? = null
+        private set
+    private var deinterlaceOn = false
+
     private val evaluateRunnable = Runnable { evaluate() }
     private val layoutListener = View.OnLayoutChangeListener { _, l, t, r, b, ol, ot, or, ob ->
         if (r - l != or - ol || b - t != ob - ot) scheduleEvaluate()
@@ -179,12 +189,14 @@ class VideoPicture(
      * effects follow as soon as the tracks and the surface are known. Unknown sources start plain.
      */
     fun prepare(player: ExoPlayer) {
-        if (!switchedOn || failedInProcess || player.mediaItemCount == 0) {
+        val index = player.currentMediaItemIndex
+        val currentId = player.takeIf { it.mediaItemCount > 0 }?.getMediaItemAt(index)?.mediaId
+        // Remembered adjustments (or forced deinterlacing) need the pass at any size.
+        val adjusted = currentId?.let(adjustStore::read)?.let { !it.isNeutral || it.deinterlace == true } == true
+        if ((!switchedOn && !adjusted) || failedInProcess || currentId == null) {
             player.prepare()
             return
         }
-        val index = player.currentMediaItemIndex
-        val currentId = player.getMediaItemAt(index).mediaId
         val nextId = if (index + 1 < player.mediaItemCount) player.getMediaItemAt(index + 1).mediaId else null
         activity.lifecycleScope.launch {
             val next = nextId?.let { async { PictureProbe.probe(activity, it) } }
@@ -193,7 +205,8 @@ class VideoPicture(
             // Someone pressed play meanwhile (prepare after an error): too late for the pipeline, the fallback rules.
             if (this@VideoPicture.player !== player || player.playbackState != Player.STATE_IDLE) return@launch
             if (PicturePolicy.preEngage(
-                    switchedOn, failedInProcess, current, next?.await(), metrics.widthPixels, metrics.heightPixels
+                    switchedOn, failedInProcess, current, next?.await(), metrics.widthPixels, metrics.heightPixels,
+                    adjusted
                 )) {
                 player.setVideoEffects(emptyList())
                 engaged = true
@@ -210,6 +223,30 @@ class VideoPicture(
         if (switchedOn) tooSlow = false
         evaluate()
         return switchedOn
+    }
+
+    /** The "Bild" sheet changed a step: live in the pass, remembered for this video where allowed. */
+    fun adjust(value: PictureAdjustments) {
+        // Before the first evaluate with tracks: this video's, so evaluate does not read the store over it.
+        if (adjustId == null) adjustId = player?.currentMediaItem?.mediaId
+        adjustments = value
+        adjustId?.let { adjustStore.write(it, value) }
+        applyLive()
+        evaluate()
+        player?.let(::redrawIfPaused)
+    }
+
+    /** False on HDR, DRM or a GPU that failed: the sheet says so. */
+    val adjustable: Boolean
+        get() = decision?.let(PicturePolicy::adjustable) ?: true
+
+    /** Whether this video's adjustments are kept (not Tresor, not content://, not with "Keine Stellen merken"). */
+    val remembersAdjustments: Boolean
+        get() = PictureAdjustStore.remembers(adjustId)
+
+    private fun applyLive() {
+        live.colorMatrix = PictureAdjust.colorMatrix(adjustments)
+        live.sharpnessStep = adjustments.sharpness
     }
 
     /** What the toggle's hint says: on, off, or on but not used on this video and why. */
@@ -233,6 +270,14 @@ class VideoPicture(
         // Between videos and while re-preparing there are no tracks: everything stays as it is (a cleared rate
         // would switch the screen's mode twice under "always").
         val format = selectedVideoFormat(player.currentTracks) ?: return
+        val mediaId = player.currentMediaItem?.mediaId
+        if (mediaId != adjustId) {
+            adjustId = mediaId
+            adjustments = mediaId?.let(adjustStore::read) ?: PictureAdjustments()
+            applyLive()
+        }
+        deinterlaceDetected = Deinterlace.detect(format.sampleMimeType, format.initializationData, format.frameRate)
+        deinterlaceOn = Deinterlace.active(adjustments.deinterlace, deinterlaceDetected)
         val plan = PicturePolicy.frameRatePlan(
             PicturePolicy.frameRateMode(Settings.VIDEO_FRAME_RATE.valueCompat), Build.VERSION.SDK_INT, format.frameRate
         )
@@ -250,7 +295,7 @@ class VideoPicture(
             failedInProcess
         )
         this.decision = decision
-        val action = PicturePolicy.pipeline(engaged, decision)
+        val action = PicturePolicy.pipeline(engaged, decision, !adjustments.isNeutral || deinterlaceOn)
         if (Log.isLoggable(PICTURE_LOG_TAG, Log.DEBUG)) {
             Log.d(PICTURE_LOG_TAG, "${width}x$height on ${surfaceWidth}x$surfaceHeight: $decision -> $action, $plan")
         }
@@ -285,12 +330,21 @@ class VideoPicture(
         height: Int,
         redraw: Boolean = true
     ) {
-        val params = PicturePolicy.shaderParams(decision.level, decision.scale)
-        val key = Triple(params, width, height)
+        val params = if (decision.on) {
+            PicturePolicy.shaderParams(decision.level, decision.scale)
+        } else {
+            PicturePolicy.ADJUST_ONLY
+        }
+        val key = listOf(params, width, height, decision.on, deinterlaceOn)
         if (appliedKey == key) return
         appliedKey = key
-        // Lanczos fits the frame into the surface, so the final copy onto the screen is pixel for pixel.
-        player.setVideoEffects(listOf(LanczosResample.scaleToFit(width, height), PictureEnhanceEffect(params, live)))
+        // Deinterlacing sees the decoded lines; Lanczos fits the frame into the surface, so the final copy onto the
+        // screen is pixel for pixel. Only the adjustments: no scaling, the screen scales as without the pass.
+        player.setVideoEffects(listOfNotNull(
+            DeinterlaceEffect.takeIf { deinterlaceOn },
+            LanczosResample.scaleToFit(width, height).takeIf { decision.on },
+            PictureEnhanceEffect(params, live)
+        ))
         if (redraw) redrawIfPaused(player)
     }
 

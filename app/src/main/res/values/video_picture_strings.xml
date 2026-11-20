@@ -93,4 +93,26 @@
     <string name="video_signal_ambient">Room light</string>
     <string name="video_signal_ambient_format">%1$s lx → gamma %2$s (reference %3$s)</string>
     <string name="video_signal_ambient_idle_format">%1$s lx, only works while picture enhancement runs</string>
+    <string name="video_picture_adjust_menu">Adjust picture</string>
+    <string name="video_picture_adjust_title">Picture</string>
+    <string name="video_picture_adjust_brightness">Brightness</string>
+    <string name="video_picture_adjust_contrast">Contrast</string>
+    <string name="video_picture_adjust_saturation">Saturation</string>
+    <string name="video_picture_adjust_temperature">Colour temperature</string>
+    <string name="video_picture_adjust_sharpness">Sharpness</string>
+    <string name="video_picture_adjust_less_format">%1$s down</string>
+    <string name="video_picture_adjust_more_format">%1$s up</string>
+    <string name="video_picture_adjust_value_format">%1$s: %2$d</string>
+    <string name="video_picture_adjust_reset">Reset</string>
+    <string name="video_picture_adjust_unavailable">Not possible for HDR or protected videos.</string>
+    <string name="video_picture_adjust_not_remembered">Changes apply now but aren’t remembered for this video.</string>
+    <string name="video_picture_deinterlace">Remove interlacing</string>
+    <string-array name="video_picture_deinterlace_names">
+        <item>Automatic</item>
+        <item>On</item>
+        <item>Off</item>
+    </string-array>
+    <string name="video_picture_deinterlace_detected_interlaced">This video is interlaced: automatic removes it.</string>
+    <string name="video_picture_deinterlace_detected_progressive">This video has full frames: automatic leaves it.</string>
+    <string name="video_picture_deinterlace_detected_unknown">The file doesn’t say whether it is interlaced. Switch it on if you see comb lines when things move.</string>
 </resources>

@@ -43,6 +43,10 @@
         android:checkable="true"
         app:showAsAction="never" />
     <item
+        android:id="@+id/actionPictureAdjust"
+        android:title="@string/video_picture_adjust_menu"
+        app:showAsAction="never" />
+    <item
         android:id="@+id/actionSignalPath"
         android:title="@string/video_signal_title"
         app:showAsAction="never" />

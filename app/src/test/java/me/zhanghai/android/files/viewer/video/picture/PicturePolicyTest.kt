@@ -148,6 +148,26 @@ class PicturePolicyTest {
     }
 
     @Test
+    fun adjustmentsNeedThePassAtAnySizeButNeverOnHdrOrDrm() {
+        // A full-size video with the enhancement off still gets the pass for the "Bild" sheet.
+        val big = decide(video = 3840 to 2160)
+        assertEquals(Pipeline.ENGAGE, PicturePolicy.pipeline(false, big, adjusted = true))
+        assertEquals(Pipeline.APPLY, PicturePolicy.pipeline(true, big, adjusted = true))
+        assertEquals(Pipeline.APPLY, PicturePolicy.pipeline(true, decide(switchedOn = false), adjusted = true))
+        assertEquals(Pipeline.KEEP_PLAIN, PicturePolicy.pipeline(false, decide(hdr = true), adjusted = true))
+        assertEquals(Pipeline.RECREATE, PicturePolicy.pipeline(true, decide(drm = true), adjusted = true))
+        assertTrue(PicturePolicy.adjustable(big))
+        assertFalse(PicturePolicy.adjustable(decide(hdr = true)))
+        assertFalse(PicturePolicy.adjustable(decide(drm = true)))
+        // Remembered adjustments engage before prepare, also for a big video and with the toggle off.
+        val sdrBig = PicturePolicy.Probe(3840, 2160, hdr = false, drm = false)
+        assertTrue(PicturePolicy.preEngage(false, false, sdrBig, null, 1080, 2400, adjusted = true))
+        assertFalse(PicturePolicy.preEngage(false, false, sdrBig, null, 1080, 2400))
+        assertFalse(PicturePolicy.preEngage(true, false, PicturePolicy.Probe(640, 360, true, false), null, 1080, 2400, true))
+        assertFalse(PicturePolicy.preEngage(true, true, sdrBig, null, 1080, 2400, adjusted = true))
+    }
+
+    @Test
     fun probeReadsHdrFromTheTransferOrTheCodec() {
         fun hdr(mime: String, transfer: Int? = null, profile: Int? = null) =
             PicturePolicy.probeFrom(mime, 1280, 720, 0, transfer, profile, drm = false)?.hdr

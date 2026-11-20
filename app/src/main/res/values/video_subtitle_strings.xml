@@ -10,7 +10,7 @@
     <string name="video_subtitles_delay">Delay</string>
     <string name="video_subtitles_earlier_format">Show %1$s earlier</string>
     <string name="video_subtitles_later_format">Show %1$s later</string>
-    <string name="video_subtitles_delay_files_only">Delay works for subtitle files. Tracks inside the video keep their own timing.</string>
+    <string name="video_subtitles_delay_text_only">Shifting works for text subtitles only.</string>
     <string name="video_subtitles_charset">Character encoding</string>
     <string name="video_subtitles_charset_auto_format">Automatic (%1$s)</string>
     <string-array name="video_subtitles_charset_names">

@@ -25,8 +25,8 @@ import me.zhanghai.android.files.viewer.video.VideoInfo
 import me.zhanghai.android.files.viewer.video.showExpanded
 
 /**
- * "Subtitles": Off, the files and the film's tracks; "Load subtitles…" through Ordo's picker; for a file its delay
- * (−1 s, −0.1 s, +0.1 s, +1 s, never a slider) and its charset; the look in steps for every film. Each row is at least
+ * "Subtitles": Off, the files and the film's tracks; "Load subtitles…" through Ordo's picker; for a file or a text
+ * track its delay (−1 s, −0.1 s, +0.1 s, +1 s, never a slider), for a file its charset; the look in steps for every film. Each row is at least
  * 48 dp; text never breaks inside a word.
  */
 fun showSubtitleSheet(context: Context, subtitles: VideoSubtitles) {
@@ -56,13 +56,16 @@ fun showSubtitleSheet(context: Context, subtitles: VideoSubtitles) {
     // Off, files, tracks.
     val current = subtitles.currentChoice()
     val radios = RadioGroup(context)
+    lateinit var delaySection: View
     lateinit var fileSection: View
     lateinit var trackNote: View
     lateinit var bitmapNote: View
     fun updateSections(choice: SubtitleChoice) {
+        val bitmap = choice is SubtitleChoice.Track && VideoSubtitles.isBitmap(subtitles.trackFormat(choice))
+        delaySection.isVisible = choice is SubtitleChoice.File || (choice is SubtitleChoice.Track && !bitmap)
         fileSection.isVisible = choice is SubtitleChoice.File
-        trackNote.isVisible = choice is SubtitleChoice.Track
-        bitmapNote.isVisible = choice is SubtitleChoice.Track && VideoSubtitles.isBitmap(subtitles.trackFormat(choice))
+        trackNote.isVisible = bitmap
+        bitmapNote.isVisible = bitmap
     }
     var trackNumber = 0
     for (candidate in subtitles.choices()) {
@@ -91,9 +94,9 @@ fun showSubtitleSheet(context: Context, subtitles: VideoSubtitles) {
         }
     })
 
-    // A file: delay and charset.
-    val fileBox = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL }
-    fileBox.addView(text(R.string.video_subtitles_delay))
+    // A file or a text track: the delay; a file: its charset.
+    val delayBox = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL }
+    delayBox.addView(text(R.string.video_subtitles_delay))
     val delayValue = TextView(context).apply {
         gravity = android.view.Gravity.CENTER
         minWidth = context.dp(72)
@@ -133,7 +136,10 @@ fun showSubtitleSheet(context: Context, subtitles: VideoSubtitles) {
         )
     }
     showDelay()
-    fileBox.addView(steps)
+    delayBox.addView(steps)
+    delaySection = delayBox
+    content.addView(delayBox)
+    val fileBox = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL }
     fileBox.addView(text(R.string.video_subtitles_charset))
     val charsetNames = context.resources.getStringArray(R.array.video_subtitles_charset_names)
     val auto = context.getString(
@@ -149,7 +155,7 @@ fun showSubtitleSheet(context: Context, subtitles: VideoSubtitles) {
     fileSection = fileBox
     content.addView(fileBox)
     trackNote = TextView(context).apply {
-        setText(R.string.video_subtitles_delay_files_only)
+        setText(R.string.video_subtitles_delay_text_only)
         noWordBreaks()
         setPadding(0, padding / 2, 0, 0)
         setTextAppearance(com.google.android.material.R.style.TextAppearance_MaterialComponents_Body2)

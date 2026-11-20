@@ -97,11 +97,13 @@ import me.zhanghai.android.files.ui.Motion
 import me.zhanghai.android.files.util.valueCompat
 import me.zhanghai.android.files.util.createViewIntent
 import me.zhanghai.android.files.util.startActivitySafe
+import me.zhanghai.android.files.viewer.video.subtitles.SubtitleLead
 import me.zhanghai.android.files.viewer.video.subtitles.VideoSubtitles
 import me.zhanghai.android.files.viewer.video.subtitles.showSubtitleSheet
 import me.zhanghai.android.files.viewer.video.background.VideoBackgroundController
 import me.zhanghai.android.files.viewer.video.seek.VideoSeekPro
 import me.zhanghai.android.files.viewer.video.picture.VideoPicture
+import me.zhanghai.android.files.viewer.video.picture.showPictureAdjustSheet
 
 /**
  * Ordo's video player. The activity owns its ExoPlayer and a MediaSession (media keys, `dumpsys media_session`); the
@@ -286,9 +288,10 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
         val network = VideoNetworkPlayback.forUri(queue.items.getOrNull(queue.startIndex)?.mediaId)
         this.network = network
         val sound = VideoSoundEngine(this).also { videoSound = it }
+        val subtitleLead = SubtitleLead()
         // Klang chain + FFmpeg extension (AudioRenderersFactory sets EXTENSION_RENDERER_MODE_ON).
         val player = network.applyTo(ExoPlayer.Builder(this), this)
-            .setRenderersFactory(sound.renderersFactory())
+            .setRenderersFactory(subtitleLead.wrap(sound.renderersFactory()))
             .setAudioAttributes(
                 AudioAttributes.Builder().setUsage(C.USAGE_MEDIA).setContentType(C.AUDIO_CONTENT_TYPE_MOVIE).build(),
                 true
@@ -332,7 +335,7 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
         }.build()
         applyRepeatMode(VideoRepeatMode.decode(Settings.VIDEO_END.valueCompat))
         // Before the items: it hears the first one start (files next to it, the remembered choice).
-        subtitles = VideoSubtitles(this, player, binding.playerView, binding.bottomBar)
+        subtitles = VideoSubtitles(this, player, binding.playerView, binding.bottomBar, subtitleLead)
             .apply { holdActive = { speedBeforeHold > 0f } }
         // "Besser verstehen" (#98) also switches subtitles on (#99); without any, the sheet's hint says they help.
         sound.onUnderstandBetter = { on ->
@@ -678,6 +681,7 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
                     showHint(picture.stateText(), Gravity.CENTER)
                 }
                 R.id.actionSignalPath -> picture?.showSignalPath()
+                R.id.actionPictureAdjust -> picture?.let { showPictureAdjustSheet(this, it) }
                 else -> return@setOnMenuItemClickListener false
             }
             true
