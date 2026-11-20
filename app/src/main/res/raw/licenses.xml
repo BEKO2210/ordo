@@ -321,4 +321,18 @@
         <copyright>Copyright Niklas Haas and the libplacebo contributors</copyright>
         <license>GNU Lesser General Public License 2.1</license>
     </notice>
+
+    <notice>
+        <name>Anime4K (Ordo Video's Detail plus: cartoon, CNN x2 M)</name>
+        <url>https://github.com/bloc97/Anime4K</url>
+        <copyright>Copyright (c) 2019-2021 bloc97</copyright>
+        <license>MIT License</license>
+    </notice>
+
+    <notice>
+        <name>FSRCNNX (Ordo Video's Detail plus: film, x2 8-0-4-1)</name>
+        <url>https://github.com/igv/FSRCNN-TensorFlow</url>
+        <copyright>Copyright (C) 2017-2021 igv</copyright>
+        <license>GNU Lesser General Public License 3</license>
+    </notice>
 </notices>

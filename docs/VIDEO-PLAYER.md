@@ -291,6 +291,66 @@ Quelle der Entscheidungen: `ordo-team/QUALITAET-PANEL.md`, Ideen 1–4. Logik oh
   weitergegeben); beide in `res/raw/licenses.xml`. Neue Abhängigkeit `media3-effect` 1.11.1.
 - **Gerätetest:** `e2e/video-picture.sh` (`--write`-Liste in `e2e/run.sh`).
 
+### Detail plus und Messwerte (`DetailPlus`, `DetailPlusEffect`, `MpvHook`, `PictureMeter`, `MeteredEffect`)
+
+Quelle: `ordo-team/LOKALE-QUALITAETS-KI.md`, Empfehlungen 1 und 2. Logik ohne Android in `DetailPlus`, `MpvHook` und
+`PictureMeter`, getestet in `DetailPlusTest`, `MpvHookTest`, `PictureMeterTest`.
+
+- **Hochskalieren** (Einstellungen › Bild): Standard (Lanczos, ab Werk) / Detail plus: Film / Detail plus: Zeichentrick /
+  Automatisch. Film = **FSRCNNX x2 8-0-4-1** (igv, Shaderdatei LGPL-3.0-or-later, Repo GPL-3.0), Zeichentrick =
+  **Anime4K CNN x2 M** (bloc97, MIT). „Automatisch“ nimmt Zeichentrick, wenn Datei- oder Ordnername nach Anime klingt
+  (anime, zeichentrick, cartoon, manga, OVA, Fansub-Gruppen, Muster `[Gruppe] Titel - 01`), sonst Film.
+- **Wann:** nur wenn die Bildverbesserung läuft (SDR, ohne DRM, eingeschaltet) und das Video mindestens **1,5-fach**
+  vergrößert wird. Kette: Netz ×2 → `LanczosResample` auf die Oberfläche → Bildverbesserungs-Pass mit **halber**
+  CAS-Stärke (das Netz schärft schon).
+- **Einbau:** Die Original-mpv-Shader liegen unverändert in `assets/detailplus/` (Gewichte als Konstanten, kein
+  Download, zusammen ~109 KB). `MpvHook` liest die `//!HOOK/BIND/SAVE/WIDTH/HEIGHT`-Pässe und erzeugt je Pass einen
+  GLSL-ES-3.00-Fragment-Shader mit mpvs Makros (`NAME_pos/_pt/_size/_tex/_texOff`); weil libplacebo y = 0 oben hat und
+  GL unten, spiegeln die Makros y. `DetailPlusProgram` (ein `GlEffect`) rechnet alle Pässe in eigenen **RGBA16F**-
+  Texturen (Merkmale sind vorzeichenbehaftet, Media3s 8-bit-Pässe würden sie zerstören), Texturen werden nach der
+  letzten Verwendung wiederverwendet. FSRCNNX arbeitet wie in mpv nur auf Luma (Y' aus R'G'B', BT.709); die Farbe kommt
+  bilinear verdoppelt dazu. Braucht OpenGL ES 3 mit Half-Float-Rendertargets (ES 3.2 oder
+  `EXT_color_buffer_(half_)float`); sonst kopiert der Pass nur und Ordo schaltet auf Lanczos zurück (Signalweg nennt den Grund).
+- **Rückfall:** GPU-Zeit des Netzes im Mittel einer Sekunde **> 8 ms** (ab 10 gemessenen Bildern) oder **jedes**
+  verworfene Bild im eingeschwungenen Abspielen (2 s nach Start, Sprung, Pause oder neuen Effekten) → Lanczos für
+  diesen Bildschirm, mit ruhigem Hinweis. Meldet Media3 einen Ruckel-Block, fällt zuerst Detail plus weg, erst danach
+  die ganze Bildverbesserung. Das ⋮-Umschalten setzt beides zurück.
+- **Messwerte** (⋮ › Signalweg, unten, eingeklappt und aus): Antippen startet die Messung, erneutes Antippen beendet
+  sie. Ohne Messung wird nichts umhüllt und nichts gemessen, außer der GPU-Zeit des Detail-plus-Passes (für den
+  Rückfall). Gemessen werden: GPU-Zeit je Pass (Detail plus, Lanczos, Bildverbesserung) per `EXT_disjoint_timer_query`
+  (`GL_TIME_ELAPSED_EXT`, Ergebnis Bilder später abgeholt, nichts wartet; ohne Erweiterung nur beim Messen per
+  `glFinish` und CPU-Uhr), verworfene Bilder (`DecoderCounters`), thermische Reserve (`PowerManager.getThermalHeadroom`
+  ab API 30, alle 5 s, Vorschau 10 s), Rechenzeit der Klang-Kette je Puffer und Ton-Unterläufe
+  (`onAudioUnderrun`), Messdauer. „Als CSV teilen“ schickt eine Zeile je Sekunde (`ordo-messwerte.csv`; Spalten in
+  `PictureMeter.HEADER`).
+- **Qualität auf pop-os** (RTX 3070, ffmpeg 6.1.1 `libplacebo` mit denselben mpv-Dateien): Original → halbe Größe
+  (bikubisch) → ×2 zurück, je 5 s (120–300 Bilder), PSNR/SSIM gegen das Original, alles über libplacebo mit
+  `dithering=-1` und yuv420p (`utils/detailplus/quality.sh`, Rohwerte in `utils/detailplus/results-2026-11-20-pop-os.csv`). Lanczos+CAS: ffmpeg-`cas` 0,4 als Näherung an Ordos CAS.
+
+  | Clip | Lanczos | Lanczos+CAS 0,4 | Anime4K CNN x2 M | FSRCNNX x2 8-0-4-1 |
+  |---|---|---|---|---|
+  | Realfilm (Tears of Steel 720p → 640×266) | 42,24 dB / 0,9905 | 42,22 / 0,9888 | 42,25 / 0,9899 | **43,82 / 0,9931** |
+  | CGI (Sintel 1080p, 1920×816) | 43,89 / 0,9869 | 43,40 / 0,9833 | 44,31 / 0,9859 | **45,22 / 0,9887** |
+  | Grafik/Text (Motion-Design 1080p) | 37,26 / 0,9819 | 37,35 / 0,9777 | 42,37 / 0,9876 | **42,28 / 0,9884** |
+  | 2D-Zeichentrick (Sita Sings the Blues 1080p) | 37,57 / 0,9639 | 37,78 / 0,9656 | 39,63 / 0,9674 | **40,25 / 0,9738** |
+
+  Werte: PSNR der Luma (dB) / SSIM der Luma. FSRCNNX schlägt Lanczos+CAS auf allen vier Clips (+1,6 bis +4,9 dB),
+  Anime4K M nur auf Grafik und Zeichentrick deutlich; auf Realfilm ist es gleichauf und im SSIM knapp schlechter, darum
+  „Automatisch“ = Film außer bei Anime-Namen. Echte Anime-Linienzeichnung (wofür Anime4K trainiert ist) war nicht im
+  Testset; PSNR/SSIM bevorzugen glatte Ergebnisse, ein blinder A/B-Vergleich durch Belkis fehlt noch.
+  **Port geprüft** (20.11.2026, pop-os, Desktop-GL über `#version 300 es`): Die von `MpvHook` erzeugten Pässe (alle 23
+  kompilieren) laufen in einem Python-Nachbau von `DetailPlusProgram` (`utils/detailplus/dump.sh` und `harness.py`, gleiche Texturfolge,
+  gleicher Abschluss-Shader). Anime4K-Ergebnis gegen libplacebos Lauf desselben Shaders auf demselben Bild: **66,4 dB**
+  (Sita) und **61,4 dB** (Tears of Steel), also praktisch gleich; ohne die y-Spiegelung nur 47,7/45,8 dB. Damit stimmt
+  die Ausrichtung. FSRCNNX (Luma-Weg mit bilinearer Farbe, RGB-PSNR eines Bildes): 40,61 dB gegen 40,50 ohne
+  Spiegelung; bilinear allein 36,67 dB.
+- **Am Gerät messen (offen):** Tab S9 Ultra und Pixel 9, 720p und 540p → Bildschirm, 30 fps, 20 min, Messwerte an,
+  CSV teilen: `detailplus_ms` ≤ 8, keine zusätzlichen verworfenen Bilder gegen einen Lauf mit Standard, Thermik-Reserve
+  < 1,0; S21 und W90: muss von selbst zurückfallen, ohne Ruckler. Akku: Pixel 9 über Perfetto `power.rails`.
+- **Lizenzen:** Anime4K MIT, FSRCNNX LGPL-3.0-or-later (beide Hinweise stehen unverändert im Kopf der Shaderdateien und
+  in `res/raw/licenses.xml`). Keine neue Laufzeitbibliothek.
+- **Gerätetest:** `e2e/video-detailplus.sh` (`--write`-Liste).
+
 ## Hintergrund, Bild-in-Bild, Schlaf-Timer (Phase 3)
 
 Code in `viewer/video/background/`; die Activity ruft nur `VideoBackgroundController` auf (Session bauen, `onStop`,

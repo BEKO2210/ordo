@@ -211,6 +211,11 @@ class VideoSoundEngine(private val context: Context) {
     /** Hook for the subtitle feature: called with true when "Besser verstehen" goes on, false when off. */
     var onUnderstandBetter: ((Boolean) -> Unit)? = null
 
+    /** The signal path's measurements: each Klang buffer's processing time (audio thread); null = off. */
+    fun setMeter(meter: ((Long) -> Unit)?) {
+        klang.meter = meter
+    }
+
     fun renderersFactory(): RenderersFactory =
         AudioRenderersFactory(context, arrayOf(downmix, klang, truePeak, delay))
 

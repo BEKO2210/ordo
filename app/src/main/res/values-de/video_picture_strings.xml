@@ -92,4 +92,46 @@
     <string name="video_signal_ambient">Raumlicht</string>
     <string name="video_signal_ambient_format">%1$s lx → Gamma %2$s (Bezug %3$s)</string>
     <string name="video_signal_ambient_idle_format">%1$s lx, wirkt nur bei laufender Bildverbesserung</string>
+    <!-- Detail plus (DetailPlus.kt) und Messwerte (PictureMeter.kt). -->
+    <string name="video_settings_upscaler">Hochskalieren</string>
+    <string-array name="video_settings_upscaler_entries">
+        <item>Standard (Lanczos)</item>
+        <item>Detail plus: Film</item>
+        <item>Detail plus: Zeichentrick</item>
+        <item>Automatisch</item>
+    </string-array>
+    <string name="video_detail_plus_slow_notice">Detail plus pausiert: Das Gerät kommt bei diesem Video nicht hinterher. Lanczos skaliert stattdessen.</string>
+    <string name="video_signal_upscaler">Hochskalieren</string>
+    <string name="video_signal_upscaler_detail_format">Detail plus %1$s, danach Lanczos 3</string>
+    <string name="video_signal_upscaler_film">Film (FSRCNNX x2)</string>
+    <string name="video_signal_upscaler_cartoon">Zeichentrick (Anime4K CNN x2 M)</string>
+    <string name="video_signal_upscaler_lanczos">Lanczos 3</string>
+    <string name="video_signal_upscaler_small">Lanczos 3 (Detail plus ab 1,5-facher Vergrößerung)</string>
+    <string name="video_signal_upscaler_fell_back">Lanczos 3 (Detail plus war auf diesem Gerät zu langsam)</string>
+    <string name="video_signal_upscaler_unsupported">Lanczos 3 (Detail plus braucht OpenGL ES 3 mit Float-Texturen)</string>
+    <string name="video_meter_title">Messwerte</string>
+    <string name="video_meter_off">Aus. Zum Messen antippen.</string>
+    <string name="video_meter_on">Misst. Zum Beenden antippen.</string>
+    <string name="video_meter_expanded">ausgeklappt</string>
+    <string name="video_meter_collapsed">eingeklappt</string>
+    <string name="video_meter_timer">Zeitmessung</string>
+    <string name="video_meter_timer_gpu">GPU-Timer (EXT_disjoint_timer_query)</string>
+    <string name="video_meter_timer_cpu">CPU-Uhr mit glFinish (kein GPU-Timer auf diesem Gerät)</string>
+    <string name="video_meter_timer_none">Kein Bilddurchgang aktiv</string>
+    <string name="video_meter_gpu">GPU-Zeit je Bild (Mittel · Spitze)</string>
+    <string name="video_meter_pass_format">%1$s: %2$s ms · %3$s ms</string>
+    <string name="video_meter_pass_detail">Detail plus</string>
+    <string name="video_meter_pass_lanczos">Lanczos</string>
+    <string name="video_meter_pass_enhance">Bildverbesserung</string>
+    <string name="video_meter_no_gpu">Noch keine Werte</string>
+    <string name="video_meter_dropped">Verworfene Bilder seit Messbeginn</string>
+    <string name="video_meter_headroom">Thermische Reserve</string>
+    <string name="video_meter_headroom_format">%1$s (ab 1,00 drosselt das Gerät)</string>
+    <string name="video_meter_headroom_unknown">Braucht Android 11</string>
+    <string name="video_meter_audio">Tonverarbeitung je Puffer (Mittel · Spitze)</string>
+    <string name="video_meter_audio_format">%1$s ms · %2$s ms, %3$d Puffer in der letzten Sekunde</string>
+    <string name="video_meter_audio_idle">Keine Puffer in der letzten Sekunde</string>
+    <string name="video_meter_underruns">Ton-Unterläufe</string>
+    <string name="video_meter_duration">Messdauer</string>
+    <string name="video_meter_share">Als CSV teilen</string>
 </resources>
