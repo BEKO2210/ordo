@@ -143,7 +143,8 @@ else
     echo "INFO SurfaceFlinger layer of the player not found"
 fi
 menu "Signalweg|Signal path"
-pacing_shown() { local i; for i in 1 2 3; do part "(Bildtakt|Frame pacing): .*(gleichmäßig|Pulldown|even|pulldown)" && return 0; sleep 1.5; done; return 1; }
+# Opening the sheet pauses (video_menu) and plays on; the pacing is measured again over 240 frames (10 s at 24 fps).
+pacing_shown() { local i; for i in 1 2 3 4 5 6; do part "(Bildtakt|Frame pacing): .*(gleichmäßig|Pulldown|even|pulldown)" && return 0; sleep 3; done; return 1; }
 check "Signal path shows the frame pacing" pacing_shown
 screenshot "$out/signal-pacing.png"
 back 1

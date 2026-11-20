@@ -27,6 +27,8 @@ wake; grant; a logcat -b crash -c
 a shell am force-stop "$PKG"
 absent() { ! ui has "$@"; }
 settled() { local i; for i in $(seq 40); do ui has "$@" && return 0; sleep 0.5; done; return 1; }
+# The sheet's notes are whole sentences: these look for words inside them (ui has compares whole labels).
+part() { ui texts | grep -qE -- "$1"; }
 open_clip() {
     a shell am start -W -a android.intent.action.VIEW -d "file://$DIR" -t inode/directory \
         -n "$PKG/me.zhanghai.android.files.filelist.FileListActivity" >/dev/null
@@ -40,8 +42,8 @@ open_clip() {
 open_clip 01-tv-clip.mp4
 check "the video player has a TV button" ui tap actionCast
 check "its sheet offers this phone" settled "This phone|Dieses Handy"
-check "its sheet speaks of this video" settled "only this video|nur dieses Video"
-check "no sound-effects note for a film" absent "Sound effects only|Klangeffekte wirken"
+check "its sheet speaks of this video" part "only this video|nur dieses Video"
+check "no sound-effects note for a film" eval '! part "Sound effects only|Klangeffekte wirken"'
 # A TV plays the clip's sound out loud: casting only with E2E_ALLOW_VOLUME=1.
 [ "${E2E_ALLOW_VOLUME:-}" = 1 ] || { [ -n "$TV" ] && echo "SKIP casting to $TV (sound on the TV: only with E2E_ALLOW_VOLUME=1)"; TV=; }
 if [ -z "$TV" ]; then
