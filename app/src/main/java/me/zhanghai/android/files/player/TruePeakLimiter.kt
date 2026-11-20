@@ -58,6 +58,7 @@ class TruePeakLimiter(private val armedBy: (() -> Boolean)? = null) : BaseAudioP
     private var count = 0L
     private var lastHeld = 1f
     private var release = 0f
+    private var tailOut = false
 
     override fun onConfigure(inputAudioFormat: AudioProcessor.AudioFormat): AudioProcessor.AudioFormat =
         if (inputAudioFormat.encoding == C.ENCODING_PCM_16BIT && inputAudioFormat.channelCount in 1..MAX_CHANNELS) {
@@ -75,6 +76,7 @@ class TruePeakLimiter(private val armedBy: (() -> Boolean)? = null) : BaseAudioP
         held.fill(1f)
         unity.fill(true)
         count = 0
+        tailOut = false
         lastHeld = 1f
         release = (1.0 - exp(-1.0 / (inputAudioFormat.sampleRate * RELEASE_SECONDS))).toFloat()
         inputGlide = (1.0 - exp(-1.0 / (inputAudioFormat.sampleRate * GAIN_SECONDS))).toFloat()
@@ -96,8 +98,11 @@ class TruePeakLimiter(private val armedBy: (() -> Boolean)? = null) : BaseAudioP
         output.flip()
     }
 
-    // The last LATENCY frames are still in the ring: silence pushes them out.
+    // The last LATENCY frames are still in the ring: silence pushes them out, once. Media3's pipeline queues the end
+    // of stream again on every pass; pushing again each time was endless silence past the track's end.
     override fun onQueueEndOfStream() {
+        if (tailOut) return
+        tailOut = true
         val pending = minOf(count, LATENCY.toLong()).toInt()
         if (pending == 0) return
         val output = replaceOutputBuffer(pending * 2 * channels)
