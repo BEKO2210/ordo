@@ -172,6 +172,8 @@ video_menu() {
         ui has "Weitere Optionen|More options" || back 1 # a menu without the entry closes; never the player
     done
     ui tap "$1" >/dev/null; sleep 1.5
+    # A menu still sliding in takes the tap at a stale spot and stays open (Tab, 20.11.2026): once more, read fresh.
+    if ui has "$1" title; then rm -f "$DUMP"; ui tap "$1" title >/dev/null; sleep 1.5; fi
     [ -z "$was" ] || a shell input keyevent KEYCODE_MEDIA_PLAY
 }
 

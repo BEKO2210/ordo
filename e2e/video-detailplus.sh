@@ -38,6 +38,8 @@ open_file() {
     wait_on viewer.video.VideoPlayerActivity 8
 }
 menu() { video_menu "$1"; }
+# ui has/wait compare whole texts (no regex): content checks grep the screen's texts instead.
+seen() { local end=$((SECONDS + ${2:-0})); until ui texts | grep -E -- "$1" >/dev/null; do [ $SECONDS -ge $end ] && return 1; sleep 0.5; done; }
 upscaling() {
     a shell am start -W -n "$PKG/me.zhanghai.android.files.viewer.video.VideoLauncherActivity" >/dev/null; sleep 2; guard
     ui tap actionSettings >/dev/null; sleep 2
@@ -48,11 +50,13 @@ upscaling() {
 }
 
 # 1. The setting exists and offers Standard. Its value persists: a run stopped early left "Automatic" (Tab, 20.11.2026).
-upscaling "Standard \(Lanczos\)"
+upscaling "Standard (Lanczos)"
 a shell am start -W -n "$PKG/me.zhanghai.android.files.viewer.video.VideoLauncherActivity" >/dev/null; sleep 2; guard
 ui tap actionSettings >/dev/null; sleep 2
-scroll_to "Hochskalieren|Upscaling" >/dev/null; swipe_up # the summary sits below the title
-check "the settings have Upscaling, set to Standard (Lanczos)" ui wait "Standard \(Lanczos\)" 5
+scroll_to "Hochskalieren|Upscaling" >/dev/null
+# A short pull, so the summary under the title is on screen too (settings list, no gesture there).
+read -r W H < <(screen_size); a shell input swipe $((W / 2)) $((H * 6 / 10)) $((W / 2)) $((H * 4 / 10)) 400; sleep 1
+check "the settings have Upscaling, set to Standard (Lanczos)" ui summary "Hochskalieren|Upscaling" "Standard (Lanczos)"
 back 1; back 1
 
 # 2. Detail plus: film on a 360p clip.
@@ -62,20 +66,20 @@ open_file "$DIR" 01-film.mp4
 sleep 6
 check "the film network is set as an effect" eval 'log | grep "effects: detail plus FILM"'
 menu "Signalweg|Signal path"
-check "the signal path names Detail plus film" ui wait "Detail plus (Film|film) \(FSRCNNX x2\).*" 5
+check "the signal path names Detail plus film" seen "Detail plus (Film|film) \(FSRCNNX x2\)" 5
 screenshot "$out/signal-detailplus.png"
 
 # 3. Measurements: unfold, measure 20 s, read the rows, share the CSV, fold.
 # Swipe only inside the open sheet: on the bare picture a vertical swipe is the volume gesture (Tab went to 15).
 for i in 1 2; do ui has "Signalweg|Signal path" && swipe_up; done # whole texts: the sheet's title
 ui tap "Messwerte|Measurements" >/dev/null; sleep 2
-check "unfolding starts measuring" ui wait "Misst\. Zum Beenden antippen\.|Measuring\. Tap to stop\." 5
+check "unfolding starts measuring" seen "Misst\. Zum Beenden antippen\.|Measuring\. Tap to stop\." 5
 check "every pass is wrapped while measuring" eval 'log | grep "measuring true"'
 sleep 20
-check "the timer kind is shown" ui has "GPU-Timer|GPU timer|CPU-Uhr|CPU clock"
-if ui has "Detail plus: [0-9]"; then echo "INFO Detail plus kept for 20 s"; else echo "INFO Detail plus not timed (fell back?)"; fi
-check "Lanczos is timed" ui has "Lanczos: [0-9]"
-check "the Klang chain's buffers are measured" ui has "Puffer in der letzten Sekunde|buffers in the last second"
+check "the timer kind is shown" seen "GPU-Timer|GPU timer|CPU-Uhr|CPU clock"
+if seen "Detail plus: [0-9]"; then echo "INFO Detail plus kept for 20 s"; else echo "INFO Detail plus not timed (fell back?)"; fi
+check "Lanczos is timed" seen "Lanczos: [0-9]"
+check "the Klang chain's buffers are measured" seen "Puffer in der letzten Sekunde|buffers in the last second"
 screenshot "$out/measurements.png"
 ui texts | grep -E " ms · |1,00|1\.00|Unterläufe|underruns" | sed 's/^/INFO /'
 a logcat -d -s "$TAG:I" | tr -d '\r' | grep "Detail plus .* off" | tail -1 | sed 's/^/INFO fell back: /'
@@ -83,7 +87,7 @@ ui tap "Als CSV teilen|Share as CSV" >/dev/null; sleep 2
 check "Share as CSV opens the share sheet" eval 'top | grep -qiE "chooser|resolver"'
 back 1
 ui tap "Messwerte|Measurements" >/dev/null; sleep 1.5
-check "folding stops measuring" ui wait "Aus\. Zum Messen antippen\.|Off\. Tap to start measuring\." 5
+check "folding stops measuring" seen "Aus\. Zum Messen antippen\.|Off\. Tap to start measuring\." 5
 back 1; back 2
 
 # 4. Automatic: an anime-looking name gets the cartoon network.
@@ -94,5 +98,5 @@ sleep 6
 check "Automatic picks cartoon for an anime name" eval 'log | grep "effects: detail plus CARTOON"'
 back 2
 
-upscaling "Standard \(Lanczos\)"
+upscaling "Standard (Lanczos)"
 finish

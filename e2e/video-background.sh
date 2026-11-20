@@ -49,9 +49,13 @@ open_clip() {
 not_playing() { ! playing; }
 no_pip_entry() { ! ui has "Bild-in-Bild|Picture-in-picture"; }
 # mode=pinned stands on the task line above the activity (W90) or in its config lines further below (S21, Tab).
-# No grep -q at the end: with pipefail its early exit fails the pipeline (SIGPIPE upstream, Tab 20.11.2026).
-pinned() { a shell dumpsys activity activities | grep -B3 -A20 'Hist.*VideoPlayerActivity' | grep -c 'mode=pinned\|windowingMode=pinned' >/dev/null; }
-# The window animates into place: on the Tab it was pinned only after the first look at 3 s (20.11.2026).
+# dumpsys first, then grep: under pipefail its exit status counts, and on the Tab with a PiP window it is 1
+# although the output is complete (20.11.2026).
+pinned() {
+    local d; d=$(a shell dumpsys activity activities)
+    grep -B3 -A20 'Hist.*VideoPlayerActivity' <<<"$d" | grep -c 'mode=pinned\|windowingMode=pinned' >/dev/null
+}
+# The window animates into place: at 3 s it was not always pinned yet on the Tab.
 wait_pinned() { local i; for i in $(seq 1 12); do pinned && return 0; sleep 0.5; done; return 1; }
 
 # 1. Sleep timer: chips, never a slider, and off again.
