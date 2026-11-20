@@ -16,6 +16,7 @@ import java.util.Locale
 import me.zhanghai.android.files.player.AudioFocusBehavior
 import me.zhanghai.android.files.player.AudioSettings
 import me.zhanghai.android.files.player.AudioSettingsCodec
+import me.zhanghai.android.files.player.KlangProcessors
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -152,7 +153,8 @@ class OutputPolicyTest {
             neutral.copy(clarityEnabled = true), neutral.copy(highsEnabled = true),
             neutral.copy(quietFullEnabled = true), neutral.copy(normalizationEnabled = true),
             neutral.copy(speed = 1.25f), neutral.copy(skipSilence = true), neutral.copy(mono = true),
-            neutral.copy(balance = -10), neutral.copy(preGainDb = 1f)
+            neutral.copy(balance = -10), neutral.copy(preGainDb = 1f),
+            neutral.copy(binauralEnabled = true), neutral.copy(headphoneEq = "1MORE Quad Driver")
         ).forEach { assertFalse(it.toString(), OutputPolicy.offloadAllowed(it, bitPerfect = false)) }
         // Not stages: they leave the samples alone.
         assertTrue(
@@ -167,10 +169,15 @@ class OutputPolicyTest {
         val busy = AudioSettings(
             equalizerEnabled = true, reverbEnabled = true, normalizationEnabled = true, speed = 1.5f,
             skipSilence = true, mono = true, resumeOnHeadphones = true, focusBehavior = AudioFocusBehavior.PAUSE,
-            bitPerfectUsb = true
+            bitPerfectUsb = true, quietFullEnabled = true, binauralEnabled = true, headphoneEq = "1MORE Quad Driver"
         )
         val bypassed = OutputPolicy.bypassed(busy)
         assertFalse(OutputPolicy.anyEffect(bypassed))
+        // The headphone pack is bypassed too, also with headphones on and the volume low.
+        val klang = KlangProcessors().apply { apply(bypassed, headphones = true, attenuationDb = 30f, emptySet()) }
+        assertFalse(klang.headphones.quiet.effectEnabled)
+        assertFalse(klang.headphones.correction.effectEnabled)
+        assertFalse(klang.downmix.binaural)
         assertTrue(bypassed.resumeOnHeadphones)
         assertEquals(AudioFocusBehavior.PAUSE, bypassed.focusBehavior)
         assertTrue(bypassed.bitPerfectUsb)

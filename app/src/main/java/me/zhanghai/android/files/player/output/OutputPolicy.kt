@@ -153,10 +153,14 @@ object OutputPolicy {
         else -> 0
     }
 
-    /** Any Ordo stage that changes the samples: Klang, platform effects, levelling, speed, skipping silence. */
+    /**
+     * Any Ordo stage that changes the samples: Klang, the headphone pack (virtual surround, correction, quiet
+     * listening), platform effects, levelling, speed, skipping silence.
+     */
     fun anyEffect(settings: AudioSettings): Boolean = with(settings) {
         equalizerEnabled || preGainDb != 0f || bassBoostEnabled || crossfeedEnabled || widthEnabled ||
             reverbEnabled || warmthEnabled || clarityEnabled || highsEnabled || quietFullEnabled ||
+            binauralEnabled || headphoneEq.isNotEmpty() ||
             normalizationEnabled || speed != 1f || skipSilence || mono || balance != 0
     }
 
