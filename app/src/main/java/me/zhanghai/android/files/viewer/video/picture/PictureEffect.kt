@@ -38,6 +38,13 @@ internal data class PictureEnhanceEffect(val params: PicturePolicy.ShaderParams,
 internal class PictureLive {
     @Volatile
     var gammaRatio = 1f
+
+    /** The "Bild" sheet's colour matrix ([PictureAdjust.colorMatrix]) and sharpness step. */
+    @Volatile
+    var colorMatrix: FloatArray = PictureAdjust.colorMatrix(PictureAdjustments())
+
+    @Volatile
+    var sharpnessStep = 0
 }
 
 /**
@@ -71,7 +78,6 @@ private class PictureShaderProgram(
         val identity = GlUtil.create4x4IdentityMatrix()
         glProgram.setFloatsUniform("uTransformationMatrix", identity)
         glProgram.setFloatsUniform("uTexTransformationMatrix", identity)
-        glProgram.setFloatUniform("uSharpness", params.sharpness)
         glProgram.setFloatUniform("uDebandIterations", params.debandIterations.toFloat())
         glProgram.setFloatUniform("uDebandThreshold", params.debandThreshold)
         glProgram.setFloatUniform("uDebandRadius", params.debandRadius)
@@ -94,6 +100,10 @@ private class PictureShaderProgram(
             // Temporal noise: the grain and dither pattern changes every frame, so the eye averages it away.
             glProgram.setFloatUniform("uFrame", (frame % NOISE_PERIOD).toFloat())
             glProgram.setFloatUniform("uGammaRatio", live.gammaRatio)
+            val step = live.sharpnessStep
+            glProgram.setFloatUniform("uSharpness", PictureAdjust.sharpness(params.sharpness, step))
+            glProgram.setFloatUniform("uSoften", PictureAdjust.soften(step))
+            glProgram.setFloatsUniform("uColorMatrix", live.colorMatrix)
             glProgram.bindAttributesAndUniforms()
             GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, /* first= */ 0, /* count= */ 4)
             frame++
@@ -135,6 +145,55 @@ private class PictureShaderProgram(
     companion object {
         private const val NOISE_PERIOD = 1024
         private const val SUMMARY_FRAMES = 120
+    }
+}
+
+/** "Zeilensprung entfernen": the first effect, on the decoded lines, before Lanczos mixes them. */
+@OptIn(UnstableApi::class)
+internal object DeinterlaceEffect : GlEffect {
+    override fun toGlShaderProgram(context: Context, useHdr: Boolean): GlShaderProgram = DeinterlaceProgram()
+}
+
+@OptIn(UnstableApi::class)
+private class DeinterlaceProgram : BaseGlShaderProgram(false, 1) {
+    private val glProgram = try {
+        GlProgram(PictureShader.VERTEX, DeinterlaceShader.FRAGMENT)
+    } catch (e: GlUtil.GlException) {
+        throw VideoFrameProcessingException(e)
+    }
+
+    init {
+        glProgram.setBufferAttribute(
+            "aFramePosition", GlUtil.getNormalizedCoordinateBounds(), GlUtil.HOMOGENEOUS_COORDINATE_VECTOR_SIZE
+        )
+        val identity = GlUtil.create4x4IdentityMatrix()
+        glProgram.setFloatsUniform("uTransformationMatrix", identity)
+        glProgram.setFloatsUniform("uTexTransformationMatrix", identity)
+    }
+
+    override fun configure(inputWidth: Int, inputHeight: Int): Size {
+        glProgram.setFloatsUniform("uTexelSize", floatArrayOf(1f / inputWidth, 1f / inputHeight))
+        return Size(inputWidth, inputHeight)
+    }
+
+    override fun drawFrame(inputTexId: Int, presentationTimeUs: Long) {
+        try {
+            glProgram.use()
+            glProgram.setSamplerTexIdUniform("uTexSampler", inputTexId, /* texUnitIndex= */ 0)
+            glProgram.bindAttributesAndUniforms()
+            GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, /* first= */ 0, /* count= */ 4)
+        } catch (e: GlUtil.GlException) {
+            throw VideoFrameProcessingException(e, presentationTimeUs)
+        }
+    }
+
+    override fun release() {
+        super.release()
+        try {
+            glProgram.delete()
+        } catch (e: GlUtil.GlException) {
+            throw VideoFrameProcessingException(e)
+        }
     }
 }
 

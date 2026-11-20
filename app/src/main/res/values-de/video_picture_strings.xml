@@ -95,4 +95,26 @@
     <string name="video_signal_ambient">Raumlicht</string>
     <string name="video_signal_ambient_format">%1$s lx → Gamma %2$s (Bezug %3$s)</string>
     <string name="video_signal_ambient_idle_format">%1$s lx, wirkt nur bei laufender Bildverbesserung</string>
+    <string name="video_picture_adjust_menu">Bild anpassen</string>
+    <string name="video_picture_adjust_title">Bild</string>
+    <string name="video_picture_adjust_brightness">Helligkeit</string>
+    <string name="video_picture_adjust_contrast">Kontrast</string>
+    <string name="video_picture_adjust_saturation">Sättigung</string>
+    <string name="video_picture_adjust_temperature">Farbtemperatur</string>
+    <string name="video_picture_adjust_sharpness">Schärfe</string>
+    <string name="video_picture_adjust_less_format">%1$s verringern</string>
+    <string name="video_picture_adjust_more_format">%1$s erhöhen</string>
+    <string name="video_picture_adjust_value_format">%1$s: %2$d</string>
+    <string name="video_picture_adjust_reset">Zurücksetzen</string>
+    <string name="video_picture_adjust_unavailable">Bei HDR- und geschützten Videos nicht möglich.</string>
+    <string name="video_picture_adjust_not_remembered">Änderungen gelten jetzt, werden für dieses Video aber nicht gemerkt.</string>
+    <string name="video_picture_deinterlace">Zeilensprung entfernen</string>
+    <string-array name="video_picture_deinterlace_names">
+        <item>Automatisch</item>
+        <item>An</item>
+        <item>Aus</item>
+    </string-array>
+    <string name="video_picture_deinterlace_detected_interlaced">Dieses Video hat Zeilensprung: Automatisch entfernt ihn.</string>
+    <string name="video_picture_deinterlace_detected_progressive">Dieses Video hat Vollbilder: Automatisch lässt es, wie es ist.</string>
+    <string name="video_picture_deinterlace_detected_unknown">Die Datei sagt nicht, ob sie Zeilensprung hat. Einschalten, wenn bei Bewegung Kammlinien zu sehen sind.</string>
 </resources>

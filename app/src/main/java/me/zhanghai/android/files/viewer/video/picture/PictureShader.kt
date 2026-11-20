@@ -36,7 +36,8 @@ package me.zhanghai.android.files.viewer.video.picture
  * `uTexelSize`, controls CAS with `uSharpness`, controls debanding with
  * `uDebandIterations`, `uDebandThreshold`, and `uDebandRadius`, adds `uGrain`, applies
  * final TPDF noise scaled by `uDitherAmplitude`, and varies noise over `uFrame`. `uGammaRatio` (1 = off) is the
- * bright-room gamma of [AmbientGamma].
+ * bright-room gamma of [AmbientGamma]. `uSoften` (0 = off) blends towards the 3x3 mean and `uColorMatrix` carries
+ * the "Bild" sheet's brightness, contrast, saturation and colour temperature ([PictureAdjust]).
  */
 internal object PictureShader {
     const val VERTEX = """#version 100
@@ -68,6 +69,8 @@ uniform float uGrain;
 uniform float uDitherAmplitude;
 uniform float uFrame;
 uniform float uGammaRatio;
+uniform float uSoften;
+uniform mat4 uColorMatrix;
 varying vec2 vTexSamplingCoord;
 
 float random(vec2 offset) {
@@ -107,6 +110,10 @@ void main() {
     vec3 w = amp * peak;
     cas = clamp((w * (b + d + f + h) + e) / (1.0 + 4.0 * w), 0.0, 1.0);
   }
+  // "Schärfe" below 0: softer, towards the mean of the same 3x3 taps.
+  if (uSoften > 0.0) {
+    cas = mix(cas, (a + b + c + d + e + f + g + h + i) / 9.0, uSoften);
+  }
 
   // Replace only locally smooth quantisation steps with randomized radial averages.
   vec3 deb = e;
@@ -140,6 +147,9 @@ void main() {
     res *= pow(luma, uGammaRatio - 1.0);
   }
 
+  // The viewer's colour steps, one affine matrix (identity when untouched); before grain and dither.
+  res = clamp((uColorMatrix * vec4(res, 1.0)).rgb, 0.0, 1.0);
+
   // Hide residual steps without lifting true black.
   vec3 strength = min(abs(res), vec3(uGrain));
   res += strength * (random(vec2(193.0, 71.0)) - 0.5);
@@ -149,5 +159,25 @@ void main() {
   float r2 = random(vec2(307.0, 181.0));
   res += (r1 + r2 - 1.0) * uDitherAmplitude;
   gl_FragColor = vec4(clamp(res, 0.0, 1.0), 1.0);
+}"""
+}
+
+/** Linear blend where lines comb ("Zeilensprung entfernen"), on the source lines before any scaling. */
+internal object DeinterlaceShader {
+    const val FRAGMENT = """#version 100
+precision mediump float;
+uniform sampler2D uTexSampler;
+uniform vec2 uTexelSize;
+varying vec2 vTexSamplingCoord;
+void main() {
+  vec2 p = vTexSamplingCoord;
+  vec2 t = vec2(0.0, uTexelSize.y);
+  vec3 up = texture2D(uTexSampler, p - t).rgb;
+  vec3 c = texture2D(uTexSampler, p).rgb;
+  vec3 down = texture2D(uTexSampler, p + t).rgb;
+  // Combing: the line differs from both neighbours the same way (the other field moved); still areas keep detail.
+  vec3 d = (c - up) * (c - down);
+  float comb = smoothstep(0.0004, 0.0025, max(d.r, max(d.g, d.b)));
+  gl_FragColor = vec4(mix(c, 0.25 * up + 0.5 * c + 0.25 * down, comb), 1.0);
 }"""
 }

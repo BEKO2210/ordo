@@ -5,7 +5,7 @@
 # intern.mkv with an English SRT track inside. The sheet (toolbar "Subtitles") lists Off, both files with their language
 # and "Load subtitles…"; the German file (on by itself on a German device, sound language unknown) reads as
 # Windows-1252; two taps on +1 s show "+2 s", still there after the player was closed; the MKV's track shows as
-# "English · SRT" and, chosen, says the delay is for files only; Ordo Video's settings have the "Subtitles" group.
+# "English · SRT" and, chosen, takes the delay steps like a file; Ordo Video's settings have the "Subtitles" group.
 # Whether the text is drawn right (the SubtitleView paints on a canvas, not in the UI tree) is saved as a screenshot
 # for a look by hand: SubtitleView text is not in uiautomator's tree. Needs ffmpeg on the host.
 . "$(dirname "$0")/lib.sh" "$@"
@@ -75,8 +75,11 @@ open_video intern.mkv
 sheet
 check "the MKV's track shows with its language and kind" ui has "Englisch · SRT|English · SRT"
 ui tap "Englisch · SRT|English · SRT" >/dev/null; sleep 1
-check "for a track the sheet says the delay is for files" ui has \
-    "Die Verzögerung gilt für Untertitel-Dateien. Spuren im Video behalten ihr eigenes Timing.|Delay works for subtitle files. Tracks inside the video keep their own timing."
+# A text track inside the film now has the delay steps too (Ordo draws its cues, EmbeddedCueQueue).
+ui tap "+1 s" >/dev/null; sleep 0.5
+check "a text track inside the film takes the delay" ui has "+1 s"
+check "and has no picture-track note" eval '! ui has "Verschieben nur für Text-Untertitel.|Shifting works for text subtitles only."'
+ui tap "−1 s" >/dev/null; sleep 0.5
 back 1; back 2
 
 # 4. Settings: the "Subtitles" group.

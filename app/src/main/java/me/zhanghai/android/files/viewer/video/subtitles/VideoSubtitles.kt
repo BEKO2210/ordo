@@ -63,8 +63,10 @@ import me.zhanghai.android.files.viewer.video.VideoInfo
  * Subtitles of Ordo Video, without a new library. Tracks inside the film go through Media3's track selection.
  * Subtitle files (next to the film with the same name, `film.de.srt` …, or loaded through Ordo's own picker) are read
  * here, charset first ([SubtitleFiles.decode]), then parsed by Media3's own parsers and drawn into the PlayerView's
- * SubtitleView on the player's clock: so a delay is only a shifted lookup ([SubtitleTimeline]). Media3 has no delay
- * for tracks inside the film, so the delay applies to files only (the sheet says so).
+ * SubtitleView on the player's clock: so a delay is only a shifted lookup ([SubtitleTimeline]). Text tracks inside the
+ * film take the same way: their cues from Media3's text renderer wait in an [EmbeddedCueQueue] keyed on their time, so
+ * the delay, the reading aid and the SDH options reach them too; running early asks the renderer ahead ([SubtitleLead]).
+ * Picture tracks (PGS, VobSub, DVB) stay with Media3's own drawing and keep their timing (the sheet says so).
  *
  * Hooks for later (e.g. an assistant): [currentChoice], [choices], [choose], [loadFile] are the public surface.
  */
@@ -74,7 +76,9 @@ class VideoSubtitles(
     private val player: ExoPlayer,
     private val playerView: PlayerView,
     /** The controls' bottom bar: subtitles move above it while it shows. */
-    private val bottomBar: View
+    private val bottomBar: View,
+    /** Lets text tracks inside the film run early; null: they can only run late. */
+    private val lead: SubtitleLead? = null
 ) {
     /** A subtitle file the player can show: found next to the film, remembered, or loaded by hand. */
     data class FileSubtitle(val uri: String, val fileName: String, val language: String?, val forced: Boolean)
@@ -95,6 +99,10 @@ class VideoSubtitles(
     var usedCharset: String? = null
         private set
     private var shownCues: List<Cue> = emptyList()
+    // A text track inside the film on screen through Ordo's own drawing (not a picture track, not a file).
+    private val embedded = EmbeddedCueQueue<Cue> { cues -> cues.joinToString("\n") { it.text?.toString().orEmpty() } }
+    private var embeddedFormat: Format? = null
+    private var speakers = Sdh.SpeakerColors()
     private var controlsShown = false
     /** Closes an open sheet: it belongs to one film and to this screen. */
     var dismissSheet: (() -> Unit)? = null
@@ -107,14 +115,17 @@ class VideoSubtitles(
         override fun run() {
             showCues(force = false)
             handler.removeCallbacks(this)
-            if (timeline != null && player.isPlaying) handler.postDelayed(this, TICK_MS)
+            if ((timeline != null || embeddedFormat != null) && player.isPlaying) handler.postDelayed(this, TICK_MS)
         }
     }
 
     private val listener = object : Player.Listener {
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) = startItem(mediaItem)
 
-        override fun onTracksChanged(tracks: Tracks) = maybeApplyInitial()
+        override fun onTracksChanged(tracks: Tracks) {
+            maybeApplyInitial()
+            updateEmbedded()
+        }
 
         override fun onIsPlayingChanged(isPlaying: Boolean) = ticker.run()
 
@@ -122,11 +133,20 @@ class VideoSubtitles(
             oldPosition: Player.PositionInfo,
             newPosition: Player.PositionInfo,
             reason: Int
-        ) = ticker.run()
+        ) {
+            // The renderer sends the new place's cues again.
+            embedded.clear()
+            ticker.run()
+        }
 
         // The PlayerView clears its SubtitleView when the (switched off) text renderer says so; a file stays.
         override fun onCues(cueGroup: CueGroup) {
-            if (timeline != null) showCues(force = true)
+            if (timeline == null && embeddedFormat != null) {
+                val options = options()
+                val time = cueGroup.presentationTimeUs.takeIf { it != C.TIME_UNSET } ?: (player.currentPosition * 1000)
+                embedded.add(time, cueGroup.cues.mapNotNull { prepare(it, options, speakers) })
+            }
+            if (timeline != null || embeddedFormat != null) showCues(force = true)
         }
     }
 
@@ -148,6 +168,7 @@ class VideoSubtitles(
         dismissSheet?.invoke()
         handler.removeCallbacksAndMessages(null)
         player.removeListener(listener)
+        lead?.leadUs = 0
     }
 
     // --- Public surface (the sheet and later hooks) ---
@@ -222,6 +243,10 @@ class VideoSubtitles(
 
     fun changeDelay(deltaMs: Long) {
         save(entry.copy(delayMs = SubtitleTimeline.clampDelay(entry.delayMs + deltaMs)))
+        val oldLead = lead?.leadUs
+        updateLead()
+        // A renderer jumping ahead skips the lines in between: a seek to here sends them again (one short re-buffer).
+        if (lead != null && lead.leadUs != oldLead) player.seekTo(player.currentPosition)
         showCues(force = false)
     }
 
@@ -262,10 +287,13 @@ class VideoSubtitles(
         scanJob?.cancel()
         mediaId = item?.mediaId
         files = emptyList()
+        embedded.clear()
+        speakers = Sdh.SpeakerColors()
         filesReady = false
         initialApplied = false
         val path = currentPath()
         entry = path?.let { mediaId?.let(store::read) } ?: SubtitleStore.Entry(null)
+        updateLead()
         // Left from the previous film: switched-off text would stay off for this one.
         player.trackSelectionParameters = player.trackSelectionParameters.buildUpon()
             .clearOverridesOfType(C.TRACK_TYPE_TEXT).setTrackTypeDisabled(C.TRACK_TYPE_TEXT, false).build()
@@ -378,10 +406,7 @@ class VideoSubtitles(
         loadJob?.cancel()
         val forId = mediaId
         val charset = entry.charset
-        val options = Options(
-            ReadingAid.level(Settings.VIDEO_SUBTITLE_READING.valueCompat),
-            Settings.VIDEO_SUBTITLE_SOUNDS.valueCompat, Settings.VIDEO_SUBTITLE_SPEAKER_COLORS.valueCompat
-        )
+        val options = options()
         loadJob = activity.lifecycleScope.launch {
             val result = withContext(Dispatchers.IO) {
                 runCatching { parse(file, charset, file.language ?: Locale.getDefault().language, options) }
@@ -389,6 +414,7 @@ class VideoSubtitles(
             if (forId != mediaId) return@launch
             result.onSuccess { (parsed, used) ->
                 timeline = parsed
+                updateEmbedded()
                 activeFile = file
                 usedCharset = used
                 // Our own cues carry only what prepare() kept: italics, underline, speaker colours.
@@ -425,7 +451,44 @@ class VideoSubtitles(
         shownCues = emptyList()
     }
 
+    /** What the settings ask of a file or a track's text now. */
+    private fun options() = Options(
+        ReadingAid.level(Settings.VIDEO_SUBTITLE_READING.valueCompat),
+        Settings.VIDEO_SUBTITLE_SOUNDS.valueCompat, Settings.VIDEO_SUBTITLE_SPEAKER_COLORS.valueCompat
+    )
+
+    /** Whether a text track inside the film shows (Ordo draws it then); a picture track stays Media3's. */
+    private fun updateEmbedded() {
+        val format = player.currentTracks.groups.firstOrNull { it.type == C.TRACK_TYPE_TEXT && it.isSelected }
+            ?.let { group -> (0 until group.length).firstOrNull(group::isTrackSelected)?.let(group::getTrackFormat) }
+            ?.takeIf { timeline == null && !isBitmap(it) && !player.trackSelectionParameters.disabledTrackTypes
+                .contains(C.TRACK_TYPE_TEXT) }
+        if (format != embeddedFormat) {
+            embeddedFormat = format
+            embedded.clear()
+            shownCues = emptyList()
+            playerView.subtitleView?.setApplyEmbeddedStyles(timeline != null || format != null)
+        }
+        updateLead()
+        ticker.run()
+    }
+
+    /** Early cues come from asking the renderer ahead; late ones wait in the queue. */
+    private fun updateLead() {
+        lead?.leadUs = if (embeddedFormat != null) maxOf(0L, -entry.delayMs) * 1000 else 0L
+    }
+
     private fun showCues(force: Boolean) {
+        if (timeline == null && embeddedFormat != null) {
+            val cues = embedded.cuesAt(
+                player.currentPosition * 1000, entry.delayMs * 1000,
+                ReadingAid.level(Settings.VIDEO_SUBTITLE_READING.valueCompat)
+            )
+            if (!force && cues == shownCues) return
+            shownCues = cues
+            playerView.subtitleView?.setCues(cues)
+            return
+        }
         val timeline = timeline ?: return
         val cues = timeline.cuesAt(player.currentPosition * 1000, entry.delayMs * 1000)
         slowDown(Settings.VIDEO_SUBTITLE_SLOW_DOWN.valueCompat &&
@@ -473,7 +536,7 @@ class VideoSubtitles(
         view.setStyle(CaptionStyleCompat(style.color.argb, background, Color.TRANSPARENT, edge, Color.BLACK, null))
         // The chosen colour and size win over a track's own; positions (ASS \pos, VTT lines) stay. A file's cues are
         // cleaned in prepare(), so their italics and speaker colours may show.
-        view.setApplyEmbeddedStyles(timeline != null)
+        view.setApplyEmbeddedStyles(timeline != null || embeddedFormat != null)
         view.setFractionalTextSize(SubtitleView.DEFAULT_TEXT_SIZE_FRACTION * style.size.factor)
     }
 

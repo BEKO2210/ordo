@@ -287,6 +287,23 @@ Quelle der Entscheidungen: `ordo-team/QUALITAET-PANEL.md`, Ideen 1–4. Logik oh
   `setRequestOpenGlToneMapping` ist nicht öffentlich über ExoPlayer erreichbar. Mit HDR-Ausgabe würde Android die
   Umrechnung für ein SDR-Display wieder selbst machen (doppelt), und die Kette verwirft HDR-Metadaten
   (`setHdrStaticInfo(null)`) und Dolby Vision. Darum bleibt HDR wie bisher ohne Kette direkt beim Decoder.
+- **Bild anpassen** (⋮ › „Bild anpassen“, `PictureAdjustSheet`): Helligkeit, Kontrast, Sättigung, Farbtemperatur und
+  Schärfe je −3…+3 mit −/+ (48 dp, kein Regler), live. Alles in **demselben** Pass von `PictureShader`: eine
+  4×4-Farbmatrix (`PictureAdjust.colorMatrix`, getestet in `PictureAdjustTest`; Reihenfolge Farbtemperatur → Sättigung
+  um die Rec.-709-Luma → Kontrast um 0,5 → Helligkeit; je Schritt ±0,03 / ×0,08 / ×0,15 / R·B ±3 %) nach dem
+  Raumlicht-Gamma und vor Körnung und Dither; Schärfe + addiert 0,2 je Schritt zu CAS, Schärfe − mischt bis 60 % zum
+  3×3-Mittel. Die Werte liest der GL-Faden je Bild (`PictureLive`), ohne die Kette neu zu bauen. Läuft die Kette
+  nicht (z. B. Video so groß wie der Bildschirm), gelten die bestehenden Regeln (`PicturePolicy.pipeline(…, adjusted)`,
+  `preEngage(…, adjusted)`): gemerkte Werte schalten die Kette schon vor `prepare()` ein, sonst einmal neu vorbereiten.
+  Ohne Bildverbesserung dann ohne Lanczos und mit `ADJUST_ONLY` (nur Dither). Nicht bei HDR, DRM oder gescheiterter
+  GPU (das Blatt sagt es). Gemerkt je Video (`PictureAdjustStore`, höchstens 300): nie für Tresor-Videos,
+  `content://` anderer Apps oder bei „Keine Stellen merken“; „Weiterschauen löschen“ löscht sie mit. „Zurücksetzen“.
+- **Zeilensprung entfernen** (Automatisch/An/Aus im selben Blatt): erkannt aus `Format.initializationData`
+  (`Deinterlace`, getestet in `DeinterlaceTest`): H.264-SPS `frame_mbs_only_flag` 0, MPEG-2-Sequenz-Erweiterung
+  `progressive_sequence` 0; bei H.264 mit Film-Bildrate (≤ 24,5 fps) gilt das Flag allein als unbekannt
+  (Blu-ray-Encoder setzen es auch bei Vollbildern); andere Codecs gelten als unbekannt (Schalter). Ein eigener erster Pass auf den
+  Original-Zeilen vor Lanczos (`DeinterlaceEffect`): Linear-Blend 1-2-1 nur dort, wo eine Zeile von beiden Nachbarn in
+  dieselbe Richtung abweicht (Kammlinien), ruhige Flächen behalten ihre Auflösung. Kein YADIF (bräuchte die Nachbarbilder).
 - **Lizenzen:** CAS MIT (Text im Kopf von `PictureShader.kt`), libplacebo LGPL-2.1-or-later (nach §3 als GPL-3.0
   weitergegeben); beide in `res/raw/licenses.xml`. Neue Abhängigkeit `media3-effect` 1.11.1.
 - **Gerätetest:** `e2e/video-picture.sh` (`--write`-Liste in `e2e/run.sh`).
@@ -348,7 +365,7 @@ abschaltet; Medientasten bei zwei Sessions auf echten Geräten; ob `dumpsys` `mo
 
 Code in `viewer/video/subtitles/`, ohne neue Bibliothek. Knopf „Untertitel“ oben in der Leiste öffnet ein Blatt:
 „Aus“, die Untertitel-Dateien, die Spuren im Film, „Untertitel laden…“ (Ordos eigene Auswahl, im Ordner des Films),
-für eine Datei Verzögerung und Zeichenkodierung, für alle Filme Größe (Klein/Mittel/Groß/Sehr groß), Hintergrund
+für eine Datei und eine Text-Spur im Film die Verzögerung, für eine Datei die Zeichenkodierung, für alle Filme Größe (Klein/Mittel/Groß/Sehr groß), Hintergrund
 (Ohne/Schatten/Kasten) und Farbe (Weiß/Gelb) als Chips. Keine Regler.
 
 - **Dateien daneben** (`SubtitleFiles.sidecars`, getestet in `SubtitleFilesTest`): gleicher Name wie der Film, ohne
@@ -365,9 +382,20 @@ für eine Datei Verzögerung und Zeichenkodierung, für alle Filme Größe (Klei
   SubRip, SSA/ASS, WebVTT, TTML) zerlegt, dann alle 50 ms nach der Abspielstelle in die `SubtitleView` des
   `PlayerView` gelegt (`SubtitleTimeline`); die Textspuren des Players sind dabei aus. ASS: nur Text und Lage
   (`\an`, `\pos`), keine Effekte. Höchstens 8 MB je Datei.
-- **Verzögerung** ±0,1 s / ±1 s (höchstens ±10 min) verschiebt nur die Suche in der Zeitleiste, ohne Neuladen. **Grenze:**
-  Media3 hat keine Verzögerung für Spuren im Film (`TextRenderer`); das Blatt sagt bei einer Spur, dass sie für Dateien
-  gilt.
+- **Verzögerung** ±0,1 s / ±1 s (höchstens ±10 min) verschiebt nur die Suche in der Zeitleiste, ohne Neuladen.
+- **Text-Spuren im Film** (SRT, ASS, WebVTT, TX3G, CEA in MKV/MP4) zeichnet Ordo selbst: `Player.Listener.onCues`
+  legt jede Cue-Gruppe mit ihrer Zeit in eine `EmbeddedCueQueue` (getestet in `EmbeddedCueQueueTest`: Verzögerung,
+  Pause, Tempo, Sprung, Lese-Hilfe); gezeigt wird alle 50 ms die Gruppe für Abspielstelle − Verzögerung. Pause und Tempo
+  brauchen nichts Eigenes, ein Sprung leert die Warteschlange, der Renderer schickt die neue Stelle. Für „früher“
+  (negative Verzögerung) fragt `SubtitleLead` (ein `ForwardingRenderer` um Media3s `TextRenderer`) den Renderer um die
+  Verzögerung voraus; die Cues warten dann in der Schlange. Ändert sich dieser Vorlauf, springt Ordo an dieselbe Stelle
+  (kurzes Nachladen wie bei der Ton-Verzögerung), sonst fehlten die übersprungenen Zeilen. Geänderte
+  Hörgeschädigten-Einstellungen gelten für Zeilen ab dann. Grenze: weiter voraus als Media3 gepuffert hat (rund 50 s)
+  kommt eine frühe Zeile zu spät. Nach einem Sprung fehlen bei positiver Verzögerung bis zu deren Länge die Zeilen
+  vor der Sprungstelle. Hörgeschädigten-Optionen (Geräusche, Sprecherfarben) und die Lese-Hilfe (Zeile bleibt ihre
+  Lesezeit, nie über die nächste) gelten wie bei Dateien; „Langsamer bei schnellem Text“ nur für Dateien (die Dauer
+  einer Spur-Zeile ist erst an ihrem Ende bekannt). **Bild-Untertitel** (PGS, VobSub, DVB) bleiben bei Media3s eigener
+  Darstellung ohne Verschiebung; das Blatt sagt „Verschieben nur für Text-Untertitel“.
 - **Spuren im Film** (MKV/MP4: SRT, ASS, WebVTT, TX3G, PGS, VobSub, DVB) gehen über `TrackSelectionOverride`. Ohne Wahl
   kommen nur „erzwungene“ Spuren von selbst (`setIgnoredTextSelectionFlags(SELECTION_FLAG_DEFAULT)`). Bild-Untertitel
   (PGS, VobSub, DVB) nimmt der Stil nicht an; das Blatt sagt das.

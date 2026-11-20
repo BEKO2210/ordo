@@ -155,12 +155,26 @@ object PicturePolicy {
         }
     }
 
-    fun pipeline(engaged: Boolean, decision: Decision): Pipeline = when {
-        !engaged -> if (decision.on) Pipeline.ENGAGE else Pipeline.KEEP_PLAIN
-        decision.off == Off.HDR || decision.off == Off.DRM || decision.off == Off.SOFTWARE -> Pipeline.RECREATE
-        decision.on -> Pipeline.APPLY
-        else -> Pipeline.CLEAR
+    /**
+     * [adjusted]: the "Bild" sheet changes this video (colour steps, sharpness or deinterlacing); that needs the shader
+     * pass too, at any size and with the enhancement switched off, but never on HDR, DRM or FFmpeg-decoded video.
+     */
+    fun pipeline(engaged: Boolean, decision: Decision, adjusted: Boolean = false): Pipeline {
+        val pass = decision.on || (adjusted && adjustable(decision))
+        return when {
+            !engaged -> if (pass) Pipeline.ENGAGE else Pipeline.KEEP_PLAIN
+            decision.off == Off.HDR || decision.off == Off.DRM || decision.off == Off.SOFTWARE -> Pipeline.RECREATE
+            pass -> Pipeline.APPLY
+            else -> Pipeline.CLEAR
+        }
     }
+
+    /** Whether the "Bild" sheet's adjustments can run on this video: SDR without DRM on a GPU that copes. */
+    fun adjustable(decision: Decision): Boolean =
+        decision.off != Off.NO_VIDEO && decision.off != Off.HDR && decision.off != Off.DRM && decision.off != Off.FAILED
+
+    /** The pass's values when only the adjustments run: no sharpening or debanding of its own, just the dither. */
+    val ADJUST_ONLY = ShaderParams(0f, 0, 0f, 0f, 0f, 1f / 255f)
 
     /**
      * Media3 reports dropped frames in batches (every 50, and when playback stops). More than [DROPS_PER_SECOND] a
@@ -233,9 +247,13 @@ object PicturePolicy {
         current: Probe?,
         next: Probe?,
         windowWidth: Int,
-        windowHeight: Int
+        windowHeight: Int,
+        /** The first video has remembered adjustments: it needs the pass at any size. */
+        adjusted: Boolean = false
     ): Boolean {
-        if (!switchedOn || failed || current == null || current.hdr != false || current.drm) return false
+        if (failed || current == null || current.hdr != false || current.drm) return false
+        if (adjusted) return true
+        if (!switchedOn) return false
         return probeEligible(current, windowWidth, windowHeight) || probeEligible(next, windowWidth, windowHeight)
     }
 

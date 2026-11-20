@@ -9,7 +9,7 @@
     <string name="video_subtitles_delay">Verzögerung</string>
     <string name="video_subtitles_earlier_format">%1$s früher zeigen</string>
     <string name="video_subtitles_later_format">%1$s später zeigen</string>
-    <string name="video_subtitles_delay_files_only">Die Verzögerung gilt für Untertitel-Dateien. Spuren im Video behalten ihr eigenes Timing.</string>
+    <string name="video_subtitles_delay_text_only">Verschieben nur für Text-Untertitel.</string>
     <string name="video_subtitles_charset">Zeichenkodierung</string>
     <string name="video_subtitles_charset_auto_format">Automatisch (%1$s)</string>
     <string-array name="video_subtitles_charset_names">
