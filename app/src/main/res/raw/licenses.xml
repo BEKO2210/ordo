@@ -321,4 +321,18 @@
         <copyright>Copyright Niklas Haas and the libplacebo contributors</copyright>
         <license>GNU Lesser General Public License 2.1</license>
     </notice>
+
+    <notice>
+        <name>SADIE II HRTF Database (Ordo's virtual surround, KU100 subject D1)</name>
+        <url>https://www.york.ac.uk/sadie-project/database.html</url>
+        <copyright>Copyright 2018, University of York</copyright>
+        <license>Apache Software License 2.0</license>
+    </notice>
+
+    <notice>
+        <name>AutoEq (Ordo's headphone correction presets)</name>
+        <url>https://github.com/jaakkopasanen/AutoEq</url>
+        <copyright>Copyright (c) 2018-2022 Jaakko Pasanen</copyright>
+        <license>MIT License</license>
+    </notice>
 </notices>

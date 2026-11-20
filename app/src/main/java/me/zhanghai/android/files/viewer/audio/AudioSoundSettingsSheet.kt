@@ -54,7 +54,8 @@ import me.zhanghai.android.files.viewer.audio.KlangPictureView.Kind
 import me.zhanghai.android.files.ui.Motion
 import kotlin.math.roundToInt
 
-class AudioSoundSettingsSheet : BottomSheetDialogFragment() {
+class AudioSoundSettingsSheet : BottomSheetDialogFragment(),
+    me.zhanghai.android.files.player.headphones.HeadphonesHost {
     private var _binding: AudioSoundSettingsSheetBinding? = null
     private val binding get() = checkNotNull(_binding)
     private var settings = AudioSettings()
@@ -207,6 +208,10 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment() {
             R.string.audio_sound_mono_summary, { settings.mono }, binding.monoPicture, Kind.MONO
         ) { update { copy(mono = it) } }
         bindQuietFull()
+        me.zhanghai.android.files.player.headphones.HeadphonesSheet.bindEntry(binding.headphonesEntry, this)
+        renderers += {
+            me.zhanghai.android.files.player.headphones.HeadphonesSheet.renderEntry(binding.headphonesEntry, settings)
+        }
         bindSwitchRow(
             binding.skipRow, R.drawable.audio_fast_forward_icon_24dp, R.string.audio_sound_skip_silence,
             R.string.audio_sound_skip_silence_summary, { settings.skipSilence }, binding.skipPicture, Kind.SKIP_SILENCE
@@ -704,13 +709,14 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment() {
         row.root.setOnClickListener { if (row.toggle.isEnabled) row.toggle.toggle() }
         binding.quietPicture.kind = Kind.QUIET
         quietRenderer = {
-            val lift = me.zhanghai.android.files.player.LoudnessCompensation.amount(soundStatus?.volumeFraction ?: 1f)
+            val bassDb = soundStatus?.quietBassDb ?: 0f
+            val lift = bassDb / me.zhanghai.android.files.player.headphones.EqualLoudness.MAX_BASS_DB.toFloat()
             row.toggle.isChecked = settings.quietFullEnabled
             binding.quietPicture.setState(settings.quietFullEnabled, lift)
             binding.quietPicture.contentDescription = describe(
                 R.string.audio_sound_quiet,
                 if (!settings.quietFullEnabled) onOff(false)
-                else getString(R.string.audio_sound_quiet_value, (lift * 6).roundToInt())
+                else getString(R.string.audio_sound_quiet_value, bassDb.roundToInt())
             )
         }
         renderers += { quietRenderer?.invoke() }
@@ -883,6 +889,10 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment() {
     private fun cancelSleep() {
         (activity as? AudioPlayerActivity)?.setSleepTimer(0, false, ::refreshStatus)
     }
+
+    override val headphoneSettings: AudioSettings get() = settings
+
+    override fun updateHeadphoneSettings(transform: AudioSettings.() -> AudioSettings) = update(transform)
 
     private fun update(transform: AudioSettings.() -> AudioSettings) {
         settings = settings.transform().sanitized()

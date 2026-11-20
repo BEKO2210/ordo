@@ -22,7 +22,7 @@ object AudioPlayerCommands {
     const val EXTRA_CLARITY_AVAILABLE = "clarityAvailable"
     const val EXTRA_HEADPHONES = "headphones"
     const val EXTRA_HIGHS_CUTOFF = "highsCutoff"
-    const val EXTRA_VOLUME_FRACTION = "volumeFraction"
+    const val EXTRA_QUIET_BASS_DB = "quietBassDb"
     const val EXTRA_SLEEP_ACTIVE = "sleepActive"
     const val EXTRA_SLEEP_REMAINING_MS = "sleepRemainingMs"
 

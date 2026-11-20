@@ -6,6 +6,10 @@
 package me.zhanghai.android.files.viewer.video.sound
 
 import android.content.Context
+import android.database.ContentObserver
+import android.media.AudioDeviceCallback
+import android.media.AudioDeviceInfo
+import android.media.AudioManager
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
@@ -31,6 +35,8 @@ import me.zhanghai.android.files.player.ReplayGainInfo
 import me.zhanghai.android.files.player.SoundEffectController
 import me.zhanghai.android.files.player.TransportFader
 import me.zhanghai.android.files.player.TruePeakLimiter
+import me.zhanghai.android.files.player.headphones.HeadphoneOutput
+import me.zhanghai.android.files.player.headphones.HeadphoneStages
 import me.zhanghai.android.files.provider.common.readAttributes
 import me.zhanghai.android.files.provider.linux.isLinuxPath
 import me.zhanghai.android.files.settings.Settings
@@ -45,7 +51,8 @@ import java.util.concurrent.Executors
  * and loudness levelling on the platform's DynamicsProcessing, switched only in silence or inside a short dip) and a
  * [KlangAudioProcessor] chain with mono, the dialog enhancer and night mode. Before it, [DownmixProcessor] folds
  * 5.1/7.1 to stereo with the centre kept audible (unless the system's spatializer takes the channels, [VideoSpatial]);
- * after it the [TruePeakLimiter] (−1 dBTP) and [AvDelayProcessor] (A/V sync, remembered per film).
+ * after it the [TruePeakLimiter] (−1 dBTP) and [AvDelayProcessor] (A/V sync, remembered per film). The headphone
+ * pack ([HeadphoneStages], virtual surround in the downmix) is shared with Ordo Musik.
  *
  * [settings], [update] and [setDelay] are the public way in, for the sheets today and for anything that wants to set
  * the sound later (no AI in the player itself). [onChanged] tells a visible sheet that something it shows changed.
@@ -58,7 +65,18 @@ class VideoSoundEngine(private val context: Context) {
     private val mono = MonoStage()
     private val dialog = DialogStage()
     private val night = NightStage()
-    private val klang = KlangAudioProcessor(arrayOf(mono, dialog, night))
+    private val headphones = HeadphoneStages()
+    private val klang = KlangAudioProcessor(arrayOf(mono, dialog, night, headphones.quiet, headphones.correction))
+    private val audioManager = context.getSystemService(AudioManager::class.java)
+    // Headphones in or out: virtual surround and the headphone correction follow the route.
+    private val routeCallback = object : AudioDeviceCallback() {
+        override fun onAudioDevicesAdded(addedDevices: Array<out AudioDeviceInfo>?) = onRoute()
+        override fun onAudioDevicesRemoved(removedDevices: Array<out AudioDeviceInfo>?) = onRoute()
+    }
+    // The system volume lands in Settings.System; "full sound when quiet" follows it.
+    private val volumeObserver = object : ContentObserver(handler) {
+        override fun onChange(selfChange: Boolean) = applyToChain()
+    }
     private val downmix = DownmixProcessor()
     private val truePeak = TruePeakLimiter().apply { armed = true }
     private val delay = AvDelayProcessor()
@@ -130,6 +148,13 @@ class VideoSoundEngine(private val context: Context) {
     /** Whether a track of [channels] goes to the system's spatializer untouched instead of Ordo's downmix. */
     fun systemSpatializes(channels: Int): Boolean = channels > 2 && downmix.passingThrough
 
+    /** Whether headphones are the output right now. */
+    val headphonesConnected: Boolean get() = HeadphoneOutput.headphones(audioManager) != null
+
+    /** Ordo's virtual surround renders this track right now (5.1/7.1, headphones, not the system's spatializer). */
+    val virtualSurround: Boolean
+        get() = sourceChannelCount > 2 && !downmix.passingThrough && downmix.binaural
+
     /** Levelling is on and this film's level is known (measured or cached). */
     val levelled: Boolean get() = settings.klang.normalizationEnabled && replayGain != null
 
@@ -152,8 +177,11 @@ class VideoSoundEngine(private val context: Context) {
         return listOfNotNull(
             layout?.let {
                 context.getString(
-                    if (systemSpatializes(channels)) R.string.video_sound_spatial_format
-                    else R.string.video_sound_surround_format,
+                    when {
+                        systemSpatializes(channels) -> R.string.video_sound_spatial_format
+                        virtualSurround -> R.string.headphones_virtual_surround_format
+                        else -> R.string.video_sound_surround_format
+                    },
                     it
                 )
             },
@@ -164,6 +192,9 @@ class VideoSoundEngine(private val context: Context) {
                 R.string.video_sound_dialog_state, number.format(reached.toDouble()), number.format(measured.toDouble())
             ),
             context.getString(R.string.video_sound_night).takeIf { value.nightMode },
+            context.getString(R.string.audio_sound_quiet).takeIf { headphones.quiet.effectEnabled },
+            headphones.correction.profile?.takeIf { headphones.correction.effectEnabled }
+                ?.let { context.getString(R.string.headphones_correction_state, it.name) },
             context.getString(R.string.audio_sound_equalizer).takeIf { klang.equalizerEnabled },
             context.getString(R.string.audio_sound_bass_boost).takeIf { klang.bassBoostEnabled },
             context.getString(R.string.audio_sound_balance).takeIf { klang.balance != 0 },
@@ -218,6 +249,10 @@ class VideoSoundEngine(private val context: Context) {
         this.player = player
         player.addListener(listener)
         spatial.start()
+        audioManager?.registerAudioDeviceCallback(routeCallback, handler)
+        context.contentResolver.registerContentObserver(
+            android.provider.Settings.System.CONTENT_URI, true, volumeObserver
+        )
         applyToChain()
         effects.attach(player.audioSessionId)
         effects.setAudible(player.isPlaying)
@@ -332,10 +367,18 @@ class VideoSoundEngine(private val context: Context) {
         dialog.effectEnabled = value.dialogLevel != VideoSoundMath.DIALOG_OFF && !centreSteered()
         downmix.dialogTargetLu = VideoSoundMath.dialogTargetLu(value.dialogLevel) ?: Float.NaN
         night.effectEnabled = value.nightMode
+        val phones = audioManager?.let(HeadphoneOutput::headphones) != null
+        downmix.binaural = value.klang.binauralEnabled && phones
+        headphones.apply(value.klang, phones, audioManager?.let(HeadphoneOutput::attenuationDb) ?: 0f)
         delay.delayMs = delayMs
         // Mono is the chain's job here; the controller has no mono of its own. Levelling is the limiter's input gain.
         effects.apply(value.klang, replayGain)
         truePeak.gainDb = LoudnessTargets.gainDb(value.klang, replayGain)
+    }
+
+    private fun onRoute() {
+        applyToChain()
+        notifyChanged()
     }
 
     private fun notifyChanged() {
@@ -347,6 +390,8 @@ class VideoSoundEngine(private val context: Context) {
         onChanged = null
         onUnderstandBetter = null
         spatial.stop()
+        audioManager?.unregisterAudioDeviceCallback(routeCallback)
+        context.contentResolver.unregisterContentObserver(volumeObserver)
         player?.removeListener(listener)
         player = null
         handler.removeCallbacksAndMessages(null)

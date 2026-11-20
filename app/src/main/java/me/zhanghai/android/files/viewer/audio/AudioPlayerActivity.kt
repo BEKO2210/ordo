@@ -1090,7 +1090,7 @@ class AudioPlayerActivity : AppActivity(), AppAccentActivity {
                     extras.getBoolean(AudioPlayerCommands.EXTRA_CLARITY_AVAILABLE),
                     extras.getBoolean(AudioPlayerCommands.EXTRA_HEADPHONES),
                     extras.getInt(AudioPlayerCommands.EXTRA_HIGHS_CUTOFF),
-                    extras.getFloat(AudioPlayerCommands.EXTRA_VOLUME_FRACTION, 1f),
+                    extras.getFloat(AudioPlayerCommands.EXTRA_QUIET_BASS_DB, 0f),
                     extras.getBoolean(AudioPlayerCommands.EXTRA_SLEEP_ACTIVE),
                     extras.getInt(AudioPlayerCommands.EXTRA_SLEEP_MINUTES),
                     extras.getBoolean(AudioPlayerCommands.EXTRA_END_OF_TRACK),
@@ -1121,7 +1121,8 @@ class AudioPlayerActivity : AppActivity(), AppAccentActivity {
         val clarityAvailable: Boolean = false,
         val headphones: Boolean = false,
         val highsCutoffHz: Int = 0,
-        val volumeFraction: Float = 1f,
+        /** The bass lift "full sound when quiet" gives at the current volume, in dB. */
+        val quietBassDb: Float = 0f,
         val sleepActive: Boolean = false,
         val sleepMinutes: Int = 0,
         val sleepAtEndOfTrack: Boolean = false,

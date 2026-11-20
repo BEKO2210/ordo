@@ -317,7 +317,10 @@ Type or dictate a sentence like “Move all MP3s from Download to Music”. Ordo
 - Sound effects of Ordo’s own, the same on every phone: room sound for headphones (crossfeed after Bauer, a port of
   the MIT-licensed bs2b), stereo width (0 % mono to 150 % wide), reverb (Freeverb, public domain) with Room, Studio,
   Club and Concert hall, analogue warmth, clarity (a multiband compressor, Android 9 and later) and, off by default, "Fill in missing highs" for heavily compressed files, which only acts above a cut it has found; also off by default, "Full sound when quiet" gently lifts the bass as the
-  system volume goes down. Every card of the
+  system volume goes down (ISO 226 equal-loudness contours, with a "how loud are your headphones" setting).
+  The Headphones sheet (music and video) adds virtual surround for 5.1/7.1 (SADIE II dummy-head HRIRs, only with
+  headphones and when Android's own spatial audio is not in use) and a headphone correction for 500 models from
+  AutoEq, see [docs/KOPFHOERER.md](docs/KOPFHOERER.md). Every card of the
   lower Sound sheet shows a small live picture of what it does; it holds still when Ordo’s animations are off
 - “Play on…” in the player opens Android’s output picker: Bluetooth headphones and speakers, wired and cast devices,
   without Google services (Android 11 and later; Android 6–10 opens the Bluetooth settings)
@@ -492,7 +495,7 @@ Run the unit tests with:
 ```
 
 <!-- AUTO:tests -->
-Device tests: 40 scripts in [`e2e/`](e2e/README.md), run with `e2e/run.sh`: 15 read-only (`first-run`, `smoke`, `settings-visual`, `category-search`, `back-navigation`, `bars-replay`, `home-header`, `header-position`, `home-pull`, `drawer`, `selection-more`, `tablet-landscape`, `analysis`, `ai-show-guard`, `documents-provider`) and 25 more with `--write` (`stress-delete`, `backup-restore`, `home-auto-refresh`, `audio-player`, `cast`, `klang`, `klang-landscape`, `klang-stress`, `music-formats`, `music-library`, `launcher-icons`, `icon-colors`, `ai-show`, `pick-file`, `no-midword-breaks`, `player-seek`, `player-stage2`, `video-player`, `video-network`, `video-sound`, `video-subtitles`, `video-background`, `video-library`, `video-seek`, `video-picture`). Unit tests: 114 test classes in `app/src/test`.
+Device tests: 40 scripts in [`e2e/`](e2e/README.md), run with `e2e/run.sh`: 15 read-only (`first-run`, `smoke`, `settings-visual`, `category-search`, `back-navigation`, `bars-replay`, `home-header`, `header-position`, `home-pull`, `drawer`, `selection-more`, `tablet-landscape`, `analysis`, `ai-show-guard`, `documents-provider`) and 25 more with `--write` (`stress-delete`, `backup-restore`, `home-auto-refresh`, `audio-player`, `cast`, `klang`, `klang-landscape`, `klang-stress`, `music-formats`, `music-library`, `launcher-icons`, `icon-colors`, `ai-show`, `pick-file`, `no-midword-breaks`, `player-seek`, `player-stage2`, `video-player`, `video-network`, `video-sound`, `video-subtitles`, `video-background`, `video-library`, `video-seek`, `video-picture`). Unit tests: 115 test classes in `app/src/test`.
 <!-- /AUTO:tests -->
 
 ## Roadmap

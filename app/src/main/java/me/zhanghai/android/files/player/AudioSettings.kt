@@ -35,6 +35,12 @@ data class AudioSettings(
     val highsLevel: Int = 1,
     /** "Full sound when quiet" (equal-loudness compensation tied to the system volume), off by default. */
     val quietFullEnabled: Boolean = false,
+    /** How much louder (+) or quieter (−) these headphones play than Ordo assumes, in dB: −10, 0 or +10. */
+    val quietCalibrationDb: Int = 0,
+    /** 5.1/7.1 as virtual loudspeakers in headphones (HRIR convolution), off by default. */
+    val binauralEnabled: Boolean = false,
+    /** AutoEq headphone correction: the model's name, empty = off. */
+    val headphoneEq: String = "",
     val normalizationEnabled: Boolean = false,
     /** Where levelling aims (EBU R 128 s2): the broadcast reference or the louder "on the go" level. */
     val loudnessTarget: LoudnessTarget = LoudnessTarget.ORIGINAL,
@@ -59,6 +65,7 @@ data class AudioSettings(
         warmthLevel = warmthLevel.coerceIn(1, LEVELS),
         clarityLevel = clarityLevel.coerceIn(1, LEVELS),
         highsLevel = highsLevel.coerceIn(1, HIGHS_LEVELS),
+        quietCalibrationDb = quietCalibrationDb.coerceIn(-QUIET_CALIBRATION_STEP_DB, QUIET_CALIBRATION_STEP_DB),
         normalizationPreampDb = normalizationPreampDb.takeIf { it.isFinite() }
             ?.coerceIn(MIN_GAIN_DB, MAX_GAIN_DB) ?: 0f,
         speed = speed.takeIf { it.isFinite() }?.coerceIn(0.5f, 2f) ?: 1f,
@@ -73,6 +80,7 @@ data class AudioSettings(
         const val LEVELS = 3
         const val MAX_WIDTH_PERCENT = 150
         const val HIGHS_LEVELS = 2
+        const val QUIET_CALIBRATION_STEP_DB = 10
         val BAND_FREQUENCIES_HZ = intArrayOf(31, 62, 125, 250, 500, 1_000, 2_000, 4_000, 8_000, 16_000)
     }
 }
@@ -152,6 +160,9 @@ object AudioSettingsCodec {
             .put("highsOn", highsEnabled)
             .put("highs", highsLevel)
             .put("quietFull", quietFullEnabled)
+            .put("quietCalibration", quietCalibrationDb)
+            .put("binaural", binauralEnabled)
+            .put("headphoneEq", headphoneEq)
             .put("normalization", normalizationEnabled)
             .put("loudnessTarget", loudnessTarget.name)
             .put("normalizationPreamp", normalizationPreampDb.toDouble())
@@ -197,6 +208,9 @@ object AudioSettingsCodec {
                 highsEnabled = json.optBoolean("highsOn", false),
                 highsLevel = json.optInt("highs", 1),
                 quietFullEnabled = json.optBoolean("quietFull", false),
+                quietCalibrationDb = json.optInt("quietCalibration", 0),
+                binauralEnabled = json.optBoolean("binaural", false),
+                headphoneEq = json.optString("headphoneEq", ""),
                 normalizationEnabled = json.optBoolean("normalization", false),
                 loudnessTarget = enumValueOrDefault(json.optString("loudnessTarget"), LoudnessTarget.ORIGINAL),
                 normalizationPreampDb = json.optDouble("normalizationPreamp", 0.0).toFloat(),

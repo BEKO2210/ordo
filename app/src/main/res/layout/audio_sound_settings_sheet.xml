@@ -520,6 +520,24 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
+        <!-- The headphone pack (virtual surround, quiet listening, correction) opens its own sheet. -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/headphonePackCard"
+            style="@style/Widget.Ordo.Klang.Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/klang_card_gap">
+            <include
+                android:id="@+id/headphonesEntry"
+                layout="@layout/klang_switch_row"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/klang_space_lg"
+                android:layout_marginTop="@dimen/klang_space_md"
+                android:layout_marginEnd="@dimen/klang_space_lg"
+                android:layout_marginBottom="@dimen/klang_space_md" />
+        </com.google.android.material.card.MaterialCardView>
+
         <TextView
             style="@style/Widget.Ordo.Klang.Section"
             android:layout_width="match_parent"
