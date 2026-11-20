@@ -260,10 +260,10 @@ class VideoSoundSheet : BottomSheetDialogFragment() {
         if (channels > 2) {
             val layout = VideoSoundMath.channelLayout(channels) ?: getString(R.string.video_audio_track_channels, channels)
             binding.surroundNote.text = getString(
-                if (engine?.systemSpatializes(channels) == true) {
-                    R.string.video_sound_spatial_format
-                } else {
-                    R.string.video_sound_surround_format
+                when {
+                    engine?.systemSpatializes(channels) == true -> R.string.video_sound_spatial_format
+                    engine?.spatialHeldBack == true -> R.string.video_sound_spatial_held_back_format
+                    else -> R.string.video_sound_surround_format
                 },
                 layout
             )

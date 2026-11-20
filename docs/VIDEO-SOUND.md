@@ -78,7 +78,15 @@ und Lautstärke angleichen.
   sonst mischt Ordo nach BS.775. Neu geprüft bei Zustandswechsel des Spatializers und beim Wechsel des Ausgabegeräts;
   wirksam beim nächsten Formatwechsel (neuer Film oder Spurwechsel), nicht mitten im Film. Das Klang-Blatt sagt, was
   gerade wirklich läuft („Raumklang vom System“ oder „Ordo-Abmischung“), Logcat-Tag `OrdoVideoSound` die Entscheidung. Bei Durchreichen wirken
-  Dialog-Verstärker, Nacht und Mono nicht (die Kette rechnet nur Stereo).
+  Dialog-Verstärker, Nacht und Mono nicht (die Kette rechnet nur Stereo). Darum gibt Ordo den Mehrkanal-Ton nur durch,
+  solange keiner der drei an ist; schaltet man einen davon ein, mischt Ordo selbst ab, und zwar sofort: Ist die
+  laufende Spur betroffen, wird ihr Ton einmal kurz aus- und wieder eingeschaltet (eine kurze Lücke), damit das Format
+  neu eingerichtet wird. Das Klang-Blatt sagt dann „Ordo-Abmischung: Solange Dialog-Verstärker, Nachtmodus oder Mono
+  an sind, …“ (`spatialHeldBack`).
+- **Lautstärke des Players** (`VolumeMix`): Produkt aus der Absenkung des Effekt-Schalters und der Ausblendung des
+  Schlaf-Timers; jeder setzt nur seinen eigenen Faktor, keiner überschreibt den anderen (`VolumeMixTest`). Der
+  Schlaf-Timer (Branch feat/video-background, `VideoSleepTimer`) muss dafür `VideoSoundEngine.volumeMix.sleep` setzen
+  statt `player.volume`.
 - **Downmix 5.1/7.1 → Stereo** (`DownmixProcessor`, immer an bei 3–8 Kanälen, 16 Bit): ITU-R BS.775, Center −3 dB in
   beide Kanäle, Surrounds −3 dB auf ihre Seite, LFE weggelassen, alles × 1/(1+0,7071); eigener Spitzenbegrenzer mit der
   Decke der Klang-Kette (−1,5 dBFS). Kanalreihenfolge wie Androids Kanalmaske (5.1: FL FR FC LFE BL BR; 6.1: + BC; 7.1: + SL SR). Ein Wechsel der

@@ -1055,6 +1055,8 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, VideoSoundHost {
     private fun checkAudioTracks(tracks: Tracks) {
         val player = player ?: return
         val mediaId = player.currentMediaItem?.mediaId ?: return
+        // The sound engine switches audio off for a moment to change between Ordo's mix and the system's spatial audio.
+        if (C.TRACK_TYPE_AUDIO in player.trackSelectionParameters.disabledTrackTypes) return
         // Per track, not per group: a group counts as supported as soon as any of its tracks is.
         val audio = tracks.groups.filter { it.type == C.TRACK_TYPE_AUDIO }
             .flatMap { group -> (0 until group.length).map { group to it } }

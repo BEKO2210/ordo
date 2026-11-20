@@ -61,8 +61,11 @@ class VideoSoundEngine(private val context: Context) {
     private val downmix = DownmixProcessor()
     private val truePeak = TruePeakLimiter().apply { armed = true }
     private val delay = AvDelayProcessor()
+    // What the system's spatializer could take; used only while none of Ordo's own stages needs the channels.
+    private var spatialChannels: Set<Int> = emptySet()
     private val spatial = VideoSpatial(context, handler) { channels ->
-        downmix.passThroughChannels = channels
+        spatialChannels = channels
+        applyPassThrough()
         notifyChanged()
     }
     private val delayStore = VideoDelayStore(context)
@@ -72,7 +75,13 @@ class VideoSoundEngine(private val context: Context) {
     private val fader = TransportFader(
         { SystemClock.uptimeMillis() }, { action, delayMs -> handler.postDelayed(action, delayMs) },
         { handler.removeCallbacks(it) }
-    ) { player?.volume = it }
+    ) { volumeMix.fader = it }
+
+    /**
+     * The player's volume as fader × sleep timer. The sleep timer sets [VolumeMix.sleep] (not player.volume), the effect
+     * fader its own factor; neither overrides the other.
+     */
+    val volumeMix = VolumeMix { player?.volume = it }
     private val effects = SoundEffectController(handler) { action ->
         if (player?.isPlaying == true) fader.duck(action) else fader.immediate(action)
     }
@@ -125,6 +134,41 @@ class VideoSoundEngine(private val context: Context) {
 
     /** What the device's effects allow (bass, balance), for the sheet. */
     val status: SoundEffectController.Status get() = effects.status
+
+    /**
+     * Dialog enhancer, night mode and mono work on Ordo's stereo chain: while one of them is on, a surround track is
+     * mixed by Ordo even where the system could spatialize it (otherwise they would silently do nothing).
+     */
+    val spatialHeldBack: Boolean
+        get() = sourceChannelCount > 2 && sourceChannelCount in spatialChannels && needsOrdoChain()
+
+    private fun needsOrdoChain(): Boolean =
+        settings.dialogLevel != VideoSoundMath.DIALOG_OFF || settings.nightMode || settings.klang.mono
+
+    /**
+     * Sets which channel counts pass to the system. The downmix reads it when a format is configured; if the playing
+     * track is affected, its audio is switched off and on again once, so the change is heard now (a short gap).
+     */
+    private fun applyPassThrough() {
+        val wanted = if (needsOrdoChain()) emptySet() else spatialChannels
+        val before = downmix.passThroughChannels
+        if (wanted == before) return
+        downmix.passThroughChannels = wanted
+        val channels = sourceChannelCount
+        if (channels > 2 && (channels in wanted) != (channels in before)) reconfigureAudio()
+    }
+
+    private fun reconfigureAudio() {
+        val player = player ?: return
+        val parameters = player.trackSelectionParameters
+        if (C.TRACK_TYPE_AUDIO in parameters.disabledTrackTypes) return
+        player.trackSelectionParameters = parameters.buildUpon().setTrackTypeDisabled(C.TRACK_TYPE_AUDIO, true).build()
+        handler.post {
+            val current = this.player ?: return@post
+            current.trackSelectionParameters = current.trackSelectionParameters.buildUpon()
+                .setTrackTypeDisabled(C.TRACK_TYPE_AUDIO, false).build()
+        }
+    }
 
     /** Whether a track of [channels] goes to the system's spatializer untouched instead of Ordo's downmix. */
     fun systemSpatializes(channels: Int): Boolean = channels > 2 && downmix.passingThrough
@@ -287,6 +331,7 @@ class VideoSoundEngine(private val context: Context) {
         // Mono is the chain's job here; the controller has no mono of its own. Levelling is the limiter's input gain.
         effects.apply(value.klang, replayGain)
         truePeak.gainDb = LoudnessTargets.gainDb(value.klang, replayGain)
+        applyPassThrough()
     }
 
     private fun notifyChanged() {
