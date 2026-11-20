@@ -690,12 +690,21 @@ class VideoPicture(
             sheet.card(R.drawable.image_icon_white_24dp, activity.getString(R.string.video_signal_picture), null, grid),
             PICTURE_ROWS
         )
+        // Sound and the measurements share the second column: alone under "Picture" the measurements left the right
+        // half of a wide sheet empty (Tab, 20.11.2026). On one column the order stays picture, sound, measurements.
+        val soundColumn = LinearLayout(activity).apply { orientation = LinearLayout.VERTICAL }
+        val half = activity.resources.getDimensionPixelSize(R.dimen.klang_card_gap_half)
+        grid.addView(soundColumn, ViewGroup.MarginLayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT
+        ).apply { setMargins(half, half, half, half) })
         val soundRows = rows(
-            sheet.card(R.drawable.audio_speaker_icon_24dp, activity.getString(R.string.video_signal_sound), null, grid),
+            sheet.card(R.drawable.audio_speaker_icon_24dp, activity.getString(R.string.video_signal_sound), null, soundColumn),
             SOUND_ROWS
         )
         // Measurements: off until the header row is tapped; tapping starts and stops them.
-        val meterCard = sheet.card(R.drawable.audio_graphic_eq_icon_24dp, null, null, grid)
+        val meterCard = sheet.card(R.drawable.audio_graphic_eq_icon_24dp, null, null, soundColumn)
+        ((meterCard.parent as View).layoutParams as ViewGroup.MarginLayoutParams).topMargin =
+            activity.resources.getDimensionPixelSize(R.dimen.klang_card_gap)
         val meterHeader = sheet.row(
             meterCard, R.drawable.audio_graphic_eq_icon_24dp, activity.getString(R.string.video_meter_title),
             activity.getString(R.string.video_meter_off), null

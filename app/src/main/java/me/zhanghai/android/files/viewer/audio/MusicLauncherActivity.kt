@@ -419,7 +419,10 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener, AppAccentA
             val (loaded, savedState) = withContext(Dispatchers.IO) {
                 history = PlayHistoryStore(context).read()
                 playlistData = readPlaylists()
-                MusicLibrary(queryMusic(context), showHiddenFiles, Collator.getInstance()) to
+                MusicLibrary(
+                    queryMusic(context), showHiddenFiles, Collator.getInstance(),
+                    getString(R.string.home_storage_internal), getString(R.string.backup_target_sd)
+                ) to
                     PlaybackStateStore(context).read()?.let { restorableState(it, ::pathUriExists) }
             }
             library = loaded

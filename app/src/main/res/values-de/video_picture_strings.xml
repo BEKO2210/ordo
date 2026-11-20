@@ -127,6 +127,14 @@
         <item>Detail plus: Zeichentrick</item>
         <item>Automatisch</item>
     </string-array>
+    <!-- Die Auswahl „Hochskalieren“ als Klang-Sheet: eine Erklärung je Wahl, in der Reihenfolge der Einträge. -->
+    <string name="video_settings_upscaler_info">Detail plus rechnet nur auf dem Gerät und erst ab 1,5-facher Vergrößerung. Wird es zu langsam, übernimmt Lanczos.</string>
+    <string-array name="video_settings_upscaler_summaries">
+        <item>Lanczos 3 vergrößert scharf und schnell, auf jedem Gerät.</item>
+        <item>Ein kleines Netz holt feine Details aus Filmen und Serien zurück. Braucht mehr Akku.</item>
+        <item>Ein Netz für klare Linien und Farbflächen. Braucht mehr Akku.</item>
+        <item>Zeichentrick, wenn Datei oder Ordner danach heißen (etwa „Anime“), sonst Film.</item>
+    </string-array>
     <string name="video_detail_plus_slow_notice">Detail plus pausiert: Das Gerät kommt bei diesem Video nicht hinterher. Lanczos skaliert stattdessen.</string>
     <string name="video_signal_upscaler">Hochskalieren</string>
     <string name="video_signal_upscaler_detail_format">Detail plus %1$s, danach Lanczos 3</string>

@@ -68,7 +68,7 @@ wait_lyrics() { local i; for i in $(seq 20); do ui has lyricsChip && return 0; s
 check "a 20,000-line .lrc still offers lyrics" wait_lyrics
 check "its lyrics layer opens" eval 'ui tap lyricsChip && ui wait "Zeile 0" 8'
 read -r W H < <(screen_size)
-for i in 1 2 3 4 5; do a shell input swipe $((W / 2)) $((H * 3 / 4)) $((W / 2)) $((H / 4)) 120; sleep 0.4; done
+for i in 1 2 3 4 5; do a shell input swipe $((W / 2)) $((H * 3 / 4)) $((W / 2)) $((H / 4)) 120; sleep 0.4; done; still_muted
 check "no app-not-responding after flinging through it" sh -c "! $ADB -s $SERIAL shell dumpsys activity processes | grep -q notResponding=true"
 back; pause
 a shell am force-stop "$PKG"

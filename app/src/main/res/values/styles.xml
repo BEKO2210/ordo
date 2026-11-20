@@ -427,6 +427,8 @@
     <style name="Widget.Ordo.Klang.Info" parent="Widget.Ordo.Klang.Text">
         <item name="android:textAppearance">@style/TextAppearance.Ordo.Klang.Secondary</item>
         <item name="android:maxLines">4</item>
+        <!-- Balanced lines: no single word left alone on the last line ("aus."); whole words only, as above. -->
+        <item name="android:breakStrategy">balanced</item>
     </style>
     <style name="Widget.Ordo.Klang.Section" parent="Widget.Ordo.Klang.Text">
         <item name="android:textAppearance">@style/TextAppearance.Ordo.Klang.Section</item>

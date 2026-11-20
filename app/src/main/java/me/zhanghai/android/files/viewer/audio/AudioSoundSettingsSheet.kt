@@ -228,7 +228,8 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment(),
         binding.bitPerfectCard.isVisible = android.os.Build.VERSION.SDK_INT >= OutputPolicy.MIN_SDK
         bindSwitchRow(
             binding.bitPerfectRow, R.drawable.audio_output_icon_24dp, R.string.audio_sound_bit_perfect,
-            R.string.audio_sound_bit_perfect_summary, { settings.bitPerfectUsb }
+            R.string.audio_sound_bit_perfect_summary, { settings.bitPerfectUsb },
+            binding.bitPerfectPicture, Kind.BIT_PERFECT
         ) { update { copy(bitPerfectUsb = it) } }
         setColumns()
         bindBalance()

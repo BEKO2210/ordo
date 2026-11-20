@@ -128,6 +128,14 @@
         <item>Detail plus: cartoon</item>
         <item>Automatic</item>
     </string-array>
+    <!-- The "Upscaling" choice as a Klang sheet: one explanation per choice, in the order of the entries. -->
+    <string name="video_settings_upscaler_info">Detail plus runs on the device only, from 1.5× enlargement. If it gets too slow, Lanczos takes over.</string>
+    <string-array name="video_settings_upscaler_summaries">
+        <item>Lanczos 3 enlarges sharply and quickly, on every device.</item>
+        <item>A small network brings back fine detail in films and series. Uses more battery.</item>
+        <item>A network for clean lines and flat colours. Uses more battery.</item>
+        <item>Cartoon when the file or folder is named like one (such as “Anime”), otherwise film.</item>
+    </string-array>
     <string name="video_detail_plus_slow_notice">Detail plus paused: this device can’t keep up with this video. Lanczos upscales instead.</string>
     <string name="video_signal_upscaler">Upscaling</string>
     <string name="video_signal_upscaler_detail_format">Detail plus %1$s, then Lanczos 3</string>

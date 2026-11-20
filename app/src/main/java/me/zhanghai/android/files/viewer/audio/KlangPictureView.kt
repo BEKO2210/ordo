@@ -43,7 +43,7 @@ class KlangPictureView @JvmOverloads constructor(
 ) : View(context, attrs), ViewTreeObserver.OnScrollChangedListener {
     enum class Kind {
         BASS, CROSSFEED, WIDTH, REVERB, WARMTH, CLARITY, NORMALIZE, MONO, SPEED, SKIP_SILENCE, SLEEP, FOCUS, HEADPHONES,
-        HIGHS, QUIET
+        HIGHS, QUIET, BIT_PERFECT
     }
 
     var kind = Kind.BASS
@@ -83,6 +83,7 @@ class KlangPictureView @JvmOverloads constructor(
     private val oval = RectF()
     private val headphones = ContextCompat.getDrawable(context, R.drawable.audio_headphones_icon_24dp)!!.mutate()
     private val speaker = ContextCompat.getDrawable(context, R.drawable.audio_speaker_icon_24dp)!!.mutate()
+    private val output = ContextCompat.getDrawable(context, R.drawable.audio_output_icon_24dp)!!.mutate()
     private var primary = 0
     private var muted = 0
     private var track = 0
@@ -197,6 +198,7 @@ class KlangPictureView @JvmOverloads constructor(
             Kind.HEADPHONES -> drawHeadphones(canvas, left, top, right, bottom, phase)
             Kind.HIGHS -> drawHighs(canvas, left, top, right, bottom, phase)
             Kind.QUIET -> drawQuiet(canvas, left, top, right, bottom, phase)
+            Kind.BIT_PERFECT -> drawBitPerfect(canvas, left, top, right, bottom, phase)
         }
         if (loop) {
             // Only while some of the picture is on screen; scrolling it back in restarts the loop.
@@ -480,6 +482,20 @@ class KlangPictureView @JvmOverloads constructor(
             (cx + icon / 2).roundToInt(), (cy + icon / 2).roundToInt()
         )
         headphones.draw(canvas)
+    }
+
+    /** One clean wave running unchanged into the output (the USB DAC) at the end. */
+    private fun drawBitPerfect(canvas: Canvas, l: Float, t: Float, r: Float, b: Float, phase: Float) {
+        val cy = (t + b) / 2
+        val icon = minOf(dp(28f), (b - t) * 0.6f)
+        val end = r - icon - dp(8f)
+        val amplitude = (b - t) * 0.22f
+        stroke.color = accent()
+        wave(l, end) { x -> cy - amplitude * sin((x * 3f + phase) * TWO_PI) }
+        canvas.drawPath(path, stroke)
+        output.setTint(accent())
+        output.setBounds((r - icon).roundToInt(), (cy - icon / 2).roundToInt(), r.roundToInt(), (cy + icon / 2).roundToInt())
+        output.draw(canvas)
     }
 
     /**
