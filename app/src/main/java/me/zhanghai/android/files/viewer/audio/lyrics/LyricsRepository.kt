@@ -10,9 +10,6 @@ import java.io.ByteArrayOutputStream
 import java.io.InputStream
 import java.io.OutputStream
 import java.net.URI
-import java.nio.ByteBuffer
-import java.nio.charset.CharacterCodingException
-import java.nio.charset.Charset
 import java8.nio.file.Path
 import java8.nio.file.Paths
 import kotlinx.coroutines.Dispatchers
@@ -22,6 +19,7 @@ import me.zhanghai.android.files.provider.common.newDirectoryStream
 import me.zhanghai.android.files.provider.common.newInputStream
 import me.zhanghai.android.files.provider.common.size
 import me.zhanghai.android.files.provider.linux.isLinuxPath
+import me.zhanghai.android.files.util.TextCharset
 import me.zhanghai.android.files.viewer.audio.MusicSong
 import me.zhanghai.android.files.viewer.audio.SongTagIo
 import me.zhanghai.android.files.viewer.audio.lyrics.SemanticLyrics.SyncedLyrics
@@ -150,21 +148,9 @@ object LyricsRepository {
         return text.substring(0, end)
     }
 
-    /** A byte order mark wins; otherwise strict UTF-8, and Windows-1252 when that fails. */
-    internal fun decodeText(bytes: ByteArray): String {
-        fun startsWith(vararg bom: Int) = bytes.size >= bom.size && bom.indices.all { bytes[it] == bom[it].toByte() }
-        return when {
-            startsWith(0xEF, 0xBB, 0xBF) -> String(bytes, 3, bytes.size - 3, Charsets.UTF_8)
-            startsWith(0xFF, 0xFE) -> String(bytes, 2, bytes.size - 2, Charsets.UTF_16LE)
-            startsWith(0xFE, 0xFF) -> String(bytes, 2, bytes.size - 2, Charsets.UTF_16BE)
-            // shortcut: no guessing of CJK legacy encodings (GBK, Shift-JIS), add a detector when users report them.
-            else -> try {
-                Charsets.UTF_8.newDecoder().decode(ByteBuffer.wrap(bytes)).toString()
-            } catch (e: CharacterCodingException) {
-                String(bytes, Charset.forName("windows-1252"))
-            }
-        }
-    }
+    /** The detector of Ordo Video's subtitles: BOM, strict UTF-8, then a legacy code page. */
+    // shortcut: no guessing of CJK legacy encodings (GBK, Shift-JIS), add them when users report them.
+    internal fun decodeText(bytes: ByteArray): String = TextCharset.decode(bytes).text
 
     private fun readEmbedded(file: LyricsFile): EmbeddedLyrics {
         // Also sets up jaudiotagger for Android (SongTagIo's init). jaudiotagger picks its reader by the extension.

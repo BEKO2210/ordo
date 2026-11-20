@@ -8,6 +8,7 @@ package me.zhanghai.android.files.viewer.audio
 import java.io.File
 import java.io.IOException
 import java.util.UUID
+import me.zhanghai.android.files.util.TextCharset
 
 /**
  * Ordo Music's playlists and favourites: plain M3U8 files in Music/Playlists, so other music apps read them too.
@@ -24,7 +25,8 @@ class PlaylistStore(val dir: File) {
     fun read(name: String): List<String> {
         val file = File(dir, name)
         if (!file.isFile) return emptyList()
-        return M3u.parse(file.readText(), dir)
+        // Plain .m3u files of other apps are often Windows-1252: the shared detector, not UTF-8 alone.
+        return M3u.parse(TextCharset.decode(file.readBytes()).text, dir)
     }
 
     fun write(name: String, paths: List<String>) {

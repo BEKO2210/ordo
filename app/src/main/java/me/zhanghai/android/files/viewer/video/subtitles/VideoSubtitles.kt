@@ -98,6 +98,8 @@ class VideoSubtitles(
         private set
     var usedCharset: String? = null
         private set
+    // The content key of the file on screen: a manual charset belongs to it alone.
+    private var activeKey: String? = null
     private var shownCues: List<Cue> = emptyList()
     // A text track inside the film on screen through Ordo's own drawing (not a picture track, not a file).
     private val embedded = EmbeddedCueQueue<Cue> { cues -> cues.joinToString("\n") { it.text?.toString().orEmpty() } }
@@ -183,8 +185,9 @@ class VideoSubtitles(
     val delayMs: Long
         get() = entry.delayMs
 
+    /** The manual charset of the file on screen; null: detected. */
     val charsetOverride: String?
-        get() = entry.charset
+        get() = entry.charsetFor(activeKey)
 
     /** "Off", the files, then the film's text tracks, with what is on now. */
     fun choices(): List<SubtitleChoice.Candidate> =
@@ -252,8 +255,9 @@ class VideoSubtitles(
 
     /** null: detect again. The file on screen is read once more with it. */
     fun changeCharset(charset: String?) {
-        save(entry.copy(charset = charset))
-        activeFile?.let(::loadFile)
+        val file = activeFile ?: return
+        save(entry.copy(charset = charset, charsetFile = activeKey.takeIf { charset != null }))
+        loadFile(file)
     }
 
     /** Ordo's own picker, opened in the film's folder. */
@@ -405,18 +409,24 @@ class VideoSubtitles(
     private fun loadFile(file: FileSubtitle) {
         loadJob?.cancel()
         val forId = mediaId
-        val charset = entry.charset
+        val loadEntry = entry
         val options = options()
         loadJob = activity.lifecycleScope.launch {
             val result = withContext(Dispatchers.IO) {
-                runCatching { parse(file, charset, file.language ?: Locale.getDefault().language, options) }
+                runCatching { parse(file, loadEntry, options) }
             }
             if (forId != mediaId) return@launch
-            result.onSuccess { (parsed, used) ->
-                timeline = parsed
+            result.onSuccess { parsed ->
+                timeline = parsed.timeline
                 updateEmbedded()
                 activeFile = file
-                usedCharset = used
+                usedCharset = parsed.charset
+                activeKey = parsed.contentKey
+                // A Unicode file ignored the manual charset: forget it, the sheet shows "Automatic (UTF-8)" again.
+                val manual = entry.charsetFor(parsed.contentKey)
+                if (manual != null && !manual.equals(parsed.charset, ignoreCase = true)) {
+                    save(entry.copy(charset = null, charsetFile = null))
+                }
                 // Our own cues carry only what prepare() kept: italics, underline, speaker colours.
                 playerView.subtitleView?.setApplyEmbeddedStyles(true)
                 showCues(force = true)
@@ -448,6 +458,7 @@ class VideoSubtitles(
         timeline = null
         activeFile = null
         usedCharset = null
+        activeKey = null
         shownCues = emptyList()
     }
 
@@ -570,23 +581,21 @@ class VideoSubtitles(
             MimeTypes.APPLICATION_PGS, MimeTypes.APPLICATION_VOBSUB, MimeTypes.APPLICATION_DVBSUBS
         )
 
-        /** Reads, decodes and parses a subtitle file; the timeline and the charset used. */
         /** What the settings ask of a file: reading aid limit (0 off), sound descriptions, speaker colours. */
         private class Options(val cps: Int, val sounds: Boolean, val speakerColors: Boolean)
 
-        private fun parse(
-            file: FileSubtitle,
-            charset: String?,
-            language: String,
-            options: Options
-        ): Pair<SubtitleTimeline<Cue>, String> {
+        private class Parsed(val timeline: SubtitleTimeline<Cue>, val charset: String, val contentKey: String)
+
+        /** Reads, decodes (the entry's manual charset only for this very file) and parses a subtitle file. */
+        private fun parse(file: FileSubtitle, entry: SubtitleStore.Entry, options: Options): Parsed {
             val path = Paths.get(URI.create(file.uri))
             val bytes = path.newInputStream().use { input ->
                 val data = input.readNBytesCompat(SubtitleFiles.MAX_BYTES + 1)
                 if (data.size > SubtitleFiles.MAX_BYTES) throw TooLargeException()
                 data
             }
-            val decoded = SubtitleFiles.decode(bytes, charset, language)
+            val contentKey = SubtitleFiles.contentKey(bytes)
+            val decoded = SubtitleFiles.decode(bytes, entry.charsetFor(contentKey), file.language)
             val mimeType = SubtitleFiles.mimeType(file.fileName) ?: throw IOException("Not a subtitle: ${file.fileName}")
             val parser = DefaultSubtitleParserFactory().create(Format.Builder().setSampleMimeType(mimeType).build())
             val entries = ArrayList<SubtitleTimeline.Entry<Cue>>()
@@ -605,7 +614,7 @@ class VideoSubtitles(
             val extended = ReadingAid.extend(entries, options.cps) { cues ->
                 cues.joinToString("\n") { it.text?.toString().orEmpty() }
             }
-            return SubtitleTimeline(extended) to decoded.charset
+            return Parsed(SubtitleTimeline(extended), decoded.charset, contentKey)
         }
 
         /**

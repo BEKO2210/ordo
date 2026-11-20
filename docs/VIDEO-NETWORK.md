@@ -46,7 +46,7 @@ wiederverwendet wird).
   auf dem Handy, Autoplay wie auf dem Handy.
 - **Untertitel:** SRT/VTT neben dem Film (`Film.srt`, `Film.de.srt`, `Film.ger.forced.srt` …), Gerätesprache zuerst,
   höchstens 8 und je 4 MiB. SRT wird beim Senden zu WebVTT (Komma → Punkt, Stunden zweistellig, Positionsangaben und
-  ASS-Tags wie `{\an8}` entfernt), Zeichensatz UTF-8 oder sonst Windows-1252. Die erste Spur ist eingeschaltet.
+  ASS-Tags wie `{\an8}` entfernt), Zeichensatz wie im Player (`TextCharset`: BOM, UTF-8, sonst die Codepage zur Sprache der Datei). Die erste Spur ist eingeschaltet.
 - **Fernbedienung:** Solange der Film auf dem Fernseher läuft, deckt eine Fläche den Player ab (TalkBack liest nur sie):
   Gerät, Titel, Zustand, Zeit mit `PlayerSeekSlider` (erst halten, dann ziehen), −/+ Sprung (Weite und Symbol wie im
   Player), Abspielen/Pause, Leiser/Lauter in 20 Stufen (keine Regler) mit „Lautstärke 40 %“, die Lautstärketasten
