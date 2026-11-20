@@ -20,7 +20,8 @@ FFMPEG_SHA=c41ff724ede7da657762d61097e26fac296c53bf
 DECODERS=(ac3 eac3 dca truehd mlp)        # only what budget phones lack (W90: no AC3/E-AC3/DTS/TrueHD)
 ABIS=(arm64-v8a armeabi-v7a x86_64)       # build_ffmpeg.sh also builds x86; Ordo does not ship it
 MIN_SDK=24                                # app minSdk
-NDK=${ANDROID_NDK_HOME:-${ANDROID_HOME:-$HOME/Android/Sdk}/ndk/30.0.16248370}
+# Not $ANDROID_NDK_HOME: GitHub runners point it at an older default NDK.
+NDK=${ANDROID_HOME:-$HOME/Android/Sdk}/ndk/30.0.16248370
 
 out=$(mkdir -p "${1:?usage: $0 <out-dir>}" && cd "$1" && pwd)
 work=$(mktemp -d); trap 'rm -rf "$work"' EXIT
@@ -36,14 +37,19 @@ pinned "$module/jni/ffmpeg" "$FFMPEG_SHA"
 # No --enable-gpl, --enable-nonfree or --enable-version3 in build_ffmpeg.sh: FFmpeg stays LGPL-2.1-or-later.
 (cd "$module/jni" && ./build_ffmpeg.sh "$module" "$NDK" linux-x86_64 "$MIN_SDK" "${DECODERS[@]}")
 
-strip=$NDK/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip
+bin=$NDK/toolchains/llvm/prebuilt/linux-x86_64/bin
 for abi in "${ABIS[@]}"; do
-    # NDK r28+ links with 16 KB max-page-size by default (Google Play's 16 KB rule).
+    # 16 KB pages (Google Play rule) set explicitly, not left to the NDK default. FFmpeg itself is only static
+    # archives here; this link of libffmpegJNI.so is the one that sets the alignment.
     cmake -S "$module/jni" -B "$work/jni-$abi" -DCMAKE_BUILD_TYPE=Release \
         -DCMAKE_TOOLCHAIN_FILE="$NDK/build/cmake/android.toolchain.cmake" \
-        -DANDROID_ABI="$abi" -DANDROID_PLATFORM="android-$MIN_SDK" >/dev/null
+        -DANDROID_ABI="$abi" -DANDROID_PLATFORM="android-$MIN_SDK" -DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON \
+        -DCMAKE_SHARED_LINKER_FLAGS="-Wl,-z,max-page-size=16384 -Wl,-z,common-page-size=16384" >/dev/null
     cmake --build "$work/jni-$abi" >/dev/null
     mkdir -p "$out/$abi"
-    "$strip" --strip-unneeded -o "$out/$abi/libffmpegJNI.so" "$work/jni-$abi/libffmpegJNI.so"
+    "$bin/llvm-strip" --strip-unneeded -o "$out/$abi/libffmpegJNI.so" "$work/jni-$abi/libffmpegJNI.so"
+    for a in $("$bin/llvm-readelf" -lW "$out/$abi/libffmpegJNI.so" | awk '$1 == "LOAD" { print $NF }'); do
+        (( a >= 16384 )) || { echo "$abi/libffmpegJNI.so: LOAD align $a < 16 KB" >&2; rm -f "$out/$abi/libffmpegJNI.so"; exit 1; }
+    done
 done
 (cd "$out" && sha256sum */libffmpegJNI.so)

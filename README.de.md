@@ -15,7 +15,7 @@
 
 <p align="center">
 <!-- AUTO:badges -->
-  <a href="https://github.com/BEKO2210/ordo/releases/tag/v0.15.0"><img alt="Version 0.15.0" src="https://img.shields.io/badge/Version-0.15.0-2563EB"></a>
+  <a href="https://github.com/BEKO2210/ordo/releases/tag/v0.16.0"><img alt="Version 0.16.0" src="https://img.shields.io/badge/Version-0.16.0-2563EB"></a>
   <img alt="Android 7.0+" src="https://img.shields.io/badge/Android-7.0%2B-3DDC84">
   <a href="LICENSE"><img alt="Lizenz: GPL-3.0-or-later" src="https://img.shields.io/badge/Lizenz-GPL--3.0--or--later-blue"></a>
 <!-- /AUTO:badges -->
@@ -33,18 +33,21 @@
 </p>
 
 <!-- AUTO:new -->
-> **Neu in 0.15.0**
-> - Eigener Video-Player mit Weiterschauen, Doppeltipp, Wischgesten für Helligkeit, Lautstärke und Spulen
-> - Bibliothek mit Ordnern, lesbaren Kameranamen und Videoinfos
-> - Am Ende anhalten, wiederholen oder automatisch weiter
-> - Klare Hinweise, wenn ein Format auf dem Gerät nicht läuft
-> - Viele Einstellungen und eigenes Symbol „Ordo Video“
+> **Neu in 0.16.0**
+> - Untertitel: Dateien und Spuren, Lese-Hilfe, gut lesbar
+> - Bild-in-Bild, Ton im Hintergrund, Schlaf-Timer
+> - Klang fürs Video: klare Dialoge, Nachtmodus, gleiche Lautstärke
+> - Dolby- und DTS-Ton auch auf günstigen Geräten
+> - Vorschaubilder beim Spulen, Kapitel, A-B-Schleife, Zoom
+> - Filme vom Netzlaufwerk und auf den Fernseher
+> - Serien, Gesehen-Markierung, Suche, Tresor-Videos
+> - Schärferes Bild und der Signalweg zeigt, was passiert
 <!-- /AUTO:new -->
 
 ## Stand
 
 <!-- AUTO:status -->
-Aktuelle Version 0.15.0 · [Release v0.15.0](https://github.com/BEKO2210/ordo/releases/tag/v0.15.0) · ab Android 7.0 (minSdk 24, targetSdk 36 = Android 16) · [GPL-3.0-or-later](LICENSE)
+Aktuelle Version 0.16.0 · [Release v0.16.0](https://github.com/BEKO2210/ordo/releases/tag/v0.16.0) · ab Android 7.0 (minSdk 24, targetSdk 36 = Android 16) · [GPL-3.0-or-later](LICENSE)
 <!-- /AUTO:status -->
 
 Ordo ist in Entwicklung. Bei Google Play läuft ein geschlossener Test; Testversionen erscheinen auch als
@@ -499,7 +502,7 @@ Unit-Tests:
 ```
 
 <!-- AUTO:tests -->
-Gerätetests: 40 Skripte in [`e2e/`](e2e/README.md), gestartet mit `e2e/run.sh`: 15 nur lesend (`first-run`, `smoke`, `settings-visual`, `category-search`, `back-navigation`, `bars-replay`, `home-header`, `header-position`, `home-pull`, `drawer`, `selection-more`, `tablet-landscape`, `analysis`, `ai-show-guard`, `documents-provider`) und 25 weitere mit `--write` (`stress-delete`, `backup-restore`, `home-auto-refresh`, `audio-player`, `cast`, `klang`, `klang-landscape`, `klang-stress`, `music-formats`, `music-library`, `launcher-icons`, `icon-colors`, `ai-show`, `pick-file`, `no-midword-breaks`, `player-seek`, `player-stage2`, `video-player`, `video-network`, `video-sound`, `video-subtitles`, `video-background`, `video-library`, `video-seek`, `video-picture`). Unit-Tests: 114 Testklassen in `app/src/test`.
+Gerätetests: 40 Skripte in [`e2e/`](e2e/README.md), gestartet mit `e2e/run.sh`: 15 nur lesend (`first-run`, `smoke`, `settings-visual`, `category-search`, `back-navigation`, `bars-replay`, `home-header`, `header-position`, `home-pull`, `drawer`, `selection-more`, `tablet-landscape`, `analysis`, `ai-show-guard`, `documents-provider`) und 25 weitere mit `--write` (`stress-delete`, `backup-restore`, `home-auto-refresh`, `audio-player`, `cast`, `klang`, `klang-landscape`, `klang-stress`, `music-formats`, `music-library`, `launcher-icons`, `icon-colors`, `ai-show`, `pick-file`, `no-midword-breaks`, `player-seek`, `player-stage2`, `video-player`, `video-network`, `video-sound`, `video-subtitles`, `video-background`, `video-library`, `video-seek`, `video-picture`). Unit-Tests: 116 Testklassen in `app/src/test`.
 <!-- /AUTO:tests -->
 
 ## Ausblick

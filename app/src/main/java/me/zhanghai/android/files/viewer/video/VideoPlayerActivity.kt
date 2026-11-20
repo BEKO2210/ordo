@@ -235,6 +235,8 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
         // Only real playback clears the end: play() on an ended player changes playWhenReady but plays nothing.
         override fun onIsPlayingChanged(isPlaying: Boolean) {
             if (isPlaying) showEnd(false)
+            // The session (#100) stays commandable while casting (#97): the TV plays, the phone stays paused.
+            if (isPlaying && castSession?.isCasting == true) player?.pause()
         }
 
         override fun onTracksChanged(tracks: Tracks) = checkAudioTracks(tracks)

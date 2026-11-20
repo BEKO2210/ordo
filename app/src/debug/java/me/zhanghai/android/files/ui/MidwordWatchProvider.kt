@@ -11,10 +11,12 @@ import android.content.ContentProvider
 import android.content.ContentValues
 import android.graphics.Rect
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.view.ViewGroup
+import android.view.inspector.WindowInspector
 import android.widget.TextView
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
@@ -47,8 +49,21 @@ class MidwordWatchProvider : ContentProvider() {
                     ?.registerFragmentLifecycleCallbacks(fragmentCallbacks, true)
             }
 
-            override fun onActivityResumed(activity: Activity) =
-                watch(activity.window.decorView, activity.javaClass.simpleName)
+            override fun onActivityResumed(activity: Activity) {
+                val decor = activity.window.decorView
+                val first = !watched.containsKey(decor)
+                watch(decor, activity.javaClass.simpleName)
+                // A plain BottomSheetDialog (the video player's subtitle, info, chapter and sleep sheets) is no
+                // DialogFragment: it is found as a new window once it takes the focus from the activity.
+                if (first && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    decor.viewTreeObserver.addOnWindowFocusChangeListener { focused ->
+                        if (!focused) decor.post {
+                            WindowInspector.getGlobalWindowViews().filter { it !== decor }
+                                .forEach { watch(it, "${activity.javaClass.simpleName}/dialog") }
+                        }
+                    }
+                }
+            }
 
             override fun onActivityStarted(activity: Activity) {}
             override fun onActivityPaused(activity: Activity) {}

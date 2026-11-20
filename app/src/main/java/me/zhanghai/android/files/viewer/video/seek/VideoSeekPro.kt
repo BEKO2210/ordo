@@ -63,6 +63,7 @@ import kotlin.math.roundToInt
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import me.zhanghai.android.files.viewer.video.vault.VaultVideos
 import me.zhanghai.android.files.R
 import me.zhanghai.android.files.databinding.VideoPlayerActivityBinding
 import me.zhanghai.android.files.provider.linux.isLinuxPath
@@ -248,8 +249,11 @@ internal class VideoSeekPro(
         abItem = menu.add(Menu.NONE, View.generateViewId(), 52, R.string.video_seek_ab_set_a).apply {
             setOnMenuItemClickListener { pressAb(); true }
         }
-        menu.add(Menu.NONE, View.generateViewId(), 53, R.string.video_seek_snapshot)
-            .setOnMenuItemClickListener { saveFrame(); true }
+        // Never for a Tresor video (#101): the frame would land in the public Pictures folder.
+        if (!VaultVideos.isVault(player.currentMediaItem?.mediaId)) {
+            menu.add(Menu.NONE, View.generateViewId(), 53, R.string.video_seek_snapshot)
+                .setOnMenuItemClickListener { saveFrame(); true }
+        }
 
         binding.seekBar.addOnSliderTouchListener(object :
             com.google.android.material.slider.Slider.OnSliderTouchListener {
@@ -537,6 +541,7 @@ internal class VideoSeekPro(
      * Pictures/Ordo. HDR films come out as SDR (PixelCopy's documented limit).
      */
     private fun saveFrame() {
+        if (VaultVideos.isVault(player.currentMediaItem?.mediaId)) return
         val surface = binding.playerView.videoSurfaceView as? SurfaceView
         val size = player.videoSize
         if (surface == null || !surface.holder.surface.isValid || size.width <= 0 || size.height <= 0) {

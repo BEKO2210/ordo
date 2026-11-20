@@ -171,8 +171,11 @@ class VideoBackgroundController(
     }
 
     init {
-        VideoBackground.session = session
-        VideoBackground.taskId = activity.taskId
+        // A Tresor session is never the one VideoPlaybackService or other controllers pick up (#101).
+        if (!vault) {
+            VideoBackground.session = session
+            VideoBackground.taskId = activity.taskId
+        }
         player.addListener(playerListener)
         if (pipSupported) {
             ContextCompat.registerReceiver(
@@ -185,8 +188,10 @@ class VideoBackgroundController(
         activity.lifecycle.addObserver(object : DefaultLifecycleObserver {
             override fun onStart(owner: LifecycleOwner) {
                 // The screen in front is the active player; the service takes its session (onStartCommand).
-                VideoBackground.session = session
-                VideoBackground.taskId = activity.taskId
+                if (!vault) {
+                    VideoBackground.session = session
+                    VideoBackground.taskId = activity.taskId
+                }
                 if (soundOnly) {
                     soundOnly = false
                     setVideoDisabled(false)
