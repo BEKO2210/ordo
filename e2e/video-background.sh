@@ -53,7 +53,9 @@ no_pip_entry() { ! ui has "Bild-in-Bild|Picture-in-picture"; }
 # although the output is complete (20.11.2026).
 pinned() {
     local d; d=$(a shell dumpsys activity activities)
-    grep -B3 -A20 'Hist.*VideoPlayerActivity' <<<"$d" | grep -c 'mode=pinned\|windowingMode=pinned' >/dev/null
+    # Ordo's task line carries the mode (on the Tab the activity's config lines can stand more than 20 lines away).
+    grep -B3 -A20 'Hist.*VideoPlayerActivity' <<<"$d" | grep -c 'mode=pinned\|windowingMode=pinned' >/dev/null ||
+        grep -cE "Task\{.*A=[0-9]+:$PKG .*mode=pinned" <<<"$d" >/dev/null
 }
 # The window animates into place: at 3 s it was not always pinned yet on the Tab.
 wait_pinned() { local i; for i in $(seq 1 12); do pinned && return 0; sleep 0.5; done; return 1; }
