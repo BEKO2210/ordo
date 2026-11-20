@@ -171,7 +171,8 @@ class KlangSheet(val context: Context, @DrawableRes icon: Int, title: CharSequen
             text = title
             if (heading) ViewCompat.setAccessibilityHeading(this, true)
         })
-        if (!summary.isNullOrEmpty()) addView(info(summary))
+        // Ids, not positions, find the summary later (a live state line, as the signal path's "Measurements").
+        if (!summary.isNullOrEmpty()) addView(info(summary).apply { id = android.R.id.summary })
     }
 
     /** An explanation line in Klang's info style. */

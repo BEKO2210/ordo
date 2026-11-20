@@ -42,4 +42,11 @@ class PictureMeterTest {
         meter.clear()
         assertEquals(1, meter.csv().trimEnd().lines().size)
     }
+
+    @Test
+    fun signalPathLeavesAccessibilityAQuietSecond() {
+        // A tick sends the text change, then the row's description 100 ms later (Android's recurring-event interval);
+        // `uiautomator dump` waits for 1 s without events.
+        assertTrue(VideoPicture.SIGNAL_REFRESH_MS - 100 >= 1_000)
+    }
 }
