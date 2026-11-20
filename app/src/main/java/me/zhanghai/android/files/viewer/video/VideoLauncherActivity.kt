@@ -172,7 +172,10 @@ class VideoLauncherActivity : AppActivity(), AppAccentActivity {
         lifecycleScope.launch {
             val loaded = withContext(Dispatchers.IO) {
                 val collator = Collator.getInstance()
-                val loaded = VideoLibrary(queryVideos(context), showHiddenFiles, collator, sort, hiddenFolders)
+                val loaded = VideoLibrary(
+                    queryVideos(context), showHiddenFiles, collator, sort, hiddenFolders,
+                    getString(R.string.home_storage_internal), getString(R.string.backup_target_sd)
+                )
                 val entries = VideoResumeStore(context).readAll()
                 val resumed = loaded.continueWatching(entries, Int.MAX_VALUE)
                 val watched = VideoWatchedStore(context).all()
@@ -410,7 +413,7 @@ class VideoLauncherActivity : AppActivity(), AppAccentActivity {
         item.duration.isVisible = duration != null
         val left = positionMs?.let { getString(R.string.video_library_left_format, formatTime(video.durationMs - it)) }
         item.info.text = label ?: left ?: if (folder == null) {
-            video.folder.substringAfterLast('/')
+            library?.folderName(video.folder) ?: video.folder.substringAfterLast('/')
         } else {
             DateUtils.formatDateTime(this, video.dateAddedMs, DateUtils.FORMAT_SHOW_DATE)
         }

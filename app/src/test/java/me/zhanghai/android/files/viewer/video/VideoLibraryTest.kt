@@ -50,6 +50,17 @@ class VideoLibraryTest {
     }
 
     @Test
+    fun storageRootsShowTheStorageName() {
+        val names = VideoLibrary(
+            listOf(video("/storage/emulated/0/a.mp4", 3), video("/storage/1A2B-3C4D/b.mp4", 2), c), false,
+            Collator.getInstance(), internalStorageName = "Interner Speicher", sdCardName = "SD-Karte"
+        ).folders.map { it.name }
+        assertEquals(listOf("Camera", "Interner Speicher", "SD-Karte"), names)
+        assertEquals("0", VideoLibrary.folderName("/Movies/0", "I", "S"))
+        assertEquals("Download", VideoLibrary.folderName("/storage/emulated/0/Download", "I", "S"))
+    }
+
+    @Test
     fun cameraNamesGiveTheirMoment() {
         assertEquals(listOf(2026, 11, 18, 14, 19), VideoLibrary.cameraTime("VID_20261118_141941_123")?.toList())
         assertEquals(listOf(2026, 11, 18, 14, 19), VideoLibrary.cameraTime("PXL_20261118_141941123")?.toList())

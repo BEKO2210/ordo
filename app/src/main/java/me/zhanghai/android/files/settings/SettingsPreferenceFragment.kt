@@ -126,7 +126,9 @@ open class SettingsPreferenceFragment : PreferenceFragmentCompat() {
                     // Every folder with videos, hidden ones included, so a hidden folder can be shown again.
                     me.zhanghai.android.files.viewer.video.VideoLibrary(
                         me.zhanghai.android.files.viewer.video.queryVideos(context), true,
-                        java.text.Collator.getInstance(), me.zhanghai.android.files.viewer.video.VideoPrefs.Sort.NAME
+                        java.text.Collator.getInstance(), me.zhanghai.android.files.viewer.video.VideoPrefs.Sort.NAME,
+                        internalStorageName = getString(R.string.home_storage_internal),
+                        sdCardName = getString(R.string.backup_target_sd)
                     ).folders.sortedBy { it.name.lowercase() }
                 }
                 val paths = (folders.map { it.path } + hidden.values).distinct()

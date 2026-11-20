@@ -38,7 +38,10 @@ class VideoLibrary(
     private val collator: Comparator<in String>,
     sort: VideoPrefs.Sort = VideoPrefs.Sort.NEWEST,
     /** Folders the user hid in the settings (WhatsApp, Telegram …): none of their videos show. */
-    hiddenFolders: Set<String> = emptySet()
+    hiddenFolders: Set<String> = emptySet(),
+    /** Chip names of a storage root, which would otherwise show as "0" or "1A2B-3C4D". */
+    private val internalStorageName: String = "Internal storage",
+    private val sdCardName: String = "SD card"
 ) {
     /** In the chosen order (newest first by default); hidden files only when the user shows them, as in the list. */
     val videos: List<VideoItem> = videos
@@ -55,7 +58,9 @@ class VideoLibrary(
 
     /** Folders in the order of the list (by their newest video in the default order). */
     val folders: List<VideoFolder> = this.videos.groupBy { it.folder }
-        .map { (folder, list) -> VideoFolder(folder, folder.substringAfterLast('/'), list) }
+        .map { (folder, list) -> VideoFolder(folder, folderName(folder), list) }
+
+    fun folderName(folder: String): String = folderName(folder, internalStorageName, sdCardName)
 
     /**
      * What the player hands over as its queue: the folder's videos by name, the way a series is numbered
@@ -82,6 +87,16 @@ class VideoLibrary(
 
     companion object {
         const val CONTINUE_MAX = 20
+        private val INTERNAL_ROOT = Regex("""^/storage/emulated/\d+$""")
+        private val SD_CARD_ROOT = Regex("""^/storage/[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}$""")
+
+        /** A folder's last segment, or the storage's name for the internal storage or an SD card root. */
+        fun folderName(folder: String, internalStorageName: String, sdCardName: String): String = when {
+            INTERNAL_ROOT.matches(folder) -> internalStorageName
+            SD_CARD_ROOT.matches(folder) -> sdCardName
+            else -> folder.substringAfterLast('/')
+        }
+
         private val CAMERA_NAME = Regex("""^(?:(?:VID|PXL|IMG|MVIMG)_)?(\d{4})(\d{2})(\d{2})_(\d{2})(\d{2})(\d{2})""")
 
         /**
