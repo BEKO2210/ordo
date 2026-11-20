@@ -83,8 +83,12 @@ def volume():
 
 
 def crashes():
-    log = sh(f"logcat -d -b crash,main,system | grep -E 'FATAL EXCEPTION|ANR in {PKG}'")
-    return len([line for line in log.splitlines() if line.strip()])
+    # Filtered here, not in the device shell: Samsung logs each shell command line, so a pattern in the command
+    # matched itself and every step counted as a crash (Tab, 20.11.2026).
+    crash = sh("logcat -d -b crash")
+    anr = sh("logcat -d -b system")
+    return (len(re.findall(rf"Process: {re.escape(PKG)}(,|\s|$)", crash, re.M))
+            + len(re.findall(rf"ANR in {re.escape(PKG)}(\s|$)", anr, re.M)))
 
 
 baseline_crashes = crashes()

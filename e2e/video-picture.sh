@@ -55,7 +55,7 @@ open_folder() {
 }
 menu() { video_menu "$1"; }
 # part REGEX: a text or description on screen contains it (the signal path rows say "Decoder: Hardware · c2…").
-part() { ui texts | grep -qE -- "$1"; }
+part() { ui texts | grep -E -- "$1" >/dev/null; }
 settings_pick() {
     a shell am start -W -n "$PKG/me.zhanghai.android.files.viewer.video.VideoLauncherActivity" >/dev/null; sleep 2; guard
     ui tap actionSettings >/dev/null; sleep 2
@@ -144,7 +144,8 @@ else
 fi
 menu "Signalweg|Signal path"
 # Opening the sheet pauses (video_menu) and plays on; the pacing is measured again over 240 frames (10 s at 24 fps).
-pacing_shown() { local i; for i in 1 2 3 4 5 6; do part "(Bildtakt|Frame pacing): .*(gleichmäßig|Pulldown|even|pulldown)" && return 0; sleep 3; done; return 1; }
+# In landscape the row sits below the sheet's fold: scroll the sheet (only while it is open, never the picture).
+pacing_shown() { local i; for i in 1 2 3 4 5 6; do part "(Bildtakt|Frame pacing): .*(gleichmäßig|Pulldown|even|pulldown)" && return 0; [ $i = 2 ] && ui has "Signalweg|Signal path" && swipe_up; sleep 3; done; return 1; }
 check "Signal path shows the frame pacing" pacing_shown
 screenshot "$out/signal-pacing.png"
 back 1
