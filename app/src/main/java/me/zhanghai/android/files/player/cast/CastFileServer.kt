@@ -14,7 +14,9 @@ import java.net.Socket
 import java.net.SocketException
 import java.security.SecureRandom
 import java.util.Locale
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 
 /**
  * Hands exactly one file (the current track, plus its cover) to the cast device over HTTP. It listens only on the
@@ -29,6 +31,7 @@ class CastFileServer(bindAddress: InetAddress, private val allowedClient: InetAd
     private val workers = Executors.newCachedThreadPool { Thread(it, "cast-http").apply { isDaemon = true } }
     private val random = SecureRandom()
     @Volatile private var files: Map<String, Source> = emptyMap()
+    private val acceptStopped = CountDownLatch(1)
 
     val port: Int get() = serverSocket.localPort
     private val host = bindAddress.hostAddress
@@ -55,10 +58,17 @@ class CastFileServer(bindAddress: InetAddress, private val allowedClient: InetAd
         return paths.map(::url)
     }
 
+    /**
+     * Stops listening before it returns. A thread blocked in accept() keeps the listening socket alive in the kernel
+     * until it wakes up (the JDK only pre-closes and signals it), so a connection could still slip in right after
+     * ServerSocket.close() (CI, 20.11.2026); waiting for the accept loop to end closes that gap. Open transfers end in
+     * the background (shutdownNow).
+     */
     override fun close() {
         files = emptyMap()
         runCatching { serverSocket.close() }
         workers.shutdownNow()
+        acceptStopped.await(ACCEPT_STOP_TIMEOUT_MS, TimeUnit.MILLISECONDS)
     }
 
     private fun url(path: String) = "http://$host:$port$path"
@@ -66,17 +76,21 @@ class CastFileServer(bindAddress: InetAddress, private val allowedClient: InetAd
     private fun token(): String = ByteArray(16).also(random::nextBytes).joinToString("") { "%02x".format(it) }
 
     private fun acceptLoop() {
-        while (!serverSocket.isClosed) {
-            val socket = try {
-                serverSocket.accept()
-            } catch (_: SocketException) {
-                return
+        try {
+            while (!serverSocket.isClosed) {
+                val socket = try {
+                    serverSocket.accept()
+                } catch (_: SocketException) {
+                    return
+                }
+                if (allowedClient != null && socket.inetAddress != allowedClient) {
+                    runCatching { socket.close() }
+                    continue
+                }
+                runCatching { workers.execute { socket.use(::handle) } }.onFailure { runCatching { socket.close() } }
             }
-            if (allowedClient != null && socket.inetAddress != allowedClient) {
-                runCatching { socket.close() }
-                continue
-            }
-            runCatching { workers.execute { socket.use(::handle) } }.onFailure { runCatching { socket.close() } }
+        } finally {
+            acceptStopped.countDown()
         }
     }
 
@@ -158,6 +172,7 @@ class CastFileServer(bindAddress: InetAddress, private val allowedClient: InetAd
     }
 
     companion object {
+        private const val ACCEPT_STOP_TIMEOUT_MS = 2_000L
         internal val INVALID = LongRange.EMPTY
 
         /**
