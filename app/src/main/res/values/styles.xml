@@ -173,6 +173,18 @@
         <item name="android:textColor">?android:textColorSecondary</item>
     </style>
 
+    <!-- "Bit-perfekt · 24/96" or "Offload" under the album, in the accent colour. -->
+    <style name="Widget.Ordo.AudioPlayer.OutputBadge" parent="">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_gravity">center_horizontal</item>
+        <item name="android:layout_marginTop">6dp</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:textAppearance">?textAppearanceCaption</item>
+        <item name="android:textColor">?colorPrimary</item>
+        <item name="android:visibility">gone</item>
+    </style>
+
     <style name="Widget.Ordo.AudioPlayer.Time" parent="">
         <item name="android:layout_width">0dp</item>
         <item name="android:layout_height">wrap_content</item>

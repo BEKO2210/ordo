@@ -1151,6 +1151,11 @@
     <string name="audio_sound_focus_pause">Pause Ordo</string>
     <string name="audio_sound_resume_headphones">Resume when headphones connect</string>
     <string name="audio_sound_headphones_summary">Continues paused playback after connecting</string>
+    <string name="audio_sound_bit_perfect">Bit-perfect to USB DAC</string>
+    <string name="audio_sound_bit_perfect_summary">Sends each song unchanged to a USB DAC that supports it. While that runs, sound effects, volume levelling and the limiter are off.</string>
+    <string name="audio_sound_bit_perfect_song_not">The DAC can’t play this song unchanged, so it plays as usual with all sound settings.</string>
+    <string name="audio_output_bit_perfect_format">Bit-perfect · %1$s</string>
+    <string name="audio_output_offload">Offload</string>
     <string name="audio_sound_sleep_heading">Sleep timer</string>
     <string name="audio_sound_sleep_summary">Pause after a duration or at the end of the track</string>
     <string name="audio_sleep_off">Off</string>

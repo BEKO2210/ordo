@@ -84,6 +84,8 @@
     <string name="video_signal_device_usb">USB-Audio</string>
     <string name="video_signal_device_hdmi">HDMI</string>
     <string name="video_signal_device_other">Anderes Gerät</string>
+    <string name="video_signal_bit_perfect">bit-perfekt</string>
+    <string name="video_signal_offload">Offload (dekodiert im Audio-Chip)</string>
     <string name="video_signal_waiting">Wartet auf die Wiedergabe</string>
     <string name="video_info_signal_path">Signalweg</string>
     <string name="video_settings_ambient_gamma">Gamma an Raumlicht anpassen (experimentell)</string>

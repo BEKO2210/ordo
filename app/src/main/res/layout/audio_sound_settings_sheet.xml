@@ -895,5 +895,23 @@
                     android:layout_marginBottom="@dimen/klang_space_sm" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
+        <!-- Android 14+ only: bit-perfect to a USB DAC. -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/bitPerfectCard"
+            style="@style/Widget.Ordo.Klang.Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/klang_space_lg"
+            android:visibility="gone">
+            <include
+                android:id="@+id/bitPerfectRow"
+                layout="@layout/klang_switch_row"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/klang_space_lg"
+                android:layout_marginTop="@dimen/klang_space_md"
+                android:layout_marginEnd="@dimen/klang_space_lg"
+                android:layout_marginBottom="@dimen/klang_space_md" />
+        </com.google.android.material.card.MaterialCardView>
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>

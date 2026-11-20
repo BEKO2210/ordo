@@ -25,6 +25,7 @@ import java8.nio.file.attribute.BasicFileAttributes
 import me.zhanghai.android.files.BuildConfig
 import me.zhanghai.android.files.R
 import me.zhanghai.android.files.player.AudioRenderersFactory
+import me.zhanghai.android.files.player.output.HiResOutput
 import me.zhanghai.android.files.player.KlangAudioProcessor
 import me.zhanghai.android.files.player.LoudnessAnalysis
 import me.zhanghai.android.files.player.LoudnessMeter
@@ -118,7 +119,11 @@ class VideoSoundEngine(private val context: Context) {
             notifyChanged()
         }
 
-        override fun onIsPlayingChanged(isPlaying: Boolean) = effects.setAudible(isPlaying)
+        override fun onIsPlayingChanged(isPlaying: Boolean) {
+            effects.setAudible(isPlaying)
+            // Music may have set the mixer meanwhile; the film's rate counts again.
+            if (isPlaying) output.onConfigure(output.track)
+        }
 
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) = onItem(mediaItem)
 
@@ -290,8 +295,12 @@ class VideoSoundEngine(private val context: Context) {
         klang.meter = meter
     }
 
+    // The mixer runs at the film's sample rate where the output allows (Android 14+); never bit-perfect, since the
+    // film's sound always passes downmix, lip-sync delay and limiter.
+    private val output = HiResOutput(context, allowsBitPerfect = false)
+
     fun renderersFactory(): AudioRenderersFactory =
-        AudioRenderersFactory(context, arrayOf(downmix, klang, truePeak, delay))
+        AudioRenderersFactory(context, arrayOf(downmix, klang, truePeak, delay), output)
 
     fun attach(player: ExoPlayer) {
         this.player = player
@@ -447,6 +456,7 @@ class VideoSoundEngine(private val context: Context) {
         worker.shutdownNow()
         loudnessWorker.shutdownNow()
         effects.release()
+        output.release()
     }
 
     private companion object {

@@ -5,6 +5,7 @@
 
 package me.zhanghai.android.files.viewer.audio
 
+import me.zhanghai.android.files.player.output.OutputPolicy
 import android.app.Dialog
 import android.content.res.ColorStateList
 import android.graphics.drawable.GradientDrawable
@@ -221,6 +222,12 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment(),
             R.string.audio_sound_headphones_summary, { settings.resumeOnHeadphones },
             binding.headphonesPicture, Kind.HEADPHONES
         ) { update { copy(resumeOnHeadphones = it) } }
+        // setPreferredMixerAttributes exists from Android 14; the summary says that Ordo's stages are bypassed.
+        binding.bitPerfectCard.isVisible = android.os.Build.VERSION.SDK_INT >= OutputPolicy.MIN_SDK
+        bindSwitchRow(
+            binding.bitPerfectRow, R.drawable.audio_output_icon_24dp, R.string.audio_sound_bit_perfect,
+            R.string.audio_sound_bit_perfect_summary, { settings.bitPerfectUsb }
+        ) { update { copy(bitPerfectUsb = it) } }
         setColumns()
         bindBalance()
         bindSpeed()
@@ -918,6 +925,11 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment(),
         // Clarity is the DynamicsProcessing multiband compressor (API 28+); without it the card gives way to a note.
         showEffect(
             binding.clarityCard.root, binding.clarityUnavailable, status.clarityAvailable, R.string.audio_sound_clarity
+        )
+        // A calm note instead of the summary when the DAC cannot take this song unchanged; its effects stay on.
+        binding.bitPerfectRow.summary.text = getString(
+            if (status.songNotBitPerfect) R.string.audio_sound_bit_perfect_song_not
+            else R.string.audio_sound_bit_perfect_summary
         )
         // What the highs detector found arrives with the status.
         highsRenderer?.invoke()
