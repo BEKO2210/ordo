@@ -322,7 +322,10 @@ Tippe oder diktiere einen Satz wie „Verschiebe alle MP3s aus Download nach Mus
 - Eigene Klangeffekte, auf jedem Handy gleich: Raumklang für Kopfhörer (Crossfeed nach Bauer, eine Portierung des
   MIT-lizenzierten bs2b), Stereobreite (0 % Mono bis 150 % breit), Hall (Freeverb, gemeinfrei) mit Raum, Studio, Club
   und Konzertsaal, analoge Wärme, Klarheit (Mehrband-Kompressor, ab Android 9) und, standardmäßig aus, „Höhen ergänzen“ für stark komprimierte Dateien, das nur oberhalb einer erkannten Grenze wirkt; ebenfalls standardmäßig aus, „Leise hören mit vollem Klang“ hebt den
-  Bass sanft an, je leiser die Systemlautstärke ist. Jede Karte im unteren Klang-Blatt
+  Bass sanft an, je leiser die Systemlautstärke ist (Kurven gleicher Lautheit nach ISO 226, mit der Einstellung
+  „Wie laut spielen deine Kopfhörer?“). Das Blatt „Kopfhörer“ (Musik und Video) bringt virtuellen Raumklang für
+  5.1/7.1 (Kunstkopf-HRIRs aus SADIE II, nur mit Kopfhörer und nur, wenn Android nicht selbst Raumklang macht) und eine
+  Kopfhörer-Korrektur für 500 Modelle aus AutoEq, siehe [docs/KOPFHOERER.md](docs/KOPFHOERER.md). Jede Karte im unteren Klang-Blatt
   zeigt ein kleines lebendiges Bild davon, was sie tut; es steht still, wenn Ordos Animationen aus sind
 - „Abspielen auf …“ im Player öffnet die Ausgabe-Auswahl von Android: Bluetooth-Kopfhörer und -Lautsprecher, Kabel und
   Cast-Geräte, ohne Google-Dienste (ab Android 11; auf Android 6–10 öffnen sich die Bluetooth-Einstellungen)
@@ -502,7 +505,7 @@ Unit-Tests:
 ```
 
 <!-- AUTO:tests -->
-Gerätetests: 42 Skripte in [`e2e/`](e2e/README.md), gestartet mit `e2e/run.sh`: 15 nur lesend (`first-run`, `smoke`, `settings-visual`, `category-search`, `back-navigation`, `bars-replay`, `home-header`, `header-position`, `home-pull`, `drawer`, `selection-more`, `tablet-landscape`, `analysis`, `ai-show-guard`, `documents-provider`) und 27 weitere mit `--write` (`stress-delete`, `backup-restore`, `home-auto-refresh`, `audio-player`, `cast`, `klang`, `klang-landscape`, `klang-stress`, `music-formats`, `music-library`, `launcher-icons`, `icon-colors`, `ai-show`, `pick-file`, `no-midword-breaks`, `player-seek`, `player-stage2`, `video-player`, `video-network`, `video-sound`, `video-subtitles`, `video-background`, `video-library`, `video-seek`, `video-picture`, `video-picture-adjust`, `video-detailplus`). Unit-Tests: 124 Testklassen in `app/src/test`.
+Gerätetests: 42 Skripte in [`e2e/`](e2e/README.md), gestartet mit `e2e/run.sh`: 15 nur lesend (`first-run`, `smoke`, `settings-visual`, `category-search`, `back-navigation`, `bars-replay`, `home-header`, `header-position`, `home-pull`, `drawer`, `selection-more`, `tablet-landscape`, `analysis`, `ai-show-guard`, `documents-provider`) und 27 weitere mit `--write` (`stress-delete`, `backup-restore`, `home-auto-refresh`, `audio-player`, `cast`, `klang`, `klang-landscape`, `klang-stress`, `music-formats`, `music-library`, `launcher-icons`, `icon-colors`, `ai-show`, `pick-file`, `no-midword-breaks`, `player-seek`, `player-stage2`, `video-player`, `video-network`, `video-sound`, `video-subtitles`, `video-background`, `video-library`, `video-seek`, `video-picture`, `video-picture-adjust`, `video-detailplus`). Unit-Tests: 125 Testklassen in `app/src/test`.
 <!-- /AUTO:tests -->
 
 ## Ausblick

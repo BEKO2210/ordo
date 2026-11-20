@@ -73,11 +73,15 @@ for effect in "${EFFECTS[@]}"; do
     check "the $name picture reports its value" picture_on "$effect"
 done
 check "a reverb room can be chosen" paused_ui tap "Concert hall|Konzertsaal"
+# "Full sound when quiet" has one place: the Headphones sheet, linked from one row here.
 QUIET="Full sound when quiet|Leise hören mit vollem Klang"
-check "full sound when quiet is reachable" scrolled_to "$QUIET"
+check "the headphones row is reachable" scrolled_to "Headphones|Kopfhörer"
+check "it opens the headphones sheet" paused_ui tap headphonesEntry
+sleep 1
+check "full sound when quiet is in the headphones sheet" scrolled_to "$QUIET"
 check "full sound when quiet switches on" set_switch "$QUIET" on
-check "its picture reports the volume" picture_on_id quietPicture "$QUIET"
 check "full sound when quiet switches off again" set_switch "$QUIET" off
+back 1
 check "the sleep timer shows its picture" scrolled_to "Sleep timer: Off|Schlaf-Timer: Aus|Einschlaf-Timer: Aus"
 # Skip silence, audio focus and resume-with-headphones each have their own card with a picture.
 check "skip silence has its own picture" scrolled_to skipPicture

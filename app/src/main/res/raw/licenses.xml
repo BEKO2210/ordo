@@ -342,4 +342,18 @@
         <copyright>Copyright (C) 2017-2021 igv</copyright>
         <license>GNU Lesser General Public License 3</license>
     </notice>
+
+    <notice>
+        <name>SADIE II HRTF Database (Ordo's virtual surround, KU100 subject D1)</name>
+        <url>https://www.york.ac.uk/sadie-project/database.html</url>
+        <copyright>Copyright 2018, University of York</copyright>
+        <license>Apache Software License 2.0</license>
+    </notice>
+
+    <notice>
+        <name>AutoEq (Ordo's headphone correction presets)</name>
+        <url>https://github.com/jaakkopasanen/AutoEq</url>
+        <copyright>Copyright (c) 2018-2022 Jaakko Pasanen</copyright>
+        <license>MIT License</license>
+    </notice>
 </notices>

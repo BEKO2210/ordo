@@ -15,7 +15,6 @@ import android.media.AudioDeviceCallback
 import android.media.AudioDeviceInfo
 import android.media.AudioManager
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -45,12 +44,14 @@ import java.util.concurrent.Executors
 import androidx.media3.session.SessionCommands
 import java8.nio.file.Paths
 import me.zhanghai.android.files.player.cast.CastManager
+import me.zhanghai.android.files.player.headphones.HeadphoneOutput
 import me.zhanghai.android.files.viewer.audio.AudioPlayerActivity
 import me.zhanghai.android.files.viewer.audio.MusicCatalog
 import me.zhanghai.android.files.viewer.audio.MusicFilter
 import me.zhanghai.android.files.viewer.audio.MusicLibrary
 import me.zhanghai.android.files.viewer.audio.MusicSelection
 import me.zhanghai.android.files.viewer.audio.queryMusic
+import me.zhanghai.android.files.viewer.video.sound.VideoSpatial
 
 @UnstableApi
 class AudioPlaybackService : MediaSessionService() {
@@ -62,6 +63,14 @@ class AudioPlaybackService : MediaSessionService() {
     private var lastCountedMediaId: String? = null
     private lateinit var soundEffects: SoundEffectController
     private val klang = KlangProcessors()
+    // Surround layouts the system's spatializer renders itself; Ordo's virtual surround leaves those alone.
+    private var spatialChannels: Set<Int> = emptySet()
+    private val spatial by lazy {
+        VideoSpatial(this, handler) {
+            spatialChannels = it
+            applyKlang()
+        }
+    }
     private lateinit var audioFocusController: AudioFocusController
     private val handler = Handler(Looper.getMainLooper())
     private val ioExecutor: ExecutorService = Executors.newSingleThreadExecutor()
@@ -136,16 +145,16 @@ class AudioPlaybackService : MediaSessionService() {
     private val audioDeviceCallback = object : AudioDeviceCallback() {
         override fun onAudioDevicesAdded(addedDevices: Array<out AudioDeviceInfo>) {
             // The headphone crossfeed follows the route: on with headphones, off on the speaker.
-            klang.apply(soundSettings, headphonesConnected())
+            applyKlang()
             if (!soundSettings.resumeOnHeadphones || !pausedForDisconnectedHeadphones) return
-            if (addedDevices.any(::isHeadphoneDevice)) {
+            if (addedDevices.any(HeadphoneOutput::isHeadphones)) {
                 pausedForDisconnectedHeadphones = false
                 player.play()
             }
         }
 
         override fun onAudioDevicesRemoved(removedDevices: Array<out AudioDeviceInfo>) {
-            klang.apply(soundSettings, headphonesConnected())
+            applyKlang()
         }
     }
 
@@ -232,7 +241,7 @@ class AudioPlaybackService : MediaSessionService() {
         soundEffects = SoundEffectController(handler) { action ->
             if (::player.isInitialized && player.isPlaying) fader.duck(action) else fader.immediate(action)
         }
-        klang.apply(soundSettings, headphonesConnected())
+        applyKlang()
         val audioAttributes = AudioAttributes.Builder()
             .setUsage(C.USAGE_MEDIA)
             .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
@@ -269,7 +278,7 @@ class AudioPlaybackService : MediaSessionService() {
         getSystemService(AudioManager::class.java).registerAudioDeviceCallback(audioDeviceCallback, handler)
         // The system volume lands in Settings.System; its observer tells "full sound when quiet" the new level.
         contentResolver.registerContentObserver(android.provider.Settings.System.CONTENT_URI, true, volumeObserver)
-        soundEffects.setVolumeFraction(volumeFraction())
+        spatial.start()
         // Play, pause and stop from the notification, the lock screen, headphone buttons or Ordo's own screen come
         // through here and fade instead of cutting the wave off mid-way (an audible crack). Seeks need nothing:
         // Media3 ramps the first 20 ms of every new AudioTrack itself.
@@ -321,6 +330,7 @@ class AudioPlaybackService : MediaSessionService() {
         handler.removeCallbacks(sleepTimer)
         runCatching { unregisterReceiver(noisyReceiver) }
         contentResolver.unregisterContentObserver(volumeObserver)
+        spatial.stop()
         getSystemService(AudioManager::class.java).unregisterAudioDeviceCallback(audioDeviceCallback)
         if (::audioFocusController.isInitialized) audioFocusController.abandon()
         if (::soundEffects.isInitialized) soundEffects.release()
@@ -337,7 +347,7 @@ class AudioPlaybackService : MediaSessionService() {
 
     private fun applySoundSettings() {
         soundSettings = AudioSettingsStore.read()
-        klang.apply(soundSettings, headphonesConnected())
+        applyKlang()
         audioFocusController.setBehavior(soundSettings.focusBehavior)
         // A pitch of 1 keeps pitch unchanged while Sonic time-stretches playback.
         // https://developer.android.com/reference/androidx/media3/common/PlaybackParameters
@@ -419,37 +429,21 @@ class AudioPlaybackService : MediaSessionService() {
 
     private val volumeObserver = object : android.database.ContentObserver(handler) {
         override fun onChange(selfChange: Boolean) {
-            if (::soundEffects.isInitialized) soundEffects.setVolumeFraction(volumeFraction())
+            // "Full sound when quiet" follows the volume.
+            applyKlang()
         }
     }
 
-    private fun volumeFraction(): Float {
+    /** Ordo's chain for the current route and volume (headphones, loudness shelves, virtual surround). */
+    private fun applyKlang() {
         val audioManager = getSystemService(AudioManager::class.java)
-        val max = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
-        return if (max > 0) audioManager.getStreamVolume(AudioManager.STREAM_MUSIC) / max.toFloat() else 1f
+        klang.apply(
+            soundSettings, headphonesConnected(), HeadphoneOutput.attenuationDb(audioManager), spatialChannels
+        )
     }
 
     private fun headphonesConnected(): Boolean =
-        getSystemService(AudioManager::class.java).getDevices(AudioManager.GET_DEVICES_OUTPUTS).any(::isHeadphoneDevice)
-
-    private fun isHeadphoneDevice(device: AudioDeviceInfo): Boolean = when (device.type) {
-        AudioDeviceInfo.TYPE_WIRED_HEADPHONES,
-        AudioDeviceInfo.TYPE_WIRED_HEADSET,
-        AudioDeviceInfo.TYPE_BLUETOOTH_A2DP,
-        AudioDeviceInfo.TYPE_BLUETOOTH_SCO,
-        AudioDeviceInfo.TYPE_USB_HEADSET -> true
-        else -> isModernHeadphoneDevice(device)
-    }
-
-    private fun isModernHeadphoneDevice(device: AudioDeviceInfo): Boolean =
-        (Build.VERSION.SDK_INT >= 28 && isHearingAid(device)) ||
-            (Build.VERSION.SDK_INT >= 31 && isBleHeadset(device))
-
-    @android.annotation.TargetApi(28)
-    private fun isHearingAid(device: AudioDeviceInfo) = device.type == AudioDeviceInfo.TYPE_HEARING_AID
-
-    @android.annotation.TargetApi(31)
-    private fun isBleHeadset(device: AudioDeviceInfo) = device.type == AudioDeviceInfo.TYPE_BLE_HEADSET
+        HeadphoneOutput.headphones(getSystemService(AudioManager::class.java)) != null
 
     /** `content://` items come from an external launch; their URI grant ends with that task, so they are not kept. */
     private fun isPersistable(item: MediaItem): Boolean {
@@ -562,7 +556,9 @@ class AudioPlaybackService : MediaSessionService() {
                                 AudioPlayerCommands.EXTRA_CLARITY_AVAILABLE to status.clarityAvailable,
                                 AudioPlayerCommands.EXTRA_HEADPHONES to headphonesConnected(),
                                 AudioPlayerCommands.EXTRA_HIGHS_CUTOFF to klang.highs.detectedCutoffHz,
-                                AudioPlayerCommands.EXTRA_VOLUME_FRACTION to volumeFraction(),
+                                AudioPlayerCommands.EXTRA_QUIET_BASS_DB to klang.headphones.quiet.let {
+                                    if (it.effectEnabled) it.bassDb else 0f
+                                },
                                 AudioPlayerCommands.EXTRA_SLEEP_ACTIVE to
                                     (sleepDeadlineElapsedMs != null || sleepAtEndOfTrack),
                                 AudioPlayerCommands.EXTRA_SLEEP_MINUTES to sleepSelectionMinutes,

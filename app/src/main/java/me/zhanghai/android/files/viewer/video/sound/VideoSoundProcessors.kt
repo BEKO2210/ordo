@@ -10,6 +10,9 @@ import androidx.media3.common.audio.AudioProcessor
 import androidx.media3.common.audio.BaseAudioProcessor
 import androidx.media3.common.util.Util
 import me.zhanghai.android.files.player.KlangAudioProcessor
+import me.zhanghai.android.files.player.KlangStage
+import me.zhanghai.android.files.player.headphones.Binaural
+import me.zhanghai.android.files.player.headphones.PartitionedConvolver
 import java.nio.ByteBuffer
 import kotlin.math.abs
 import kotlin.math.exp
@@ -21,7 +24,8 @@ import kotlin.math.roundToInt
  * films put the dialogue, keeps −3 dB instead of whatever the device's mixer does. Stereo and mono pass by. With a
  * dialog target ([dialogTargetLu]) the real centre channel is measured against the rest (K-weighted, as it lands in
  * the stereo output) and [DialogSteering] moves the two apart to the target in LU. Matrix changes glide across one
- * buffer; a peak limiter (same ceiling as the Klang chain) keeps the sum from clipping.
+ * buffer; a peak limiter (same ceiling as the Klang chain) keeps the sum from clipping. With [binaural] the channels
+ * become virtual loudspeakers in headphones ([Binaural], 2.7 ms more latency) instead of the matrix, cross-faded.
  */
 class DownmixProcessor : BaseAudioProcessor() {
     @Volatile
@@ -43,6 +47,13 @@ class DownmixProcessor : BaseAudioProcessor() {
     var passingThrough = false
         private set
 
+    /**
+     * Virtual surround: set while the settings want it and headphones play (the engine decides). Switching cross-fades
+     * between matrix and binaural over [KlangStage.CROSSFADE_SECONDS]; off, the convolution does not run at all.
+     */
+    @Volatile
+    var binaural = false
+
     internal val steering = DialogSteering()
 
     /** Measured centre-over-rest distance and the distance reached, in LU (NaN while unknown). */
@@ -58,6 +69,13 @@ class DownmixProcessor : BaseAudioProcessor() {
     private var kLeft = KWeighting(48_000)
     private var kRight = KWeighting(48_000)
     private var lastFrames = 0
+    private var convolver: PartitionedConvolver? = null
+    private var convolverRunning = false
+    private var binauralMix = 0f
+    private var binauralStep = 0f
+    private var frameInputs = FloatArray(0)
+    private var dialogGain = 1f
+    private var restGain = 1f
 
     override fun onConfigure(inputAudioFormat: AudioProcessor.AudioFormat): AudioProcessor.AudioFormat {
         val channels = inputAudioFormat.channelCount
@@ -84,7 +102,21 @@ class DownmixProcessor : BaseAudioProcessor() {
         kRight = KWeighting(rate)
         steering.configure(rate)
         lastFrames = 0
+        val channels = inputAudioFormat.channelCount
+        // Built per format (and resampled from 48 kHz if needed), never while samples flow.
+        if (convolver?.inputs != channels || convolverRate != rate) {
+            convolver = Binaural.responses(channels, rate)?.let { PartitionedConvolver(it, Binaural.BLOCK) }
+            convolverRate = rate
+        }
+        convolverRunning = false
+        frameInputs = FloatArray(channels)
+        binauralStep = 1f / (rate * KlangStage.CROSSFADE_SECONDS)
+        binauralMix = if (binaural && convolver != null) 1f else 0f
+        dialogGain = 10f.pow(steering.dialogDb / 20f)
+        restGain = 10f.pow(steering.restDb / 20f)
     }
+
+    private var convolverRate = 0
 
     /** The base matrix with the dialog gains on the centre column and the rest gain on every other column. */
     private fun targetMatrix(channels: Int): Array<FloatArray> {
@@ -115,6 +147,16 @@ class DownmixProcessor : BaseAudioProcessor() {
         val target = targetMatrix(channels)
         val gliding = target !== from
         val output = replaceOutputBuffer(frames * 4)
+        val convolver = convolver
+        val binauralTarget = if (binaural && convolver != null) 1f else 0f
+        val useBinaural = convolver != null && (binauralTarget > 0f || binauralMix > 0f)
+        // Starting again after a pause of the convolution: from silence, not from a stale block.
+        if (useBinaural && !convolverRunning) convolver!!.reset()
+        convolverRunning = useBinaural
+        val fromDialog = dialogGain
+        val fromRest = restGain
+        val toDialog = 10f.pow(steering.dialogDb / 20f)
+        val toRest = 10f.pow(steering.restDb / 20f)
         for (frame in 0 until frames) {
             val t = if (gliding) (frame + 1f) / frames else 1f
             var left = 0f
@@ -132,6 +174,12 @@ class DownmixProcessor : BaseAudioProcessor() {
                 }
                 left += l * sample
                 right += r * sample
+                if (useBinaural) {
+                    // The dialog steering acts on the speaker channels, as in the matrix.
+                    val channelGain = if (channel == centreIndex) fromDialog + (toDialog - fromDialog) * t
+                    else fromRest + (toRest - fromRest) * t
+                    frameInputs[channel] = sample * channelGain * Binaural.GAIN
+                }
                 if (steer) {
                     // Measured on the base mix: what dialog and rest would be without the steering.
                     if (channel == centreIndex) centre = base[0][channel] * sample
@@ -147,6 +195,16 @@ class DownmixProcessor : BaseAudioProcessor() {
                 val rr = kRight.process(restRight)
                 steering.measure(2 * c * c, rl * rl + rr * rr)
             }
+            if (useBinaural) {
+                convolver!!.processFrame(frameInputs)
+                val mix = binauralMix
+                if (mix != binauralTarget) {
+                    binauralMix = if (binauralTarget > mix) minOf(1f, mix + binauralStep)
+                    else maxOf(0f, mix - binauralStep)
+                }
+                left += (convolver.outLeft - left) * mix
+                right += (convolver.outRight - right) * mix
+            }
             var gain = limiterGain
             if (gain < 1f) {
                 gain += (1f - gain) * release
@@ -159,6 +217,8 @@ class DownmixProcessor : BaseAudioProcessor() {
             output.putShort(toShort(right * gain))
         }
         matrix = target
+        dialogGain = toDialog
+        restGain = toRest
         inputBuffer.position(inputBuffer.limit())
         output.flip()
     }

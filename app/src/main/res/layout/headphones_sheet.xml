@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- Ordo's headphone pack, shared by Ordo Musik and Ordo Video (HeadphonesSheet). -->
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingStart="@dimen/klang_space_lg"
+        android:paddingTop="@dimen/klang_space_md"
+        android:paddingEnd="@dimen/klang_space_lg"
+        android:paddingBottom="@dimen/klang_space_xl">
+
+        <TextView
+            style="@style/Widget.Ordo.Klang.Section"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/klang_space_md"
+            android:accessibilityHeading="true"
+            android:drawableStart="@drawable/audio_headphones_icon_24dp"
+            android:drawablePadding="@dimen/klang_space_sm"
+            android:drawableTint="?colorPrimary"
+            android:gravity="center_vertical"
+            android:minHeight="@dimen/klang_touch_target"
+            android:text="@string/headphones_title" />
+
+        <com.google.android.material.card.MaterialCardView
+            style="@style/Widget.Ordo.Klang.Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <include
+                android:id="@+id/surroundRow"
+                layout="@layout/klang_switch_row"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/klang_space_lg"
+                android:layout_marginTop="@dimen/klang_space_md"
+                android:layout_marginEnd="@dimen/klang_space_lg"
+                android:layout_marginBottom="@dimen/klang_space_md" />
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.card.MaterialCardView
+            style="@style/Widget.Ordo.Klang.Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/klang_space_md">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingStart="@dimen/klang_space_lg"
+                android:paddingTop="@dimen/klang_space_md"
+                android:paddingEnd="@dimen/klang_space_lg"
+                android:paddingBottom="@dimen/klang_space_md">
+                <include
+                    android:id="@+id/quietRow"
+                    layout="@layout/klang_switch_row"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+                <TextView
+                    android:id="@+id/calibrationTitle"
+                    style="@style/Widget.Ordo.Klang.Title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/klang_space_md"
+                    android:text="@string/headphones_calibration_title" />
+                <TextView
+                    style="@style/Widget.Ordo.Klang.Info"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/headphones_calibration_summary" />
+                <com.google.android.material.button.MaterialButtonToggleGroup
+                    android:id="@+id/calibrationGroup"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/klang_space_sm"
+                    android:spacing="@dimen/klang_space_xs"
+                    app:innerCornerSize="@dimen/klang_space_md"
+                    app:selectionRequired="true"
+                    app:singleSelection="true">
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/calibrationQuieter"
+                        style="@style/Widget.Ordo.Klang.Segment"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:text="@string/headphones_calibration_quieter" />
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/calibrationNormal"
+                        style="@style/Widget.Ordo.Klang.Segment"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:text="@string/headphones_calibration_normal" />
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/calibrationLouder"
+                        style="@style/Widget.Ordo.Klang.Segment"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:text="@string/headphones_calibration_louder" />
+                </com.google.android.material.button.MaterialButtonToggleGroup>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.card.MaterialCardView
+            style="@style/Widget.Ordo.Klang.Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/klang_space_md">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingStart="@dimen/klang_space_lg"
+                android:paddingTop="@dimen/klang_space_md"
+                android:paddingEnd="@dimen/klang_space_lg"
+                android:paddingBottom="@dimen/klang_space_md">
+                <TextView
+                    style="@style/Widget.Ordo.Klang.Title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:drawableStart="@drawable/audio_graphic_eq_icon_24dp"
+                    android:drawablePadding="@dimen/klang_space_sm"
+                    android:drawableTint="?colorPrimary"
+                    android:gravity="center_vertical"
+                    android:minHeight="@dimen/klang_touch_target"
+                    android:text="@string/headphones_correction_title" />
+                <TextView
+                    android:id="@+id/correctionState"
+                    style="@style/Widget.Ordo.Klang.Info"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:accessibilityLiveRegion="polite" />
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/correctionOff"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/klang_space_sm"
+                    android:minHeight="@dimen/klang_touch_target"
+                    android:text="@string/headphones_correction_off"
+                    android:textAllCaps="false" />
+                <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/klang_space_md"
+                    android:hint="@string/headphones_correction_search"
+                    app:endIconMode="clear_text"
+                    app:startIconDrawable="@drawable/search_icon_control_normal_24dp">
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/correctionSearch"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:imeOptions="actionSearch"
+                        android:inputType="text"
+                        android:maxLines="1" />
+                </com.google.android.material.textfield.TextInputLayout>
+                <TextView
+                    android:id="@+id/correctionCount"
+                    style="@style/Widget.Ordo.Klang.Info"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/klang_space_sm"
+                    android:accessibilityLiveRegion="polite" />
+                <LinearLayout
+                    android:id="@+id/correctionResults"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>
