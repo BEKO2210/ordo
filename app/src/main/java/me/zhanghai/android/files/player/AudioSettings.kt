@@ -44,7 +44,9 @@ data class AudioSettings(
     val mono: Boolean = false,
     val balance: Int = 0,
     val resumeOnHeadphones: Boolean = false,
-    val focusBehavior: AudioFocusBehavior = AudioFocusBehavior.DUCK
+    val focusBehavior: AudioFocusBehavior = AudioFocusBehavior.DUCK,
+    /** "Unverfälscht an USB-DAC": bit-perfect output on Android 14+, every Ordo stage bypassed. Off by default. */
+    val bitPerfectUsb: Boolean = false
 ) {
     fun sanitized(): AudioSettings = copy(
         bandGainsDb = bandGainsDb.take(BAND_COUNT).map {
@@ -161,6 +163,7 @@ object AudioSettingsCodec {
             .put("balance", balance)
             .put("resumeHeadphones", resumeOnHeadphones)
             .put("focus", focusBehavior.name)
+            .put("bitPerfectUsb", bitPerfectUsb)
             .toString()
     }
 
@@ -205,7 +208,8 @@ object AudioSettingsCodec {
                 mono = json.optBoolean("mono", false),
                 balance = json.optInt("balance", 0),
                 resumeOnHeadphones = json.optBoolean("resumeHeadphones", false),
-                focusBehavior = enumValueOrDefault(json.optString("focus"), AudioFocusBehavior.DUCK)
+                focusBehavior = enumValueOrDefault(json.optString("focus"), AudioFocusBehavior.DUCK),
+                bitPerfectUsb = json.optBoolean("bitPerfectUsb", false)
             ).sanitized()
         } catch (_: Exception) {
             AudioSettings()

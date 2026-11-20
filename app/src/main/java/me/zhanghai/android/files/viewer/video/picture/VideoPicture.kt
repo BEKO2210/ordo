@@ -592,7 +592,14 @@ class VideoPicture(
         val audio = activity.getSystemService<AudioManager>()
         val passthrough = track != null && !Util.isEncodingLinearPcm(track.encoding)
         val device = audio?.let(::outputDevice)
-        val mixerRate = audio?.getProperty(AudioManager.PROPERTY_OUTPUT_SAMPLE_RATE)?.toIntOrNull() ?: 0
+        // Android 14+: a mixer set for this output (Ordo's rate match, or bit-perfect) is the rate that counts.
+        val mixer = if (audio != null && device != null && Build.VERSION.SDK_INT >= 34) {
+            runCatching { audio.getPreferredMixerAttributes(MEDIA_ATTRIBUTES, device) }.getOrNull()
+        } else null
+        val mixerRate = mixer?.format?.sampleRate
+            ?: audio?.getProperty(AudioManager.PROPERTY_OUTPUT_SAMPLE_RATE)?.toIntOrNull() ?: 0
+        val bitPerfect = Build.VERSION.SDK_INT >= 34 &&
+            mixer?.mixerBehavior == android.media.AudioMixerAttributes.MIXER_BEHAVIOR_BIT_PERFECT
         val trackRate = track?.sampleRate ?: format.sampleRate
         val trackMask = track?.channelConfig ?: 0
         val channels = if (trackMask != 0) Integer.bitCount(trackMask) else format.channelCount
@@ -621,7 +628,13 @@ class VideoPicture(
             stages.joinToString(", ").ifEmpty {
                 activity.getString(R.string.video_signal_none)
             },
-            device?.let(::deviceName),
+            device?.let {
+                listOfNotNull(
+                    deviceName(it),
+                    activity.getString(R.string.video_signal_bit_perfect).takeIf { bitPerfect },
+                    activity.getString(R.string.video_signal_offload).takeIf { track?.offload == true }
+                ).joinToString(" · ")
+            },
             VideoInfo.sampleRate(trackRate)?.let { rate ->
                 val mixer = VideoInfo.sampleRate(mixerRate)
                 if (SignalPath.AudioChange.RESAMPLED in changes && mixer != null) {

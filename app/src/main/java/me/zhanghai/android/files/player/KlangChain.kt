@@ -12,6 +12,8 @@ import androidx.media3.common.audio.BaseAudioProcessor
 import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.audio.AudioSink
 import androidx.media3.exoplayer.audio.DefaultAudioSink
+import me.zhanghai.android.files.player.output.HiResAudioSink
+import me.zhanghai.android.files.player.output.HiResOutput
 import java.nio.ByteBuffer
 import kotlin.math.abs
 import kotlin.math.exp
@@ -374,7 +376,9 @@ class KlangProcessors(dither: Boolean = true) {
 
 class AudioRenderersFactory(
     context: Context,
-    private val audioProcessors: Array<AudioProcessor>
+    private val audioProcessors: Array<AudioProcessor>,
+    // Sets the output's mixer per song (rate match, bit-perfect); null keeps Android's mixer as it is.
+    private val output: HiResOutput? = null
 ) : DefaultRenderersFactory(context) {
     init {
         // Platform decoders first, FFmpeg (AC3/E-AC3/DTS/TrueHD) only for what the device cannot decode.
@@ -385,7 +389,7 @@ class AudioRenderersFactory(
         context: Context,
         enableFloatOutput: Boolean,
         enableAudioOutputPlaybackParams: Boolean
-    ): AudioSink = DefaultAudioSink.Builder(context)
+    ): AudioSink = output?.let { HiResAudioSink(context, audioProcessors, it) } ?: DefaultAudioSink.Builder(context)
         // PCM processors are the Media3-supported insertion point before AudioTrack playback.
         // https://developer.android.com/reference/androidx/media3/exoplayer/audio/DefaultAudioSink.Builder
         .setAudioProcessors(audioProcessors)

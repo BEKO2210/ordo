@@ -28,7 +28,10 @@ import androidx.media3.common.MediaMetadata
 import androidx.media3.common.PlaybackParameters
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.common.TrackSelectionParameters.AudioOffloadPreferences
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.analytics.AnalyticsListener
+import androidx.media3.exoplayer.audio.AudioSink
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
@@ -44,7 +47,11 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import androidx.media3.session.SessionCommands
 import java8.nio.file.Paths
+import me.zhanghai.android.files.R
 import me.zhanghai.android.files.player.cast.CastManager
+import me.zhanghai.android.files.player.output.HiResOutput
+import me.zhanghai.android.files.player.output.OutputPlan
+import me.zhanghai.android.files.player.output.OutputPolicy
 import me.zhanghai.android.files.viewer.audio.AudioPlayerActivity
 import me.zhanghai.android.files.viewer.audio.MusicCatalog
 import me.zhanghai.android.files.viewer.audio.MusicFilter
@@ -62,6 +69,10 @@ class AudioPlaybackService : MediaSessionService() {
     private var lastCountedMediaId: String? = null
     private lateinit var soundEffects: SoundEffectController
     private val klang = KlangProcessors()
+    private lateinit var hiRes: HiResOutput
+    // The AudioTrack runs offloaded (decoded in the audio DSP); from Media3's onAudioTrackInitialized.
+    private var offloaded = false
+    private var outputLabel: String? = null
     private lateinit var audioFocusController: AudioFocusController
     private val handler = Handler(Looper.getMainLooper())
     private val ioExecutor: ExecutorService = Executors.newSingleThreadExecutor()
@@ -135,8 +146,9 @@ class AudioPlaybackService : MediaSessionService() {
 
     private val audioDeviceCallback = object : AudioDeviceCallback() {
         override fun onAudioDevicesAdded(addedDevices: Array<out AudioDeviceInfo>) {
-            // The headphone crossfeed follows the route: on with headphones, off on the speaker.
-            klang.apply(soundSettings, headphonesConnected())
+            // The headphone crossfeed follows the route: on with headphones, off on the speaker; a USB DAC may
+            // switch bit-perfect on.
+            applySoundSettings()
             if (!soundSettings.resumeOnHeadphones || !pausedForDisconnectedHeadphones) return
             if (addedDevices.any(::isHeadphoneDevice)) {
                 pausedForDisconnectedHeadphones = false
@@ -145,7 +157,8 @@ class AudioPlaybackService : MediaSessionService() {
         }
 
         override fun onAudioDevicesRemoved(removedDevices: Array<out AudioDeviceInfo>) {
-            klang.apply(soundSettings, headphonesConnected())
+            // Also gives the mixer back when the USB DAC is gone.
+            applySoundSettings()
         }
     }
 
@@ -159,6 +172,9 @@ class AudioPlaybackService : MediaSessionService() {
         // Paused (after its fade), stopped, ended or waiting after a seek: nothing is heard, the effects may switch.
         override fun onIsPlayingChanged(isPlaying: Boolean) {
             soundEffects.setAudible(isPlaying)
+            // Ordo's video player may have set the mixer for a film meanwhile; take it back for this song.
+            // Paused, Ordo Video gets a normal mixer.
+            if (isPlaying) hiRes.onConfigure(hiRes.track) else hiRes.suspend()
         }
 
         override fun onEvents(player: Player, events: Player.Events) {
@@ -233,13 +249,16 @@ class AudioPlaybackService : MediaSessionService() {
             if (::player.isInitialized && player.isPlaying) fader.duck(action) else fader.immediate(action)
         }
         klang.apply(soundSettings, headphonesConnected())
+        hiRes = HiResOutput(this, allowsBitPerfect = true).apply {
+            onChanged = { handler.post(::publishOutput) }
+        }
         val audioAttributes = AudioAttributes.Builder()
             .setUsage(C.USAGE_MEDIA)
             .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
             .build()
         val modes = stateStore.readModes()
         player = ExoPlayer.Builder(this)
-            .setRenderersFactory(AudioRenderersFactory(this, klang.chain))
+            .setRenderersFactory(AudioRenderersFactory(this, klang.chain, hiRes))
             .setMediaSourceFactory(DefaultMediaSourceFactory(PathDataSource.Factory(this)))
             .setAudioAttributes(audioAttributes, false)
             // Ordo handles this broadcast itself so it can remember that headphones caused the pause.
@@ -254,6 +273,23 @@ class AudioPlaybackService : MediaSessionService() {
                 shuffleModeEnabled = modes.shuffleEnabled
                 repeatMode = modes.repeatMode
                 addListener(playerListener)
+                addAnalyticsListener(object : AnalyticsListener {
+                    override fun onAudioTrackInitialized(
+                        eventTime: AnalyticsListener.EventTime,
+                        audioTrackConfig: AudioSink.AudioTrackConfig
+                    ) {
+                        offloaded = audioTrackConfig.offload
+                        publishOutput()
+                    }
+
+                    override fun onAudioTrackReleased(
+                        eventTime: AnalyticsListener.EventTime,
+                        audioTrackConfig: AudioSink.AudioTrackConfig
+                    ) {
+                        offloaded = false
+                        publishOutput()
+                    }
+                })
             }
         audioFocusController = AudioFocusController(this, player, handler) {
             focusVolume = it
@@ -330,13 +366,18 @@ class AudioPlaybackService : MediaSessionService() {
         }
         if (::mediaSession.isInitialized) mediaSession.release()
         if (::player.isInitialized) player.release()
+        if (::hiRes.isInitialized) hiRes.release()
         ioExecutor.shutdown()
         loudnessExecutor.shutdownNow()
         super.onDestroy()
     }
 
     private fun applySoundSettings() {
-        soundSettings = AudioSettingsStore.read()
+        val stored = AudioSettingsStore.read()
+        hiRes.wantsBitPerfect = stored.bitPerfectUsb
+        val rebuild = hiRes.refresh()
+        // Bit-perfect: Klang, effects, levelling, limiter gain, speed and silence skipping are all bypassed.
+        soundSettings = if (hiRes.bitPerfectMode) OutputPolicy.bypassed(stored) else stored
         klang.apply(soundSettings, headphonesConnected())
         audioFocusController.setBehavior(soundSettings.focusBehavior)
         // A pitch of 1 keeps pitch unchanged while Sonic time-stretches playback.
@@ -346,6 +387,56 @@ class AudioPlaybackService : MediaSessionService() {
         player.skipSilenceEnabled = soundSettings.skipSilence
         applyEffects()
         measureLoudnessIfUntagged()
+        applyOffload()
+        if (rebuild) rebuildAudio()
+    }
+
+    /**
+     * Offload saves battery but decodes past Ordo's stages, so only while none is on; gapless is required, so an
+     * album never gets gaps from it.
+     * https://developer.android.com/reference/androidx/media3/common/TrackSelectionParameters.AudioOffloadPreferences
+     */
+    private fun applyOffload() {
+        val mode = if (OutputPolicy.offloadAllowed(soundSettings, hiRes.bitPerfectMode)) {
+            AudioOffloadPreferences.AUDIO_OFFLOAD_MODE_ENABLED
+        } else AudioOffloadPreferences.AUDIO_OFFLOAD_MODE_DISABLED
+        if (player.trackSelectionParameters.audioOffloadPreferences.audioOffloadMode == mode) return
+        player.trackSelectionParameters = player.trackSelectionParameters.buildUpon()
+            .setAudioOffloadPreferences(
+                AudioOffloadPreferences.Builder()
+                    .setAudioOffloadMode(mode)
+                    .setIsGaplessSupportRequired(true)
+                    .build()
+            )
+            .build()
+    }
+
+    /**
+     * Bit-perfect went on or off: decoders and sink are set up anew, so the decoder hands over float (hi-res, exact)
+     * or 16-bit as the chosen sink needs. Position and play state stay.
+     */
+    private fun rebuildAudio() {
+        if (player.playbackState == Player.STATE_IDLE || player.mediaItemCount == 0) return
+        player.stop()
+        player.prepare()
+    }
+
+    /** "Bit-perfekt · 24/96" or "Offload" for the player's badge, through the session extras. */
+    private fun publishOutput() {
+        if (!::mediaSession.isInitialized) return
+        val plan = hiRes.plan
+        val track = hiRes.track
+        val label = when {
+            plan is OutputPlan.BitPerfect && track != null -> getString(
+                R.string.audio_output_bit_perfect_format,
+                OutputPolicy.label(OutputPolicy.bits(track.encoding), track.sampleRate)
+            )
+            offloaded -> getString(R.string.audio_output_offload)
+            else -> null
+        }
+        if (label == outputLabel) return
+        outputLabel = label
+        mediaSession.setSessionExtras(bundleOf(AudioPlayerCommands.EXTRA_OUTPUT to label))
     }
 
     /**

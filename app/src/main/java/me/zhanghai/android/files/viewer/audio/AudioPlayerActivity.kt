@@ -424,7 +424,9 @@ class AudioPlayerActivity : AppActivity(), AppAccentActivity {
         val future = MediaController.Builder(
             this,
             SessionToken(this, ComponentName(this, AudioPlaybackService::class.java))
-        ).buildAsync()
+        ).setListener(object : MediaController.Listener {
+            override fun onExtrasChanged(controller: MediaController, extras: Bundle) = showOutput(extras)
+        }).buildAsync()
         controllerFuture = future
         future.addListener({
             if (controllerFuture !== future || isFinishing) return@addListener
@@ -438,6 +440,7 @@ class AudioPlayerActivity : AppActivity(), AppAccentActivity {
             }
             controller = newController
             newController.addListener(playerListener)
+            showOutput(newController.sessionExtras)
             // A setting can be persisted while the asynchronous controller connection is still pending.
             applySoundSettings()
             (supportFragmentManager.findFragmentByTag(AudioSoundSettingsSheet.TAG)
@@ -448,7 +451,14 @@ class AudioPlayerActivity : AppActivity(), AppAccentActivity {
         }, ContextCompat.getMainExecutor(this))
     }
 
-    private class LaunchQueue(val items: List<MediaItem>, val startIndex: Int)
+    /** The output badge: bit-perfect with bits and rate, or offload; hidden otherwise. */
+    private fun showOutput(extras: Bundle) {
+        val label = extras.getString(AudioPlayerCommands.EXTRA_OUTPUT)
+        binding.outputBadge.text = label
+        binding.outputBadge.isVisible = label != null
+    }
+
+        private class LaunchQueue(val items: List<MediaItem>, val startIndex: Int)
 
     private fun hasLaunchContent(): Boolean =
         intent.getStringExtra(EXTRA_QUEUE_TOKEN) != null || intent.data != null

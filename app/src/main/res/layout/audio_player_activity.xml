@@ -78,6 +78,7 @@
                 android:id="@+id/album"
                 style="@style/Widget.Ordo.AudioPlayer.Subtitle"
                 android:visibility="gone" />
+            <TextView android:id="@+id/outputBadge" style="@style/Widget.Ordo.AudioPlayer.OutputBadge" />
 
             <me.zhanghai.android.files.viewer.audio.PlayerSeekSlider
                 android:id="@+id/seekBar"

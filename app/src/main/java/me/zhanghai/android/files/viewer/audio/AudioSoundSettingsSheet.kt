@@ -5,6 +5,7 @@
 
 package me.zhanghai.android.files.viewer.audio
 
+import me.zhanghai.android.files.player.output.OutputPolicy
 import android.app.Dialog
 import android.content.res.ColorStateList
 import android.graphics.drawable.GradientDrawable
@@ -216,6 +217,12 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment() {
             R.string.audio_sound_headphones_summary, { settings.resumeOnHeadphones },
             binding.headphonesPicture, Kind.HEADPHONES
         ) { update { copy(resumeOnHeadphones = it) } }
+        // setPreferredMixerAttributes exists from Android 14; the summary says that Ordo's stages are bypassed.
+        binding.bitPerfectCard.isVisible = android.os.Build.VERSION.SDK_INT >= OutputPolicy.MIN_SDK
+        bindSwitchRow(
+            binding.bitPerfectRow, R.drawable.audio_output_icon_24dp, R.string.audio_sound_bit_perfect,
+            R.string.audio_sound_bit_perfect_summary, { settings.bitPerfectUsb }
+        ) { update { copy(bitPerfectUsb = it) } }
         setColumns()
         bindBalance()
         bindSpeed()
