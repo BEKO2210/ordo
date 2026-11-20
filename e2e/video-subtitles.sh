@@ -78,8 +78,19 @@ sheet
 check "the delay is remembered for the film" test "$(delay)" = "$d2"
 ui tap "$earlier" >/dev/null; sleep 0.5; ui tap "$earlier" >/dev/null; sleep 0.5
 # The size chips lie below the charsets: on a phone the sheet scrolls.
-scroll_to "Sehr groß|Extra large" 3
-check "the size chips are there" ui has "Sehr groß|Extra large"
+scroll_to "Größer|Larger" 4
+check "the size has its − and + steps" ui has "Größer|Larger"
+# One step larger shows 110 % and is kept; one step smaller puts it back.
+was=$(ui texts | awk -F'|' '$1 ~ /^[0-9]+[^0-9]*%$/ { print $1; exit }')
+ui tap "Größer|Larger" >/dev/null; sleep 0.7
+now=$(ui texts | awk -F'|' '$1 ~ /^[0-9]+[^0-9]*%$/ { print $1; exit }')
+check "a step changes the size (${was:-?} -> ${now:-?})" test -n "$was" -a "$was" != "$now"
+ui tap "Kleiner|Smaller" >/dev/null; sleep 0.7
+scroll_to "Kontur|Outline" 3
+check "the edge offers outline, shadow and box" ui has "Kasten|Box"
+scroll_to "Wie System|Like the system" 3
+check "the style can follow Android's caption settings" ui has "Wie System|Like the system"
+check "ASS files may keep their own styles" ui has "Stil der Datei|Styles of the file"
 back 1; back 2
 
 # 3. A track inside the MKV.

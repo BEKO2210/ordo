@@ -431,8 +431,13 @@ abschaltet; Medientasten bei zwei Sessions auf echten Geräten; ob `dumpsys` `mo
 
 Code in `viewer/video/subtitles/`, ohne neue Bibliothek. Knopf „Untertitel“ oben in der Leiste öffnet ein Blatt:
 „Aus“, die Untertitel-Dateien, die Spuren im Film, „Untertitel laden…“ (Ordos eigene Auswahl, im Ordner des Films),
-für eine Datei und eine Text-Spur im Film die Verzögerung, für eine Datei die Zeichenkodierung, für alle Filme Größe (Klein/Mittel/Groß/Sehr groß), Hintergrund
-(Ohne/Schatten/Kasten) und Farbe (Weiß/Gelb) als Chips. Keine Regler.
+für eine Datei und eine Text-Spur im Film die Verzögerung, für eine Datei die Zeichenkodierung, für alle Filme den
+**Untertitel-Stil** mit Live-Vorschau (16:9, links helles, rechts dunkles Bild, gezeichnet von Media3s eigener
+`SubtitleView` wie im Player): Größe (60–200 % in 10-%-Schritten, −/+), Schrift (Standard, Kräftig, Schmal, Serifen;
+Androids Schriftfamilien, keine mitgelieferte Schrift), Darstellung (Kontur, Schatten, Kasten), Farbe (Weiß, Gelb,
+Cyan, Grün), Höhe (Abstand vom unteren Bildrand 2–30 %, −/+), „Wie System“ (Androids Untertitel-Einstellungen über
+`CaptioningManager`, `setUserDefaultStyle`/`setUserDefaultTextSize`; Größe, Schrift, Darstellung und Farbe blenden
+dann aus), „Stil der Datei“ (ASS/SSA behalten eigene Farben, Schriften, Größen) und „Stil zurücksetzen“. Keine Regler.
 
 - **Dateien daneben** (`SubtitleFiles.sidecars`, getestet in `SubtitleFilesTest`): gleicher Name wie der Film, ohne
   Groß-/Kleinschreibung, Endung `.srt .vtt .ass .ssa .ttml .dfxp`, dazwischen Kürzel wie `film.de.srt`,
@@ -477,7 +482,18 @@ für eine Datei und eine Text-Spur im Film die Verzögerung, für eine Datei die
 - **Gemerkt je Film** (`SubtitleStore`, SharedPreferences `video_subtitles`, Schlüssel = Pfad-URI): Wahl, Verzögerung,
   Zeichensatz (nur für die Datei, für die er gewählt wurde); höchstens 300, älteste fliegen; nicht bei „Keine Stellen merken“, gelöscht mit „Weiterschauen löschen“.
   Der Stil gilt für alle Filme.
-- **Lage:** Ist die Bedienleiste sichtbar, rücken die Untertitel über sie (`setBottomPaddingFraction`), sonst Media3s 8 %.
+- **Lage und Größe im Bild:** `SubtitleView`, Content-Frame und Oberfläche füllen den ganzen Player; das Bild setzt
+  Ordos Bild-Pipeline mit Balken ein, und `player.videoSize` ist die Ausgabe der Effekt-Kette (so groß wie die
+  Oberfläche). Die sichtbare Bildhöhe kommt deshalb aus `player.videoFormat` (Breite, Höhe, Drehung,
+  Pixel-Seitenverhältnis) und der Einpassung (nur „Einpassen“ hat Balken; `VideoSubtitles.pictureHeight`). Größe und
+  Abstand rechnet Ordo auf sie um (BBC: Anteil der „active video height“); vorher standen die Zeilen hochkant riesig im schwarzen Balken
+  unter dem Bild (Tab A8, 20.11.2026). Abstand vom unteren Bildrand nach Wahl (Standard 8 % wie Media3). Ist die
+  Bedienleiste sichtbar, rücken die Untertitel 3 % über sie, gemessen auf dem Bildschirm (`getLocationOnScreen` von
+  `SubtitleView` und Leiste), neu bei jedem Layout von beiden und jeder neuen Videogröße. Vorher fehlte das beim
+  ersten Anhalten (Tab A8, 20.11.2026: die Zeile lag auf der Zeitleiste). WebVTT-Zeilen mit Standardlage (negative
+  Zeilennummer) und ASS-Zeilen unten (`\an1`–`\an3`, Bruchteil ≥ 0,8) setzt Media3 an den Rand der View, an der
+  Polsterung vorbei: Ordo macht sie zu Zeilen ohne Lage (`VideoSubtitles.isAtBottom`), damit Abstand und Leiste
+  gelten. Lagen oben und in der Mitte (Schilder, `\pos`) bleiben.
 - **Videoinfos** nennen die Dateien als weitere Untertitel-Zeilen („Deutsch · film.de.srt“).
 - **Schnittstelle für später:** `VideoSubtitles.choices()`, `currentChoice()`, `choose()`, `pickFile()`; keine KI im
   Player.
@@ -499,11 +515,17 @@ Gilt für Untertitel-Dateien (deren Zeiten Ordo selbst führt); Spuren im Film z
   gewordener Zeilen; `(klein geschrieben)` ist Dialog und bleibt (`Sdh`).
 - **Sprechernamen farbig** (Standard an): `ANNA:` am Zeilenanfang bekommt je Sprecher eine Farbe in der Reihenfolge der
   BBC (Gelb, Cyan, Grün; Weiß ist der Text), über den ganzen Film gleich.
-- **Kontrast:** Standard ist jetzt „Kasten“ (Weiß auf Schwarz wie bei der BBC). Sein Alpha ist mindestens 0,75 und so
-  hoch, dass Weiß und Gelb auch über reinem Weiß **≥ 4,5:1** erreichen (WCAG 2.2, 1.4.3; geprüft in `ReadingAidTest`
-  über zehn Hintergründe: Weiß 10,5:1, Gelb 8,6:1). „Ohne“ und „Schatten“ hängen vom Bild ab und halten das nicht
-  sicher ein.
-- Von den Dateien bleiben nur Kursiv, Fett und Unterstrichen; Farben und Größen der Datei weichen der Wahl im Blatt.
+- **Kontrast:** Standard ist „Kasten“ (Weiß auf Schwarz, BBC-Richtlinien 8.1). Sein Alpha ist mindestens 0,75 und so
+  hoch, dass jede Farbe auch über reinem Weiß **≥ 4,5:1** erreicht (WCAG 2.2, 1.4.3; geprüft in `ReadingAidTest`
+  über zehn Hintergründe für Weiß, Gelb, Cyan, Grün). „Ohne“ gibt es nicht mehr (Text ohne Rand verschwand auf hellen
+  Bildern); eine alte Wahl „Ohne“ wird zu „Kontur“, alte Größen S/M/L/XL zu 80/100/130/160 %.
+- **Standard-Größe** (`SubtitleStyle.baseFraction`): auf Handys (kleinste Breite < 600 dp) 6,4 % der Bildhöhe, also
+  eine Zeile von etwa 7,5 % (BBC 9.2.1: 7–8 % bei 16:9; 9.2.2: auf kleinen Handys die volle Größe); auf Tablets
+  Media3s 5,33 % (BBC 9.2.2: 0,6–0,8 der Autorengröße). Standard-Schrift „Kräftig“ (`sans-serif-medium`), wie mpv
+  (`--sub-font=sans-serif`) eine serifenlose. Höchstens zwei Zeilen sind Sache der Datei (BBC 3.3, Netflix TTSG); Ordo
+  bricht nicht selbst um.
+- Von den Dateien bleiben nur Kursiv, Fett und Unterstrichen; Farben und Größen der Datei weichen der Wahl im Blatt,
+  außer bei „Stil der Datei“.
 
 Quellen (geprüft laut `WISSENSCHAFT.md` §7): Netflix *English (USA) Timed Text Style Guide* (≤ 20 Z/s Erwachsene,
 ≤ 17 Kinder) und *Swedish Timed Text Style Guide* (≤ 17 / ≤ 13); *BBC Subtitle Guidelines*
