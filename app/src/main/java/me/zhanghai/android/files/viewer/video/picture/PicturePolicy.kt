@@ -171,7 +171,8 @@ object PicturePolicy {
 
     /** Whether the "Bild" sheet's adjustments can run on this video: SDR without DRM on a GPU that copes. */
     fun adjustable(decision: Decision): Boolean =
-        decision.off != Off.NO_VIDEO && decision.off != Off.HDR && decision.off != Off.DRM && decision.off != Off.FAILED
+        decision.off != Off.NO_VIDEO && decision.off != Off.HDR && decision.off != Off.DRM &&
+            decision.off != Off.SOFTWARE && decision.off != Off.FAILED
 
     /** The pass's values when only the adjustments run: no sharpening or debanding of its own, just the dither. */
     val ADJUST_ONLY = ShaderParams(0f, 0, 0f, 0f, 0f, 1f / 255f)

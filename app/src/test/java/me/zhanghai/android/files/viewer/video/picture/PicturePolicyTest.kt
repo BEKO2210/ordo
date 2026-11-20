@@ -165,6 +165,10 @@ class PicturePolicyTest {
         assertTrue(PicturePolicy.adjustable(big))
         assertFalse(PicturePolicy.adjustable(decide(hdr = true)))
         assertFalse(PicturePolicy.adjustable(decide(drm = true)))
+        // FFmpeg decodes on the CPU straight onto the surface: no "Bild" pass either.
+        assertFalse(PicturePolicy.adjustable(decide(software = true)))
+        assertEquals(Pipeline.KEEP_PLAIN, PicturePolicy.pipeline(false, decide(software = true), adjusted = true))
+        assertEquals(Pipeline.RECREATE, PicturePolicy.pipeline(true, decide(software = true), adjusted = true))
         // Remembered adjustments engage before prepare, also for a big video and with the toggle off.
         val sdrBig = PicturePolicy.Probe(3840, 2160, hdr = false, drm = false)
         assertTrue(PicturePolicy.preEngage(false, false, sdrBig, null, 1080, 2400, adjusted = true))
