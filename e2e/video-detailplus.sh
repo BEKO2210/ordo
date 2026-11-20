@@ -60,7 +60,7 @@ sleep 6
 check "the film network is set as an effect" eval 'log | grep -q "effects: detail plus FILM"'
 menu "Signalweg|Signal path"
 check "the signal path names Detail plus film" ui wait "Detail plus (Film|film) \(FSRCNNX x2\)" 5
-a exec-out screencap -p > "$out/signal-detailplus.png"
+screenshot "$out/signal-detailplus.png"
 
 # 3. Measurements: unfold, measure 20 s, read the rows, share the CSV, fold.
 swipe_up; swipe_up
@@ -72,7 +72,7 @@ check "the timer kind is shown" ui has "GPU-Timer|GPU timer|CPU-Uhr|CPU clock"
 if ui has "Detail plus: [0-9]"; then echo "INFO Detail plus kept for 20 s"; else echo "INFO Detail plus not timed (fell back?)"; fi
 check "Lanczos is timed" ui has "Lanczos: [0-9]"
 check "the Klang chain's buffers are measured" ui has "Puffer in der letzten Sekunde|buffers in the last second"
-a exec-out screencap -p > "$out/measurements.png"
+screenshot "$out/measurements.png"
 ui texts | grep -E " ms · |1,00|1\.00|Unterläufe|underruns" | sed 's/^/INFO /'
 a logcat -d -s "$TAG:I" | tr -d '\r' | grep "Detail plus .* off" | tail -1 | sed 's/^/INFO fell back: /'
 ui tap "Als CSV teilen|Share as CSV" >/dev/null; sleep 2

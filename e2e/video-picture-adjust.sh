@@ -40,7 +40,7 @@ sheet() {
 # 1. The sheet: five rows in steps, deinterlacing, reset.
 a logcat -c
 open_video 01-full.mp4
-a exec-out screencap -p > "$out/full-before.png"
+screenshot "$out/full-before.png"
 sheet
 check "the sheet opens" ui wait "Helligkeit|Brightness" 5
 for row in "Kontrast|Contrast" "Sättigung|Saturation" "Farbtemperatur|Colour temperature" "Schärfe|Sharpness" \
@@ -57,7 +57,7 @@ check "two taps show +2" ui has "+2"
 sleep 3
 check "the pass is set although the enhancement has nothing to do" eval 'log | grep -qE -- "-> (ENGAGE|APPLY)"'
 back 1
-a exec-out screencap -p > "$out/full-brighter.png"
+screenshot "$out/full-brighter.png"
 echo "INFO compare $out/full-before.png and $out/full-brighter.png (brighter)"
 
 # 3. Remembered per video, then reset.
@@ -77,7 +77,7 @@ check "the interlaced clip is detected" ui has \
     "Dieses Video hat Zeilensprung: Automatisch entfernt ihn.|This video is interlaced: automatic removes it."
 check "and runs the pass" eval 'log | grep -qE -- "-> (ENGAGE|APPLY)"'
 back 1
-a exec-out screencap -p > "$out/interlaced.png"
+screenshot "$out/interlaced.png"
 echo "INFO look for comb lines on moving edges: $out/interlaced.png"
 back 2
 
