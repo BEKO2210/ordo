@@ -436,7 +436,7 @@ class AudioPlaybackService : MediaSessionService() {
         val label = when {
             plan is OutputPlan.BitPerfect && track != null -> getString(
                 R.string.audio_output_bit_perfect_format,
-                OutputPolicy.label(OutputPolicy.bits(track.encoding), track.sampleRate)
+                OutputPolicy.label(hiRes.source.bits?.takeUnless { hiRes.source.lossy }, track.sampleRate)
             )
             offloaded -> getString(R.string.audio_output_offload)
             else -> null

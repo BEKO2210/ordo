@@ -6,6 +6,8 @@
 package me.zhanghai.android.files.player.output
 
 import android.media.AudioFormat
+import androidx.media3.common.C
+import androidx.media3.common.MimeTypes
 import java.text.NumberFormat
 import me.zhanghai.android.files.player.AudioSettings
 
@@ -14,6 +16,16 @@ data class MixerOption(val sampleRate: Int, val encoding: Int, val channelCount:
 
 /** What Ordo hands Android for a song: the PCM encoding it writes (`AudioFormat.ENCODING_*`), rate and channels. */
 data class TrackFormat(val sampleRate: Int, val encoding: Int, val channelCount: Int)
+
+/**
+ * The song's own bit depth as the extractor declares it (FLAC STREAMINFO, WAV/ALAC PCM encoding); lossy codecs count
+ * as 16 bits for the decision, but the badge shows no bits for them. [bits] null: unknown, never bit-perfect.
+ */
+data class SourceDepth(val bits: Int?, val lossy: Boolean) {
+    companion object {
+        val UNKNOWN = SourceDepth(null, false)
+    }
+}
 
 /** How the output's mixer is set for the song playing. */
 sealed interface OutputPlan {
@@ -46,21 +58,21 @@ object OutputPolicy {
         else -> emptyList()
     }
 
-    fun plan(sdk: Int, bitPerfectMode: Boolean, track: TrackFormat?, options: List<MixerOption>): OutputPlan {
+    fun plan(
+        sdk: Int,
+        bitPerfectMode: Boolean,
+        track: TrackFormat?,
+        options: List<MixerOption>,
+        source: SourceDepth = SourceDepth.UNKNOWN
+    ): OutputPlan {
         if (sdk < MIN_SDK || track == null || track.sampleRate <= 0) return OutputPlan.System
-        if (bitPerfectMode) {
-            fun bitPerfectMixer(writes: Int) = bitPerfectEncodings(writes).firstNotNullOfOrNull { encoding ->
+        if (bitPerfectMode && writesUnchanged(track.encoding, source)) {
+            bitPerfectEncodings(track.encoding).firstNotNullOfOrNull { encoding ->
                 options.firstOrNull {
                     it.bitPerfect && it.encoding == encoding && it.sampleRate == track.sampleRate &&
-                        it.channelCount == track.channelCount
+                        it.channelCount == track.channelCount && mixerBits(encoding) >= source.bits!!
                 }
-            }
-            // Hard check, never "bit-perfect" for changed samples: 16-bit only counts when the decoder was offered
-            // full resolution (a hi-res mixer at this rate), else the 16 bits may be a 24-bit song cut down.
-            val fullResolutionOffered = bitPerfectMixer(AudioFormat.ENCODING_PCM_FLOAT) != null
-            if (track.encoding != AudioFormat.ENCODING_PCM_16BIT || fullResolutionOffered) {
-                bitPerfectMixer(track.encoding)?.let { return OutputPlan.BitPerfect(it) }
-            }
+            }?.let { return OutputPlan.BitPerfect(it) }
         }
         return options.filter { !it.bitPerfect && it.sampleRate == track.sampleRate }
             // Same channels first, then the finest mixer format.
@@ -69,6 +81,52 @@ object OutputPolicy {
             ?.let { OutputPlan.RateMatch(it) }
             ?: OutputPlan.System
     }
+
+    /**
+     * Hard check: what Ordo writes still holds every bit of the song. 16-bit only for songs of up to 16 bits (a 24-bit
+     * song decoded to 16 would be cut), float only up to 24 bits (its mantissa); unknown depth never.
+     */
+    private fun writesUnchanged(writeEncoding: Int, source: SourceDepth): Boolean {
+        val bits = source.bits ?: return false
+        return when (writeEncoding) {
+            AudioFormat.ENCODING_PCM_16BIT -> bits <= 16
+            AudioFormat.ENCODING_PCM_FLOAT -> bits <= 24
+            else -> false
+        }
+    }
+
+    private fun mixerBits(encoding: Int): Int = when (encoding) {
+        AudioFormat.ENCODING_PCM_16BIT -> 16
+        AudioFormat.ENCODING_PCM_24BIT_PACKED -> 24
+        AudioFormat.ENCODING_PCM_32BIT -> 32
+        AudioFormat.ENCODING_PCM_FLOAT -> 24
+        else -> 0
+    }
+
+    /** What Ordo writes for a song: up to 16 bits (and lossy) as 16-bit, deeper songs as float. */
+    fun writeEncodingFor(source: SourceDepth): Int =
+        if ((source.bits ?: 0) > 16) AudioFormat.ENCODING_PCM_FLOAT else AudioFormat.ENCODING_PCM_16BIT
+
+    /**
+     * From the extractor's track Format: the declared PCM encoding (FLAC, WAV, ALAC), else lossy codecs as 16 bits;
+     * a lossless codec without a declared depth stays unknown.
+     */
+    fun sourceDepth(sampleMimeType: String?, pcmEncoding: Int): SourceDepth {
+        val bits = when (pcmEncoding) {
+            C.ENCODING_PCM_8BIT -> 8
+            C.ENCODING_PCM_16BIT, C.ENCODING_PCM_16BIT_BIG_ENDIAN -> 16
+            C.ENCODING_PCM_24BIT, C.ENCODING_PCM_24BIT_BIG_ENDIAN -> 24
+            C.ENCODING_PCM_32BIT, C.ENCODING_PCM_32BIT_BIG_ENDIAN, C.ENCODING_PCM_FLOAT -> 32
+            else -> null
+        }
+        if (bits != null) return SourceDepth(bits, false)
+        return if (sampleMimeType in LOSSLESS || sampleMimeType == null) SourceDepth.UNKNOWN else SourceDepth(16, true)
+    }
+
+    private val LOSSLESS = setOf(
+        MimeTypes.AUDIO_FLAC, MimeTypes.AUDIO_ALAC, MimeTypes.AUDIO_RAW, MimeTypes.AUDIO_TRUEHD,
+        MimeTypes.AUDIO_DTS_HD, MimeTypes.AUDIO_WAV
+    )
 
     /** What the pure sink writes for decoded PCM: hi-res as float (exact up to 24 bits), the rest as 16-bit. */
     fun pureWriteEncoding(pcmEncoding: Int, highResolution: Boolean): Int =
@@ -79,8 +137,13 @@ object OutputPolicy {
      * Per song: the DAC takes exactly this rate, channel count and bit depth bit-perfect. Only then are Ordo's stages
      * bypassed; any other song plays normally, with its effects.
      */
-    fun songBitPerfect(sdk: Int, bitPerfectMode: Boolean, track: TrackFormat, options: List<MixerOption>): Boolean =
-        plan(sdk, bitPerfectMode, track, options) is OutputPlan.BitPerfect
+    fun songBitPerfect(
+        sdk: Int,
+        bitPerfectMode: Boolean,
+        track: TrackFormat,
+        options: List<MixerOption>,
+        source: SourceDepth
+    ): Boolean = plan(sdk, bitPerfectMode, track, options, source) is OutputPlan.BitPerfect
 
     private fun resolution(encoding: Int): Int = when (encoding) {
         AudioFormat.ENCODING_PCM_FLOAT -> 4
@@ -107,10 +170,9 @@ object OutputPolicy {
         bitPerfectUsb = settings.bitPerfectUsb
     )
 
-    /** Bits the DAC gets that carry music: 16 for 16-bit, else 24 (the float path is exact up to 24 bits). */
-    fun bits(writeEncoding: Int): Int = if (writeEncoding == AudioFormat.ENCODING_PCM_16BIT) 16 else 24
-
     /** "24/96", "16/44,1": bits and kHz as hi-fi players show them. */
-    fun label(bits: Int, sampleRate: Int, format: NumberFormat = NumberFormat.getInstance()): String =
-        "$bits/" + format.apply { maximumFractionDigits = 1 }.format(sampleRate / 1000.0)
+    fun label(bits: Int?, sampleRate: Int, format: NumberFormat = NumberFormat.getInstance()): String {
+        val khz = format.apply { maximumFractionDigits = 1 }.format(sampleRate / 1000.0)
+        return if (bits == null) "$khz kHz" else "$bits/$khz"
+    }
 }

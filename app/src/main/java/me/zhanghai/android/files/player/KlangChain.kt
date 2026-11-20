@@ -12,6 +12,14 @@ import androidx.media3.common.audio.BaseAudioProcessor
 import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.audio.AudioSink
 import androidx.media3.exoplayer.audio.DefaultAudioSink
+import android.os.Handler
+import androidx.media3.exoplayer.DecoderReuseEvaluation
+import androidx.media3.exoplayer.FormatHolder
+import androidx.media3.exoplayer.Renderer
+import androidx.media3.exoplayer.audio.AudioRendererEventListener
+import androidx.media3.exoplayer.audio.MediaCodecAudioRenderer
+import androidx.media3.exoplayer.mediacodec.MediaCodecSelector
+import me.zhanghai.android.files.player.output.OutputPolicy
 import me.zhanghai.android.files.player.output.HiResAudioSink
 import me.zhanghai.android.files.player.output.HiResOutput
 import java.nio.ByteBuffer
@@ -383,6 +391,40 @@ class AudioRenderersFactory(
     init {
         // Platform decoders first, FFmpeg (AC3/E-AC3/DTS/TrueHD) only for what the device cannot decode.
         setExtensionRendererMode(EXTENSION_RENDERER_MODE_ON)
+    }
+
+    // The platform renderer tells HiResOutput each song's declared depth before its decoder starts, so the sink can
+    // decide bit-perfect by the source (FLAC STREAMINFO, WAV), not by what the decoder hands over.
+    override fun buildAudioRenderers(
+        context: Context,
+        extensionRendererMode: Int,
+        mediaCodecSelector: MediaCodecSelector,
+        enableDecoderFallback: Boolean,
+        audioSink: AudioSink,
+        eventHandler: Handler,
+        eventListener: AudioRendererEventListener,
+        out: ArrayList<Renderer>
+    ) {
+        super.buildAudioRenderers(
+            context, extensionRendererMode, mediaCodecSelector, enableDecoderFallback, audioSink, eventHandler,
+            eventListener, out
+        )
+        val output = output ?: return
+        val index = out.indexOfFirst { it.javaClass == MediaCodecAudioRenderer::class.java }
+        if (index < 0) return
+        out[index] = object : MediaCodecAudioRenderer(
+            context, codecAdapterFactory, mediaCodecSelector, enableDecoderFallback, eventHandler, eventListener,
+            audioSink
+        ) {
+            override fun onInputFormatChanged(formatHolder: FormatHolder): DecoderReuseEvaluation? {
+                formatHolder.format?.let {
+                    output.onSourceFormat(
+                        it.sampleRate, it.channelCount, OutputPolicy.sourceDepth(it.sampleMimeType, it.pcmEncoding)
+                    )
+                }
+                return super.onInputFormatChanged(formatHolder)
+            }
+        }
     }
 
     override fun buildAudioSink(

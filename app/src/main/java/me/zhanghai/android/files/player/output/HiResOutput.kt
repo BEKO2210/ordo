@@ -38,6 +38,21 @@ class HiResOutput(context: Context, val allowsBitPerfect: Boolean) {
     @Volatile var track: TrackFormat? = null
         private set
 
+    /** The song's declared depth, from the renderer's input format (before its decoder starts), with rate/channels. */
+    @Volatile private var sourceFormat: Triple<Int, Int, SourceDepth>? = null
+
+    /** The depth of [track]'s song, as last played: set when the renderer reads the song's format. */
+    @Volatile var source: SourceDepth = SourceDepth.UNKNOWN
+        private set
+
+    fun onSourceFormat(sampleRate: Int, channelCount: Int, depth: SourceDepth) {
+        sourceFormat = Triple(sampleRate, channelCount, depth)
+    }
+
+    /** The depth of the song the sink sees; unknown if the stored format belongs to another song. */
+    fun sourceFor(sampleRate: Int, channelCount: Int): SourceDepth =
+        sourceFormat?.takeIf { it.first == sampleRate && it.second == channelCount }?.third ?: SourceDepth.UNKNOWN
+
     /** The integer encoding float is packed into for a bit-perfect hi-res mixer; null to write as is. */
     @Volatile var packFloatTo: Int? = null
         private set
@@ -69,13 +84,14 @@ class HiResOutput(context: Context, val allowsBitPerfect: Boolean) {
     }
 
     /** This song (as the pure sink would write it) goes bit-perfect to the DAC. */
-    fun acceptsBitPerfect(track: TrackFormat): Boolean =
-        OutputPolicy.songBitPerfect(Build.VERSION.SDK_INT, bitPerfectMode, track, options)
+    fun acceptsBitPerfect(track: TrackFormat, depth: SourceDepth): Boolean =
+        OutputPolicy.songBitPerfect(Build.VERSION.SDK_INT, bitPerfectMode, track, options, depth)
 
     /** The sink is about to play [track] (null: not PCM); sets the mixer for it. */
     @Synchronized
-    fun onConfigure(track: TrackFormat?) {
+    fun onConfigure(track: TrackFormat?, depth: SourceDepth = source) {
         this.track = track
+        source = depth
         val device = routedDevice()
         // A new route: the old device's mixer goes back first.
         if (appliedDevice != null && appliedDevice?.id != device?.id) clear()
@@ -84,7 +100,7 @@ class HiResOutput(context: Context, val allowsBitPerfect: Boolean) {
             return
         }
         val supported = supportedMixers(device)
-        var next = OutputPolicy.plan(Build.VERSION.SDK_INT, bitPerfectMode, track, supported.keys.toList())
+        var next = OutputPolicy.plan(Build.VERSION.SDK_INT, bitPerfectMode, track, supported.keys.toList(), depth)
         val mixer = when (next) {
             is OutputPlan.BitPerfect -> supported[next.mixer]
             is OutputPlan.RateMatch -> supported[next.mixer]

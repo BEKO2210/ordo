@@ -6,6 +6,9 @@
 package me.zhanghai.android.files.player.output
 
 import android.media.AudioFormat
+import androidx.media3.common.C
+import androidx.media3.common.Format
+import androidx.media3.common.MimeTypes
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.text.NumberFormat
@@ -36,19 +39,19 @@ class OutputPolicyTest {
 
     @Test
     fun nothingBeforeAndroid14() {
-        assertEquals(OutputPlan.System, OutputPolicy.plan(33, true, TrackFormat(96_000, float, 2), dac))
+        assertEquals(OutputPlan.System, OutputPolicy.plan(33, true, TrackFormat(96_000, float, 2), dac, FLAC24))
     }
 
     @Test
     fun bitPerfectMatchesTheSongExactly() {
         assertEquals(
             OutputPlan.BitPerfect(MixerOption(44_100, pcm16, 2, true)),
-            OutputPolicy.plan(34, true, TrackFormat(44_100, pcm16, 2), dac)
+            OutputPolicy.plan(34, true, TrackFormat(44_100, pcm16, 2), dac, FLAC16)
         )
         // Hi-res arrives as float and goes into the DAC's 32-bit integers.
         assertEquals(
             OutputPlan.BitPerfect(MixerOption(96_000, pcm32, 2, true)),
-            OutputPolicy.plan(34, true, TrackFormat(96_000, float, 2), dac)
+            OutputPolicy.plan(34, true, TrackFormat(96_000, float, 2), dac, FLAC24)
         )
     }
 
@@ -57,7 +60,7 @@ class OutputPolicyTest {
         val options = listOf(MixerOption(96_000, pcm24, 2, true))
         assertEquals(
             OutputPlan.BitPerfect(options[0]),
-            OutputPolicy.plan(34, true, TrackFormat(96_000, float, 2), options)
+            OutputPolicy.plan(34, true, TrackFormat(96_000, float, 2), options, FLAC24)
         )
     }
 
@@ -66,15 +69,15 @@ class OutputPolicyTest {
         // Off: the normal mixer at the song's rate, the finest format.
         assertEquals(
             OutputPlan.RateMatch(MixerOption(96_000, float, 2, false)),
-            OutputPolicy.plan(34, false, TrackFormat(96_000, float, 2), dac)
+            OutputPolicy.plan(34, false, TrackFormat(96_000, float, 2), dac, FLAC24)
         )
         // On, but no bit-perfect mixer for mono: no bit-perfect claim, still no resampling.
         assertEquals(
             OutputPlan.RateMatch(MixerOption(48_000, float, 2, false)),
-            OutputPolicy.plan(34, true, TrackFormat(48_000, pcm16, 1), dac)
+            OutputPolicy.plan(34, true, TrackFormat(48_000, pcm16, 1), dac, FLAC16)
         )
         // A rate the output does not offer: Android's default, silently.
-        assertEquals(OutputPlan.System, OutputPolicy.plan(34, true, TrackFormat(88_200, float, 2), dac))
+        assertEquals(OutputPlan.System, OutputPolicy.plan(34, true, TrackFormat(88_200, float, 2), dac, FLAC24))
         // Not PCM (offload): nothing to match.
         assertEquals(OutputPlan.System, OutputPolicy.plan(34, false, null, dac))
         // The speaker usually offers nothing.
@@ -84,34 +87,57 @@ class OutputPolicyTest {
     @Test
     fun sixteenBitNeverGoesToAWiderBitPerfectMixer() {
         val only32 = listOf(MixerOption(44_100, pcm32, 2, true))
-        assertEquals(OutputPlan.System, OutputPolicy.plan(34, true, TrackFormat(44_100, pcm16, 2), only32))
+        assertEquals(OutputPlan.System, OutputPolicy.plan(34, true, TrackFormat(44_100, pcm16, 2), only32, FLAC16))
     }
 
     @Test
     fun bypassOnlyForASongTheDacTakesBitPerfect() {
-        fun song(rate: Int, channels: Int, highRes: Boolean) =
-            TrackFormat(rate, OutputPolicy.pureWriteEncoding(pcm16, highRes), channels)
+        fun song(rate: Int, channels: Int, source: SourceDepth) =
+            TrackFormat(rate, OutputPolicy.writeEncodingFor(source), channels)
         // 24/96 and 16/44.1 stereo: the DAC takes them, Ordo's stages are bypassed.
-        assertTrue(OutputPolicy.songBitPerfect(34, true, song(96_000, 2, true), dac))
-        assertTrue(OutputPolicy.songBitPerfect(34, true, song(44_100, 2, false), dac))
+        assertTrue(OutputPolicy.songBitPerfect(34, true, song(96_000, 2, FLAC24), dac, FLAC24))
+        assertTrue(OutputPolicy.songBitPerfect(34, true, song(44_100, 2, FLAC16), dac, FLAC16))
         // Mono, 88.2 kHz (not offered) or 5.1: plays normally, with its effects.
-        assertFalse(OutputPolicy.songBitPerfect(34, true, song(44_100, 1, false), dac))
-        assertFalse(OutputPolicy.songBitPerfect(34, true, song(88_200, 2, true), dac))
-        assertFalse(OutputPolicy.songBitPerfect(34, true, song(48_000, 6, true), dac))
-        // A DAC with only 16-bit bit-perfect: a 24-bit song is decoded to 16 bits there, so it must never count
-        // (fewer mixer bits than the song); a 16-bit write cannot be told apart from it, so neither counts.
-        val only16 = dac.filter { it.encoding == pcm16 }
-        assertFalse(OutputPolicy.songBitPerfect(34, true, song(96_000, 2, true), only16))
-        assertFalse(OutputPolicy.songBitPerfect(34, true, TrackFormat(96_000, pcm16, 2), only16))
-        assertEquals(
-            OutputPlan.RateMatch(MixerOption(96_000, pcm16, 2, false)),
-            OutputPolicy.plan(34, true, TrackFormat(96_000, pcm16, 2), only16)
+        assertFalse(OutputPolicy.songBitPerfect(34, true, song(44_100, 1, FLAC16), dac, FLAC16))
+        assertFalse(OutputPolicy.songBitPerfect(34, true, song(88_200, 2, FLAC24), dac, FLAC24))
+        assertFalse(OutputPolicy.songBitPerfect(34, true, song(48_000, 6, FLAC24), dac, FLAC24))
+        // Setting off, before Android 14, or a depth nobody declared: never.
+        assertFalse(OutputPolicy.songBitPerfect(34, false, song(44_100, 2, FLAC16), dac, FLAC16))
+        assertFalse(OutputPolicy.songBitPerfect(33, true, song(44_100, 2, FLAC16), dac, FLAC16))
+        assertFalse(
+            OutputPolicy.songBitPerfect(34, true, TrackFormat(44_100, pcm16, 2), dac, SourceDepth.UNKNOWN)
         )
-        // Setting off, or before Android 14: never.
-        assertFalse(OutputPolicy.songBitPerfect(34, false, song(44_100, 2, false), dac))
-        assertFalse(OutputPolicy.songBitPerfect(33, true, song(44_100, 2, false), dac))
-        // Float from the decoder counts as hi-res.
-        assertEquals(float, OutputPolicy.pureWriteEncoding(float, false))
+    }
+
+    @Test
+    fun sixteenBitDacTakesCdQualityButNeverA24BitSong() {
+        val only16 = dac.filter { it.encoding == pcm16 }
+        fun song(source: SourceDepth) = TrackFormat(44_100, OutputPolicy.writeEncodingFor(source), 2)
+        // 16-bit FLAC on a 16-bit-only DAC: bit-perfect.
+        assertTrue(OutputPolicy.songBitPerfect(34, true, song(FLAC16), only16, FLAC16))
+        // 24-bit FLAC: written as float, no mixer with enough bits, not bit-perfect ...
+        assertFalse(OutputPolicy.songBitPerfect(34, true, song(FLAC24), only16, FLAC24))
+        // ... nor when its decoder handed over 16 bits: fewer bits than the song.
+        assertFalse(OutputPolicy.songBitPerfect(34, true, TrackFormat(44_100, pcm16, 2), only16, FLAC24))
+        assertEquals(
+            OutputPlan.RateMatch(MixerOption(44_100, pcm16, 2, false)),
+            OutputPolicy.plan(34, true, TrackFormat(44_100, pcm16, 2), only16, FLAC24)
+        )
+        // Lossy counts as 16 bits.
+        assertTrue(OutputPolicy.songBitPerfect(34, true, song(LOSSY), only16, LOSSY))
+    }
+
+    @Test
+    fun sourceDepthFromTheExtractorFormat() {
+        assertEquals(FLAC16, OutputPolicy.sourceDepth(MimeTypes.AUDIO_FLAC, C.ENCODING_PCM_16BIT))
+        assertEquals(FLAC24, OutputPolicy.sourceDepth(MimeTypes.AUDIO_FLAC, C.ENCODING_PCM_24BIT))
+        assertEquals(FLAC24, OutputPolicy.sourceDepth(MimeTypes.AUDIO_RAW, C.ENCODING_PCM_24BIT))
+        assertEquals(LOSSY, OutputPolicy.sourceDepth(MimeTypes.AUDIO_MPEG, Format.NO_VALUE))
+        assertEquals(LOSSY, OutputPolicy.sourceDepth(MimeTypes.AUDIO_AAC, Format.NO_VALUE))
+        assertEquals(LOSSY, OutputPolicy.sourceDepth(MimeTypes.AUDIO_OPUS, Format.NO_VALUE))
+        assertEquals(SourceDepth.UNKNOWN, OutputPolicy.sourceDepth(MimeTypes.AUDIO_ALAC, Format.NO_VALUE))
+        assertEquals(pcm16, OutputPolicy.writeEncodingFor(FLAC16))
+        assertEquals(float, OutputPolicy.writeEncodingFor(FLAC24))
     }
 
     @Test
@@ -160,8 +186,10 @@ class OutputPolicyTest {
     @Test
     fun badgeLabel() {
         val german = NumberFormat.getInstance(Locale.GERMANY)
-        assertEquals("24/96", OutputPolicy.label(OutputPolicy.bits(float), 96_000, german))
-        assertEquals("16/44,1", OutputPolicy.label(OutputPolicy.bits(pcm16), 44_100, german))
+        assertEquals("24/96", OutputPolicy.label(24, 96_000, german))
+        assertEquals("16/44,1", OutputPolicy.label(16, 44_100, german))
+        // Lossy: no bits on the badge.
+        assertEquals("44,1 kHz", OutputPolicy.label(null, 44_100, german))
         assertEquals("24/88.2", OutputPolicy.label(24, 88_200, NumberFormat.getInstance(Locale.US)))
     }
 
@@ -200,6 +228,9 @@ class OutputPolicyTest {
     }
 
     private companion object {
+        val FLAC16 = SourceDepth(16, false)
+        val FLAC24 = SourceDepth(24, false)
+        val LOSSY = SourceDepth(16, true)
         // Media3's C.ENCODING_PCM_32BIT / C.ENCODING_PCM_24BIT are AudioFormat's values.
         const val PcmPacking32 = AudioFormat.ENCODING_PCM_32BIT
         const val PcmPacking24 = AudioFormat.ENCODING_PCM_24BIT_PACKED

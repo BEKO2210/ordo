@@ -55,13 +55,19 @@ class HiResAudioSink(
     private var current = mixing
     private var playing = false
 
-    /** The pure sink only for a song the DAC takes bit-perfect; every other song keeps Ordo's stages. */
+    /**
+     * The pure sink only for a song the DAC takes bit-perfect; every other song keeps Ordo's stages. Asked first with
+     * the PCM a decoder could give (float or 16-bit), so a song of up to 16 bits is decoded to 16 bits and a deeper
+     * one to float; then with the decoded PCM.
+     */
     private fun wanted(format: Format): AudioSink {
         if (pure == null || !output.bitPerfectMode || MimeTypes.AUDIO_RAW != format.sampleMimeType) return mixing
+        val depth = output.sourceFor(format.sampleRate, format.channelCount)
         val writes = OutputPolicy.pureWriteEncoding(
             format.pcmEncoding, Util.isEncodingHighResolutionPcm(format.pcmEncoding)
         )
-        return if (output.acceptsBitPerfect(TrackFormat(format.sampleRate, writes, format.channelCount))) pure
+        if (writes != OutputPolicy.writeEncodingFor(depth)) return mixing
+        return if (output.acceptsBitPerfect(TrackFormat(format.sampleRate, writes, format.channelCount), depth)) pure
         else mixing
     }
 
@@ -79,7 +85,8 @@ class HiResAudioSink(
                     AudioFormat.ENCODING_PCM_FLOAT
                 } else AudioFormat.ENCODING_PCM_16BIT
                 TrackFormat(format.sampleRate, writes, format.channelCount)
-            } else null
+            } else null,
+            output.sourceFor(format.sampleRate, format.channelCount)
         )
         current.configure(audioSinkConfig)
     }
