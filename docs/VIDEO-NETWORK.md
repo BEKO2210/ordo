@@ -52,7 +52,7 @@ wiederverwendet wird).
   Player), Abspielen/Pause, Leiser/Lauter in 20 Stufen (keine Regler) mit „Lautstärke 40 %“, die Lautstärketasten
   ebenso, und „Auf diesem Handy weiterschauen“. Im Querformat scrollt sie.
 - **Übergabe:** Handy → Fernseher an der aktuellen Stelle, das Handy pausiert. Fernseher → Handy an der Stelle des
-  Fernsehers, pausiert, und die Stelle wird für „Weiterschauen“ gespeichert. Läuft der Film auf dem Fernseher zu Ende, schließt Ordo die App dort und zeigt am Handy das Ende („Nochmal ansehen“). Während der Verbindung pausiert das Handy schon, damit die Stelle stimmt. Verbindung weg: „Verbindung zu X verloren.
+  Fernsehers, pausiert, und die Stelle wird für „Weiterschauen“ gespeichert. Läuft der Film auf dem Fernseher zu Ende, schließt Ordo die App dort und zeigt am Handy das Ende („Nochmal ansehen“). Während der Verbindung pausiert das Handy schon, damit die Stelle stimmt. Klappt das Verbinden nicht (Format, Gerät nicht erreichbar, abgebrochen), spielt das Handy an derselben Stelle weiter, wenn es vorher lief, mit dem Grund und „Das Video läuft hier weiter.“ Alles, was Netz oder einen fremden Anbieter berührt (Dateiname einer `content://`-Datei, Formatprüfung, Verbindung, Schließen), läuft nicht auf dem Haupt-Thread. Verbindung weg: „Verbindung zu X verloren.
   Das Video ist hier pausiert.“ Schließt man den Player, endet auch die Wiedergabe auf dem Fernseher (ohne Player gäbe
   es nichts, was sie steuert). WLAN- und Wake-Lock wie bei der Musik.
 

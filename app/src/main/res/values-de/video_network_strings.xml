@@ -19,4 +19,5 @@
     <string name="video_cast_volume_format">Lautstärke %1$d %%</string>
     <string name="video_cast_volume_down">Leiser</string>
     <string name="video_cast_volume_up">Lauter</string>
+    <string name="video_cast_continues_here">%1$s Das Video läuft hier weiter.</string>
 </resources>

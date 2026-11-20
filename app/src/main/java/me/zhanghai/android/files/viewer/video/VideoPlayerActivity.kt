@@ -476,6 +476,12 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
             prepareAfterError(player)
             updateUi(player)
         }
+
+        override fun onCastFailed(play: Boolean) {
+            val player = player ?: return
+            prepareAfterError(player)
+            if (play) player.play()
+        }
     }
 
     override fun onUserLeaveHint() {
