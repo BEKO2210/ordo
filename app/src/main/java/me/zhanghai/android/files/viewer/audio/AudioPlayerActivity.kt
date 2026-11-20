@@ -106,6 +106,8 @@ class AudioPlayerActivity : AppActivity(), AppAccentActivity {
     private var colorAnimator: ValueAnimator? = null
     /** accent, onAccent, container: what the controls show now (animated between songs). */
     private var colors = IntArray(3)
+    /** Secondary text (artist, times, lyrics) as drawn: at least 4.5:1 on the current veil. */
+    private var secondaryText = 0
     private var seekBubble: TextView? = null
     private var wavePlaying: Boolean? = null
     private lateinit var lyricsView: PlayerLyricsView
@@ -202,6 +204,7 @@ class AudioPlayerActivity : AppActivity(), AppAccentActivity {
         })
         onBackPressedDispatcher.addCallback(this, lyricsBack)
         colors = themeColors()
+        applySecondaryText(themeColor(com.google.android.material.R.attr.colorSurface))
         // A hairline (24 % onSurface) keeps a pale cover apart from a pale backdrop (review panel 18.11.2026).
         // The cover's shadow and clip follow its own rounded corners. Its outline was a plain rectangle, so the bottom
         // corners carried a square shadow while the top ones looked round (owner's macro photo, 19.11.2026).
@@ -750,7 +753,7 @@ class AudioPlayerActivity : AppActivity(), AppAccentActivity {
             ?: drawable.toBitmap(CoverBlur.SIZE, CoverBlur.SIZE, Bitmap.Config.ARGB_8888)
         val surface = themeColor(com.google.android.material.R.attr.colorSurface)
         val onSurface = themeColor(com.google.android.material.R.attr.colorOnSurface)
-        val secondaryText = themeColor(android.R.attr.textColorSecondary)
+        val themeSecondary = themeColor(android.R.attr.textColorSecondary)
         val fallback = themeColors()
         val isLight = ColorUtils.calculateLuminance(surface) > 0.5
         val coverColors = OrdoSettings.MUSIC_COVER_COLORS.valueCompat
@@ -769,6 +772,7 @@ class AudioPlayerActivity : AppActivity(), AppAccentActivity {
                 } ?: fallback
                 CoverBlur.blur(pixels, size, size)
                 val veil = scheme?.tint ?: surface
+                val secondaryText = AudioPlayerColorWash.readableText(themeSecondary, veil)
                 val fields = scheme?.let { intArrayOf(it.accent, it.container) } ?: IntArray(0)
                 val alpha = AudioPlayerColorWash.veilAlpha(
                     pixels.filterIndexed { i, _ -> i % VEIL_SAMPLE_STEP == 0 }.toIntArray() + fields,
@@ -780,6 +784,7 @@ class AudioPlayerActivity : AppActivity(), AppAccentActivity {
                 )
             }
             if (artworkKey != key || isFinishing) return@launch
+            applySecondaryText(look.veil)
             atmosphere.show(look)
             fadeColors(target)
         }
@@ -788,8 +793,16 @@ class AudioPlayerActivity : AppActivity(), AppAccentActivity {
     /** No cover: the theme's own colours over the plain surface. */
     private fun updateBackgroundWash() {
         val surface = themeColor(com.google.android.material.R.attr.colorSurface)
+        applySecondaryText(surface)
         atmosphere.show(PlayerAtmosphereView.Look(null, IntArray(0), surface, 1f))
         fadeColors(themeColors())
+    }
+
+    private fun applySecondaryText(veil: Int) {
+        secondaryText = AudioPlayerColorWash.readableText(themeColor(android.R.attr.textColorSecondary), veil)
+        for (view in listOf(binding.artist, binding.album, binding.elapsed, binding.remaining)) {
+            view.setTextColor(secondaryText)
+        }
     }
 
     private fun themeColors(): IntArray {
@@ -852,7 +865,7 @@ class AudioPlayerActivity : AppActivity(), AppAccentActivity {
     private fun showLyrics() {
         val lyrics = lyrics ?: return
         lyricsView.show(lyrics, themeColor(com.google.android.material.R.attr.colorOnSurface),
-            themeColor(android.R.attr.textColorSecondary),
+            secondaryText,
             atmosphere.veilColor.takeIf { it != 0 } ?: themeColor(com.google.android.material.R.attr.colorSurface))
         lyricsView.setSong(binding.title.text, binding.artist.text)
         if (!lyricsView.isVisible) {

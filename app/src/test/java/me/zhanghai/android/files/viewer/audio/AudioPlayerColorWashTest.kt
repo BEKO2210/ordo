@@ -125,6 +125,22 @@ class AudioPlayerColorWashTest {
         assertTrue(AudioPlayerColorWash.contrastRatio(0xffe6edf5.toInt(), 0xffe4e4e8.toInt()) < 1.5)
     }
 
+    @Test
+    fun translucentSecondaryTextGetsJustEnoughOpacity() {
+        // Material's dynamic secondary text on a light wallpaper surface measured 4.3:1 on the Tab (20.11.2026).
+        val surface = 0xfffaf5f7.toInt()
+        val faint = 0x8c1d1b1b.toInt()
+        assertTrue(AudioPlayerColorWash.contrastRatio(faint, surface) < 4.5)
+        val readable = AudioPlayerColorWash.readableText(faint, surface)
+        assertTrue(AudioPlayerColorWash.contrastRatio(readable, surface) >= 4.5)
+        assertTrue(readable ushr 24 < 0xff)
+        assertEquals(readable and 0xffffff, faint and 0xffffff)
+        // Already readable: unchanged; dark theme too.
+        assertEquals(0xff475569.toInt(), AudioPlayerColorWash.readableText(0xff475569.toInt(), 0xfffafbfc.toInt()))
+        val dark = AudioPlayerColorWash.readableText(0x66e6e1e5, 0xff141218.toInt())
+        assertTrue(AudioPlayerColorWash.contrastRatio(dark, 0xff141218.toInt()) >= 4.5)
+    }
+
     private fun mix(bottom: Int, top: Int, alpha: Float): Int {
         fun channel(shift: Int) =
             ((bottom shr shift and 0xff) * (1 - alpha) + (top shr shift and 0xff) * alpha).toInt() shl shift

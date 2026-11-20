@@ -172,6 +172,18 @@ internal object AudioPlayerColorWash {
         return accent
     }
 
+    /**
+     * [text] at the lowest opacity, from its own up, that reads 4.5:1 on [background]. Material's dynamic secondary
+     * text is translucent and stayed at 4.3:1 on a light wallpaper surface (Tab, 20.11.2026).
+     */
+    fun readableText(text: Int, background: Int): Int {
+        for (alpha in (text ushr 24)..0xff step 8) {
+            val color = (alpha shl 24) or (text and 0xffffff)
+            if (contrastRatio(color, background) >= MINIMUM_TEXT_CONTRAST) return color
+        }
+        return text or -0x1000000
+    }
+
     fun contrastRatio(first: Int, second: Int): Double = contrast(over(first, second), second)
 
     private fun over(top: Int, bottom: Int): Int {
