@@ -190,10 +190,13 @@ def open_menu_entry(entry):
             if n["desc"] in ("Weitere Optionen", "More options"):
                 tap(n)
                 break
-        for n in dump():
-            if n["text"] == entry:
-                tap(n)
-                time.sleep(1)
+        for _ in range(4):
+            for n in clickables(dump()):
+                if label(n) == entry or n["text"] == entry:
+                    tap(n)
+                    time.sleep(1)
+                    return
+            if not scroll_inside(dump(), "More"):
                 return
     return go
 
@@ -282,11 +285,19 @@ def rotate_with(name, setup):
 rotate(ORIENT)
 screens = [("library", open_library), ("video settings", open_settings), ("player paused", open_player)]
 open_player()
+before = {key(n) for n in clickables(dump())}
 for n in dump():
     if n["desc"] in ("Weitere Optionen", "More options"):
         tap(n)
         break
-entries = [n["text"] for n in dump() if n["id"] == "title" and n["text"]]
+# Whatever ⋮ opens (a popup menu before 0.17, the "More" sheet since #117): its new controls are the entries.
+entries = []
+for page in range(3):
+    for n in clickables(dump()):
+        if key(n) not in before and label(n) not in entries:
+            entries.append(label(n))
+    if not scroll_inside(dump(), "More"):
+        break
 sh("input keyevent BACK")
 for entry in entries:
     screens.append((f"player › {entry}", open_menu_entry(entry)))
