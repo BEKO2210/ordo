@@ -129,6 +129,19 @@ class KlangSheet(val context: Context, @DrawableRes icon: Int, title: CharSequen
         return column
     }
 
+    /** A section heading in the accent colour with its symbol, as the Klang sheet's "Effects" and "Playback". */
+    fun section(parent: ViewGroup, @DrawableRes icon: Int, title: CharSequence): TextView =
+        TextView(context, null, 0, R.style.Widget_Ordo_Klang_Section).apply {
+            text = title
+            gravity = Gravity.CENTER_VERTICAL
+            minHeight = res.getDimensionPixelSize(R.dimen.klang_touch_target)
+            compoundDrawablePadding = res.getDimensionPixelSize(R.dimen.klang_space_sm)
+            setCompoundDrawablesRelativeWithIntrinsicBounds(AppCompatResources.getDrawable(context, icon)?.mutate(), null, null, null)
+            compoundDrawableTintList = ColorStateList.valueOf(primary())
+            ViewCompat.setAccessibilityHeading(this, true)
+            parent.addView(this)
+        }
+
     private fun headerRow(@DrawableRes icon: Int, title: CharSequence, summary: CharSequence?): View =
         LinearLayout(context).apply {
             orientation = LinearLayout.HORIZONTAL

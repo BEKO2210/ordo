@@ -26,9 +26,9 @@ internal object VideoMoreSheet {
     private class Group(val id: Int, @DrawableRes val icon: Int, @StringRes val title: Int)
 
     private val GROUPS = listOf(
-        Group(R.id.groupVideoPictureSound, R.drawable.audio_equalizer_icon_24dp, R.string.video_more_picture_sound),
+        Group(R.id.groupVideoPictureSound, R.drawable.image_icon_white_24dp, R.string.video_more_picture_sound),
         Group(R.id.groupVideoPlayback, R.drawable.audio_playback_icon_24dp, R.string.video_more_playback),
-        Group(R.id.groupVideoFile, R.drawable.information_icon_white_24dp, R.string.video_more_file)
+        Group(R.id.groupVideoFile, R.drawable.file_video_icon, R.string.video_more_file)
     )
 
     /**
@@ -45,7 +45,8 @@ internal object VideoMoreSheet {
         val grid = sheet.grid()
         for ((index, entries) in grouped(items, GROUPS.map { it.id }) { it.groupId }) {
             val group = GROUPS[index]
-            val card = sheet.card(group.icon, context.getString(group.title), parent = grid)
+            val card = sheet.card(group.icon, null, parent = grid)
+            sheet.section(card, group.icon, context.getString(group.title))
             for (item in entries) entry(sheet, card, menu, item)
         }
         sheet.show()
