@@ -90,7 +90,7 @@ class SubtitleLogicTest {
 
     @Test
     fun storeEntriesAndStyleSurviveEncoding() {
-        val entry = SubtitleStore.Entry(SubtitleChoice.File("file:///m/film.de.srt"), -1_300, "windows-1252")
+        val entry = SubtitleStore.Entry(SubtitleChoice.File("file:///m/film.de.srt"), -1_300, "windows-1252", "14:99")
         assertEquals(entry, SubtitleStore.decode(SubtitleStore.encode(entry, 42)))
         val empty = SubtitleStore.Entry(null)
         assertEquals(empty, SubtitleStore.decode(SubtitleStore.encode(empty, 42)))

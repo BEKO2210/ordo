@@ -16,7 +16,8 @@ command -v ffmpeg >/dev/null || { echo "SKIP video subtitles (no ffmpeg on the h
 ffmpeg -v error -f lavfi -i "testsrc=size=1280x720:rate=30:duration=30" -f lavfi -i "sine=frequency=440:duration=30" \
     -c:v libx264 -preset veryfast -pix_fmt yuv420p -c:a aac -shortest "$tmp/film.mp4" || { fail "ffmpeg film.mp4"; finish; }
 printf '1\r\n00:00:00,500 --> 00:00:29,000\r\nGröße, Übermaß\r\n' | iconv -f UTF-8 -t WINDOWS-1252 > "$tmp/film.de.srt"
-printf '1\n00:00:00,500 --> 00:00:29,000\nHello there\n' > "$tmp/film.en.srt"
+# The owner's case (Tab S9, 20.11.2026): UTF-8 without BOM read as "fÃ¼r" after a charset chip had been pressed.
+printf '1\n00:00:00,500 --> 00:00:29,000\nUntertitel für den Crawler\n' > "$tmp/film.en.srt"
 printf '1\n00:00:00,500 --> 00:00:29,000\nInside the film\n' > "$tmp/intern.srt"
 ffmpeg -v error -i "$tmp/film.mp4" -i "$tmp/intern.srt" -map 0 -map 1 -c copy -c:s srt \
     -metadata:s:s:0 language=eng "$tmp/intern.mkv" || { fail "ffmpeg intern.mkv"; finish; }
@@ -47,6 +48,17 @@ check "the sheet offers Load subtitles…" ui has "Untertitel laden…|Load subt
 # On a German device it came on by itself; on any device a tap chooses it (the label is read when the sheet opens).
 ui tap "Deutsch · film.de.srt|German · film.de.srt" >/dev/null; sleep 1; back 1; sheet
 check "the German file is read as Windows-1252" ui has "Automatisch (windows-1252)|Automatic (windows-1252)"
+# 1b. A manual charset belongs to its own file and never garbles UTF-8: Windows-1252 pressed on the UTF-8 file
+# bounces back to "Automatic (UTF-8)", and the picture is kept for a look at "für".
+ui tap "Englisch · film.en.srt|English · film.en.srt" >/dev/null; sleep 1
+scroll_to "Westeuropäisch (Windows-1252)|Western (Windows-1252)" 3
+ui tap "Westeuropäisch (Windows-1252)|Western (Windows-1252)" >/dev/null; sleep 1.5; back 1; sheet
+scroll_to "Automatisch (UTF-8)|Automatic (UTF-8)" 3
+check "a manual code page never garbles a UTF-8 file" ui has "Automatisch (UTF-8)|Automatic (UTF-8)"
+back 1
+screenshot "${TMPDIR:-/tmp}/ordo-e2e-subs-utf8.png" &&
+    echo "INFO screenshot with the UTF-8 line: ${TMPDIR:-/tmp}/ordo-e2e-subs-utf8.png (look for \"für\", never \"fÃ¼r\")"
+sheet; ui tap "Deutsch · film.de.srt|German · film.de.srt" >/dev/null; sleep 1; back 1; sheet
 
 # 2. Delay in steps, remembered per film. The film's delay outlives the test folder (it is kept per path), so a
 # run starts wherever the last one left it: the value is read (the step buttons carry a description, it does not).

@@ -440,10 +440,16 @@ für eine Datei und eine Text-Spur im Film die Verzögerung, für eine Datei die
   samt `ger`/`fre` …, englische Namen); `cc`, `sdh` gelten als Hörgeschädigten-Kennung; `hi` ist als erste Sprachangabe Hindi (`film.hi.srt`), nach einer Sprache
   (`film.en.hi.srt`) zählt nur die erste. Die Codepage wählt die Hauptsprache (`ru-RU` → 1251). Nur für
   Ordos Pfade (auch SMB/SFTP), nie für `content://` anderer Apps; dort geht nur „Untertitel laden…“.
-- **Zeichensatz** (`SubtitleFiles.decode`): BOM (UTF-8, UTF-16), dann streng UTF-8 (`REPORT`), sonst die alte
-  Windows-Codepage der Gerätesprache (1250 Mitteleuropa, 1251 Kyrillisch, 1253 Griechisch, 1254 Türkisch, sonst 1252).
-  Im Blatt „Automatisch (windows-1252)“ zeigt, was erkannt wurde; UTF-8, ISO-8859-15 und die Codepages lassen sich je
-  Film erzwingen.
+- **Zeichensatz** (`TextCharset`, gemeinsam mit Ordo Musik): BOM (UTF-8, UTF-16), dann streng UTF-8 (`REPORT`),
+  sonst eine alte Windows-Codepage: nach dem Sprachkürzel der Datei (1250 Mitteleuropa, 1251 Kyrillisch, 1253
+  Griechisch, 1254 Türkisch, sonst 1252), ohne Kürzel erkennt Ordo kyrillischen/griechischen Text an den Bytes (über
+  80 % der Buchstaben ab 0xC0), sonst zählt die Gerätesprache. Android hat keinen öffentlichen Zeichensatz-Erkenner
+  (`android.icu.text.CharsetDetector` ist verborgen). Im Blatt zeigt „Automatisch (windows-1252)“, was erkannt wurde;
+  UTF-8, ISO-8859-15 und die Codepages lassen sich je Datei erzwingen (`SubtitleStore.Entry.charsetFile`, der
+  Inhalts-Schlüssel der Datei: Größe + CRC32). Gültiges UTF-8 mit Umlauten und Dateien mit BOM liest Ordo immer als
+  Unicode: eine erzwungene Codepage hätte nur „fÃ¼r“ ergeben (Tab S9 des Besitzers, 20.11.2026, nach einem
+  Crawler-Lauf); die Wahl wird dann vergessen. Eine Wahl älterer Versionen (galt für alle Dateien des Films) wird verworfen.
+  Dieselbe Erkennung gilt für Liedtexte (`.lrc`/`.txt`), M3U-Wiedergabelisten und die Untertitel beim Streamen.
 - **Darstellung:** Die Datei wird selbst gelesen und mit Media3s eigenen Parsern (`DefaultSubtitleParserFactory`:
   SubRip, SSA/ASS, WebVTT, TTML) zerlegt, dann alle 50 ms nach der Abspielstelle in die `SubtitleView` des
   `PlayerView` gelegt (`SubtitleTimeline`); die Textspuren des Players sind dabei aus. ASS: nur Text und Lage
@@ -469,7 +475,7 @@ für eine Datei und eine Text-Spur im Film die Verzögerung, für eine Datei die
   (Spur nach ID, sonst nach Sprache); sonst bei „Untertitel automatisch an“ (Standard an), wenn der Ton nicht schon in
   der bevorzugten Sprache ist: Datei in der Sprache, Spur in der Sprache, Datei ohne Sprachkürzel.
 - **Gemerkt je Film** (`SubtitleStore`, SharedPreferences `video_subtitles`, Schlüssel = Pfad-URI): Wahl, Verzögerung,
-  Zeichensatz; höchstens 300, älteste fliegen; nicht bei „Keine Stellen merken“, gelöscht mit „Weiterschauen löschen“.
+  Zeichensatz (nur für die Datei, für die er gewählt wurde); höchstens 300, älteste fliegen; nicht bei „Keine Stellen merken“, gelöscht mit „Weiterschauen löschen“.
   Der Stil gilt für alle Filme.
 - **Lage:** Ist die Bedienleiste sichtbar, rücken die Untertitel über sie (`setBottomPaddingFraction`), sonst Media3s 8 %.
 - **Videoinfos** nennen die Dateien als weitere Untertitel-Zeilen („Deutsch · film.de.srt“).

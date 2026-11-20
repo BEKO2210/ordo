@@ -10,6 +10,7 @@ import java.nio.charset.StandardCharsets
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import me.zhanghai.android.files.util.TextCharset
 import org.junit.Test
 
 class SubtitleFilesTest {
@@ -58,7 +59,7 @@ class SubtitleFilesTest {
     @Test
     fun regionTaggedLanguagesChooseTheirCodePage() {
         val cyrillic = "Привет".toByteArray(charset("windows-1251"))
-        assertEquals(SubtitleFiles.Decoded("Привет", "windows-1251"), SubtitleFiles.decode(cyrillic, null, "ru-RU"))
+        assertEquals(TextCharset.Decoded("Привет", "windows-1251"), SubtitleFiles.decode(cyrillic, null, "ru-RU"))
         assertEquals("windows-1251", SubtitleFiles.decode(cyrillic, null, "sr_Latn").charset)
         assertEquals("windows-1250", SubtitleFiles.decode(byteArrayOf(0xB9.toByte()), null, "pl-PL").charset)
     }
@@ -86,9 +87,9 @@ class SubtitleFilesTest {
     @Test
     fun decodeUtf8WithAndWithoutBom() {
         val text = "Größe, Übermaß"
-        assertEquals(SubtitleFiles.Decoded(text, "UTF-8"), SubtitleFiles.decode(text.toByteArray(), null, "de"))
+        assertEquals(TextCharset.Decoded(text, "UTF-8"), SubtitleFiles.decode(text.toByteArray(), null, "de"))
         val withBom = byteArrayOf(0xEF.toByte(), 0xBB.toByte(), 0xBF.toByte()) + text.toByteArray()
-        assertEquals(SubtitleFiles.Decoded(text, "UTF-8"), SubtitleFiles.decode(withBom, null, "de"))
+        assertEquals(TextCharset.Decoded(text, "UTF-8"), SubtitleFiles.decode(withBom, null, "de"))
     }
 
     @Test
@@ -96,7 +97,7 @@ class SubtitleFilesTest {
         val text = "Größe, Übermaß"
         val bytes = byteArrayOf(0xFF.toByte(), 0xFE.toByte()) + text.toByteArray(StandardCharsets.UTF_16LE)
 
-        assertEquals(SubtitleFiles.Decoded(text, "UTF-16LE"), SubtitleFiles.decode(bytes, null, "de"))
+        assertEquals(TextCharset.Decoded(text, "UTF-16LE"), SubtitleFiles.decode(bytes, null, "de"))
     }
 
     @Test
@@ -104,24 +105,28 @@ class SubtitleFilesTest {
         val westernText = "Größe, Übermaß"
         val westernBytes = westernText.toByteArray(Charset.forName("windows-1252"))
         assertEquals(
-            SubtitleFiles.Decoded(westernText, "windows-1252"),
+            TextCharset.Decoded(westernText, "windows-1252"),
             SubtitleFiles.decode(westernBytes, null, "de")
         )
 
         val cyrillicText = "Привет"
         val cyrillicBytes = cyrillicText.toByteArray(Charset.forName("windows-1251"))
         assertEquals(
-            SubtitleFiles.Decoded(cyrillicText, "windows-1251"),
+            TextCharset.Decoded(cyrillicText, "windows-1251"),
             SubtitleFiles.decode(cyrillicBytes, null, "ru")
         )
     }
 
     @Test
-    fun overrideWinsEvenWhenBytesAreUtf8() {
+    fun overrideNeverGarblesUnicode() {
         val text = "Größe, Übermaß"
-        val decoded = SubtitleFiles.decode(text.toByteArray(), "ISO-8859-15", "de")
-
-        assertEquals("ISO-8859-15", decoded.charset)
+        // Valid UTF-8 with umlauts stays UTF-8 whatever was chosen by hand ("fÃ¼r" on the owner's Tab S9).
+        assertEquals(TextCharset.Decoded(text, "UTF-8"), SubtitleFiles.decode(text.toByteArray(), "ISO-8859-15", "de"))
+        // A legacy file takes the manual choice.
+        val decoded = SubtitleFiles.decode(text.toByteArray(Charset.forName("windows-1252")), "windows-1251", "de")
+        assertEquals("windows-1251", decoded.charset)
         assertFalse(text == decoded.text)
+        // Plain ASCII reads the same in every listed page: the choice holds.
+        assertEquals("windows-1250", SubtitleFiles.decode("Hello".toByteArray(), "windows-1250", "de").charset)
     }
 }

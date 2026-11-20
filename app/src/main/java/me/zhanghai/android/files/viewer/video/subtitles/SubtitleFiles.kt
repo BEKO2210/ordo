@@ -5,12 +5,8 @@
 
 package me.zhanghai.android.files.viewer.video.subtitles
 
-import java.nio.ByteBuffer
-import java.nio.charset.CharacterCodingException
-import java.nio.charset.Charset
-import java.nio.charset.CodingErrorAction
-import java.nio.charset.StandardCharsets
 import java.util.Locale
+import me.zhanghai.android.files.util.TextCharset
 
 object SubtitleFiles {
     /** Literal values keep this utility independent of Android and Media3 at test time. */
@@ -93,46 +89,19 @@ object SubtitleFiles {
         }
     }
 
-    data class Decoded(val text: String, val charset: String)
-
-    /** Strict UTF-8 detection prevents silent replacement from hiding a legacy encoding. */
-    fun decode(bytes: ByteArray, override: String?, language: String): Decoded {
-        if (override != null) {
-            val charset = runCatching { Charset.forName(override) }.getOrElse { StandardCharsets.UTF_8 }
-            return Decoded(String(bytes, charset).removePrefix("\uFEFF"), charset.name())
-        }
-        if (bytes.startsWith(UTF_8_BOM)) {
-            return Decoded(String(bytes, 3, bytes.size - 3, StandardCharsets.UTF_8), "UTF-8")
-        }
-        if (bytes.startsWith(UTF_16_LE_BOM)) {
-            return Decoded(String(bytes, 2, bytes.size - 2, StandardCharsets.UTF_16LE), "UTF-16LE")
-        }
-        if (bytes.startsWith(UTF_16_BE_BOM)) {
-            return Decoded(String(bytes, 2, bytes.size - 2, StandardCharsets.UTF_16BE), "UTF-16BE")
-        }
-        try {
-            val decoder = StandardCharsets.UTF_8.newDecoder()
-                .onMalformedInput(CodingErrorAction.REPORT)
-                .onUnmappableCharacter(CodingErrorAction.REPORT)
-            return Decoded(decoder.decode(ByteBuffer.wrap(bytes)).toString(), "UTF-8")
-        } catch (_: CharacterCodingException) {
-            val charsetName = legacyCharset(language)
-            return Decoded(String(bytes, Charset.forName(charsetName)), charsetName)
-        }
+    /**
+     * [TextCharset]: BOM, strict UTF-8, then a legacy code page by [language] (the file's own tag, else the bytes and
+     * the device language). A manual [override] holds unless the file is surely Unicode (a BOM, or valid UTF-8 with
+     * non-ASCII bytes): any code page could only garble that ("fÃ¼r", owner's Tab S9, 20.11.2026).
+     */
+    fun decode(bytes: ByteArray, override: String?, language: String?): TextCharset.Decoded {
+        val detected = TextCharset.decode(bytes, language)
+        val unicode = detected.charset.startsWith("UTF") && bytes.any { it < 0 }
+        return if (override == null || unicode) detected else TextCharset.decodeAs(bytes, override)
     }
 
-    // "ru-RU", "sr_Latn" choose by their primary language subtag.
-    private fun legacyCharset(language: String): String =
-        when (language.substringBefore('-').substringBefore('_').lowercase(Locale.ROOT)) {
-            "pl", "cs", "sk", "hu", "sl", "hr", "ro", "bs", "sq" -> "windows-1250"
-            "ru", "uk", "be", "bg", "sr", "mk" -> "windows-1251"
-            "el" -> "windows-1253"
-            "tr", "az" -> "windows-1254"
-            else -> "windows-1252"
-        }
-
-    private fun ByteArray.startsWith(prefix: ByteArray): Boolean =
-        size >= prefix.size && prefix.indices.all { this[it] == prefix[it] }
+    /** Which file a manual charset belongs to: its content, so a choice never reaches another file of the film. */
+    fun contentKey(bytes: ByteArray): String = "${bytes.size}:" + java.util.zip.CRC32().apply { update(bytes) }.value
 
     private val ISO_LANGUAGES = Locale.getISOLanguages().toSet()
 
@@ -160,7 +129,4 @@ object SubtitleFiles {
     // language tag only, so a later "hi" never replaces the language.
     private val NON_LANGUAGE_TAGS = setOf("cc", "sdh", "forced")
 
-    private val UTF_8_BOM = byteArrayOf(0xEF.toByte(), 0xBB.toByte(), 0xBF.toByte())
-    private val UTF_16_LE_BOM = byteArrayOf(0xFF.toByte(), 0xFE.toByte())
-    private val UTF_16_BE_BOM = byteArrayOf(0xFE.toByte(), 0xFF.toByte())
 }
