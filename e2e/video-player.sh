@@ -294,7 +294,7 @@ check "Ordo Video's settings offer the end of a video" ui wait "Am Ende|At the e
 back 1; back 1
 open_paused
 ui tap "Weitere Optionen|More options" >/dev/null; sleep 1
-ui tap "Videoinfos|Video info" >/dev/null; sleep 2
+scroll_to "Videoinfos|Video info" 3 >/dev/null; ui tap "Videoinfos|Video info" >/dev/null; sleep 2
 check "Video info shows resolution and frame rate" \
     ui wait "Auflösung: 1920 × 1080 · 30 fps|Resolution: 1920 × 1080 · 30 fps" 5
 check "Video info names the codec in words" ui has "Video-Codec: H.264|Video codec: H.264"

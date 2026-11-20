@@ -55,7 +55,7 @@ touch_target() {
     read -r l t r b < <(ui bounds "$1" | head -1) || return 1
     [ $((r - l)) -ge "$min" ] && [ $((b - t)) -ge "$min" ]
 }
-menu() { ui tap "Weitere Optionen|More options" >/dev/null; sleep 1; ui tap "$1" >/dev/null; sleep 1.5; }
+menu() { ui tap "Weitere Optionen|More options" >/dev/null; sleep 1; ui wait "$1" 3 >/dev/null || scroll_to "$1" 3 >/dev/null; ui tap "$1" >/dev/null; sleep 1.5; }
 
 a shell am start -W -a android.intent.action.VIEW -d "file://$DIR" -t inode/directory \
     -n "$PKG/me.zhanghai.android.files.filelist.FileListActivity" >/dev/null
@@ -103,7 +103,7 @@ check "the A-B loop keeps playback between A and B ($pa .. $pb: $p4 ms)" \
     within "${p4:-0}" $(( ${pa:-0} - 300 )) $(( ${pb:-0} + 300 ))
 menu "A-B-Schleife beenden|End A-B loop"
 ui tap "Weitere Optionen|More options" >/dev/null; sleep 1
-check "after ending the loop the menu offers A again" ui has "Schleifenstart A setzen|Set loop start \\(A\\)"
+check "after ending the loop the menu offers A again" scroll_to "Schleifenstart A setzen|Set loop start \\(A\\)"
 back 1
 
 # 5. Save frame: a JPEG in Pictures/Ordo.

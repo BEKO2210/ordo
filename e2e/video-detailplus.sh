@@ -37,7 +37,7 @@ open_file() {
     sleep 3; guard; ui wait "$2" 10 >/dev/null; ui tap "$2" >/dev/null
     wait_on viewer.video.VideoPlayerActivity 8
 }
-menu() { ui tap "Weitere Optionen|More options" >/dev/null; sleep 1; ui tap "$1" >/dev/null; sleep 1.5; }
+menu() { ui tap "Weitere Optionen|More options" >/dev/null; sleep 1; ui wait "$1" 3 >/dev/null || scroll_to "$1" 3 >/dev/null; ui tap "$1" >/dev/null; sleep 1.5; }
 upscaling() {
     a shell am start -W -n "$PKG/me.zhanghai.android.files.viewer.video.VideoLauncherActivity" >/dev/null; sleep 2; guard
     ui tap actionSettings >/dev/null; sleep 2
