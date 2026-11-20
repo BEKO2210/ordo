@@ -55,10 +55,18 @@ class HiResAudioSink(
     private var current = mixing
     private var playing = false
 
-    private fun wanted(): AudioSink = if (pure != null && output.bitPerfectMode) pure else mixing
+    /** The pure sink only for a song the DAC takes bit-perfect; every other song keeps Ordo's stages. */
+    private fun wanted(format: Format): AudioSink {
+        if (pure == null || !output.bitPerfectMode || MimeTypes.AUDIO_RAW != format.sampleMimeType) return mixing
+        val writes = OutputPolicy.pureWriteEncoding(
+            format.pcmEncoding, Util.isEncodingHighResolutionPcm(format.pcmEncoding)
+        )
+        return if (output.acceptsBitPerfect(TrackFormat(format.sampleRate, writes, format.channelCount))) pure
+        else mixing
+    }
 
     override fun configure(audioSinkConfig: AudioSink.AudioSinkConfig) {
-        val next = wanted()
+        val next = wanted(audioSinkConfig.format)
         if (next !== current) {
             current.reset()
             current = next
@@ -77,9 +85,10 @@ class HiResAudioSink(
     }
 
     // Asked when a decoder is set up, so it decodes to float exactly when the pure sink will play it.
-    override fun supportsFormat(format: Format): Boolean = wanted().supportsFormat(format)
-    override fun getFormatSupport(format: Format): Int = wanted().getFormatSupport(format)
-    override fun getFormatOffloadSupport(format: Format): AudioOffloadSupport = wanted().getFormatOffloadSupport(format)
+    override fun supportsFormat(format: Format): Boolean = wanted(format).supportsFormat(format)
+    override fun getFormatSupport(format: Format): Int = wanted(format).getFormatSupport(format)
+    override fun getFormatOffloadSupport(format: Format): AudioOffloadSupport =
+        wanted(format).getFormatOffloadSupport(format)
 
     override fun play() {
         playing = true
@@ -108,7 +117,7 @@ class HiResAudioSink(
     override fun getSkipSilenceEnabled(): Boolean = current.skipSilenceEnabled
     override fun getAudioAttributes(): AudioAttributes? = current.audioAttributes
     override fun getAudioTrackBufferSizeUs(): Long = current.audioTrackBufferSizeUs
-    override fun getAudioCapabilities(): AudioCapabilities? = wanted().audioCapabilities
+    override fun getAudioCapabilities(): AudioCapabilities? = current.audioCapabilities
     override fun flush() = current.flush()
 
     override fun setListener(listener: AudioSink.Listener) = sinks.forEach { it.setListener(listener) }

@@ -1104,7 +1104,8 @@ class AudioPlayerActivity : AppActivity(), AppAccentActivity {
                     extras.getBoolean(AudioPlayerCommands.EXTRA_SLEEP_ACTIVE),
                     extras.getInt(AudioPlayerCommands.EXTRA_SLEEP_MINUTES),
                     extras.getBoolean(AudioPlayerCommands.EXTRA_END_OF_TRACK),
-                    extras.getLong(AudioPlayerCommands.EXTRA_SLEEP_REMAINING_MS)
+                    extras.getLong(AudioPlayerCommands.EXTRA_SLEEP_REMAINING_MS),
+                    extras.getBoolean(AudioPlayerCommands.EXTRA_SONG_NOT_BIT_PERFECT)
                 )
             )
         }, ContextCompat.getMainExecutor(this))
@@ -1135,7 +1136,8 @@ class AudioPlayerActivity : AppActivity(), AppAccentActivity {
         val sleepActive: Boolean = false,
         val sleepMinutes: Int = 0,
         val sleepAtEndOfTrack: Boolean = false,
-        val sleepRemainingMs: Long = 0L
+        val sleepRemainingMs: Long = 0L,
+        val songNotBitPerfect: Boolean = false
     )
 
     private fun formatTime(milliseconds: Long): String {

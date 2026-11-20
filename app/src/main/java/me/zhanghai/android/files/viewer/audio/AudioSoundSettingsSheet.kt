@@ -942,6 +942,11 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment() {
         showEffect(
             binding.clarityCard.root, binding.clarityUnavailable, status.clarityAvailable, R.string.audio_sound_clarity
         )
+        // A calm note instead of the summary when the DAC cannot take this song unchanged; its effects stay on.
+        binding.bitPerfectRow.summary.text = getString(
+            if (status.songNotBitPerfect) R.string.audio_sound_bit_perfect_song_not
+            else R.string.audio_sound_bit_perfect_summary
+        )
         // What the highs detector found arrives with the status.
         highsRenderer?.invoke()
         quietRenderer?.invoke()

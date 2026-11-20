@@ -64,6 +64,18 @@ object OutputPolicy {
             ?: OutputPlan.System
     }
 
+    /** What the pure sink writes for decoded PCM: hi-res as float (exact up to 24 bits), the rest as 16-bit. */
+    fun pureWriteEncoding(pcmEncoding: Int, highResolution: Boolean): Int =
+        if (highResolution || pcmEncoding == AudioFormat.ENCODING_PCM_FLOAT) AudioFormat.ENCODING_PCM_FLOAT
+        else AudioFormat.ENCODING_PCM_16BIT
+
+    /**
+     * Per song: the DAC takes exactly this rate, channel count and bit depth bit-perfect. Only then are Ordo's stages
+     * bypassed; any other song plays normally, with its effects.
+     */
+    fun songBitPerfect(sdk: Int, bitPerfectMode: Boolean, track: TrackFormat, options: List<MixerOption>): Boolean =
+        plan(sdk, bitPerfectMode, track, options) is OutputPlan.BitPerfect
+
     private fun resolution(encoding: Int): Int = when (encoding) {
         AudioFormat.ENCODING_PCM_FLOAT -> 4
         AudioFormat.ENCODING_PCM_32BIT -> 3

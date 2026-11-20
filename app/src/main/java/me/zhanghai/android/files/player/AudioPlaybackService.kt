@@ -250,7 +250,13 @@ class AudioPlaybackService : MediaSessionService() {
         }
         klang.apply(soundSettings, headphonesConnected())
         hiRes = HiResOutput(this, allowsBitPerfect = true).apply {
-            onChanged = { handler.post(::publishOutput) }
+            // The song went bit-perfect or not: its stages follow (the platform effects too).
+            onChanged = {
+                handler.post {
+                    publishOutput()
+                    if (::player.isInitialized) applySoundSettings()
+                }
+            }
         }
         val audioAttributes = AudioAttributes.Builder()
             .setUsage(C.USAGE_MEDIA)
@@ -376,8 +382,9 @@ class AudioPlaybackService : MediaSessionService() {
         val stored = AudioSettingsStore.read()
         hiRes.wantsBitPerfect = stored.bitPerfectUsb
         val rebuild = hiRes.refresh()
-        // Bit-perfect: Klang, effects, levelling, limiter gain, speed and silence skipping are all bypassed.
-        soundSettings = if (hiRes.bitPerfectMode) OutputPolicy.bypassed(stored) else stored
+        // This song goes bit-perfect: Klang, effects, levelling, limiter gain, speed and silence skipping are bypassed.
+        // A song the DAC cannot take unchanged plays normally, with its effects.
+        soundSettings = if (hiRes.plan is OutputPlan.BitPerfect) OutputPolicy.bypassed(stored) else stored
         klang.apply(soundSettings, headphonesConnected())
         audioFocusController.setBehavior(soundSettings.focusBehavior)
         // A pitch of 1 keeps pitch unchanged while Sonic time-stretches playback.
@@ -654,6 +661,9 @@ class AudioPlaybackService : MediaSessionService() {
                                 AudioPlayerCommands.EXTRA_HEADPHONES to headphonesConnected(),
                                 AudioPlayerCommands.EXTRA_HIGHS_CUTOFF to klang.highs.detectedCutoffHz,
                                 AudioPlayerCommands.EXTRA_VOLUME_FRACTION to volumeFraction(),
+                                AudioPlayerCommands.EXTRA_SONG_NOT_BIT_PERFECT to
+                                    (hiRes.bitPerfectMode && hiRes.track != null &&
+                                        hiRes.plan !is OutputPlan.BitPerfect),
                                 AudioPlayerCommands.EXTRA_SLEEP_ACTIVE to
                                     (sleepDeadlineElapsedMs != null || sleepAtEndOfTrack),
                                 AudioPlayerCommands.EXTRA_SLEEP_MINUTES to sleepSelectionMinutes,

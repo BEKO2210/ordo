@@ -88,6 +88,28 @@ class OutputPolicyTest {
     }
 
     @Test
+    fun bypassOnlyForASongTheDacTakesBitPerfect() {
+        fun song(rate: Int, channels: Int, highRes: Boolean) =
+            TrackFormat(rate, OutputPolicy.pureWriteEncoding(pcm16, highRes), channels)
+        // 24/96 and 16/44.1 stereo: the DAC takes them, Ordo's stages are bypassed.
+        assertTrue(OutputPolicy.songBitPerfect(34, true, song(96_000, 2, true), dac))
+        assertTrue(OutputPolicy.songBitPerfect(34, true, song(44_100, 2, false), dac))
+        // Mono, 88.2 kHz (not offered) or 5.1: plays normally, with its effects.
+        assertFalse(OutputPolicy.songBitPerfect(34, true, song(44_100, 1, false), dac))
+        assertFalse(OutputPolicy.songBitPerfect(34, true, song(88_200, 2, true), dac))
+        assertFalse(OutputPolicy.songBitPerfect(34, true, song(48_000, 6, true), dac))
+        // A DAC without hi-res bit-perfect: a 24-bit song keeps its effects, a 16-bit one goes bit-perfect.
+        val only16 = dac.filter { it.encoding == pcm16 }
+        assertFalse(OutputPolicy.songBitPerfect(34, true, song(96_000, 2, true), only16))
+        assertTrue(OutputPolicy.songBitPerfect(34, true, song(96_000, 2, false), only16))
+        // Setting off, or before Android 14: never.
+        assertFalse(OutputPolicy.songBitPerfect(34, false, song(44_100, 2, false), dac))
+        assertFalse(OutputPolicy.songBitPerfect(33, true, song(44_100, 2, false), dac))
+        // Float from the decoder counts as hi-res.
+        assertEquals(float, OutputPolicy.pureWriteEncoding(float, false))
+    }
+
+    @Test
     fun offloadOnlyWithoutAnyStageAndNeverBitPerfect() {
         val neutral = AudioSettings()
         assertTrue(OutputPolicy.offloadAllowed(neutral, bitPerfect = false))

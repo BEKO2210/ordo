@@ -27,7 +27,7 @@ class HiResOutput(context: Context, val allowsBitPerfect: Boolean) {
     /** The user's "Unverfälscht an USB-DAC". */
     @Volatile var wantsBitPerfect = false
 
-    /** A USB DAC with a bit-perfect mixer is the route and bit-perfect is wanted: Ordo's stages are bypassed. */
+    /** A USB DAC with a bit-perfect mixer is the route and bit-perfect is wanted; each song then decides. */
     @Volatile var bitPerfectMode = false
         private set
 
@@ -46,6 +46,8 @@ class HiResOutput(context: Context, val allowsBitPerfect: Boolean) {
     @Volatile var onChanged: (() -> Unit)? = null
 
     private var appliedDevice: AudioDeviceInfo? = null
+    // The routed device's mixers, read in [refresh]; [acceptsBitPerfect] runs on the playback thread, without binder.
+    @Volatile private var options: List<MixerOption> = emptyList()
     // AudioMixerAttributes, typed Any so the field does not need API 34.
     private var appliedMixer: Any? = null
 
@@ -53,8 +55,9 @@ class HiResOutput(context: Context, val allowsBitPerfect: Boolean) {
     @Synchronized
     fun refresh(): Boolean {
         val device = routedDevice()
+        options = device?.let(::mixerOptions).orEmpty()
         val mode = allowsBitPerfect && wantsBitPerfect && Build.VERSION.SDK_INT >= OutputPolicy.MIN_SDK &&
-            device != null && isUsb(device) && mixerOptions(device).any { it.bitPerfect }
+            device != null && isUsb(device) && options.any { it.bitPerfect }
         // Unplugged or switched off: give the mixer back at once.
         if (appliedDevice != null && (appliedDevice?.id != device?.id || (!mode && plan is OutputPlan.BitPerfect))) {
             clear()
@@ -64,6 +67,10 @@ class HiResOutput(context: Context, val allowsBitPerfect: Boolean) {
         bitPerfectMode = mode
         return changed
     }
+
+    /** This song (as the pure sink would write it) goes bit-perfect to the DAC. */
+    fun acceptsBitPerfect(track: TrackFormat): Boolean =
+        OutputPolicy.songBitPerfect(Build.VERSION.SDK_INT, bitPerfectMode, track, options)
 
     /** The sink is about to play [track] (null: not PCM); sets the mixer for it. */
     @Synchronized
