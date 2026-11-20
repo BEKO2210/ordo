@@ -223,6 +223,18 @@ fun showSubtitleSheet(context: Context, subtitles: VideoSubtitles) {
     }
     choice(R.string.video_subtitles_color, R.array.video_subtitles_color_names, 2, { it.color.ordinal }) { style, index ->
         style.copy(color = SubtitleStyle.Color.values()[index])
+    }.forEachIndexed { index, button ->
+        // A dot of the colour itself, with a thin dark ring so white shows on a light sheet.
+        val size = context.resources.getDimensionPixelSize(R.dimen.klang_space_md)
+        button.icon = android.graphics.drawable.GradientDrawable().apply {
+            shape = android.graphics.drawable.GradientDrawable.OVAL
+            setColor(SubtitleStyle.Color.values()[index].argb)
+            setStroke((context.resources.displayMetrics.density).toInt().coerceAtLeast(1), 0x61000000)
+            setSize(size, size)
+        }
+        button.iconTint = null
+        button.iconSize = size
+        button.iconGravity = MaterialButton.ICON_GRAVITY_TEXT_START
     }
     val positionColumn = sheet.card(
         R.drawable.audio_tune_icon_24dp, context.getString(R.string.video_subtitles_position),

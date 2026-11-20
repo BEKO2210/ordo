@@ -488,7 +488,7 @@ dann aus), „Stil der Datei“ (ASS/SSA behalten eigene Farben, Schriften, Grö
   Pixel-Seitenverhältnis) und der Einpassung (nur „Einpassen“ hat Balken; `VideoSubtitles.pictureHeight`). Größe und
   Abstand rechnet Ordo auf sie um (BBC: Anteil der „active video height“); vorher standen die Zeilen hochkant riesig im schwarzen Balken
   unter dem Bild (Tab A8, 20.11.2026). Abstand vom unteren Bildrand nach Wahl (Standard 8 % wie Media3). Ist die
-  Bedienleiste sichtbar, rücken die Untertitel 2 % über sie, gemessen auf dem Bildschirm (`getLocationOnScreen` von
+  Bedienleiste sichtbar, rücken die Untertitel 3 % über sie, gemessen auf dem Bildschirm (`getLocationOnScreen` von
   `SubtitleView` und Leiste), neu bei jedem Layout von beiden und jeder neuen Videogröße. Vorher fehlte das beim
   ersten Anhalten (Tab A8, 20.11.2026: die Zeile lag auf der Zeitleiste). WebVTT-Zeilen mit Standardlage (negative
   Zeilennummer) und ASS-Zeilen unten (`\an1`–`\an3`, Bruchteil ≥ 0,8) setzt Media3 an den Rand der View, an der

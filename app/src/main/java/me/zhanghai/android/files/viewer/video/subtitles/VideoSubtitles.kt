@@ -612,7 +612,7 @@ class VideoSubtitles(
         private const val TICK_MS = 50L
         private const val MAX_LIFT = 0.5f
         /** Air between the lines and the controls' bar, as a fraction of the picture's height. */
-        private const val BAR_GAP = 0.02f
+        private const val BAR_GAP = 0.03f
 
         /**
          * The subtitle's own format: since Media3 1.4 a track inside the film is parsed while extracting and comes as
