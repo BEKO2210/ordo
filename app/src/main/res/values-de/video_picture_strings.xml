@@ -133,7 +133,7 @@
         <item>Lanczos 3 vergrößert scharf und schnell, auf jedem Gerät.</item>
         <item>Ein kleines Netz holt feine Details aus Filmen und Serien zurück. Braucht mehr Akku.</item>
         <item>Ein Netz für klare Linien und Farbflächen. Braucht mehr Akku.</item>
-        <item>Zeichentrick, wenn Datei oder Ordner danach heißen (etwa „Anime“), sonst Film.</item>
+        <item>Zeichentrick, wenn Datei oder Ordner so heißen (etwa „Anime“), sonst Film.</item>
     </string-array>
     <string name="video_detail_plus_slow_notice">Detail plus pausiert: Das Gerät kommt bei diesem Video nicht hinterher. Lanczos skaliert stattdessen.</string>
     <string name="video_signal_upscaler">Hochskalieren</string>

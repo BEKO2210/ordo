@@ -27,7 +27,7 @@
             app:useSimpleSummaryProvider="true" />
         <ListPreference
             android:key="@string/pref_key_video_resume"
-            android:icon="@drawable/restart_icon_white_24dp"
+            android:icon="@drawable/settings_video_resume_icon_white_24dp"
             android:title="@string/video_settings_resume"
             android:defaultValue="@string/pref_default_value_video_resume"
             android:entries="@array/video_settings_resume_entries"
@@ -108,7 +108,7 @@
             app:useSimpleSummaryProvider="true" />
         <ListPreference
             android:key="@string/pref_key_video_frame_rate"
-            android:icon="@drawable/audio_timer_icon_24dp"
+            android:icon="@drawable/settings_video_frame_rate_icon_white_24dp"
             android:title="@string/video_settings_frame_rate"
             android:defaultValue="@string/pref_default_value_video_frame_rate"
             android:entries="@array/video_settings_frame_rate_entries"
@@ -245,7 +245,7 @@
             app:useSimpleSummaryProvider="true" />
         <ListPreference
             android:key="@string/pref_key_video_view"
-            android:icon="@drawable/settings_tile_icon_white_24dp"
+            android:icon="@drawable/settings_video_view_icon_white_24dp"
             android:title="@string/video_settings_view"
             android:defaultValue="@string/pref_default_value_video_view"
             android:entries="@array/video_settings_view_entries"

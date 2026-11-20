@@ -30,6 +30,23 @@ class VideoSettingsResourcesTest {
         }
     }
 
+    // A symbol drawn on the 24 grid inside the 960 viewport shrinks to a dot ("auto_awesome" did): the new symbols'
+    // paths reach well past 24.
+    @Test
+    fun newSymbolsUseTheirWholeViewport() {
+        val drawables = File("src/main/res/drawable").listFiles { file ->
+            file.name.startsWith("video_upscale_") || file.name.startsWith("settings_video_") ||
+                file.name == "video_subtitles_off_icon_24dp.xml"
+        }!!
+        assertTrue(drawables.size >= 16)
+        for (file in drawables) {
+            val numbers = Regex("""-?\d+(\.\d+)?""").findAll(
+                Regex("""pathData="([^"]*)"""").findAll(file.readText()).joinToString(" ") { it.groupValues[1] }
+            ).map { it.value.toDouble() }.toList()
+            assertTrue(file.name, numbers.max() > 240)
+        }
+    }
+
     // The upscaling sheet explains every choice: one summary per entry, in English and German.
     @Test
     fun everyUpscalerChoiceHasAnExplanation() {
