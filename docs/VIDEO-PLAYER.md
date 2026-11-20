@@ -209,8 +209,9 @@ Decodern.
   Bau in einem eigenen Schritt „Build FFmpeg audio decoders“ (NDK installieren, `:ffmpeg:buildFfmpegAudio`, `.so`
   prüfen), in `play-internal.yml` vor dem Schritt, der den Signierschlüssel schreibt; spätere Gradle-Aufrufe
   überspringen ihn mit `-x :ffmpeg:buildFfmpegAudio`.
-- **16 KB:** NDK 30 linkt mit 16-KB-Seiten; `utils/check-16k.sh` auf Beta-APK und -AAB grün
-  (`libffmpegJNI.so` LOAD align 0x4000).
+- **16 KB:** `build.sh` linkt mit `-z max-page-size=16384` und bricht ab, wenn ein `.so` kleiner ausgerichtet ist.
+  Es nimmt immer das festgelegte NDK 30, nicht `$ANDROID_NDK_HOME` (GitHub-Runner zeigen dort auf ein älteres NDK;
+  so kam in der CI einmal 0x1000 heraus). `utils/check-16k.sh` auf Beta-APK und -AAB grün (LOAD align 0x4000).
 - **Größe** (Beta, 19.11.2026, `bundletool get-size total --dimensions=ABI`, Download MIN): arm64-v8a
   10 078 893 → 10 633 839 B (+554 946), armeabi-v7a 7 563 956 → 8 111 850 B (+547 894), x86_64 10 295 238 →
   10 857 989 B (+562 751), x86 +12 420 (nur Java). Universal-APK 19 081 336 → 20 726 236 B (+1 644 900), AAB
