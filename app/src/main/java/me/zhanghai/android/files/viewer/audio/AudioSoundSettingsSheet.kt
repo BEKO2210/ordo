@@ -227,7 +227,7 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment(),
         // setPreferredMixerAttributes exists from Android 14; the summary says that Ordo's stages are bypassed.
         binding.bitPerfectCard.isVisible = android.os.Build.VERSION.SDK_INT >= OutputPolicy.MIN_SDK
         bindSwitchRow(
-            binding.bitPerfectRow, R.drawable.audio_output_icon_24dp, R.string.audio_sound_bit_perfect,
+            binding.bitPerfectRow, R.drawable.usb_icon_white_24dp, R.string.audio_sound_bit_perfect,
             R.string.audio_sound_bit_perfect_summary, { settings.bitPerfectUsb },
             binding.bitPerfectPicture, Kind.BIT_PERFECT
         ) { update { copy(bitPerfectUsb = it) } }

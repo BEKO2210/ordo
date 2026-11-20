@@ -83,7 +83,7 @@ class KlangPictureView @JvmOverloads constructor(
     private val oval = RectF()
     private val headphones = ContextCompat.getDrawable(context, R.drawable.audio_headphones_icon_24dp)!!.mutate()
     private val speaker = ContextCompat.getDrawable(context, R.drawable.audio_speaker_icon_24dp)!!.mutate()
-    private val output = ContextCompat.getDrawable(context, R.drawable.audio_output_icon_24dp)!!.mutate()
+    private val output = ContextCompat.getDrawable(context, R.drawable.usb_icon_white_24dp)!!.mutate()
     private var primary = 0
     private var muted = 0
     private var track = 0

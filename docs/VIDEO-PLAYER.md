@@ -319,7 +319,7 @@ Quelle der Entscheidungen: `ordo-team/QUALITAET-PANEL.md`, Ideen 1–4. Logik oh
 Quelle: `ordo-team/LOKALE-QUALITAETS-KI.md`, Empfehlungen 1 und 2. Logik ohne Android in `DetailPlus`, `MpvHook` und
 `PictureMeter`, getestet in `DetailPlusTest`, `MpvHookTest`, `PictureMeterTest`.
 
-- **Hochskalieren** (Einstellungen › Bild): Standard (Lanczos, ab Werk) / Detail plus: Film / Detail plus: Zeichentrick /
+- **Hochskalieren** (Einstellungen › Bild; die Wahl öffnet ein Klang-Sheet mit Symbol und kurzer Erklärung je Option): Standard (Lanczos, ab Werk) / Detail plus: Film / Detail plus: Zeichentrick /
   Automatisch. Film = **FSRCNNX x2 8-0-4-1** (igv, Shaderdatei LGPL-3.0-or-later, Repo GPL-3.0), Zeichentrick =
   **Anime4K CNN x2 M** (bloc97, MIT). „Automatisch“ nimmt Zeichentrick, wenn Datei- oder Ordnername nach Anime klingt
   (anime, zeichentrick, cartoon, manga, OVA, Fansub-Gruppen, Muster `[Gruppe] Titel - 01`), sonst Film.

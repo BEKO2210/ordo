@@ -618,7 +618,7 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener, AppAccentA
         WordBreaks.keepWordsWhole(header.title)
         header.subtitle.text = when (tab) {
             TAB_ALBUMS -> group.artist ?: getString(R.string.audio_player_unknown_artist)
-            TAB_FOLDERS -> displayFolder(group.key)
+            TAB_FOLDERS -> folderPathHint(group)
             else -> null
         }
         header.subtitle.isVisible = !header.subtitle.text.isNullOrEmpty()
@@ -1589,11 +1589,8 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener, AppAccentA
                     val count = resources.getQuantityString(R.plurals.music_song_count, group.songs.size, group.songs.size)
                     title.text = groupName(group, tab)
                     info.isVisible = true
-                    info.text = if (row.isFolder) {
-                        getString(R.string.audio_player_artist_album_format, count, displayFolder(group.key))
-                    } else {
-                        count
-                    }
+                    info.text = folderPathHint(group)?.takeIf { row.isFolder }
+                        ?.let { getString(R.string.audio_player_artist_album_format, count, it) } ?: count
                     duration.isVisible = false
                     numberSlot.isVisible = false
                     more.isVisible = false
@@ -1711,6 +1708,10 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener, AppAccentA
     private class Holder<T : androidx.viewbinding.ViewBinding>(val binding: T) : RecyclerView.ViewHolder(binding.root)
 
     // The folder below the storage root ("Music/Rock"); other volumes keep their full path.
+    /** The folder's path under its name, left out where it only repeats the name ("Interner Speicher · /"). */
+    private fun folderPathHint(group: MusicGroup): String? =
+        displayFolder(group.key).takeIf { it != "/" && it != group.name }
+
     private fun displayFolder(folder: String): String {
         @Suppress("DEPRECATION")
         val root = Environment.getExternalStorageDirectory().path
