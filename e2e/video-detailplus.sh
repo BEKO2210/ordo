@@ -41,6 +41,7 @@ menu() { ui tap "Weitere Optionen|More options" >/dev/null; sleep 1; ui tap "$1"
 upscaling() {
     a shell am start -W -n "$PKG/me.zhanghai.android.files.viewer.video.VideoLauncherActivity" >/dev/null; sleep 2; guard
     ui tap actionSettings >/dev/null; sleep 2
+    scroll_to "Hochskalieren|Upscaling" >/dev/null # mid-list: below the fold on the Tab (20.11.2026)
     ui tap "Hochskalieren|Upscaling" >/dev/null; sleep 1.5
     ui tap "$1" >/dev/null; sleep 1.5
     back 1; back 1
@@ -49,6 +50,7 @@ upscaling() {
 # 1. The setting exists, Standard by default.
 a shell am start -W -n "$PKG/me.zhanghai.android.files.viewer.video.VideoLauncherActivity" >/dev/null; sleep 2; guard
 ui tap actionSettings >/dev/null; sleep 2
+scroll_to "Hochskalieren|Upscaling" >/dev/null
 check "the settings have Upscaling, Standard (Lanczos) by default" ui wait "Standard \(Lanczos\)" 5
 back 1; back 1
 

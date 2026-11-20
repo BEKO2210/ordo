@@ -1,6 +1,6 @@
 #!/bin/bash
 # Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later
-# Video player, phase 3, WRITES: creates /storage/emulated/0/ordo-e2e-video-bg with a 60-s clip made by ffmpeg and
+# Video player, phase 3, WRITES: creates /storage/emulated/0/ordo-e2e-video-bg with a 180-s clip made by ffmpeg and
 # removes it again; sets "Keep playing in the background" to "Sound only" and back to "Off".
 # Home while a video plays opens picture-in-picture (windowingMode=pinned) and it keeps playing (media_session); a
 # device without picture-in-picture has no ⋮ entry for it. ⋮ › Sleep timer offers chips (15 min … End of video) and
@@ -24,7 +24,8 @@ set_background() {
 trap 'set_background "Aus|Off"; a shell "rm -rf $DIR"; rm -rf "$tmp"' EXIT
 command -v ffmpeg >/dev/null || { echo "SKIP video background (no ffmpeg on the host)"; trap - EXIT; exit 0; }
 
-ffmpeg -v error -f lavfi -i "testsrc=size=1280x720:rate=30:duration=60" -f lavfi -i "sine=frequency=440:duration=60" \
+# 180 s: the sleep-timer steps take most of a minute on the Tab; a 60-s film had ended before Home (20.11.2026).
+ffmpeg -v error -f lavfi -i "testsrc=size=1280x720:rate=30:duration=180" -f lavfi -i "sine=frequency=440:duration=180" \
     -c:v libx264 -preset veryfast -pix_fmt yuv420p -c:a aac -b:a 128k -shortest "$tmp/clip.mp4" ||
     echo "FAIL ffmpeg could not make clip.mp4"
 a shell "rm -rf $DIR; mkdir -p $DIR"
