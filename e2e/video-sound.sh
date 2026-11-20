@@ -44,7 +44,7 @@ menu() { video_menu "$1"; }
 # The sheet is longer than a phone screen: scrolled until the switch shows.
 switch_on() { scroll_to "$1" 3; ui tap "$1" >/dev/null; sleep 1.5; }
 # part REGEX: a text, id or description on screen contains it (notes and track lines are longer than their key words).
-part() { ui texts | grep -qE -- "$1"; }
+part() { ui texts | grep -E -- "$1" >/dev/null; }
 
 # 1. The sound sheet.
 open_clip 01-surround.mp4

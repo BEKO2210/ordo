@@ -149,7 +149,8 @@ check "Ordo Video opens its library" on viewer.video.VideoLauncherActivity
 check "the library offers Continue watching" ui wait "Weiterschauen|Continue watching" 8
 check "the library lists the clip" ui has 01-clip
 ui tap 01-clip >/dev/null; wait_on viewer.video.VideoPlayerActivity 8; sleep 2; pause; p8b=$(pos)
-check "from Continue watching it starts at its place ($p8b ms)" within "${p8b:-0}" $((${p7:-0} - 1500)) $((${p7:-0} + 4000))
+# It plays 2 s before the pause, plus the start and a slow screen read (landscape Tab: +4.3 s, 20.11.2026).
+check "from Continue watching it starts at its place ($p8b ms)" within "${p8b:-0}" $((${p7:-0} - 1500)) $((${p7:-0} + 6000))
 check "and offers no pill" eval '! ui has resumePill'
 back 2
 check "back returns to the library" on viewer.video.VideoLauncherActivity
