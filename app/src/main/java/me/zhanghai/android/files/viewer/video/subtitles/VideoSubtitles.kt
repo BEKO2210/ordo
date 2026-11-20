@@ -9,6 +9,7 @@ import android.content.ContentResolver
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color
+import android.graphics.Typeface
 import android.os.Handler
 import android.os.Looper
 import android.text.SpannableStringBuilder
@@ -29,12 +30,14 @@ import androidx.media3.common.MimeTypes
 import androidx.media3.common.Player
 import androidx.media3.common.TrackSelectionOverride
 import androidx.media3.common.Tracks
+import androidx.media3.common.VideoSize
 import androidx.media3.common.text.Cue
 import androidx.media3.common.text.CueGroup
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.extractor.text.DefaultSubtitleParserFactory
 import androidx.media3.extractor.text.SubtitleParser
+import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.CaptionStyleCompat
 import androidx.media3.ui.PlayerView
 import androidx.media3.ui.SubtitleView
@@ -106,6 +109,8 @@ class VideoSubtitles(
     private var embeddedFormat: Format? = null
     private var speakers = Sdh.SpeakerColors()
     private var controlsShown = false
+    private var shownLift = -1f
+    private var shownRatio = -1f
     /** Closes an open sheet: it belongs to one film and to this screen. */
     var dismissSheet: (() -> Unit)? = null
 
@@ -127,9 +132,12 @@ class VideoSubtitles(
         override fun onTracksChanged(tracks: Tracks) {
             maybeApplyInitial()
             updateEmbedded()
+            updateLift()
         }
 
         override fun onIsPlayingChanged(isPlaying: Boolean) = ticker.run()
+
+        override fun onVideoSizeChanged(videoSize: VideoSize) = updateLift()
 
         override fun onPositionDiscontinuity(
             oldPosition: Player.PositionInfo,
@@ -158,12 +166,11 @@ class VideoSubtitles(
             .setIgnoredTextSelectionFlags(C.SELECTION_FLAG_DEFAULT)
             .build()
         player.addListener(listener)
-        applyStyle(store.style)
-        // The controls start shown; a turn or a resize moves their bar.
-        playerView.subtitleView?.addOnLayoutChangeListener { _, _, top, _, bottom, _, oldTop, _, oldBottom ->
-            if (bottom - top != oldBottom - oldTop) onControlsShown(controlsShown)
-        }
+        // The controls start shown; a turn, a resize or the bar's own layout moves the lines.
         controlsShown = true
+        applyStyle(store.style)
+        playerView.subtitleView?.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> updateLift() }
+        bottomBar.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> updateLift() }
     }
 
     fun release() {
@@ -178,8 +185,18 @@ class VideoSubtitles(
     var style: SubtitleStyle
         get() = store.style
         set(value) {
+            val reread = value.fileStyles != store.style.fileStyles || value.system != store.style.system
             store.style = value
             applyStyle(value)
+            // Cues already prepared keep their old file styles: read the file on screen again, or have the renderer
+            // send a track's cues again (a seek to here, one short re-buffer).
+            if (reread) {
+                activeFile?.let(::loadFile)
+                if (activeFile == null && embeddedFormat != null) {
+                    embedded.clear()
+                    player.seekTo(player.currentPosition)
+                }
+            }
         }
 
     val delayMs: Long
@@ -271,17 +288,46 @@ class VideoSubtitles(
 
     fun onControlsShown(shown: Boolean) {
         controlsShown = shown
+        updateLift()
+    }
+
+    /**
+     * Size and place in the picture, not in the view (BBC 9.2.1: a share of the active video height): in portrait the
+     * view is 2.8 times the picture's height, and the lines stood large in the black bar (A8, 20.11.2026). The chosen
+     * distance counts from the picture's bottom; while the controls show, the lines go above their bar. Measured on
+     * screen, so letterboxing and the bar's insets count.
+     */
+    private fun updateLift() {
         val view = playerView.subtitleView ?: return
         val height = view.height
-        val covered = ((bottomBar.parent as? View)?.height ?: 0) - bottomBar.top
-        view.setBottomPaddingFraction(
-            if (shown && height > 0 && covered > 0) {
-                (covered.toFloat() / height).coerceIn(SubtitleView.DEFAULT_BOTTOM_PADDING_FRACTION, MAX_LIFT)
-            } else {
-                SubtitleView.DEFAULT_BOTTOM_PADDING_FRACTION
-            }
+        if (height <= 0) return
+        val viewBottom = screenTop(view) + height
+        // The content frame and the surface fill the view and player.videoSize is the effect pipeline's output (Ordo
+        // letterboxes in its own shader): the picture comes from the film's own format.
+        val format = player.videoFormat
+        val pictureHeight = pictureHeight(
+            format?.width ?: 0, format?.height ?: 0, format?.rotationDegrees ?: 0,
+            format?.pixelWidthHeightRatio ?: 1f, playerView.resizeMode == AspectRatioFrameLayout.RESIZE_MODE_FIT,
+            view.width, height
         )
+        val below = (height - pictureHeight) / 2
+        val style = store.style
+        var lift = (below + style.bottomPercent / 100f * pictureHeight) / height
+        if (controlsShown && bottomBar.height > 0) {
+            lift = maxOf(lift, (viewBottom - screenTop(bottomBar)).toFloat() / height + BAR_GAP)
+        }
+        lift = lift.coerceAtMost(MAX_LIFT)
+        val ratio = pictureHeight.toFloat() / height
+        if (lift != shownLift || ratio != shownRatio) {
+            shownLift = lift
+            shownRatio = ratio
+            view.setBottomPaddingFraction(lift)
+            setTextSize(view, style, ratio)
+            showCues(force = true)
+        }
     }
+
+    private fun screenTop(view: View): Int = IntArray(2).also(view::getLocationOnScreen)[1]
 
     // --- Per film ---
 
@@ -465,7 +511,8 @@ class VideoSubtitles(
     /** What the settings ask of a file or a track's text now. */
     private fun options() = Options(
         ReadingAid.level(Settings.VIDEO_SUBTITLE_READING.valueCompat),
-        Settings.VIDEO_SUBTITLE_SOUNDS.valueCompat, Settings.VIDEO_SUBTITLE_SPEAKER_COLORS.valueCompat
+        Settings.VIDEO_SUBTITLE_SOUNDS.valueCompat, Settings.VIDEO_SUBTITLE_SPEAKER_COLORS.valueCompat,
+        store.style.let { it.fileStyles && !it.system }
     )
 
     /** Whether a text track inside the film shows (Ordo draws it then); a picture track stays Media3's. */
@@ -497,7 +544,7 @@ class VideoSubtitles(
             )
             if (!force && cues == shownCues) return
             shownCues = cues
-            playerView.subtitleView?.setCues(cues)
+            playerView.subtitleView?.setCues(intoPicture(cues, shownRatio))
             return
         }
         val timeline = timeline ?: return
@@ -506,7 +553,7 @@ class VideoSubtitles(
             timeline.fastAt(player.currentPosition * 1000, entry.delayMs * 1000))
         if (!force && cues == shownCues) return
         shownCues = cues
-        playerView.subtitleView?.setCues(cues)
+        playerView.subtitleView?.setCues(intoPicture(cues, shownRatio))
     }
 
     // The speed before "slow down for fast text"; 0 while it is not slowed.
@@ -538,17 +585,13 @@ class VideoSubtitles(
 
     private fun applyStyle(style: SubtitleStyle) {
         val view = playerView.subtitleView ?: return
-        val (background, edge) = when (style.background) {
-            SubtitleStyle.Background.NONE -> Color.TRANSPARENT to CaptionStyleCompat.EDGE_TYPE_NONE
-            SubtitleStyle.Background.SHADOW -> Color.TRANSPARENT to CaptionStyleCompat.EDGE_TYPE_DROP_SHADOW
-            SubtitleStyle.Background.BOX ->
-                ((SubtitleStyle.boxAlpha(style.color.argb) * 255).toInt() shl 24) to CaptionStyleCompat.EDGE_TYPE_NONE
-        }
-        view.setStyle(CaptionStyleCompat(style.color.argb, background, Color.TRANSPARENT, edge, Color.BLACK, null))
+        applyStyle(view, style)
         // The chosen colour and size win over a track's own; positions (ASS \pos, VTT lines) stay. A file's cues are
         // cleaned in prepare(), so their italics and speaker colours may show.
         view.setApplyEmbeddedStyles(timeline != null || embeddedFormat != null)
-        view.setFractionalTextSize(SubtitleView.DEFAULT_TEXT_SIZE_FRACTION * style.size.factor)
+        shownLift = -1f
+        shownRatio = -1f
+        updateLift()
     }
 
     private class TooLargeException : IOException()
@@ -568,6 +611,8 @@ class VideoSubtitles(
     companion object {
         private const val TICK_MS = 50L
         private const val MAX_LIFT = 0.5f
+        /** Air between the lines and the controls' bar, as a fraction of the picture's height. */
+        private const val BAR_GAP = 0.02f
 
         /**
          * The subtitle's own format: since Media3 1.4 a track inside the film is parsed while extracting and comes as
@@ -582,7 +627,7 @@ class VideoSubtitles(
         )
 
         /** What the settings ask of a file: reading aid limit (0 off), sound descriptions, speaker colours. */
-        private class Options(val cps: Int, val sounds: Boolean, val speakerColors: Boolean)
+        private class Options(val cps: Int, val sounds: Boolean, val speakerColors: Boolean, val fileStyles: Boolean)
 
         private class Parsed(val timeline: SubtitleTimeline<Cue>, val charset: String, val contentKey: String)
 
@@ -626,8 +671,10 @@ class VideoSubtitles(
             val source = cue.text ?: return cue
             // Only the cheap span cleanup for a giant crafted line; the Sdh rules skip it (Sdh.MAX_LINE).
             val text = SpannableStringBuilder(source)
-            for (span in text.getSpans(0, text.length, Any::class.java)) {
-                if (span !is StyleSpan && span !is UnderlineSpan) text.removeSpan(span)
+            if (!options.fileStyles) {
+                for (span in text.getSpans(0, text.length, Any::class.java)) {
+                    if (span !is StyleSpan && span !is UnderlineSpan) text.removeSpan(span)
+                }
             }
             if (!options.sounds) {
                 deleteRanges(text, Sdh.soundRanges(text.toString()))
@@ -642,7 +689,91 @@ class VideoSubtitles(
                     )
                 }
             }
-            return cue.buildUpon().setText(text).setTextSize(Cue.DIMEN_UNSET, Cue.TYPE_UNSET).clearWindowColor().build()
+            val builder = cue.buildUpon().setText(text)
+            if (!options.fileStyles) builder.setTextSize(Cue.DIMEN_UNSET, Cue.TYPE_UNSET).clearWindowColor()
+            // WebVTT's default line and ASS's bottom alignments place the line by the view's edge, past Media3's bottom
+            // padding: so it sat on the controls (A8, 20.11.2026). As an unplaced line it takes Ordo's distance.
+            if (isAtBottom(cue)) builder.setLine(Cue.DIMEN_UNSET, Cue.TYPE_UNSET).setLineAnchor(Cue.TYPE_UNSET)
+            return builder.build()
+        }
+
+        /** A line its format put at the bottom: a negative line number (WebVTT "auto") or a fraction low down. */
+        internal fun isAtBottom(cue: Cue): Boolean = cue.line != Cue.DIMEN_UNSET && when (cue.lineType) {
+            Cue.LINE_TYPE_NUMBER -> cue.line < 0
+            Cue.LINE_TYPE_FRACTION -> cue.line >= BOTTOM_FRACTION && cue.lineAnchor != Cue.ANCHOR_TYPE_START
+            else -> false
+        }
+
+        private const val BOTTOM_FRACTION = 0.8f
+
+        /**
+         * Lines placed by a fraction of the height (ASS \an7-9, \pos; TTML regions) count in the picture, not in the
+         * view: in portrait a top line would stand in the black bar. [ratio]: picture height / view height.
+         */
+        internal fun intoPicture(cues: List<Cue>, ratio: Float): List<Cue> {
+            if (ratio <= 0f || ratio >= 1f) return cues
+            return cues.map { cue ->
+                if (cue.line == Cue.DIMEN_UNSET || cue.lineType != Cue.LINE_TYPE_FRACTION) return@map cue
+                cue.buildUpon().setLine((1 - ratio) / 2 + cue.line * ratio, Cue.LINE_TYPE_FRACTION).build()
+            }
+        }
+
+        /**
+         * The visible picture's height in a view of [width] × [height] for a film of [videoWidth] × [videoHeight]
+         * stored turned by [rotation]: letterboxed only when fitted.
+         */
+        internal fun pictureHeight(
+            videoWidth: Int,
+            videoHeight: Int,
+            rotation: Int,
+            pixelRatio: Float,
+            fit: Boolean,
+            width: Int,
+            height: Int
+        ): Int {
+            if (!fit || videoWidth <= 0 || videoHeight <= 0 || width <= 0) return height
+            val turned = rotation % 180 != 0
+            val aspect = videoWidth * pixelRatio / videoHeight
+            return minOf(height, (width * (if (turned) aspect else 1 / aspect)).toInt())
+        }
+
+        /**
+         * Ordo's look on any SubtitleView: the player's and the sheet's preview. The text size goes with
+         * [setTextSize], which needs the picture's share of the view.
+         */
+        fun applyStyle(view: SubtitleView, style: SubtitleStyle) {
+            setTextSize(view, style, 1f)
+            if (style.system) {
+                view.setUserDefaultStyle()
+            } else {
+                val (background, edge) = when (style.background) {
+                    SubtitleStyle.Background.OUTLINE -> Color.TRANSPARENT to CaptionStyleCompat.EDGE_TYPE_OUTLINE
+                    SubtitleStyle.Background.SHADOW -> Color.TRANSPARENT to CaptionStyleCompat.EDGE_TYPE_DROP_SHADOW
+                    SubtitleStyle.Background.BOX ->
+                        ((SubtitleStyle.boxAlpha(style.color.argb) * 255).toInt() shl 24) to
+                            CaptionStyleCompat.EDGE_TYPE_NONE
+                }
+                view.setStyle(CaptionStyleCompat(
+                    style.color.argb, background, Color.TRANSPARENT, edge, Color.BLACK,
+                    Typeface.create(style.font.family, Typeface.NORMAL)
+                ))
+            }
+            view.setApplyEmbeddedFontSizes(style.fileStyles && !style.system)
+        }
+
+        /**
+         * The text size as a share of the picture's height, [pictureRatio] = picture height / view height. "Like the
+         * system" takes Android's caption font scale on Ordo's base size (Media3's own would count the whole view).
+         */
+        fun setTextSize(view: SubtitleView, style: SubtitleStyle, pictureRatio: Float) {
+            val phone = view.resources.configuration.smallestScreenWidthDp < 600
+            val fraction = if (style.system) {
+                val captioning = view.context.getSystemService(android.view.accessibility.CaptioningManager::class.java)
+                SubtitleStyle.baseFraction(phone) * (captioning?.takeIf { it.isEnabled }?.fontScale ?: 1f)
+            } else {
+                style.textFraction(phone)
+            }
+            view.setFractionalTextSize(fraction * pictureRatio)
         }
 
         private fun deleteRanges(text: SpannableStringBuilder, ranges: List<IntRange>) {

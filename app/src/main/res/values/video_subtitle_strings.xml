@@ -23,15 +23,30 @@
         <item>Turkish (Windows-1254)</item>
     </string-array>
     <string name="video_subtitles_size">Size</string>
-    <string-array name="video_subtitles_size_names">
-        <item>Small</item>
+    <string name="video_subtitles_size_smaller">Smaller</string>
+    <string name="video_subtitles_size_larger">Larger</string>
+    <string name="video_subtitles_style">Subtitle style</string>
+    <string name="video_subtitles_style_system">Like the system</string>
+    <string name="video_subtitles_style_system_summary">Android\'s caption settings (Accessibility › Captions)</string>
+    <string name="video_subtitles_style_file">Styles of the file</string>
+    <string name="video_subtitles_style_file_summary">ASS and SSA files keep their own colours, fonts and sizes</string>
+    <string name="video_subtitles_style_reset">Reset style</string>
+    <string name="video_subtitles_preview_text">Greetings from Cologne –\nthis is how subtitles look.</string>
+    <string name="video_subtitles_preview_description">Subtitle preview on a light and a dark picture</string>
+    <string name="video_subtitles_font">Font</string>
+    <string-array name="video_subtitles_font_names">
+        <item>Standard</item>
         <item>Medium</item>
-        <item>Large</item>
-        <item>Extra large</item>
+        <item>Condensed</item>
+        <item>Serif</item>
     </string-array>
-    <string name="video_subtitles_background">Background</string>
+    <string name="video_subtitles_position">Height</string>
+    <string name="video_subtitles_position_summary">Distance from the bottom of the picture</string>
+    <string name="video_subtitles_position_lower">Lower</string>
+    <string name="video_subtitles_position_higher">Higher</string>
+    <string name="video_subtitles_background">Edge</string>
     <string-array name="video_subtitles_background_names">
-        <item>None</item>
+        <item>Outline</item>
         <item>Shadow</item>
         <item>Box</item>
     </string-array>
@@ -39,6 +54,8 @@
     <string-array name="video_subtitles_color_names">
         <item>White</item>
         <item>Yellow</item>
+        <item>Cyan</item>
+        <item>Green</item>
     </string-array>
     <string name="video_subtitles_bitmap_note">This track is made of pictures, so size and colour don\'t change it.</string>
     <string name="video_subtitles_not_subtitle">This file isn\'t a subtitle file (SRT, VTT, ASS, SSA or TTML).</string>
