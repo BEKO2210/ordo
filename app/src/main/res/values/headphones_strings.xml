@@ -2,7 +2,7 @@
 <!-- Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later -->
 <resources>
     <string name="headphones_title">Headphones</string>
-    <string name="headphones_entry_summary">Virtual surround, full sound when quiet, headphone correction</string>
+    <string name="headphones_entry_summary">Off · offers virtual surround, full sound when quiet, headphone correction</string>
     <string name="headphones_open">Open headphone settings</string>
     <string name="headphones_virtual_surround">Virtual surround</string>
     <string name="headphones_virtual_surround_summary">5.1 and 7.1 sound like speakers around you instead of inside your head. Only with headphones, and only when Android isn\'t already doing spatial audio. Music: from the next track.</string>

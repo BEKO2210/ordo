@@ -58,7 +58,12 @@ fun showSubtitleSheet(context: Context, subtitles: VideoSubtitles) {
         val check = sheet.check(choice == current)
         val position = checks.size
         checks += check
-        rows += sheet.row(choicesCard, 0, label(context, subtitles, choice, trackNumber), null, check) {
+        val icon = when (choice) {
+            SubtitleChoice.Off -> R.drawable.video_subtitles_off_icon_24dp
+            is SubtitleChoice.File -> R.drawable.file_document_icon
+            is SubtitleChoice.Track -> R.drawable.video_subtitles_icon_24dp
+        }
+        rows += sheet.row(choicesCard, icon, label(context, subtitles, choice, trackNumber), null, check) {
             subtitles.choose(choice)
             checks.forEachIndexed { index, other ->
                 other.visibility = if (index == position) View.VISIBLE else View.INVISIBLE

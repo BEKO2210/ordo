@@ -8,6 +8,7 @@ package me.zhanghai.android.files.viewer.audio
 import java.util.Comparator
 import kotlin.random.Random
 import me.zhanghai.android.files.player.isPlayableAudioMimeType
+import me.zhanghai.android.files.viewer.video.VideoLibrary
 
 /**
  * One song as MediaStore lists it. [artist] and [album] are null when unknown; [track] is MediaStore's TRACK
@@ -37,7 +38,14 @@ data class MusicSong(
 data class MusicGroup(val key: String, val name: String?, val artist: String?, val songs: List<MusicSong>)
 
 /** Grouping, sorting and filtering of the music library; no Android in here, so it is unit-tested. */
-class MusicLibrary(songs: List<MusicSong>, showHiddenFiles: Boolean, private val collator: Comparator<in String>) {
+class MusicLibrary(
+    songs: List<MusicSong>,
+    showHiddenFiles: Boolean,
+    private val collator: Comparator<in String>,
+    /** Folder names of a storage root, which would otherwise show as "0" or "1A2B-3C4D" (as in Ordo Video). */
+    internalStorageName: String = "Internal storage",
+    sdCardName: String = "SD card"
+) {
     // Unknown names sort last.
     private val byName = Comparator<String?> { a, b ->
         when {
@@ -65,7 +73,7 @@ class MusicLibrary(songs: List<MusicSong>, showHiddenFiles: Boolean, private val
     }.sortedWith(compareBy<MusicGroup, String?>(byName) { it.name })
 
     val folders: List<MusicGroup> = this.songs.groupBy { it.folder }.map { (folder, list) ->
-        MusicGroup(folder, folder.substringAfterLast('/'), null, list)
+        MusicGroup(folder, VideoLibrary.folderName(folder, internalStorageName, sdCardName), null, list)
     }.sortedWith(compareBy<MusicGroup, String?>(byName) { it.name }.thenBy { it.key })
 
     private fun mostCommonArtist(songs: List<MusicSong>): String? =

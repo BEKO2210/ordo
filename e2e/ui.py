@@ -254,9 +254,12 @@ elif command == "texts":
     print("\n".join(f"{t}|{rid.split('/')[-1]}|{d}" for t, rid, d, *_ in nodes() if t or d))
 elif command == "shot":
     # Privacy: only Ordo's own screens, never another app, the launcher or a lock screen (lib.sh ordo_front).
-    state = sh("dumpsys activity activities | grep -m1 topResumedActivity; dumpsys window | grep -m1 isKeyguardShowing")
+    state = sh("dumpsys activity activities | grep -m1 topResumedActivity; dumpsys window | grep -m1 isKeyguardShowing; "
+               "dumpsys window | grep -m1 mCurrentFocus")
     pkg = os.environ.get("PKG", "com.beko2210.ordo")
-    if not re.search(r"topResumedActivity=.* " + re.escape(pkg) + "/", state) or "isKeyguardShowing=true" in state:
+    # The focused window too: Samsung's app drawer can cover Ordo while Ordo stays resumed (lib.sh ordo_front).
+    if (not re.search(r"topResumedActivity=.* " + re.escape(pkg) + "/", state) or "isKeyguardShowing=true" in state
+            or not re.search(r"mCurrentFocus=.* " + re.escape(pkg) + "/", state)):
         print(f"SKIP shot (not Ordo): {sys.argv[3]}")
         sys.exit(1)
     with open(sys.argv[3], "wb") as file:

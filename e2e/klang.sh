@@ -43,7 +43,7 @@ set_switch() {
 }
 # The live picture says "Title: value"; switched on, the value is no longer "Off". It sits under the title, so a
 # short scroll brings it in when the title stands at the bottom edge.
-nudge() { read -r W H < <(screen_size); a shell input swipe $((W / 2)) $((H * 6 / 10)) $((W / 2)) $((H * 4 / 10)) 400; sleep 1; }
+nudge() { read -r W H < <(screen_size); a shell input swipe $((W / 2)) $((H * 6 / 10)) $((W / 2)) $((H * 4 / 10)) 400; sleep 1; still_muted; }
 # ui.py texts prints "text|id|description" with the short id.
 picture_shows() { ui texts | grep -E "^\|picture\|($1): " | grep -vqE ": (Aus|Off)$"; }
 picture_on_id() { ui texts | grep -E "^\|$1\|($2): " | grep -vqE ": (Aus|Off)$"; }

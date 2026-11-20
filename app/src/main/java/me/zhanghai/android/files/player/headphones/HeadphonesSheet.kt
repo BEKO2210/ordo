@@ -208,6 +208,18 @@ class HeadphonesSheet : BottomSheetDialogFragment() {
             row.icon.setImageResource(R.drawable.audio_headphones_icon_24dp)
             row.title.setText(R.string.headphones_title)
             row.toggle.isVisible = false
+            // A chevron where the switch would be: the row opens its own sheet (it read as plain text without).
+            val context = row.root.context
+            row.root.addView(android.widget.ImageView(context).apply {
+                setImageResource(R.drawable.arrow_end_icon_white_24dp)
+                imageTintList = com.google.android.material.color.MaterialColors.getColorStateListOrNull(
+                    context, com.google.android.material.R.attr.colorOnSurfaceVariant
+                )
+                importantForAccessibility = android.view.View.IMPORTANT_FOR_ACCESSIBILITY_NO
+                scaleType = android.widget.ImageView.ScaleType.CENTER
+                val size = context.resources.getDimensionPixelSize(R.dimen.klang_touch_target)
+                layoutParams = android.widget.LinearLayout.LayoutParams(size, size)
+            })
             row.root.isClickable = true
             row.root.isFocusable = true
             row.root.contentDescription = null

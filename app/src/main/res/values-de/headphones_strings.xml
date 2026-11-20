@@ -2,7 +2,7 @@
 <!-- Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later -->
 <resources>
     <string name="headphones_title">Kopfhörer</string>
-    <string name="headphones_entry_summary">Virtueller Raumklang, leise hören mit vollem Klang, Kopfhörer-Korrektur</string>
+    <string name="headphones_entry_summary">Aus · bietet virtuellen Raumklang, leise hören mit vollem Klang, Kopfhörer-Korrektur</string>
     <string name="headphones_open">Kopfhörer-Einstellungen öffnen</string>
     <string name="headphones_virtual_surround">Virtueller Raumklang</string>
     <string name="headphones_virtual_surround_summary">5.1 und 7.1 klingen wie Lautsprecher um dich herum statt im Kopf. Nur mit Kopfhörer und nur, wenn Android nicht schon selbst Raumklang macht. Musik: ab dem nächsten Titel.</string>

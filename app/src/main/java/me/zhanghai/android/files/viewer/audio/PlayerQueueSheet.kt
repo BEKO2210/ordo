@@ -120,6 +120,11 @@ class PlayerQueueSheet : BottomSheetDialogFragment() {
     @SuppressLint("NotifyDataSetChanged")
     override fun onStart() {
         super.onStart()
+        // Open in full as the cast sheet (#119): a long queue opened at half height and needed a swipe up.
+        (dialog as? com.google.android.material.bottomsheet.BottomSheetDialog)?.behavior?.apply {
+            skipCollapsed = true
+            state = com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_EXPANDED
+        }
         if (songs.isEmpty()) {
             val context = requireContext().applicationContext
             viewLifecycleOwner.lifecycleScope.launch {

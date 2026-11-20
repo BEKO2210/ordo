@@ -71,7 +71,7 @@ object VideoAudioTrackSheet {
                 )
                 val selected = group.isTrackSelected(index)
                 sheet.row(
-                    card, 0, row.title, row.detail, sheet.check(selected),
+                    card, R.drawable.settings_language_icon_white_24dp, row.title, row.detail, sheet.check(selected),
                     if (row.playable) {
                         {
                             player.trackSelectionParameters = player.trackSelectionParameters.buildUpon()

@@ -35,7 +35,7 @@ check "the screen is in landscape" landscape
 # In two panes the cards scroll on the right: swipe there (in one column this is inside the sheet too).
 swipe_right_pane() {
     read -r W H < <(screen_size)
-    a shell input swipe $((W * 3 / 5)) $((H * 3 / 4)) $((W * 3 / 5)) $((H / 4)) 500; sleep 1.2
+    a shell input swipe $((W * 3 / 5)) $((H * 3 / 4)) $((W * 3 / 5)) $((H / 4)) 500; sleep 1.2; still_muted
 }
 reach() { local i; for i in $(seq 1 25); do ui has "$1" && return 0; swipe_right_pane; done; return 1; }
 check "the last card is reachable in landscape" reach "Resume when headphones connect|Beim Verbinden von Kopfhörern fortsetzen"
