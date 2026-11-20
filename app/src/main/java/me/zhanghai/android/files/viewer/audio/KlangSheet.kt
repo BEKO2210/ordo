@@ -48,7 +48,7 @@ class KlangSheet(val context: Context, @DrawableRes icon: Int, title: CharSequen
 
     init {
         binding.icon.setImageResource(icon)
-        binding.title.text = title
+        binding.sheetTitle.text = title
         binding.close.setOnClickListener { dialog.dismiss() }
         val view = binding.root
         val surface = MaterialColors.getColor(view, com.google.android.material.R.attr.colorSurface, 0xFFFFFFFF.toInt())

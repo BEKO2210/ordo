@@ -41,7 +41,7 @@
                 android:scaleType="center"
                 app:tint="?colorPrimary" />
             <TextView
-                android:id="@+id/title"
+                android:id="@+id/sheetTitle"
                 style="@style/Widget.Ordo.Klang.Text"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
