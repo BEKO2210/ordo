@@ -50,7 +50,9 @@ open_clip 01-surround.mp4
 check "the surround clip plays" wait_playing
 menu "Klang|Sound"
 check "the sound sheet opens with its own settings" part "^(Nur für Videos|Only for videos)"
-check "a 5.1 track is said to be mixed for two speakers" part "(5.1-Ton wird|5.1 sound is mixed).*\|surroundNote\|"
+# A device with its own spatializer (Tab S9) gets the 5.1 unchanged and says so; any other is mixed by Ordo.
+check "a 5.1 track says how it is played (Ordo mix or the system's surround)" \
+    part "(5.1-Ton wird|5.1 sound is mixed|5.1-Ton geht unverändert|5.1 sound goes to Android).*\|surroundNote\|"
 switch_on "Dialog-Verstärker|Clear dialogue"
 check "with Clear dialogue on it plays on" wait_playing
 scroll_to dialogStrong 3; ui tap dialogStrong >/dev/null; sleep 1.5  # "Strong" alone is also the bass boost's

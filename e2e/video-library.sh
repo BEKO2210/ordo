@@ -54,6 +54,12 @@ scroll_to Dark.S01E01 4 # on a phone "Recently added" starts at the newest episo
 ui longtap "Dark.S01E01" >/dev/null; sleep 1
 check "a long press selects" ui wait "1 ausgewählt|1 selected" 4
 ui tap "Weitere Optionen|More options" >/dev/null; sleep 1
+# Watched from an earlier run (the R8 build cannot be reset through run-as): back to unwatched first.
+if ui has "Als ungesehen markieren|Mark as unwatched"; then
+    ui tap "Als ungesehen markieren|Mark as unwatched" >/dev/null; sleep 2
+    scroll_to Dark.S01E01 4; ui longtap "Dark.S01E01" >/dev/null; sleep 1
+    ui tap "Weitere Optionen|More options" >/dev/null; sleep 1
+fi
 ui tap "Als gesehen markieren|Mark as watched" >/dev/null; sleep 2
 check "the selection ends" eval "! ui has 'ausgewählt|selected'"
 check "with S01E01 watched, Continue watching offers the next episode" ui wait "Als Nächstes · S1 F2|Up next · S1 E2" 6
