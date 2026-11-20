@@ -56,13 +56,11 @@ pinned() { a shell dumpsys activity activities | grep -A3 VideoPlayerActivity | 
 # 1. Sleep timer: chips, never a slider, and off again.
 open_clip; guard
 check "the video plays" wait_playing
-ui tap "Weitere Optionen|More options" >/dev/null; sleep 1
-ui tap "Schlaf-Timer|Sleep timer" >/dev/null; sleep 1
+video_menu "Schlaf-Timer|Sleep timer"
 check "the sleep timer offers 15 min" ui has "15 Min.|15 min"
 check "the sleep timer offers the end of the video" ui has "Ende des Videos|End of video"
 ui tap "30 Min.|30 min" >/dev/null; sleep 1
-ui tap "Weitere Optionen|More options" >/dev/null; sleep 1
-ui tap "Schlaf-Timer|Sleep timer" >/dev/null; sleep 1
+video_menu "Schlaf-Timer|Sleep timer"
 check "the running timer says when it stops" ui has "Stoppt in|Stops in"
 ui tap "Aus|Off" >/dev/null; sleep 1
 

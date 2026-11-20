@@ -129,6 +129,18 @@ finish() {
     exit 1
 }
 
+# video_menu ENTRY: the player's ⋮ › ENTRY. While a film plays its controls hide after 4 s, and a screen read during
+# playback comes too late to see them (S21, 20.11.2026): paused they stay, so it pauses for the menu and plays on after.
+video_menu() {
+    local was W H
+    was=$(a shell dumpsys media_session | grep -A25 "package=$PKG" | grep -m1 -o 'state=PLAYING')
+    [ -n "$was" ] && { a shell input keyevent KEYCODE_MEDIA_PAUSE; sleep 1; }
+    ui has "Weitere Optionen|More options" || { read -r W H < <(screen_size); a shell input tap $((W / 2)) $((H / 2)); sleep 1; }
+    ui tap "Weitere Optionen|More options" >/dev/null; sleep 1
+    ui tap "$1" >/dev/null; sleep 1.5
+    [ -z "$was" ] || a shell input keyevent KEYCODE_MEDIA_PLAY
+}
+
 # Night rule (20.11.2026, a test device was heard): every suite starts with media at 0 or does not start at all.
 # Volume keys first (on the W90 and the Pixel `cmd media_session volume --set` was unreliable), then --set as a fallback.
 media_volume() { a shell cmd media_session volume --stream 3 --get 2>/dev/null | grep -oE 'volume is [0-9]+' | grep -oE '[0-9]+'; }
