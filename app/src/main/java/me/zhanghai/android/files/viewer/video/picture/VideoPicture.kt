@@ -22,6 +22,7 @@ import android.util.Log
 import android.view.Display
 import android.view.SurfaceView
 import android.view.View
+import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.annotation.OptIn
@@ -54,7 +55,6 @@ import androidx.media3.exoplayer.audio.AudioSink
 import androidx.media3.exoplayer.mediacodec.MediaCodecUtil
 import androidx.media3.exoplayer.video.VideoFrameMetadataListener
 import androidx.media3.ui.PlayerView
-import com.google.android.material.bottomsheet.BottomSheetDialog
 import java.text.NumberFormat
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
@@ -66,7 +66,7 @@ import me.zhanghai.android.files.settings.Settings
 import me.zhanghai.android.files.util.valueCompat
 import me.zhanghai.android.files.viewer.video.VideoInfo
 import me.zhanghai.android.files.viewer.video.audioCodecName
-import me.zhanghai.android.files.viewer.video.showExpanded
+import me.zhanghai.android.files.viewer.audio.KlangSheet
 import me.zhanghai.android.files.viewer.video.videoCodecName
 import me.zhanghai.android.files.viewer.video.picture.PicturePolicy.Off
 import me.zhanghai.android.files.viewer.video.picture.PicturePolicy.Pipeline
@@ -664,64 +664,45 @@ class VideoPicture(
 
     /** The sheet; its values follow the playback once a second while it is open. */
     fun showSignalPath() {
-        val dialog = BottomSheetDialog(activity)
-        val padding = activity.resources.getDimensionPixelSize(R.dimen.phi_21)
-        val content = LinearLayout(activity).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(padding, padding, padding, padding)
-        }
-        content.addView(heading(R.string.video_signal_title, title = true))
+        val sheet = KlangSheet(activity, R.drawable.video_signal_icon_24dp, R.string.video_signal_title)
+        val grid = sheet.grid()
         // Fixed rows per section, filled by position; a row without a value hides.
-        fun rows(labels: List<Int>): List<Pair<View, TextView>> =
+        fun rows(card: ViewGroup, labels: List<Int>): List<Pair<View, TextView>> =
             labels.map { label ->
-                val value = TextView(activity).apply {
-                    setTextAppearance(com.google.android.material.R.style.TextAppearance_MaterialComponents_Body1)
+                val value = TextView(activity, null, 0, R.style.Widget_Ordo_Klang_Title).apply {
                     importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
                 }
                 val row = LinearLayout(activity).apply {
                     orientation = LinearLayout.VERTICAL
-                    minimumHeight = activity.resources.getDimensionPixelSize(R.dimen.phi_55)
-                    setPadding(0, padding / 2, 0, 0)
+                    gravity = android.view.Gravity.CENTER_VERTICAL
+                    minimumHeight = activity.resources.getDimensionPixelSize(R.dimen.klang_row_min_height)
                     isFocusable = true
-                    addView(TextView(activity).apply {
+                    addView(TextView(activity, null, 0, R.style.Widget_Ordo_Klang_Info).apply {
                         setText(label)
-                        setTextAppearance(
-                            com.google.android.material.R.style.TextAppearance_MaterialComponents_Caption
-                        )
                         importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
                     })
                     addView(value)
                 }
-                content.addView(row)
+                card.addView(row)
                 row to value
             }
-        fun section(@StringRes title: Int, labels: List<Int>): List<Pair<View, TextView>> {
-            content.addView(heading(title, title = false).apply { setPadding(0, padding, 0, 0) })
-            return rows(labels)
-        }
-        val pictureRows = section(R.string.video_signal_picture, PICTURE_ROWS)
-        val soundRows = section(R.string.video_signal_sound, SOUND_ROWS)
-        // Measurements: folded and off until tapped; unfolding starts them, folding stops them.
-        val meterState = TextView(activity).apply {
-            setTextAppearance(com.google.android.material.R.style.TextAppearance_MaterialComponents_Caption)
-        }
-        val meterHeader = LinearLayout(activity).apply {
-            orientation = LinearLayout.VERTICAL
-            minimumHeight = activity.resources.getDimensionPixelSize(R.dimen.phi_55)
-            setPadding(0, padding, 0, padding / 2)
-            isClickable = true
-            isFocusable = true
-            setBackgroundResource(android.R.drawable.list_selector_background)
-            addView(heading(R.string.video_meter_title, title = false))
-            addView(meterState)
-        }
-        content.addView(meterHeader)
-        val meterRows = rows(METER_ROWS)
-        val share = com.google.android.material.button.MaterialButton(activity).apply {
-            setText(R.string.video_meter_share)
-            setOnClickListener { shareCsv() }
-        }
-        content.addView(share)
+        val pictureRows = rows(
+            sheet.card(R.drawable.image_icon_white_24dp, activity.getString(R.string.video_signal_picture), null, grid),
+            PICTURE_ROWS
+        )
+        val soundRows = rows(
+            sheet.card(R.drawable.audio_speaker_icon_24dp, activity.getString(R.string.video_signal_sound), null, grid),
+            SOUND_ROWS
+        )
+        // Measurements: off until the header row is tapped; tapping starts and stops them.
+        val meterCard = sheet.card(R.drawable.audio_graphic_eq_icon_24dp, null, null, grid)
+        val meterHeader = sheet.row(
+            meterCard, R.drawable.audio_graphic_eq_icon_24dp, activity.getString(R.string.video_meter_title),
+            activity.getString(R.string.video_meter_off), null
+        ) {}
+        val meterState = (meterHeader.getChildAt(1) as ViewGroup).getChildAt(1) as TextView
+        val meterRows = rows(meterCard, METER_ROWS)
+        val share = sheet.textButton(meterCard, activity.getString(R.string.video_meter_share)) { shareCsv() }
         fun fill(rows: List<Pair<View, TextView>>, labels: List<Int>, values: List<String?>) {
             for ((index, views) in rows.withIndex()) {
                 val value = values.getOrNull(index)
@@ -756,21 +737,8 @@ class VideoPicture(
             }
         }
         handler.postDelayed(ticker, SIGNAL_REFRESH_MS)
-        dialog.setOnDismissListener { handler.removeCallbacks(ticker) }
-        dialog.setContentView(androidx.core.widget.NestedScrollView(activity).apply { addView(content) })
-        dialog.showExpanded()
-    }
-
-    private fun heading(@StringRes text: Int, title: Boolean) = TextView(activity).apply {
-        setText(text)
-        setTextAppearance(
-            if (title) {
-                com.google.android.material.R.style.TextAppearance_MaterialComponents_Headline6
-            } else {
-                com.google.android.material.R.style.TextAppearance_MaterialComponents_Subtitle1
-            }
-        )
-        ViewCompat.setAccessibilityHeading(this, true)
+        sheet.dialog.setOnDismissListener { handler.removeCallbacks(ticker) }
+        sheet.show()
     }
 
     /**

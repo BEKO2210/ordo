@@ -160,6 +160,7 @@ video_menu() {
         ui has "Weitere Optionen|More options" || { read -r W H < <(screen_size); a shell input tap $((W / 2)) $((H / 2)); sleep 1; }
         ui tap "Weitere Optionen|More options" >/dev/null; sleep 1
         ui wait "$1" 3 >/dev/null && break
+        scroll_to "$1" 3 >/dev/null && break # the "More" sheet scrolls on a phone (cards in one column)
         ui has "Weitere Optionen|More options" || back 1 # a menu without the entry closes; never the player
     done
     ui tap "$1" >/dev/null; sleep 1.5

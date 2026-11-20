@@ -6,21 +6,16 @@
 package me.zhanghai.android.files.viewer.video.sound
 
 import android.content.Context
-import android.view.View
-import android.widget.ImageView
-import android.widget.LinearLayout
-import android.widget.TextView
+import android.view.ViewGroup
 import androidx.core.view.ViewCompat
 import androidx.media3.common.C
 import androidx.media3.common.Format
 import androidx.media3.common.TrackSelectionOverride
 import androidx.media3.common.Player
-import com.google.android.material.bottomsheet.BottomSheetBehavior
-import com.google.android.material.bottomsheet.BottomSheetDialog
 import me.zhanghai.android.files.R
 import me.zhanghai.android.files.databinding.KlangValueStepperBinding
+import me.zhanghai.android.files.viewer.audio.KlangSheet
 import me.zhanghai.android.files.viewer.video.audioCodecName
-import me.zhanghai.android.files.viewer.video.showExpanded
 import java.util.Locale
 
 /**
@@ -59,50 +54,50 @@ object VideoAudioTrackSheet {
     }
 
     fun show(context: Context, player: Player, engine: VideoSoundEngine?) {
-        val dialog = BottomSheetDialog(context)
-        val padding = context.resources.getDimensionPixelSize(R.dimen.klang_space_lg)
-        val content = LinearLayout(context).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(padding, padding, padding, padding)
-        }
-        content.addView(heading(context, R.string.video_audio_track_title))
+        val sheet = KlangSheet(context, R.drawable.audio_surround_icon_24dp, R.string.video_audio_track_title)
         val tracks = player.currentTracks.groups.filter { it.type == C.TRACK_TYPE_AUDIO }
             .flatMap { group -> (0 until group.length).map { group to it } }
-        if (tracks.isEmpty()) {
-            content.addView(info(context, context.getString(R.string.video_audio_track_none)))
+        if (tracks.isEmpty()) sheet.info(context.getString(R.string.video_audio_track_none))
+        val grid = sheet.grid()
+        if (tracks.isNotEmpty()) {
+            val card = sheet.card(R.drawable.audio_surround_icon_24dp, null, parent = grid)
+            val locale = context.resources.configuration.locales[0]
+            tracks.forEachIndexed { position, (group, index) ->
+                val row = describe(
+                    group.getTrackFormat(index).track(), position + 1, group.isTrackSupported(index), locale,
+                    { context.getString(R.string.video_audio_track_unknown_language, it) },
+                    { context.getString(R.string.video_audio_track_channels, it) },
+                    context.getString(R.string.video_audio_track_unplayable)
+                )
+                val selected = group.isTrackSelected(index)
+                sheet.row(
+                    card, 0, row.title, row.detail, sheet.check(selected),
+                    if (row.playable) {
+                        {
+                            player.trackSelectionParameters = player.trackSelectionParameters.buildUpon()
+                                .setOverrideForType(TrackSelectionOverride(group.mediaTrackGroup, index))
+                                .build()
+                            sheet.dialog.dismiss()
+                        }
+                    } else null
+                ).apply {
+                    isSelected = selected
+                    isEnabled = row.playable
+                    // Dimmed, the text still keeps 3 : 1 against the card.
+                    if (!row.playable) alpha = 0.6f
+                }
+            }
         }
-        val locale = context.resources.configuration.locales[0]
-        tracks.forEachIndexed { position, (group, index) ->
-            val row = describe(
-                group.getTrackFormat(index).track(), position + 1, group.isTrackSupported(index), locale,
-                { context.getString(R.string.video_audio_track_unknown_language, it) },
-                { context.getString(R.string.video_audio_track_channels, it) },
-                context.getString(R.string.video_audio_track_unplayable)
-            )
-            content.addView(trackRow(context, row, group.isTrackSelected(index)) {
-                player.trackSelectionParameters = player.trackSelectionParameters.buildUpon()
-                    .setOverrideForType(TrackSelectionOverride(group.mediaTrackGroup, index))
-                    .build()
-                dialog.dismiss()
-            })
-        }
-        if (engine != null && tracks.isNotEmpty()) addSync(context, content, engine)
-        // The player screen owns the dialog: it goes when the screen does.
-        (context as? androidx.lifecycle.LifecycleOwner)?.lifecycle?.addObserver(object : androidx.lifecycle.DefaultLifecycleObserver {
-            override fun onDestroy(owner: androidx.lifecycle.LifecycleOwner) = dialog.dismiss()
-        })
-        dialog.setContentView(content)
-        dialog.behavior.skipCollapsed = true
-        dialog.behavior.state = BottomSheetBehavior.STATE_EXPANDED
-        dialog.showExpanded()
+        if (engine != null && tracks.isNotEmpty()) addSync(context, sheet, grid, engine)
+        sheet.show()
     }
 
-    private fun addSync(context: Context, content: LinearLayout, engine: VideoSoundEngine) {
-        content.addView(heading(context, R.string.video_audio_sync).apply {
-            setPadding(0, context.resources.getDimensionPixelSize(R.dimen.klang_space_xl), 0, 0)
-        })
-        content.addView(info(context, context.getString(R.string.video_audio_sync_summary)))
-        val stepper = KlangValueStepperBinding.inflate(android.view.LayoutInflater.from(context), content, true)
+    private fun addSync(context: Context, sheet: KlangSheet, grid: ViewGroup, engine: VideoSoundEngine) {
+        val card = sheet.card(
+            R.drawable.audio_timer_icon_24dp, context.getString(R.string.video_audio_sync),
+            context.getString(R.string.video_audio_sync_summary), grid
+        )
+        val stepper = KlangValueStepperBinding.inflate(android.view.LayoutInflater.from(context), card, true)
         stepper.stepMinus.contentDescription = context.getString(R.string.video_audio_sync_earlier_button)
         stepper.stepPlus.contentDescription = context.getString(R.string.video_audio_sync_later_button)
         fun render() {
@@ -122,41 +117,5 @@ object VideoAudioTrackSheet {
         // A tap on the value puts it back in sync.
         stepper.stepValue.setOnClickListener { engine.setDelay(0); render() }
         render()
-    }
-
-    private fun heading(context: Context, text: Int) = TextView(context).apply {
-        setText(text)
-        setTextAppearance(R.style.TextAppearance_Ordo_Klang_Title)
-        ViewCompat.setAccessibilityHeading(this, true)
-    }
-
-    private fun info(context: Context, text: String) = TextView(context, null, 0, R.style.Widget_Ordo_Klang_Info).apply {
-        this.text = text
-    }
-
-    private fun trackRow(context: Context, row: Row, selected: Boolean, onClick: () -> Unit): View {
-        val res = context.resources
-        return LinearLayout(context).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = android.view.Gravity.CENTER_VERTICAL
-            minimumHeight = res.getDimensionPixelSize(R.dimen.klang_row_min_height)
-            val outValue = android.util.TypedValue()
-            context.theme.resolveAttribute(android.R.attr.selectableItemBackground, outValue, true)
-            setBackgroundResource(outValue.resourceId)
-            isEnabled = row.playable
-            alpha = if (row.playable) 1f else 0.5f
-            if (row.playable) setOnClickListener { onClick() }
-            isSelected = selected
-            addView(ImageView(context).apply {
-                setImageResource(R.drawable.check_icon_control_normal_24dp)
-                visibility = if (selected) View.VISIBLE else View.INVISIBLE
-                importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
-            }, LinearLayout.LayoutParams(res.getDimensionPixelSize(R.dimen.klang_icon_column), LinearLayout.LayoutParams.WRAP_CONTENT))
-            addView(LinearLayout(context).apply {
-                orientation = LinearLayout.VERTICAL
-                addView(TextView(context, null, 0, R.style.Widget_Ordo_Klang_Title).apply { text = row.title })
-                addView(TextView(context, null, 0, R.style.Widget_Ordo_Klang_Info).apply { text = row.detail })
-            }, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
-        }
     }
 }

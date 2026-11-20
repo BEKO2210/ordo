@@ -53,7 +53,6 @@ import androidx.media3.common.util.Util
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.PlayerMessage
 import androidx.media3.extractor.metadata.Chapter
-import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.snackbar.Snackbar
 import java.io.File
 import java.net.URI
@@ -70,7 +69,7 @@ import me.zhanghai.android.files.databinding.VideoPlayerActivityBinding
 import me.zhanghai.android.files.provider.linux.isLinuxPath
 import me.zhanghai.android.files.util.showToast
 import me.zhanghai.android.files.util.startActivitySafe
-import me.zhanghai.android.files.viewer.video.showExpanded
+import me.zhanghai.android.files.viewer.audio.KlangSheet
 
 /**
  * Pro seeking for Ordo Video, kept apart from the player screen: preview frames while the seek bar is dragged or the
@@ -82,6 +81,8 @@ import me.zhanghai.android.files.viewer.video.showExpanded
 internal class VideoSeekPro(
     private val activity: AppCompatActivity,
     private val binding: VideoPlayerActivityBinding,
+    /** The entries of ⋮ › More (VideoMoreSheet), where chapters, frame by frame, A-B and save frame go. */
+    private val moreMenu: Menu,
     private val player: ExoPlayer,
     private val playPause: () -> Unit,
     private val seekBy: (Long) -> Unit,
@@ -239,20 +240,24 @@ internal class VideoSeekPro(
         binding.root.addOnLayoutChangeListener { _, l, t, r, b, ol, ot, or_, ob ->
             if (r - l != or_ - ol || b - t != ob - ot) applyZoom()
         }
-        // Order 50+: below "Open with" and "Video info" of the screen's menu.
-        val menu = binding.toolbar.menu
-        chaptersItem = menu.add(Menu.NONE, View.generateViewId(), 50, R.string.video_seek_chapters).apply {
+        // Playback: after the speed (40), before the sleep timer (44); save frame after the video info (60).
+        val menu = moreMenu
+        chaptersItem = menu.add(R.id.groupVideoPlayback, View.generateViewId(), 41, R.string.video_seek_chapters).apply {
+            setIcon(R.drawable.video_chapters_icon_24dp)
             isVisible = false
             setOnMenuItemClickListener { showChapters(); true }
         }
-        menu.add(Menu.NONE, View.generateViewId(), 51, R.string.video_seek_frame_mode)
+        menu.add(R.id.groupVideoPlayback, View.generateViewId(), 42, R.string.video_seek_frame_mode)
+            .setIcon(R.drawable.video_seek_frame_ahead_icon_24dp)
             .setOnMenuItemClickListener { setFrameMode(true); true }
-        abItem = menu.add(Menu.NONE, View.generateViewId(), 52, R.string.video_seek_ab_set_a).apply {
+        abItem = menu.add(R.id.groupVideoPlayback, View.generateViewId(), 43, R.string.video_seek_ab_set_a).apply {
+            setIcon(R.drawable.repeat_icon_24dp)
             setOnMenuItemClickListener { pressAb(); true }
         }
         // Never for a Tresor video (#101): the frame would land in the public Pictures folder.
         if (!VaultVideos.isVault(player.currentMediaItem?.mediaId)) {
-            menu.add(Menu.NONE, View.generateViewId(), 53, R.string.video_seek_snapshot)
+            menu.add(R.id.groupVideoFile, View.generateViewId(), 61, R.string.video_seek_snapshot)
+                .setIcon(R.drawable.camera_icon_white_24dp)
                 .setOnMenuItemClickListener { saveFrame(); true }
         }
 
@@ -380,60 +385,25 @@ internal class VideoSeekPro(
     private fun chapterTitleAt(positionMs: Long): String? =
         SeekLogic.chapterIndexAt(chapters, positionMs).takeIf { it >= 0 }?.let(::chapterTitle)
 
+    /** The chapters as Klang rows: each with the chapter mark, the playing one with the play mark; the time on the end edge. */
     private fun showChapters() {
         if (chapters.isEmpty()) return
-        val dialog = BottomSheetDialog(context)
-        val padding = context.resources.getDimensionPixelSize(R.dimen.phi_21)
-        val content = LinearLayout(context).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(0, padding, 0, padding)
-        }
-        content.addView(TextView(context).apply {
-            setText(R.string.video_seek_chapters)
-            setTextAppearance(com.google.android.material.R.style.TextAppearance_MaterialComponents_Headline6)
-            ViewCompat.setAccessibilityHeading(this, true)
-            setPadding(padding, 0, padding, padding / 2)
-        })
+        val sheet = KlangSheet(context, R.drawable.video_chapters_icon_24dp, R.string.video_seek_chapters)
+        val card = sheet.card(R.drawable.video_chapters_icon_24dp, null)
         val current = SeekLogic.chapterIndexAt(chapters, player.currentPosition)
-        val selectable = android.util.TypedValue().also {
-            context.theme.resolveAttribute(android.R.attr.selectableItemBackground, it, true)
-        }.resourceId
         chapters.forEachIndexed { index, chapter ->
-            content.addView(LinearLayout(context).apply {
-                orientation = LinearLayout.HORIZONTAL
-                gravity = Gravity.CENTER_VERTICAL
-                minimumHeight = (56 * density).toInt()
-                setPadding(padding, 0, padding, 0)
-                setBackgroundResource(selectable)
-                isActivated = index == current
-                addView(TextView(context).apply {
-                    text = chapterTitle(index)
-                    setTextAppearance(
-                        if (index == current) {
-                            com.google.android.material.R.style.TextAppearance_MaterialComponents_Subtitle1
-                        } else {
-                            com.google.android.material.R.style.TextAppearance_MaterialComponents_Body1
-                        }
-                    )
-                    if (index == current) setTypeface(typeface, android.graphics.Typeface.BOLD)
-                    hyphenationFrequencyCompat()
-                }, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
-                addView(TextView(context).apply {
-                    text = formatTime(chapter.startMs)
-                    setTextAppearance(com.google.android.material.R.style.TextAppearance_MaterialComponents_Body2)
-                    setPaddingRelative((16 * density).toInt(), 0, 0, 0)
-                })
+            val time = TextView(context, null, 0, R.style.Widget_Ordo_Klang_Value).apply { text = formatTime(chapter.startMs) }
+            sheet.row(card, if (index == current) R.drawable.play_icon_24dp else R.drawable.video_chapters_icon_24dp, chapterTitle(index), null, time) {
+                player.seekTo(chapter.startMs)
+                sheet.dialog.dismiss()
+            }.apply {
+                isSelected = index == current
                 if (index == current) {
                     ViewCompat.setStateDescription(this, context.getString(R.string.video_seek_chapter_current))
                 }
-                setOnClickListener {
-                    player.seekTo(chapter.startMs)
-                    dialog.dismiss()
-                }
-            })
+            }
         }
-        dialog.setContentView(androidx.core.widget.NestedScrollView(context).apply { addView(content) })
-        dialog.showExpanded()
+        sheet.show()
     }
 
     // ---- Frame by frame ----

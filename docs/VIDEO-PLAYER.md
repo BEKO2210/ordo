@@ -35,8 +35,14 @@ Knopf nicht.
 
 ## Bedienung
 
-- Oben Zurück, Dateiname, ⋮ mit „Mit anderer App öffnen“ (Auswahl ohne Ordos Player) und „Dateiinfo“ (nur für Ordos
-  Pfade). Mitte −10 s · Abspielen/Pause · +10 s. Unten Zeit (Tippen wechselt zur Restzeit) · `PlayerSeekSlider`
+- Oben Zurück, Dateiname, Streamen, Untertitel und ⋮. ⋮ öffnet das Blatt „Mehr“ (`VideoMoreSheet`): Klang-Karten wie im
+  Musik-Player, gruppiert nach „Bild und Ton“ (Klang, Tonspur, Untertitel, Bild anpassen, Bildverbesserung mit Schalter,
+  Signalweg), „Wiedergabe“ (Wiedergabetempo, Kapitel, Einzelbild, A-B-Schleife, Schlaf-Timer, Bild-in-Bild) und „Datei“
+  (Videoinfos, Standbild speichern, „Mit anderer App öffnen“); auf breiten Blättern (Tablet) stehen die Karten in zwei
+  Spalten (`MasonryLayout`, ab 320 dp je Karte). Was es nicht gibt (keine Kapitel, kein Bild-in-Bild, Tresor-Video),
+  fehlt auch dort. Alle Blätter des Players nutzen dasselbe Gerüst `KlangSheet` (Griff, Kopfzeile mit Akzent-Symbol
+  und Schließen, Karten, gleich breite Auswahlknöpfe in ausgewogenen Reihen, keine Fensteranimation ohne Bewegung);
+  Tempo und Schlaf-Timer zeigen die Bilder des Musik-Klangblatts (Pendel, Mondbogen). Mitte −10 s · Abspielen/Pause · +10 s. Unten Zeit (Tippen wechselt zur Restzeit) · `PlayerSeekSlider`
   (erst 150 ms still halten greift) · Dauer, darunter Tempo, Bildformat, Sperre, Drehen (Handy), vorheriges und
   nächstes Video.
 - Größen kommen aus den Musik-Player-Maßen (`audio_player_*`), die auf Tablets schon wachsen (Play 88 dp, sonst
@@ -395,7 +401,7 @@ Umbau, kein Controller-Umweg); der Dienst beherbergt nur ihre Session.
   −Sprung · Abspielen/Pause · +Sprung (Sprungweite aus den Einstellungen) über einen nicht exportierten Receiver.
   Im Fenster zeichnen Leiste, Hinweise und Pillen nichts (leere `clipBounds`, ihre Logik läuft unverändert weiter),
   Untertitel bleiben. Positionsspeicher läuft weiter (5-s-Takt). Fenster schließen pausiert.
-- **Schlaf-Timer** (⋮ › „Schlaf-Timer“, `VideoSleepTimer`): Chips Aus · 15 · 30 · 45 · 60 Min. · Ende des Videos;
+- **Schlaf-Timer** (⋮ › „Schlaf-Timer“, `VideoSleepTimer`): gleich breite Knöpfe Aus · 15 · 30 · 45 · 60 Min. · Ende des Videos;
   läuft er, nennt das Blatt die Restzeit. Die letzten 10 s blendet der Ton aus (`SleepTimerSchedule` der Musik), dann
   Pause. „Ende des Videos“ hält auch bei „Wiederholen“ oder „Automatisch weiter“ an.
 - **Audiofokus, Kopfhörer:** wie bisher ExoPlayer (`handleAudioFocus`, `setHandleAudioBecomingNoisy`) – das entspricht
@@ -623,7 +629,7 @@ die neuen Einträge hängt `VideoSeekPro` selbst ins ⋮-Menü und in die Ansich
   `content://`; SMB/SFTP/WebDAV/FTP zeigen kein Bild (ein zweiter Leser über das Netz würde mit der Wiedergabe
   konkurrieren), nur den Kapitelnamen, wenn es einen gibt.
 - **Kapitel:** Media3 1.11 liest Kapitel aus MP4 (Nero/QuickTime) und Matroska als `Chapter` in den Metadaten der
-  Spuren. Ab zwei Kapiteln: Striche im Balken, ⋮ › „Kapitel“ als Blatt (aktuelles fett, „Läuft gerade“ für TalkBack,
+  Spuren. Ab zwei Kapiteln: Striche im Balken, ⋮ › „Kapitel“ als Blatt (aktuelles mit Abspiel-Symbol in der Akzentfarbe, „Läuft gerade“ für TalkBack,
   Tippen springt), Name in der Vorschau.
 - **Einzelbild:** ⋮ › „Einzelbild“ pausiert und zeigt unter der Titelleiste ‹ Bild n › ✕; Tasten `,` und `.` gehen
   auch ohne die Leiste. Ziel = Anfang des nächsten/vorigen Bildes aus der Bildrate der Videospur (sonst 30 fps),

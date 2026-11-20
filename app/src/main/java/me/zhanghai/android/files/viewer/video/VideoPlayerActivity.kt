@@ -22,6 +22,8 @@ import android.os.Handler
 import android.os.Looper
 import android.view.Gravity
 import android.view.KeyEvent
+import android.view.Menu
+import android.view.MenuItem
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewConfiguration
@@ -67,8 +69,6 @@ import androidx.media3.exoplayer.mediacodec.MediaCodecRenderer
 import androidx.media3.session.MediaSession
 import androidx.media3.ui.AspectRatioFrameLayout
 import com.google.android.material.bottomsheet.BottomSheetDialog
-import com.google.android.material.chip.Chip
-import com.google.android.material.chip.ChipGroup
 import com.google.android.material.slider.Slider
 import java.net.URI
 import java.text.NumberFormat
@@ -89,6 +89,9 @@ import me.zhanghai.android.files.file.loadFileItem
 import me.zhanghai.android.files.player.AudioPlaybackService
 import me.zhanghai.android.files.player.AudioQueueRequests
 import me.zhanghai.android.files.viewer.audio.CastChooserSheet
+import me.zhanghai.android.files.viewer.audio.KlangPictureView
+import me.zhanghai.android.files.viewer.audio.KlangSheet
+import androidx.appcompat.widget.PopupMenu
 import me.zhanghai.android.files.viewer.video.cast.VideoCastSession
 import me.zhanghai.android.files.viewer.video.network.VideoNetworkPlayback
 import me.zhanghai.android.files.viewer.video.library.VideoWatchedStore
@@ -296,7 +299,7 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
         setUpControls()
         // Tresor videos never leave Ordo: no "Open with another app".
         if (isVault) {
-            binding.toolbar.menu.findItem(R.id.actionOpenWith)?.isVisible = false
+            moreMenu.findItem(R.id.actionOpenWith)?.isVisible = false
             // Nor to a TV: the cast server would hand the decrypted file to the network (#97).
             binding.toolbar.menu.findItem(R.id.actionCast)?.isVisible = false
             binding.errorOpenWith.isVisible = false
@@ -326,7 +329,7 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
         // but never hand the player items of their own: that would bypass the launch rule above.
         // Background sound, picture-in-picture, sleep timer and the session (VideoBackgroundController).
         background = VideoBackgroundController(
-            this, binding, player, "$SESSION_ID.${UUID.randomUUID()}", { repeatMode },
+            this, binding, moreMenu, player, "$SESSION_ID.${UUID.randomUUID()}", { repeatMode },
             { mode -> Settings.VIDEO_END.putValue(mode.name); applyRepeatMode(mode) }, vault = isVault,
             onSubtitleTracksChosen = { subtitles?.dropFile() },
             sleepVolume = { videoSound?.volumeMix?.sleep = it }
@@ -338,7 +341,7 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
             { meter -> videoSound?.setMeter(meter?.let { it::addAudio }) }
         ).also {
             it.attach(player)
-            binding.toolbar.menu.findItem(R.id.actionPictureEnhance)?.isChecked = it.switchedOn
+            moreMenu.findItem(R.id.actionPictureEnhance)?.isChecked = it.switchedOn
         }
         (savedInstanceState?.getFloat(STATE_SPEED)?.takeIf { it > 0f }
             ?: VideoPrefs.speed(Settings.VIDEO_SPEED.valueCompat)).let {
@@ -370,7 +373,7 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
         // After setMediaItems, so the first item is not announced twice; a recreated screen offers no pill.
         player.addListener(playerListener)
         seekPro = VideoSeekPro(
-            this, binding, player, ::playPause, ::seekBy, { jumpMs }, controls::toggle, { controls.isLocked }
+            this, binding, moreMenu, player, ::playPause, ::seekBy, { jumpMs }, controls::toggle, { controls.isLocked }
         ) { showHint(it, Gravity.CENTER) }
         seekPro?.restoreState(savedInstanceState)
         savedInstanceState?.getLongArray(STATE_SLEEP)?.takeIf { it.size == 3 }?.let {
@@ -692,26 +695,7 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
             getString(R.string.video_player_unlock), null
         )
         binding.toolbar.setNavigationOnClickListener { finish() }
-        binding.toolbar.setOnMenuItemClickListener {
-            when (it.itemId) {
-                R.id.actionOpenWith -> openWithOtherApp()
-                R.id.actionFileInfo -> showFileInfo()
-                R.id.actionCast -> showCastChooser()
-                R.id.actionSound -> VideoSoundSheet.show(this)
-                R.id.actionAudioTrack -> player?.let { VideoAudioTrackSheet.show(this, it, videoSound) }
-                R.id.actionSubtitles -> subtitles?.let { showSubtitleSheet(this, it) }
-                R.id.actionSleepTimer -> background?.showSleepTimerSheet()
-                R.id.actionPip -> background?.enterPip()
-                R.id.actionPictureEnhance -> picture?.let { picture ->
-                    it.isChecked = picture.toggle()
-                    showHint(picture.stateText(), Gravity.CENTER)
-                }
-                R.id.actionSignalPath -> picture?.showSignalPath()
-                R.id.actionPictureAdjust -> picture?.let { showPictureAdjustSheet(this, it) }
-                else -> return@setOnMenuItemClickListener false
-            }
-            true
-        }
+        binding.toolbar.setOnMenuItemClickListener(::onPlayerAction)
         binding.playPause.setOnClickListener { playPause() }
         binding.rewind.setOnClickListener { seekBy(-jumpMs) }
         binding.forward.setOnClickListener { seekBy(jumpMs) }
@@ -780,6 +764,38 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
         }
         ViewCompat.setStateDescription(binding.speed, formatSpeed(1f))
         ViewCompat.setStateDescription(binding.resize, getString(resizeModeName(resizeMode)))
+    }
+
+    /** The entries of ⋮ › More (res/menu/video_player_more.xml, plus VideoSeekPro's); VideoMoreSheet shows them. */
+    private val moreMenu: Menu by lazy {
+        PopupMenu(this, binding.toolbar).apply {
+            inflate(R.menu.video_player_more)
+            setOnMenuItemClickListener(::onPlayerAction)
+        }.menu
+    }
+
+    /** The top bar's actions and the entries of the "More" sheet. */
+    private fun onPlayerAction(item: MenuItem): Boolean {
+        when (item.itemId) {
+            R.id.actionMore -> VideoMoreSheet.show(this, moreMenu)
+            R.id.actionOpenWith -> openWithOtherApp()
+            R.id.actionFileInfo -> showFileInfo()
+            R.id.actionCast -> showCastChooser()
+            R.id.actionSound -> VideoSoundSheet.show(this)
+            R.id.actionAudioTrack -> player?.let { VideoAudioTrackSheet.show(this, it, videoSound) }
+            R.id.actionSubtitles -> subtitles?.let { showSubtitleSheet(this, it) }
+            R.id.actionSpeed -> showSpeedSheet()
+            R.id.actionSleepTimer -> background?.showSleepTimerSheet()
+            R.id.actionPip -> background?.enterPip()
+            R.id.actionPictureEnhance -> picture?.let { picture ->
+                item.isChecked = picture.toggle()
+                showHint(picture.stateText(), Gravity.CENTER)
+            }
+            R.id.actionSignalPath -> picture?.showSignalPath()
+            R.id.actionPictureAdjust -> picture?.let { showPictureAdjustSheet(this, it) }
+            else -> return false
+        }
+        return true
     }
 
     /** The message with "Open with another app"; the centre buttons step aside so they never cover it. */
@@ -1173,42 +1189,32 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
     private fun formatSpeed(speed: Float): String =
         getString(R.string.video_player_speed_format, NumberFormat.getInstance().format(speed.toDouble()))
 
-    /** Speeds as chips, never a slider; the pitch stays (Media3's default for setPlaybackSpeed). */
+    /**
+     * Speeds as equal segments in two rows of three, never a slider; the pitch stays (Media3's default for
+     * setPlaybackSpeed). Above them Ordo Musik's tempo pendulum swings at the chosen speed.
+     */
     private fun showSpeedSheet() {
         val player = player ?: return
-        val dialog = BottomSheetDialog(this)
-        val padding = resources.getDimensionPixelSize(R.dimen.phi_21)
-        val content = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(padding, padding, padding, padding)
+        val sheet = KlangSheet(this, R.drawable.audio_speed_icon_24dp, R.string.video_player_speed_title)
+        val card = sheet.card(R.drawable.audio_speed_icon_24dp, null)
+        val picture = KlangPictureView(this).apply { kind = KlangPictureView.Kind.SPEED }
+        card.addView(picture, LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT, resources.getDimensionPixelSize(R.dimen.klang_picture_height_tall)
+        ))
+        fun showSpeed(speed: Float) {
+            picture.tempo = speed
+            picture.setState(true, (speed - SPEEDS.first()) / (SPEEDS.last() - SPEEDS.first()))
+            picture.contentDescription = formatSpeed(speed)
         }
-        content.addView(TextView(this).apply {
-            setText(R.string.video_player_speed_title)
-            setTextAppearance(com.google.android.material.R.style.TextAppearance_MaterialComponents_Headline6)
-            ViewCompat.setAccessibilityHeading(this, true)
-        })
-        val group = ChipGroup(this).apply {
-            isSingleSelection = true
-            isSelectionRequired = true
+        showSpeed(player.playbackParameters.speed)
+        sheet.segments(card, SPEEDS.map { formatSpeed(it) }, SPEEDS.indexOfFirst { it == player.playbackParameters.speed }, 3) {
+            val speed = SPEEDS[it]
+            player.setPlaybackSpeed(speed)
+            ViewCompat.setStateDescription(binding.speed, formatSpeed(speed))
+            showSpeed(speed)
+            sheet.dialog.dismiss()
         }
-        for (speed in SPEEDS) {
-            group.addView(Chip(this, null, com.google.android.material.R.attr.chipStyle).apply {
-                id = View.generateViewId()
-                text = formatSpeed(speed)
-                isCheckable = true
-                isChecked = speed == player.playbackParameters.speed
-                setOnClickListener {
-                    player.setPlaybackSpeed(speed)
-                    ViewCompat.setStateDescription(binding.speed, formatSpeed(speed))
-                    dialog.dismiss()
-                }
-            })
-        }
-        content.addView(group, LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT
-        ).apply { topMargin = padding / 2 })
-        dialog.setContentView(content)
-        dialog.showExpanded()
+        sheet.show()
     }
 
     /**
