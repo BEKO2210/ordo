@@ -66,9 +66,13 @@ class HiResOutput(context: Context, val allowsBitPerfect: Boolean) {
     // AudioMixerAttributes, typed Any so the field does not need API 34.
     private var appliedMixer: Any? = null
 
-    /** Re-reads the route; true when [bitPerfectMode] flipped (the player then has to rebuild its audio). */
+    /**
+     * Re-reads the route; true when [bitPerfectMode] flipped or a bit-perfect song lost its DAC (the player then has
+     * to rebuild its audio, or the pure sink would keep bypassing the restored stages).
+     */
     @Synchronized
     fun refresh(): Boolean {
+        val wasBitPerfect = plan is OutputPlan.BitPerfect
         val device = routedDevice()
         options = device?.let(::mixerOptions).orEmpty()
         val mode = allowsBitPerfect && wantsBitPerfect && Build.VERSION.SDK_INT >= OutputPolicy.MIN_SDK &&
@@ -78,7 +82,7 @@ class HiResOutput(context: Context, val allowsBitPerfect: Boolean) {
             clear()
             update(OutputPlan.System, null)
         }
-        val changed = mode != bitPerfectMode
+        val changed = mode != bitPerfectMode || (wasBitPerfect && plan !is OutputPlan.BitPerfect)
         bitPerfectMode = mode
         return changed
     }
