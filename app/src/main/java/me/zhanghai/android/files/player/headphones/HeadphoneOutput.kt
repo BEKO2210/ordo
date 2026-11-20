@@ -5,6 +5,7 @@
 
 package me.zhanghai.android.files.player.headphones
 
+import android.media.AudioAttributes
 import android.media.AudioDeviceInfo
 import android.media.AudioManager
 import android.os.Build
@@ -28,9 +29,28 @@ object HeadphoneOutput {
     @RequiresApi(31)
     private fun isBleHeadset(device: AudioDeviceInfo) = device.type == AudioDeviceInfo.TYPE_BLE_HEADSET
 
-    /** The connected headphones, if any. */
+    /**
+     * The headphones media plays through now, if any: a connected but unused headset (Bluetooth in the bag, a USB DAC
+     * while a car's speaker plays) does not count. Android 13+ names the route for media; before, any connected one.
+     * https://developer.android.com/reference/android/media/AudioManager#getAudioDevicesForAttributes(android.media.AudioAttributes)
+     */
     fun headphones(audioManager: AudioManager): AudioDeviceInfo? =
-        audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS).firstOrNull(::isHeadphones)
+        routedOrConnected(
+            routedDevices(audioManager), { audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS).toList() },
+            ::isHeadphones
+        )
+
+    /** The headphones among the routed devices; unknown route (null or empty): among the connected ones. */
+    internal fun <T> routedOrConnected(routed: List<T>?, connected: () -> List<T>, isHeadphones: (T) -> Boolean): T? =
+        if (routed.isNullOrEmpty()) connected().firstOrNull(isHeadphones) else routed.firstOrNull(isHeadphones)
+
+    private fun routedDevices(audioManager: AudioManager): List<AudioDeviceInfo>? =
+        if (Build.VERSION.SDK_INT >= 33) {
+            runCatching { audioManager.getAudioDevicesForAttributes(MEDIA) }.getOrNull()
+        } else null
+
+    // Lazy: the pure helper above runs in JVM tests, where the platform builder is a stub.
+    private val MEDIA by lazy { AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_MEDIA).build() }
 
     /**
      * The media volume in dB below full, for "full sound when quiet": the device's own volume curve for this output
