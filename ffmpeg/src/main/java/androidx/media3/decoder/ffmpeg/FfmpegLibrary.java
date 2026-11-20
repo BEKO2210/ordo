@@ -120,9 +120,12 @@ public final class FfmpegLibrary {
       case MimeTypes.AUDIO_AAC:
         return "aac";
       case MimeTypes.AUDIO_MPEG:
-      case MimeTypes.AUDIO_MPEG_L1:
-      case MimeTypes.AUDIO_MPEG_L2:
         return "mp3";
+      // Ordo: FFmpeg's mp3 decoder is Layer III only; DVB recordings (.ts) carry Layer II.
+      case MimeTypes.AUDIO_MPEG_L1:
+        return "mp1";
+      case MimeTypes.AUDIO_MPEG_L2:
+        return "mp2";
       case MimeTypes.AUDIO_AC3:
         return "ac3";
       case MimeTypes.AUDIO_E_AC3:
