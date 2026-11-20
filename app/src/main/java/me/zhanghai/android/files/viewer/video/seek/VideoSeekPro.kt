@@ -385,7 +385,7 @@ internal class VideoSeekPro(
     private fun chapterTitleAt(positionMs: Long): String? =
         SeekLogic.chapterIndexAt(chapters, positionMs).takeIf { it >= 0 }?.let(::chapterTitle)
 
-    /** The chapters as Klang rows: the playing one carries the accent play mark; the time sits on the end edge. */
+    /** The chapters as Klang rows: each with the chapter mark, the playing one with the play mark; the time on the end edge. */
     private fun showChapters() {
         if (chapters.isEmpty()) return
         val sheet = KlangSheet(context, R.drawable.video_chapters_icon_24dp, R.string.video_seek_chapters)
@@ -393,7 +393,7 @@ internal class VideoSeekPro(
         val current = SeekLogic.chapterIndexAt(chapters, player.currentPosition)
         chapters.forEachIndexed { index, chapter ->
             val time = TextView(context, null, 0, R.style.Widget_Ordo_Klang_Value).apply { text = formatTime(chapter.startMs) }
-            sheet.row(card, if (index == current) R.drawable.play_icon_24dp else 0, chapterTitle(index), null, time) {
+            sheet.row(card, if (index == current) R.drawable.play_icon_24dp else R.drawable.video_chapters_icon_24dp, chapterTitle(index), null, time) {
                 player.seekTo(chapter.startMs)
                 sheet.dialog.dismiss()
             }.apply {
