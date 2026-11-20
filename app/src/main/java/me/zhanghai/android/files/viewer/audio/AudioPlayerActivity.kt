@@ -456,6 +456,9 @@ class AudioPlayerActivity : AppActivity(), AppAccentActivity {
         val label = extras.getString(AudioPlayerCommands.EXTRA_OUTPUT)
         binding.outputBadge.text = label
         binding.outputBadge.isVisible = label != null
+        // The label changes when a song goes bit-perfect or back: the open sound sheet follows.
+        (supportFragmentManager.findFragmentByTag(AudioSoundSettingsSheet.TAG) as? AudioSoundSettingsSheet)
+            ?.refreshStatus()
     }
 
         private class LaunchQueue(val items: List<MediaItem>, val startIndex: Int)
@@ -1105,7 +1108,8 @@ class AudioPlayerActivity : AppActivity(), AppAccentActivity {
                     extras.getInt(AudioPlayerCommands.EXTRA_SLEEP_MINUTES),
                     extras.getBoolean(AudioPlayerCommands.EXTRA_END_OF_TRACK),
                     extras.getLong(AudioPlayerCommands.EXTRA_SLEEP_REMAINING_MS),
-                    extras.getBoolean(AudioPlayerCommands.EXTRA_SONG_NOT_BIT_PERFECT)
+                    extras.getBoolean(AudioPlayerCommands.EXTRA_SONG_NOT_BIT_PERFECT),
+                    extras.getBoolean(AudioPlayerCommands.EXTRA_SONG_BIT_PERFECT)
                 )
             )
         }, ContextCompat.getMainExecutor(this))
@@ -1138,7 +1142,9 @@ class AudioPlayerActivity : AppActivity(), AppAccentActivity {
         val sleepMinutes: Int = 0,
         val sleepAtEndOfTrack: Boolean = false,
         val sleepRemainingMs: Long = 0L,
-        val songNotBitPerfect: Boolean = false
+        val songNotBitPerfect: Boolean = false,
+        /** This song plays bit-perfect: every Ordo stage is bypassed (the saved settings stay). */
+        val songBitPerfect: Boolean = false
     )
 
     private fun formatTime(milliseconds: Long): String {

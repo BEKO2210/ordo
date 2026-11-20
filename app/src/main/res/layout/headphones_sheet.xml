@@ -27,7 +27,19 @@
             android:minHeight="@dimen/klang_touch_target"
             android:text="@string/headphones_title" />
 
+        <!-- A bit-perfect song bypasses the pack; the cards stay dimmed, the saved choices untouched. -->
+        <TextView
+            android:id="@+id/bypassNote"
+            style="@style/Widget.Ordo.Klang.Info"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/klang_space_md"
+            android:accessibilityLiveRegion="polite"
+            android:text="@string/audio_sound_bypassed"
+            android:visibility="gone" />
+
         <com.google.android.material.card.MaterialCardView
+            android:id="@+id/surroundCard"
             style="@style/Widget.Ordo.Klang.Card"
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
@@ -43,6 +55,7 @@
         </com.google.android.material.card.MaterialCardView>
 
         <com.google.android.material.card.MaterialCardView
+            android:id="@+id/quietCard"
             style="@style/Widget.Ordo.Klang.Card"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -107,6 +120,7 @@
         </com.google.android.material.card.MaterialCardView>
 
         <com.google.android.material.card.MaterialCardView
+            android:id="@+id/correctionCard"
             style="@style/Widget.Ordo.Klang.Card"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

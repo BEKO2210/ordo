@@ -1018,6 +1018,7 @@
     <string name="audio_sound_headphones_summary">Setzt pausierte Wiedergabe nach dem Verbinden fort</string>
     <string name="audio_sound_bit_perfect">Unverfälscht an USB-DAC</string>
     <string name="audio_sound_bit_perfect_summary">Gibt jeden Titel unverändert an einen USB-DAC, der das kann. Solange das läuft, sind Klangeffekte, Lautstärkeangleich und Begrenzer aus.</string>
+    <string name="audio_sound_bypassed">Unverfälscht an USB-DAC – Klang ist für dieses Lied umgangen</string>
     <string name="audio_sound_bit_perfect_song_not">Dieses Lied kann der DAC nicht unverfälscht. Es läuft wie gewohnt mit allen Klangeinstellungen.</string>
     <string name="audio_output_bit_perfect_format">Bit-perfekt · %1$s</string>
     <string name="audio_output_offload">Offload</string>

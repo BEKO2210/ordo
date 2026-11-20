@@ -76,6 +76,7 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment(),
     private var firstRender = true
     private var soundStatus: AudioPlayerActivity.SoundStatus? = null
     private var highsRenderer: (() -> Unit)? = null
+    private var bypassShown = false
     private lateinit var palette: Palette
 
     private class Palette(
@@ -156,6 +157,7 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment(),
         initializing = true
         firstRender = true
         soundStatus = null
+        bypassShown = false
         renderers.clear()
         tiles.clear()
         sleepButtons.clear()
@@ -873,6 +875,8 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment(),
 
     override val headphoneSettings: AudioSettings get() = settings
 
+    override val stagesBypassed: Boolean get() = soundStatus?.songBitPerfect == true
+
     override fun updateHeadphoneSettings(transform: AudioSettings.() -> AudioSettings) = update(transform)
 
     private fun update(transform: AudioSettings.() -> AudioSettings) {
@@ -910,6 +914,7 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment(),
         }
         renderers.forEach { it() }
         renderEqualizerState()
+        renderBypass()
         firstRender = false
         rendering = wasRendering
     }
@@ -951,6 +956,30 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment(),
         )
         binding.sleepPicture.contentDescription =
             describe(R.string.audio_sound_sleep_heading, if (status.sleepActive) chip.text else onOff(false))
+        renderBypass()
+    }
+
+    /**
+     * A bit-perfect song bypasses every stage: they show dimmed and untouchable (the saved values stay), the line at
+     * the top says why. Focus, resuming on headphones, the sleep timer and the bit-perfect switch stay usable.
+     */
+    private fun renderBypass() {
+        val bypassed = soundStatus?.songBitPerfect == true
+        if (!bypassed && !bypassShown) return
+        val ended = bypassShown && !bypassed
+        bypassShown = bypassed
+        listOf(
+            binding.effectsSection, binding.normalizationCard, binding.balanceCard, binding.monoCard,
+            binding.speedCard, binding.skipCard
+        ).forEach { setControlsActive(it, !bypassed) }
+        // Still opens, so the headphone sheet can say the same; only dimmed here.
+        binding.headphonePackCard.alpha = if (bypassed) OFF_ALPHA else 1f
+        childFragmentManager.fragments.filterIsInstance<me.zhanghai.android.files.player.headphones.HeadphonesSheet>().forEach { it.refresh() }
+        if (ended) {
+            // The per-setting states (mono greying, levelling controls, balance support) come back from the settings.
+            render()
+            soundStatus?.let { enableCard(binding.balanceCard, it.usingDynamicsProcessing) }
+        }
     }
 
     /** Target and pre-amp only act while levelling is on (Ordo's own chain, on every device). */
@@ -981,9 +1010,11 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment(),
 
     private fun renderEqualizerState() {
         val status = soundStatus
-        val kind = status?.let { equalizerStatusKind(it.equalizerAvailable, settings.equalizerEnabled) }
+        val bypassed = status?.songBitPerfect == true
+        val kind = status?.let { equalizerStatusKind(it.equalizerAvailable, settings.equalizerEnabled, bypassed) }
         if (kind != null) {
             binding.effectStatus.text = when (kind) {
+                EqualizerStatusKind.BYPASSED -> getString(R.string.audio_sound_bypassed)
                 EqualizerStatusKind.UNSUPPORTED -> getString(R.string.audio_sound_effect_unavailable)
                 EqualizerStatusKind.OFF -> getString(R.string.audio_sound_off)
                 EqualizerStatusKind.PRESET ->
@@ -999,9 +1030,9 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment(),
         }
         binding.curveOffLabel.text = offText
         binding.curveOffLabel.isInvisible = offText == null // keeps its line: the curve does not jump
-        setEnabledRecursively(binding.equalizerEnabled, status?.equalizerAvailable == true)
+        setEnabledRecursively(binding.equalizerEnabled, status?.equalizerAvailable == true && !bypassed)
         val controlsEnabled = status?.let {
-            equalizerControlsEnabled(it.equalizerAvailable, settings.equalizerEnabled)
+            equalizerControlsEnabled(it.equalizerAvailable, settings.equalizerEnabled, bypassed)
         } == true
         setEnabledRecursively(binding.equalizerControls, controlsEnabled)
         setEnabledRecursively(binding.preGain.root, controlsEnabled && status?.inputGainAvailable == true)
@@ -1074,12 +1105,16 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment(),
     }
 }
 
-internal enum class EqualizerStatusKind { UNSUPPORTED, OFF, PRESET }
+internal enum class EqualizerStatusKind { BYPASSED, UNSUPPORTED, OFF, PRESET }
 
-internal fun equalizerStatusKind(available: Boolean, enabled: Boolean): EqualizerStatusKind = when {
-    !available -> EqualizerStatusKind.UNSUPPORTED
-    !enabled -> EqualizerStatusKind.OFF
-    else -> EqualizerStatusKind.PRESET
-}
+/** [bypassed]: the song plays bit-perfect, so the equalizer is not in the path whatever its setting. */
+internal fun equalizerStatusKind(available: Boolean, enabled: Boolean, bypassed: Boolean = false): EqualizerStatusKind =
+    when {
+        bypassed -> EqualizerStatusKind.BYPASSED
+        !available -> EqualizerStatusKind.UNSUPPORTED
+        !enabled -> EqualizerStatusKind.OFF
+        else -> EqualizerStatusKind.PRESET
+    }
 
-internal fun equalizerControlsEnabled(available: Boolean, enabled: Boolean): Boolean = available && enabled
+internal fun equalizerControlsEnabled(available: Boolean, enabled: Boolean, bypassed: Boolean = false): Boolean =
+    available && enabled && !bypassed

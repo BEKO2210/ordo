@@ -29,6 +29,7 @@ object AudioPlayerCommands {
     const val EXTRA_OUTPUT = "output"
     /** Bit-perfect is on and a USB DAC plays, but not this song (rate, channels or bit depth). */
     const val EXTRA_SONG_NOT_BIT_PERFECT = "songNotBitPerfect"
+    const val EXTRA_SONG_BIT_PERFECT = "songBitPerfect"
 
     val APPLY_SETTINGS = SessionCommand(ACTION_APPLY_SETTINGS, bundleOf())
     val GET_SOUND_STATUS = SessionCommand(ACTION_GET_SOUND_STATUS, bundleOf())

@@ -29,6 +29,9 @@ import me.zhanghai.android.files.ui.Motion
 interface HeadphonesHost {
     val headphoneSettings: AudioSettings
     fun updateHeadphoneSettings(transform: AudioSettings.() -> AudioSettings)
+
+    /** The song plays bit-perfect: the pack is bypassed and shows dimmed (Ordo Video never is). */
+    val stagesBypassed: Boolean get() = false
 }
 
 /**
@@ -100,6 +103,11 @@ class HeadphonesSheet : BottomSheetDialogFragment() {
         render()
     }
 
+    /** The host's bypass state changed. */
+    fun refresh() {
+        if (_binding != null) render()
+    }
+
     private fun render() {
         val settings = host?.headphoneSettings ?: return
         rendering = true
@@ -117,6 +125,13 @@ class HeadphonesSheet : BottomSheetDialogFragment() {
         else getString(R.string.headphones_correction_state, chosen)
         binding.correctionOff.isVisible = chosen.isNotEmpty()
         showResults()
+        // After the result rows exist, so they are dimmed too.
+        val bypassed = host?.stagesBypassed == true
+        binding.bypassNote.isVisible = bypassed
+        listOf(binding.surroundCard, binding.quietCard, binding.correctionCard).forEach {
+            setEnabledRecursively(it, !bypassed)
+            it.alpha = if (bypassed) BYPASSED_ALPHA else 1f
+        }
         rendering = false
     }
 
@@ -168,6 +183,13 @@ class HeadphonesSheet : BottomSheetDialogFragment() {
         }
     }
 
+    private fun setEnabledRecursively(view: View, enabled: Boolean) {
+        view.isEnabled = enabled
+        if (view is ViewGroup) {
+            for (index in 0 until view.childCount) setEnabledRecursively(view.getChildAt(index), enabled)
+        }
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
@@ -175,6 +197,8 @@ class HeadphonesSheet : BottomSheetDialogFragment() {
 
     companion object {
         private const val MAX_RESULTS = 30
+        /** Like the Klang sheet's dimmed stages: graphic and text keep at least 3 : 1 against the card. */
+        private const val BYPASSED_ALPHA = 0.6f
         private const val TAG = "headphones"
 
         /**
