@@ -15,7 +15,12 @@ import me.zhanghai.android.files.player.SleepTimerSchedule
  * The video's sleep timer, like Ordo Music's: after some minutes or at the end of the current video the sound fades
  * over the last 10 s ([SleepTimerSchedule]) and the video pauses. Runs on [handler]'s thread, also in the background.
  */
-class VideoSleepTimer(private val player: Player, private val handler: Handler) {
+class VideoSleepTimer(
+    private val player: Player,
+    private val handler: Handler,
+    // The sleep factor of the volume mix (VolumeMix.sleep); 1f = no fade.
+    private val setVolume: (Float) -> Unit = { player.volume = it }
+) {
     private var deadlineElapsedMs: Long? = null
     var endOfVideo = false
         private set
@@ -36,7 +41,7 @@ class VideoSleepTimer(private val player: Player, private val handler: Handler) 
                 endOfVideo -> SleepTimerSchedule.endOfTrackVolume(player.duration, player.currentPosition)
                 else -> return
             }
-            player.volume = volume
+            setVolume(volume)
             if (volume <= 0f) stopNow() else handler.postDelayed(this, TICK_MS)
         }
     }
@@ -85,7 +90,7 @@ class VideoSleepTimer(private val player: Player, private val handler: Handler) 
         deadlineElapsedMs = null
         endOfVideo = false
         minutes = 0
-        player.volume = 1f
+        setVolume(1f)
     }
 
     fun release() {

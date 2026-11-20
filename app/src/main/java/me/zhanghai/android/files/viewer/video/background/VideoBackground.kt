@@ -116,10 +116,12 @@ class VideoBackgroundController(
     // Tresor videos: no "Sound only" service and notification, no picture-in-picture (library-pro, #101).
     private val vault: Boolean = false,
     // A subtitle language set by command replaces the subtitle file on screen (#99): one source at a time.
-    private val onSubtitleTracksChosen: () -> Unit = {}
+    private val onSubtitleTracksChosen: () -> Unit = {},
+    // The sleep timer's fade goes through the sound engine's VolumeMix, not straight to the player.
+    sleepVolume: (Float) -> Unit = { player.volume = it }
 ) {
     private val handler = Handler(Looper.getMainLooper())
-    val sleepTimer = VideoSleepTimer(player, handler)
+    val sleepTimer = VideoSleepTimer(player, handler, sleepVolume)
     private val frameLoader = VideoFrameLoader(activity.applicationContext) { player }
     private val pipSupported = !vault && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
         activity.packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)

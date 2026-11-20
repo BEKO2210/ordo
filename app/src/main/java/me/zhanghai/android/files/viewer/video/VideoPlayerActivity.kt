@@ -309,7 +309,8 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
         background = VideoBackgroundController(
             this, binding, player, "$SESSION_ID.${UUID.randomUUID()}", { repeatMode },
             { mode -> Settings.VIDEO_END.putValue(mode.name); applyRepeatMode(mode) }, vault = isVault,
-            onSubtitleTracksChosen = { subtitles?.dropFile() }
+            onSubtitleTracksChosen = { subtitles?.dropFile() },
+            sleepVolume = { videoSound?.volumeMix?.sleep = it }
         )
         session = background?.session
         binding.playerView.player = player
