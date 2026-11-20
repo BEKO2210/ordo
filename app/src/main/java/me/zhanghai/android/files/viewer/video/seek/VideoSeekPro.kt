@@ -47,6 +47,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.C
 import androidx.media3.common.Player
 import androidx.media3.common.Tracks
+import androidx.media3.common.VideoSize
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.common.util.Util
 import androidx.media3.exoplayer.ExoPlayer
@@ -543,7 +544,11 @@ internal class VideoSeekPro(
     private fun saveFrame() {
         if (VaultVideos.isVault(player.currentMediaItem?.mediaId)) return
         val surface = binding.playerView.videoSurfaceView as? SurfaceView
-        val size = player.videoSize
+        // With Ordo's picture enhancement on, the effects pipeline reports the size as unknown (0 × 0, Tab S9):
+        // then the decoder's input format gives it.
+        val size = player.videoSize.takeIf { it.width > 0 && it.height > 0 }
+            ?: player.videoFormat?.let { VideoSize(it.width, it.height, it.pixelWidthHeightRatio) }
+            ?: player.videoSize
         if (surface == null || !surface.holder.surface.isValid || size.width <= 0 || size.height <= 0) {
             android.util.Log.w(FRAME_TAG, "no picture to copy: surface=${surface != null} size=${size.width}x${size.height}")
             context.showToast(R.string.video_seek_snapshot_failed)

@@ -50,6 +50,18 @@ check "an empty search says so" ui wait "Keine Videos passen zu deiner Suche.|No
 # The first back may only close the keyboard; the second only while the search field is still open.
 back; ui has search_src_text && back
 
+# Episodes watched in an earlier run (the R8 build cannot be reset through run-as) go back to unwatched first,
+# so "Up next" can only be S1 E2.
+for ep in Dark.S01E01 Dark.S01E02 Dark.S01E03; do
+    scroll_to "$ep" 4 || continue
+    ui longtap "$ep" >/dev/null; sleep 1
+    ui tap "Weitere Optionen|More options" >/dev/null; sleep 1
+    if ui has "Als ungesehen markieren|Mark as unwatched"; then
+        ui tap "Als ungesehen markieren|Mark as unwatched" >/dev/null; sleep 2
+    else
+        back 1; ui has "1 ausgewählt|1 selected" && back 1 # the menu, then the selection
+    fi
+done
 scroll_to Dark.S01E01 4 # on a phone "Recently added" starts at the newest episode, the grid lies below
 ui longtap "Dark.S01E01" >/dev/null; sleep 1
 check "a long press selects" ui wait "1 ausgewählt|1 selected" 4
@@ -63,18 +75,23 @@ check "Unwatched only hides the watched episode from the grid" eval "! ui texts 
 ui tap "Weitere Optionen|More options" >/dev/null; sleep 1
 ui tap "Nur ungesehene|Unwatched only" >/dev/null; sleep 1.5
 
-# "Automatisch weiter" (the repeat button: stop → this video → automatic): the season is the queue, so S01E02 runs
-# on into S01E03. The button goes back to "stop" afterwards (it is remembered for all videos).
-ui tap "Als Nächstes · S1 F2|Up next · S1 E2" >/dev/null; wait_on viewer.video.VideoPlayerActivity 8; sleep 1
-# Paused, so the controls stay for the taps (a screen read during playback comes after they hid).
-a shell input keyevent KEYCODE_MEDIA_PAUSE; sleep 1.5
-ui tap repeat >/dev/null; sleep 0.5; ui tap repeat >/dev/null
-a shell input keyevent KEYCODE_MEDIA_PLAY
+# "Automatisch weiter": the season is the queue, so S01E02 runs on into S01E03. The mode is one setting for all
+# videos (the repeat button cycles it too, from wherever an earlier run left it): set through Ordo Video's
+# settings ("Am Ende"), and back to "Anhalten" afterwards.
+end_mode() {
+    ui tap actionSettings >/dev/null; sleep 2
+    ui tap "Am Ende|At the end" >/dev/null; sleep 1.5
+    ui tap "$1" >/dev/null; sleep 1.5
+    back 1.5
+}
+end_mode "Automatisch weiter|Play next automatically"
+ui tap "Als Nächstes · S1 F2|Up next · S1 E2" >/dev/null; wait_on viewer.video.VideoPlayerActivity 8
 sleep 16
 check "auto-advance stays in the season (S01E03 plays)" ui wait "Dark.S01E03" 6
 a shell input keyevent KEYCODE_MEDIA_PAUSE; sleep 1.5
-ui tap repeat >/dev/null 2>&1 || { a shell input tap 10 10; sleep 0.5; ui tap repeat >/dev/null; }
 back 2
+library
+end_mode "Anhalten|Stop at the end"
 
 library
 ui longtap "Der lange Film" >/dev/null; sleep 1
