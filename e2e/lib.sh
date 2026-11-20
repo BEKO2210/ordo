@@ -4,7 +4,7 @@
 set -uo pipefail
 SERIAL=${1:?usage: $0 <adb serial>}
 export ADB=${ADB:-$(command -v adb || echo "$HOME/Android/Sdk/platform-tools/adb")}
-PKG=${PKG:-com.beko2210.ordo}
+export PKG=${PKG:-com.beko2210.ordo} # ui.py reads it for its screenshot guard
 HERE=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 FAILS=0
 
@@ -16,8 +16,23 @@ top() { a shell "dumpsys activity activities 2>/dev/null | grep -m1 topResumedAc
 crashes() { a logcat -b crash -d | grep -c FATAL; }
 back() { a shell input keyevent BACK; sleep "${1:-1.5}"; }
 
+# Privacy (20.11.2026, a phone's home screen went into a screenshot): a screenshot or recording is only taken while
+# Ordo is the resumed activity and no keyguard shows. ordo_front checks that; screenshot FILE and raw_screenshot FILE
+# are the only ways the tests take one ("SKIP shot (not Ordo)" otherwise, and the file is not written).
+ordo_front() {
+    local s; s=$(a shell "dumpsys activity activities | grep -m1 topResumedActivity; dumpsys window | grep -m1 isKeyguardShowing")
+    grep -q "topResumedActivity=.* $PKG/" <<<"$s" && ! grep -q "isKeyguardShowing=true" <<<"$s"
+}
+screenshot() { if ordo_front; then a exec-out screencap -p > "$1"; else echo "SKIP shot (not Ordo): $1"; return 1; fi; }
+raw_screenshot() { if ordo_front; then a exec-out screencap > "$1"; else echo "SKIP shot (not Ordo): $1"; return 1; fi; }
 pass() { echo "PASS $1"; }
-fail() { echo "FAIL $1"; FAILS=$((FAILS + 1)); }
+# With E2E_FAILDUMP=<dir>, every failure also leaves the screen it saw there (texts and a screenshot).
+fail() {
+    echo "FAIL $1"; FAILS=$((FAILS + 1))
+    [ -n "${E2E_FAILDUMP:-}" ] || return 0
+    mkdir -p "$E2E_FAILDUMP"; local f; f="$E2E_FAILDUMP/$(basename "$0" .sh)-$FAILS"
+    ui texts > "$f.txt" 2>/dev/null; ui shot "$f.png" 2>/dev/null; echo "INFO screen at this failure: $f.txt"
+}
 # check NAME COMMAND...: PASS when the command succeeds.
 check() { local name=$1; shift; if "$@" >/dev/null 2>&1; then pass "$name"; else fail "$name"; fi; }
 
@@ -92,6 +107,7 @@ screen_size() {
 record() {
     local w h size=""; read -r w h < <(screen_size)
     [ $((w > h ? w : h)) -gt 1920 ] && size="--size $((w / 2))x$((h / 2))"
+    ordo_front || { echo "SKIP recording (not Ordo): $2"; return 1; }
     a shell "screenrecord $size --time-limit $1 $2"
 }
 swipe_up() { read -r W H < <(screen_size); a shell input swipe $((W / 2)) $((H * 3 / 4)) $((W / 2)) $((H / 3)) 500; sleep 1.5; }
@@ -127,6 +143,27 @@ finish() {
     check "no crash" test "$(crashes)" = 0
     [ "$FAILS" = 0 ] && exit 0
     exit 1
+}
+
+# scroll_to TARGET [SWIPES]: swipes up until TARGET is on screen (long settings pages and sheets; a landscape tablet
+# shows few rows per swipe). Fails when it never shows.
+scroll_to() { local i; for i in $(seq 1 "${2:-8}"); do ui has "$1" && return 0; swipe_up; done; ui has "$1"; }
+
+# video_menu ENTRY: the player's ⋮ › ENTRY. While a film plays its controls hide after 4 s, and a screen read during
+# playback comes too late to see them (S21, 20.11.2026): paused they stay, so it pauses for the menu and plays on after.
+video_menu() {
+    local was W H
+    was=$(a shell dumpsys media_session | grep -A25 "package=$PKG" | grep -m1 -o 'state=PLAYING')
+    [ -n "$was" ] && { a shell input keyevent KEYCODE_MEDIA_PAUSE; sleep 1; }
+    local try
+    for try in 1 2; do # once more when the menu did not open (seen on the Tab after a pause)
+        ui has "Weitere Optionen|More options" || { read -r W H < <(screen_size); a shell input tap $((W / 2)) $((H / 2)); sleep 1; }
+        ui tap "Weitere Optionen|More options" >/dev/null; sleep 1
+        ui wait "$1" 3 >/dev/null && break
+        ui has "Weitere Optionen|More options" || back 1 # a menu without the entry closes; never the player
+    done
+    ui tap "$1" >/dev/null; sleep 1.5
+    [ -z "$was" ] || a shell input keyevent KEYCODE_MEDIA_PLAY
 }
 
 # Night rule (20.11.2026, a test device was heard): every suite starts with media at 0 or does not start at all.

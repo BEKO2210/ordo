@@ -28,7 +28,11 @@ mapfile -t ticked < <(ui texts | awk -F'|' '$2 == "titleText" { print $1 }' | wh
 for t in "${ticked[@]}"; do ui tap "$t" titleText >/dev/null; sleep 0.3; done
 ui checked ordo-e2e-restore || ui tap ordo-e2e-restore titleText >/dev/null
 ui tap sdRow >/dev/null; sleep 0.5
+# On a short screen (W90) the protection card starts under the bottom bar: a tap on its visible sliver hit the
+# system's Home button. Scrolled into view first, and again once the password fields are open.
+swipe_up; swipe_up
 ui tap encryptRow >/dev/null; sleep 1
+swipe_up
 ui tap passwordEdit >/dev/null; a shell input text $PW
 ui tap passwordRepeatEdit >/dev/null; a shell input text $PW; a shell input keyevent 111; sleep 0.5
 ui tap startButton >/dev/null; sleep 3; picker
@@ -64,7 +68,10 @@ check "its backed up version comes back beside it" \
     test "$(a shell "md5sum '$DIR/b (restored).txt'" | awk '{print $1}')" = "$b_sum"
 st; sleep 2
 ui tap Sicherung >/dev/null; sleep 2.5; guard
-restore $PW; st; sleep 6; guard
+restore $PW
+# Without this the next check passed even when the second restore never ran (W90, 20.11.2026).
+check "the second restore shows the preview" ui has "Bereit zum Wiederherstellen|Ready to restore" statusTitle
+st; sleep 6; guard
 check "restoring twice adds no second copy" a shell "test ! -e '$DIR/b (restored 2).txt'"
 st; sleep 2
 

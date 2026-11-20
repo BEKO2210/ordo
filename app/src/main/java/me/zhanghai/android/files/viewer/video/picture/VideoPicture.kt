@@ -527,6 +527,18 @@ class VideoPicture(
         ViewCompat.setAccessibilityHeading(this, true)
     }
 
+    /**
+     * The frame's size on screen: fitted into the surface with its aspect kept, as Lanczos and the plain scaler draw it
+     * (the surface fills the screen: S21 showed "640 × 360 → 1440 × 3200" for a 1440 × 810 picture).
+     */
+    private fun fitted(format: Format): String {
+        val width = surfaceView?.width ?: 0
+        val height = surfaceView?.height ?: 0
+        if (format.width <= 0 || format.height <= 0 || width <= 0 || height <= 0) return "$width × $height"
+        val scale = minOf(width.toFloat() / format.width, height.toFloat() / format.height)
+        return "${kotlin.math.round(format.width * scale).toInt()} × ${kotlin.math.round(format.height * scale).toInt()}"
+    }
+
     /** In the order of [PICTURE_ROWS]. */
     private fun pictureValues(): List<String?> {
         val player = player
@@ -538,7 +550,7 @@ class VideoPicture(
         val hdrType = hdrType(format)
         val hdrDirect = hdrType != null && display?.supportsHdr(hdrType) == true
         val size = "${format.width} × ${format.height}"
-        val surface = "${surfaceView?.width ?: 0} × ${surfaceView?.height ?: 0}"
+        val surface = fitted(format)
         val mode = activity.resources.getStringArray(R.array.video_settings_frame_rate_entries)[
             PicturePolicy.frameRateMode(Settings.VIDEO_FRAME_RATE.valueCompat).ordinal]
         val hz = display?.refreshRate?.let(::formatNumber) ?: "?"

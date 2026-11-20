@@ -138,6 +138,10 @@ internal class VideoSeekPro(
 
     // Frame by frame: a row under the title bar, part of the controls.
     private var frameMode = false
+    // Back first ends frame by frame (like closing its bar), then leaves the player.
+    private val frameBack = object : androidx.activity.OnBackPressedCallback(false) {
+        override fun handleOnBackPressed() = setFrameMode(false)
+    }.also { activity.onBackPressedDispatcher.addCallback(activity, it) }
     private val frameLabel = TextView(context).apply {
         setTextAppearance(com.google.android.material.R.style.TextAppearance_MaterialComponents_Subtitle2)
         setTextColor(Color.WHITE)
@@ -274,6 +278,7 @@ internal class VideoSeekPro(
         player.removeListener(listener)
         abMessage?.cancel()
         thumbnails.release()
+        frameBack.remove()
         handler.removeCallbacksAndMessages(null)
     }
 
@@ -436,6 +441,7 @@ internal class VideoSeekPro(
         if (frameMode == on) return
         frameMode = on
         frameBar.isVisible = on
+        frameBack.isEnabled = on
         if (on) {
             player.pause()
             updateFrameLabel(player.currentPosition)
@@ -539,6 +545,7 @@ internal class VideoSeekPro(
         val surface = binding.playerView.videoSurfaceView as? SurfaceView
         val size = player.videoSize
         if (surface == null || !surface.holder.surface.isValid || size.width <= 0 || size.height <= 0) {
+            android.util.Log.w(FRAME_TAG, "no picture to copy: surface=${surface != null} size=${size.width}x${size.height}")
             context.showToast(R.string.video_seek_snapshot_failed)
             return
         }
@@ -553,12 +560,14 @@ internal class VideoSeekPro(
         val name = snapshotName()
         PixelCopy.request(surface, bitmap, { result ->
             if (result != PixelCopy.SUCCESS) {
+                android.util.Log.w(FRAME_TAG, "PixelCopy failed: $result")
                 bitmap.recycle()
                 context.showToast(R.string.video_seek_snapshot_failed)
                 return@request
             }
             activity.lifecycleScope.launch {
-                val uri = withContext(Dispatchers.IO) { runCatching { writeJpeg(bitmap, name) }.getOrNull() }
+                val uri = withContext(Dispatchers.IO) { runCatching { writeJpeg(bitmap, name) }
+                    .onFailure { android.util.Log.w(FRAME_TAG, "writing $name failed", it) }.getOrNull() }
                 bitmap.recycle()
                 if (uri == null) {
                     context.showToast(R.string.video_seek_snapshot_failed)
@@ -804,6 +813,7 @@ internal class VideoSeekPro(
         private const val STATE_ZOOM = "seekPro.zoom"
         private const val MAX_SNAPSHOT_PX = 3840
         private const val JPEG_QUALITY = 95
+        private const val FRAME_TAG = "OrdoVideoFrame"
         private const val TWO_FINGER_TAP_MS = 300L
     }
 }

@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later -->
 <!-- Ordo Video's settings (its library's menu). Lists and switches only, no sliders (house rule); each row's summary
-     shows its value. What each value does: viewer/video/VideoPrefs.kt and the player/library code that reads it. -->
+     shows its value; switch titles wrap instead of ending in "…" (S21). What each value does:
+     viewer/video/VideoPrefs.kt and the player/library code that reads it. -->
 <PreferenceScreen
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
@@ -59,6 +60,7 @@
             android:entryValues="@array/pref_entry_values_video_orientation"
             app:useSimpleSummaryProvider="true" />
         <SwitchPreferenceCompat
+            app:singleLineTitle="false"
             android:key="@string/pref_key_video_keep_screen_on"
             android:title="@string/video_settings_keep_screen_on"
             android:summary="@string/video_settings_keep_screen_on_summary"
@@ -71,6 +73,7 @@
             android:entryValues="@array/pref_entry_values_video_background"
             app:useSimpleSummaryProvider="true" />
         <SwitchPreferenceCompat
+            app:singleLineTitle="false"
             android:key="@string/pref_key_video_pip"
             android:title="@string/video_settings_pip"
             android:summary="@string/video_settings_pip_summary"
@@ -93,6 +96,7 @@
             android:entryValues="@array/pref_entry_values_video_frame_rate"
             app:useSimpleSummaryProvider="true" />
         <SwitchPreferenceCompat
+            app:singleLineTitle="false"
             android:key="@string/pref_key_video_ambient_gamma"
             android:title="@string/video_settings_ambient_gamma"
             android:summary="@string/video_settings_ambient_gamma_summary"
@@ -101,26 +105,31 @@
 
     <PreferenceCategory android:title="@string/video_settings_cat_gestures">
         <SwitchPreferenceCompat
+            app:singleLineTitle="false"
             android:key="@string/pref_key_video_gesture_brightness"
             android:title="@string/video_settings_g_brightness"
             android:summary="@string/video_settings_g_brightness_summary"
             android:defaultValue="@bool/pref_default_value_true" />
         <SwitchPreferenceCompat
+            app:singleLineTitle="false"
             android:key="@string/pref_key_video_gesture_volume"
             android:title="@string/video_settings_g_volume"
             android:summary="@string/video_settings_g_volume_summary"
             android:defaultValue="@bool/pref_default_value_true" />
         <SwitchPreferenceCompat
+            app:singleLineTitle="false"
             android:key="@string/pref_key_video_gesture_seek"
             android:title="@string/video_settings_g_seek"
             android:summary="@string/video_settings_g_seek_summary"
             android:defaultValue="@bool/pref_default_value_true" />
         <SwitchPreferenceCompat
+            app:singleLineTitle="false"
             android:key="@string/pref_key_video_gesture_double_tap"
             android:title="@string/video_settings_g_double_tap"
             android:summary="@string/video_settings_g_double_tap_summary"
             android:defaultValue="@bool/pref_default_value_true" />
         <SwitchPreferenceCompat
+            app:singleLineTitle="false"
             android:key="@string/pref_key_video_gesture_hold"
             android:title="@string/video_settings_g_hold"
             android:summary="@string/video_settings_g_hold_summary"
@@ -133,6 +142,7 @@
             android:entryValues="@array/pref_entry_values_video_hold_speed"
             app:useSimpleSummaryProvider="true" />
         <SwitchPreferenceCompat
+            app:singleLineTitle="false"
             android:key="@string/pref_key_video_remember_brightness"
             android:title="@string/video_settings_remember_brightness"
             android:summary="@string/video_settings_remember_brightness_summary"
@@ -158,6 +168,7 @@
             android:entryValues="@array/pref_entry_values_video_subtitle_language"
             app:useSimpleSummaryProvider="true" />
         <SwitchPreferenceCompat
+            app:singleLineTitle="false"
             android:key="@string/pref_key_video_subtitles_auto"
             android:title="@string/video_settings_subtitles_auto"
             android:summary="@string/video_settings_subtitles_auto_summary"
@@ -170,16 +181,19 @@
             android:entryValues="@array/pref_entry_values_video_subtitle_reading"
             app:useSimpleSummaryProvider="true" />
         <SwitchPreferenceCompat
+            app:singleLineTitle="false"
             android:key="@string/pref_key_video_subtitle_slow_down"
             android:title="@string/video_settings_subtitle_slow_down"
             android:summary="@string/video_settings_subtitle_slow_down_summary"
             android:defaultValue="@bool/pref_default_value_false" />
         <SwitchPreferenceCompat
+            app:singleLineTitle="false"
             android:key="@string/pref_key_video_subtitle_sounds"
             android:title="@string/video_settings_subtitle_sounds"
             android:summary="@string/video_settings_subtitle_sounds_summary"
             android:defaultValue="@bool/pref_default_value_true" />
         <SwitchPreferenceCompat
+            app:singleLineTitle="false"
             android:key="@string/pref_key_video_subtitle_speaker_colors"
             android:title="@string/video_settings_subtitle_speaker_colors"
             android:summary="@string/video_settings_subtitle_speaker_colors_summary"
@@ -202,11 +216,13 @@
             android:entryValues="@array/pref_entry_values_video_view"
             app:useSimpleSummaryProvider="true" />
         <SwitchPreferenceCompat
+            app:singleLineTitle="false"
             android:key="@string/pref_key_video_show_continue"
             android:title="@string/video_settings_show_continue"
             android:summary="@string/video_settings_show_continue_summary"
             android:defaultValue="@bool/pref_default_value_true" />
         <SwitchPreferenceCompat
+            app:singleLineTitle="false"
             android:key="@string/pref_key_video_camera_names"
             android:title="@string/video_settings_camera_names"
             android:summary="@string/video_settings_camera_names_summary"
@@ -224,6 +240,7 @@
             android:title="@string/video_settings_clear_history"
             android:summary="@string/video_settings_clear_history_summary" />
         <SwitchPreferenceCompat
+            app:singleLineTitle="false"
             android:key="@string/pref_key_video_no_history"
             android:title="@string/video_settings_no_history"
             android:summary="@string/video_settings_no_history_summary"

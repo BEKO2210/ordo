@@ -29,7 +29,7 @@ log() { a logcat -d -s CommandEngine:I CommandSheet:I | tr -d '\r'; }
 wait_log() { local end=$((SECONDS + $2)); until log | grep -qE "$1"; do [ $SECONDS -ge "$end" ] && return 1; sleep 2; done; }
 ms() { log | grep -oE "$1 [0-9]+ ms" | tail -1 | grep -oE '[0-9]+ ms'; }
 listing() { a shell "ls -l $T $Z $D 2>/dev/null | grep ordoai | sort"; }
-shot() { [ -n "${SHOTS:-}" ] && a exec-out screencap -p > "$SHOTS/$1.png"; return 0; }
+shot() { [ -n "${SHOTS:-}" ] && screenshot "$SHOTS/$1.png"; return 0; }
 dump() { a shell uiautomator dump /sdcard/ordoai-ui.xml >/dev/null 2>&1; a shell cat /sdcard/ordoai-ui.xml; }
 on_screen() { dump | grep -qE "$1"; }
 not_on_screen() { ! dump | grep -qE "$1"; }

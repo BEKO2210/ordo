@@ -13,13 +13,10 @@ tmp=$(mktemp -d)
 settings_open() {
     a shell am start -W -n "$PKG/me.zhanghai.android.files.viewer.video.VideoLauncherActivity" >/dev/null; sleep 2
     guard; ui tap actionSettings >/dev/null; sleep 2
-    # The playback group's last rows sit below the fold on a phone.
-    local size; size=$(a shell wm size | tail -1 | grep -oE '[0-9]+x[0-9]+')
-    local w=${size%x*} h=${size#*x}
-    a shell input swipe $((w / 2)) $((h * 3 / 4)) $((w / 2)) $((h / 3)) 400; sleep 1
 }
 set_background() {
     settings_open
+    scroll_to "Im Hintergrund weiterspielen|Keep playing in the background"
     ui tap "Im Hintergrund weiterspielen|Keep playing in the background" >/dev/null; sleep 1
     ui tap "$1" >/dev/null; sleep 1
     back 1; back 1
@@ -51,19 +48,18 @@ open_clip() {
 }
 not_playing() { ! playing; }
 no_pip_entry() { ! ui has "Bild-in-Bild|Picture-in-picture"; }
-pinned() { a shell dumpsys activity activities | grep -A3 VideoPlayerActivity | grep -q 'mode=pinned\|windowingMode=pinned'; }
+# mode=pinned stands on the task line above the activity (W90) or in its config lines further below (S21, Tab).
+pinned() { a shell dumpsys activity activities | grep -B3 -A20 'Hist.*VideoPlayerActivity' | grep -q 'mode=pinned\|windowingMode=pinned'; }
 
 # 1. Sleep timer: chips, never a slider, and off again.
 open_clip; guard
 check "the video plays" wait_playing
-ui tap "Weitere Optionen|More options" >/dev/null; sleep 1
-ui tap "Schlaf-Timer|Sleep timer" >/dev/null; sleep 1
+video_menu "Schlaf-Timer|Sleep timer"
 check "the sleep timer offers 15 min" ui has "15 Min.|15 min"
 check "the sleep timer offers the end of the video" ui has "Ende des Videos|End of video"
 ui tap "30 Min.|30 min" >/dev/null; sleep 1
-ui tap "Weitere Optionen|More options" >/dev/null; sleep 1
-ui tap "Schlaf-Timer|Sleep timer" >/dev/null; sleep 1
-check "the running timer says when it stops" ui has "Stoppt in|Stops in"
+video_menu "Schlaf-Timer|Sleep timer"
+check "the running timer says when it stops" eval 'ui texts | grep -qE "^(Stoppt in|Stops in) "'
 ui tap "Aus|Off" >/dev/null; sleep 1
 
 # 2. Picture-in-picture on Home (default on).
@@ -95,8 +91,9 @@ check "screen off: the position moves on (${before:-?} -> ${after:-?} ms)" test 
 else
     echo "SKIP screen off (KEYCODE_SLEEP may lock the device: only with E2E_ALLOW_SLEEP=1)"
 fi
+# The channel comes with the service's first notification: give it a few seconds.
 check "Ordo Video's own notification channel exists" bash -c \
-    "'$ADB' -s '$SERIAL' shell dumpsys notification | grep -q 'video_playback'"
+    "for i in 1 2 3 4 5; do '$ADB' -s '$SERIAL' shell dumpsys notification | grep -q 'video_playback' && exit 0; sleep 1; done; exit 1"
 wake
 check "waking up shows the player" wait_on viewer.video.VideoPlayerActivity 6
 a shell input keyevent KEYCODE_MEDIA_PAUSE; sleep 1

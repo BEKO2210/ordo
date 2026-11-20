@@ -7,7 +7,7 @@
 . "$(dirname "$0")/lib.sh" "$@"
 DIR=/sdcard/ordo-e2e-ai
 DEBUG=me.zhanghai.android.files.ai.DebugAiActivity
-shot() { [ -n "${SHOTS:-}" ] && a exec-out screencap -p > "$SHOTS/$1.png"; return 0; }
+shot() { [ -n "${SHOTS:-}" ] && screenshot "$SHOTS/$1.png"; return 0; }
 # ask TEXT ANSWER: the sheet with this command and this model answer.
 ask() {
     a shell am start -W --activity-clear-task -n "$PKG/$DEBUG" --es text "'$1'" --es answer "'$2'" >/dev/null; sleep 3; guard

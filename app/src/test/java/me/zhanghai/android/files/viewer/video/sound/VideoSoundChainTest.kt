@@ -207,6 +207,24 @@ class VideoSoundChainTest {
     }
 
     @Test
+    fun switchingFromSurroundToStereoWithDialogOnKeepsPlaying() {
+        // S21, 20.11.2026: 5.1 film, Clear dialogue on, ⋮ › Audio track › the stereo track: the flush built the dialog
+        // matrix from an empty base (stereo has no downmix) and playback stopped with an error.
+        val downmix = DownmixProcessor().apply {
+            dialogTargetLu = VideoSoundMath.dialogTargetLu(VideoSoundMath.DIALOG_STRONG)!!
+        }
+        downmix.configure(AudioProcessor.AudioFormat(rate, 6, C.ENCODING_PCM_16BIT))
+        downmix.flush()
+        feed(downmix, 6, 20) { n, channel ->
+            if (channel == 2) 0.2f * speech(n) else if (channel == 3) 0f else 0.05f * music(n, channel)
+        }
+        assertTrue(downmix.steering.dialogDb != 0f)
+        downmix.configure(AudioProcessor.AudioFormat(rate, 2, C.ENCODING_PCM_16BIT))
+        downmix.flush()
+        assertFalse(downmix.isActive)
+    }
+
+    @Test
     fun surroundDialogReachesItsTargetDistance() {
         for ((level, target) in listOf(VideoSoundMath.DIALOG_LIGHT to 10.0, VideoSoundMath.DIALOG_STRONG to 15.0)) {
             val downmix = DownmixProcessor().apply {

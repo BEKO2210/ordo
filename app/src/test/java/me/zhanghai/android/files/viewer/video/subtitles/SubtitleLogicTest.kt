@@ -10,6 +10,8 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import androidx.media3.common.Format
+import androidx.media3.common.MimeTypes
 
 class SubtitleLogicTest {
     private val deFile = Candidate(SubtitleChoice.File("file:///m/film.de.srt"), "de")
@@ -109,6 +111,18 @@ class SubtitleLogicTest {
         val en = SubtitleChoice.Candidate(SubtitleChoice.Track("1", "en"), "en")
         assertEquals(de.choice, SubtitleChoice.pick(null, true, "de", null, listOf(de), listOf(en)))
         assertEquals(null, SubtitleChoice.pick(null, true, "de", null, emptyList(), listOf(en)))
+    }
+
+    @Test
+    fun aTrackParsedWhileExtractingKeepsItsKind() {
+        val srt = Format.Builder().setSampleMimeType(MimeTypes.APPLICATION_MEDIA3_CUES)
+            .setCodecs(MimeTypes.APPLICATION_SUBRIP).build()
+        val pgs = Format.Builder().setSampleMimeType(MimeTypes.APPLICATION_MEDIA3_CUES)
+            .setCodecs(MimeTypes.APPLICATION_PGS).build()
+        assertEquals(MimeTypes.APPLICATION_SUBRIP, VideoSubtitles.subtitleMimeType(srt))
+        assertTrue(VideoSubtitles.isBitmap(pgs))
+        assertTrue(!VideoSubtitles.isBitmap(srt))
+        assertTrue(VideoSubtitles.isBitmap(Format.Builder().setSampleMimeType(MimeTypes.APPLICATION_VOBSUB).build()))
     }
 }
 

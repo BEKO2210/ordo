@@ -37,9 +37,8 @@ sheet() { ui tap "Untertitel|Subtitles" >/dev/null; sleep 1.5; }
 
 # 1. Files next to the film, the German one on by itself and read as Windows-1252.
 open_video film.mp4
-a shell screencap -p /sdcard/ordo-e2e-subs.png && a pull /sdcard/ordo-e2e-subs.png "${TMPDIR:-/tmp}/ordo-e2e-subs.png" \
-    >/dev/null && a shell rm /sdcard/ordo-e2e-subs.png
-echo "INFO screenshot with the German line: ${TMPDIR:-/tmp}/ordo-e2e-subs.png (look for \"Größe, Übermaß\")"
+screenshot "${TMPDIR:-/tmp}/ordo-e2e-subs.png" &&
+    echo "INFO screenshot with the German line: ${TMPDIR:-/tmp}/ordo-e2e-subs.png (look for \"Größe, Übermaß\")"
 sheet
 check "the sheet offers Off" ui has "Aus|Off"
 check "the sheet lists the German file with its language" ui has "Deutsch · film.de.srt|German · film.de.srt"
@@ -49,14 +48,25 @@ check "the sheet offers Load subtitles…" ui has "Untertitel laden…|Load subt
 ui tap "Deutsch · film.de.srt|German · film.de.srt" >/dev/null; sleep 1; back 1; sheet
 check "the German file is read as Windows-1252" ui has "Automatisch (windows-1252)|Automatic (windows-1252)"
 
-# 2. Delay in steps, remembered per film.
-ui tap "+1 s" >/dev/null; sleep 0.5; ui tap "+1 s" >/dev/null; sleep 0.5
-check "two taps on +1 s show +2 s as the delay" ui has "+2 s"
+# 2. Delay in steps, remembered per film. The film's delay outlives the test folder (it is kept per path), so a
+# run starts wherever the last one left it: the value is read (the step buttons carry a description, it does not).
+# The buttons are tapped by that description: at +1 s the value reads "+1 s" too and came first in the screen read.
+later="1 s später zeigen|Show 1 s later"; earlier="1 s früher zeigen|Show 1 s earlier"
+delay() {
+    ui texts | awk -F'|' '$2 == "" && $3 == "" && $1 ~ /^(\+|−)?[0-9]+([.,][0-9])? s$/ {
+        v = $1; neg = (index(v, "−") == 1); gsub(/[^0-9.,]/, "", v); sub(/,/, ".", v); printf "%d\n", (neg ? -v : v) * 1000; exit }'
+}
+d0=$(delay)
+ui tap "$later" >/dev/null; sleep 0.5; ui tap "$later" >/dev/null; sleep 0.5
+d2=$(delay)
+check "two taps on +1 s add 2 s to the delay (${d0:-?} -> ${d2:-?} ms)" test -n "$d0" -a "${d2:-x}" = "$((${d0:-0} + 2000))"
 back 1; back 2
 open_video film.mp4
 sheet
-check "the delay is remembered for the film" ui has "+2 s"
-ui tap "−1 s" >/dev/null; sleep 0.5; ui tap "−1 s" >/dev/null; sleep 0.5
+check "the delay is remembered for the film" test "$(delay)" = "$d2"
+ui tap "$earlier" >/dev/null; sleep 0.5; ui tap "$earlier" >/dev/null; sleep 0.5
+# The size chips lie below the charsets: on a phone the sheet scrolls.
+scroll_to "Sehr groß|Extra large" 3
 check "the size chips are there" ui has "Sehr groß|Extra large"
 back 1; back 2
 
@@ -72,7 +82,7 @@ back 1; back 2
 # 4. Settings: the "Subtitles" group.
 a shell am start -W -n "$PKG/me.zhanghai.android.files.viewer.video.VideoLauncherActivity" >/dev/null; sleep 2; guard
 ui tap actionSettings >/dev/null; sleep 2
-for i in 1 2 3; do ui has "Untertitel automatisch an|Subtitles automatically" && break; swipe_up; done
+scroll_to "Untertitel automatisch an|Subtitles automatically"
 check "Ordo Video's settings have \"Subtitles automatically\"" ui has "Untertitel automatisch an|Subtitles automatically"
 check "Ordo Video's settings have the preferred subtitle language" \
     ui has "Bevorzugte Untertitel-Sprache|Preferred subtitle language"
