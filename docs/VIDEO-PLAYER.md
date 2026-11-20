@@ -441,7 +441,7 @@ Decodern.
 - **Lieferkette:** Das Skript führt fremde Skripte aus (`build_ffmpeg.sh`, FFmpegs `configure`). Darum sind beide
   Quellen auf Commits festgenagelt (`MEDIA3_SHA` 8c6678b6… für Tag 1.11.1, `FFMPEG_SHA` c41ff724… für n6.0.1); nach
   dem Klonen bricht es ab, wenn `git rev-parse HEAD` abweicht (ein umgehängter Tag fällt so auf). In der CI läuft der
-  Bau in einem eigenen Schritt „Build FFmpeg audio decoders“ (NDK installieren, `:ffmpeg:buildFfmpegAudio`, `.so`
+  Bau in einem eigenen Schritt „Build FFmpeg decoders“ (NDK installieren, `:ffmpeg:buildFfmpegAudio`, `.so`
   prüfen), in `play-internal.yml` vor dem Schritt, der den Signierschlüssel schreibt; spätere Gradle-Aufrufe
   überspringen ihn mit `-x :ffmpeg:buildFfmpegAudio`.
 - **16 KB:** NDK 30 linkt mit 16-KB-Seiten; `utils/check-16k.sh` auf Beta-APK und -AAB grün

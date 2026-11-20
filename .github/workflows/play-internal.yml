@@ -46,7 +46,7 @@ jobs:
 
       # Before any secret is on disk or in the environment: this step runs third-party build scripts (FFmpeg,
       # Media3, pinned to commit SHAs in utils/ffmpeg-audio/build.sh). Later Gradle calls skip it with -x.
-      - name: Build FFmpeg audio decoders
+      - name: Build FFmpeg decoders
         run: |
           yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --install 'ndk;30.0.16248370' > /dev/null
           ./gradlew :ffmpeg:buildFfmpegAudio

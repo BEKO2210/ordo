@@ -3,8 +3,9 @@
 //
 // Software video decoding for FfmpegVideoDecoder. Taken from nextlib (anilbeesetti/nextlib, GPL-3.0,
 // media3ext/src/main/cpp/ffvideo.cpp at tag v1.11.1-0.18.0, commit d774e7e6d65204d409dc679ab173c67030d4a7d4) with
-// three changes: the JNI names point to androidx.media3.decoder.ffmpeg.FfmpegVideoDecoder, the helpers come from
-// Media3's ffmpeg_jni.cc (same library) instead of nextlib's ffcommon.cpp, and ffmpegHasDecoder is added.
+// four changes: the JNI names point to androidx.media3.decoder.ffmpeg.FfmpegVideoDecoder, the helpers come from
+// Media3's ffmpeg_jni.cc (same library) instead of nextlib's ffcommon.cpp, ffmpegHasDecoder is added, and
+// SendPacket's EAGAIN retries are bounded (kMaxStalledRounds).
 
 #include <android/log.h>
 #include <jni.h>
@@ -85,6 +86,10 @@ static const int VIDEO_DECODER_ERROR_OTHER = -2;
 static const int VIDEO_DECODER_TRY_AGAIN = -3;
 static const int VIDEO_DECODER_END_OF_STREAM = -4;
 
+
+// SendPacket: more rounds than this in a row where FFmpeg neither takes the packet nor gives a frame is a stuck
+// decoder, not a busy one (FFmpeg 6's VP9 alt-ref case needs one).
+constexpr int kMaxStalledRounds = 16;
 
 // Media3 C.VIDEO_OUTPUT_MODE_SURFACE_YUV.
 constexpr int kOutputModeSurface = 1;
@@ -214,6 +219,7 @@ struct JniContext {
     // Returns VIDEO_DECODER_* statuses, keeping receive errors distinct from bad input.
     int SendPacket(const AVPacket *packet) {
         int result;
+        int stalled = 0;
         while ((result = avcodec_send_packet(codecContext, packet)) == AVERROR(EAGAIN)) {
             // FFmpeg has not accepted this packet. Preserve queued output and retry
             // the same input; dropping it corrupts VP9 reference frames.
@@ -227,13 +233,19 @@ struct JniContext {
                 av_frame_free(&frame);
                 // FFmpeg 6's VP9 filter can consume hidden alt-ref frames without
                 // yielding output. Input may now be accepted, so retry it.
-                if (result == AVERROR(EAGAIN)) continue;
+                if (result == AVERROR(EAGAIN)) {
+                    // Ordo: never spin the decode thread; a stuck decoder ends as a decoder error.
+                    if (++stalled < kMaxStalledRounds) continue;
+                    LOGE("avcodec_send_packet: no progress after %d rounds", stalled);
+                    return VIDEO_DECODER_ERROR_OTHER;
+                }
                 logError("avcodec_receive_frame", result);
                 // Match ffmpegReceiveFrame: a receive failure is fatal, never a
                 // reason to skip the current packet, which is still unaccepted.
                 return VIDEO_DECODER_ERROR_OTHER;
             }
             pendingFrames.push_back(frame);
+            stalled = 0;
         }
         if (result < 0) {
             logError("avcodec_send_packet", result);
