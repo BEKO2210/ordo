@@ -98,10 +98,15 @@ class OutputPolicyTest {
         assertFalse(OutputPolicy.songBitPerfect(34, true, song(44_100, 1, false), dac))
         assertFalse(OutputPolicy.songBitPerfect(34, true, song(88_200, 2, true), dac))
         assertFalse(OutputPolicy.songBitPerfect(34, true, song(48_000, 6, true), dac))
-        // A DAC without hi-res bit-perfect: a 24-bit song keeps its effects, a 16-bit one goes bit-perfect.
+        // A DAC with only 16-bit bit-perfect: a 24-bit song is decoded to 16 bits there, so it must never count
+        // (fewer mixer bits than the song); a 16-bit write cannot be told apart from it, so neither counts.
         val only16 = dac.filter { it.encoding == pcm16 }
         assertFalse(OutputPolicy.songBitPerfect(34, true, song(96_000, 2, true), only16))
-        assertTrue(OutputPolicy.songBitPerfect(34, true, song(96_000, 2, false), only16))
+        assertFalse(OutputPolicy.songBitPerfect(34, true, TrackFormat(96_000, pcm16, 2), only16))
+        assertEquals(
+            OutputPlan.RateMatch(MixerOption(96_000, pcm16, 2, false)),
+            OutputPolicy.plan(34, true, TrackFormat(96_000, pcm16, 2), only16)
+        )
         // Setting off, or before Android 14: never.
         assertFalse(OutputPolicy.songBitPerfect(34, false, song(44_100, 2, false), dac))
         assertFalse(OutputPolicy.songBitPerfect(33, true, song(44_100, 2, false), dac))

@@ -49,12 +49,18 @@ object OutputPolicy {
     fun plan(sdk: Int, bitPerfectMode: Boolean, track: TrackFormat?, options: List<MixerOption>): OutputPlan {
         if (sdk < MIN_SDK || track == null || track.sampleRate <= 0) return OutputPlan.System
         if (bitPerfectMode) {
-            bitPerfectEncodings(track.encoding).firstNotNullOfOrNull { encoding ->
+            fun bitPerfectMixer(writes: Int) = bitPerfectEncodings(writes).firstNotNullOfOrNull { encoding ->
                 options.firstOrNull {
                     it.bitPerfect && it.encoding == encoding && it.sampleRate == track.sampleRate &&
                         it.channelCount == track.channelCount
                 }
-            }?.let { return OutputPlan.BitPerfect(it) }
+            }
+            // Hard check, never "bit-perfect" for changed samples: 16-bit only counts when the decoder was offered
+            // full resolution (a hi-res mixer at this rate), else the 16 bits may be a 24-bit song cut down.
+            val fullResolutionOffered = bitPerfectMixer(AudioFormat.ENCODING_PCM_FLOAT) != null
+            if (track.encoding != AudioFormat.ENCODING_PCM_16BIT || fullResolutionOffered) {
+                bitPerfectMixer(track.encoding)?.let { return OutputPlan.BitPerfect(it) }
+            }
         }
         return options.filter { !it.bitPerfect && it.sampleRate == track.sampleRate }
             // Same channels first, then the finest mixer format.
