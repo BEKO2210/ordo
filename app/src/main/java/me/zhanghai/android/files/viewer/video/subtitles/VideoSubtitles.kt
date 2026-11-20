@@ -495,8 +495,15 @@ class VideoSubtitles(
         private const val TICK_MS = 50L
         private const val MAX_LIFT = 0.5f
 
+        /**
+         * The subtitle's own format: since Media3 1.4 a track inside the film is parsed while extracting and comes as
+         * "application/x-media3-cues", its real kind (SRT, PGS …) then stands in codecs.
+         */
+        fun subtitleMimeType(format: Format?): String? =
+            if (format?.sampleMimeType == MimeTypes.APPLICATION_MEDIA3_CUES) format.codecs else format?.sampleMimeType
+
         /** Bitmap subtitles (PGS, VobSub, DVB): Media3 draws them as pictures, the style cannot reach them. */
-        fun isBitmap(format: Format?): Boolean = format?.sampleMimeType in setOf(
+        fun isBitmap(format: Format?): Boolean = subtitleMimeType(format) in setOf(
             MimeTypes.APPLICATION_PGS, MimeTypes.APPLICATION_VOBSUB, MimeTypes.APPLICATION_DVBSUBS
         )
 

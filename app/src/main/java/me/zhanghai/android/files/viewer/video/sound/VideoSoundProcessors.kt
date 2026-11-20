@@ -95,7 +95,7 @@ class DownmixProcessor : BaseAudioProcessor() {
         }
         val dialog = 10f.pow(steering.dialogDb / 20f)
         val rest = 10f.pow(steering.restDb / 20f)
-        if (dialog == 1f && rest == 1f) return base
+        if (base.isEmpty() || (dialog == 1f && rest == 1f)) return base
         val centreIndex = centreIndex(channels)
         return Array(2) { row ->
             FloatArray(channels) { channel -> base[row][channel] * if (channel == centreIndex) dialog else rest }

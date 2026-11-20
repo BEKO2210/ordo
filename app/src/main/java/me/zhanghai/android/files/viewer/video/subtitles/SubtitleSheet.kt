@@ -201,7 +201,7 @@ private fun label(context: Context, subtitles: VideoSubtitles, choice: SubtitleC
                 VideoInfo.language(format?.language) ?: format?.label
                     ?: context.getString(R.string.video_subtitles_track_format, trackNumber),
                 format?.label?.takeIf { VideoInfo.language(format.language) != null },
-                kindName(format?.sampleMimeType),
+                kindName(VideoSubtitles.subtitleMimeType(format)),
                 context.getString(R.string.video_subtitles_forced)
                     .takeIf { format != null && format.selectionFlags and androidx.media3.common.C.SELECTION_FLAG_FORCED != 0 }
             ).joinToString(" · ")

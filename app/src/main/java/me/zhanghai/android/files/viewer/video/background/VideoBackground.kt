@@ -63,6 +63,7 @@ import me.zhanghai.android.files.settings.Settings
 import me.zhanghai.android.files.util.valueCompat
 import me.zhanghai.android.files.viewer.video.VideoPrefs
 import me.zhanghai.android.files.viewer.video.VideoRepeatMode
+import me.zhanghai.android.files.viewer.video.showExpanded
 
 /** The open video player's session, for [VideoPlaybackService] and the notification's way back to it. */
 object VideoBackground {
@@ -368,7 +369,7 @@ class VideoBackgroundController(
             LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT
         ).apply { topMargin = padding / 2 })
         dialog.setContentView(content)
-        dialog.show()
+        dialog.showExpanded()
     }
 
     private fun setSleepTimer(minutes: Int, endOfVideo: Boolean) {

@@ -20,6 +20,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import me.zhanghai.android.files.R
 import me.zhanghai.android.files.databinding.KlangValueStepperBinding
 import me.zhanghai.android.files.viewer.video.audioCodecName
+import me.zhanghai.android.files.viewer.video.showExpanded
 import java.util.Locale
 
 /**
@@ -93,7 +94,7 @@ object VideoAudioTrackSheet {
         dialog.setContentView(content)
         dialog.behavior.skipCollapsed = true
         dialog.behavior.state = BottomSheetBehavior.STATE_EXPANDED
-        dialog.show()
+        dialog.showExpanded()
     }
 
     private fun addSync(context: Context, content: LinearLayout, engine: VideoSoundEngine) {
