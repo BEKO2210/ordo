@@ -129,14 +129,23 @@ finish() {
     exit 1
 }
 
+# scroll_to TARGET [SWIPES]: swipes up until TARGET is on screen (long settings pages and sheets; a landscape tablet
+# shows few rows per swipe). Fails when it never shows.
+scroll_to() { local i; for i in $(seq 1 "${2:-8}"); do ui has "$1" && return 0; swipe_up; done; ui has "$1"; }
+
 # video_menu ENTRY: the player's ⋮ › ENTRY. While a film plays its controls hide after 4 s, and a screen read during
 # playback comes too late to see them (S21, 20.11.2026): paused they stay, so it pauses for the menu and plays on after.
 video_menu() {
     local was W H
     was=$(a shell dumpsys media_session | grep -A25 "package=$PKG" | grep -m1 -o 'state=PLAYING')
     [ -n "$was" ] && { a shell input keyevent KEYCODE_MEDIA_PAUSE; sleep 1; }
-    ui has "Weitere Optionen|More options" || { read -r W H < <(screen_size); a shell input tap $((W / 2)) $((H / 2)); sleep 1; }
-    ui tap "Weitere Optionen|More options" >/dev/null; sleep 1
+    local try
+    for try in 1 2; do # once more when the menu did not open (seen on the Tab after a pause)
+        ui has "Weitere Optionen|More options" || { read -r W H < <(screen_size); a shell input tap $((W / 2)) $((H / 2)); sleep 1; }
+        ui tap "Weitere Optionen|More options" >/dev/null; sleep 1
+        ui wait "$1" 3 >/dev/null && break
+        ui has "Weitere Optionen|More options" || back 1 # a menu without the entry closes; never the player
+    done
     ui tap "$1" >/dev/null; sleep 1.5
     [ -z "$was" ] || a shell input keyevent KEYCODE_MEDIA_PLAY
 }

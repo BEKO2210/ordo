@@ -41,7 +41,7 @@ open_clip() {
 # ⋮ › entry, also while the film plays (video_menu in lib.sh).
 menu() { video_menu "$1"; }
 # The sheet is longer than a phone screen: scrolled until the switch shows.
-switch_on() { local i; for i in 1 2 3; do ui has "$1" && break; swipe_up; done; ui tap "$1" >/dev/null; sleep 1.5; }
+switch_on() { scroll_to "$1" 3; ui tap "$1" >/dev/null; sleep 1.5; }
 # part REGEX: a text, id or description on screen contains it (notes and track lines are longer than their key words).
 part() { ui texts | grep -qE -- "$1"; }
 
@@ -53,7 +53,7 @@ check "the sound sheet opens with its own settings" part "^(Nur für Videos|Only
 check "a 5.1 track is said to be mixed for two speakers" part "(5.1-Ton wird|5.1 sound is mixed).*\|surroundNote\|"
 switch_on "Dialog-Verstärker|Clear dialogue"
 check "with Clear dialogue on it plays on" wait_playing
-ui tap dialogStrong >/dev/null; sleep 1.5  # "Strong" alone is also the bass boost's
+scroll_to dialogStrong 3; ui tap dialogStrong >/dev/null; sleep 1.5  # "Strong" alone is also the bass boost's
 check "with Clear dialogue strong it plays on" wait_playing
 switch_on "Nachtmodus|Night mode"
 check "with Night mode on it plays on" wait_playing

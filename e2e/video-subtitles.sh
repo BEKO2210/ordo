@@ -67,7 +67,7 @@ sheet
 check "the delay is remembered for the film" test "$(delay)" = "$d2"
 ui tap "$earlier" >/dev/null; sleep 0.5; ui tap "$earlier" >/dev/null; sleep 0.5
 # The size chips lie below the charsets: on a phone the sheet scrolls.
-for _ in 1 2 3; do ui has "Sehr groß|Extra large" && break; swipe_up; done
+scroll_to "Sehr groß|Extra large" 3
 check "the size chips are there" ui has "Sehr groß|Extra large"
 back 1; back 2
 
@@ -83,7 +83,7 @@ back 1; back 2
 # 4. Settings: the "Subtitles" group.
 a shell am start -W -n "$PKG/me.zhanghai.android.files.viewer.video.VideoLauncherActivity" >/dev/null; sleep 2; guard
 ui tap actionSettings >/dev/null; sleep 2
-for i in 1 2 3; do ui has "Untertitel automatisch an|Subtitles automatically" && break; swipe_up; done
+scroll_to "Untertitel automatisch an|Subtitles automatically"
 check "Ordo Video's settings have \"Subtitles automatically\"" ui has "Untertitel automatisch an|Subtitles automatically"
 check "Ordo Video's settings have the preferred subtitle language" \
     ui has "Bevorzugte Untertitel-Sprache|Preferred subtitle language"

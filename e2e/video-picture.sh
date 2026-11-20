@@ -46,11 +46,13 @@ open_folder() {
         -n "$PKG/me.zhanghai.android.files.filelist.FileListActivity" >/dev/null
     sleep 3; guard; ui wait "$1" 10 >/dev/null
 }
-menu() { ui tap "Weitere Optionen|More options" >/dev/null; sleep 1; ui tap "$1" >/dev/null; sleep 1.5; }
+menu() { video_menu "$1"; }
+# part REGEX: a text or description on screen contains it (the signal path rows say "Decoder: Hardware · c2…").
+part() { ui texts | grep -qE -- "$1"; }
 settings_pick() {
     a shell am start -W -n "$PKG/me.zhanghai.android.files.viewer.video.VideoLauncherActivity" >/dev/null; sleep 2; guard
     ui tap actionSettings >/dev/null; sleep 2
-    ui tap "$1" >/dev/null; sleep 1.5
+    scroll_to "$1"; ui tap "$1" >/dev/null; sleep 1.5
     ui tap "$2" >/dev/null; sleep 1.5
     back 1; back 1
 }
@@ -58,7 +60,7 @@ settings_pick() {
 # 1. The settings page has the Picture group with both rows and their defaults.
 a shell am start -W -n "$PKG/me.zhanghai.android.files.viewer.video.VideoLauncherActivity" >/dev/null; sleep 2; guard
 ui tap actionSettings >/dev/null; sleep 2
-check "the settings have Picture enhancement, balanced by default" ui wait "Ausgewogen|Balanced" 5
+check "the settings have Picture enhancement, balanced by default" scroll_to "Ausgewogen|Balanced"
 check "and Match frame rate, only when seamless by default" ui has "Nur nahtlos|Only when seamless"
 back 1; back 1
 
@@ -67,11 +69,13 @@ a logcat -c
 open_folder 01-small.mp4
 ui tap 01-small.mp4 >/dev/null
 check "the small clip opens Ordo's player" wait_on viewer.video.VideoPlayerActivity 8
-sleep 8
-check "a 360p clip starts with the pipeline, decided before prepare" eval 'log | grep -q "prepare: pipeline true"'
+# The start, read early: every frame logs a line, and on the S21 the first lines had left the buffer after 8 s.
+sleep 2; start=$(log)
+sleep 6
+check "a 360p clip starts with the pipeline, decided before prepare" eval 'grep -q "prepare: pipeline true" <<<"$start"'
 check "and is not prepared a second time" eval '! log | grep -q -- "-> ENGAGE"'
-check "the enhancement is applied" eval 'log | grep -q -- "-> APPLY"'
-check "frames go through the enhancement pass" eval 'log | grep -qE "frame [0-9]+ [0-9]+x[0-9]+ [0-9.]+ ms"'
+check "the enhancement is applied" eval 'grep -q -- "-> APPLY" <<<"$start"'
+check "frames go through the enhancement pass" eval 'grep -qE "frame [0-9]+ [0-9]+x[0-9]+ [0-9.]+ ms" <<<"$start"'
 log | grep "last 120 frames" | tail -3 | sed 's/^/INFO GPU time /'
 log | grep "dropped" | tail -2 | sed 's/^/INFO /'
 a shell input keyevent KEYCODE_MEDIA_PAUSE; sleep 1
@@ -80,18 +84,20 @@ a exec-out screencap -p > "$out/small-enhanced.png"
 # 3. The signal path: decoder, Lanczos, sound.
 menu "Signalweg|Signal path"
 check "Signal path opens" ui wait "Signalweg|Signal path" 5
-check "it names the decoder as hardware or software" ui has "Decoder: Hardware|Decoder: Software"
-check "it shows the Lanczos upscale" ui has "Lanczos 3"
-check "it has the sound section with the output" ui has "Ausgabe: |Output: "
+check "it names the decoder as hardware or software" part "Decoder: (Hardware|Software)"
+check "it shows the Lanczos upscale" part "Lanczos 3"
+sound_row() { local i; for i in 1 2 3; do part "(Ausgabe|Output): " && return 0; swipe_up; done; return 1; }
+check "it has the sound section with the output" sound_row
 a exec-out screencap -p > "$out/signal-path.png"
 back 1
 
 # 4. The ⋮ toggle compares: off clears the effects, on applies them again.
 a logcat -c
 menu "Bildverbesserung|Picture enhancement"
-check "the toggle switches it off with a hint" ui wait "Bildverbesserung aus|Picture enhancement off" 3
-check "and clears the effects" eval 'log | grep -q -- "-> CLEAR"'
 a exec-out screencap -p > "$out/small-plain.png"
+# The hint pill fades after about a second, shorter than one screen read (2-3 s): look at the screenshot instead.
+echo "SKIP the off hint (fades before a screen read; see $out/small-plain.png)"
+check "and clears the effects" eval 'log | grep -q -- "-> CLEAR"'
 menu "Bildverbesserung|Picture enhancement"
 check "switched on again it applies them" eval 'log | grep -q -- "-> APPLY"'
 back 2
@@ -105,7 +111,7 @@ back 2
 
 # 6. "Always" asks for 24 fps itself from API 31; "Only when seamless" leaves it to Media3.
 sdk=$(a shell getprop ro.build.version.sdk | tr -d '\r')
-settings_pick "Bildrate anpassen|Match frame rate" "Immer|Always"
+settings_pick "Bildrate anpassen|Match frame rate" "Immer (Bildschirm kann kurz schwarz werden)|Always (the screen may go dark for a moment)"
 a logcat -c
 open_folder 01-small.mp4
 ui tap 01-small.mp4 >/dev/null; wait_on viewer.video.VideoPlayerActivity 8; sleep 4
@@ -130,7 +136,8 @@ else
     echo "INFO SurfaceFlinger layer of the player not found"
 fi
 menu "Signalweg|Signal path"
-check "Signal path shows the frame pacing" ui wait "Bildtakt: .*(gleichmäßig|Pulldown)|Frame pacing: .*(even|pulldown)" 5
+pacing_shown() { local i; for i in 1 2 3; do part "(Bildtakt|Frame pacing): .*(gleichmäßig|Pulldown|even|pulldown)" && return 0; sleep 1.5; done; return 1; }
+check "Signal path shows the frame pacing" pacing_shown
 a exec-out screencap -p > "$out/signal-pacing.png"
 back 1
 back 2
