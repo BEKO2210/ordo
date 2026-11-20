@@ -289,9 +289,11 @@ class VideoSoundSheet : BottomSheetDialogFragment(), HeadphonesHost {
         val measured = engine?.dialogDistanceLu ?: Float.NaN
         binding.dialogState.isVisible = settings.dialogLevel != VideoSoundMath.DIALOG_OFF && !reached.isNaN()
         if (binding.dialogState.isVisible) {
-            binding.dialogState.text = getString(
+            val text = getString(
                 R.string.video_sound_dialog_state, number.format(reached.toDouble()), number.format(measured.toDouble())
             )
+            // Only a real change: every setText is an accessibility event, even with the same text.
+            if (binding.dialogState.text.toString() != text) binding.dialogState.text = text
         }
     }
 
@@ -352,7 +354,8 @@ class VideoSoundSheet : BottomSheetDialogFragment(), HeadphonesHost {
     companion object {
         private const val TAG = "video_sound"
         private const val BALANCE_STEP = 10
-        private const val TICK_MS = 1_000L
+        // A quiet second between ticks for accessibility clients, as the signal path (VideoPicture.SIGNAL_REFRESH_MS).
+        private const val TICK_MS = 2_000L
         private const val OFF_ALPHA = 0.38f
 
         fun show(activity: FragmentActivity) {

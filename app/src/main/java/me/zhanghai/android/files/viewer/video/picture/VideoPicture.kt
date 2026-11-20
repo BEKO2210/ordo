@@ -709,7 +709,7 @@ class VideoPicture(
             meterCard, R.drawable.audio_graphic_eq_icon_24dp, activity.getString(R.string.video_meter_title),
             activity.getString(R.string.video_meter_off), null
         ) {}
-        val meterState = (meterHeader.getChildAt(1) as ViewGroup).getChildAt(1) as TextView
+        val meterState = meterHeader.findViewById<TextView>(android.R.id.summary)
         val meterRows = rows(meterCard, METER_ROWS)
         val share = sheet.textButton(meterCard, activity.getString(R.string.video_meter_share)) { shareCsv() }
         fun fill(rows: List<Pair<View, TextView>>, labels: List<Int>, values: List<String?>) {
@@ -726,7 +726,9 @@ class VideoPicture(
             fill(pictureRows, PICTURE_ROWS, pictureValues())
             fill(soundRows, SOUND_ROWS, soundValues())
             fill(meterRows, METER_ROWS, meterValues())
-            meterState.setText(if (meter.measuring) R.string.video_meter_on else R.string.video_meter_off)
+            // Only a real change: every setText is an accessibility event, even with the same text.
+            val state = activity.getString(if (meter.measuring) R.string.video_meter_on else R.string.video_meter_off)
+            if (meterState.text.toString() != state) meterState.text = state
             meterHeader.contentDescription =
                 "${activity.getString(R.string.video_meter_title)}: ${meterState.text}"
             ViewCompat.setStateDescription(
@@ -1132,7 +1134,12 @@ class VideoPicture(
         private var softwareNoticeShown = false
 
         private val CLEARED = Any()
-        private const val SIGNAL_REFRESH_MS = 1_000L
+        /**
+         * Every changed row is an accessibility event (the frame count and the measuring time change each tick).
+         * Ticking every second never left a quiet second, which clients that wait for one need: `uiautomator dump`
+         * gave up ("could not get idle state") and its reader saw an old screen (A8, 20.11.2026). Two seconds leave one.
+         */
+        internal const val SIGNAL_REFRESH_MS = 2_000L
         private const val AMBIENT_TICK_MS = 250L
         private const val PACING_LOG_FRAMES = 240L
         private val VIDEO_PROCESSING_ERRORS = setOf(

@@ -50,8 +50,10 @@ def nodes(fresh=False):
     else:
         # One round trip: over Tailscale every adb call costs latency.
         # A busy app (e.g. right after an install) can make the dump give up on waiting for idle: try again.
+        # It gives up with exit code 0 and leaves the old file, so remove that first (a stale screen hid #22).
         for _ in range(3):
-            xml = subprocess.run(ADB + ["exec-out", "uiautomator dump /data/local/tmp/ordo-e2e.xml >/dev/null && "
+            xml = subprocess.run(ADB + ["exec-out", "rm -f /data/local/tmp/ordo-e2e.xml; "
+                                        "uiautomator dump /data/local/tmp/ordo-e2e.xml >/dev/null && "
                                         "cat /data/local/tmp/ordo-e2e.xml"], capture_output=True, text=True).stdout
             if "<node" in xml:
                 break
