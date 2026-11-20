@@ -213,12 +213,21 @@ private class DetailPlusProgram(private val model: DetailPlus.Model, private val
     private fun link(fragment: String): Int {
         val es3 = fragment.startsWith("#version 300 es")
         val program = GLES20.glCreateProgram()
-        GLES20.glAttachShader(program, compile(GLES20.GL_VERTEX_SHADER, if (es3) VERTEX_300 else VERTEX_100))
-        GLES20.glAttachShader(program, compile(GLES20.GL_FRAGMENT_SHADER, fragment))
+        val vertex = compile(GLES20.GL_VERTEX_SHADER, if (es3) VERTEX_300 else VERTEX_100)
+        val shader = compile(GLES20.GL_FRAGMENT_SHADER, fragment)
+        GLES20.glAttachShader(program, vertex)
+        GLES20.glAttachShader(program, shader)
         GLES20.glLinkProgram(program)
+        // The linked program keeps what it needs; the shader objects would only leak with every rebuild.
+        GLES20.glDeleteShader(vertex)
+        GLES20.glDeleteShader(shader)
         val status = IntArray(1)
         GLES20.glGetProgramiv(program, GLES20.GL_LINK_STATUS, status, 0)
-        check(status[0] == GLES20.GL_TRUE) { "link: " + GLES20.glGetProgramInfoLog(program) }
+        if (status[0] != GLES20.GL_TRUE) {
+            val log = GLES20.glGetProgramInfoLog(program)
+            GLES20.glDeleteProgram(program)
+            error("link: $log")
+        }
         return program
     }
 

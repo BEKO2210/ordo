@@ -90,7 +90,11 @@ private class MeteredProgram(
     private fun poll() {
         val value = IntArray(1)
         GLES20.glGetIntegerv(GL_GPU_DISJOINT_EXT, value, 0)
-        val disjoint = value[0] != 0
+        if (value[0] != 0) {
+            // Results still in flight span the disjoint too: none of them can be trusted.
+            pending.fill(false)
+            return
+        }
         for (offset in 0 until QUERIES) {
             val index = (next + offset) % QUERIES
             if (!pending[index]) continue
@@ -99,7 +103,7 @@ private class MeteredProgram(
             GLES30.glGetQueryObjectuiv(queries[index], GLES30.GL_QUERY_RESULT, value, 0)
             pending[index] = false
             // Unsigned nanoseconds: 4.29 s at most, far beyond a frame.
-            if (!disjoint) meter.addPass(pass, (value[0].toLong() and 0xffffffffL) / 1e6)
+            meter.addPass(pass, (value[0].toLong() and 0xffffffffL) / 1e6)
         }
     }
 

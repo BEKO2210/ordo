@@ -502,8 +502,9 @@ class VideoPicture(
             Log.d(PICTURE_LOG_TAG, "dropped $droppedFrames frames in $elapsedMs ms, enhancement ${decision?.on}")
         }
         if (decision?.on != true || !PicturePolicy.tooSlow(droppedFrames, elapsedMs)) return
-        // Detail plus goes first: Lanczos alone may well keep up.
+        // Detail plus goes first: Lanczos alone may well keep up. Drops while the pipeline settles don't count.
         if (model != null) {
+            if (SystemClock.elapsedRealtime() - steadySince < DetailPlus.SETTLE_MS) return
             detailFellBack = true
             onNotice(activity.getString(R.string.video_detail_plus_slow_notice))
             evaluate()
