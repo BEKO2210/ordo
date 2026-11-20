@@ -1,0 +1,44 @@
+/*
+ * Copyright (c) 2026 Ordo contributors
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
+// Media3's decoder_ffmpeg (Apache-2.0), audio only: FfmpegAudioRenderer with FFmpeg's ac3, eac3, dca, truehd and
+// mlp decoders (LGPL-2.1-or-later). Not on Maven; src/main/java and proguard-rules.txt are vendored unchanged from
+// Media3 1.11.1. The .so files are not in git: utils/ffmpeg-audio/build.sh (pinned commits and flags,
+// docs/VIDEO-PLAYER.md, "FFmpeg-Ton") builds them from source once per checkout (about a minute) into build/ffmpeg-audio.
+apply plugin: 'com.android.library'
+
+def ffmpegLibs = layout.buildDirectory.dir('ffmpeg-audio')
+def buildFfmpegAudio = tasks.register('buildFfmpegAudio', Exec) {
+    def script = rootProject.file('utils/ffmpeg-audio/build.sh')
+    inputs.file(script)
+    outputs.dir(ffmpegLibs)
+    commandLine 'bash', script, ffmpegLibs.get().asFile
+}
+
+android {
+    namespace 'androidx.media3.decoder.ffmpeg'
+    compileSdk = 37
+    defaultConfig {
+        minSdk 24
+        consumerProguardFiles 'proguard-rules.txt'
+    }
+    sourceSets {
+        main.jniLibs.srcDirs += ffmpegLibs.get().asFile
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+}
+
+tasks.named('preBuild') { dependsOn buildFfmpegAudio }
+
+dependencies {
+    // Same version as app/build.gradle: the Java sources are from that Media3 tag.
+    api 'androidx.media3:media3-decoder:1.11.1'
+    implementation 'androidx.media3:media3-exoplayer:1.11.1'
+    implementation 'androidx.annotation:annotation:1.9.1'
+    compileOnly 'org.checkerframework:checker-qual:3.42.0'
+}

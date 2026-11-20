@@ -4,8 +4,9 @@
 # Debug builds only (MidwordWatchProvider logs every visible TextView whose layout breaks inside a word); WRITES one
 # silent test song with a cover in Music/OrdoE2E-Midword and removes it again. Walks home, settings, the music
 # library's six tabs, a folder page, an album page, the player, its Sound and queue sheets, Ordo Musik's settings and
-# (with ffmpeg on the host: a short test video beside the song) the video player, its lock and its speed sheet, then
-# fails on any logged break.
+# (with ffmpeg on the host: a short test video with two chapters and a subtitle file beside the song) the video player,
+# its lock, its speed sheet and its sheets Subtitles, Sound, Video info, Signal path, Chapters and Sleep timer, then
+# fails on any logged break (plain BottomSheetDialogs are watched from Android 10).
 # Run it once on a phone and once on a tablet.
 . "$(dirname "$0")/lib.sh" "$@"
 DIR=/storage/emulated/0/Music/OrdoE2E-Midword
@@ -63,11 +64,19 @@ sleep 2; back; back; sleep 2
 ui tap "Navigationsmenü öffnen|Open navigation drawer" > /dev/null; sleep 1
 check "Ordo Musik's settings open" eval 'ui tap "Einstellungen|Settings" && ui wait "Farben aus dem Cover|Colours from the cover" 5'
 sleep 1; back; sleep 1
-# The video player: controls, the locked screen's "hold to unlock" and the speed sheet.
+# The video player: controls, the locked screen's "hold to unlock", the speed sheet and the player's sheets.
 if command -v ffmpeg >/dev/null; then
-    ffmpeg -v error -f lavfi -i "testsrc=size=640x360:rate=25:duration=20" -c:v libx264 -pix_fmt yuv420p \
-        "$tmp/midword-video.mp4"
-    a push "$tmp/midword-video.mp4" "$DIR/" >/dev/null
+    # Two chapters, so the ⋮ menu offers "Chapters".
+    printf ';FFMETADATA1\n' > "$tmp/chapters.txt"
+    for c in "0 10000 Anfang" "10000 20000 Schluss"; do
+        read -r from to title <<< "$c"
+        printf '[CHAPTER]\nTIMEBASE=1/1000\nSTART=%s\nEND=%s\ntitle=%s\n' "$from" "$to" "$title" >> "$tmp/chapters.txt"
+    done
+    ffmpeg -v error -f lavfi -i "testsrc=size=640x360:rate=25:duration=20" -f lavfi -i "sine=frequency=440:duration=20" \
+        -i "$tmp/chapters.txt" -map_metadata 2 -map_chapters 2 -map 0 -map 1 -c:v libx264 -pix_fmt yuv420p -c:a aac \
+        -shortest "$tmp/midword-video.mp4"
+    printf '1\n00:00:00,500 --> 00:00:19,000\nUntertitel ohne Wortbruch\n' > "$tmp/midword-video.de.srt"
+    a push "$tmp/midword-video.mp4" "$tmp/midword-video.de.srt" "$DIR/" >/dev/null
     a shell am start -W -a android.intent.action.VIEW -d "file://$DIR" -t inode/directory \
         -n "$PKG/me.zhanghai.android.files.filelist.FileListActivity" >/dev/null
     sleep 3; guard
@@ -78,7 +87,21 @@ if command -v ffmpeg >/dev/null; then
     read -r l t r b < <(ui bounds unlock | head -1)
     a shell input swipe $(((l + r) / 2)) $(((t + b) / 2)) $(((l + r) / 2)) $(((t + b) / 2)) 900; sleep 1
     check "the video player's speed sheet opens" ui tap speed
-    sleep 1; back 1; back 2
+    sleep 1; back 1
+    # The controls hide while a film plays: a tap in the middle brings them back, then ⋮ › entry.
+    menu() {
+        read -r W H < <(screen_size)
+        ui has "Weitere Optionen|More options" || { a shell input tap $((W / 2)) $((H / 2)); sleep 1; }
+        ui tap "Weitere Optionen|More options" >/dev/null && sleep 1 && ui tap "$1" >/dev/null
+    }
+    check "the subtitles sheet opens" eval 'ui tap "Untertitel|Subtitles" >/dev/null || menu "Untertitel|Subtitles"'
+    sleep 1.5; back 1
+    for entry in "Klang|Sound" "Videoinfos|Video info" "Signalweg|Signal path" "Kapitel|Chapters" \
+        "Schlaf-Timer|Sleep timer"; do
+        check "the ${entry#*|} sheet opens" menu "$entry"
+        sleep 1.5; back 1
+    done
+    back 2
 else
     echo "SKIP the video player (no ffmpeg on the host)"
 fi

@@ -46,6 +46,7 @@ Nicht im Manifest: Standort (`ACCESS_FINE_LOCATION`, `ACCESS_COARSE_LOCATION`, `
 | --- | --- | --- |
 | `me.zhanghai.android.files.filejob.FileJobService` | `dataSync` | Attribut fehlt, kein `intent-filter` |
 | `me.zhanghai.android.files.player.AudioPlaybackService` | `mediaPlayback` | `true`, `androidx.media3.session.MediaSessionService` |
+| `me.zhanghai.android.files.viewer.video.background.VideoPlaybackService` | `mediaPlayback` | `false`, kein `intent-filter` |
 | `me.zhanghai.android.files.ftpserver.FtpServerService` | `specialUse` | Attribut fehlt, kein `intent-filter` |
 | `me.zhanghai.android.files.ftpserver.FtpServerTileService` | keines | `true`, dazu `android.permission.BIND_QUICK_SETTINGS_TILE` |
 | `androidx.appcompat.app.AppLocalesMetadataHolderService` | keines | `false` |
@@ -161,7 +162,7 @@ Ordo is a file manager. When the user opens an APK in the file list, Ordo hands 
 - [Foreground service types](https://developer.android.com/develop/background-work/services/fgs/service-types). `dataSync` beschreibt Datenübertragung, darunter Sichern und Wiederherstellen, Import und Export, „Local file processing“ und Übertragen über ein Netzwerk. `specialUse` gilt nur für Fälle, die kein anderer Typ abdeckt. `specialUse` braucht `FOREGROUND_SERVICE_SPECIAL_USE` und `PROPERTY_SPECIAL_USE_FGS_SUBTYPE`. Diesen Text prüft die Play Console. Dieselbe Pflicht, die Typen in der Play Console zu deklarieren, steht dort für Target ab Android 14.
 - [Foreground service timeouts](https://developer.android.com/develop/background-work/services/fgs/timeout). Für Apps mit Target ab Android 15 (API 35) dürfen `dataSync` und `mediaProcessing` zusammen 6 Stunden in 24 Stunden laufen, solange die App im Hintergrund ist. Danach `onTimeout`. Kommt die App in den Vordergrund, läuft der Zähler neu. `specialUse` nennt diese Seite nicht als von diesem Limit betroffen.
 
-Ordo deklariert `dataSync` für `FileJobService`, `mediaPlayback` für `AudioPlaybackService` und `specialUse` für `FtpServerService`, dazu `FOREGROUND_SERVICE` und die drei typspezifischen Berechtigungen. `DocsConsistencyTest` prüft, dass jeder Typ seine Berechtigung hat und hier richtig steht. Der Kachel-Dienst ist ein Quick-Settings-Tile ohne `foregroundServiceType`.
+Ordo deklariert `dataSync` für `FileJobService`, `mediaPlayback` für `AudioPlaybackService` und `VideoPlaybackService` und `specialUse` für `FtpServerService`, dazu `FOREGROUND_SERVICE` und die drei typspezifischen Berechtigungen. `DocsConsistencyTest` prüft, dass jeder Typ seine Berechtigung hat und hier richtig steht. Der Kachel-Dienst ist ein Quick-Settings-Tile ohne `foregroundServiceType`.
 
 ### `AudioPlaybackService`
 
@@ -177,6 +178,22 @@ Auswirkung einer Unterbrechung:
 
 ```
 If the system stops the service, playback stops. The saved queue and position let the user resume it with a media button or by opening the player again.
+```
+
+### `VideoPlaybackService`
+
+Nur wenn der Nutzer in Ordo Videos Einstellungen „Im Hintergrund weiterspielen: Nur Ton“ wählt (Standard: Aus). Dann läuft der Ton eines Videos, das er selbst geöffnet hat, mit ausgeschaltetem Bildschirm oder einer anderen App im Vordergrund weiter; die Bildspur ist dabei aus. Der Dienst beherbergt nur die Media3-Session des offenen Video-Players und zeigt die Standard-Medienbenachrichtigung mit Sperrbildschirm-Steuerung. Schließen des Players beendet ihn. Ein Start aus `BOOT_COMPLETED` ist nicht vorhanden.
+
+Play-Console-Text:
+
+```
+Only when the user turns on "Keep playing in the background: Sound only" in Ordo Video's settings (off by default). The sound of a video the user opened keeps playing with the screen off or another app in front, with the standard Android media notification and lock-screen controls. Closing the player stops it.
+```
+
+Auswirkung einer Unterbrechung:
+
+```
+If the system stops the service, the video's sound stops. Its position is saved, so opening the video again offers to continue there.
 ```
 
 ### `FileJobService`

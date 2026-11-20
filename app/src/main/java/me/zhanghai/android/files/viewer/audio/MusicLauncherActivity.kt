@@ -37,6 +37,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.GravityCompat
 import androidx.core.view.MenuItemCompat
 import androidx.core.view.doOnAttach
+import androidx.core.view.doOnLayout
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.C
@@ -156,6 +157,8 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener, AppAccentA
     private val lyricsLookups = HashSet<String>()
     private val lyricsGate = Semaphore(2)
     private var contentWidthDp = 0
+    // The tab row's width when the selected tab was last scrolled into view (0: not yet, e.g. right after a restore).
+    private var tabRowWidth = 0
     private var albumGrid = false
     private var toolbarInsetStart = 0
     private var toolbarInsetEnd = 0
@@ -1156,6 +1159,28 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener, AppAccentA
         // the side menu) puts the icon above the label so all six still show; a phone scrolls the row instead.
         val inline = !tabletLayout || contentWidthDp >= TABS_INLINE_MIN_WIDTH_DP
         if (tabs.isInlineLabel != inline) tabs.isInlineLabel = inline
+        // All pills equally wide when each fits into an equal share of the row (measured, so it holds for every
+        // language and font size); otherwise the row scrolls with natural widths and keeps the chosen tab in view.
+        val rowWidth = (tabs.parent as View).width - 2 * tabMargin - 2 * tabSide
+        val widest = (0 until tabs.tabCount).maxOfOrNull { index ->
+            tabs.getTabAt(index)?.view?.let {
+                it.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
+                it.measuredWidth
+            } ?: 0
+        } ?: 0
+        val equal = rowWidth > 0 && widest * tabs.tabCount <= rowWidth
+        val mode = if (equal) TabLayout.MODE_FIXED else TabLayout.MODE_SCROLLABLE
+        if (tabs.tabMode != mode) {
+            tabs.tabMode = mode
+            tabs.tabGravity = if (equal) TabLayout.GRAVITY_FILL else TabLayout.GRAVITY_START
+        }
+        // Once per row width (first layout, rotation): the tab selected in onCreate after a restore was scrolled to
+        // before the row had widths, so a restored "Folders" sat off screen. Not on every render: a tap animates there.
+        if (!equal && rowWidth > 0 && rowWidth != tabRowWidth) {
+            // After the relayout a mode change requests, not with the old pill widths.
+            tabs.doOnLayout { tabs.setScrollPosition(tabs.selectedTabPosition, 0f, true) }
+        }
+        tabRowWidth = rowWidth
         val titleSide = if (tabletLayout) side else resources.getDimensionPixelSize(R.dimen.space_gutter)
         binding.content.collapsingToolbar.expandedTitleMarginStart = titleSide
         binding.content.collapsingToolbar.expandedTitleMarginEnd = titleSide

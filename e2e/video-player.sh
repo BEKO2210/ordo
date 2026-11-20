@@ -167,12 +167,16 @@ restore_volume() {
     v=$(vol); [ "$v" = "$1" ] || echo "INFO volume left at $v instead of $1"
 }
 v0=$(vol)
+if [ "${E2E_ALLOW_VOLUME:-}" != 1 ]; then
+    echo "SKIP volume swipe (raises the volume: only with E2E_ALLOW_VOLUME=1)"
+else
 a shell input swipe $((W * 80 / 100)) $((H * 70 / 100)) $((W * 80 / 100)) $((H * 35 / 100)) 400; sleep 1; v1=$(vol)
 if [ -n "$v0" ] && [ -n "$v1" ]; then
     check "a vertical swipe in the right half raises the volume ($v0 -> $v1)" test "$v1" -gt "$v0" -o "$v0" = "$(a shell cmd media_session volume --stream 3 --get | grep -oE 'max [0-9]+' | grep -oE '[0-9]+')"
     restore_volume "$v0"
 else
     echo "SKIP volume swipe (cmd media_session volume is not readable here)"
+fi
 fi
 if [ "$(a shell settings get secure navigation_mode | tr -d '\r')" = 2 ]; then
     a shell input swipe 2 $((H / 2)) $((W / 3)) $((H / 2)) 250; sleep 2
@@ -222,7 +226,7 @@ fi
 # Ordo Video's own colour (library menu > Settings): Amber tints the player's play button differently from "Same as
 # Ordo"; put back to "Same as Ordo" afterwards. Read from a raw screenshot (RGBA after a 12- or 16-byte header).
 pixel() {
-    a exec-out screencap > "$tmp/screen.raw"
+    raw_screenshot "$tmp/screen.raw" >/dev/null || return 1
     python3 - "$tmp/screen.raw" "$1" "$2" <<'PY'
 import os, struct, sys
 data = open(sys.argv[1], "rb").read()

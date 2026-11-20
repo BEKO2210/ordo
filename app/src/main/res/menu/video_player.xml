@@ -3,11 +3,47 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
+        android:id="@+id/actionCast"
+        android:icon="@drawable/cast_tv_icon_24dp"
+        android:title="@string/cast_title"
+        app:showAsAction="always" />
+    <item
+        android:id="@+id/actionSound"
+        android:title="@string/video_sound_menu"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/actionAudioTrack"
+        android:title="@string/video_audio_track_menu"
+        app:showAsAction="never" />
+    <item
         android:id="@+id/actionOpenWith"
         android:title="@string/video_player_open_with"
         app:showAsAction="never" />
     <item
         android:id="@+id/actionFileInfo"
         android:title="@string/video_player_file_info"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/actionSubtitles"
+        android:icon="@drawable/video_subtitles_icon_24dp"
+        android:title="@string/video_subtitles_title"
+        app:showAsAction="always" />
+    <item
+        android:id="@+id/actionSleepTimer"
+        android:title="@string/video_player_sleep_timer"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/actionPip"
+        android:title="@string/video_player_pip"
+        android:visible="false"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/actionPictureEnhance"
+        android:title="@string/video_picture_toggle"
+        android:checkable="true"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/actionSignalPath"
+        android:title="@string/video_signal_title"
         app:showAsAction="never" />
 </menu>

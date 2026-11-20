@@ -193,6 +193,13 @@ object Settings {
         StringSettingLiveData(R.string.pref_key_video_resize, R.string.pref_default_value_video_resize)
     val VIDEO_ORIENTATION: SettingLiveData<String> =
         StringSettingLiveData(R.string.pref_key_video_orientation, R.string.pref_default_value_video_orientation)
+    /** Ordo Video's picture (viewer/video/picture/PicturePolicy.kt): frame rate matching and enhancement. */
+    val VIDEO_FRAME_RATE: SettingLiveData<String> =
+        StringSettingLiveData(R.string.pref_key_video_frame_rate, R.string.pref_default_value_video_frame_rate)
+    val VIDEO_PICTURE: SettingLiveData<String> =
+        StringSettingLiveData(R.string.pref_key_video_picture, R.string.pref_default_value_video_picture)
+    val VIDEO_AMBIENT_GAMMA: SettingLiveData<Boolean> =
+        BooleanSettingLiveData(R.string.pref_key_video_ambient_gamma, R.bool.pref_default_value_false)
     val VIDEO_KEEP_SCREEN_ON: SettingLiveData<Boolean> =
         BooleanSettingLiveData(R.string.pref_key_video_keep_screen_on, R.bool.pref_default_value_true)
     val VIDEO_GESTURE_BRIGHTNESS: SettingLiveData<Boolean> =
@@ -225,6 +232,20 @@ object Settings {
         )
     val VIDEO_NO_HISTORY: SettingLiveData<Boolean> =
         BooleanSettingLiveData(R.string.pref_key_video_no_history, R.bool.pref_default_value_false)
+    val VIDEO_SUBTITLE_LANGUAGE: SettingLiveData<String> = StringSettingLiveData(
+        R.string.pref_key_video_subtitle_language, R.string.pref_default_value_video_subtitle_language
+    )
+    val VIDEO_SUBTITLES_AUTO: SettingLiveData<Boolean> =
+        BooleanSettingLiveData(R.string.pref_key_video_subtitles_auto, R.bool.pref_default_value_true)
+    val VIDEO_SUBTITLE_READING: SettingLiveData<String> = StringSettingLiveData(
+        R.string.pref_key_video_subtitle_reading, R.string.pref_default_value_video_subtitle_reading
+    )
+    val VIDEO_SUBTITLE_SLOW_DOWN: SettingLiveData<Boolean> =
+        BooleanSettingLiveData(R.string.pref_key_video_subtitle_slow_down, R.bool.pref_default_value_false)
+    val VIDEO_SUBTITLE_SOUNDS: SettingLiveData<Boolean> =
+        BooleanSettingLiveData(R.string.pref_key_video_subtitle_sounds, R.bool.pref_default_value_true)
+    val VIDEO_SUBTITLE_SPEAKER_COLORS: SettingLiveData<Boolean> =
+        BooleanSettingLiveData(R.string.pref_key_video_subtitle_speaker_colors, R.bool.pref_default_value_true)
 
     /** Ordo Musik: the player's colours from the playing cover (default) or the chosen accent everywhere. */
     val MUSIC_COVER_COLORS: SettingLiveData<Boolean> =

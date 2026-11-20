@@ -15,7 +15,7 @@
 
 <p align="center">
 <!-- AUTO:badges -->
-  <a href="https://github.com/BEKO2210/ordo/releases/tag/v0.15.0"><img alt="Version 0.15.0" src="https://img.shields.io/badge/Version-0.15.0-2563EB"></a>
+  <a href="https://github.com/BEKO2210/ordo/releases/tag/v0.16.0"><img alt="Version 0.16.0" src="https://img.shields.io/badge/Version-0.16.0-2563EB"></a>
   <img alt="Android 7.0+" src="https://img.shields.io/badge/Android-7.0%2B-3DDC84">
   <a href="LICENSE"><img alt="Lizenz: GPL-3.0-or-later" src="https://img.shields.io/badge/Lizenz-GPL--3.0--or--later-blue"></a>
 <!-- /AUTO:badges -->
@@ -33,18 +33,21 @@
 </p>
 
 <!-- AUTO:new -->
-> **Neu in 0.15.0**
-> - Eigener Video-Player mit Weiterschauen, Doppeltipp, Wischgesten für Helligkeit, Lautstärke und Spulen
-> - Bibliothek mit Ordnern, lesbaren Kameranamen und Videoinfos
-> - Am Ende anhalten, wiederholen oder automatisch weiter
-> - Klare Hinweise, wenn ein Format auf dem Gerät nicht läuft
-> - Viele Einstellungen und eigenes Symbol „Ordo Video“
+> **Neu in 0.16.0**
+> - Untertitel: Dateien und Spuren, Lese-Hilfe, gut lesbar
+> - Bild-in-Bild, Ton im Hintergrund, Schlaf-Timer
+> - Klang fürs Video: klare Dialoge, Nachtmodus, gleiche Lautstärke
+> - Dolby- und DTS-Ton auch auf günstigen Geräten
+> - Vorschaubilder beim Spulen, Kapitel, A-B-Schleife, Zoom
+> - Filme vom Netzlaufwerk und auf den Fernseher
+> - Serien, Gesehen-Markierung, Suche, Tresor-Videos
+> - Schärferes Bild und der Signalweg zeigt, was passiert
 <!-- /AUTO:new -->
 
 ## Stand
 
 <!-- AUTO:status -->
-Aktuelle Version 0.15.0 · [Release v0.15.0](https://github.com/BEKO2210/ordo/releases/tag/v0.15.0) · ab Android 7.0 (minSdk 24, targetSdk 36 = Android 16) · [GPL-3.0-or-later](LICENSE)
+Aktuelle Version 0.16.0 · [Release v0.16.0](https://github.com/BEKO2210/ordo/releases/tag/v0.16.0) · ab Android 7.0 (minSdk 24, targetSdk 36 = Android 16) · [GPL-3.0-or-later](LICENSE)
 <!-- /AUTO:status -->
 
 Ordo ist in Entwicklung. Bei Google Play läuft ein geschlossener Test; Testversionen erscheinen auch als
@@ -499,12 +502,12 @@ Unit-Tests:
 ```
 
 <!-- AUTO:tests -->
-Gerätetests: 33 Skripte in [`e2e/`](e2e/README.md), gestartet mit `e2e/run.sh`: 15 nur lesend (`first-run`, `smoke`, `settings-visual`, `category-search`, `back-navigation`, `bars-replay`, `home-header`, `header-position`, `home-pull`, `drawer`, `selection-more`, `tablet-landscape`, `analysis`, `ai-show-guard`, `documents-provider`) und 18 weitere mit `--write` (`stress-delete`, `backup-restore`, `home-auto-refresh`, `audio-player`, `cast`, `klang`, `klang-landscape`, `klang-stress`, `music-formats`, `music-library`, `launcher-icons`, `icon-colors`, `ai-show`, `pick-file`, `no-midword-breaks`, `player-seek`, `player-stage2`, `video-player`). Unit-Tests: 94 Testklassen in `app/src/test`.
+Gerätetests: 40 Skripte in [`e2e/`](e2e/README.md), gestartet mit `e2e/run.sh`: 15 nur lesend (`first-run`, `smoke`, `settings-visual`, `category-search`, `back-navigation`, `bars-replay`, `home-header`, `header-position`, `home-pull`, `drawer`, `selection-more`, `tablet-landscape`, `analysis`, `ai-show-guard`, `documents-provider`) und 25 weitere mit `--write` (`stress-delete`, `backup-restore`, `home-auto-refresh`, `audio-player`, `cast`, `klang`, `klang-landscape`, `klang-stress`, `music-formats`, `music-library`, `launcher-icons`, `icon-colors`, `ai-show`, `pick-file`, `no-midword-breaks`, `player-seek`, `player-stage2`, `video-player`, `video-network`, `video-sound`, `video-subtitles`, `video-background`, `video-library`, `video-seek`, `video-picture`). Unit-Tests: 117 Testklassen in `app/src/test`.
 <!-- /AUTO:tests -->
 
 ## Ausblick
 
-Als Nächstes geplant: Tabs und Zwei-Fenster-Ansicht, Untertitel und Bild-in-Bild für den Video-Player, Sicherung
+Als Nächstes geplant: Tabs und Zwei-Fenster-Ansicht, Sicherung
 nach Zeitplan und Cloud-Speicher. Der ganze Plan steht in [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ## Mitmachen
@@ -536,3 +539,7 @@ Außerdem nutzt Ordo [llama.cpp](https://github.com/ggml-org/llama.cpp) (MIT) mi
     Dieses Programm ist freie Software unter der GNU General Public License, Version 3 oder (nach deiner Wahl)
     jeder späteren Version. Es wird ohne jede Gewährleistung bereitgestellt. Den verbindlichen englischen
     Lizenztext findest du in LICENSE und unter <https://www.gnu.org/licenses/>.
+
+Diese Software nutzt Code von [FFmpeg](https://ffmpeg.org) unter der
+[LGPLv2.1](https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html); der Quelltext lässt sich
+[hier](https://ffmpeg.org/releases/ffmpeg-6.0.1.tar.xz) herunterladen (nur Ton-Decoder, gebaut von `utils/ffmpeg-audio/build.sh`).

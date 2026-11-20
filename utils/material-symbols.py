@@ -166,6 +166,7 @@ ICONS = {
     "video_replay_30_icon_24dp": "replay_30",
     "video_replay_5_icon_24dp": "replay_5",
     "video_screen_rotation_icon_24dp": "screen_rotation",
+    "video_subtitles_icon_24dp": "subtitles",
     "settings_wallpaper_icon_white_24dp": "wallpaper",
     "settings_header_position_icon_white_24dp": "search",
     "settings_motion_icon_white_24dp": "animation",

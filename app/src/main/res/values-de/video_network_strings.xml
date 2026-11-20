@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later -->
+<resources>
+    <string name="video_network_buffering_format">Lädt … %1$d %% · %2$s</string>
+    <string name="video_network_reconnecting">Verbindung unterbrochen. Verbinde neu …</string>
+    <string name="video_network_error_unreachable">Server nicht erreichbar. Ordo versucht es erneut, sobald das Netz wieder da ist.</string>
+    <string name="video_network_error_missing">Dieses Video liegt nicht mehr auf dem Server.</string>
+    <string name="video_library_network">Netzwerk</string>
+    <string name="video_library_network_empty">Keine Videos in deinen Server-Lesezeichen.</string>
+    <string name="video_cast_privacy">Ordo teilt nur dieses Video und seine Untertitel, nur mit diesem Fernseher und nur, solange es läuft. Nichts verlässt dein WLAN.</string>
+    <string name="video_cast_no_screen">%1$s hat keinen Bildschirm. Wähle einen Fernseher.</string>
+    <string name="video_cast_format_unsupported">Fernseher können %1$s-Videos nicht abspielen. MP4, WebM und MKV gehen.</string>
+    <string name="video_cast_error_format">Der Fernseher kann dieses Video nicht abspielen. Versuch ein anderes Format oder schau es hier.</string>
+    <string name="video_cast_error_lost">Verbindung zu %1$s verloren. Das Video ist hier pausiert.</string>
+    <string name="video_cast_watch_here">Auf diesem Handy weiterschauen</string>
+    <string name="video_cast_loading">Lädt auf dem Fernseher …</string>
+    <string name="video_cast_paused">Pausiert</string>
+    <string name="video_cast_subtitles">Untertitel</string>
+    <string name="video_cast_volume_format">Lautstärke %1$d %%</string>
+    <string name="video_cast_volume_down">Leiser</string>
+    <string name="video_cast_volume_up">Lauter</string>
+    <string name="video_cast_continues_here">%1$s Das Video läuft hier weiter.</string>
+</resources>

@@ -56,6 +56,7 @@
         </LinearLayout>
 
         <LinearLayout
+            android:id="@+id/bottomBar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom"
@@ -172,7 +173,8 @@
         android:textColor="@android:color/white"
         android:visibility="gone" />
 
-    <!-- The end of a video when it does not go on by itself: watch again, or the next one when there is one. -->
+    <!-- The end of a video when it does not go on by itself: watch again, or the next one when there is one. "Next"
+         sits on the frame bar's dark fill: an outline alone was unreadable over a bright last frame (S21). -->
     <LinearLayout
         android:id="@+id/endPanel"
         android:layout_width="wrap_content"
@@ -199,6 +201,7 @@
             android:layout_marginStart="16dp"
             android:minHeight="56dp"
             android:text="@string/video_player_next"
+            app:backgroundTint="#CC202020"
             app:cornerRadius="28dp"
             app:icon="@drawable/skip_next_icon_24dp" />
     </LinearLayout>

@@ -441,13 +441,15 @@
             </intent-filter>
         </activity>
 
-        <!-- Owns its player, so rotating and resizing must not recreate it (configChanges). Picture-in-picture comes
-             with phase 3. -->
+        <!-- Owns its player, so rotating and resizing must not recreate it (configChanges), entering
+             and leaving picture-in-picture included. -->
         <activity
             android:name="me.zhanghai.android.files.viewer.video.VideoPlayerActivity"
             android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboard|keyboardHidden|navigation"
             android:exported="true"
             android:label="@string/video_player_title"
+            android:resizeableActivity="true"
+            android:supportsPictureInPicture="true"
             android:theme="@style/Theme.MaterialFiles.Immersive">
             <intent-filter tools:ignore="AppLinkUrlError">
                 <action android:name="android.intent.action.VIEW" />
@@ -536,8 +538,24 @@
             </intent-filter>
         </service>
 
+        <!-- Ordo Video's "Sound only" (viewer/video/background). No MediaSessionService intent filter: Media3's
+             MediaButtonReceiver expects exactly one such service, Ordo Music's. -->
+        <service
+            android:name="me.zhanghai.android.files.viewer.video.background.VideoPlaybackService"
+            android:exported="false"
+            android:foregroundServiceType="mediaPlayback" />
+
+        <!-- Where Ordo Video's media notification leads: brings the playing player's task back, shows nothing. -->
+        <activity
+            android:name="me.zhanghai.android.files.viewer.video.background.VideoSessionActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:noHistory="true"
+            android:taskAffinity=""
+            android:theme="@android:style/Theme.NoDisplay" />
+
         <receiver
-            android:name="androidx.media3.session.MediaButtonReceiver"
+            android:name="me.zhanghai.android.files.player.OrdoMediaButtonReceiver"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MEDIA_BUTTON" />

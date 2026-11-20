@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later -->
+<resources>
+    <string name="video_settings_background">Im Hintergrund weiterspielen</string>
+    <string-array name="video_settings_background_entries">
+        <item>Aus</item>
+        <item>Nur Ton</item>
+    </string-array>
+    <string name="video_settings_pip">Bild-in-Bild</string>
+    <string name="video_settings_pip_summary">Wechselst du zum Startbildschirm, läuft das Video in einem kleinen Fenster weiter</string>
+    <string name="video_background_channel">Videowiedergabe</string>
+    <string name="video_player_pip">Bild-in-Bild</string>
+    <string name="video_player_sleep_timer">Schlaf-Timer</string>
+    <string name="video_sleep_off">Aus</string>
+    <string name="video_sleep_minutes_format">%1$d Min.</string>
+    <string name="video_sleep_end_of_video">Ende des Videos</string>
+    <string name="video_sleep_remaining_format">Stoppt in %1$d Min.</string>
+    <string name="video_sleep_remaining_end">Stoppt am Ende dieses Videos</string>
+    <string name="video_sleep_set_format">Das Video stoppt in %1$d Min.</string>
+    <string name="video_sleep_set_end">Das Video stoppt an seinem Ende.</string>
+    <string name="video_sleep_cancelled">Schlaf-Timer aus.</string>
+</resources>

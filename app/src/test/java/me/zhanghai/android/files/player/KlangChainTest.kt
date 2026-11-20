@@ -228,8 +228,8 @@ class KlangChainTest {
         assertTrue(klang.mono.effectEnabled)
         assertFalse(klang.crossfeed.effectEnabled || klang.width.effectEnabled)
         assertTrue(klang.warmth.effectEnabled && klang.reverb.effectEnabled)
-        // One processor for the whole chain: one float conversion, one limiter, one dither.
-        assertEquals(1, klang.chain.size)
-        assertTrue(klang.chain.single() === klang.processor)
+        // One processor for the whole chain (one float conversion, one dither), then the true-peak limiter.
+        assertEquals(2, klang.chain.size)
+        assertTrue(klang.chain[0] === klang.processor && klang.chain[1] === klang.truePeak)
     }
 }

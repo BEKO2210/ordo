@@ -1,7 +1,10 @@
-New: Ordo Video
-• Own video player with continue watching, double tap, swipe gestures for brightness, volume and seeking
-• Library with folders, readable camera names and video details
-• At the end stop, repeat or play on
-• Clear notices when a format can't play on the device
-• Many settings and an optional "Ordo Video" icon
-Music and video can have their own colour. Music covers no longer shift.
+Ordo Video grows up
+• Subtitles: files and tracks, reading aid, easy to read
+• Picture-in-picture, sound in the background, sleep timer
+• Sound for video: clear dialogue, night mode, even volume
+• Dolby and DTS sound, even on low-cost devices
+• Preview frames while seeking, chapters, A-B loop, zoom
+• Films from network drives and on your TV
+• Series, watched marks, search, vault videos
+• Sharper picture, and the signal path shows what happens
+Music: tabs are equally wide on tablets.

@@ -21,6 +21,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.view.Gravity
+import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewConfiguration
@@ -55,17 +56,18 @@ import androidx.media3.common.VideoSize
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.common.util.Util
 import androidx.media3.exoplayer.ExoPlayer
+import me.zhanghai.android.files.viewer.video.sound.VideoAudioTrackSheet
+import me.zhanghai.android.files.viewer.video.sound.VideoSoundEngine
+import me.zhanghai.android.files.viewer.video.sound.VideoSoundHost
+import me.zhanghai.android.files.viewer.video.sound.VideoSoundSheet
 import androidx.media3.exoplayer.mediacodec.MediaCodecDecoderException
 import androidx.media3.exoplayer.mediacodec.MediaCodecRenderer
-import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.session.MediaSession
 import androidx.media3.ui.AspectRatioFrameLayout
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
 import com.google.android.material.slider.Slider
-import com.google.common.util.concurrent.Futures
-import com.google.common.util.concurrent.ListenableFuture
 import java.net.URI
 import java.text.NumberFormat
 import java.util.Formatter
@@ -84,30 +86,57 @@ import me.zhanghai.android.files.file.fileProviderUri
 import me.zhanghai.android.files.file.loadFileItem
 import me.zhanghai.android.files.player.AudioPlaybackService
 import me.zhanghai.android.files.player.AudioQueueRequests
-import me.zhanghai.android.files.player.PathDataSource
+import me.zhanghai.android.files.viewer.audio.CastChooserSheet
+import me.zhanghai.android.files.viewer.video.cast.VideoCastSession
+import me.zhanghai.android.files.viewer.video.network.VideoNetworkPlayback
+import me.zhanghai.android.files.viewer.video.library.VideoWatchedStore
+import me.zhanghai.android.files.viewer.video.vault.VaultVideos
 import me.zhanghai.android.files.provider.common.readAttributes
 import me.zhanghai.android.files.provider.linux.isLinuxPath
 import me.zhanghai.android.files.ui.Motion
 import me.zhanghai.android.files.util.valueCompat
 import me.zhanghai.android.files.util.createViewIntent
 import me.zhanghai.android.files.util.startActivitySafe
+import me.zhanghai.android.files.viewer.video.subtitles.VideoSubtitles
+import me.zhanghai.android.files.viewer.video.subtitles.showSubtitleSheet
+import me.zhanghai.android.files.viewer.video.background.VideoBackgroundController
+import me.zhanghai.android.files.viewer.video.seek.VideoSeekPro
+import me.zhanghai.android.files.viewer.video.picture.VideoPicture
 
 /**
  * Ordo's video player. The activity owns its ExoPlayer and a MediaSession (media keys, `dumpsys media_session`); the
- * video stops with the screen. Exported for ACTION_VIEW of every video type, with the same rule as the music player:
+ * video stops with the screen unless "Sound only" or picture-in-picture keeps it (VideoBackgroundController).
+ * Exported for ACTION_VIEW of every video type, with the same rule as the music player:
  * Ordo's own screens pass the folder's videos through [AudioQueueRequests] and only a token in the intent; from any
  * other caller only a `content://` URI with a read grant is played, and path extras are ignored.
  */
 @OptIn(UnstableApi::class)
-class VideoPlayerActivity : AppActivity(), AppAccentActivity {
+class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.Host, VideoSoundHost {
     override val appAccent: SettingLiveData<String>
         get() = Settings.VIDEO_ACCENT
 
+    // Films from SMB/SFTP/WebDAV/FTP (buffer, reconnect) and on a TV; see docs/VIDEO-PLAYER.md.
+    private var network: VideoNetworkPlayback? = null
+    private var castSession: VideoCastSession? = null
+    override val castController: VideoCastSession
+        get() = castSession
+            ?: VideoCastSession(binding.root, binding.rewind, binding.forward, { jumpMs }, castHost).also { castSession = it }
+
     private lateinit var binding: VideoPlayerActivityBinding
     private var player: ExoPlayer? = null
+    override var videoSound: VideoSoundEngine? = null
+        private set
+    // Frame rate matching, picture enhancement and the signal path (viewer/video/picture).
+    private var picture: VideoPicture? = null
     private var session: MediaSession? = null
+    private var background: VideoBackgroundController? = null
     private lateinit var controls: VideoControls
+    private var seekPro: VideoSeekPro? = null
     private lateinit var resumeStore: VideoResumeStore
+    private var subtitles: VideoSubtitles? = null
+    private val watchedStore by lazy { VideoWatchedStore(this) }
+    // Playing Tresor videos: the screen closes when left, like the Tresor locks (no grant outlives it unseen).
+    private var isVault = false
     private val handler = Handler(Looper.getMainLooper())
     private val timeBuilder = StringBuilder()
     private val timeFormatter = Formatter(timeBuilder)
@@ -206,6 +235,8 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity {
         // Only real playback clears the end: play() on an ended player changes playWhenReady but plays nothing.
         override fun onIsPlayingChanged(isPlaying: Boolean) {
             if (isPlaying) showEnd(false)
+            // The session (#100) stays commandable while casting (#97): the TV plays, the phone stays paused.
+            if (isPlaying && castSession?.isCasting == true) player?.pause()
         }
 
         override fun onTracksChanged(tracks: Tracks) = checkAudioTracks(tracks)
@@ -213,7 +244,7 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity {
         override fun onVideoSizeChanged(videoSize: VideoSize) = followVideoOrientation(videoSize)
 
         override fun onPlayerError(error: PlaybackException) {
-            showError(errorMessage(error))
+            showError(network?.errorMessage(this@VideoPlayerActivity, error) ?: errorMessage(error))
             binding.resumePill.isVisible = false
             controls.setShown(true)
         }
@@ -241,11 +272,25 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity {
                 else -> AspectRatioFrameLayout.RESIZE_MODE_FIT
             }
         setUpWindow()
+        // A Tresor video stays out of screenshots and the recent-apps preview.
+        isVault = queue.items.any { VaultVideos.isVault(it.mediaId) }
+        if (isVault) window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
         setUpControls()
+        // Tresor videos never leave Ordo: no "Open with another app".
+        if (isVault) {
+            binding.toolbar.menu.findItem(R.id.actionOpenWith)?.isVisible = false
+            // Nor to a TV: the cast server would hand the decrypted file to the network (#97).
+            binding.toolbar.menu.findItem(R.id.actionCast)?.isVisible = false
+            binding.errorOpenWith.isVisible = false
+        }
         binding.playerView.resizeMode = resizeMode
         userOrientation = savedInstanceState?.getBoolean(STATE_USER_ORIENTATION) == true
-        val player = ExoPlayer.Builder(this)
-            .setMediaSourceFactory(DefaultMediaSourceFactory(PathDataSource.Factory(this)))
+        val network = VideoNetworkPlayback.forUri(queue.items.getOrNull(queue.startIndex)?.mediaId)
+        this.network = network
+        val sound = VideoSoundEngine(this).also { videoSound = it }
+        // Klang chain + FFmpeg extension (AudioRenderersFactory sets EXTENSION_RENDERER_MODE_ON).
+        val player = network.applyTo(ExoPlayer.Builder(this), this)
+            .setRenderersFactory(sound.renderersFactory())
             .setAudioAttributes(
                 AudioAttributes.Builder().setUsage(C.USAGE_MEDIA).setContentType(C.AUDIO_CONTENT_TYPE_MOVIE).build(),
                 true
@@ -255,21 +300,26 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity {
             .setWakeMode(C.WAKE_MODE_NETWORK)
             .build()
         this.player = player
+        network.attach(player, binding.root)
+        sound.attach(player)
         // Its own ID: the music service's session lives in the same process.
         // Unique per screen (two can overlap while one closes). Controllers (media keys, the system) may play and seek
         // but never hand the player items of their own: that would bypass the launch rule above.
-        session = MediaSession.Builder(this, player)
-            .setId("$SESSION_ID.${UUID.randomUUID()}")
-            .setCallback(object : MediaSession.Callback {
-                override fun onAddMediaItems(
-                    mediaSession: MediaSession,
-                    controller: MediaSession.ControllerInfo,
-                    mediaItems: MutableList<MediaItem>
-                ): ListenableFuture<MutableList<MediaItem>> =
-                    Futures.immediateFailedFuture(UnsupportedOperationException())
-            })
-            .build()
+        // Background sound, picture-in-picture, sleep timer and the session (VideoBackgroundController).
+        background = VideoBackgroundController(
+            this, binding, player, "$SESSION_ID.${UUID.randomUUID()}", { repeatMode },
+            { mode -> Settings.VIDEO_END.putValue(mode.name); applyRepeatMode(mode) }, vault = isVault,
+            onSubtitleTracksChosen = { subtitles?.dropFile() },
+            sleepVolume = { videoSound?.volumeMix?.sleep = it }
+        )
+        session = background?.session
         binding.playerView.player = player
+        picture = VideoPicture(
+            this, binding.playerView, ::showPictureNotice, { videoSound?.signalStages().orEmpty() }
+        ).also {
+            it.attach(player)
+            binding.toolbar.menu.findItem(R.id.actionPictureEnhance)?.isChecked = it.switchedOn
+        }
         (savedInstanceState?.getFloat(STATE_SPEED)?.takeIf { it > 0f }
             ?: VideoPrefs.speed(Settings.VIDEO_SPEED.valueCompat)).let {
             player.setPlaybackSpeed(it)
@@ -284,11 +334,28 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity {
             }
         }.build()
         applyRepeatMode(VideoRepeatMode.decode(Settings.VIDEO_END.valueCompat))
+        // Before the items: it hears the first one start (files next to it, the remembered choice).
+        subtitles = VideoSubtitles(this, player, binding.playerView, binding.bottomBar)
+            .apply { holdActive = { speedBeforeHold > 0f } }
+        // "Besser verstehen" (#98) also switches subtitles on (#99); without any, the sheet's hint says they help.
+        sound.onUnderstandBetter = { on ->
+            if (on && subtitles?.turnOnForUnderstanding() != true) {
+                showHint(getString(R.string.video_sound_understand_summary), Gravity.CENTER)
+            }
+        }
         player.setMediaItems(queue.items, queue.startIndex, queue.positionMs)
         player.playWhenReady = savedInstanceState?.getBoolean(STATE_PLAY_WHEN_READY) ?: true
-        player.prepare()
+        // The picture decides first whether the player starts with its OpenGL pipeline (a quick probe of the file).
+        picture?.prepare(player) ?: player.prepare()
         // After setMediaItems, so the first item is not announced twice; a recreated screen offers no pill.
         player.addListener(playerListener)
+        seekPro = VideoSeekPro(
+            this, binding, player, ::playPause, ::seekBy, { jumpMs }, controls::toggle, { controls.isLocked }
+        ) { showHint(it, Gravity.CENTER) }
+        seekPro?.restoreState(savedInstanceState)
+        savedInstanceState?.getLongArray(STATE_SLEEP)?.takeIf { it.size == 3 }?.let {
+            background?.sleepTimer?.restore(it[0].toInt(), it[1], it[2] == 1L)
+        }
         startTracking(player.currentMediaItem)
         player.currentMediaItem?.let { offerResume(it, showPill = savedInstanceState == null) }
         updateUi(player)
@@ -302,9 +369,16 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity {
         outState.putLong(STATE_POSITION, player.currentPosition)
         outState.putBoolean(STATE_PLAY_WHEN_READY, player.playWhenReady)
         // During "hold for 2×" the speed to keep is the one before it.
-        outState.putFloat(STATE_SPEED, speedBeforeHold.takeIf { it > 0f } ?: player.playbackParameters.speed)
+        outState.putFloat(
+            STATE_SPEED, speedBeforeHold.takeIf { it > 0f }
+                ?: subtitles?.userSpeed(player.playbackParameters.speed) ?: player.playbackParameters.speed
+        )
         outState.putInt(STATE_RESIZE_MODE, resizeMode)
         outState.putBoolean(STATE_USER_ORIENTATION, userOrientation)
+        seekPro?.saveState(outState)
+        background?.sleepTimer?.takeIf { it.isActive }?.let {
+            outState.putLongArray(STATE_SLEEP, longArrayOf(it.minutes.toLong(), it.remainingMs, if (it.endOfVideo) 1 else 0))
+        }
     }
 
     override fun onStart() {
@@ -323,23 +397,108 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity {
             screenBrightness = WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE
         }
         if (::controls.isInitialized) controls.cancelGestures()
-        // Phase 1 has no background playback: the film pauses with the screen, its place is kept.
+        // The film pauses with the screen, its place is kept; "Sound only" keeps it playing without the picture.
         player?.let {
             trackedPosition = it.currentPosition
             saveResume()
-            it.pause()
+            if (background?.onStop() != true) it.pause()
         }
+        // Also the guard against background playback (#100) or PiP showing a Tresor video: none outlives the screen.
+        if (isVault && !isChangingConfigurations) finish()
         super.onStop()
     }
 
     override fun onDestroy() {
         handler.removeCallbacksAndMessages(null)
+        network?.release()
+        castSession?.release()
+        subtitles?.release()
+        background?.release()
+        background = null
+        seekPro?.release()
         session?.release()
         session = null
+        videoSound?.release()
+        videoSound = null
         player?.release()
         player = null
         if (isFinishing) AudioQueueRequests.release(intent.getStringExtra(EXTRA_QUEUE_TOKEN))
         super.onDestroy()
+    }
+
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        // While a film plays on the TV, the volume keys set the TV's volume.
+        val up = when (event.keyCode) {
+            KeyEvent.KEYCODE_VOLUME_UP -> true
+            KeyEvent.KEYCODE_VOLUME_DOWN -> false
+            else -> null
+        }
+        val cast = castSession?.takeIf { it.isCasting }
+        if (up != null && cast != null) {
+            if (event.action == KeyEvent.ACTION_DOWN) cast.onVolumeKey(up)
+            return true
+        }
+        // Keyboard shortcuts (viewer/video/seek); not while casting, where the D-pad moves through the TV panel.
+        if (cast == null && seekPro?.onKey(event) == true) return true
+        return super.dispatchKeyEvent(event)
+    }
+
+    private fun showCastChooser() {
+        if (isVault) return
+        if (supportFragmentManager.findFragmentByTag(CastChooserSheet.TAG) == null) {
+            CastChooserSheet().show(supportFragmentManager, CastChooserSheet.TAG)
+        }
+    }
+
+    /** Phone → TV at the current place, TV → phone (paused) where the TV was. */
+    private val castHost = object : VideoCastSession.Host {
+        override fun castMedia(): VideoCastSession.Media? {
+            if (isVault) return null
+            val player = player ?: return null
+            val item = player.currentMediaItem ?: return null
+            return VideoCastSession.Media(
+                item.mediaId, binding.toolbar.title?.toString().orEmpty(), player.currentPosition.coerceAtLeast(0L),
+                player.playWhenReady || player.playbackState == Player.STATE_IDLE
+            )
+        }
+
+        override fun onCastStarted() {
+            player?.pause()
+            controls.setShown(true)
+        }
+
+        override fun onCastEnded(positionMs: Long?) {
+            val player = player ?: return
+            if (positionMs != null) {
+                player.seekTo(positionMs)
+                trackedPosition = positionMs
+                saveResume()
+            }
+            prepareAfterError(player)
+            updateUi(player)
+        }
+
+        override fun onCastFailed(play: Boolean) {
+            val player = player ?: return
+            prepareAfterError(player)
+            if (play) player.play()
+        }
+    }
+
+    override fun onUserLeaveHint() {
+        super.onUserLeaveHint()
+        background?.onUserLeaveHint()
+    }
+
+    override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean, newConfig: Configuration) {
+        super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
+        background?.onPictureInPictureModeChanged(isInPictureInPictureMode)
+        // The small window shows the whole picture: no swipe preview, no pinch zoom (the frame row is clipped
+        // with the other controls).
+        if (isInPictureInPictureMode) {
+            seekPro?.hidePreview()
+            seekPro?.resetZoom()
+        }
     }
 
     override fun dispatchTouchEvent(event: MotionEvent): Boolean {
@@ -349,6 +508,8 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity {
                 MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> controls.scheduleHide()
             }
         }
+        // Two fingers pinch and pan the picture (viewer/video/seek).
+        if (seekPro?.onTouch(event) == true) return true
         return super.dispatchTouchEvent(event)
     }
 
@@ -369,8 +530,9 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity {
             val request = AudioQueueRequests.from(intent.getStringExtra(EXTRA_QUEUE_TOKEN))
             val savedMediaId = savedInstanceState?.getString(STATE_MEDIA_ID)
             when {
-                request != null && request.paths.isNotEmpty() -> {
-                    val items = request.paths.map { AudioPlaybackService.mediaItem(it.toUri().toString()) }
+                request != null && (request.paths.isNotEmpty() || request.uris.isNotEmpty()) -> {
+                    val items = request.uris.ifEmpty { request.paths.map { it.toUri().toString() } }
+                        .map(::queueItem)
                     if (savedInstanceState != null) {
                         LaunchQueue(items, savedIndex.coerceIn(items.indices), savedPosition)
                     } else {
@@ -379,7 +541,7 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity {
                 }
                 // Written by this activity itself, so it is trusted like the token was.
                 savedMediaId != null ->
-                    LaunchQueue(listOf(AudioPlaybackService.mediaItem(savedMediaId)), 0, savedPosition)
+                    LaunchQueue(listOf(queueItem(savedMediaId)), 0, savedPosition)
                 else -> intent.data?.takeIf(::isAllowedExternalUri)
                     ?.let { LaunchQueue(listOf(AudioPlaybackService.mediaItem(it.toString())), 0, 0L) }
             }
@@ -387,6 +549,11 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity {
             e.printStackTrace()
             null
         }
+
+    /** A Tresor video gets an opaque item titled "Vault video" (its name never reaches the MediaSession). */
+    private fun queueItem(mediaId: String): MediaItem =
+        if (VaultVideos.isVault(mediaId)) VaultVideos.mediaItem(mediaId, getString(R.string.video_library_vault_title))
+        else AudioPlaybackService.mediaItem(mediaId)
 
     // The same rule as AudioPlayerActivity: a caller never gets to point Ordo at a file through Ordo's own access.
     private fun isAllowedExternalUri(uri: Uri): Boolean {
@@ -454,6 +621,7 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity {
             },
             onShownChanged = { shown ->
                 val insetsController = WindowCompat.getInsetsController(window, window.decorView)
+                subtitles?.onControlsShown(shown)
                 if (shown) {
                     insetsController.show(WindowInsetsCompat.Type.systemBars())
                 } else {
@@ -508,6 +676,17 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity {
             when (it.itemId) {
                 R.id.actionOpenWith -> openWithOtherApp()
                 R.id.actionFileInfo -> showFileInfo()
+                R.id.actionCast -> showCastChooser()
+                R.id.actionSound -> VideoSoundSheet.show(this)
+                R.id.actionAudioTrack -> player?.let { VideoAudioTrackSheet.show(this, it, videoSound) }
+                R.id.actionSubtitles -> subtitles?.let { showSubtitleSheet(this, it) }
+                R.id.actionSleepTimer -> background?.showSleepTimerSheet()
+                R.id.actionPip -> background?.enterPip()
+                R.id.actionPictureEnhance -> picture?.let { picture ->
+                    it.isChecked = picture.toggle()
+                    showHint(picture.stateText(), Gravity.CENTER)
+                }
+                R.id.actionSignalPath -> picture?.showSignalPath()
                 else -> return@setOnMenuItemClickListener false
             }
             true
@@ -651,6 +830,7 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity {
                     val delta = target - startPositionMs
                     val sign = if (delta < 0) "−" else "+"
                     hinted = true
+                    seekPro?.previewAt(target)
                     showHint(
                         getString(
                             R.string.video_player_seek_preview_format, formatTime(target),
@@ -668,6 +848,7 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity {
             if (mode == VideoGestures.Mode.VOLUME) audioManager?.let { if (lastIndex > 0) unmute(it) }
             val slop = ViewConfiguration.get(this@VideoPlayerActivity).scaledTouchSlop.toFloat()
             val jumped = mode == VideoGestures.Mode.SEEK && !VideoGestures.isCancelled(dx, slop)
+            if (mode == VideoGestures.Mode.SEEK) seekPro?.hidePreview()
             if (jumped) {
                 player?.seekTo(VideoGestures.seekTarget(startPositionMs, dx, binding.root.width, currentDuration()))
                 updateProgress()
@@ -686,7 +867,8 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity {
         override fun hold(held: Boolean) {
             val player = player ?: return
             if (held) {
-                speedBeforeHold = player.playbackParameters.speed
+                speedBeforeHold = subtitles?.userSpeed(player.playbackParameters.speed)
+                    ?: player.playbackParameters.speed
                 val holdSpeed = VideoPrefs.holdSpeed(Settings.VIDEO_HOLD_SPEED.valueCompat)
                 player.setPlaybackSpeed(holdSpeed)
                 binding.root.performHapticFeedback(android.view.HapticFeedbackConstants.LONG_PRESS)
@@ -759,7 +941,11 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity {
 
     /** After an error the player is idle; the next button or play gives the (next) video a new try. */
     private fun prepareAfterError(player: Player) {
-        if (player.playbackState == Player.STATE_IDLE) player.prepare()
+        if (player.playbackState != Player.STATE_IDLE) return
+        // Through the picture (#104), which decides the pipeline first; a play press right after takes over at once.
+        val exoPlayer = this.player
+        val picture = picture
+        if (exoPlayer != null && exoPlayer === player && picture != null) picture.prepare(exoPlayer) else player.prepare()
     }
 
     private fun seekBy(deltaMs: Long) {
@@ -844,6 +1030,7 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity {
             !VideoResumeStore.isWorthKeeping(trackedPosition, trackedDuration)) return
         val key = trackedMediaId?.let { resumeKeys[it] } ?: return
         resumeStore.write(key, trackedPosition, trackedDuration)
+        watchedStore.onProgress(key, trackedPosition, trackedDuration)
     }
 
     /** Finds the video's key in the background; a saved place shows as a pill for 5 s, a tap goes there. */
@@ -1042,6 +1229,8 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity {
     private fun checkAudioTracks(tracks: Tracks) {
         val player = player ?: return
         val mediaId = player.currentMediaItem?.mediaId ?: return
+        // The sound engine switches audio off for a moment to change between Ordo's mix and the system's spatial audio.
+        if (C.TRACK_TYPE_AUDIO in player.trackSelectionParameters.disabledTrackTypes) return
         // Per track, not per group: a group counts as supported as soon as any of its tracks is.
         val audio = tracks.groups.filter { it.type == C.TRACK_TYPE_AUDIO }
             .flatMap { group -> (0 until group.length).map { group to it } }
@@ -1067,6 +1256,15 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity {
             },
             name
         )
+        binding.notice.updateLayoutParams<FrameLayout.LayoutParams> { topMargin = binding.resumePill.marginTop }
+        binding.notice.isVisible = true
+        handler.removeCallbacks(hideNotice)
+        handler.postDelayed(hideNotice, NOTICE_MS)
+    }
+
+    /** The picture's one-time notice (the enhancement paused on a slow device), where the sound notices show. */
+    private fun showPictureNotice(text: String) {
+        binding.notice.text = text
         binding.notice.updateLayoutParams<FrameLayout.LayoutParams> { topMargin = binding.resumePill.marginTop }
         binding.notice.isVisible = true
         handler.removeCallbacks(hideNotice)
@@ -1106,6 +1304,7 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity {
 
     /** "Open with another app": every app but this player, with read access to the file. */
     private fun openWithOtherApp() {
+        if (VaultVideos.isVault(player?.currentMediaItem?.mediaId)) return
         player?.pause()
         val path = currentPath()
         if (path == null) {
@@ -1138,7 +1337,7 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity {
         val info = VideoInfo.fromTracks(
             binding.toolbar.title?.toString().orEmpty(), name, currentDuration(), player.currentTracks,
             getString(R.string.video_info_not_playable)
-        )
+        ).let { it.copy(subtitles = it.subtitles + subtitles?.infoRows().orEmpty()) }
         lifecycleScope.launch {
             val withFile = if (path == null) info else withContext(Dispatchers.IO) {
                 runCatching {
@@ -1151,7 +1350,7 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity {
                 }.getOrDefault(info)
             }
             if (isFinishing || supportFragmentManager.isStateSaved) return@launch
-            showVideoInfo(withFile, path)
+            showVideoInfo(withFile, path, onSignalPath = picture?.let { it::showSignalPath })
         }
     }
 
@@ -1163,6 +1362,7 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity {
         private const val STATE_POSITION = "position"
         private const val STATE_PLAY_WHEN_READY = "playWhenReady"
         private const val STATE_SPEED = "speed"
+        private const val STATE_SLEEP = "sleepTimer"
         private const val STATE_RESIZE_MODE = "resizeMode"
         private const val STATE_USER_ORIENTATION = "userOrientation"
         private const val SESSION_ID = "video"
@@ -1182,6 +1382,14 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity {
         private const val NOTICE_MS = 6_000L
         private const val INACTIVE_CONTROL_ALPHA = 0.70f
         private val SPEEDS = floatArrayOf(0.5f, 0.75f, 1f, 1.25f, 1.5f, 2f)
+
+        /** Tresor videos as `ordo-vault:` URIs ([VaultVideos]); same token as [putExtras]. */
+        fun putVaultExtras(intent: Intent, uris: List<String>, position: Int) {
+            intent.putExtra(
+                EXTRA_QUEUE_TOKEN,
+                AudioQueueRequests.register(AudioQueueRequests.Request(emptyList(), position, uris))
+            )
+        }
 
         /** The folder's videos stay in this process; the intent only carries the token to take them over. */
         fun putExtras(intent: Intent, paths: List<Path>, position: Int, resume: Boolean = false) {

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- Ordo Video › Sound and Audio track sheets. Shared words (On, Off, Light, Strong, Mono, Balance, presets) come
+     from Ordo Musik's audio_sound_* strings. -->
+<resources>
+    <string name="video_sound_menu">Sound</string>
+    <string name="video_sound_own_settings">Only for videos – your music sound stays as it is</string>
+    <string name="video_sound_dialog">Clear dialogue</string>
+    <string name="video_sound_dialog_summary">Moves voices 10 LU (Light) or 15 LU (Strong) above music and noise</string>
+    <string name="video_sound_dialog_light">Light · 10 LU</string>
+    <string name="video_sound_dialog_strong">Strong · 15 LU</string>
+    <string name="video_sound_dialog_state">Voices now %1$s LU above the rest (before: %2$s LU)</string>
+    <string name="video_sound_understand">Hear dialogue better</string>
+    <string name="video_sound_understand_summary">Voices 15 LU above the rest and night mode in one tap. Subtitles help as well.</string>
+    <string name="loudness_target_original">Original · −23 LUFS</string>
+    <string name="loudness_target_on_the_go">On the go · −16 LUFS</string>
+    <string name="video_sound_level_measured">Target %1$s LUFS · this film %2$s LUFS</string>
+    <string name="video_sound_night">Night mode</string>
+    <string name="video_sound_night_summary">Softens loud scenes and lifts quiet speech</string>
+    <string name="video_sound_bass_summary">More low end for small speakers</string>
+    <string name="video_sound_surround_format">Ordo mix: %1$s sound is mixed for two speakers, with voices kept clear</string>
+    <string name="video_sound_spatial_held_back_format">Ordo mix: %1$s sound is mixed by Ordo while clear dialogue, night mode or mono is on, instead of the system\'s spatial audio</string>
+    <string name="video_sound_spatial_format">System spatial audio: %1$s sound goes to Android unchanged</string>
+    <string name="video_sound_level">Even out volume</string>
+    <string name="video_sound_level_summary">Measures each film once in the background, so quiet and loud films play alike</string>
+    <string name="video_audio_track_menu">Audio track</string>
+    <string name="video_audio_track_title">Audio track</string>
+    <string name="video_audio_track_unknown_language">Track %1$d</string>
+    <string name="video_audio_track_channels">%1$d channels</string>
+    <string name="video_audio_track_unplayable">can\'t play on this device</string>
+    <string name="video_audio_track_none">This video has no audio track.</string>
+    <string name="video_audio_sync">Audio sync</string>
+    <string name="video_audio_sync_summary">If lips and voice don\'t match, move the sound in 50 ms steps.</string>
+    <string name="video_audio_sync_zero">In sync (0 ms)</string>
+    <string name="video_audio_sync_later">Sound %1$d ms later</string>
+    <string name="video_audio_sync_earlier">Sound %1$d ms earlier</string>
+    <string name="video_audio_sync_earlier_button">Sound earlier</string>
+    <string name="video_audio_sync_later_button">Sound later</string>
+    <string name="video_sound_balance_left_button">More left</string>
+    <string name="video_sound_balance_right_button">More right</string>
+    <string name="video_signal_stage_downmix">Ordo mix to stereo</string>
+</resources>

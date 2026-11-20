@@ -30,6 +30,11 @@ class KlangAudioProcessor(
     private val dither: Boolean = true
 ) : BaseAudioProcessor() {
     private val active = BooleanArray(stages.size)
+
+    /** Whether the last buffer went through at least one stage (also while one fades out); audio thread. */
+    @Volatile
+    var processing = false
+        private set
     private var seed = 0x2545F491
     private var limiterGain = 1f
     private var release = 0f
@@ -61,6 +66,7 @@ class KlangAudioProcessor(
             active[index] = stages[index].begin()
             any = any || active[index]
         }
+        processing = any
         val output = replaceOutputBuffer(inputBuffer.remaining())
         if (!any) {
             output.put(inputBuffer)
@@ -336,12 +342,20 @@ class KlangProcessors(dither: Boolean = true) {
     val warmth = WarmthStage()
     val reverb = ReverbStage()
     val processor = KlangAudioProcessor(arrayOf(mono, highs, crossfeed, width, warmth, reverb), dither)
+    // Armed by what the chain actually did with the buffer before, so a stage fading out is still caught;
+    // untouched music stays bit-perfect.
+    val truePeak = TruePeakLimiter { processor.processing }
 
-    val chain: Array<AudioProcessor> get() = arrayOf(processor)
+    val chain: Array<AudioProcessor> get() = arrayOf(processor, truePeak)
 
     /**
      * Crossfeed only makes sense in headphones; crossfeed and width have nothing left to work on after the mono mix.
      */
+    /** Loudness levelling to the chosen R 128 s2 target, before the true-peak limiter. */
+    fun setLoudness(settings: AudioSettings, info: ReplayGainInfo?) {
+        truePeak.gainDb = LoudnessTargets.gainDb(settings, info)
+    }
+
     fun apply(settings: AudioSettings, headphones: Boolean) {
         mono.effectEnabled = settings.mono
         highs.level = settings.highsLevel
@@ -362,6 +376,11 @@ class AudioRenderersFactory(
     context: Context,
     private val audioProcessors: Array<AudioProcessor>
 ) : DefaultRenderersFactory(context) {
+    init {
+        // Platform decoders first, FFmpeg (AC3/E-AC3/DTS/TrueHD) only for what the device cannot decode.
+        setExtensionRendererMode(EXTENSION_RENDERER_MODE_ON)
+    }
+
     override fun buildAudioSink(
         context: Context,
         enableFloatOutput: Boolean,

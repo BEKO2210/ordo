@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later -->
+<resources>
+    <string name="video_settings_cat_picture">Bild</string>
+    <string name="video_settings_frame_rate">Bildrate anpassen</string>
+    <string-array name="video_settings_frame_rate_entries">
+        <item>Aus</item>
+        <item>Nur nahtlos</item>
+        <item>Immer (Bildschirm kann kurz schwarz werden)</item>
+    </string-array>
+    <string name="video_settings_picture">Bildverbesserung</string>
+    <string-array name="video_settings_picture_entries">
+        <item>Aus</item>
+        <item>Ausgewogen</item>
+        <item>Maximal</item>
+    </string-array>
+
+    <string name="video_picture_toggle">Bildverbesserung</string>
+    <string name="video_picture_on">Bildverbesserung an</string>
+    <string name="video_picture_off">Bildverbesserung aus</string>
+    <string name="video_picture_on_idle_format">Bildverbesserung an, hier nicht im Einsatz: %1$s</string>
+    <string name="video_picture_too_slow_notice">Bildverbesserung pausiert: Dieses Gerät kommt bei diesem Video nicht hinterher.</string>
+
+    <string name="video_picture_off_no_video">noch kein Bild</string>
+    <string name="video_picture_off_hdr">HDR-Videos bleiben unverändert</string>
+    <string name="video_picture_off_drm">geschütztes Video</string>
+    <string name="video_picture_off_setting">in den Einstellungen ausgeschaltet</string>
+    <string name="video_picture_off_switched">ausgeschaltet</string>
+    <string name="video_picture_off_too_slow">das Gerät kam nicht hinterher</string>
+    <string name="video_picture_off_not_smaller">das Video ist nicht kleiner als der Bildschirm</string>
+    <string name="video_picture_off_failed">der Grafikchip konnte sie nicht ausführen</string>
+
+    <string name="video_signal_title">Signalweg</string>
+    <string name="video_signal_picture">Bild</string>
+    <string name="video_signal_sound">Ton</string>
+    <string name="video_signal_decoder">Decoder</string>
+    <string name="video_signal_codec">Format</string>
+    <string name="video_signal_resolution">Auflösung</string>
+    <string name="video_signal_hdr">HDR</string>
+    <string name="video_signal_frame_rate">Bildrate</string>
+    <string name="video_signal_enhancement">Bildverbesserung</string>
+    <string name="video_signal_dropped">Verworfene Bilder</string>
+    <string name="video_signal_result">Ergebnis</string>
+    <string name="video_signal_sound_stages">Klang-Stufen</string>
+    <string name="video_signal_output">Ausgabe</string>
+    <string name="video_signal_sample_rate">Abtastrate</string>
+    <string name="video_signal_channels">Kanäle</string>
+
+    <string name="video_signal_hardware_format">Hardware · %1$s</string>
+    <string name="video_signal_software_format">Software, braucht mehr Akku · %1$s</string>
+    <string name="video_signal_passthrough">Keiner: Der Datenstrom geht unverändert an das Gerät</string>
+    <string name="video_signal_resolution_scaled_format">%1$s → %2$s, vom Bildschirm skaliert</string>
+    <string name="video_signal_resolution_lanczos_format">%1$s → %2$s mit Lanczos 3</string>
+    <string name="video_signal_resolution_same_format">%1$s, Pixel für Pixel</string>
+    <string name="video_signal_sdr">Nein (SDR)</string>
+    <string name="video_signal_hdr_direct_format">%1$s, vom Bildschirm direkt gezeigt</string>
+    <string name="video_signal_hdr_mapped_format">%1$s, Android rechnet es für diesen Bildschirm auf SDR um (Tone-Mapping)</string>
+    <string name="video_signal_frame_rate_format">%1$s fps · Bildschirm %2$s Hz · Anpassen: %3$s</string>
+    <string name="video_signal_frame_rate_unknown_format">unbekannt · Bildschirm %1$s Hz · Anpassen: %2$s</string>
+    <string name="video_signal_stages_balanced">Hochskalieren (Lanczos 3), Schärfen (CAS), Entbändern, Dithering · ausgewogen</string>
+    <string name="video_signal_stages_max">Hochskalieren (Lanczos 3), Schärfen (CAS), Entbändern, Dithering · maximal</string>
+    <string name="video_signal_off_format">Aus: %1$s</string>
+    <string name="video_signal_untouched">Unverfälscht</string>
+    <string name="video_signal_changed_format">Bearbeitet: %1$s</string>
+    <string name="video_signal_change_enhanced">Bildverbesserung</string>
+    <string name="video_signal_change_tone_mapped">HDR auf SDR umgerechnet</string>
+    <string name="video_signal_change_stages">Klang-Stufen</string>
+    <string name="video_signal_change_speed">Tempo</string>
+    <string name="video_signal_change_resampled">Abtastrate umgerechnet</string>
+    <string name="video_signal_change_downmixed">abgemischt</string>
+    <string name="video_signal_change_spatialized">Raumklang</string>
+    <string name="video_signal_none">Keine</string>
+    <string name="video_signal_speed_format">Tempo %1$s, Tonhöhe bleibt</string>
+    <string name="video_signal_rate_same_format">%1$s, unverändert</string>
+    <string name="video_signal_rate_converted_format">%1$s → Android %2$s (umgerechnet)</string>
+    <string name="video_signal_channels_downmix_format">%1$s → Android mischt auf %2$d Kanäle ab</string>
+    <string name="video_signal_channels_spatial_format">%1$s → Raumklang des Systems</string>
+    <string name="video_signal_device_speaker">Lautsprecher des Geräts</string>
+    <string name="video_signal_device_wired">Kopfhörer mit Kabel</string>
+    <string name="video_signal_device_bluetooth">Bluetooth</string>
+    <string name="video_signal_device_usb">USB-Audio</string>
+    <string name="video_signal_device_hdmi">HDMI</string>
+    <string name="video_signal_device_other">Anderes Gerät</string>
+    <string name="video_signal_waiting">Wartet auf die Wiedergabe</string>
+    <string name="video_info_signal_path">Signalweg</string>
+    <string name="video_settings_ambient_gamma">Gamma an Raumlicht anpassen (experimentell)</string>
+    <string name="video_settings_ambient_gamma_summary">Hellt mittlere Töne in hellen Räumen auf (ITU-R BT.2390), nur bei laufender Bildverbesserung</string>
+    <string name="video_signal_pacing">Bildtakt</string>
+    <string name="video_signal_pacing_even_format">%1$s auf %2$s Hz: %3$s gleichmäßig (%4$d Vsyncs je Bild, %5$d Bilder)</string>
+    <string name="video_signal_pacing_pulldown_format">%1$s auf %2$s Hz: Pulldown %3$d:%4$d bei %5$s der Bilder, %6$s lang (erwartet %7$s, %8$d Bilder)</string>
+    <string name="video_signal_pacing_measuring">Wird gemessen …</string>
+    <string name="video_signal_ambient">Raumlicht</string>
+    <string name="video_signal_ambient_format">%1$s lx → Gamma %2$s (Bezug %3$s)</string>
+    <string name="video_signal_ambient_idle_format">%1$s lx, wirkt nur bei laufender Bildverbesserung</string>
+</resources>

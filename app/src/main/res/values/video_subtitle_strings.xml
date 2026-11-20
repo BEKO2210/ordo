@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- Ordo Video's subtitles: the sheet (viewer/video/subtitles) and the "Subtitles" group of its settings. -->
+<resources>
+    <string name="video_subtitles_title">Subtitles</string>
+    <string name="video_subtitles_off">Off</string>
+    <string name="video_subtitles_load">Load subtitles…</string>
+    <string name="video_subtitles_forced">forced</string>
+    <string name="video_subtitles_track_format">Track %1$d</string>
+    <string name="video_subtitles_delay">Delay</string>
+    <string name="video_subtitles_earlier_format">Show %1$s earlier</string>
+    <string name="video_subtitles_later_format">Show %1$s later</string>
+    <string name="video_subtitles_delay_files_only">Delay works for subtitle files. Tracks inside the video keep their own timing.</string>
+    <string name="video_subtitles_charset">Character encoding</string>
+    <string name="video_subtitles_charset_auto_format">Automatic (%1$s)</string>
+    <string-array name="video_subtitles_charset_names">
+        <item>UTF-8</item>
+        <item>Western (Windows-1252)</item>
+        <item>Western (ISO-8859-15)</item>
+        <item>Central European (Windows-1250)</item>
+        <item>Cyrillic (Windows-1251)</item>
+        <item>Greek (Windows-1253)</item>
+        <item>Turkish (Windows-1254)</item>
+    </string-array>
+    <string name="video_subtitles_size">Size</string>
+    <string-array name="video_subtitles_size_names">
+        <item>Small</item>
+        <item>Medium</item>
+        <item>Large</item>
+        <item>Extra large</item>
+    </string-array>
+    <string name="video_subtitles_background">Background</string>
+    <string-array name="video_subtitles_background_names">
+        <item>None</item>
+        <item>Shadow</item>
+        <item>Box</item>
+    </string-array>
+    <string name="video_subtitles_color">Colour</string>
+    <string-array name="video_subtitles_color_names">
+        <item>White</item>
+        <item>Yellow</item>
+    </string-array>
+    <string name="video_subtitles_bitmap_note">This track is made of pictures, so size and colour don\'t change it.</string>
+    <string name="video_subtitles_not_subtitle">This file isn\'t a subtitle file (SRT, VTT, ASS, SSA or TTML).</string>
+    <string name="video_subtitles_read_error">Couldn\'t read the subtitles.</string>
+    <string name="video_subtitles_too_large">The subtitle file is too large.</string>
+
+    <string name="video_settings_cat_subtitles">Subtitles</string>
+    <string name="video_settings_subtitle_language">Preferred subtitle language</string>
+    <string-array name="video_settings_subtitle_language_entries">
+        <item>Device language</item>
+        <item>German</item>
+        <item>English</item>
+    </string-array>
+    <string name="video_settings_subtitles_auto">Subtitles automatically</string>
+    <string name="video_settings_subtitles_auto_summary">When the sound is in another language, subtitles in your language come on: a file next to the video first, then a track inside it.</string>
+    <string name="video_settings_subtitle_reading">Reading aid</string>
+    <string-array name="video_settings_subtitle_reading_entries">
+        <item>Off</item>
+        <item>Normal (17 characters per second)</item>
+        <item>Slow (13 characters per second)</item>
+        <item>Fast (20 characters per second)</item>
+    </string-array>
+    <string name="video_settings_subtitle_slow_down">Slow down briefly for fast text</string>
+    <string name="video_settings_subtitle_slow_down_summary">While a subtitle line is faster than the reading aid allows, the video plays at 0.9×. The pitch stays the same.</string>
+    <string name="video_settings_subtitle_sounds">Show sound descriptions</string>
+    <string name="video_settings_subtitle_sounds_summary">Notes such as [MUSIC] or (DOOR SLAMS) in subtitle files</string>
+    <string name="video_settings_subtitle_speaker_colors">Colour speaker names</string>
+    <string name="video_settings_subtitle_speaker_colors_summary">Each speaker name, such as ANNA:, gets its own colour: yellow, cyan, green</string>
+
+    <string name="pref_key_video_subtitle_language" translatable="false">key_video_subtitle_language</string>
+    <string name="pref_default_value_video_subtitle_language" translatable="false">device</string>
+    <string-array name="pref_entry_values_video_subtitle_language" translatable="false">
+        <item>device</item>
+        <item>de</item>
+        <item>en</item>
+    </string-array>
+    <string name="pref_key_video_subtitles_auto" translatable="false">key_video_subtitles_auto</string>
+    <string name="pref_key_video_subtitle_reading" translatable="false">key_video_subtitle_reading</string>
+    <string name="pref_default_value_video_subtitle_reading" translatable="false">17</string>
+    <string-array name="pref_entry_values_video_subtitle_reading" translatable="false">
+        <item>0</item>
+        <item>17</item>
+        <item>13</item>
+        <item>20</item>
+    </string-array>
+    <string name="pref_key_video_subtitle_slow_down" translatable="false">key_video_subtitle_slow_down</string>
+    <string name="pref_key_video_subtitle_sounds" translatable="false">key_video_subtitle_sounds</string>
+    <string name="pref_key_video_subtitle_speaker_colors" translatable="false">key_video_subtitle_speaker_colors</string>
+</resources>

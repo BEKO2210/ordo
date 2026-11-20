@@ -28,10 +28,16 @@ import java.nio.ByteOrder
 class LoudnessAnalysis internal constructor(
     private val cache: Cache,
     private val openSource: (File) -> Source?,
-    private val now: () -> Long = { System.nanoTime() / 1_000_000 }
+    private val now: () -> Long = { System.nanoTime() / 1_000_000 },
+    private val maxMillis: Long = MAX_MILLIS
 ) {
     constructor(context: Context) : this(
         PreferencesCache(context), ::openMediaCodec
+    )
+
+    /** With a longer time limit: a two-hour film's sound takes longer to decode than a song (Ordo Video). */
+    constructor(context: Context, maxMillis: Long) : this(
+        PreferencesCache(context), ::openMediaCodec, maxMillis = maxMillis
     )
 
     /** Key-value store of results; SharedPreferences in the app, a map in tests. */
@@ -64,8 +70,11 @@ class LoudnessAnalysis internal constructor(
 
     fun cached(file: File): Cached? = cache.get(key(file))?.let(::parse)
 
-    /** Decodes and measures [file]; null when it cannot be decoded or holds nothing loud enough. Slow: not on main. */
-    fun measure(file: File): ReplayGainInfo? {
+    /**
+     * Decodes and measures [file]; null when it cannot be decoded or holds nothing loud enough. Slow: not on main.
+     * With [remember] false nothing is written (Ordo Video's "Don't remember places").
+     */
+    fun measure(file: File, remember: Boolean = true): ReplayGainInfo? {
         val result = try {
             openSource(file)?.use { measure(it) }
         } catch (_: Throwable) {
@@ -73,7 +82,7 @@ class LoudnessAnalysis internal constructor(
             null
         }
         if (Thread.currentThread().isInterrupted) return null
-        cache.put(key(file), if (result == null) FAILED else "${result.gainDb};${result.peak ?: 0f}")
+        if (remember) cache.put(key(file), if (result == null) FAILED else "${result.gainDb};${result.peak ?: 0f}")
         return result
     }
 
@@ -87,7 +96,7 @@ class LoudnessAnalysis internal constructor(
         var frames = 0L
         var idle = 0
         while (true) {
-            if (Thread.currentThread().isInterrupted || now() - start > MAX_MILLIS) return null
+            if (Thread.currentThread().isInterrupted || now() - start > maxMillis) return null
             when (val step = source.next()) {
                 Step.End -> break
                 Step.TryAgain -> if (++idle > MAX_IDLE) return null

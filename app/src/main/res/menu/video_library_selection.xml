@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- Ordo Video's library while videos are selected (long press on a card). -->
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/actionPlaySelection"
+        android:icon="@drawable/play_icon_24dp"
+        android:title="@string/video_library_play_selection"
+        app:iconTint="?colorControlNormal"
+        app:showAsAction="always" />
+    <item
+        android:id="@+id/actionShareSelection"
+        android:icon="@drawable/share_icon_control_normal_24dp"
+        android:title="@string/video_library_share"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/actionTrashSelection"
+        android:icon="@drawable/delete_icon_control_normal_24dp"
+        android:title="@string/video_library_trash"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/actionWatchedSelection"
+        android:title="@string/video_library_mark_watched"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/actionVaultSelection"
+        android:title="@string/vault_move_action"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/actionInfoSelection"
+        android:title="@string/video_info_title"
+        app:showAsAction="never" />
+</menu>

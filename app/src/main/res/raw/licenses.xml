@@ -190,6 +190,13 @@
     </notice>
 
     <notice>
+        <name>FFmpeg 6.0.1 (This software uses libraries from the FFmpeg project under the LGPLv2.1: decoders ac3, eac3, dca, truehd, mlp; build script utils/ffmpeg-audio/build.sh)</name>
+        <url>https://ffmpeg.org/releases/ffmpeg-6.0.1.tar.xz</url>
+        <copyright>Copyright (c) the FFmpeg developers</copyright>
+        <license>GNU Lesser General Public License 2.1</license>
+    </notice>
+
+    <notice>
         <name>AppIconLoader</name>
         <url>https://github.com/zhanghai/AppIconLoader</url>
         <copyright>Copyright 2020 Google LLC</copyright>
@@ -299,5 +306,19 @@
         <url>https://github.com/OxygenCobalt/Auxio</url>
         <copyright>Copyright (c) 2026 Auxio Project</copyright>
         <license>GNU General Public License 3.0</license>
+    </notice>
+
+    <notice>
+        <name>AMD FidelityFX CAS (Ordo Video's sharpening)</name>
+        <url>https://github.com/GPUOpen-Effects/FidelityFX-CAS</url>
+        <copyright>Copyright (c) 2020 Advanced Micro Devices, Inc.</copyright>
+        <license>MIT License</license>
+    </notice>
+
+    <notice>
+        <name>libplacebo (Ordo Video's debanding)</name>
+        <url>https://github.com/haasn/libplacebo</url>
+        <copyright>Copyright Niklas Haas and the libplacebo contributors</copyright>
+        <license>GNU Lesser General Public License 2.1</license>
     </notice>
 </notices>

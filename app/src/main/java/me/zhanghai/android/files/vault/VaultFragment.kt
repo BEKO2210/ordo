@@ -45,6 +45,7 @@ import me.zhanghai.android.files.file.guessFromPath
 import me.zhanghai.android.files.file.iconRes
 import me.zhanghai.android.files.file.isImage
 import me.zhanghai.android.files.file.isPdf
+import me.zhanghai.android.files.file.isVideo
 import me.zhanghai.android.files.filejob.FileJobService
 import me.zhanghai.android.files.home.setTintedCircleIcon
 import me.zhanghai.android.files.ui.setUpRestoreDeleteBar
@@ -56,6 +57,7 @@ import me.zhanghai.android.files.util.showToast
 import me.zhanghai.android.files.util.startActivitySafe
 import me.zhanghai.android.files.viewer.image.ImageViewerActivity
 import me.zhanghai.android.files.viewer.pdf.PdfViewerActivity
+import me.zhanghai.android.files.viewer.video.vault.VaultVideos
 
 class VaultFragment : Fragment() {
     private val viewModel by viewModels<VaultViewModel>()
@@ -385,7 +387,12 @@ class VaultFragment : Fragment() {
                 toggleSelection(entry, holder.bindingAdapterPosition)
             }
             holder.binding.root.setOnClickListener {
-                if (viewModel.selectedIds.isEmpty()) {
+                if (viewModel.selectedIds.isEmpty() && MimeType.guessFromPath(entry.name).isVideo) {
+                    // Streamed and decrypted in Ordo's player, never written out as plaintext.
+                    val videos = items.filter { MimeType.guessFromPath(it.name).isVideo }
+                    VaultVideos.play(requireContext(), videos, entry)
+                    viewModel.onViewerStarted()
+                } else if (viewModel.selectedIds.isEmpty()) {
                     viewModel.open(entry)
                 } else {
                     toggleSelection(entry, holder.bindingAdapterPosition)

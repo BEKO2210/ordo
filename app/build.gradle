@@ -22,8 +22,8 @@ android {
         //noinspection OldTargetApi
         targetSdk 36
         // CI passes -PversionCodeOverride so every Play upload gets a higher number (docs/PLAY-AUTO-UPLOAD.md).
-        versionCode project.findProperty('versionCodeOverride')?.toInteger() ?: 33
-        versionName '0.15.0'
+        versionCode project.findProperty('versionCodeOverride')?.toInteger() ?: 34
+        versionName '0.16.0'
         resValue 'string', 'app_version', versionName + ' (' + versionCode + ')'
         buildConfigField 'String', 'FILE_PROVIDIER_AUTHORITY', 'APPLICATION_ID + ".file_provider"'
         // Ordo's Custom Web Receiver (docs/cast/index.html) in the Cast console; casting falls back to Google's
@@ -118,6 +118,8 @@ dependencies {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation project(':llm')
+    // FFmpeg audio fallback for AC3/E-AC3/DTS/TrueHD (docs/VIDEO-PLAYER.md, "FFmpeg-Ton")
+    implementation project(':ffmpeg')
 
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
 
@@ -141,6 +143,8 @@ dependencies {
     implementation 'androidx.fragment:fragment-ktx:1.9.1'
     def androidx_media3_version = '1.11.1'
     implementation "androidx.media3:media3-exoplayer:$androidx_media3_version"
+    // Ordo Video's picture enhancement (viewer/video/picture): LanczosResample and the GlEffect pipeline.
+    implementation "androidx.media3:media3-effect:$androidx_media3_version"
     implementation "androidx.media3:media3-extractor:$androidx_media3_version"
     implementation "androidx.media3:media3-session:$androidx_media3_version"
     implementation "androidx.media3:media3-ui:$androidx_media3_version"

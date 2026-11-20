@@ -47,6 +47,7 @@ import me.zhanghai.android.files.databinding.KlangSwitchRowBinding
 import me.zhanghai.android.files.player.AudioFocusBehavior
 import me.zhanghai.android.files.player.AudioSettings
 import me.zhanghai.android.files.player.AudioSettingsStore
+import me.zhanghai.android.files.player.LoudnessTarget
 import me.zhanghai.android.files.player.EqualizerPreset
 import me.zhanghai.android.files.player.ReverbPreset
 import me.zhanghai.android.files.viewer.audio.KlangPictureView.Kind
@@ -184,6 +185,23 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment() {
             0.5f, AudioSettings.MIN_GAIN_DB, AudioSettings.MAX_GAIN_DB, ::formatDb
         )
         renderers += ::renderPreamp
+        // EBU R 128 s2: the broadcast reference or the louder level for noisy places (with the true-peak limiter).
+        binding.loudnessTargetGroup.addOnButtonCheckedListener { _, id, checked ->
+            if (checked && !initializing && !rendering) {
+                update {
+                    copy(
+                        loudnessTarget = if (id == R.id.loudnessTargetOnTheGo) LoudnessTarget.ON_THE_GO
+                        else LoudnessTarget.ORIGINAL
+                    )
+                }
+            }
+        }
+        renderers += {
+            binding.loudnessTargetGroup.check(
+                if (settings.loudnessTarget == LoudnessTarget.ON_THE_GO) R.id.loudnessTargetOnTheGo
+                else R.id.loudnessTargetOriginal
+            )
+        }
         bindSwitchRow(
             binding.monoRow, R.drawable.audio_hearing_icon_24dp, R.string.audio_sound_mono,
             R.string.audio_sound_mono_summary, { settings.mono }, binding.monoPicture, Kind.MONO
@@ -908,7 +926,6 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment() {
     private fun showStatus(status: AudioPlayerActivity.SoundStatus) {
         soundStatus = status
         renderEqualizerState()
-        enableCard(binding.normalizationRow.root, status.inputGainAvailable)
         renderPreamp()
         // Per-channel input gain is available in DynamicsProcessing, not the API 24-27 Equalizer.
         enableCard(binding.balanceCard, status.usingDynamicsProcessing)
@@ -937,12 +954,10 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment() {
             describe(R.string.audio_sound_sleep_heading, if (status.sleepActive) chip.text else onOff(false))
     }
 
-    /** The pre-amp only acts while levelling is on, and only where the device has an input-gain stage. */
+    /** Target and pre-amp only act while levelling is on (Ordo's own chain, on every device). */
     private fun renderPreamp() {
-        setControlsActive(
-            binding.normalizationPreamp.root,
-            settings.normalizationEnabled && soundStatus?.inputGainAvailable != false
-        )
+        setControlsActive(binding.normalizationPreamp.root, settings.normalizationEnabled)
+        setControlsActive(binding.loudnessTargetGroup, settings.normalizationEnabled)
     }
 
     private fun showEffect(card: View, unavailable: TextView, available: Boolean, name: Int) {

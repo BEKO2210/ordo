@@ -57,6 +57,28 @@
                 android:visibility="gone"
                 app:trackCornerRadius="0dp"
                 app:trackThickness="4dp" />
+
+            <!-- Never started (VideoLauncherActivity): a small accent dot; selected: a check on the picture. -->
+            <View
+                android:id="@+id/unwatchedDot"
+                android:layout_width="10dp"
+                android:layout_height="10dp"
+                android:layout_gravity="top|end"
+                android:layout_margin="@dimen/phi_8"
+                android:background="@drawable/video_library_dot"
+                android:backgroundTint="?colorPrimary"
+                android:visibility="gone" />
+
+            <ImageView
+                android:id="@+id/selectedCheck"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:layout_gravity="top|start"
+                android:layout_margin="@dimen/phi_5"
+                android:contentDescription="@null"
+                android:src="@drawable/check_circle_icon_white_24dp"
+                android:visibility="gone"
+                app:tint="@android:color/white" />
         </me.zhanghai.android.files.ui.AspectRatioFrameLayout>
     </com.google.android.material.card.MaterialCardView>
 

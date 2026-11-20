@@ -15,7 +15,7 @@ import java8.nio.file.Path
  * Another app cannot forge one, and after the process is gone the token is void.
  */
 object AudioQueueRequests {
-    class Request(val paths: List<Path>, val startIndex: Int)
+    class Request(val paths: List<Path>, val startIndex: Int, val uris: List<String> = emptyList())
 
     private val pending = ConcurrentHashMap<String, Request>()
 

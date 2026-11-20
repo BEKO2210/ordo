@@ -118,6 +118,9 @@ class CastClient(
     fun load(track: CastProtocol.Track, startSeconds: Double, autoplay: Boolean): Int =
         nextRequestId().also { media(CastProtocol.load(it, track, startSeconds, autoplay)) }
 
+    /** LOAD with a payload built elsewhere (Ordo Video: a film with its subtitle tracks). */
+    fun load(payload: (requestId: Int) -> String): Int = nextRequestId().also { media(payload(it)) }
+
     fun play() = mediaCommand("PLAY")
     fun pause() = mediaCommand("PAUSE")
     fun stopMedia() = mediaCommand("STOP")

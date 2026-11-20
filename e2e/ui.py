@@ -12,7 +12,7 @@
     ui.py SERIAL waitgone TARGET [S] wait up to S seconds (default 10) for a node to disappear
     ui.py SERIAL bounds TARGET [ID] print "x1 y1 x2 y2" for every matching node
     ui.py SERIAL texts             print "text|resource-id|content-desc" per node
-    ui.py SERIAL shot FILE         screenshot as PNG
+    ui.py SERIAL shot FILE         screenshot as PNG (only while Ordo is in front and unlocked)
 
 TARGET may list alternatives with "|" (e.g. "Aussehen|Appearance"), so one test runs in German and English.
 With ID only nodes with that resource id count: for a text that stands on the screen twice, as an entry of the
@@ -253,6 +253,12 @@ elif command == "bounds":
 elif command == "texts":
     print("\n".join(f"{t}|{rid.split('/')[-1]}|{d}" for t, rid, d, *_ in nodes() if t or d))
 elif command == "shot":
+    # Privacy: only Ordo's own screens, never another app, the launcher or a lock screen (lib.sh ordo_front).
+    state = sh("dumpsys activity activities | grep -m1 topResumedActivity; dumpsys window | grep -m1 isKeyguardShowing")
+    pkg = os.environ.get("PKG", "com.beko2210.ordo")
+    if not re.search(r"topResumedActivity=.* " + re.escape(pkg) + "/", state) or "isKeyguardShowing=true" in state:
+        print(f"SKIP shot (not Ordo): {sys.argv[3]}")
+        sys.exit(1)
     with open(sys.argv[3], "wb") as file:
         file.write(subprocess.run(ADB + ["exec-out", "screencap", "-p"], capture_output=True).stdout)
 else:
