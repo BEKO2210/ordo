@@ -17,6 +17,7 @@
     <string name="video_sound_night_summary">Dämpft laute Szenen, hebt leise Sprache an</string>
     <string name="video_sound_bass_summary">Mehr Tiefe für kleine Lautsprecher</string>
     <string name="video_sound_surround_format">Ordo-Abmischung: %1$s-Ton wird für zwei Lautsprecher gemischt, Stimmen bleiben klar</string>
+    <string name="video_sound_spatial_held_back_format">Ordo-Abmischung: Solange Dialog-Verstärker, Nachtmodus oder Mono an sind, mischt Ordo den %1$s-Ton statt des Raumklangs vom System</string>
     <string name="video_sound_spatial_format">Raumklang vom System: %1$s-Ton geht unverändert an Android</string>
     <string name="video_sound_level">Lautstärke angleichen</string>
     <string name="video_sound_level_summary">Misst jeden Film einmal im Hintergrund, damit leise und laute Filme gleich klingen</string>
