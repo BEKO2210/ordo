@@ -259,7 +259,7 @@ cover_colour() { # average colour of the 48 dp cover left of the row's title
     local x1 y1 x2 y2 dpi
     read -r x1 y1 x2 y2 < <(ui bounds "$1" title | head -1) || return 1
     dpi=$(a shell wm density | tail -1 | sed 's/.*: //' | tr -d '\r')
-    a exec-out screencap -p > "$tmp/covers.png"
+    screenshot "$tmp/covers.png" >/dev/null || return 1
     python3 - "$tmp/covers.png" "$x1" "$y1" "$y2" "$dpi" <<'PY'
 import sys
 from PIL import Image

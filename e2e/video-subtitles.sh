@@ -37,9 +37,8 @@ sheet() { ui tap "Untertitel|Subtitles" >/dev/null; sleep 1.5; }
 
 # 1. Files next to the film, the German one on by itself and read as Windows-1252.
 open_video film.mp4
-a shell screencap -p /sdcard/ordo-e2e-subs.png && a pull /sdcard/ordo-e2e-subs.png "${TMPDIR:-/tmp}/ordo-e2e-subs.png" \
-    >/dev/null && a shell rm /sdcard/ordo-e2e-subs.png
-echo "INFO screenshot with the German line: ${TMPDIR:-/tmp}/ordo-e2e-subs.png (look for \"Größe, Übermaß\")"
+screenshot "${TMPDIR:-/tmp}/ordo-e2e-subs.png" &&
+    echo "INFO screenshot with the German line: ${TMPDIR:-/tmp}/ordo-e2e-subs.png (look for \"Größe, Übermaß\")"
 sheet
 check "the sheet offers Off" ui has "Aus|Off"
 check "the sheet lists the German file with its language" ui has "Deutsch · film.de.srt|German · film.de.srt"

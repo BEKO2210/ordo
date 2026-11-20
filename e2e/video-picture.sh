@@ -86,7 +86,7 @@ check "frames go through the enhancement pass" eval 'grep -qE "frame [0-9]+ [0-9
 log | grep "last 120 frames" | tail -3 | sed 's/^/INFO GPU time /'
 log | grep "dropped" | tail -2 | sed 's/^/INFO /'
 a shell input keyevent KEYCODE_MEDIA_PAUSE; sleep 1
-a exec-out screencap -p > "$out/small-enhanced.png"
+screenshot "$out/small-enhanced.png"
 
 # 3. The signal path: decoder, Lanczos, sound.
 menu "Signalweg|Signal path"
@@ -95,13 +95,13 @@ check "it names the decoder as hardware or software" part "Decoder: (Hardware|So
 check "it shows the Lanczos upscale" part "Lanczos 3"
 sound_row() { local i; for i in 1 2 3; do part "(Ausgabe|Output): " && return 0; swipe_up; done; return 1; }
 check "it has the sound section with the output" sound_row
-a exec-out screencap -p > "$out/signal-path.png"
+screenshot "$out/signal-path.png"
 back 1
 
 # 4. The ⋮ toggle compares: off clears the effects, on applies them again.
 relog
 menu "Bildverbesserung|Picture enhancement"
-a exec-out screencap -p > "$out/small-plain.png"
+screenshot "$out/small-plain.png"
 # The hint pill fades after about a second, shorter than one screen read (2-3 s): look at the screenshot instead.
 echo "SKIP the off hint (fades before a screen read; see $out/small-plain.png)"
 check "and clears the effects" eval 'log | grep -q -- "-> CLEAR"'
@@ -145,7 +145,7 @@ fi
 menu "Signalweg|Signal path"
 pacing_shown() { local i; for i in 1 2 3; do part "(Bildtakt|Frame pacing): .*(gleichmäßig|Pulldown|even|pulldown)" && return 0; sleep 1.5; done; return 1; }
 check "Signal path shows the frame pacing" pacing_shown
-a exec-out screencap -p > "$out/signal-pacing.png"
+screenshot "$out/signal-pacing.png"
 back 1
 back 2
 settings_pick "Bildrate anpassen|Match frame rate" "Nur nahtlos|Only when seamless"

@@ -32,7 +32,7 @@ session() { a shell dumpsys media_session | grep -A${1:-30} "package=$PKG"; }
 session_state() { local i; for i in $(seq 40); do session | grep -q "state=$1" && return 0; sleep 0.5; done; return 1; }
 # A remote session reports the remote playback type (PlaybackInfo type 2) to the system.
 session_remote() { session 80 | grep -qiE "volumeType=(REMOTE|2)\b|PLAYBACK_TYPE_REMOTE"; }
-shot() { [ -n "${SHOTS:-}" ] && [[ $(top) == "$PKG"/* ]] && a exec-out screencap -p > "$SHOTS/$1.png"; return 0; }
+shot() { [ -n "${SHOTS:-}" ] && screenshot "$SHOTS/$1.png"; return 0; }
 settled() { local i; for i in $(seq 40); do ui has "$@" && return 0; sleep 0.5; done; return 1; }
 
 a shell am start -W -a android.intent.action.VIEW -d "file://$DIR" -t inode/directory \

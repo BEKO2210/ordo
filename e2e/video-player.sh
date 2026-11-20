@@ -226,7 +226,7 @@ fi
 # Ordo Video's own colour (library menu > Settings): Amber tints the player's play button differently from "Same as
 # Ordo"; put back to "Same as Ordo" afterwards. Read from a raw screenshot (RGBA after a 12- or 16-byte header).
 pixel() {
-    a exec-out screencap > "$tmp/screen.raw"
+    raw_screenshot "$tmp/screen.raw" >/dev/null || return 1
     python3 - "$tmp/screen.raw" "$1" "$2" <<'PY'
 import os, struct, sys
 data = open(sys.argv[1], "rb").read()
