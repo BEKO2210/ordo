@@ -80,7 +80,7 @@ check "the small clip opens Ordo's player" wait_on viewer.video.VideoPlayerActiv
 sleep 2; start=$(log)
 sleep 6
 check "a 360p clip starts with the pipeline, decided before prepare" eval 'grep -q "prepare: pipeline true" <<<"$start"'
-check "and is not prepared a second time" eval '! log | grep -q -- "-> ENGAGE"'
+check "and is not prepared a second time" eval '! log | grep -- "-> ENGAGE"'
 check "the enhancement is applied" eval 'grep -q -- "-> APPLY" <<<"$start"'
 check "frames go through the enhancement pass" eval 'grep -qE "frame [0-9]+ [0-9]+x[0-9]+ [0-9.]+ ms" <<<"$start"'
 log | grep "last 120 frames" | tail -3 | sed 's/^/INFO GPU time /'
@@ -104,16 +104,16 @@ menu "Bildverbesserung|Picture enhancement"
 screenshot "$out/small-plain.png"
 # The hint pill fades after about a second, shorter than one screen read (2-3 s): look at the screenshot instead.
 echo "SKIP the off hint (fades before a screen read; see $out/small-plain.png)"
-check "and clears the effects" eval 'log | grep -q -- "-> CLEAR"'
+check "and clears the effects" eval 'log | grep -- "-> CLEAR"'
 menu "Bildverbesserung|Picture enhancement"
-check "switched on again it applies them" eval 'log | grep -q -- "-> APPLY"'
+check "switched on again it applies them" eval 'log | grep -- "-> APPLY"'
 back 2
 
 # 5. A clip as large as the screen gets nothing.
 relog
 open_folder 02-screen.mp4
 ui tap 02-screen.mp4 >/dev/null; wait_on viewer.video.VideoPlayerActivity 8; sleep 4
-check "a clip as large as the screen is left alone (${long}x$short)" eval 'log | grep -q "NOT_SMALLER"'
+check "a clip as large as the screen is left alone (${long}x$short)" eval 'log | grep "NOT_SMALLER"'
 back 2
 
 # 6. "Always" asks for 24 fps itself from API 31; "Only when seamless" leaves it to Media3.
@@ -123,7 +123,7 @@ relog
 open_folder 01-small.mp4
 ui tap 01-small.mp4 >/dev/null; wait_on viewer.video.VideoPlayerActivity 8; sleep 4
 if [ "${sdk:-0}" -ge 31 ]; then
-    check "under Always Ordo asks the screen for 24 fps" eval 'log | grep -q "setFrameRate 24.0 ALWAYS"'
+    check "under Always Ordo asks the screen for 24 fps" eval 'log | grep "setFrameRate 24.0 ALWAYS"'
     a shell dumpsys display | grep -m2 -oE "renderFrameRate [0-9.]+|mActiveRenderFrameRate=[0-9.]+|refreshRate=[0-9.]+" \
         | sed 's/^/INFO display /'
 else
@@ -156,7 +156,7 @@ if [ "$hdr" = 1 ]; then
     relog
     open_folder 03-hdr.mp4
     ui tap 03-hdr.mp4 >/dev/null; wait_on viewer.video.VideoPlayerActivity 8; sleep 4
-    check "an HDR10 clip is not processed" eval 'log | grep -q "off=HDR" && ! log | grep -q -- "-> ENGAGE"'
+    check "an HDR10 clip is not processed" eval 'log | grep "off=HDR" && ! log | grep -- "-> ENGAGE"'
     a shell input keyevent KEYCODE_MEDIA_PAUSE; sleep 1
     menu "Videoinfos|Video info"
     ui tap "Signalweg|Signal path" >/dev/null; sleep 1.5

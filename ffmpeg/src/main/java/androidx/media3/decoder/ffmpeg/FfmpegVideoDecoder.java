@@ -80,7 +80,8 @@ public final class FfmpegVideoDecoder extends
         // Format uses clockwise degrees. Ignore unsupported non-right-angle rotations.
         int rotation = format.rotationDegrees % 360;
         rotationDegrees = rotation % 90 == 0 ? (rotation + 360) % 360 : 0;
-        nativeContext = ffmpegInitialize(codecName, extraData, threads);
+        // MS-MPEG-4 (DivX 3) carries no picture size in its stream: FFmpeg refuses to open it without the container's.
+        nativeContext = ffmpegInitialize(codecName, extraData, threads, Math.max(format.width, 0), Math.max(format.height, 0));
         if (nativeContext == 0) {
             release();
             throw new FfmpegDecoderException("Failed to initialize decoder.");
@@ -266,7 +267,7 @@ public final class FfmpegVideoDecoder extends
 
     private static native boolean ffmpegHasDecoder(String codecName);
 
-    private native long ffmpegInitialize(String codecName, @Nullable byte[] extraData, int threads);
+    private native long ffmpegInitialize(String codecName, @Nullable byte[] extraData, int threads, int width, int height);
 
     private native long ffmpegReset(long context);
 

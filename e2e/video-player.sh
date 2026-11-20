@@ -37,7 +37,8 @@ if ffmpeg -v error -hide_banner -encoders 2>/dev/null | grep -q libx265; then
     ffmpeg -v error -f lavfi -i "$(src 1280x720)" -f lavfi -i "$tone" -c:v libx265 -preset ultrafast -pix_fmt yuv420p10le \
         -c:a aac -shortest "$tmp/05-hevc10.mkv" || echo "FAIL ffmpeg could not make the HEVC 10-bit MKV"
 fi
-ffmpeg -v error -f lavfi -i "$(src 720x576)" -f lavfi -i "$tone" -c:v mpeg2video -q:v 4 -c:a mp2 -shortest \
+# .ts: by name TypeScript; Ordo sniffs the 0x47 sync bytes and opens a real stream as video (20.11.2026).
+ffmpeg -v error -f lavfi -i "$(src 720x576)" -f lavfi -i "$tone" -c:v mpeg2video -q:v 4 -c:a mp2 -shortest -f mpegts \
     "$tmp/06-mpeg2.ts" || echo "FAIL ffmpeg could not make the MPEG-2 TS"
 ffmpeg -v error -f lavfi -i "$(src 640x360)" -f lavfi -i "$tone" -c:v msmpeg4 -vtag MP43 -q:v 5 -c:a libmp3lame \
     -shortest "$tmp/07-divx3.avi" || echo "FAIL ffmpeg could not make the DivX 3 AVI"

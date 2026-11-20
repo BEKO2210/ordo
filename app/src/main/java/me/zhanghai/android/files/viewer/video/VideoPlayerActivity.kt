@@ -424,7 +424,9 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
         player?.let {
             trackedPosition = it.currentPosition
             saveResume()
-            if (background?.onStop() != true) it.pause()
+            // Not for recreate() (VideoPicture leaving its pipeline for an FFmpeg-decoded film): onSaveInstanceState
+            // runs after onStop and would keep the pause, the new screen stood still at 0:00 (Tab, 20.11.2026).
+            if (background?.onStop() != true && !isChangingConfigurations) it.pause()
         }
         // Also the guard against background playback (#100) or PiP showing a Tresor video: none outlives the screen.
         if (isVault && !isChangingConfigurations) finish()

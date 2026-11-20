@@ -9,8 +9,10 @@ import java8.nio.file.Path
 import java8.nio.file.attribute.BasicFileAttributes
 import java8.nio.file.spi.FileTypeDetector
 import me.zhanghai.android.files.file.MimeType
+import me.zhanghai.android.files.file.MpegTsSniffer
 import me.zhanghai.android.files.file.forSpecialPosixFileType
 import me.zhanghai.android.files.file.guessFromPath
+import me.zhanghai.android.files.provider.linux.isLinuxPath
 import java.io.IOException
 
 object AndroidFileTypeDetector : FileTypeDetector() {
@@ -28,6 +30,15 @@ object AndroidFileTypeDetector : FileTypeDetector() {
         if (attributes is ContentProviderFileAttributes) {
             attributes.mimeType()?.let { return it }
         }
-        return MimeType.guessFromPath(path.toString()).value
+        val guessed = MimeType.guessFromPath(path.toString()).value
+        // Local ".ts" files only: a short read, never over the network or a content provider.
+        if (guessed == TYPESCRIPT && path.isLinuxPath && attributes.isRegularFile &&
+            MpegTsSniffer.isMpegTs(path.toString())
+        ) {
+            return MpegTsSniffer.MIME_TYPE
+        }
+        return guessed
     }
+
+    private const val TYPESCRIPT = "application/typescript"
 }

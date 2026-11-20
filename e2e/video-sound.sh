@@ -12,8 +12,9 @@ DIR=/storage/emulated/0/ordo-e2e-video-sound
 tmp=$(mktemp -d); trap 'a shell "rm -rf $DIR"; rm -rf "$tmp"' EXIT
 command -v ffmpeg >/dev/null || { echo "SKIP video sound (no ffmpeg on the host)"; exit 0; }
 
-ffmpeg -v error -f lavfi -i "testsrc=size=1280x720:rate=30:duration=30" \
-    -f lavfi -i "sine=frequency=440:duration=30" -f lavfi -i "sine=frequency=660:duration=30" \
+# 120 s: on the Tab the effect and track steps take longer than 30 s, the film ended before the track switch (20.11.2026).
+ffmpeg -v error -f lavfi -i "testsrc=size=1280x720:rate=30:duration=120" \
+    -f lavfi -i "sine=frequency=440:duration=120" -f lavfi -i "sine=frequency=660:duration=120" \
     -filter_complex "[1:a]pan=5.1|FL=c0|FR=c0|FC=c0|LFE=c0|BL=c0|BR=c0[s51]" \
     -map 0:v -map "[s51]" -map 2:a -c:v libx264 -preset veryfast -pix_fmt yuv420p -c:a aac -b:a 192k \
     -ac:a:1 2 -metadata:s:a:0 language=deu -metadata:s:a:1 language=eng -shortest "$tmp/01-surround.mp4" \

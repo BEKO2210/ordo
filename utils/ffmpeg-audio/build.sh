@@ -18,7 +18,7 @@ MEDIA3_TAG=1.11.1                         # must match androidx_media3_version i
 MEDIA3_SHA=8c6678b657ede1e7883fc164ef73ed483c7796c3
 FFMPEG_TAG=n6.0.1                         # release/6.0, the version the Media3 README recommends
 FFMPEG_SHA=c41ff724ede7da657762d61097e26fac296c53bf
-DECODERS=(ac3 eac3 dca truehd mlp         # sound budget phones lack (W90: no AC3/E-AC3/DTS/TrueHD)
+DECODERS=(ac3 eac3 dca truehd mlp mp1 mp2 # sound budget phones lack (W90: no AC3/E-AC3/DTS/TrueHD; Tab: no MPEG-1 Layer I/II, DVB)
     h264 hevc mpeg2video mpeg4 h263 msmpeg4v2 msmpeg4v3 vc1)  # video, only when the device's decoder can't
 ABIS=(arm64-v8a armeabi-v7a x86_64)       # build_ffmpeg.sh also builds x86; Ordo does not ship it
 MIN_SDK=24                                # app minSdk
