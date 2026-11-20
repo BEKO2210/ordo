@@ -75,7 +75,6 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment(),
     private var firstRender = true
     private var soundStatus: AudioPlayerActivity.SoundStatus? = null
     private var highsRenderer: (() -> Unit)? = null
-    private var quietRenderer: (() -> Unit)? = null
     private lateinit var palette: Palette
 
     private class Palette(
@@ -207,10 +206,11 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment(),
             binding.monoRow, R.drawable.audio_hearing_icon_24dp, R.string.audio_sound_mono,
             R.string.audio_sound_mono_summary, { settings.mono }, binding.monoPicture, Kind.MONO
         ) { update { copy(mono = it) } }
-        bindQuietFull()
         me.zhanghai.android.files.player.headphones.HeadphonesSheet.bindEntry(binding.headphonesEntry, this)
         renderers += {
-            me.zhanghai.android.files.player.headphones.HeadphonesSheet.renderEntry(binding.headphonesEntry, settings)
+            me.zhanghai.android.files.player.headphones.HeadphonesSheet.renderEntry(
+                binding.headphonesEntry, settings, soundStatus?.quietBassDb
+            )
         }
         bindSwitchRow(
             binding.skipRow, R.drawable.audio_fast_forward_icon_24dp, R.string.audio_sound_skip_silence,
@@ -320,7 +320,7 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment(),
         listOf(
             binding.fineTuneCard, binding.bassCard.root, binding.crossfeedCard.root, binding.widthCard.root,
             binding.reverbCard.root, binding.warmthCard.root, binding.clarityCard.root, binding.highsCard.root,
-            binding.normalizationCard, binding.balanceCard, binding.monoCard, binding.quietCard,
+            binding.normalizationCard, binding.balanceCard, binding.monoCard, binding.headphonePackCard,
             binding.speedCard, binding.sleepCard, binding.skipCard, binding.focusCard, binding.headphonesCard
         ).forEach { it.setCardBackgroundColor(palette.card) }
         binding.balanceView.setBackgroundSurface(palette.card)
@@ -333,7 +333,7 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment(),
             binding.bassCard.root, binding.crossfeedCard.root, binding.widthCard.root, binding.reverbCard.root,
             binding.warmthCard.root, binding.clarityCard.root, binding.highsCard.root, binding.normalizationCard,
             binding.balanceCard,
-            binding.monoCard, binding.quietCard, binding.speedCard, binding.sleepCard, binding.skipCard, binding.focusCard,
+            binding.monoCard, binding.headphonePackCard, binding.speedCard, binding.sleepCard, binding.skipCard, binding.focusCard,
             binding.headphonesCard
         ).forEach {
             it.strokeColor = outline
@@ -696,32 +696,6 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment(),
         }
     }
 
-    /** "Full sound when quiet": the picture's lift follows the system volume the service reports. */
-    private fun bindQuietFull() {
-        val row = binding.quietRow
-        row.icon.setImageResource(R.drawable.audio_volume_icon_24dp)
-        row.title.text = getString(R.string.audio_sound_quiet)
-        row.summary.text = getString(R.string.audio_sound_quiet_summary)
-        row.toggle.contentDescription = getString(R.string.audio_sound_quiet)
-        row.toggle.setOnCheckedChangeListener { _, checked ->
-            if (!initializing && !rendering) update { copy(quietFullEnabled = checked) }
-        }
-        row.root.setOnClickListener { if (row.toggle.isEnabled) row.toggle.toggle() }
-        binding.quietPicture.kind = Kind.QUIET
-        quietRenderer = {
-            val bassDb = soundStatus?.quietBassDb ?: 0f
-            val lift = bassDb / me.zhanghai.android.files.player.headphones.EqualLoudness.MAX_BASS_DB.toFloat()
-            row.toggle.isChecked = settings.quietFullEnabled
-            binding.quietPicture.setState(settings.quietFullEnabled, lift)
-            binding.quietPicture.contentDescription = describe(
-                R.string.audio_sound_quiet,
-                if (!settings.quietFullEnabled) onOff(false)
-                else getString(R.string.audio_sound_quiet_value, bassDb.roundToInt())
-            )
-        }
-        renderers += { quietRenderer?.invoke() }
-    }
-
     private fun levelLabel(level: Int): String = getString(
         when (level) {
             1 -> R.string.audio_sound_level_light
@@ -947,7 +921,10 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment(),
         )
         // What the highs detector found arrives with the status.
         highsRenderer?.invoke()
-        quietRenderer?.invoke()
+        // The bass lift at this volume arrives with the status too.
+        me.zhanghai.android.files.player.headphones.HeadphonesSheet.renderEntry(
+            binding.headphonesEntry, settings, status.quietBassDb
+        )
         val activeTimer = if (status.sleepActive) status.sleepMinutes to status.sleepAtEndOfTrack else 0 to false
         sleepButtons.forEach { (button, timer) -> button.isChecked = timer == activeTimer }
         val chip = binding.sleepRemaining

@@ -250,6 +250,8 @@ class HeadphonePackTest {
         assertEquals(10, AudioSettings(quietCalibrationDb = 99).sanitized().quietCalibrationDb)
         val old = AudioSettingsCodec.decode("""{"eq":true}""")
         assertTrue(!old.binauralEnabled && old.headphoneEq.isEmpty() && old.quietCalibrationDb == 0)
+        // The music sheet's former switch stored the same key: a setting from before keeps its value.
+        assertTrue(AudioSettingsCodec.decode("""{"quietFull":true}""").quietFullEnabled)
     }
 
     // Binaural ----------------------------------------------------------------------------------------------------

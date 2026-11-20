@@ -195,11 +195,16 @@ class HeadphonesSheet : BottomSheetDialogFragment() {
             renderEntry(row, (fragment as HeadphonesHost).headphoneSettings)
         }
 
-        fun renderEntry(row: KlangSwitchRowBinding, settings: AudioSettings) {
+        /** [quietBassDb]: the lift "full sound when quiet" gives right now, where the player reports it. */
+        fun renderEntry(row: KlangSwitchRowBinding, settings: AudioSettings, quietBassDb: Float? = null) {
             val context = row.root.context
+            val quiet = context.getString(R.string.audio_sound_quiet).let { name ->
+                if (quietBassDb == null) name
+                else "$name (${context.getString(R.string.audio_sound_quiet_value, Math.round(quietBassDb))})"
+            }
             val on = listOfNotNull(
                 context.getString(R.string.headphones_virtual_surround).takeIf { settings.binauralEnabled },
-                context.getString(R.string.audio_sound_quiet).takeIf { settings.quietFullEnabled },
+                quiet.takeIf { settings.quietFullEnabled },
                 settings.headphoneEq.takeIf { it.isNotEmpty() }
                     ?.let { context.getString(R.string.headphones_correction_state, it) }
             )
