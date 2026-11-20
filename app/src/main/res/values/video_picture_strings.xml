@@ -118,4 +118,46 @@
     <string name="video_picture_deinterlace_detected_interlaced">This video is interlaced: automatic removes it.</string>
     <string name="video_picture_deinterlace_detected_progressive">This video has full frames: automatic leaves it.</string>
     <string name="video_picture_deinterlace_detected_unknown">The file doesn’t say whether it is interlaced. Switch it on if you see comb lines when things move.</string>
+    <!-- Detail plus (DetailPlus.kt) and the measurements (PictureMeter.kt). -->
+    <string name="video_settings_upscaler">Upscaling</string>
+    <string-array name="video_settings_upscaler_entries">
+        <item>Standard (Lanczos)</item>
+        <item>Detail plus: film</item>
+        <item>Detail plus: cartoon</item>
+        <item>Automatic</item>
+    </string-array>
+    <string name="video_detail_plus_slow_notice">Detail plus paused: this device can’t keep up with this video. Lanczos upscales instead.</string>
+    <string name="video_signal_upscaler">Upscaling</string>
+    <string name="video_signal_upscaler_detail_format">Detail plus %1$s, then Lanczos 3</string>
+    <string name="video_signal_upscaler_film">film (FSRCNNX x2)</string>
+    <string name="video_signal_upscaler_cartoon">cartoon (Anime4K CNN x2 M)</string>
+    <string name="video_signal_upscaler_lanczos">Lanczos 3</string>
+    <string name="video_signal_upscaler_small">Lanczos 3 (Detail plus from 1.5× enlargement)</string>
+    <string name="video_signal_upscaler_fell_back">Lanczos 3 (Detail plus was too slow on this device)</string>
+    <string name="video_signal_upscaler_unsupported">Lanczos 3 (Detail plus needs OpenGL ES 3 with float textures)</string>
+    <string name="video_meter_title">Measurements</string>
+    <string name="video_meter_off">Off. Tap to start measuring.</string>
+    <string name="video_meter_on">Measuring. Tap to stop.</string>
+    <string name="video_meter_expanded">expanded</string>
+    <string name="video_meter_collapsed">collapsed</string>
+    <string name="video_meter_timer">Timing</string>
+    <string name="video_meter_timer_gpu">GPU timer (EXT_disjoint_timer_query)</string>
+    <string name="video_meter_timer_cpu">CPU clock with glFinish (no GPU timer on this device)</string>
+    <string name="video_meter_timer_none">No picture pass is running</string>
+    <string name="video_meter_gpu">GPU time per frame (mean · maximum)</string>
+    <string name="video_meter_pass_format">%1$s: %2$s ms · %3$s ms</string>
+    <string name="video_meter_pass_detail">Detail plus</string>
+    <string name="video_meter_pass_lanczos">Lanczos</string>
+    <string name="video_meter_pass_enhance">Enhancement</string>
+    <string name="video_meter_no_gpu">No values yet</string>
+    <string name="video_meter_dropped">Dropped frames since the start</string>
+    <string name="video_meter_headroom">Thermal headroom</string>
+    <string name="video_meter_headroom_format">%1$s (the device throttles at 1.00)</string>
+    <string name="video_meter_headroom_unknown">Needs Android 11</string>
+    <string name="video_meter_audio">Sound processing per buffer (mean · maximum)</string>
+    <string name="video_meter_audio_format">%1$s ms · %2$s ms, %3$d buffers in the last second</string>
+    <string name="video_meter_audio_idle">No buffers in the last second</string>
+    <string name="video_meter_underruns">Sound underruns</string>
+    <string name="video_meter_duration">Measuring for</string>
+    <string name="video_meter_share">Share as CSV</string>
 </resources>

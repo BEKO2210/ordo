@@ -36,6 +36,10 @@ class KlangAudioProcessor(
     var processing = false
         private set
     private var seed = 0x2545F491
+
+    /** Ordo Video's measurements: gets each buffer's processing time in nanoseconds; null (the default) costs nothing. */
+    @Volatile
+    var meter: ((Long) -> Unit)? = null
     private var limiterGain = 1f
     private var release = 0f
 
@@ -61,6 +65,8 @@ class KlangAudioProcessor(
     override fun queueInput(inputBuffer: ByteBuffer) {
         // Media3 polls with EMPTY_BUFFER, which before the first data is also our output buffer: never copy it.
         if (!inputBuffer.hasRemaining()) return
+        val meter = meter
+        val start = if (meter != null) System.nanoTime() else 0L
         var any = false
         for (index in stages.indices) {
             active[index] = stages[index].begin()
@@ -96,6 +102,7 @@ class KlangAudioProcessor(
             }
         }
         output.flip()
+        meter?.invoke(System.nanoTime() - start)
     }
 
     /** The one dither of the chain, then 16 bit. */

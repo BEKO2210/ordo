@@ -89,6 +89,13 @@
             android:entryValues="@array/pref_entry_values_video_picture"
             app:useSimpleSummaryProvider="true" />
         <ListPreference
+            android:key="@string/pref_key_video_upscaler"
+            android:title="@string/video_settings_upscaler"
+            android:defaultValue="@string/pref_default_value_video_upscaler"
+            android:entries="@array/video_settings_upscaler_entries"
+            android:entryValues="@array/pref_entry_values_video_upscaler"
+            app:useSimpleSummaryProvider="true" />
+        <ListPreference
             android:key="@string/pref_key_video_frame_rate"
             android:title="@string/video_settings_frame_rate"
             android:defaultValue="@string/pref_default_value_video_frame_rate"

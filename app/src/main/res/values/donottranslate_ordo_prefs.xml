@@ -78,6 +78,14 @@
         <item>balanced</item>
         <item>max</item>
     </string-array>
+    <string name="pref_key_video_upscaler">key_video_upscaler</string>
+    <string name="pref_default_value_video_upscaler">standard</string>
+    <string-array name="pref_entry_values_video_upscaler">
+        <item>standard</item>
+        <item>film</item>
+        <item>cartoon</item>
+        <item>auto</item>
+    </string-array>
     <string name="pref_key_video_keep_screen_on">key_video_keep_screen_on</string>
     <string name="pref_key_video_gesture_brightness">key_video_gesture_brightness</string>
     <string name="pref_key_video_gesture_volume">key_video_gesture_volume</string>

@@ -334,7 +334,8 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
         session = background?.session
         binding.playerView.player = player
         picture = VideoPicture(
-            this, binding.playerView, ::showPictureNotice, { videoSound?.signalStages().orEmpty() }
+            this, binding.playerView, ::showPictureNotice, { videoSound?.signalStages().orEmpty() },
+            { meter -> videoSound?.setMeter(meter?.let { it::addAudio }) }
         ).also {
             it.attach(player)
             binding.toolbar.menu.findItem(R.id.actionPictureEnhance)?.isChecked = it.switchedOn
