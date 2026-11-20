@@ -121,8 +121,9 @@ class VideoSoundEngine(private val context: Context) {
 
         override fun onIsPlayingChanged(isPlaying: Boolean) {
             effects.setAudible(isPlaying)
-            // Music may have set the mixer meanwhile; the film's rate counts again.
-            if (isPlaying) output.onConfigure(output.track)
+            // Music may have set the mixer meanwhile; the film's rate counts again. Paused, Ordo Musik gets a normal
+            // mixer, as music hands it back when paused.
+            if (isPlaying) output.onConfigure(output.track) else output.suspend()
         }
 
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) = onItem(mediaItem)
@@ -435,6 +436,9 @@ class VideoSoundEngine(private val context: Context) {
     }
 
     private fun onRoute() {
+        // A new output: the old one's mixer goes back, the new one gets the film's rate while it plays.
+        output.refresh()
+        if (player?.isPlaying == true) output.onConfigure(output.track)
         applyToChain()
         notifyChanged()
     }

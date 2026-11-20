@@ -78,7 +78,7 @@
             android:layout_marginStart="@dimen/klang_text_edge"
             android:layout_marginBottom="@dimen/klang_space_md"
             android:accessibilityLiveRegion="polite"
-            android:maxLines="1"
+            android:maxLines="2"
             android:text="@string/audio_sound_checking" />
 
         <com.google.android.material.card.MaterialCardView

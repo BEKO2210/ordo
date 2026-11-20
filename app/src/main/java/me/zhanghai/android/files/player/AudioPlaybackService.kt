@@ -657,6 +657,7 @@ class AudioPlaybackService : MediaSessionService() {
                                 AudioPlayerCommands.EXTRA_QUIET_BASS_DB to klang.headphones.quiet.let {
                                     if (it.effectEnabled) it.bassDb else 0f
                                 },
+                                AudioPlayerCommands.EXTRA_SONG_BIT_PERFECT to (hiRes.plan is OutputPlan.BitPerfect),
                                 AudioPlayerCommands.EXTRA_SONG_NOT_BIT_PERFECT to
                                     (hiRes.bitPerfectMode && hiRes.track != null &&
                                         hiRes.plan !is OutputPlan.BitPerfect),
