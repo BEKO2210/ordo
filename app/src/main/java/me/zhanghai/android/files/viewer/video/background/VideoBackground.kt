@@ -24,7 +24,6 @@ import android.os.Looper
 import android.util.Rational
 import android.view.View
 import android.widget.LinearLayout
-import android.widget.TextView
 import android.widget.Toast
 import androidx.annotation.DrawableRes
 import androidx.annotation.RequiresApi
@@ -44,9 +43,6 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.MediaSession
 import androidx.media3.session.SessionCommand
 import androidx.media3.session.SessionResult
-import com.google.android.material.bottomsheet.BottomSheetDialog
-import com.google.android.material.chip.Chip
-import com.google.android.material.chip.ChipGroup
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import androidx.media3.session.MediaController
@@ -63,7 +59,9 @@ import me.zhanghai.android.files.settings.Settings
 import me.zhanghai.android.files.util.valueCompat
 import me.zhanghai.android.files.viewer.video.VideoPrefs
 import me.zhanghai.android.files.viewer.video.VideoRepeatMode
-import me.zhanghai.android.files.viewer.video.showExpanded
+import me.zhanghai.android.files.viewer.audio.KlangMath
+import me.zhanghai.android.files.viewer.audio.KlangPictureView
+import me.zhanghai.android.files.viewer.audio.KlangSheet
 
 /** The open video player's session, for [VideoPlaybackService] and the notification's way back to it. */
 object VideoBackground {
@@ -109,6 +107,8 @@ object VideoBackground {
 class VideoBackgroundController(
     private val activity: AppCompatActivity,
     private val binding: VideoPlayerActivityBinding,
+    /** The entries of ⋮ › More (VideoMoreSheet). */
+    private val moreMenu: android.view.Menu,
     private val player: ExoPlayer,
     sessionId: String,
     private val repeat: () -> VideoRepeatMode,
@@ -183,7 +183,7 @@ class VideoBackgroundController(
             ContextCompat.registerReceiver(
                 activity, pipReceiver, IntentFilter(ACTION_PIP), ContextCompat.RECEIVER_NOT_EXPORTED
             )
-            binding.toolbar.menu.findItem(R.id.actionPip)?.isVisible = true
+            moreMenu.findItem(R.id.actionPip)?.isVisible = true
             // The window grows out of where the picture is (sourceRectHint).
             binding.playerView.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> updatePip() }
         }
@@ -325,58 +325,47 @@ class VideoBackgroundController(
             )
         )
 
-    /** Chips, never a slider: off, 15/30/45/60 min, end of the video. The checked one is what runs now. */
+    /**
+     * Segments, never a slider: off, 15/30/45/60 min, end of the video, under Ordo Musik's sleep picture (the arc is
+     * the time left). The checked one is what runs now.
+     */
     fun showSleepTimerSheet() {
-        val dialog = BottomSheetDialog(activity)
-        val padding = activity.resources.getDimensionPixelSize(R.dimen.phi_21)
-        val content = LinearLayout(activity).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(padding, padding, padding, padding)
+        val sheet = KlangSheet(activity, R.drawable.audio_timer_icon_24dp, R.string.video_player_sleep_timer)
+        val remaining = when {
+            !sleepTimer.isActive -> null
+            sleepTimer.endOfVideo -> activity.getString(R.string.video_sleep_remaining_end)
+            else -> activity.getString(R.string.video_sleep_remaining_format, KlangMath.remainingMinutes(sleepTimer.remainingMs))
         }
-        content.addView(TextView(activity).apply {
-            setText(R.string.video_player_sleep_timer)
-            setTextAppearance(com.google.android.material.R.style.TextAppearance_MaterialComponents_Headline6)
-            ViewCompat.setAccessibilityHeading(this, true)
-        })
-        if (sleepTimer.isActive) {
-            content.addView(TextView(activity).apply {
-                text = if (sleepTimer.endOfVideo) {
-                    activity.getString(R.string.video_sleep_remaining_end)
-                } else {
-                    activity.getString(
-                        R.string.video_sleep_remaining_format, ((sleepTimer.remainingMs + 59_999) / 60_000).toInt()
-                    )
-                }
-            })
+        sheet.info(remaining)
+        val card = sheet.card(R.drawable.audio_moon_icon_24dp, null)
+        card.addView(KlangPictureView(activity).apply {
+            kind = KlangPictureView.Kind.SLEEP
+            setState(
+                sleepTimer.isActive,
+                KlangMath.sleepFraction(sleepTimer.endOfVideo, sleepTimer.minutes, sleepTimer.remainingMs)
+            )
+            contentDescription = remaining ?: activity.getString(R.string.video_sleep_off)
+        }, LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            activity.resources.getDimensionPixelSize(R.dimen.klang_picture_height_tall)
+        ))
+        val labels = listOf(activity.getString(R.string.video_sleep_off)) +
+            SLEEP_MINUTES.map { activity.getString(R.string.video_sleep_minutes_format, it) } +
+            activity.getString(R.string.video_sleep_end_of_video)
+        val checked = when {
+            !sleepTimer.isActive -> 0
+            sleepTimer.endOfVideo -> labels.lastIndex
+            else -> SLEEP_MINUTES.indexOf(sleepTimer.minutes) + 1
         }
-        val group = ChipGroup(activity).apply {
-            isSingleSelection = true
-            isSelectionRequired = true
-        }
-        fun chip(text: String, checked: Boolean, onClick: () -> Unit) {
-            group.addView(Chip(activity, null, com.google.android.material.R.attr.chipStyle).apply {
-                id = View.generateViewId()
-                this.text = text
-                isCheckable = true
-                isChecked = checked
-                setOnClickListener {
-                    onClick()
-                    dialog.dismiss()
-                }
-            })
-        }
-        chip(activity.getString(R.string.video_sleep_off), !sleepTimer.isActive) { setSleepTimer(0, false) }
-        for (minutes in SLEEP_MINUTES) {
-            chip(activity.getString(R.string.video_sleep_minutes_format, minutes), sleepTimer.minutes == minutes) {
-                setSleepTimer(minutes, false)
+        sheet.segments(card, labels, checked, 3, tall = true) { index ->
+            when (index) {
+                0 -> setSleepTimer(0, false)
+                labels.lastIndex -> setSleepTimer(0, true)
+                else -> setSleepTimer(SLEEP_MINUTES[index - 1], false)
             }
+            sheet.dialog.dismiss()
         }
-        chip(activity.getString(R.string.video_sleep_end_of_video), sleepTimer.endOfVideo) { setSleepTimer(0, true) }
-        content.addView(group, LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT
-        ).apply { topMargin = padding / 2 })
-        dialog.setContentView(content)
-        dialog.showExpanded()
+        sheet.show()
     }
 
     private fun setSleepTimer(minutes: Int, endOfVideo: Boolean) {

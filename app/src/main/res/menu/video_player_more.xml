@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- The entries of the player's "More" sheet (VideoMoreSheet): one card per group, in this order. VideoSeekPro adds
+     chapters (order 41), frame by frame (42), the A-B loop (43) and save frame (61). -->
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <group android:id="@+id/groupVideoPictureSound">
+        <item
+            android:id="@+id/actionSound"
+            android:icon="@drawable/audio_equalizer_icon_24dp"
+            android:orderInCategory="10"
+            android:title="@string/video_sound_menu" />
+        <item
+            android:id="@+id/actionAudioTrack"
+            android:icon="@drawable/audio_surround_icon_24dp"
+            android:orderInCategory="11"
+            android:title="@string/video_audio_track_menu" />
+        <item
+            android:id="@+id/actionSubtitles"
+            android:icon="@drawable/video_subtitles_icon_24dp"
+            android:orderInCategory="12"
+            android:title="@string/video_subtitles_title" />
+        <item
+            android:id="@+id/actionPictureAdjust"
+            android:icon="@drawable/audio_tune_icon_24dp"
+            android:orderInCategory="13"
+            android:title="@string/video_picture_adjust_menu" />
+        <item
+            android:id="@+id/actionPictureEnhance"
+            android:checkable="true"
+            android:icon="@drawable/video_enhance_icon_24dp"
+            android:orderInCategory="14"
+            android:title="@string/video_picture_toggle" />
+        <item
+            android:id="@+id/actionSignalPath"
+            android:icon="@drawable/video_signal_icon_24dp"
+            android:orderInCategory="15"
+            android:title="@string/video_signal_title" />
+    </group>
+    <group android:id="@+id/groupVideoPlayback">
+        <item
+            android:id="@+id/actionSpeed"
+            android:icon="@drawable/audio_speed_icon_24dp"
+            android:orderInCategory="40"
+            android:title="@string/video_player_speed_title" />
+        <item
+            android:id="@+id/actionSleepTimer"
+            android:icon="@drawable/audio_timer_icon_24dp"
+            android:orderInCategory="44"
+            android:title="@string/video_player_sleep_timer" />
+        <item
+            android:id="@+id/actionPip"
+            android:icon="@drawable/video_pip_icon_24dp"
+            android:orderInCategory="45"
+            android:title="@string/video_player_pip"
+            android:visible="false" />
+    </group>
+    <group android:id="@+id/groupVideoFile">
+        <item
+            android:id="@+id/actionFileInfo"
+            android:icon="@drawable/information_icon_white_24dp"
+            android:orderInCategory="60"
+            android:title="@string/video_player_file_info" />
+        <item
+            android:id="@+id/actionOpenWith"
+            android:icon="@drawable/open_as_icon"
+            android:orderInCategory="62"
+            android:title="@string/video_player_open_with" />
+    </group>
+</menu>

@@ -174,4 +174,10 @@
     <string name="video_library_left_format">Noch %1$s</string>
     <string name="video_library_empty">Noch keine Videos gefunden. Lege Videos in einen Ordner wie Movies, DCIM oder Download, dann erscheinen sie hier.</string>
     <string name="video_library_access_message">Erlaube den Speicherzugriff, damit Ordo deine Videos findet.</string>
+    <!-- ⋮ in the player and the "More" sheet it opens (VideoMoreSheet). -->
+    <string name="video_more_button">Weitere Optionen</string>
+    <string name="video_more_title">Mehr</string>
+    <string name="video_more_picture_sound">Bild und Ton</string>
+    <string name="video_more_playback">Wiedergabe</string>
+    <string name="video_more_file">Datei</string>
 </resources>

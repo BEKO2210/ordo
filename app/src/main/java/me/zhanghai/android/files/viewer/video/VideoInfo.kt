@@ -25,8 +25,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.C
 import androidx.media3.common.Format
 import androidx.media3.common.Tracks
-import com.google.android.material.bottomsheet.BottomSheetDialog
-import com.google.android.material.button.MaterialButton
 import java.io.File
 import java.text.NumberFormat
 import java.util.Locale
@@ -35,6 +33,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import me.zhanghai.android.files.R
+import me.zhanghai.android.files.viewer.audio.KlangSheet
 import me.zhanghai.android.files.file.loadFileItem
 import me.zhanghai.android.files.fileproperties.FilePropertiesDialogFragment
 import me.zhanghai.android.files.util.putArgs
@@ -292,146 +291,85 @@ data class VideoInfo(
 }
 
 /**
- * The sheet itself: label over value, a long press copies the value; at the bottom "All file details" opens the file
- * manager's properties for whoever wants owner, permissions and checksums.
+ * The sheet itself, in Klang cards (file, picture, sound): label over value, a long press copies the value; side by
+ * side on wide sheets. At the bottom "Signal path" and "All file details" (the file manager's properties for owner,
+ * permissions and checksums).
  */
 fun FragmentActivity.showVideoInfo(info: VideoInfo, path: Path?, onSignalPath: (() -> Unit)? = null) {
-    val dialog = BottomSheetDialog(this)
-    val padding = resources.getDimensionPixelSize(R.dimen.phi_21)
-    val content = LinearLayout(this).apply {
-        orientation = LinearLayout.VERTICAL
-        setPadding(padding, padding, padding, padding)
+    val sheet = KlangSheet(this, R.drawable.information_icon_white_24dp, R.string.video_info_title)
+    val grid = sheet.grid()
+    fun card(icon: Int, title: Int, rows: List<Pair<Int, String?>>) {
+        val shown = rows.filter { !it.second.isNullOrBlank() }
+        if (shown.isEmpty()) return
+        val card = sheet.card(icon, getString(title), parent = grid)
+        for ((label, value) in shown) {
+            card.addView(LinearLayout(this).apply {
+                orientation = LinearLayout.VERTICAL
+                gravity = android.view.Gravity.CENTER_VERTICAL
+                minimumHeight = resources.getDimensionPixelSize(R.dimen.klang_row_min_height)
+                setPaddingRelative(resources.getDimensionPixelSize(R.dimen.klang_text_edge), 0, 0, 0)
+                isFocusable = true
+                contentDescription = "${getString(label)}: $value"
+                addView(TextView(context, null, 0, R.style.Widget_Ordo_Klang_Info).apply {
+                    setText(label)
+                    importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+                })
+                addView(TextView(context, null, 0, R.style.Widget_Ordo_Klang_Text).apply {
+                    text = value
+                    setTextAppearance(R.style.TextAppearance_Ordo_Klang_Body)
+                    importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+                })
+                setOnLongClickListener {
+                    getSystemService<ClipboardManager>()?.setPrimaryClip(ClipData.newPlainText(getString(label), value))
+                    Toast.makeText(context, R.string.video_info_copied, Toast.LENGTH_SHORT).show()
+                    true
+                }
+            })
+        }
     }
-    content.addView(TextView(this).apply {
-        setText(R.string.video_info_title)
-        setTextAppearance(com.google.android.material.R.style.TextAppearance_MaterialComponents_Headline6)
-        ViewCompat.setAccessibilityHeading(this, true)
-    })
-    // On wide windows (sw600dp, landscape) the rows stand in two columns, not as one long thin list.
-    val twoColumns = resources.configuration.screenWidthDp >= 600
-    val grid = android.widget.GridLayout(this).apply { columnCount = if (twoColumns) 2 else 1 }
-    content.addView(grid, LinearLayout.LayoutParams(
-        LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT
+    card(R.drawable.file_video_icon, R.string.video_more_file, listOf(
+        R.string.video_info_name to info.title,
+        R.string.video_info_file_name to info.fileName?.takeIf { it != info.title },
+        R.string.video_info_duration to info.durationMs.takeIf { it > 0 }?.let { DateUtils.formatElapsedTime(it / 1000) },
+        R.string.video_info_size to info.size.takeIf { it >= 0 }?.let { android.text.format.Formatter.formatFileSize(this, it) },
+        R.string.video_info_folder to info.folder,
+        R.string.video_info_recorded to info.recordedMs.takeIf { it > 0 }?.let {
+            DateUtils.formatDateTime(this, it, DateUtils.FORMAT_SHOW_DATE or DateUtils.FORMAT_SHOW_TIME or
+                DateUtils.FORMAT_SHOW_YEAR)
+        }
     ))
-    fun row(label: Int, value: String?) {
-        if (value.isNullOrBlank()) return
-        grid.addView(LinearLayout(this).apply {
-            layoutParams = android.widget.GridLayout.LayoutParams(
-                android.widget.GridLayout.spec(android.widget.GridLayout.UNDEFINED),
-                android.widget.GridLayout.spec(android.widget.GridLayout.UNDEFINED, 1f)
-            ).apply {
-                width = 0
-                marginEnd = padding
-            }
-            orientation = LinearLayout.VERTICAL
-            minimumHeight = resources.getDimensionPixelSize(R.dimen.phi_55)
-            setPadding(0, padding / 2, 0, 0)
-            isFocusable = true
-            contentDescription = "${getString(label)}: $value"
-            addView(TextView(context).apply {
-                setText(label)
-                setTextAppearance(com.google.android.material.R.style.TextAppearance_MaterialComponents_Caption)
-                importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
-            })
-            addView(TextView(context).apply {
-                text = value
-                setTextAppearance(com.google.android.material.R.style.TextAppearance_MaterialComponents_Body1)
-                importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
-            })
-            setOnLongClickListener {
-                getSystemService<ClipboardManager>()?.setPrimaryClip(ClipData.newPlainText(getString(label), value))
-                Toast.makeText(context, R.string.video_info_copied, Toast.LENGTH_SHORT).show()
-                true
-            }
-        })
-    }
-    row(R.string.video_info_name, info.title)
-    row(R.string.video_info_file_name, info.fileName?.takeIf { it != info.title })
-    row(R.string.video_info_duration, info.durationMs.takeIf { it > 0 }?.let { DateUtils.formatElapsedTime(it / 1000) })
-    row(R.string.video_info_resolution, VideoInfo.resolution(info.width, info.height, info.frameRate))
-    row(R.string.video_info_hdr, info.hdr?.let {
-        getString(if (it) R.string.video_info_yes else R.string.video_info_no)
-    })
-    row(R.string.video_info_codec, info.videoCodec?.let { (name, tenBit) ->
-        if (tenBit) getString(R.string.video_player_ten_bit_format, name) else name
-    })
-    row(R.string.video_info_bitrate, VideoInfo.bitrate(info.bitrate))
-    row(R.string.video_info_audio, info.audio.joinToString("\n") { it.joinToString(" · ") }.ifEmpty {
-        getString(R.string.video_info_none)
-    })
-    row(R.string.video_info_subtitles, info.subtitles.joinToString("\n") { it.joinToString(" · ") }.ifEmpty {
-        getString(R.string.video_info_none)
-    })
-    row(R.string.video_info_size, info.size.takeIf { it >= 0 }?.let {
-        android.text.format.Formatter.formatFileSize(this, it)
-    })
-    row(R.string.video_info_folder, info.folder)
-    row(R.string.video_info_recorded, info.recordedMs.takeIf { it > 0 }?.let {
-        DateUtils.formatDateTime(this, it, DateUtils.FORMAT_SHOW_DATE or DateUtils.FORMAT_SHOW_TIME or
-            DateUtils.FORMAT_SHOW_YEAR)
-    })
+    card(R.drawable.image_icon_white_24dp, R.string.video_signal_picture, listOf(
+        R.string.video_info_resolution to VideoInfo.resolution(info.width, info.height, info.frameRate),
+        R.string.video_info_hdr to info.hdr?.let { getString(if (it) R.string.video_info_yes else R.string.video_info_no) },
+        R.string.video_info_codec to info.videoCodec?.let { (name, tenBit) ->
+            if (tenBit) getString(R.string.video_player_ten_bit_format, name) else name
+        },
+        R.string.video_info_bitrate to VideoInfo.bitrate(info.bitrate)
+    ))
+    card(R.drawable.audio_speaker_icon_24dp, R.string.video_signal_sound, listOf(
+        R.string.video_info_audio to info.audio.joinToString("\n") { it.joinToString(" · ") }
+            .ifEmpty { getString(R.string.video_info_none) },
+        R.string.video_info_subtitles to info.subtitles.joinToString("\n") { it.joinToString(" · ") }
+            .ifEmpty { getString(R.string.video_info_none) }
+    ))
     // From the player: what happens to picture and sound on the way (viewer/video/picture).
     if (onSignalPath != null) {
-        content.addView(MaterialButton(this, null, androidx.appcompat.R.attr.borderlessButtonStyle).apply {
-            setText(R.string.video_info_signal_path)
-            isAllCaps = false
-            minHeight = resources.getDimensionPixelSize(R.dimen.phi_55)
-            setOnClickListener {
-                dialog.dismiss()
-                onSignalPath()
-            }
-        }, LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT)
-            .apply { topMargin = padding / 2 })
+        sheet.textButton(sheet.body, getString(R.string.video_info_signal_path), R.drawable.video_signal_icon_24dp) {
+            sheet.dialog.dismiss()
+            onSignalPath()
+        }
     }
     if (path != null) {
-        content.addView(MaterialButton(this, null, androidx.appcompat.R.attr.borderlessButtonStyle).apply {
-            setText(R.string.video_info_all_details)
-            isAllCaps = false
-            minHeight = resources.getDimensionPixelSize(R.dimen.phi_55)
-            setOnClickListener {
-                dialog.dismiss()
-                lifecycleScope.launch {
-                    val file = withContext(Dispatchers.IO) { runCatching { path.loadFileItem() }.getOrNull() }
-                        ?: return@launch
-                    if (isFinishing || supportFragmentManager.isStateSaved) return@launch
-                    FilePropertiesDialogFragment().putArgs(FilePropertiesDialogFragment.Args(file))
-                        .show(supportFragmentManager, null)
-                }
+        sheet.textButton(sheet.body, getString(R.string.video_info_all_details), R.drawable.information_icon_white_24dp) {
+            sheet.dialog.dismiss()
+            lifecycleScope.launch {
+                val file = withContext(Dispatchers.IO) { runCatching { path.loadFileItem() }.getOrNull() }
+                    ?: return@launch
+                if (isFinishing || supportFragmentManager.isStateSaved) return@launch
+                FilePropertiesDialogFragment().putArgs(FilePropertiesDialogFragment.Args(file))
+                    .show(supportFragmentManager, null)
             }
-        }, LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT)
-            .apply { topMargin = padding / 2 })
-    }
-    dialog.setContentView(androidx.core.widget.NestedScrollView(this).apply { addView(content) })
-    dialog.showExpanded()
-}
-
-/**
- * Opens a sheet fully and readable everywhere: expanded at once (no peek, the W90 in landscape showed only 60 px
- * under the navigation bar), at most 90 % of the window high with its own scrolling, above the navigation bar, and
- * on wide windows centred at the Klang sheet's width.
- */
-internal fun BottomSheetDialog.showExpanded() {
-    setOnShowListener {
-        val sheet = findViewById<View>(com.google.android.material.R.id.design_bottom_sheet) ?: return@setOnShowListener
-        val metrics = context.resources.displayMetrics
-        val width = minOf(metrics.widthPixels, context.resources.getDimensionPixelSize(R.dimen.klang_sheet_max_width))
-        sheet.layoutParams = sheet.layoutParams.apply { this.width = width }
-        (sheet.layoutParams as? android.widget.FrameLayout.LayoutParams)?.gravity =
-            android.view.Gravity.CENTER_HORIZONTAL
-        behavior.maxWidth = width
-        behavior.maxHeight = (metrics.heightPixels * 0.9f).toInt()
-        behavior.skipCollapsed = true
-        behavior.isFitToContents = true
-        behavior.state = com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_EXPANDED
-        // The last row and the button stay above the navigation bar (gesture strip or three buttons).
-        val content = (sheet as? android.view.ViewGroup)?.getChildAt(0) ?: return@setOnShowListener
-        val basePadding = content.paddingBottom
-        androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(content) { view, insets ->
-            val bottom = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.navigationBars()).bottom
-            view.setPadding(view.paddingLeft, view.paddingTop, view.paddingRight, basePadding + bottom)
-            insets
         }
-        androidx.core.view.ViewCompat.requestApplyInsets(content)
     }
-    show()
+    sheet.show()
 }
