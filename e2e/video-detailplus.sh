@@ -75,6 +75,8 @@ for i in 1 2; do ui has "Signalweg|Signal path" && swipe_up; done # whole texts:
 ui tap "Messwerte|Measurements" >/dev/null; sleep 2
 check "unfolding starts measuring" seen "Misst\. Zum Beenden antippen\.|Measuring\. Tap to stop\." 5
 check "every pass is wrapped while measuring" eval 'log | grep "measuring true"'
+# Landscape tablets (A8, W90) show the unfolded rows and the CSV button only below the fold; a dump lists only what shows.
+ui has "Als CSV teilen|Share as CSV" || swipe_up
 sleep 20
 check "the timer kind is shown" seen "GPU-Timer|GPU timer|CPU-Uhr|CPU clock"
 if seen "Detail plus: [0-9]"; then echo "INFO Detail plus kept for 20 s"; else echo "INFO Detail plus not timed (fell back?)"; fi
@@ -86,6 +88,7 @@ a logcat -d -s "$TAG:I" | tr -d '\r' | grep "Detail plus .* off" | tail -1 | sed
 ui tap "Als CSV teilen|Share as CSV" >/dev/null; sleep 2
 check "Share as CSV opens the share sheet" eval 'top | grep -qiE "chooser|resolver"'
 back 1
+ui has "Messwerte|Measurements" || swipe_down
 ui tap "Messwerte|Measurements" >/dev/null; sleep 1.5
 check "folding stops measuring" seen "Aus\. Zum Messen antippen\.|Off\. Tap to start measuring\." 5
 back 1; back 2
