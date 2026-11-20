@@ -15,7 +15,7 @@ DIR=/storage/emulated/0/ordo-e2e-picture
 TAG=OrdoVideoPicture
 tmp=$(mktemp -d)
 out=${OUT:-/tmp/ordo-e2e-picture}; mkdir -p "$out"
-trap 'a shell "rm -rf $DIR"; a shell setprop log.tag.$TAG "\"\""; rm -rf "$tmp"' EXIT
+trap '[ -n "${LOGPID:-}" ] && kill $LOGPID; a shell "rm -rf $DIR"; a shell setprop log.tag.$TAG "\"\""; rm -rf "$tmp"' EXIT
 command -v ffmpeg >/dev/null || { echo "SKIP video picture (no ffmpeg on the host)"; exit 0; }
 
 read -r W H < <(screen_size)
@@ -40,7 +40,14 @@ a push "$tmp/." "$DIR/" >/dev/null
 wake; grant; a logcat -b crash -c
 a shell am force-stop "$PKG"
 a shell setprop log.tag.$TAG DEBUG
-log() { a logcat -d -s "$TAG:D" | tr -d '\r'; }
+# The log is streamed into a file from each restart on: every frame logs a line, and on the S21 a later
+# `logcat -d` no longer held the start of playback.
+relog() {
+    [ -n "${LOGPID:-}" ] && kill "$LOGPID" 2>/dev/null
+    a logcat -c
+    "$ADB" -s "$SERIAL" logcat -s "$TAG:D" > "$tmp/log.txt" 2>/dev/null < /dev/null & LOGPID=$!
+}
+log() { tr -d '\r' < "$tmp/log.txt"; }
 open_folder() {
     a shell am start -W -a android.intent.action.VIEW -d "file://$DIR" -t inode/directory \
         -n "$PKG/me.zhanghai.android.files.filelist.FileListActivity" >/dev/null
@@ -65,7 +72,7 @@ check "and Match frame rate, only when seamless by default" ui has "Nur nahtlos|
 back 1; back 1
 
 # 2. A small SDR clip: the pipeline engages and frames are processed; their GPU time goes to the report.
-a logcat -c
+relog
 open_folder 01-small.mp4
 ui tap 01-small.mp4 >/dev/null
 check "the small clip opens Ordo's player" wait_on viewer.video.VideoPlayerActivity 8
@@ -92,7 +99,7 @@ a exec-out screencap -p > "$out/signal-path.png"
 back 1
 
 # 4. The ⋮ toggle compares: off clears the effects, on applies them again.
-a logcat -c
+relog
 menu "Bildverbesserung|Picture enhancement"
 a exec-out screencap -p > "$out/small-plain.png"
 # The hint pill fades after about a second, shorter than one screen read (2-3 s): look at the screenshot instead.
@@ -103,7 +110,7 @@ check "switched on again it applies them" eval 'log | grep -q -- "-> APPLY"'
 back 2
 
 # 5. A clip as large as the screen gets nothing.
-a logcat -c
+relog
 open_folder 02-screen.mp4
 ui tap 02-screen.mp4 >/dev/null; wait_on viewer.video.VideoPlayerActivity 8; sleep 4
 check "a clip as large as the screen is left alone (${long}x$short)" eval 'log | grep -q "NOT_SMALLER"'
@@ -112,7 +119,7 @@ back 2
 # 6. "Always" asks for 24 fps itself from API 31; "Only when seamless" leaves it to Media3.
 sdk=$(a shell getprop ro.build.version.sdk | tr -d '\r')
 settings_pick "Bildrate anpassen|Match frame rate" "Immer (Bildschirm kann kurz schwarz werden)|Always (the screen may go dark for a moment)"
-a logcat -c
+relog
 open_folder 01-small.mp4
 ui tap 01-small.mp4 >/dev/null; wait_on viewer.video.VideoPlayerActivity 8; sleep 4
 if [ "${sdk:-0}" -ge 31 ]; then
@@ -145,7 +152,7 @@ settings_pick "Bildrate anpassen|Match frame rate" "Nur nahtlos|Only when seamle
 
 # 7. HDR stays plain, and Video info links to the signal path.
 if [ "$hdr" = 1 ]; then
-    a logcat -c
+    relog
     open_folder 03-hdr.mp4
     ui tap 03-hdr.mp4 >/dev/null; wait_on viewer.video.VideoPlayerActivity 8; sleep 4
     check "an HDR10 clip is not processed" eval 'log | grep -q "off=HDR" && ! log | grep -q -- "-> ENGAGE"'

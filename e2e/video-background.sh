@@ -13,10 +13,6 @@ tmp=$(mktemp -d)
 settings_open() {
     a shell am start -W -n "$PKG/me.zhanghai.android.files.viewer.video.VideoLauncherActivity" >/dev/null; sleep 2
     guard; ui tap actionSettings >/dev/null; sleep 2
-    # The playback group's last rows sit below the fold on a phone.
-    local size; size=$(a shell wm size | tail -1 | grep -oE '[0-9]+x[0-9]+')
-    local w=${size%x*} h=${size#*x}
-    a shell input swipe $((w / 2)) $((h * 3 / 4)) $((w / 2)) $((h / 3)) 400; sleep 1
 }
 set_background() {
     settings_open
@@ -52,8 +48,8 @@ open_clip() {
 }
 not_playing() { ! playing; }
 no_pip_entry() { ! ui has "Bild-in-Bild|Picture-in-picture"; }
-# The task line with mode=pinned stands just above the activity's line (W90, Android 16), not below it.
-pinned() { a shell dumpsys activity activities | grep -B3 -A6 VideoPlayerActivity | grep -q 'mode=pinned\|windowingMode=pinned'; }
+# mode=pinned stands on the task line above the activity (W90) or in its config lines further below (S21, Tab).
+pinned() { a shell dumpsys activity activities | grep -B3 -A20 'Hist.*VideoPlayerActivity' | grep -q 'mode=pinned\|windowingMode=pinned'; }
 
 # 1. Sleep timer: chips, never a slider, and off again.
 open_clip; guard

@@ -17,7 +17,13 @@ crashes() { a logcat -b crash -d | grep -c FATAL; }
 back() { a shell input keyevent BACK; sleep "${1:-1.5}"; }
 
 pass() { echo "PASS $1"; }
-fail() { echo "FAIL $1"; FAILS=$((FAILS + 1)); }
+# With E2E_FAILDUMP=<dir>, every failure also leaves the screen it saw there (texts and a screenshot).
+fail() {
+    echo "FAIL $1"; FAILS=$((FAILS + 1))
+    [ -n "${E2E_FAILDUMP:-}" ] || return 0
+    mkdir -p "$E2E_FAILDUMP"; local f; f="$E2E_FAILDUMP/$(basename "$0" .sh)-$FAILS"
+    ui texts > "$f.txt" 2>/dev/null; ui shot "$f.png" 2>/dev/null; echo "INFO screen at this failure: $f.txt"
+}
 # check NAME COMMAND...: PASS when the command succeeds.
 check() { local name=$1; shift; if "$@" >/dev/null 2>&1; then pass "$name"; else fail "$name"; fi; }
 

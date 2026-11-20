@@ -39,7 +39,7 @@ check "the library shows a Series shelf" ui wait "Serien|Series" 8
 check "and a Movies shelf with the 41-min video" eval "ui texts | grep -q 'Der lange Film'"
 ui tap Dark >/dev/null; sleep 1.5
 check "the series page lists its season" ui wait "Staffel 1|Season 1" 5
-check "episodes in order with their number" eval "ui texts | grep -oE '(Folge|Episode) [123]' | head -3 | tr '\n' ' ' | grep -qE '1 .*2 .*3'"
+check "episodes in order with their number" eval "ui texts | grep -oE '(Folge|Episode) [123]' | awk '!seen[\$0]++' | head -3 | tr '\n' ' ' | grep -qE '1 .*2 .*3'"
 back
 
 ui tap actionSearch >/dev/null; sleep 1
@@ -50,6 +50,7 @@ check "an empty search says so" ui wait "Keine Videos passen zu deiner Suche.|No
 # The first back may only close the keyboard; the second only while the search field is still open.
 back; ui has search_src_text && back
 
+scroll_to Dark.S01E01 4 # on a phone "Recently added" starts at the newest episode, the grid lies below
 ui longtap "Dark.S01E01" >/dev/null; sleep 1
 check "a long press selects" ui wait "1 ausgewählt|1 selected" 4
 ui tap "Weitere Optionen|More options" >/dev/null; sleep 1
