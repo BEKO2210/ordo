@@ -116,7 +116,12 @@ open class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         )
         if (hidden != null) {
             hidden.summaryProvider = Preference.SummaryProvider<androidx.preference.MultiSelectListPreference> {
-                it.values.map { path -> path.substringAfterLast('/') }.sorted().joinToString(", ")
+                it.values.map { path ->
+                    // The storage root by its name, as in the folder chips (not "0").
+                    me.zhanghai.android.files.viewer.video.VideoLibrary.folderName(
+                        path, getString(R.string.home_storage_internal), getString(R.string.backup_target_sd)
+                    )
+                }.sorted().joinToString(", ")
                     .ifEmpty { getString(R.string.video_settings_hidden_folders_none) }
             }
             hidden.isEnabled = false
