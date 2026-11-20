@@ -37,9 +37,9 @@ if ffmpeg -v error -hide_banner -encoders 2>/dev/null | grep -q libx265; then
     ffmpeg -v error -f lavfi -i "$(src 1280x720)" -f lavfi -i "$tone" -c:v libx265 -preset ultrafast -pix_fmt yuv420p10le \
         -c:a aac -shortest "$tmp/05-hevc10.mkv" || echo "FAIL ffmpeg could not make the HEVC 10-bit MKV"
 fi
-# .m2ts, not .ts: Ordo (as Material Files) maps .ts to TypeScript and opens the chooser (Tab, 20.11.2026).
+# .ts: by name TypeScript; Ordo sniffs the 0x47 sync bytes and opens a real stream as video (20.11.2026).
 ffmpeg -v error -f lavfi -i "$(src 720x576)" -f lavfi -i "$tone" -c:v mpeg2video -q:v 4 -c:a mp2 -shortest -f mpegts \
-    "$tmp/06-mpeg2.m2ts" || echo "FAIL ffmpeg could not make the MPEG-2 TS"
+    "$tmp/06-mpeg2.ts" || echo "FAIL ffmpeg could not make the MPEG-2 TS"
 ffmpeg -v error -f lavfi -i "$(src 640x360)" -f lavfi -i "$tone" -c:v msmpeg4 -vtag MP43 -q:v 5 -c:a libmp3lame \
     -shortest "$tmp/07-divx3.avi" || echo "FAIL ffmpeg could not make the DivX 3 AVI"
 ffmpeg -v error -f lavfi -i "$(src 640x360)" -f lavfi -i "$tone" -c:v wmv2 -c:a wmav2 -shortest "$tmp/08-wmv.wmv" ||
@@ -218,7 +218,7 @@ check "Open with another app hands over to the system chooser" system_focus
 a shell input keyevent KEYCODE_BACK; sleep 1; back 2
 # The device's decoder first, FFmpeg when it can't (or fails to start, W90 with HEVC 10-bit): these play everywhere.
 not_on_error() { ! ui has errorOpenWith; }
-for f in 04-xvid.avi 05-hevc10.mkv 06-mpeg2.m2ts 07-divx3.avi; do
+for f in 04-xvid.avi 05-hevc10.mkv 06-mpeg2.ts 07-divx3.avi; do
     [ -s "$tmp/$f" ] || { echo "SKIP $f (not made on this host)"; continue; }
     open_folder "$f"
     ui tap "$f" >/dev/null; wait_on viewer.video.VideoPlayerActivity 8
