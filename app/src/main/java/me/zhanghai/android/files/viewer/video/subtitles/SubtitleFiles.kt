@@ -121,13 +121,15 @@ object SubtitleFiles {
         }
     }
 
-    private fun legacyCharset(language: String): String = when (language.lowercase(Locale.ROOT)) {
-        "pl", "cs", "sk", "hu", "sl", "hr", "ro", "bs", "sq" -> "windows-1250"
-        "ru", "uk", "be", "bg", "sr", "mk" -> "windows-1251"
-        "el" -> "windows-1253"
-        "tr", "az" -> "windows-1254"
-        else -> "windows-1252"
-    }
+    // "ru-RU", "sr_Latn" choose by their primary language subtag.
+    private fun legacyCharset(language: String): String =
+        when (language.substringBefore('-').substringBefore('_').lowercase(Locale.ROOT)) {
+            "pl", "cs", "sk", "hu", "sl", "hr", "ro", "bs", "sq" -> "windows-1250"
+            "ru", "uk", "be", "bg", "sr", "mk" -> "windows-1251"
+            "el" -> "windows-1253"
+            "tr", "az" -> "windows-1254"
+            else -> "windows-1252"
+        }
 
     private fun ByteArray.startsWith(prefix: ByteArray): Boolean =
         size >= prefix.size && prefix.indices.all { this[it] == prefix[it] }
@@ -154,7 +156,9 @@ object SubtitleFiles {
         }
     }
 
-    private val NON_LANGUAGE_TAGS = setOf("hi", "cc", "sdh", "forced")
+    // "hi" is Hindi: as a later tag (film.en.hi.srt) it means hearing impaired, but sidecars() takes the first
+    // language tag only, so a later "hi" never replaces the language.
+    private val NON_LANGUAGE_TAGS = setOf("cc", "sdh", "forced")
 
     private val UTF_8_BOM = byteArrayOf(0xEF.toByte(), 0xBB.toByte(), 0xBF.toByte())
     private val UTF_16_LE_BOM = byteArrayOf(0xFF.toByte(), 0xFE.toByte())

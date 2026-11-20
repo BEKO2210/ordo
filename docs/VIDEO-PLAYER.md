@@ -188,7 +188,8 @@ für eine Datei Verzögerung und Zeichenkodierung, für alle Filme Größe (Klei
 - **Dateien daneben** (`SubtitleFiles.sidecars`, getestet in `SubtitleFilesTest`): gleicher Name wie der Film, ohne
   Groß-/Kleinschreibung, Endung `.srt .vtt .ass .ssa .ttml .dfxp`, dazwischen Kürzel wie `film.de.srt`,
   `film.en.forced.srt`, `Film.DEU.ass`, `film.German.srt`, `film.mkv.srt`. Die erste Sprachangabe zählt (ISO 639-1/-2
-  samt `ger`/`fre` …, englische Namen); `hi`, `cc`, `sdh` gelten als Hörgeschädigten-Kennung, nicht als Hindi. Nur für
+  samt `ger`/`fre` …, englische Namen); `cc`, `sdh` gelten als Hörgeschädigten-Kennung; `hi` ist als erste Sprachangabe Hindi (`film.hi.srt`), nach einer Sprache
+  (`film.en.hi.srt`) zählt nur die erste. Die Codepage wählt die Hauptsprache (`ru-RU` → 1251). Nur für
   Ordos Pfade (auch SMB/SFTP), nie für `content://` anderer Apps; dort geht nur „Untertitel laden…“.
 - **Zeichensatz** (`SubtitleFiles.decode`): BOM (UTF-8, UTF-16), dann streng UTF-8 (`REPORT`), sonst die alte
   Windows-Codepage der Gerätesprache (1250 Mitteleuropa, 1251 Kyrillisch, 1253 Griechisch, 1254 Türkisch, sonst 1252).

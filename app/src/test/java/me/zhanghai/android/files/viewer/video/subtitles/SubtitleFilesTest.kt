@@ -47,6 +47,23 @@ class SubtitleFilesTest {
     }
 
     @Test
+    fun hiIsHindiFirstAndHearingImpairedAfterALanguage() {
+        val sidecars = SubtitleFiles.sidecars("film.mkv", listOf("film.hi.srt", "film.en.hi.srt", "film.ru-RU.srt"))
+            .associate { it.fileName to it.language }
+        assertEquals("hi", sidecars["film.hi.srt"])
+        assertEquals("en", sidecars["film.en.hi.srt"])
+        assertEquals("ru-RU", sidecars["film.ru-RU.srt"])
+    }
+
+    @Test
+    fun regionTaggedLanguagesChooseTheirCodePage() {
+        val cyrillic = "Привет".toByteArray(charset("windows-1251"))
+        assertEquals(SubtitleFiles.Decoded("Привет", "windows-1251"), SubtitleFiles.decode(cyrillic, null, "ru-RU"))
+        assertEquals("windows-1251", SubtitleFiles.decode(cyrillic, null, "sr_Latn").charset)
+        assertEquals("windows-1250", SubtitleFiles.decode(byteArrayOf(0xB9.toByte()), null, "pl-PL").charset)
+    }
+
+    @Test
     fun languageTagsAreNormalizedOnlyWhenKnown() {
         assertEquals("de", SubtitleFiles.languageCode("de"))
         assertEquals("de", SubtitleFiles.languageCode("DEU"))
@@ -56,7 +73,7 @@ class SubtitleFilesTest {
         assertEquals("pt-BR", SubtitleFiles.languageCode("pt_br"))
         assertNull(SubtitleFiles.languageCode("forced"))
         assertNull(SubtitleFiles.languageCode("sdh"))
-        assertNull(SubtitleFiles.languageCode("hi"))
+        assertEquals("hi", SubtitleFiles.languageCode("hi"))
         assertNull(SubtitleFiles.languageCode("12"))
     }
 
