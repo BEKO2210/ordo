@@ -102,6 +102,12 @@ class CastChooserSheet : BottomSheetDialogFragment() {
 
     override fun onStart() {
         super.onStart()
+        // Open in full: on a landscape tablet the collapsed peek showed only the title (Tab, 20.11.2026), and the
+        // rest would need a swipe up from the bottom.
+        (dialog as? com.google.android.material.bottomsheet.BottomSheetDialog)?.behavior?.apply {
+            skipCollapsed = true
+            state = com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_EXPANDED
+        }
         discovery?.start()
         cast.addListener(castListener)
         handler.postDelayed(searchedLongEnough, NONE_FOUND_AFTER_MS)
