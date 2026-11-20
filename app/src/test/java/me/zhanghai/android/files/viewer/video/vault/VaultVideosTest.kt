@@ -22,6 +22,38 @@ class VaultVideosTest {
         assertFalse(VaultVideos.isVault("file:///storage/emulated/0/Movies/a.mp4"))
     }
 
+    private class FakeChannel : java.io.Closeable {
+        var closed = false
+        override fun close() {
+            closed = true
+        }
+    }
+
+    @Test
+    fun revokeClosesOpenChannelsAndOnesOpenedDuringIt() {
+        val channels = OpenChannels()
+        val a = FakeChannel()
+        val b = FakeChannel()
+        val done = FakeChannel()
+        assertTrue(channels.add(a, channels.generation()))
+        assertTrue(channels.add(b, channels.generation()))
+        assertTrue(channels.add(done, channels.generation()))
+        channels.remove(done)
+        // An open that read the generation before the revoke but registers after it.
+        val late = FakeChannel()
+        val lateGeneration = channels.generation()
+        channels.revoke()
+        assertTrue(a.closed && b.closed)
+        assertFalse(done.closed)
+        assertEquals(0, channels.count())
+        assertFalse(channels.add(late, lateGeneration))
+        assertTrue(late.closed)
+        // A new grant after the revoke reads again.
+        val next = FakeChannel()
+        assertTrue(channels.add(next, channels.generation()))
+        assertFalse(next.closed)
+    }
+
     @Test
     fun itemHasOnlyIdAndGenericTitle() {
         val item = VaultVideos.item(id, "video/mp4", "Tresor-Video").build()

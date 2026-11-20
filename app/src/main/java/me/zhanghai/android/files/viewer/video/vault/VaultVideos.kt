@@ -18,6 +18,7 @@ import androidx.media3.datasource.DataSource
 import androidx.media3.datasource.DataSourceException
 import androidx.media3.datasource.DataSpec
 import androidx.media3.datasource.TransferListener
+import java.io.Closeable
 import java.io.EOFException
 import java.io.IOException
 import java.nio.ByteBuffer
@@ -66,7 +67,13 @@ object VaultVideos {
 
     fun isVault(uri: String?): Boolean = uri?.startsWith("$SCHEME:") == true
 
-    fun revokeAll() = granted.clear()
+    internal val channels = OpenChannels()
+
+    /** Locking the vault: no new reads, and every channel still open closes now, so playback stops at once. */
+    fun revokeAll() {
+        granted.clear()
+        channels.revoke()
+    }
 
     /** Plays [entries] (the vault's videos, in its order) from [start]; the vault must be unlocked. */
     fun play(context: Context, entries: List<VaultEntry>, start: VaultEntry) {
@@ -119,6 +126,46 @@ object VaultVideos {
     }
 }
 
+/**
+ * The decrypting channels open under the current grant. [revoke] closes them all; one opened while a revoke ran
+ * (its [generation] read before) is closed by [add] instead of slipping through.
+ */
+internal class OpenChannels {
+    private val open = HashSet<Closeable>()
+    private var generation = 0
+
+    @Synchronized
+    fun generation(): Int = generation
+
+    /** Tracks [channel]; false, and the channel closed, when a revoke came after [generation] was read. */
+    @Synchronized
+    fun add(channel: Closeable, generation: Int): Boolean {
+        if (generation != this.generation) {
+            runCatching { channel.close() }
+            return false
+        }
+        open += channel
+        return true
+    }
+
+    @Synchronized
+    fun remove(channel: Closeable) {
+        open -= channel
+    }
+
+    @Synchronized
+    fun count(): Int = open.size
+
+    fun revoke() {
+        val closing = synchronized(this) {
+            generation++
+            open.toList().also { open.clear() }
+        }
+        // Closed outside the lock: a read blocked in the channel must not hold up the revoke.
+        closing.forEach { runCatching { it.close() } }
+    }
+}
+
 /** Reads one vault entry through Tink's seekable decrypting channel: segments are decrypted in memory only. */
 @UnstableApi
 class VaultDataSource : BaseDataSource(false) {
@@ -131,9 +178,14 @@ class VaultDataSource : BaseDataSource(false) {
     @Throws(IOException::class)
     override fun open(dataSpec: DataSpec): Long {
         transferInitializing(dataSpec)
+        // Read before the grant check: a revoke in between closes the channel in add() below.
+        val generation = VaultVideos.channels.generation()
         val id = VaultVideos.idOf(dataSpec.uri)
             ?: throw DataSourceException(PlaybackException.ERROR_CODE_IO_NO_PERMISSION)
         val newChannel = Vault.store.openSeekable(id)
+        if (!VaultVideos.channels.add(newChannel, generation)) {
+            throw DataSourceException(PlaybackException.ERROR_CODE_IO_NO_PERMISSION)
+        }
         try {
             val size = newChannel.size()
             if (dataSpec.position > size) {
@@ -143,6 +195,7 @@ class VaultDataSource : BaseDataSource(false) {
             bytesRemaining = if (dataSpec.length == C.LENGTH_UNSET.toLong()) size - dataSpec.position
             else minOf(dataSpec.length, size - dataSpec.position)
         } catch (e: Throwable) {
+            VaultVideos.channels.remove(newChannel)
             newChannel.close()
             throw e
         }
@@ -174,7 +227,10 @@ class VaultDataSource : BaseDataSource(false) {
     override fun close() {
         uri = null
         try {
-            channel?.close()
+            channel?.let {
+                VaultVideos.channels.remove(it)
+                it.close()
+            }
         } finally {
             channel = null
             bytesRemaining = 0
