@@ -436,12 +436,13 @@ Decodern.
 - **Nicht in git:** Die `.so` (je ABI gut 1 MB, zusammen über 3 MB) baut Gradle selbst: `:ffmpeg:buildFfmpegAudio`
   läuft vor `preBuild`, einmal je Checkout (rund eine Minute, braucht Netz, git, make, cmake und das NDK) und legt sie
   in `ffmpeg/build/ffmpeg-audio/<abi>/`. Neu nur, wenn sich das Skript ändert oder `clean` lief. In git liegen
-  Media3s Java-Quellen und `proguard-rules.txt` (aus `libraries/decoder_ffmpeg` des Tags, unverändert); bei einem
+  Media3s Java-Quellen und `proguard-rules.txt` (aus `libraries/decoder_ffmpeg` des Tags, unverändert bis auf
+  `ExperimentalFfmpegVideoRenderer` und eine Regel, siehe „Software-Video“); bei einem
   Media3-Update von Hand neu kopieren, das Skript fasst sie nicht an.
 - **Lieferkette:** Das Skript führt fremde Skripte aus (`build_ffmpeg.sh`, FFmpegs `configure`). Darum sind beide
   Quellen auf Commits festgenagelt (`MEDIA3_SHA` 8c6678b6… für Tag 1.11.1, `FFMPEG_SHA` c41ff724… für n6.0.1); nach
   dem Klonen bricht es ab, wenn `git rev-parse HEAD` abweicht (ein umgehängter Tag fällt so auf). In der CI läuft der
-  Bau in einem eigenen Schritt „Build FFmpeg audio decoders“ (NDK installieren, `:ffmpeg:buildFfmpegAudio`, `.so`
+  Bau in einem eigenen Schritt „Build FFmpeg decoders“ (NDK installieren, `:ffmpeg:buildFfmpegAudio`, `.so`
   prüfen), in `play-internal.yml` vor dem Schritt, der den Signierschlüssel schreibt; spätere Gradle-Aufrufe
   überspringen ihn mit `-x :ffmpeg:buildFfmpegAudio`.
 - **16 KB:** `build.sh` linkt mit `-z max-page-size=16384` und bricht ab, wenn ein `.so` kleiner ausgerichtet ist.
@@ -460,11 +461,66 @@ Decodern.
 - **Updates:** Bei einem Media3-Update `MEDIA3_TAG` im Skript mitziehen; `FfmpegRendererTest` schlägt an, wenn der
   Konstruktor nicht mehr passt.
 
+## Software-Video
+
+Günstige Chips können manche Formate nicht oder melden sie und scheitern dann (W90, Unisoc, Android 16: HEVC 10-Bit,
+19.11.2026); Xvid/DivX (MPEG-4 ASP), MPEG-2 und VC-1 sind laut Android-Liste nicht zugesagt. Dafür dekodiert Ordo
+diese Formate selbst mit FFmpeg, aber nur, wenn kein Decoder des Geräts sie nimmt.
+
+- **Wahl des Decoders:** Media3s `ExperimentalFfmpegVideoRenderer` ist in 1.11.1 nur ein Platzhalter (sagt immer
+  „nicht unterstützt“, PR 1591 seit 2024 offen). Ordo ersetzt die Klasse im Modul `:ffmpeg` durch eine echte; der
+  Name und der Konstruktor bleiben, also lädt `DefaultRenderersFactory` sie mit `EXTENSION_RENDERER_MODE_ON` von
+  selbst: hinter dem Video-Renderer des Geräts, im Player, in `VideoInfo.probeTracks` und im Musik-Player. Media3 nimmt
+  den Renderer mit der besten Einstufung; FFmpeg gewinnt also nur, wenn das Gerät „nicht unterstützt“ oder „übersteigt
+  die Fähigkeiten“ meldet.
+- **Gerät meldet das Format und scheitert:** `VideoDecoderFallback` (ein `MediaCodecSelector`) blendet nach einem
+  Fehler des Geräte-Decoders (`DecoderInitializationException`, `MediaCodecDecoderException`, `CodecException` beim
+  Video-Renderer) dessen MIME-Typ für diesen Player aus und ruft `prepare()` noch einmal, an derselben Stelle. Kann
+  FFmpeg den Typ nicht oder scheitert auch FFmpeg, bleibt es bei der ruhigen Fehlermeldung (kein zweiter Versuch).
+  Getestet in `VideoDecoderFallbackTest`.
+- **Herkunft des Renderers:** Der Video-Teil stammt aus nextlib (anilbeesetti/nextlib, GPL-3.0, Tag
+  `v1.11.1-0.18.0`, Commit `d774e7e6…`): `ffvideo.cc` (JNI-Namen auf `androidx.media3.decoder.ffmpeg` umgestellt, die
+  Hilfsfunktionen aus Media3s `ffmpeg_jni.cc`), `FfmpegVideoDecoder` (eigene MIME-Tabelle, Extradaten für jedes Format
+  mit Init-Daten, Java-11-Syntax), `DrainingDecoder` (nur das Paket). Er dekodiert mit allen Kernen
+  (`availableProcessors`), rechnet jedes Bild mit libswscale nach RGBA um und schreibt es selbst in die Surface
+  (`ANativeWindow_lock`); 10-Bit wird dabei auf 8 Bit gebracht, HDR nicht auf den Bildschirm durchgereicht.
+- **Formate:** `h264 hevc mpeg2video mpeg4 h263 msmpeg4v2 msmpeg4v3 vc1`. Damit: HEVC 8/10 Bit, H.264 (High 10,
+  4:2:2), MPEG-2 (TS, PS, MKV), Xvid/DivX in AVI und MKV, DivX 3 (MP43) und MP42 in AVI, H.263, VC-1 in MKV (`WVC1`).
+  Nicht dabei: AV1 (FFmpeg braucht dafür dav1d, Pflicht im Gerät ab Android 14), VP8/VP9 (seit Android 4.4 im Gerät).
+- **ASF/WMV: nicht unterstützt.** Media3 hat keinen ASF-Extractor (nicht in `DefaultExtractorsFactory`), einer wäre
+  kein kleiner Eigenbau. `.wmv`/`.asf` zeigen die Formatmeldung mit „Mit anderer App öffnen“. WMV3 kommt in keinem
+  anderen Container an, darum fehlt auch der Decoder.
+- **Signalweg und Bildverbesserung:** Der Decoder heißt `ffmpegLavc…-hevc`; der Signalweg zeigt „Software-Dekodierung
+  (FFmpeg), weil der Chip dieses Format nicht kann“. Die Bildverbesserung (OpenGL-Kette) bleibt aus
+  (`PicturePolicy.Off.SOFTWARE`): FFmpeg schreibt selbst in die Surface, und die CPU braucht ihre Leistung. Läuft die
+  Kette schon, baut der Player den Bildschirm neu auf (wie bei HDR/DRM); das Video ist für diesen Prozess gemerkt,
+  damit es nicht wieder mit Kette startet. Verwirft das Gerät mehr als 2 Bilder je Sekunde, erscheint einmal je Prozess
+  ruhig „Dieses Video läuft über Software-Dekodierung und kann auf diesem Gerät ruckeln.“
+- **Bau:** derselbe Lauf wie beim FFmpeg-Ton (`utils/ffmpeg-audio/build.sh`, dieselben festgenagelten Commits). Einzige
+  Änderung an Media3s `build_ffmpeg.sh`: die Zeile `--disable-swscale` fällt weg (das Skript prüft vorher, dass es sie
+  gibt). Media3s `ffmpeg_jni.cc` und `ffvideo.cc` baut `ffmpeg/src/main/jni/CMakeLists.txt` zu einer
+  `libffmpegJNI.so`. `proguard-rules.txt` bekam eine Zeile: `VideoDecoderOutputBuffer` bleibt ungekürzt, weil
+  `ffvideo.cc` Felder und Methoden per Namen anspricht.
+- **Abgewogen: nextlib als fertiges AAR** (`nextlib-media3ext:1.11.1-0.18.0`, Maven Central, gemessen 20.11.2026):
+  `.so` gepackt arm64 4 722 836 B, armv7 4 505 327 B, x86_64 5 621 365 B je ABI, also über dem Rahmen von +3 MB; die
+  Decoder-Liste ist fest (kein `mpeg4`, kein `vc1`, dazu libass, dav1d, alle Ton-Decoder) und ließe sich nur mit einem
+  eigenen Bau von nextlibs `setup.sh` kürzen. Der eigene Bau braucht dagegen nur den Video-Renderer (rund 1 300 Zeilen).
+- **Größe** (Beta, 20.11.2026, `bundletool get-size total --dimensions=ABI`, Download MIN, gegen
+  `integrate/0.16.0`): arm64-v8a 10 809 230 → 12 210 765 B (+1 401 535), armeabi-v7a 8 286 365 → 9 551 988 B
+  (+1 265 623), x86_64 11 031 793 → 12 454 112 B (+1 422 319), x86 +12 907 (nur Java). AAB 31 695 581 →
+  35 777 332 B. `libffmpegJNI.so` entpackt (Ton und Video): arm64 4 469 800, armv7 4 007 688, x86_64 5 244 904 B.
+  16 KB: `utils/check-16k.sh` auf Beta-APK und -AAB grün (LOAD align 0x4000).
+- **Lizenz:** FFmpeg bleibt LGPL-2.1-or-later (weiter kein `--enable-gpl`, `--enable-nonfree`, `--enable-version3`;
+  libswscale ist LGPL). Der nextlib-Code ist GPL-3.0 wie Ordo; Über › Lizenzen nennt ihn.
+
 ## Offen (messen)
 
 Ruckler beim Drehen auf dem Tab; AC3/E-AC3/DTS in MKV auf Tab S9 Ultra und S21; Puffer und Spulen großer Filme über
 SMB/SFTP; Vergleich mit Samsung Video und Google Fotos; ob `sensorLandscape` auf dem Tab unter Android 16 wirkt;
-AC3/DTS über FFmpeg auf dem W90 (Ton, CPU-Last); wie `dumpsys media_session` die Session `video.<UUID>` benennt.
+AC3/DTS über FFmpeg auf dem W90 (Ton, CPU-Last); wie `dumpsys media_session` die Session `video.<UUID>` benennt;
+Software-Video auf dem W90: springt FFmpeg bei HEVC 10-Bit ein (Signalweg), CPU-Last und verworfene Bilder bei
+720p/1080p HEVC 10-Bit, MPEG-2 576i, Xvid; Akku je Stunde; ob der Wechsel Gerät → FFmpeg auf derselben Surface sauber
+klappt und zurück beim nächsten Video.
 
 ## Profi-Spulen (`viewer/video/seek`)
 

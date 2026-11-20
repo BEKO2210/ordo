@@ -48,10 +48,13 @@ object SignalPath {
         }
     }
 
+    /** Ordo's own FFmpeg decoders ("ffmpegLavc60.3.100-hevc"), used only for what the device's decoders can't play. */
+    fun isFfmpegDecoderName(name: String): Boolean = name.startsWith("ffmpeg")
+
     /** "c2.android.avc.decoder", "OMX.google.h264.decoder": Android's software decoders, by name (pre-API-29 rule). */
     fun isSoftwareDecoderName(name: String): Boolean {
         val lower = name.lowercase()
-        return lower.startsWith("omx.google.") || lower.startsWith("c2.android.") || lower.startsWith("omx.ffmpeg.") ||
+        return isFfmpegDecoderName(lower) || lower.startsWith("omx.google.") || lower.startsWith("c2.android.") || lower.startsWith("omx.ffmpeg.") ||
             lower.startsWith("c2.ffmpeg.") || lower.contains(".sw.") || lower.endsWith(".sw")
     }
 }

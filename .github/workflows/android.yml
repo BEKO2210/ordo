@@ -20,7 +20,7 @@ jobs:
         distribution: 'temurin'
         java-version: '21'
     # Third-party build scripts (FFmpeg, Media3, pinned in utils/ffmpeg-audio/build.sh) in their own step.
-    - name: Build FFmpeg audio decoders
+    - name: Build FFmpeg decoders
       run: |
         yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --install 'ndk;30.0.16248370' > /dev/null
         ./gradlew :ffmpeg:buildFfmpegAudio

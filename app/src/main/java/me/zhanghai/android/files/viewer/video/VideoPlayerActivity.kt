@@ -48,6 +48,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
+import androidx.media3.common.MimeTypes
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.TrackSelectionOverride
@@ -55,6 +56,7 @@ import androidx.media3.common.Tracks
 import androidx.media3.common.VideoSize
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.common.util.Util
+import androidx.media3.exoplayer.ExoPlaybackException
 import androidx.media3.exoplayer.ExoPlayer
 import me.zhanghai.android.files.viewer.video.sound.VideoAudioTrackSheet
 import me.zhanghai.android.files.viewer.video.sound.VideoSoundEngine
@@ -117,6 +119,7 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
 
     // Films from SMB/SFTP/WebDAV/FTP (buffer, reconnect) and on a TV; see docs/VIDEO-PLAYER.md.
     private var network: VideoNetworkPlayback? = null
+    private val decoderFallback = VideoDecoderFallback()
     private var castSession: VideoCastSession? = null
     override val castController: VideoCastSession
         get() = castSession
@@ -244,6 +247,19 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
         override fun onVideoSizeChanged(videoSize: VideoSize) = followVideoOrientation(videoSize)
 
         override fun onPlayerError(error: PlaybackException) {
+            // The chip claimed the format but its decoder failed: once more with FFmpeg, at the same place.
+            val renderer = error as? ExoPlaybackException
+            val mimeType = renderer?.rendererFormat?.sampleMimeType
+            val platformFailed = renderer?.type == ExoPlaybackException.TYPE_RENDERER && MimeTypes.isVideo(mimeType) &&
+                generateSequence<Throwable>(error) { it.cause }.take(10).any {
+                    it is MediaCodecRenderer.DecoderInitializationException || it is MediaCodecDecoderException ||
+                        it is android.media.MediaCodec.CodecException
+                }
+            if (decoderFallback.blockAfterFailure(mimeType, platformFailed)) {
+                android.util.Log.w(DECODER_TAG, "platform decoder failed for $mimeType, now FFmpeg", error)
+                player?.prepare()
+                return
+            }
             showError(network?.errorMessage(this@VideoPlayerActivity, error) ?: errorMessage(error))
             binding.resumePill.isVisible = false
             controls.setShown(true)
@@ -290,7 +306,7 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
         val sound = VideoSoundEngine(this).also { videoSound = it }
         // Klang chain + FFmpeg extension (AudioRenderersFactory sets EXTENSION_RENDERER_MODE_ON).
         val player = network.applyTo(ExoPlayer.Builder(this), this)
-            .setRenderersFactory(sound.renderersFactory())
+            .setRenderersFactory(sound.renderersFactory().setMediaCodecSelector(decoderFallback))
             .setAudioAttributes(
                 AudioAttributes.Builder().setUsage(C.USAGE_MEDIA).setContentType(C.AUDIO_CONTENT_TYPE_MOVIE).build(),
                 true
@@ -1375,6 +1391,7 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
         private const val FADE_MS = 200L
         private const val DISABLED_CONTROL_ALPHA = 0.38f
         private const val GESTURE_TAG = "OrdoVideoGesture"
+        private const val DECODER_TAG = "OrdoVideoDecoder"
         // Not a real gravity: showHint's marker for "a gesture's value, upper third".
         private const val GESTURE_PILL = -1
         private const val SETTINGS_NAME = "video_settings"

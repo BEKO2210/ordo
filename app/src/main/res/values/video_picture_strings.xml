@@ -21,10 +21,12 @@
     <string name="video_picture_off">Picture enhancement off</string>
     <string name="video_picture_on_idle_format">Picture enhancement on, not used here: %1$s</string>
     <string name="video_picture_too_slow_notice">Picture enhancement paused: this device can’t keep up with it on this video.</string>
+    <string name="video_software_slow_notice">This video is decoded in software and may stutter on this device.</string>
 
     <string name="video_picture_off_no_video">no picture yet</string>
     <string name="video_picture_off_hdr">HDR video is shown as it is</string>
     <string name="video_picture_off_drm">protected video</string>
+    <string name="video_picture_off_software">software decoding needs all the power</string>
     <string name="video_picture_off_setting">switched off in the settings</string>
     <string name="video_picture_off_switched">switched off</string>
     <string name="video_picture_off_too_slow">the device couldn’t keep up</string>
@@ -49,6 +51,7 @@
 
     <string name="video_signal_hardware_format">Hardware · %1$s</string>
     <string name="video_signal_software_format">Software, uses more battery · %1$s</string>
+    <string name="video_signal_ffmpeg_format">Software decoding (FFmpeg), as the chip can’t play this format · %1$s</string>
     <string name="video_signal_passthrough">None: the stream goes to the device unchanged</string>
     <string name="video_signal_resolution_scaled_format">%1$s → %2$s, scaled by the screen</string>
     <string name="video_signal_resolution_lanczos_format">%1$s → %2$s with Lanczos 3</string>
