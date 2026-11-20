@@ -15,7 +15,7 @@
 
 <p align="center">
 <!-- AUTO:badges -->
-  <a href="https://github.com/BEKO2210/ordo/releases/tag/v0.16.0"><img alt="Version 0.16.0" src="https://img.shields.io/badge/Version-0.16.0-2563EB"></a>
+  <a href="https://github.com/BEKO2210/ordo/releases/tag/v0.17.0"><img alt="Version 0.17.0" src="https://img.shields.io/badge/Version-0.17.0-2563EB"></a>
   <img alt="Android 7.0+" src="https://img.shields.io/badge/Android-7.0%2B-3DDC84">
   <a href="LICENSE"><img alt="Lizenz: GPL-3.0-or-later" src="https://img.shields.io/badge/Lizenz-GPL--3.0--or--later-blue"></a>
 <!-- /AUTO:badges -->
@@ -33,21 +33,23 @@
 </p>
 
 <!-- AUTO:new -->
-> **Neu in 0.16.0**
-> - Untertitel: Dateien und Spuren, Lese-Hilfe, gut lesbar
-> - Bild-in-Bild, Ton im Hintergrund, Schlaf-Timer
-> - Klang fürs Video: klare Dialoge, Nachtmodus, gleiche Lautstärke
-> - Dolby- und DTS-Ton auch auf günstigen Geräten
-> - Vorschaubilder beim Spulen, Kapitel, A-B-Schleife, Zoom
-> - Filme vom Netzlaufwerk und auf den Fernseher
-> - Serien, Gesehen-Markierung, Suche, Tresor-Videos
-> - Schärferes Bild und der Signalweg zeigt, was passiert
+> **Neu in 0.17.0**
+> - Alle Formate per Software-Decoder, auch HEVC 10-Bit, MPEG-2, Xvid, DivX
+> - Untertitel im Film verschieben, wenn sie zu früh oder zu spät kommen
+> - Bild anpassen: Helligkeit, Kontrast, Farbe, Schärfe
+> - Zeilensprung entfernen
+> - Detail plus: feinere Details beim Vergrößern
+> - Kopfhörer-Raumklang für 5.1 und 7.1
+> - Leise hören mit vollem Klang
+> - Kopfhörer-Korrektur für 500 Modelle
+> - USB-DAC unverfälscht, in passender Abtastrate
+> - Akku-Offload, wenn kein Effekt an ist
 <!-- /AUTO:new -->
 
 ## Stand
 
 <!-- AUTO:status -->
-Aktuelle Version 0.16.0 · [Release v0.16.0](https://github.com/BEKO2210/ordo/releases/tag/v0.16.0) · ab Android 7.0 (minSdk 24, targetSdk 36 = Android 16) · [GPL-3.0-or-later](LICENSE)
+Aktuelle Version 0.17.0 · [Release v0.17.0](https://github.com/BEKO2210/ordo/releases/tag/v0.17.0) · ab Android 7.0 (minSdk 24, targetSdk 36 = Android 16) · [GPL-3.0-or-later](LICENSE)
 <!-- /AUTO:status -->
 
 Ordo ist in Entwicklung. Bei Google Play läuft ein geschlossener Test; Testversionen erscheinen auch als

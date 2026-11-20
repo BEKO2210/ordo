@@ -1,10 +1,12 @@
-Ordo Video grows up
-• Subtitles: files and tracks, reading aid, easy to read
-• Picture-in-picture, sound in the background, sleep timer
-• Sound for video: clear dialogue, night mode, even volume
-• Dolby and DTS sound, even on low-cost devices
-• Preview frames while seeking, chapters, A-B loop, zoom
-• Films from network drives and on your TV
-• Series, watched marks, search, vault videos
-• Sharper picture, and the signal path shows what happens
-Music: tabs are equally wide on tablets.
+Video:
+• Every format via software decoder, also HEVC 10-bit, MPEG-2, Xvid, DivX
+• Move subtitles inside the film when they come too early or too late
+• Adjust picture: brightness, contrast, colour, sharpness
+• Remove interlacing
+• Detail plus: finer detail when enlarging
+Sound:
+• Headphone surround for 5.1 and 7.1
+• Quiet listening with full sound
+• Headphone correction for 500 models
+• USB DAC untouched, at the matching sample rate
+• Battery offload when no effect is on

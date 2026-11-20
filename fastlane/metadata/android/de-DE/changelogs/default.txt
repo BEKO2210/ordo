@@ -1,10 +1,12 @@
-Ordo Video wird groß
-• Untertitel: Dateien und Spuren, Lese-Hilfe, gut lesbar
-• Bild-in-Bild, Ton im Hintergrund, Schlaf-Timer
-• Klang fürs Video: klare Dialoge, Nachtmodus, gleiche Lautstärke
-• Dolby- und DTS-Ton auch auf günstigen Geräten
-• Vorschaubilder beim Spulen, Kapitel, A-B-Schleife, Zoom
-• Filme vom Netzlaufwerk und auf den Fernseher
-• Serien, Gesehen-Markierung, Suche, Tresor-Videos
-• Schärferes Bild und der Signalweg zeigt, was passiert
-Musik: Reiter auf Tablets gleich breit.
+Video:
+• Alle Formate per Software-Decoder, auch HEVC 10-Bit, MPEG-2, Xvid, DivX
+• Untertitel im Film verschieben, wenn sie zu früh oder zu spät kommen
+• Bild anpassen: Helligkeit, Kontrast, Farbe, Schärfe
+• Zeilensprung entfernen
+• Detail plus: feinere Details beim Vergrößern
+Ton:
+• Kopfhörer-Raumklang für 5.1 und 7.1
+• Leise hören mit vollem Klang
+• Kopfhörer-Korrektur für 500 Modelle
+• USB-DAC unverfälscht, in passender Abtastrate
+• Akku-Offload, wenn kein Effekt an ist
