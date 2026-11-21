@@ -24,9 +24,10 @@ e2e/farm.sh --write --only "klang video-seek" --orient landscape tab # a few sui
 - **Devices** are named in `farm-devices.conf` with what they can do (`shots`, `hdr`, `slow`, …). Each one is taken
   through a lock command (`FARM_LOCK`, on pop-os `~/ordo-geraet.sh <name> <cmd>`: it waits for the device, exports
   `ORDO_SERIAL` and runs the command), so two jobs never drive one device. Without a lock command a device's name is
-  its adb serial. The farm holds a device for its whole share of the run (one lock, not one per suite), so rotation
-  and screen state stay its own; other jobs for that device wait until the farm is done. A device that is offline, locked, held by someone else or fails `preflight.sh` is left out; the
-  others take its share.
+  its adb serial. The lock is taken per suite and given back after it, with the rotation as it was: between two
+  suites other jobs get the device. `touch <FARM_OUT>/hold/<device>` lends a device out for longer (its running
+  suite finishes, no new one starts until the file is gone). A device that is offline, locked or fails `preflight.sh`
+  is left out; the others take its share.
 - **Jobs** are suite × orientation. A free device takes the next job it is able to run, longest first (times of the
   last run), and keeps its orientation as long as there is work in it. The time limit of a suite (900 s, doubled on a
   `slow` device) runs inside the device lock, so waiting for a device never eats it.
@@ -37,7 +38,7 @@ e2e/farm.sh --write --only "klang video-seek" --orient landscape tab # a few sui
 - `summary.txt` in the run's folder (`FARM_OUT`, default `~/.cache/ordo-e2e/farm/<start time>/`) is rewritten every
   3 s; at the end the table suite × orientation × result × device × seconds × checks is printed. Exit code 0: all
   passed; 1: a suite failed twice or ran out of time; 3: a suite could not run on any device.
-- What the farm changes on a device it puts back, also on Ctrl-C: rotation, a size or density override a suite left,
+- What the farm changes on a device it puts back after every suite, also on Ctrl-C: rotation, a size or density override a suite left,
   and at night (22–7) do-not-disturb, which it switches on for the run. It never sets `E2E_ALLOW_VOLUME`.
 
 **Adding a suite:** put its name into the list in `run.sh`, make the file executable, and if it needs something

@@ -96,7 +96,7 @@ else
     [ "$(get override)" = 00 ] && ok "no screen size or density override" ||
         no "a screen size/density override is set (wm size, wm density): another job uses this device, or one left it"
     # Ordo can come to the front: nothing (a system dialog, a lock) sits on top of it.
-    if [ -n "$code" ] && [ "$bad" = 0 ]; then
+    if [ -n "$code" ] && [ "$bad" = 0 ] && [ "${E2E_PREFLIGHT_QUICK:-}" != 1 ]; then
         a shell am start -W -n "$PKG/me.zhanghai.android.files.home.HomeActivity" >/dev/null 2>&1
         top=$(a shell "dumpsys activity activities 2>/dev/null | grep -m1 topResumedActivity")
         grep -q " $PKG/" <<<"$top" && ok "Ordo comes to the front" || no "Ordo does not come to the front: $(grep -o 'com[^ }]*' <<<"$top")"
