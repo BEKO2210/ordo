@@ -1,12 +1,13 @@
 Video:
-• Alle Formate per Software-Decoder, auch HEVC 10-Bit, MPEG-2, Xvid, DivX
-• Untertitel im Film verschieben, wenn sie zu früh oder zu spät kommen
-• Bild anpassen: Helligkeit, Kontrast, Farbe, Schärfe
-• Zeilensprung entfernen
-• Detail plus: feinere Details beim Vergrößern
+• Software-Decoder: DivX, MPEG-2, HEVC 10-Bit, VC-1, .ts
+• Menüs neu im Musik-Stil
+• Untertitel: Umlaute immer richtig, neuer Stil, gut lesbar
+• Bild anpassen und Zeilensprung entfernen
+• Detail plus, wo das Gerät es schafft
 Ton:
-• Kopfhörer-Raumklang für 5.1 und 7.1
-• Leise hören mit vollem Klang
-• Kopfhörer-Korrektur für 500 Modelle
-• USB-DAC unverfälscht, in passender Abtastrate
-• Akku-Offload, wenn kein Effekt an ist
+• Kopfhörer-Paket: Raumklang, Leise hören, Korrektur für 500 Modelle
+• Hi-Res-Ausgabe über USB-DAC
+Außerdem:
+• Besser lesbar über hellen Bildern und im erweiterten Dunkel-Design
+• Ordner heißt „Interner Speicher“ statt „0“
+• Viele Fehler behoben

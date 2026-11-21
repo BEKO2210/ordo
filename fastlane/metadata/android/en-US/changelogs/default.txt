@@ -1,12 +1,13 @@
 Video:
-• Every format via software decoder, also HEVC 10-bit, MPEG-2, Xvid, DivX
-• Move subtitles inside the film when they come too early or too late
-• Adjust picture: brightness, contrast, colour, sharpness
-• Remove interlacing
-• Detail plus: finer detail when enlarging
+• Software decoder: DivX, MPEG-2, HEVC 10-bit, VC-1, .ts
+• Menus redone in Music style
+• Subtitles: accents always right, new style, easy to read
+• Adjust picture and remove interlacing
+• Detail plus where the device can handle it
 Sound:
-• Headphone surround for 5.1 and 7.1
-• Quiet listening with full sound
-• Headphone correction for 500 models
-• USB DAC untouched, at the matching sample rate
-• Battery offload when no effect is on
+• Headphone pack: surround, quiet listening, correction for 500 models
+• Hi-res output via USB DAC
+Also:
+• Easier to read over bright frames and in the extended dark theme
+• Folder named "Internal storage" instead of "0"
+• Many fixes
