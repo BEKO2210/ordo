@@ -306,8 +306,8 @@ class VideoSoundEngine(private val context: Context) {
     // film's sound always passes downmix, lip-sync delay and limiter.
     private val output = HiResOutput(context, allowsBitPerfect = false)
 
-    fun renderersFactory(): AudioRenderersFactory =
-        AudioRenderersFactory(context, arrayOf(downmix, klang, truePeak, delay), output)
+    fun renderersFactory(videoGraph: androidx.media3.common.VideoGraph.Factory? = null): AudioRenderersFactory =
+        AudioRenderersFactory(context, arrayOf(downmix, klang, truePeak, delay), output, videoGraph)
 
     fun attach(player: ExoPlayer) {
         this.player = player

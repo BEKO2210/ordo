@@ -104,7 +104,8 @@ class PictureMeter {
         const val PASS_DETAIL = "detailplus"
         const val PASS_LANCZOS = "lanczos"
         const val PASS_ENHANCE = "enhance"
-        val PASSES = listOf(PASS_DETAIL, PASS_LANCZOS, PASS_ENHANCE)
+        const val PASS_HDR = "hdr"
+        val PASSES = listOf(PASS_DETAIL, PASS_LANCZOS, PASS_ENHANCE, PASS_HDR)
         val HEADER = (listOf("t_s", "timer", "upscaler") +
             PASSES.flatMap { listOf("${it}_ms", "${it}_max_ms", "${it}_frames") } +
             listOf("dropped", "thermal_headroom", "audio_ms", "audio_max_ms", "audio_buffers", "underruns"))

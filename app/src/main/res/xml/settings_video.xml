@@ -107,6 +107,14 @@
             android:entryValues="@array/pref_entry_values_video_upscaler"
             app:useSimpleSummaryProvider="true" />
         <ListPreference
+            android:key="@string/pref_key_video_hdr"
+            android:icon="@drawable/settings_video_hdr_icon_white_24dp"
+            android:title="@string/video_settings_hdr"
+            android:defaultValue="@string/pref_default_value_video_hdr"
+            android:entries="@array/video_settings_hdr_entries"
+            android:entryValues="@array/pref_entry_values_video_hdr"
+            app:useSimpleSummaryProvider="true" />
+        <ListPreference
             android:key="@string/pref_key_video_frame_rate"
             android:icon="@drawable/settings_video_frame_rate_icon_white_24dp"
             android:title="@string/video_settings_frame_rate"

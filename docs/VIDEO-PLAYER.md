@@ -285,14 +285,52 @@ Quelle der Entscheidungen: `ordo-team/QUALITAET-PANEL.md`, Ideen 1–4. Logik oh
   Pumpen). Im Shader als Exponent-Verhältnis auf der Luma wie HLGs OOTF: rgb · Y'^(γ/1,2 − 1), pro Bild gelesen, ohne
   die Kette neu zu bauen. Wirkt nur, solange der Bildverbesserungs-Pass läuft; der Sensor hört nur bei sichtbarem
   Player zu. Signalweg-Zeile „Raumlicht: 1 200 lx → Gamma 1,11 (Bezug 1,20)“.
-- **HDR→SDR mit eigener EETF (BT.2408-9 Anhang 5): nicht gebaut**, weil Media3 1.11.1 es nicht zulässt. Eigene Effekte
-  bekommen HDR nur dann linear (BT.2020, 16 bit), wenn die Ausgabe HDR ist (`GlEffect`-Javadoc,
-  `DefaultVideoFrameProcessor` L703–722). Ist die Ausgabe SDR, rechnet schon der Eingangs-Shader mit Media3s fester
-  Kurve um (`DefaultShaderProgram`, `uApplyHdrToSdrToneMapping`), bevor ein Effekt das Bild sieht. Welche Ausgabe gewählt
-  wird, entscheidet `PlaybackVideoGraphWrapper.registerInput` (L568–596) selbst; der Schalter
-  `setRequestOpenGlToneMapping` ist nicht öffentlich über ExoPlayer erreichbar. Mit HDR-Ausgabe würde Android die
-  Umrechnung für ein SDR-Display wieder selbst machen (doppelt), und die Kette verwirft HDR-Metadaten
-  (`setHdrStaticInfo(null)`) und Dolby Vision. Darum bleibt HDR wie bisher ohne Kette direkt beim Decoder.
+- **HDR-Darstellung** (Einstellungen › Bild, „Automatisch“ ab Werk oder „Aus (Android rechnet um)“; `HdrToneMap`,
+  `HdrToneMapEffect`, getestet in `HdrToneMapTest`): HDR10 und HLG auf einem Bildschirm, der diese HDR-Art nicht kann
+  (`Display.HdrCapabilities.supportedHdrTypes`), rechnet Ordo selbst auf SDR um; ein HDR-Bildschirm bekommt HDR
+  unverändert direkt vom Decoder. Nicht bei Dolby Vision, DRM und FFmpeg-Dekodierung (z. B. Tab A8: kein Hardware-
+  Decoder für HEVC Main 10, dann rechnet Android wie bisher). Kurve: EETF aus ITU-R **BT.2408-9 Anhang 5** (bis
+  BT.2390-8 dort): im PQ-Bereich 1:1 bis zu einem Knie, darüber ein Hermite-Spline, der genau auf
+  der Spitze des Bildschirms endet; angewandt auf max(R,G,B), damit der Farbton bleibt; danach BT.2020 → BT.709
+  (BT.2087-Matrix), Gamma 2,2. HLG bekommt die BT.2100-OOTF bei 1000 cd/m² (Systemgamma 1,2). Ziel = Spitzenhelligkeit
+  des Bildschirms (`getDesiredMaxLuminance`, 100–2000 cd/m², sonst das HDR-Referenzweiß 203 cd/m² nach BT.2408 § 2.1).
+  Die Quellspitze ist nicht die Mastering-Angabe, sondern gemessen (Idee aus libplacebos Peak-Erkennung in mpv, Code
+  eigen): ein zweiter kleiner Pass vor dem eigentlichen auf 128 × 72 Blöcke (Maximum und mittleres Licht je Block aus
+  2 × 2 von 4 × 4 Abtastpunkten, über vier Bilder versetzt, sodass alle 16 drankommen; über 1080p nur jedes zweite
+  Bild), asynchron über PBO und Fence zurückgelesen (nichts wartet), 99,9-%-Wert eines Histogramms mit 1024 Stufen;
+  geglättet über 20 Messungen, bei einem Sprung der mittleren Helligkeit über 3 % PQ gilt ein Szenenschnitt und die neue
+  Szene zählt sofort (dazwischen gleitend ab 1 %, Schwellen wie libplacebo). Der Pass rechnet ohne `pow`: Kurve über dem
+  Knie (256 Werte, bei neuer Spitze neu) und Ausgabestufe (1024 Werte) sind R16F-Tabellen, Fehler unter 0,2 % bzw. unter
+  einem 10-bit-Code (Tests); größere Videos schreibt er gleich in Bildschirmgröße. Weg durch Media3: Ordos eigener Video-Renderer
+  (`AudioRenderersFactory.buildVideoRenderers`, sonst wie Media3s) baut den Video-Graphen über `HdrGraph`; der lässt für
+  diesen Fall die Ausgabe HDR (nur dann bekommen Effekte lineares BT.2020 in RGBA16F, sonst rechnet schon Media3s
+  Eingangs-Shader mit fester Kurve um) und schreibt auf die Bildschirm-Fläche ohne BT.2020-PQ-Farbraum (wie Media3 auf
+  einen Encoder schreibt). Die Fläche ist damit SDR, Android rechnet nicht ein zweites Mal um; der Effekt gibt dafür
+  die Lichtwerte aus, deren PQ-Code dem gewünschten SDR-Code entspricht. Die Kette ist an den Renderer gebunden: ein
+  Wechsel zwischen HDR-Pass und SDR in der Warteschlange baut den Bildschirm neu auf. Die Bildverbesserung (Lanczos,
+  CAS, Deband) läuft bei HDR weiterhin nicht. Signalweg: „HDR10 → SDR von Ordo für diesen Bildschirm: Spitze gemessen
+  … nits, Ziel … nits“. GPU-Zeit wird immer gemessen; liegt sie nach dem Einschwingen zwei Sekunden in Folge (je ≥ 10
+  Bilder) im Mittel über 10 % der Bildzeit (Bildrate × Tempo: 24 fps 4,2 ms, 60 fps 1,7 ms; ohne Bildrate 2 ms),
+  übernimmt Android bis zum Prozessende. Der neu aufgebaute Bildschirm zeigt dann einmal den Hinweis und im Signalweg
+  „HDR10, Android rechnet auf SDR um: Ordos Umrechnung war hier zu langsam (… ms je Bild, Grenze … ms)“. Zwei Abweichungen vom Anhang nach dem
+  Bild-Prüfpanel (21.11.2026, Lichter zu früh gesättigt): Knie tiefer, `KS = 2·maxLum − 1` statt `1,5·maxLum − 0,5`
+  (`KNEE_OFFSET` 1 statt 0,5; bei Spitze 1083 auf 540 cd/m² liegt es bei 266 statt 380 cd/m², das Referenzweiß 203
+  bleibt 1:1), und der Spline endet mit Steigung 0,75 statt 0 (`END_SLOPE`; 1 machte die Schulter in der zweiten
+  Panel-Runde S-förmig). Gerechnet: Der Graukeil 400…1000 cd/m² liegt dann auf 211…249 (8 bit) statt auf 222…251 mit
+  248–255 zusammengefallen, 900/950/1000 cd/m² liegen 3–4 Codewerte auseinander statt 0. Monoton und nie über dem Ziel
+  für alle Ziele ≥ 100 cd/m² (Start-/Endsteigung 2 bzw. 1,5 × Sekante, innerhalb des Fritsch-Carlson-Kreises; Test).
+  **Gemessen 21.11.2026, Tab S9 Ultra** (Adreno 740, Android 16; der Bildschirm kann HDR, darum im Entwickler-Build
+  als SDR ausgegeben, Ziel 540 cd/m² aus `getDesiredMaxLuminance`), Testclips HDR10/HLG 1920 × 1080 und HDR10 3840 × 2160
+  (Generator siehe PR): GPU-Zeit je Bild (`EXT_disjoint_timer_query`, Mittel je Sekunde) 1080p 0,74–1,07 ms (Spitze
+  1,6 ms), 4K 1,9–2,7 ms. Mit der damals festen Grenze von 2 ms fiel 4K zurück (Log „HDR to SDR off: 2,18 ms“, Neuaufbau
+  ohne Pass); mit der Bildzeit-Grenze bleibt 4K24 (4,2 ms) beim Pass, 4K60 (1,7 ms) fiele zurück. Der Pass ist speicherbegrenzt (RGBA16F lesen und schreiben;
+  helle, schlecht komprimierbare Bilder kosten mehr). Gemessene Spitze: Nacht 191 (Soll 180), Tag 1 054 (Soll 1 000;
+  Überschwinger der Kompression an Kanten), Szenenschnitt bei 4 s sofort erkannt, der stetige Anstieg 200→1000 ohne
+  Schnitt (282 → 441 → 639 → 851 cd/m² je Sekunde). Bildschirmfoto Tag-Szene (8 bit): 203-cd/m²-Weiß 165 (Samsung 166),
+  Streifen 900/950/1000 cd/m² 244/248/252 (Samsung 251/253/253), Graukeil 300…1000 cd/m² 196, 212, 220, 226, 231, 237,
+  244, 252 (Samsung 188 … 251, 255); HLG gleich hell wie PQ (Samsungs eigene HLG-Wiedergabe: Weiß 138). Bild-Prüfpanel
+  (codex, Gemini, Copilot, Cursor) Runde 2 (noch mit Steigung 1): alle vier „Ordo besser“, v. a. Lichter und HLG. Tab A8: kein HEVC-Main-10-Decoder, HDR läuft dort
+  über FFmpeg ohne den Pass.
 - **Bild anpassen** (⋮ › „Bild anpassen“, `PictureAdjustSheet`): Helligkeit, Kontrast, Sättigung, Farbtemperatur und
   Schärfe je −3…+3 mit −/+ (48 dp, kein Regler), live. Alles in **demselben** Pass von `PictureShader`: eine
   4×4-Farbmatrix (`PictureAdjust.colorMatrix`, getestet in `PictureAdjustTest`; Reihenfolge Farbtemperatur → Sättigung
@@ -358,8 +396,8 @@ Quelle: `ordo-team/LOKALE-QUALITAETS-KI.md`, Empfehlungen 1 und 2. Logik ohne An
   diesen Bildschirm, mit ruhigem Hinweis. Meldet Media3 einen Ruckel-Block, fällt zuerst Detail plus weg, erst danach
   die ganze Bildverbesserung. Das ⋮-Umschalten setzt beides zurück.
 - **Messwerte** (⋮ › Signalweg, unten, eingeklappt und aus): Antippen startet die Messung, erneutes Antippen beendet
-  sie. Ohne Messung wird nichts umhüllt und nichts gemessen, außer der GPU-Zeit des Detail-plus-Passes (für den
-  Rückfall). Gemessen werden: GPU-Zeit je Pass (Detail plus, Lanczos, Bildverbesserung) per `EXT_disjoint_timer_query`
+  sie. Ohne Messung wird nichts umhüllt und nichts gemessen, außer der GPU-Zeit des Detail-plus- und des HDR-Passes (für den
+  Rückfall). Gemessen werden: GPU-Zeit je Pass (Detail plus, Lanczos, Bildverbesserung, HDR → SDR) per `EXT_disjoint_timer_query`
   (`GL_TIME_ELAPSED_EXT`, Ergebnis Bilder später abgeholt, nichts wartet; ohne Erweiterung nur beim Messen per
   `glFinish` und CPU-Uhr), verworfene Bilder (`DecoderCounters`), thermische Reserve (`PowerManager.getThermalHeadroom`
   ab API 30, alle 5 s, Vorschau 10 s), Rechenzeit der Klang-Kette je Puffer und Ton-Unterläufe
