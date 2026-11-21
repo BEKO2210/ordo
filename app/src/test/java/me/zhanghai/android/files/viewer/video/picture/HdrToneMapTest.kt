@@ -166,11 +166,20 @@ class HdrToneMapTest {
     }
 
     @Test
-    fun tooSlowOnlyAfterSettlingAndOverEnoughFrames() {
-        assertTrue(HdrToneMap.tooSlow(2.5, 30, steady = true))
-        assertFalse(HdrToneMap.tooSlow(2.5, 30, steady = false))
-        assertFalse(HdrToneMap.tooSlow(2.5, 5, steady = true))
-        assertFalse(HdrToneMap.tooSlow(1.9, 30, steady = true))
+    fun budgetIsATenthOfTheFrameAndNeedsTwoSlowSecondsInARow() {
+        assertEquals(4.1667, HdrToneMap.budgetMs(24f), 1e-4)
+        assertEquals(1.6667, HdrToneMap.budgetMs(60f), 1e-4)
+        assertEquals(HdrToneMap.DEFAULT_BUDGET_MS, HdrToneMap.budgetMs(0f), 0.0)
+        // Tab S9, 4K at 24 fps: 2.2-2.7 ms stays within 4.2 ms; the same at 60 fps is over 1.7 ms.
+        assertEquals(0, HdrToneMap.slowSeconds(0, 2.7, 24, steady = true, fps = 24f))
+        val first = HdrToneMap.slowSeconds(0, 2.2, 60, steady = true, fps = 60f)
+        assertEquals(1, first)
+        assertEquals(HdrToneMap.SLOW_SECONDS, HdrToneMap.slowSeconds(first, 2.2, 60, steady = true, fps = 60f))
+        // One good second in between starts again.
+        assertEquals(0, HdrToneMap.slowSeconds(first, 1.0, 60, steady = true, fps = 60f))
+        // Not while settling, nor over too few frames.
+        assertEquals(0, HdrToneMap.slowSeconds(1, 9.0, 60, steady = false, fps = 60f))
+        assertEquals(0, HdrToneMap.slowSeconds(1, 9.0, 5, steady = true, fps = 60f))
     }
 
     @Test

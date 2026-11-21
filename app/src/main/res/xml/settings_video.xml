@@ -108,7 +108,7 @@
             app:useSimpleSummaryProvider="true" />
         <ListPreference
             android:key="@string/pref_key_video_hdr"
-            android:icon="@drawable/settings_video_brightness_icon_white_24dp"
+            android:icon="@drawable/settings_video_hdr_icon_white_24dp"
             android:title="@string/video_settings_hdr"
             android:defaultValue="@string/pref_default_value_video_hdr"
             android:entries="@array/video_settings_hdr_entries"

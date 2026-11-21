@@ -22,6 +22,7 @@
     <string name="video_signal_hdr_ordo_format">%1$s → SDR von Ordo für diesen Bildschirm: Spitze gemessen %2$s nits, Ziel %3$s nits</string>
     <string name="video_signal_hdr_ordo_waiting_format">%1$s → SDR von Ordo für diesen Bildschirm: Spitze wird gemessen, Ziel %2$s nits</string>
     <string name="video_signal_stages_hdr">Nur HDR → SDR (Kurve nach BT.2408 Anhang 5, Spitze je Szene gemessen)</string>
+    <string name="video_signal_hdr_slow_format">%1$s, Android rechnet auf SDR um: Ordos Umrechnung war hier zu langsam (%2$s ms je Bild, Grenze %3$s ms)</string>
     <string name="video_hdr_slow_notice">HDR-Umrechnung ist auf diesem Gerät zu langsam: Android rechnet das Video um.</string>
     <string name="video_meter_pass_hdr">HDR → SDR</string>
 

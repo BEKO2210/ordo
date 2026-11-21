@@ -23,6 +23,7 @@
     <string name="video_signal_hdr_ordo_format">%1$s → SDR by Ordo for this screen: peak measured %2$s nits, target %3$s nits</string>
     <string name="video_signal_hdr_ordo_waiting_format">%1$s → SDR by Ordo for this screen: measuring the peak, target %2$s nits</string>
     <string name="video_signal_stages_hdr">HDR to SDR only (BT.2408 Annex 5 curve, peak measured per scene)</string>
+    <string name="video_signal_hdr_slow_format">%1$s, Android converts it to SDR: Ordo’s conversion was too slow here (%2$s ms per frame, limit %3$s ms)</string>
     <string name="video_hdr_slow_notice">HDR conversion is too slow on this device: Android converts the video instead.</string>
     <string name="video_meter_pass_hdr">HDR → SDR</string>
 

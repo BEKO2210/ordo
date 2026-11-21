@@ -86,7 +86,7 @@ import me.zhanghai.android.files.viewer.video.picture.PicturePolicy.Pipeline
  *
  * HDR10 and HLG on a screen that can't show them ("HDR-Darstellung" automatic) instead get the pipeline with
  * Ordo's own HDR to SDR pass ([HdrToneMapEffect], built in HDR mode by [HdrGraph]); an HDR screen still gets them
- * untouched, and a pass slower than [HdrToneMap.MAX_GPU_MS] hands them back to Android.
+ * untouched, and a pass over its budget ([HdrToneMap.budgetMs]) for two seconds hands them back to Android.
  */
 @OptIn(UnstableApi::class)
 class VideoPicture(
@@ -110,6 +110,7 @@ class VideoPicture(
     private var engagedToneMap = false
     private val hdrLive = HdrLive()
     private var hdrTarget = HdrToneMap.REFERENCE_WHITE
+    private var hdrSlowSeconds = 0
     private var recreating = false
     private var tooSlow = false
     private var noticeShown = false
@@ -343,8 +344,12 @@ class VideoPicture(
             hdrType == Display.HdrCapabilities.HDR_TYPE_HDR10 || hdrType == Display.HdrCapabilities.HDR_TYPE_HLG,
             hdrType != null && display()?.supportsHdr(hdrType) == true, format.drmInitData != null,
             software || !platformDecodes(format),
-            failedInProcess, hdrTooSlow
+            failedInProcess, hdrTooSlow != null
         )
+        if (hdrSlowNoticePending && !toneMap && hdrTooSlow != null) {
+            hdrSlowNoticePending = false
+            onNotice(activity.getString(R.string.video_hdr_slow_notice))
+        }
         val decision = PicturePolicy.decide(
             level, switchedOn, isHdr, format.drmInitData != null, width, height, surfaceWidth, surfaceHeight, tooSlow,
             failedInProcess, software, toneMap
@@ -403,7 +408,7 @@ class VideoPicture(
             model = null
             hdrLive.peakNits = Double.NaN
             steadySince = SystemClock.elapsedRealtime()
-            // Always timed: above HdrToneMap.MAX_GPU_MS Android's own mapping takes over (tick).
+            // Always timed: over HdrToneMap.budgetMs Android's own mapping takes over (tick).
             val effect = HdrToneMapEffect(hlg, target, hdrLive, width, height)
             player.setVideoEffects(listOf(MeteredEffect(effect, PictureMeter.PASS_HDR, meter)))
             if (redraw) redrawIfPaused(player)
@@ -490,10 +495,16 @@ class VideoPicture(
                 Log.d(PICTURE_LOG_TAG, "hdr pass ${hdr?.mean} ms (max ${hdr?.max}) over ${hdr?.count} frames, " +
                     "peak ${hdrLive.peakNits} nits, target $hdrTarget, timer ${meter.timer}")
             }
-            if (HdrToneMap.tooSlow(hdr?.mean ?: 0.0, hdr?.count ?: 0, now - steadySince >= DetailPlus.SETTLE_MS)) {
-                Log.i(PICTURE_LOG_TAG, "HDR to SDR off: ${hdr?.mean} ms over ${hdr?.count} frames")
-                hdrTooSlow = true
-                onNotice(activity.getString(R.string.video_hdr_slow_notice))
+            val fps = (videoFormat?.frameRate ?: 0f) * player.playbackParameters.speed
+            val mean = hdr?.mean ?: 0.0
+            hdrSlowSeconds = HdrToneMap.slowSeconds(
+                hdrSlowSeconds, mean, hdr?.count ?: 0, now - steadySince >= DetailPlus.SETTLE_MS, fps
+            )
+            if (hdrSlowSeconds >= HdrToneMap.SLOW_SECONDS) {
+                Log.i(PICTURE_LOG_TAG, "HDR to SDR off: $mean ms over ${hdr?.count} frames, budget at $fps fps")
+                // Kept for the process: the rebuilt screen says why (notice once, and in the signal path).
+                hdrTooSlow = HdrSlow(mean, HdrToneMap.budgetMs(fps))
+                hdrSlowNoticePending = true
                 evaluate()
             }
             return
@@ -875,7 +886,16 @@ class VideoPicture(
                         )
                     }
                 }
-                else -> activity.getString(R.string.video_signal_hdr_mapped_format, hdrName(format))
+                else -> hdrTooSlow?.let {
+                    val ms = NumberFormat.getInstance().apply {
+                        minimumFractionDigits = 1
+                        maximumFractionDigits = 1
+                    }
+                    activity.getString(
+                        R.string.video_signal_hdr_slow_format, hdrName(format), ms.format(it.meanMs),
+                        ms.format(it.budgetMs)
+                    )
+                } ?: activity.getString(R.string.video_signal_hdr_mapped_format, hdrName(format))
             },
             if (format.frameRate > 0f) {
                 activity.getString(R.string.video_signal_frame_rate_format, formatNumber(format.frameRate), hz, mode)
@@ -1212,8 +1232,9 @@ class VideoPicture(
         @Volatile
         private var failedInProcess = false
 
-        /** Ordo's HDR to SDR pass cost more than HdrToneMap.MAX_GPU_MS here: Android maps HDR in this process. */
-        private var hdrTooSlow = false
+        /** Ordo's HDR to SDR pass was over its budget here: Android maps HDR in this process. */
+        private var hdrTooSlow: HdrSlow? = null
+        private var hdrSlowNoticePending = false
 
         /** Videos FFmpeg decodes (main thread): they never get the pipeline in this process. */
         private val softwareMediaIds = HashSet<String>()
@@ -1261,3 +1282,6 @@ class VideoPicture(
             .build()
     }
 }
+
+/** Why HDR went back to Android: the pass's mean GPU time per frame against its budget. */
+private data class HdrSlow(val meanMs: Double, val budgetMs: Double)

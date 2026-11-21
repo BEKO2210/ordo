@@ -38,8 +38,12 @@ object HdrToneMap {
     const val KNEE_OFFSET = 1.0
     /** The annex has 0. */
     const val END_SLOPE = 0.75
-    /** The pass may cost this much GPU time per frame on average; above it Android's own mapping takes over. */
-    const val MAX_GPU_MS = 2.0
+    /** The pass may take this share of a frame's time (24 fps: 4.2 ms, 60 fps: 1.7 ms); above it Android maps again. */
+    const val FRAME_SHARE = 0.1
+    /** Without a known frame rate: the panel's 2 ms. */
+    const val DEFAULT_BUDGET_MS = 2.0
+    /** Over budget this many seconds in a row before Android takes over. */
+    const val SLOW_SECONDS = 2
 
     private const val M1 = 2610.0 / 16384.0
     private const val M2 = 2523.0 / 4096.0 * 128.0
@@ -150,14 +154,18 @@ object HdrToneMap {
         (pqToNits((u * u).pow(1 / 2.2)) / 1000.0).toFloat()
     }
 
-    /**
-     * One second of GPU times of the pass: too slow when it averaged more than [MAX_GPU_MS] over at least
-     * [MIN_FRAMES] frames once playback has settled (the first frames compile shaders).
-     */
-    fun tooSlow(meanMs: Double, frames: Int, steady: Boolean): Boolean =
-        steady && frames >= MIN_FRAMES && meanMs > MAX_GPU_MS
+    /** GPU time per frame the pass may use at [fps] frames per second shown (film rate times speed). */
+    fun budgetMs(fps: Float): Double = if (fps > 0f) FRAME_SHARE * 1000.0 / fps else DEFAULT_BUDGET_MS
 
-    private const val MIN_FRAMES = 20
+    /**
+     * Seconds in a row the pass was over its budget, after one more second of GPU times: it counts when the second
+     * averaged more than [budgetMs] over at least [MIN_FRAMES] frames once playback had settled (the first frames
+     * compile shaders); any other second starts again at 0. [SLOW_SECONDS] in a row hand HDR back to Android.
+     */
+    fun slowSeconds(previous: Int, meanMs: Double, frames: Int, steady: Boolean, fps: Float): Int =
+        if (steady && frames >= MIN_FRAMES && meanMs > budgetMs(fps)) previous + 1 else 0
+
+    private const val MIN_FRAMES = 10
     private const val BINS = 1024
     private const val PERCENTILE = 0.999
 

@@ -309,8 +309,10 @@ Quelle der Entscheidungen: `ordo-team/QUALITAET-PANEL.md`, Ideen 1–4. Logik oh
   die Lichtwerte aus, deren PQ-Code dem gewünschten SDR-Code entspricht. Die Kette ist an den Renderer gebunden: ein
   Wechsel zwischen HDR-Pass und SDR in der Warteschlange baut den Bildschirm neu auf. Die Bildverbesserung (Lanczos,
   CAS, Deband) läuft bei HDR weiterhin nicht. Signalweg: „HDR10 → SDR von Ordo für diesen Bildschirm: Spitze gemessen
-  … nits, Ziel … nits“. GPU-Zeit wird immer gemessen; liegt sie nach dem Einschwingen eine Sekunde lang (≥ 20 Bilder)
-  im Mittel über 2 ms, übernimmt Android bis zum Prozessende (Hinweis oben). Zwei Abweichungen vom Anhang nach dem
+  … nits, Ziel … nits“. GPU-Zeit wird immer gemessen; liegt sie nach dem Einschwingen zwei Sekunden in Folge (je ≥ 10
+  Bilder) im Mittel über 10 % der Bildzeit (Bildrate × Tempo: 24 fps 4,2 ms, 60 fps 1,7 ms; ohne Bildrate 2 ms),
+  übernimmt Android bis zum Prozessende. Der neu aufgebaute Bildschirm zeigt dann einmal den Hinweis und im Signalweg
+  „HDR10, Android rechnet auf SDR um: Ordos Umrechnung war hier zu langsam (… ms je Bild, Grenze … ms)“. Zwei Abweichungen vom Anhang nach dem
   Bild-Prüfpanel (21.11.2026, Lichter zu früh gesättigt): Knie tiefer, `KS = 2·maxLum − 1` statt `1,5·maxLum − 0,5`
   (`KNEE_OFFSET` 1 statt 0,5; bei Spitze 1083 auf 540 cd/m² liegt es bei 266 statt 380 cd/m², das Referenzweiß 203
   bleibt 1:1), und der Spline endet mit Steigung 0,75 statt 0 (`END_SLOPE`; 1 machte die Schulter in der zweiten
@@ -320,8 +322,8 @@ Quelle der Entscheidungen: `ordo-team/QUALITAET-PANEL.md`, Ideen 1–4. Logik oh
   **Gemessen 21.11.2026, Tab S9 Ultra** (Adreno 740, Android 16; der Bildschirm kann HDR, darum im Entwickler-Build
   als SDR ausgegeben, Ziel 540 cd/m² aus `getDesiredMaxLuminance`), Testclips HDR10/HLG 1920 × 1080 und HDR10 3840 × 2160
   (Generator siehe PR): GPU-Zeit je Bild (`EXT_disjoint_timer_query`, Mittel je Sekunde) 1080p 0,74–1,07 ms (Spitze
-  1,6 ms), 4K 1,9–2,7 ms, also bei 4K Rückfall auf Android (im Log „HDR to SDR off: 2,18 ms“, danach baut der Player
-  ohne Pass neu auf). Der Pass ist speicherbegrenzt (RGBA16F lesen und schreiben;
+  1,6 ms), 4K 1,9–2,7 ms. Mit der damals festen Grenze von 2 ms fiel 4K zurück (Log „HDR to SDR off: 2,18 ms“, Neuaufbau
+  ohne Pass); mit der Bildzeit-Grenze bleibt 4K24 (4,2 ms) beim Pass, 4K60 (1,7 ms) fiele zurück. Der Pass ist speicherbegrenzt (RGBA16F lesen und schreiben;
   helle, schlecht komprimierbare Bilder kosten mehr). Gemessene Spitze: Nacht 191 (Soll 180), Tag 1 054 (Soll 1 000;
   Überschwinger der Kompression an Kanten), Szenenschnitt bei 4 s sofort erkannt, der stetige Anstieg 200→1000 ohne
   Schnitt (282 → 441 → 639 → 851 cd/m² je Sekunde). Bildschirmfoto Tag-Szene (8 bit): 203-cd/m²-Weiß 165 (Samsung 166),
