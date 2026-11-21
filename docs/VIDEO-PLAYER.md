@@ -162,8 +162,8 @@ zusammen mit Ordos Token wirksam). Logik ohne Android in `VideoLibrary`, geteste
 
 Ein Video im Tresor öffnet sich (Tresor entsperrt) in Ordos Player, die Videos des Tresors sind die Warteschlange.
 `vault/VaultVideos` streamt es über Tinks `newSeekableDecryptingChannel` (`VaultStore.openSeekable`) als Media3-
-`DataSource`: entschlüsselt wird segmentweise im Speicher, kein Klartext auf dem Speicher (anders als bei Bildern
-und PDFs, die `vault-open` im Cache nutzen). Lesen darf der Player nur Einträge, die der entsperrte Tresor freigegeben
+`DataSource`: entschlüsselt wird segmentweise im Speicher, kein Klartext auf dem Speicher (Bilder, PDFs und
+andere Dateien lesen genauso über `vault/VaultProvider`). Lesen darf der Player nur Einträge, die der entsperrte Tresor freigegeben
 hat; Sperren (auch nach 2 min im Hintergrund) und Prozessende nehmen die Freigabe zurück. Tresor-Videos bekommen
 keine gemerkte Stelle, keine Gesehen-Marke, keine Vorschau und erscheinen nie in der Sammlung (MediaStore sieht den
 Tresor nicht); der Player-Bildschirm ist dann `FLAG_SECURE` (keine Bildschirmfotos, leere Vorschau in „Zuletzt“),
@@ -399,10 +399,11 @@ Quelle: `ordo-team/LOKALE-QUALITAETS-KI.md`, Empfehlungen 1 und 2. Logik ohne An
   `EXT_color_buffer_(half_)float`); sonst kopiert der Pass nur und Ordo schaltet auf Lanczos zurück (Signalweg nennt den Grund).
 - **Rückfall:** GPU-Zeit des Netzes im Mittel einer Sekunde **> 8 ms beim höchsten GPU-Takt, zwei Sekunden in Folge** (ab 10 gemessenen
   Bildern; gemessene Zeit × aktueller/höchster Takt aus `/sys/class/kgsl/kgsl-3d0/devfreq`, wo lesbar – Adreno; sonst
-  die gemessene Zeit) oder **jedes**
-  verworfene Bild im eingeschwungenen Abspielen (2 s nach Start, Sprung, Pause oder neuen Effekten) → Lanczos für
-  diesen Bildschirm, mit ruhigem Hinweis. Meldet Media3 einen Ruckel-Block, fällt zuerst Detail plus weg, erst danach
-  die ganze Bildverbesserung. Das ⋮-Umschalten setzt beides zurück.
+  die gemessene Zeit) → Lanczos für diesen Bildschirm, mit ruhigem Hinweis. Verworfene Bilder zählen nur, wo die GPU
+  den Pass nicht messen kann (kein `EXT_disjoint_timer_query`): dann jedes im eingeschwungenen Abspielen (2 s nach
+  Start, Sprung, Pause oder neuen Effekten), und ein Ruckel-Block von Media3 nimmt zuerst Detail plus, erst danach die
+  ganze Bildverbesserung. Mit GPU-Timer sagen sie nichts über den Pass (Tab S9, 21.11.2026: 1–14 verworfene Bilder
+  nach Start und Sprüngen schalteten ein 0,8-ms-Netz ab). Das ⋮-Umschalten setzt beides zurück.
 - **Messwerte** (⋮ › Signalweg, unten, eingeklappt und aus): Antippen startet die Messung, erneutes Antippen beendet
   sie. Ohne Messung wird nichts umhüllt und nichts gemessen, außer der GPU-Zeit des Detail-plus- und des HDR-Passes (für den
   Rückfall). Gemessen werden: GPU-Zeit je Pass (Detail plus, Lanczos, Bildverbesserung, HDR → SDR) per `EXT_disjoint_timer_query`
@@ -696,6 +697,8 @@ Downmix (5.1/7.1 also nach Ordos Stereo-Mix) und vor der Klang-Kette, nur bei 16
 - **Zusammen mit dem Dialog-Verstärker:** zwei eigene Schalter. Beide an: erst freistellen, danach misst und steuert
   der Dialog-Verstärker wie bisher auf seinen LU-Abstand.
 - **Zu langsam = weg:** Nach dem Laden misst Ordo 300 Hops (3 s) auf dem Gerät. RTF > 0,7 → Option verschwindet.
+  Schlägt ein Hop fehl, misst Ordo einmal neu; scheitert auch das, bleibt die Option für diesen Film aus und es wird
+  nichts gespeichert (beim nächsten Film misst Ordo wieder).
   Die Bibliothek `libordo_df.so` gibt es nur für arm64-v8a und x86_64 (`utils/deepfilter/build.sh`, wie FFmpeg aus
   festen Quellen gebaut), anderswo erscheint die Option nicht.
 - Messung und Hörtest: `~/ordo-team/DF3-MESSUNG.md` (Tab S9 RTF 0,057, S21 0,10, A8 0,34–0,55).

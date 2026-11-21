@@ -148,26 +148,32 @@ internal object DialogModel {
 
     /**
      * Real-time factor of [filter] on this device: [HOPS] hops of a voice-like test signal (harmonics with noise, so
-     * the whole network runs rather than its shortcut for silence), compute time over audio time.
+     * the whole network runs rather than its shortcut for silence), compute time over audio time. A failed hop is not a
+     * measurement: one more try, then NaN, which is never saved, so the next playback measures again.
      */
-    fun measureRtf(filter: DeepFilter): Float {
-        val input = FloatArray(filter.hop)
-        val output = FloatArray(filter.hop)
+    fun measureRtf(filter: DeepFilter): Float = measureRtf(filter.hop, filter.sampleRate, filter::process)
+
+    internal fun measureRtf(hop: Int, sampleRate: Int, process: (FloatArray, FloatArray) -> Boolean): Float =
+        measureOnce(hop, sampleRate, process).takeUnless { it.isNaN() } ?: measureOnce(hop, sampleRate, process)
+
+    private fun measureOnce(hop: Int, sampleRate: Int, process: (FloatArray, FloatArray) -> Boolean): Float {
+        val input = FloatArray(hop)
+        val output = FloatArray(hop)
         val random = java.util.Random(1)
         var sample = 0
         var nanos = 0L
         repeat(HOPS) {
             for (i in input.indices) {
-                val t = (sample++).toDouble() / filter.sampleRate
+                val t = (sample++).toDouble() / sampleRate
                 var voice = 0.0
                 for (k in 1..8) voice += sin(2 * PI * 140 * k * t) / k
                 input[i] = (0.1 * voice + 0.02 * random.nextGaussian()).toFloat()
             }
             val start = System.nanoTime()
-            if (!filter.process(input, output)) return Float.POSITIVE_INFINITY
+            if (!process(input, output)) return Float.NaN
             nanos += System.nanoTime() - start
         }
-        return (nanos / 1e9 / (HOPS.toDouble() * filter.hop / filter.sampleRate)).toFloat()
+        return (nanos / 1e9 / (HOPS.toDouble() * hop / sampleRate)).toFloat()
     }
 
     private const val HOPS = 300

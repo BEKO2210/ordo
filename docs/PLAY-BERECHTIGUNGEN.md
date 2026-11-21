@@ -74,7 +74,7 @@ Nicht im Manifest: Standort (`ACCESS_FINE_LOCATION`, `ACCESS_COARSE_LOCATION`, `
 | `ftpserver.FtpServerTileService` | `android.service.quicksettings.action.QS_TILE` |
 | `rikka.shizuku.ShizukuProvider` | kein Filter. `android:permission="android.permission.INTERACT_ACROSS_USERS_FULL"`. Ordo fordert diese Berechtigung nicht selbst an |
 
-`exported="false"`: `home.OnboardingActivity`, `AppLocalesMetadataHolderService`, `app.AppProvider`, `file.FileProvider` (`grantUriPermissions="true"`).
+`exported="false"`: `home.OnboardingActivity`, `AppLocalesMetadataHolderService`, `app.AppProvider`, `file.FileProvider` (`grantUriPermissions="true"`), `vault.VaultProvider` (`${applicationId}.vault`, `grantUriPermissions="true"`; liefert nur vom entsperrten Tresor freigegebene Einträge, beim Lesen im Speicher entschlüsselt).
 
 Viele weitere Activities sowie `filejob.FileJobReceiver` und `ftpserver.FtpServerReceiver` setzen `exported` nicht und haben keinen `intent-filter`. Der Plattform-Default dafür ist **nicht geprüft** (die Manifest-Seite zum Default wurde nicht einzeln gelesen).
 

@@ -128,11 +128,19 @@ object DetailPlus {
 
     /**
      * Back to Lanczos when the network was [slow] this second and the one before ([slowBefore]; one second alone can be
-     * a clock read just as the GPU speeds up: Tab, 21.11.2026, 8.1 ms once in 3 min of 1.4 ms), or when any frame was
-     * dropped in settled playback ([steady]).
+     * a clock read just as the GPU speeds up: Tab, 21.11.2026, 8.1 ms once in 3 min of 1.4 ms). Dropped frames count
+     * only where the GPU can't time the pass ([gpuTimed] false), and then any drop in settled playback ([steady]): where
+     * it can, a drop says nothing about the pass (Tab, 21.11.2026: 1-14 drops from start, seeks and the decoder turned
+     * a 0.8-ms network off).
      */
-    fun fallBack(gpuMeanMs: Double, timedFrames: Int, slowBefore: Boolean, droppedSinceLast: Int, steady: Boolean): Boolean =
-        (slowBefore && slow(gpuMeanMs, timedFrames)) || (steady && droppedSinceLast > 0)
+    fun fallBack(
+        gpuMeanMs: Double,
+        timedFrames: Int,
+        slowBefore: Boolean,
+        droppedSinceLast: Int,
+        steady: Boolean,
+        gpuTimed: Boolean
+    ): Boolean = (slowBefore && slow(gpuMeanMs, timedFrames)) || (!gpuTimed && steady && droppedSinceLast > 0)
 
     /** The second's mean GPU time of the network over [MAX_GPU_MS], over at least a few timed frames. */
     fun slow(gpuMeanMs: Double, timedFrames: Int): Boolean = timedFrames >= MIN_TIMED_FRAMES && gpuMeanMs > MAX_GPU_MS

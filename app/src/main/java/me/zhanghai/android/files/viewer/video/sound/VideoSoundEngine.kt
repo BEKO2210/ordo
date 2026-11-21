@@ -42,6 +42,7 @@ import me.zhanghai.android.files.util.valueCompat
 import java.io.File
 import java.net.URI
 import java.util.concurrent.Executors
+import java.util.concurrent.atomic.AtomicReference
 
 /**
  * The video player's sound, built from Ordo Musik's Klang engine: [SoundEffectController] (equalizer, bass, balance
@@ -339,6 +340,8 @@ class VideoSoundEngine(private val context: Context) {
     val isolationIdle: Boolean
         get() = settings.isolateDialog && isolation.filter != null && !isolation.isActive && sourceChannelCount > 0
 
+    private val loadedFilter = AtomicReference<DeepFilter?>()
+
     /** Loads the downloaded model off the main thread, measures this device, then lets the chain pick it up. */
     private fun loadIsolation() {
         if (isolationLoading || isolation.filter != null || DialogModel.refresh(context) != DialogModel.State.Ready) return
@@ -347,18 +350,22 @@ class VideoSoundEngine(private val context: Context) {
         worker.execute {
             val filter = if (DialogModel.verify(context)) DeepFilter.load(path) else null
             val rtf = filter?.let(DialogModel::measureRtf) ?: Float.NaN
-            if (filter != null) DialogModel.saveRtf(context, rtf)
+            // NaN: not loaded, or the hops failed twice; only a finished measurement is kept.
+            if (!rtf.isNaN()) DialogModel.saveRtf(context, rtf)
             if (BuildConfig.DEBUG) Log.d(TAG, "DeepFilterNet3: loaded=${filter != null} rtf=$rtf")
+            // Held here until the main thread takes it, so release() closes it if it drops the message below.
+            loadedFilter.set(filter)
             handler.post {
                 isolationLoading = false
-                if (released || filter == null || DialogModel.tooSlow(rtf)) {
-                    filter?.close()
+                val loaded = loadedFilter.getAndSet(null)
+                if (released || loaded == null || rtf.isNaN() || DialogModel.tooSlow(rtf)) {
+                    loaded?.close()
                     // Too slow here: the option goes away (DialogModel.offered) and switches off.
                     if (!released && settings.isolateDialog) update(settings.copy(isolateDialog = false))
                     notifyChanged()
                     return@post
                 }
-                isolation.filter = filter
+                isolation.filter = loaded
                 // The processor becomes active only with a new format: the audio track is switched off and on once.
                 reconfigureAudio()
                 notifyChanged()
@@ -512,6 +519,7 @@ class VideoSoundEngine(private val context: Context) {
         output.release()
         // Safe while the audio thread is still in a hop: DeepFilter.close waits for it, later hops pass the sound.
         isolation.filter?.close()
+        loadedFilter.getAndSet(null)?.close()
     }
 
     private companion object {

@@ -83,30 +83,13 @@ object Vault {
     fun entriesIfCreated(): List<VaultEntry> =
         if (File(application.noBackupFilesDir, "vault").isDirectory) store.entries() else emptyList()
 
-    /** Decrypts into the app's private cache so a viewer can read it; cleared when locking. */
-    @Throws(IOException::class)
-    fun decryptToCache(entry: VaultEntry): File {
-        val directory = File(openDirectory, entry.id)
-        if (!directory.isDirectory && !directory.mkdirs()) {
-            throw IOException("Cannot create $directory")
-        }
-        val file = File(directory, entry.name)
-        try {
-            store.open(entry).use { input ->
-                file.outputStream().use { input.copyInterruptiblyTo(it) }
-            }
-        } catch (e: IOException) {
-            file.delete()
-            throw e
-        }
-        return file
-    }
-
-    fun clearOpenedFiles() {
+    // Plaintext copies that versions before 0.18.0 wrote when a file was opened; viewers now read
+    // through VaultProvider, which decrypts in memory.
+    private fun clearOpenedFiles() {
         openDirectory.deleteRecursively()
     }
 
-    /** Removes what a killed process left behind: opened copies and half-written entries. */
+    /** Removes what a killed process or an older version left behind: opened copies and half-written entries. */
     fun cleanUp() {
         clearOpenedFiles()
         // Without a vault there is nothing to purge, and no reason to create a key yet.

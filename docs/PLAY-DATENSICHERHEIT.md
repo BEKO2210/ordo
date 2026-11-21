@@ -60,7 +60,8 @@ Nicht anzugeben, hier nur zur Kontrolle:
 
 - Einstellungen, Lesezeichen und eingetragene Server samt Passwörtern (SharedPreferences)
 - Tresor: Dateien mit AES-256-GCM verschlüsselt, Schlüssel im Android Keystore; die Bildschirmsperre prüft Android,
-  Ordo erfährt nur das Ergebnis
+  Ordo erfährt nur das Ergebnis. Geöffnete Tresor-Dateien werden beim Lesen im Speicher entschlüsselt
+  (`vault/VaultProvider`), nie als Klartext-Kopie abgelegt; Sperren schließt jeden noch offenen Zugriff
 - Papierkorb (30 Tage) und das KI-Modell (`CommandModel.file`, im App-Ordner)
 
 Nichts davon geht in Cloud-Backups oder den Geräteumzug: `res/xml/data_extraction_rules.xml` (ab Android 12) und

@@ -77,6 +77,9 @@ if command -v ffmpeg >/dev/null; then
         -shortest "$tmp/midword-video.mp4"
     printf '1\n00:00:00,500 --> 00:00:19,000\nUntertitel ohne Wortbruch\n' > "$tmp/midword-video.de.srt"
     a push "$tmp/midword-video.mp4" "$tmp/midword-video.de.srt" "$DIR/" >/dev/null
+    # Ordo Musik's paused session would keep the media keys (Tab S9, 21.11.2026: "Media button session is
+    # androidx.media3.session.id.", the film played on to 0:13 and its controls stayed hidden): start the film alone.
+    a shell am force-stop "$PKG"
     a shell am start -W -a android.intent.action.VIEW -d "file://$DIR" -t inode/directory \
         -n "$PKG/me.zhanghai.android.files.filelist.FileListActivity" >/dev/null
     sleep 3; guard

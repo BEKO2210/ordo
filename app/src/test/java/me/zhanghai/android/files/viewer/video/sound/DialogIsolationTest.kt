@@ -133,6 +133,18 @@ class DialogIsolationTest {
     }
 
     @Test
+    fun aFailedHopIsNoMeasurement() {
+        var calls = 0
+        // First run fails on its third hop, the retry finishes.
+        val retried = DialogModel.measureRtf(480, 48_000) { _, _ -> ++calls != 3 }
+        assertFalse(retried.isNaN())
+        assertFalse(retried.isInfinite())
+        val failed = DialogModel.measureRtf(480, 48_000) { _, _ -> false }
+        assertTrue(failed.isNaN())
+        assertFalse(DialogModel.tooSlow(failed))
+    }
+
+    @Test
     fun hashIsLowerCaseHex() {
         val digest = MessageDigest.getInstance("SHA-256").digest("abc".toByteArray())
         assertEquals("ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad", DialogModel.hex(digest))

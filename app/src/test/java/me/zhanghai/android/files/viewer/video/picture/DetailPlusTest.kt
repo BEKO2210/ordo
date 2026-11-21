@@ -113,6 +113,17 @@ class DetailPlusTest {
     }
 
     @Test
+    fun withAGpuTimerOnlyTwoSlowSecondsTurnTheNetworkOff() {
+        // Tab, 21.11.2026: 0.8 ms and a few drops from start or seek must keep Detail plus.
+        assertFalse(DetailPlus.fallBack(0.8, 24, slowBefore = false, 14, steady = true, gpuTimed = true))
+        assertFalse(DetailPlus.fallBack(0.8, 24, slowBefore = true, 1, steady = true, gpuTimed = true))
+        assertFalse(DetailPlus.fallBack(8.1, 24, slowBefore = false, 0, steady = true, gpuTimed = true))
+        assertTrue(DetailPlus.fallBack(8.1, 24, slowBefore = true, 0, steady = true, gpuTimed = true))
+        // Without a GPU timer, drops in settled playback are all there is.
+        assertTrue(DetailPlus.fallBack(0.0, 0, slowBefore = false, 1, steady = true, gpuTimed = false))
+    }
+
+    @Test
     fun timerResultsThatCantBeTrustedAreNull() {
         assertEquals(2.5f, DetailPlus.timerMs(2_500_000, 0, false)!!, 0.0001f)
         // A failed query reads 0: it must not look like a free network.
@@ -144,17 +155,17 @@ class DetailPlusTest {
 
     @Test
     fun fallBackOnGpuTimeOrAnyDropInSteadyPlayback() {
-        assertFalse(DetailPlus.fallBack(7.9, 30, slowBefore = true, 0, steady = true))
-        assertTrue(DetailPlus.fallBack(8.1, 30, slowBefore = true, 0, steady = true))
+        assertFalse(DetailPlus.fallBack(7.9, 30, slowBefore = true, 0, steady = true, gpuTimed = false))
+        assertTrue(DetailPlus.fallBack(8.1, 30, slowBefore = true, 0, steady = true, gpuTimed = false))
         // One slow second alone is not enough.
-        assertFalse(DetailPlus.fallBack(8.1, 30, slowBefore = false, 0, steady = true))
+        assertFalse(DetailPlus.fallBack(8.1, 30, slowBefore = false, 0, steady = true, gpuTimed = false))
         assertTrue(DetailPlus.slow(8.1, 30))
         assertFalse(DetailPlus.slow(8.1, 9))
         // Too few timed frames say nothing yet.
-        assertFalse(DetailPlus.fallBack(20.0, 9, slowBefore = true, 0, steady = true))
-        assertTrue(DetailPlus.fallBack(2.0, 30, slowBefore = false, 1, steady = true))
+        assertFalse(DetailPlus.fallBack(20.0, 9, slowBefore = true, 0, steady = true, gpuTimed = false))
+        assertTrue(DetailPlus.fallBack(2.0, 30, slowBefore = false, 1, steady = true, gpuTimed = false))
         // Drops right after a start, a seek or new effects are the pipeline settling.
-        assertFalse(DetailPlus.fallBack(2.0, 30, slowBefore = false, 3, steady = false))
+        assertFalse(DetailPlus.fallBack(2.0, 30, slowBefore = false, 3, steady = false, gpuTimed = false))
     }
 
     @Test

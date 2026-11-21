@@ -22,13 +22,13 @@ scroll position). A control that moves on a fixed screen (e.g. below a message o
 | `smoke.sh` | start, home screen, every settings section and its way back | 0.4.2 |
 | `settings-visual.sh` | all nine settings rows; visual night-mode, motion and home-header choices round-trip and restore; the inline accent swatches change and restore | 0.12.0 |
 | `category-search.sh` | searching inside a category does not crash | fixed in 0.3.3 |
-| `back-navigation.sh` | back from a storage or the analysis returns to home in one step | fixed in 0.3.2 |
+| `back-navigation.sh` | back from a storage or the analysis returns to home in one step; in the file list the toolbar stays while the list scrolls (menu, search, sort and more, each icon measured at 3:1 or more against the bar) and the end of the list scrolls clear of the + button | fixed in 0.3.2, toolbar 0.18.0 |
 | `bars-replay.sh` | every storage bar, measured on its own in a screen recording, is still empty when home comes back and then grows in | fixed in 0.4.2 / 0.4.3 |
 | `home-header.sh` | the home screen's top bar: search, assistant and every entry under "more" work, back returns home | 0.5.0 |
 | `header-position.sh` | the search bar set to the bottom moves without a restart, floats above the navigation bar, the page's end scrolls clear of it, search, wand, more and side menu still work; the setting is put back as it was | after 0.7.1 |
 | `home-pull.sh` | pulling down on the home screen only refreshes when meant: 90 dp or scrolling back up into the top does nothing, 170 dp from the top refreshes once | 0.9.0 |
 | `home-auto-refresh.sh` (`--write`) | 50 new files reload the home screen once or twice, the storage bar moves in place instead of emptying and growing in again (screen recording), nothing reloads while it is hidden, coming back reloads once | 0.9.0, bar after 0.9.0 |
-| `drawer.sh` | every entry of the side menu opens its screen and back returns home with the menu closed; a menu dragged all the way open closes on back instead of leaving the app | 0.5.0, drag fixed in 0.5.0 |
+| `drawer.sh` | Ordo Musik and Ordo Video are the first entries of the side menu and open their libraries; every entry of the side menu opens its screen and back returns home with the menu closed; a menu dragged all the way open closes on back instead of leaving the app | 0.5.0, drag fixed in 0.5.0 |
 | `selection-more.sh` | with files selected, "More" in the bottom bar opens its menu right above the bar on the button's side, not at the top of the screen | 0.9.0 |
 | `tablet-landscape.sh` | as a landscape tablet, selecting a file no longer crashes, it shows the bar beside the side pane, "More" opens above it. Only an emulator is resized (2560x1600 at 320 dpi; its previous overrides come back exactly, also on Ctrl-C); a real device is never resized or rotated: it runs only when it already is a tablet in landscape, otherwise SKIP | fixed 0.9.0 |
 | `analysis.sh` | the scan ends in the overview; ring, folder map and rows open their pages; back goes one step at a time; rotation keeps the page | 0.6.0 |
