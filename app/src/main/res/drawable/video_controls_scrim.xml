@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- The controls' veil: 40 % over the whole frame, darker towards the title bar and the time row. Over a white
+     frame the title and times now read ≥ 4.5:1 (they had 3.4–3.7:1, Tab 20.11.2026); VideoScrimTest checks it at
+     the rows' heights. Layers, not view backgrounds: the bars keep their size, subtitles do not move. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <color android:color="#66000000" />
+    </item>
+    <item android:gravity="top" android:height="160dp">
+        <shape android:shape="rectangle">
+            <gradient android:angle="270" android:startColor="#8C000000" android:centerColor="#73000000"
+                android:endColor="#00000000" />
+        </shape>
+    </item>
+    <item android:gravity="bottom" android:height="240dp">
+        <shape android:shape="rectangle">
+            <gradient android:angle="90" android:startColor="#8C000000" android:centerColor="#73000000"
+                android:endColor="#00000000" />
+        </shape>
+    </item>
+</layer-list>
