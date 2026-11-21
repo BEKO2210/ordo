@@ -83,6 +83,10 @@ import me.zhanghai.android.files.viewer.video.picture.PicturePolicy.Pipeline
  * possible (network sources, timeout, a wrong probe, the ⋮ toggle or a rotation later) does switching it on set the
  * effects and re-prepare once; switching it off for another SDR video sets an empty list; an HDR or DRM video after
  * it rebuilds the screen, which then starts plain again ([PicturePolicy.pipeline]).
+ *
+ * HDR10 and HLG on a screen that can't show them ("HDR-Darstellung" automatic) instead get the pipeline with
+ * Ordo's own HDR to SDR pass ([HdrToneMapEffect], built in HDR mode by [HdrGraph]); an HDR screen still gets them
+ * untouched, and a pass slower than [HdrToneMap.MAX_GPU_MS] hands them back to Android.
  */
 @OptIn(UnstableApi::class)
 class VideoPicture(
@@ -93,13 +97,19 @@ class VideoPicture(
     /** The sound's own processing stages in plain words (Klang's), for the signal path; the player has none yet. */
     private val soundStages: () -> List<String> = { emptyList() },
     /** The measurements switched on (the meter to feed the Klang chain's buffer times into) or off (null). */
-    private val onMeter: (PictureMeter?) -> Unit = {}
+    private val onMeter: (PictureMeter?) -> Unit = {},
+    /** The player's video graph (the renderer's): set to HDR mode before the pipeline is built for HDR to SDR. */
+    private val hdrGraph: HdrGraph? = null
 ) : AnalyticsListener, DefaultLifecycleObserver {
     private val handler = Handler(Looper.getMainLooper())
     private val surfaceView = playerView.videoSurfaceView as? SurfaceView
     private val frameRate = surfaceView?.let(::FrameRateMatcher)
     private var player: ExoPlayer? = null
     private var engaged = false
+    // The running pipeline was built for Ordo's HDR to SDR pass (HdrGraph): fixed until the screen is rebuilt.
+    private var engagedToneMap = false
+    private val hdrLive = HdrLive()
+    private var hdrTarget = HdrToneMap.REFERENCE_WHITE
     private var recreating = false
     private var tooSlow = false
     private var noticeShown = false
@@ -125,7 +135,7 @@ class VideoPicture(
             tick()
             // tick() may have rebuilt the effects, which posts again.
             handler.removeCallbacks(this)
-            if (model != null || meter.measuring) handler.postDelayed(this, METER_TICK_MS)
+            if (ticking) handler.postDelayed(this, METER_TICK_MS)
         }
     }
 
@@ -326,12 +336,21 @@ class VideoPicture(
         if (surfaceWidth == 0 || surfaceHeight == 0) return
         val level = PicturePolicy.level(Settings.VIDEO_PICTURE.valueCompat)
         val isHdr = ColorInfo.isTransferHdr(format.colorInfo) || format.sampleMimeType == MimeTypes.VIDEO_DOLBY_VISION
+        val software = player.currentMediaItem?.mediaId in softwareMediaIds
+        val hdrType = hdrType(format)
+        val toneMap = hdrGraph != null && PicturePolicy.toneMaps(
+            Settings.VIDEO_HDR.valueCompat,
+            hdrType == Display.HdrCapabilities.HDR_TYPE_HDR10 || hdrType == Display.HdrCapabilities.HDR_TYPE_HLG,
+            hdrType != null && display()?.supportsHdr(hdrType) == true, format.drmInitData != null,
+            software || !platformDecodes(format),
+            failedInProcess, hdrTooSlow
+        )
         val decision = PicturePolicy.decide(
             level, switchedOn, isHdr, format.drmInitData != null, width, height, surfaceWidth, surfaceHeight, tooSlow,
-            failedInProcess, player.currentMediaItem?.mediaId in softwareMediaIds
+            failedInProcess, software, toneMap
         )
         this.decision = decision
-        val action = PicturePolicy.pipeline(engaged, decision, !adjustments.isNeutral || deinterlaceOn)
+        val action = PicturePolicy.pipeline(engaged, decision, !adjustments.isNeutral || deinterlaceOn, engagedToneMap)
         if (Log.isLoggable(PICTURE_LOG_TAG, Log.DEBUG)) {
             Log.d(PICTURE_LOG_TAG, "${width}x$height on ${surfaceWidth}x$surfaceHeight: $decision -> $action, $plan")
         }
@@ -340,6 +359,9 @@ class VideoPicture(
         when (action) {
             Pipeline.KEEP_PLAIN -> {}
             Pipeline.ENGAGE -> {
+                // The graph is built by the prepare() below: its HDR mode has to be set before.
+                engagedToneMap = decision.toneMap
+                hdrGraph?.toneMap = decision.toneMap
                 setEffects(player, decision, surfaceWidth, surfaceHeight, redraw = false)
                 engaged = true
                 // stop() resets the renderers (not in foreground mode), so prepare() enables them with the pipeline;
@@ -368,6 +390,26 @@ class VideoPicture(
         height: Int,
         redraw: Boolean = true
     ) {
+        if (decision.toneMap) {
+            val format = selectedVideoFormat(player.currentTracks) ?: return
+            val hlg = format.colorInfo?.colorTransfer == C.COLOR_TRANSFER_HLG
+            @Suppress("DEPRECATION")
+            val target = HdrToneMap.target(display()?.hdrCapabilities?.desiredMaxLuminance ?: 0f)
+            // Per video: a new video starts with its own peak, not the last one's.
+            val key = listOf(hlg, target, player.currentMediaItem?.mediaId, width, height)
+            if (appliedKey == key) return
+            appliedKey = key
+            hdrTarget = target
+            model = null
+            hdrLive.peakNits = Double.NaN
+            steadySince = SystemClock.elapsedRealtime()
+            // Always timed: above HdrToneMap.MAX_GPU_MS Android's own mapping takes over (tick).
+            val effect = HdrToneMapEffect(hlg, target, hdrLive, width, height)
+            player.setVideoEffects(listOf(MeteredEffect(effect, PictureMeter.PASS_HDR, meter)))
+            if (redraw) redrawIfPaused(player)
+            startTicker()
+            return
+        }
         val model = DetailPlus.model(
             DetailPlus.upscaler(Settings.VIDEO_UPSCALER.valueCompat), decision.on, decision.scale, mediaName(player),
             detailFellBack, DetailPlusGl.unsupported
@@ -397,14 +439,26 @@ class VideoPicture(
         startTicker()
     }
 
+    /**
+     * Whether a platform decoder takes this format (Media3's own cached query). Without one FFmpeg decodes and draws
+     * itself (Tab A8 has no HEVC Main 10 decoder): engaging the HDR pass first would only rebuild the screen twice.
+     */
+    private fun platformDecodes(format: Format): Boolean = runCatching {
+        val mimeType = format.sampleMimeType ?: return true
+        MediaCodecUtil.getDecoderInfos(mimeType, false, false).any { it.isFormatFunctionallySupported(activity, format) }
+    }.getOrDefault(true)
+
     /** The playing file's path or URI, decoded, for "automatic" (anime by name). */
     private fun mediaName(player: ExoPlayer): String? =
         player.currentMediaItem?.mediaId?.let { Uri.decode(it) }
 
     private fun startTicker() {
         handler.removeCallbacks(ticker)
-        if (model != null || meter.measuring) handler.postDelayed(ticker, METER_TICK_MS)
+        if (ticking) handler.postDelayed(ticker, METER_TICK_MS)
     }
+
+    private val ticking: Boolean
+        get() = model != null || meter.measuring || engagedToneMap
 
     /**
      * Once a second: Detail plus gives way to Lanczos when it is too slow ([DetailPlus.fallBack]) or the GPU can't run
@@ -429,6 +483,20 @@ class VideoPicture(
                 underruns
             )
             underruns = 0
+        }
+        if (engagedToneMap) {
+            val hdr = stats[PictureMeter.PASS_HDR]
+            if (Log.isLoggable(PICTURE_LOG_TAG, Log.DEBUG)) {
+                Log.d(PICTURE_LOG_TAG, "hdr pass ${hdr?.mean} ms (max ${hdr?.max}) over ${hdr?.count} frames, " +
+                    "peak ${hdrLive.peakNits} nits, target $hdrTarget, timer ${meter.timer}")
+            }
+            if (HdrToneMap.tooSlow(hdr?.mean ?: 0.0, hdr?.count ?: 0, now - steadySince >= DetailPlus.SETTLE_MS)) {
+                Log.i(PICTURE_LOG_TAG, "HDR to SDR off: ${hdr?.mean} ms over ${hdr?.count} frames")
+                hdrTooSlow = true
+                onNotice(activity.getString(R.string.video_hdr_slow_notice))
+                evaluate()
+            }
+            return
         }
         val model = model ?: return
         val detail = stats[PictureMeter.PASS_DETAIL]
@@ -771,6 +839,7 @@ class VideoPicture(
             ?: return listOf(activity.getString(R.string.video_signal_waiting))
         val decision = decision
         val enhanced = engaged && decision?.on == true
+        val ordoMapped = engagedToneMap && decision?.toneMap == true
         val display = display()
         val hdrType = hdrType(format)
         val hdrDirect = hdrType != null && display?.supportsHdr(hdrType) == true
@@ -794,6 +863,18 @@ class VideoPicture(
             when {
                 hdrType == null -> activity.getString(R.string.video_signal_sdr)
                 hdrDirect -> activity.getString(R.string.video_signal_hdr_direct_format, hdrName(format))
+                ordoMapped -> {
+                    val nits = NumberFormat.getIntegerInstance()
+                    val target = nits.format(hdrTarget)
+                    val peak = hdrLive.peakNits
+                    if (peak.isNaN()) {
+                        activity.getString(R.string.video_signal_hdr_ordo_waiting_format, hdrName(format), target)
+                    } else {
+                        activity.getString(
+                            R.string.video_signal_hdr_ordo_format, hdrName(format), nits.format(peak), target
+                        )
+                    }
+                }
                 else -> activity.getString(R.string.video_signal_hdr_mapped_format, hdrName(format))
             },
             if (format.frameRate > 0f) {
@@ -804,6 +885,7 @@ class VideoPicture(
             pacingText(format, hz),
             when {
                 decision == null -> null
+                ordoMapped -> activity.getString(R.string.video_signal_stages_hdr)
                 enhanced -> activity.getString(
                     if (decision.level == PicturePolicy.Level.MAX) {
                         R.string.video_signal_stages_max
@@ -970,7 +1052,8 @@ class VideoPicture(
             listOfNotNull(
                 pass(PictureMeter.PASS_DETAIL, R.string.video_meter_pass_detail),
                 pass(PictureMeter.PASS_LANCZOS, R.string.video_meter_pass_lanczos),
-                pass(PictureMeter.PASS_ENHANCE, R.string.video_meter_pass_enhance)
+                pass(PictureMeter.PASS_ENHANCE, R.string.video_meter_pass_enhance),
+                pass(PictureMeter.PASS_HDR, R.string.video_meter_pass_hdr)
             ).joinToString("\n").ifEmpty { activity.getString(R.string.video_meter_no_gpu) },
             ((player?.videoDecoderCounters?.droppedBufferCount ?: 0) - droppedAtStart).coerceAtLeast(0).toString(),
             if (headroom.isNaN()) {
@@ -1128,6 +1211,9 @@ class VideoPicture(
         /** Set when the GPU failed the pipeline: no further attempt until the process restarts. */
         @Volatile
         private var failedInProcess = false
+
+        /** Ordo's HDR to SDR pass cost more than HdrToneMap.MAX_GPU_MS here: Android maps HDR in this process. */
+        private var hdrTooSlow = false
 
         /** Videos FFmpeg decodes (main thread): they never get the pipeline in this process. */
         private val softwareMediaIds = HashSet<String>()

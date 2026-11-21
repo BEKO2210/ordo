@@ -310,9 +310,12 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
         this.network = network
         val sound = VideoSoundEngine(this).also { videoSound = it }
         val subtitleLead = SubtitleLead()
+        val hdrGraph = me.zhanghai.android.files.viewer.video.picture.HdrGraph()
         // Klang chain + FFmpeg extension (AudioRenderersFactory sets EXTENSION_RENDERER_MODE_ON).
         val player = network.applyTo(ExoPlayer.Builder(this), this)
-            .setRenderersFactory(subtitleLead.wrap(sound.renderersFactory().setMediaCodecSelector(decoderFallback)))
+            .setRenderersFactory(
+                subtitleLead.wrap(sound.renderersFactory(hdrGraph).setMediaCodecSelector(decoderFallback))
+            )
             .setAudioAttributes(
                 AudioAttributes.Builder().setUsage(C.USAGE_MEDIA).setContentType(C.AUDIO_CONTENT_TYPE_MOVIE).build(),
                 true
@@ -338,7 +341,7 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
         binding.playerView.player = player
         picture = VideoPicture(
             this, binding.playerView, ::showPictureNotice, { videoSound?.signalStages().orEmpty() },
-            { meter -> videoSound?.setMeter(meter?.let { it::addAudio }) }
+            { meter -> videoSound?.setMeter(meter?.let { it::addAudio }) }, hdrGraph
         ).also {
             it.attach(player)
             moreMenu.findItem(R.id.actionPictureEnhance)?.isChecked = it.switchedOn

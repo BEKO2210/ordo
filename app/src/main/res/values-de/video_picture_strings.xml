@@ -14,6 +14,16 @@
         <item>Ausgewogen</item>
         <item>Maximal</item>
     </string-array>
+    <string name="video_settings_hdr">HDR-Darstellung</string>
+    <string-array name="video_settings_hdr_entries">
+        <item>Automatisch</item>
+        <item>Aus (Android rechnet um)</item>
+    </string-array>
+    <string name="video_signal_hdr_ordo_format">%1$s → SDR von Ordo für diesen Bildschirm: Spitze gemessen %2$s nits, Ziel %3$s nits</string>
+    <string name="video_signal_hdr_ordo_waiting_format">%1$s → SDR von Ordo für diesen Bildschirm: Spitze wird gemessen, Ziel %2$s nits</string>
+    <string name="video_signal_stages_hdr">Nur HDR → SDR (Kurve nach BT.2408 Anhang 5, Spitze je Szene gemessen)</string>
+    <string name="video_hdr_slow_notice">HDR-Umrechnung ist auf diesem Gerät zu langsam: Android rechnet das Video um.</string>
+    <string name="video_meter_pass_hdr">HDR → SDR</string>
 
     <string name="video_picture_toggle">Bildverbesserung</string>
     <string name="video_picture_on">Bildverbesserung an</string>
@@ -23,7 +33,7 @@
     <string name="video_software_slow_notice">Dieses Video läuft über Software-Dekodierung und kann auf diesem Gerät ruckeln.</string>
 
     <string name="video_picture_off_no_video">noch kein Bild</string>
-    <string name="video_picture_off_hdr">HDR-Videos bleiben unverändert</string>
+    <string name="video_picture_off_hdr">HDR-Video</string>
     <string name="video_picture_off_drm">geschütztes Video</string>
     <string name="video_picture_off_software">die Software-Dekodierung braucht die ganze Leistung</string>
     <string name="video_picture_off_setting">in den Einstellungen ausgeschaltet</string>

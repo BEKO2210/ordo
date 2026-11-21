@@ -21,6 +21,11 @@ import androidx.media3.exoplayer.Renderer
 import androidx.media3.exoplayer.audio.AudioRendererEventListener
 import androidx.media3.exoplayer.audio.MediaCodecAudioRenderer
 import androidx.media3.exoplayer.mediacodec.MediaCodecSelector
+import androidx.media3.common.VideoGraph
+import androidx.media3.exoplayer.video.MediaCodecVideoRenderer
+import androidx.media3.exoplayer.video.PlaybackVideoGraphWrapper
+import androidx.media3.exoplayer.video.VideoFrameReleaseControl
+import androidx.media3.exoplayer.video.VideoRendererEventListener
 import me.zhanghai.android.files.player.output.OutputPolicy
 import me.zhanghai.android.files.player.output.HiResAudioSink
 import me.zhanghai.android.files.player.output.HiResOutput
@@ -416,11 +421,54 @@ class AudioRenderersFactory(
     context: Context,
     private val audioProcessors: Array<AudioProcessor>,
     // Sets the output's mixer per song (rate match, bit-perfect); null keeps Android's mixer as it is.
-    private val output: HiResOutput? = null
+    private val output: HiResOutput? = null,
+    // Ordo Video's own video graph (HDR to SDR, viewer/video/picture/HdrToneMapEffect.kt); null keeps Media3's.
+    private val videoGraph: VideoGraph.Factory? = null
 ) : DefaultRenderersFactory(context) {
     init {
         // Platform decoders first, FFmpeg (AC3/E-AC3/DTS/TrueHD) only for what the device cannot decode.
         setExtensionRendererMode(EXTENSION_RENDERER_MODE_ON)
+    }
+
+    // The same platform video renderer as Media3's (DefaultRenderersFactory's settings), with Ordo's video graph.
+    override fun buildVideoRenderers(
+        context: Context,
+        extensionRendererMode: Int,
+        mediaCodecSelector: MediaCodecSelector,
+        enableDecoderFallback: Boolean,
+        eventHandler: Handler,
+        eventListener: VideoRendererEventListener,
+        allowedVideoJoiningTimeMs: Long,
+        out: ArrayList<Renderer>
+    ) {
+        super.buildVideoRenderers(
+            context, extensionRendererMode, mediaCodecSelector, enableDecoderFallback, eventHandler, eventListener,
+            allowedVideoJoiningTimeMs, out
+        )
+        val videoGraph = videoGraph ?: return
+        val index = out.indexOfFirst { it.javaClass == MediaCodecVideoRenderer::class.java }
+        if (index < 0) return
+        val builder = MediaCodecVideoRenderer.Builder(context)
+            .setCodecAdapterFactory(codecAdapterFactory)
+            .setMediaCodecSelector(mediaCodecSelector)
+            .setAllowedJoiningTimeMs(allowedVideoJoiningTimeMs)
+            .setEnableDecoderFallback(enableDecoderFallback)
+            .setEventHandler(eventHandler)
+            .setEventListener(eventListener)
+            .setMaxDroppedFramesToNotify(MAX_DROPPED_VIDEO_FRAME_COUNT_TO_NOTIFY)
+        out[index] = object : MediaCodecVideoRenderer(builder) {
+            override fun createPlaybackVideoGraphWrapper(
+                context: Context,
+                videoFrameReleaseControl: VideoFrameReleaseControl
+            ): PlaybackVideoGraphWrapper = PlaybackVideoGraphWrapper.Builder(context, videoFrameReleaseControl)
+                .setEnablePlaylistMode(true)
+                .experimentalSetLateThresholdToDropInputUs(
+                    MediaCodecVideoRenderer.DEFAULT_LATE_THRESHOLD_TO_DROP_DECODER_INPUT_US
+                )
+                .setClock(clock)
+                .setVideoGraphFactory(videoGraph)
+                .build()
+        }
     }
 
     // The platform renderer tells HiResOutput each song's declared depth before its decoder starts, so the sink can
