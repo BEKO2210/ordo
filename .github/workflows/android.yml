@@ -2,38 +2,186 @@ name: Android CI
 
 on:
   pull_request:
+  # Fills the caches. A pull request only reads them, and GitHub only lets it read caches of its base branch and of
+  # main, so each of these branches needs its own run.
+  push:
+    branches: [main, 'integrate/**']
   workflow_dispatch:
 
+permissions:
+  contents: read
+
+env:
+  # The native libraries are built in their own steps (or come from the cache), so Gradle skips their tasks.
+  SKIP_NATIVE: -x :ffmpeg:buildFfmpegAudio -x :app:buildDeepFilter
+
 jobs:
-  build:
-
+  # Which checks a pull request needs. Decided here and not with `paths:` on the workflow, so that `build` always
+  # reports a result. Anything unclear (no pull request, API error, a very long file list) means: everything.
+  changes:
     runs-on: ubuntu-latest
-
+    timeout-minutes: 5
+    permissions:
+      pull-requests: read
+    outputs:
+      app: ${{ steps.scope.outputs.app }}
+      tests: ${{ steps.scope.outputs.tests }}
     steps:
-    - name: Check out repository
-      uses: actions/checkout@v4
-      with:
-        submodules: true
-    - name: Set up JDK 17
-      uses: actions/setup-java@v4
-      with:
-        distribution: 'temurin'
-        java-version: '21'
-    # Third-party build scripts (FFmpeg, Media3, pinned in utils/ffmpeg-audio/build.sh) in their own step.
-    - name: Build FFmpeg decoders
-      run: |
-        yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --install 'ndk;30.0.16248370' > /dev/null
-        ./gradlew :ffmpeg:buildFfmpegAudio
-        ls -l ffmpeg/build/ffmpeg-audio/{arm64-v8a,armeabi-v7a,x86_64}/libffmpegJNI.so
-    - name: Build DeepFilterNet library
-      run: |
-        ./gradlew :app:buildDeepFilter
-        ls -l app/build/deepfilter/{arm64-v8a,x86_64}/libordo_df.so
-    - name: Build with Gradle
-      run: ./gradlew assembleDebug testDebugUnitTest lintVitalRelease -x :ffmpeg:buildFfmpegAudio -x :app:buildDeepFilter
-    - name: Upload artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: app-debug.apk
-        path: app/build/outputs/apk/debug/app-debug.apk
-        retention-days: 10
+      - name: Which checks does this change need?
+        id: scope
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          app=true tests=true files=
+          if [ -n "$PR" ]; then
+            files=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$PR/files" --paginate \
+              --jq '.[] | .filename, (.previous_filename // empty)') || files=
+          fi
+          if [ -n "$files" ] && [ "$(wc -l <<<"$files")" -lt 3000 ]; then
+            # Device tests, store listing, docs and helper scripts are not in the app. The two native build
+            # scripts under utils/ are.
+            if ! awk '!/^(e2e|fastlane|docs)\/|^utils\/|\.md$/ || /^utils\/(ffmpeg-audio|deepfilter)\//' <<<"$files" | grep -q .; then
+              app=false
+              # DocsConsistencyTest reads README*.md and docs/.
+              grep -Eq '^docs/|\.md$' <<<"$files" || tests=false
+            fi
+          fi
+          echo "app=$app tests=$tests"
+          echo "app=$app" >> "$GITHUB_OUTPUT"
+          echo "tests=$tests" >> "$GITHUB_OUTPUT"
+
+  assemble:
+    needs: changes
+    if: needs.changes.outputs.app == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          submodules: true
+      - name: Set up JDK 21
+        uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Set up Gradle (with cache)
+        uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
+        with:
+          cache-read-only: ${{ github.event_name == 'pull_request' }}
+      - name: Install the NDK
+        run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --install 'ndk;30.0.16248370' > /dev/null
+
+      # Both native libraries only change with their build script (pinned commit SHAs inside) and their sources, so
+      # the cache key is the hash of exactly the inputs of the Gradle tasks. Pull requests never save a cache.
+      - name: FFmpeg decoders from the cache
+        id: ffmpeg
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ffmpeg/build/ffmpeg-audio
+          key: ffmpeg-audio-v1-${{ hashFiles('utils/ffmpeg-audio/build.sh', 'ffmpeg/src/main/jni/**') }}
+      # Third-party build scripts (FFmpeg, Media3, pinned in utils/ffmpeg-audio/build.sh) in their own step.
+      - name: Build FFmpeg decoders
+        if: steps.ffmpeg.outputs.cache-hit != 'true'
+        run: ./gradlew :ffmpeg:buildFfmpegAudio
+      - name: Save FFmpeg decoders to the cache
+        if: steps.ffmpeg.outputs.cache-hit != 'true' && github.event_name != 'pull_request'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ffmpeg/build/ffmpeg-audio
+          key: ${{ steps.ffmpeg.outputs.cache-primary-key }}
+
+      - name: DeepFilterNet library from the cache
+        id: deepfilter
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: app/build/deepfilter
+          key: deepfilter-v1-${{ hashFiles('utils/deepfilter/**') }}
+      - name: Build DeepFilterNet library
+        if: steps.deepfilter.outputs.cache-hit != 'true'
+        run: ./gradlew :app:buildDeepFilter
+      - name: Save DeepFilterNet library to the cache
+        if: steps.deepfilter.outputs.cache-hit != 'true' && github.event_name != 'pull_request'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: app/build/deepfilter
+          key: ${{ steps.deepfilter.outputs.cache-primary-key }}
+
+      - name: Build with Gradle
+        run: ./gradlew --build-cache assembleDebug $SKIP_NATIVE
+      # Built or from the cache: the libraries must be in the APK, aligned to 16 KB.
+      - name: Check native libraries in the APK
+        run: |
+          apk=app/build/outputs/apk/debug/app-debug.apk
+          unzip -l "$apk" 'lib/*' | tee libs.txt
+          for so in {arm64-v8a,armeabi-v7a,x86_64}/libffmpegJNI.so {arm64-v8a,x86_64}/libordo_df.so; do
+            grep -q "lib/$so$" libs.txt || { echo "::error::lib/$so is missing in the APK"; exit 1; }
+          done
+          utils/check-16k.sh "$apk"
+      - name: Upload artifact
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: app-debug.apk
+          path: app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 10
+
+  test:
+    needs: changes
+    if: needs.changes.outputs.tests == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Set up JDK 21
+        uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Set up Gradle (with cache)
+        uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
+        with:
+          cache-read-only: ${{ github.event_name == 'pull_request' }}
+      - name: Unit tests
+        run: ./gradlew --build-cache testDebugUnitTest $SKIP_NATIVE
+
+  lint:
+    needs: changes
+    if: needs.changes.outputs.app == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Set up JDK 21
+        uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Set up Gradle (with cache)
+        uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
+        with:
+          cache-read-only: ${{ github.event_name == 'pull_request' }}
+      - name: Lint
+        run: ./gradlew --build-cache lintVitalRelease $SKIP_NATIVE
+
+  # The one check that auto-merge watches. Green only when every job above passed or was left out on purpose.
+  build:
+    needs: [changes, assemble, test, lint]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Script syntax
+        run: |
+          git ls-files -z '*.sh' | xargs -0 -n1 bash -n
+          git ls-files -z '*.py' | xargs -0 python3 -m py_compile
+      - name: All jobs passed
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          echo "changes, assemble, test, lint: $RESULTS"
+          case " $RESULTS " in *' failure '*|*' cancelled '*) exit 1 ;; esac
