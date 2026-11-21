@@ -198,6 +198,9 @@ object Settings {
         StringSettingLiveData(R.string.pref_key_video_frame_rate, R.string.pref_default_value_video_frame_rate)
     val VIDEO_PICTURE: SettingLiveData<String> =
         StringSettingLiveData(R.string.pref_key_video_picture, R.string.pref_default_value_video_picture)
+    /** "HDR-Darstellung": automatic or off (viewer/video/picture/HdrToneMap.kt). */
+    val VIDEO_HDR: SettingLiveData<String> =
+        StringSettingLiveData(R.string.pref_key_video_hdr, R.string.pref_default_value_video_hdr)
     /** "Upscaling": Lanczos or Detail plus (viewer/video/picture/DetailPlus.kt). */
     val VIDEO_UPSCALER: SettingLiveData<String> =
         StringSettingLiveData(R.string.pref_key_video_upscaler, R.string.pref_default_value_video_upscaler)

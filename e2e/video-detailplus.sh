@@ -7,8 +7,8 @@
 # measurements section, unfolded, shows the timer kind, GPU time per pass (Detail plus, Lanczos, enhancement), thermal
 # headroom and the Klang chain's buffers; "Share as CSV" opens the share sheet; folding stops it. After 20 s the device
 # either kept Detail plus or fell back to Lanczos with the calm notice; both are reported (INFO): these numbers are
-# what the test is for (network GPU time per frame, target <= 8 ms; dropped frames; headroom). "Automatic" picks
-# cartoon (Anime4K) for "Anime/[SubsPlease] Show - 01 (360p).mp4". Picture quality is judged by eye from the
+# what the test is for (network GPU time per frame, target <= 8 ms; dropped frames; headroom). "Automatic" (the default)
+# names its choice for "Anime/[SubsPlease] Show - 01 (360p).mp4". Picture quality is judged by eye from the
 # screenshots. Needs ffmpeg on the host.
 . "$(dirname "$0")/lib.sh" "$@"
 DIR=/storage/emulated/0/ordo-e2e-detailplus
@@ -93,13 +93,17 @@ ui tap "Messwerte|Measurements" >/dev/null; sleep 1.5
 check "folding stops measuring" seen "Aus\. Zum Messen antippen\.|Off\. Tap to start measuring\." 5
 back 1; back 2
 
-# 4. Automatic: an anime-looking name gets the cartoon network.
+# 4. Automatic: an anime-looking name gets the cartoon network (or the film network or Lanczos where too slow).
 upscaling "Automatisch|Automatic"
 a logcat -c
 open_file "$DIR/Anime" "[SubsPlease] Show - 01 (360p).mp4"
 sleep 6
-check "Automatic picks cartoon for an anime name" eval 'log | grep "effects: detail plus CARTOON"'
-back 2
+# The cartoon network, the film network or Lanczos when this device measured it too slow before (all name the reason).
+check "Automatic decides for an anime name and logs why" eval 'log | grep -E "auto: (CARTOON ANIME|FILM ANIME_FILM|lanczos TOO_SLOW)"'
+menu "Signalweg|Signal path"
+check "the signal path says why Automatic chose" seen "Automatisch: |Automatic: " 5
+screenshot "$out/signal-auto.png"
+back 1; back 2
 
 upscaling "Standard (Lanczos)"
 finish

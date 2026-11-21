@@ -372,7 +372,7 @@ class VideoSoundChainTest {
     }
 
     @Test
-    fun privacyGatesForLoudnessAndDelay() {
+    fun privacyGatesForLoudness() {
         val local = "file:///storage/emulated/0/Movies/a.mp4"
         assertEquals(LoudnessPolicy.CACHE, loudnessPolicy(local, noHistory = false))
         assertEquals(LoudnessPolicy.MEMORY, loudnessPolicy(local, noHistory = true))
@@ -380,12 +380,6 @@ class VideoSoundChainTest {
         assertEquals(LoudnessPolicy.SKIP, loudnessPolicy("smb://nas/film.mkv", noHistory = false))
         assertEquals(LoudnessPolicy.SKIP, loudnessPolicy("content://x/1", noHistory = false))
         assertEquals(LoudnessPolicy.SKIP, loudnessPolicy("", noHistory = false))
-        assertTrue(remembersDelay(local))
-        assertTrue(remembersDelay("smb://nas/film.mkv"))
-        assertFalse(remembersDelay("ordo-vault://item/7"))
-        assertFalse(remembersDelay("ORDO-VAULT://item/7"))
-        assertFalse(remembersDelay("content://x/1"))
-        assertFalse(remembersDelay("no-scheme"))
     }
 
     @Test
