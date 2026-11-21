@@ -106,7 +106,7 @@ und Lautstärke angleichen.
   ein nie gestelltes Gerät, auch Lautsprecher und Kabel, hat 0 ms. Ausgabe ab Android 13
   `getAudioDevicesForAttributes(MEDIA)`, davor verbundene Kopfhörer, sonst der Lautsprecher (ein USB-DAC oder HDMI
   zählt dort als Lautsprecher). Gespeichert in `video_av_delay_device`, höchstens 300 Geräte; 0 ms löscht den
-  Eintrag. Die Werte je Film aus 0.17.0 (`video_av_delay`) liest Ordo nicht mehr. Das Blatt zeigt „Gilt für: <Gerät>“
+  Eintrag. Die Werte je Film aus 0.17.0 (`video_av_delay`, Schlüssel mit Filmpfad) löscht Ordo einmalig beim ersten Start des Players (`VideoDelayStore.dropLegacy`). Die Gerätewerte enthalten keinen Film und bleiben bei „Weiterschauen löschen“ erhalten. Das Blatt zeigt „Gilt für: <Gerät>“
   (der eingebaute Lautsprecher heißt „Lautsprecher des Geräts“) und „Zurücksetzen“.
 - **Tonspur-Blatt** (`VideoAudioTrackSheet`): Sprache (in der App-Sprache), Codec, Kanäle (Stereo, 5.1 …); Spuren ohne
   Decoder heißen „auf diesem Gerät nicht abspielbar“ und sind nicht wählbar. Darunter die Ton-Synchronisation (−/+).
