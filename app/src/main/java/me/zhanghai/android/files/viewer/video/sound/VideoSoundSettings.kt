@@ -47,7 +47,7 @@ internal object VideoSoundCodec {
 }
 
 internal object VideoSoundStore {
-    private const val NAME = "video_sound"
+    const val NAME = "video_sound"
     private const val KEY = "settings"
 
     fun read(context: Context): VideoSoundSettings =
@@ -85,8 +85,25 @@ internal class VideoDelayStore(context: Context) {
     }
 
     companion object {
-        // Not "video_av_delay": that held the per-film delays of 0.17.0, which are no longer read.
         private const val NAME = "video_av_delay_device"
+        // 0.17.0 kept the delay per film, keyed by the film's path; never read again, so deleted once.
+        private const val LEGACY_NAME = "video_av_delay"
+        private const val LEGACY_DROPPED = "legacy_av_delay_dropped"
+
+        /** Deletes 0.17.0's per-film delays (film paths are private) once; off the main thread. */
+        fun dropLegacy(context: Context) {
+            val flags = context.getSharedPreferences(VideoSoundStore.NAME, Context.MODE_PRIVATE)
+            dropLegacyOnce(
+                { flags.getBoolean(LEGACY_DROPPED, false) }, { context.deleteSharedPreferences(LEGACY_NAME) },
+                { flags.edit().putBoolean(LEGACY_DROPPED, true).apply() }
+            )
+        }
+
+        internal fun dropLegacyOnce(done: () -> Boolean, delete: () -> Unit, markDone: () -> Unit) {
+            if (done()) return
+            delete()
+            markDone()
+        }
 
         internal fun encode(delayMs: Int, savedAtMs: Long): String = "$delayMs:$savedAtMs"
 

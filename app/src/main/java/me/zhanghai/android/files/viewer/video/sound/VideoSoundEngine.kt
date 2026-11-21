@@ -86,6 +86,10 @@ class VideoSoundEngine(private val context: Context) {
     }
     private val delayStore = VideoDelayStore(context)
     private val deviceDelay = VideoDeviceDelay(delayStore::read) { key, value -> worker.execute { delayStore.write(key, value) } }
+
+    init {
+        worker.execute { VideoDelayStore.dropLegacy(context) }
+    }
     // A film's level is measured once and cached (BS.1770, shared cache with Ordo Musik); a film takes longer.
     private val loudness by lazy { LoudnessAnalysis(context, LOUDNESS_MAX_MILLIS) }
     private var player: ExoPlayer? = null

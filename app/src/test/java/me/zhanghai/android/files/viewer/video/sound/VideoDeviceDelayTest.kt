@@ -74,4 +74,13 @@ class VideoDeviceDelayTest {
         assertTrue(delay.route("x"))
         assertEquals(0, delay.delayMs)
     }
+
+    @Test
+    fun legacyPerFilmDelaysAreDeletedOnce() {
+        var done = false
+        var deletes = 0
+        repeat(3) { VideoDelayStore.dropLegacyOnce({ done }, { deletes++ }, { done = true }) }
+        assertEquals(1, deletes)
+        assertTrue(done)
+    }
 }
