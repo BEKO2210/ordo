@@ -133,7 +133,7 @@
         <item>Lanczos 3 vergrößert scharf und schnell, auf jedem Gerät.</item>
         <item>Ein kleines Netz holt feine Details aus Filmen und Serien zurück. Braucht mehr Akku.</item>
         <item>Ein Netz für klare Linien und Farbflächen. Braucht mehr Akku.</item>
-        <item>Zeichentrick, wenn Datei oder Ordner so heißen (etwa „Anime“), sonst Film.</item>
+        <item>Wählt je Film selbst: Detail plus, wenn das Gerät schnell genug ist, Zeichentrick bei Anime, sonst Lanczos.</item>
     </string-array>
     <string name="video_detail_plus_slow_notice">Detail plus pausiert: Das Gerät kommt bei diesem Video nicht hinterher. Lanczos skaliert stattdessen.</string>
     <string name="video_signal_upscaler">Hochskalieren</string>
@@ -144,6 +144,16 @@
     <string name="video_signal_upscaler_small">Lanczos 3 (Detail plus ab 1,5-facher Vergrößerung)</string>
     <string name="video_signal_upscaler_fell_back">Lanczos 3 (Detail plus war auf diesem Gerät zu langsam)</string>
     <string name="video_signal_upscaler_unsupported">Lanczos 3 (Detail plus braucht OpenGL ES 3 mit Float-Texturen)</string>
+    <string name="video_signal_upscaler_auto_free_format">%1$s ms frei</string>
+    <string name="video_signal_upscaler_auto_measuring">Zeit wird gemessen</string>
+    <string name="video_signal_upscaler_auto_film_format">Automatisch: Detail plus Film, weil %1$s → %2$s und %3$s</string>
+    <string name="video_signal_upscaler_auto_anime_format">Automatisch: Detail plus Zeichentrick, weil Anime erkannt, %1$s → %2$s und %3$s</string>
+    <string name="video_signal_upscaler_auto_anime_film_format">Automatisch: Detail plus Film, weil Anime erkannt, das Zeichentrick-Netz hier aber zu langsam ist, %1$s → %2$s und %3$s</string>
+    <string name="video_signal_upscaler_auto_slow_format">Automatisch: Lanczos 3, weil Detail plus hier %1$s ms bräuchte (Ziel %2$s ms)</string>
+    <string name="video_signal_upscaler_auto_slow_unknown">Automatisch: Lanczos 3, weil Detail plus hier zu langsam war</string>
+    <string name="video_signal_upscaler_auto_small_format">Automatisch: Lanczos 3, weil nur %1$s-fach vergrößert</string>
+    <string name="video_signal_upscaler_auto_not_enhanced">Automatisch: Lanczos 3, weil HDR, Kopierschutz oder Bildverbesserung aus</string>
+    <string name="video_signal_upscaler_auto_unsupported">Automatisch: Lanczos 3, weil das Gerät kein OpenGL ES 3 mit Float-Texturen hat</string>
     <string name="video_meter_title">Messwerte</string>
     <string name="video_meter_off">Aus. Zum Messen antippen.</string>
     <string name="video_meter_on">Misst. Zum Beenden antippen.</string>
