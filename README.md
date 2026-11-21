@@ -15,7 +15,7 @@
 
 <p align="center">
 <!-- AUTO:badges -->
-  <a href="https://github.com/BEKO2210/ordo/releases/tag/v0.17.0"><img alt="release 0.17.0" src="https://img.shields.io/badge/release-0.17.0-2563EB"></a>
+  <a href="https://github.com/BEKO2210/ordo/releases/tag/v0.18.0"><img alt="release 0.18.0" src="https://img.shields.io/badge/release-0.18.0-2563EB"></a>
   <img alt="Android 7.0+" src="https://img.shields.io/badge/Android-7.0%2B-3DDC84">
   <a href="LICENSE"><img alt="License: GPL-3.0-or-later" src="https://img.shields.io/badge/license-GPL--3.0--or--later-blue"></a>
 <!-- /AUTO:badges -->
@@ -33,23 +33,20 @@
 </p>
 
 <!-- AUTO:new -->
-> **New in 0.17.0**
-> - Software decoder: DivX, MPEG-2, HEVC 10-bit, VC-1, .ts
-> - Menus redone in Music style
-> - Subtitles: accents always right, new style, easy to read
-> - Adjust picture and remove interlacing
-> - Detail plus where the device can handle it
-> - Headphone pack: surround, quiet listening, correction for 500 models
-> - Hi-res output via USB DAC
-> - Easier to read over bright frames and in the extended dark theme
-> - Folder named "Internal storage" instead of "0"
-> - Many fixes
+> **New in 0.18.0**
+> - HDR movies look more natural on regular displays
+> - Detail plus is faster and now set to "Automatic"
+> - New: "Dialogue isolation plus" separates voices on the device with AI (optional)
+> - Audio delay is remembered per headphone
+> - USB DAC: output is unaltered again
+> - Rate, share and send feedback for Ordo right from Settings
+> - Many small improvements
 <!-- /AUTO:new -->
 
 ## Status
 
 <!-- AUTO:status -->
-Current version 0.18.0 · [last release v0.17.0](https://github.com/BEKO2210/ordo/releases/tag/v0.17.0) · Android 7.0 and later (minSdk 24, targetSdk 36 = Android 16) · [GPL-3.0-or-later](LICENSE)
+Current version 0.18.0 · [release v0.18.0](https://github.com/BEKO2210/ordo/releases/tag/v0.18.0) · Android 7.0 and later (minSdk 24, targetSdk 36 = Android 16) · [GPL-3.0-or-later](LICENSE)
 <!-- /AUTO:status -->
 
 Ordo is in development. A closed test runs on Google Play; test builds are also published as
@@ -501,7 +498,7 @@ Run the unit tests with:
 ```
 
 <!-- AUTO:tests -->
-Device tests: 44 scripts in [`e2e/`](e2e/README.md), run with `e2e/run.sh`: 15 read-only (`first-run`, `smoke`, `settings-visual`, `category-search`, `back-navigation`, `bars-replay`, `home-header`, `header-position`, `home-pull`, `drawer`, `selection-more`, `tablet-landscape`, `analysis`, `ai-show-guard`, `documents-provider`) and 29 more with `--write` (`stress-delete`, `backup-restore`, `home-auto-refresh`, `audio-player`, `cast`, `klang`, `klang-landscape`, `klang-stress`, `music-formats`, `music-library`, `launcher-icons`, `icon-colors`, `ai-show`, `pick-file`, `no-midword-breaks`, `player-seek`, `player-stage2`, `video-player`, `video-network`, `video-sound`, `video-subtitles`, `video-background`, `video-library`, `video-seek`, `video-picture`, `video-picture-adjust`, `video-detailplus`, `video-menus`, `sheets-polish`). Unit tests: 136 test classes in `app/src/test`.
+Device tests: 45 scripts in [`e2e/`](e2e/README.md), run with `e2e/run.sh`: 15 read-only (`first-run`, `smoke`, `settings-visual`, `category-search`, `back-navigation`, `bars-replay`, `home-header`, `header-position`, `home-pull`, `drawer`, `selection-more`, `tablet-landscape`, `analysis`, `ai-show-guard`, `documents-provider`) and 30 more with `--write` (`stress-delete`, `backup-restore`, `home-auto-refresh`, `audio-player`, `cast`, `klang`, `klang-landscape`, `klang-stress`, `music-formats`, `music-library`, `launcher-icons`, `icon-colors`, `ai-show`, `pick-file`, `no-midword-breaks`, `player-seek`, `player-stage2`, `video-player`, `video-network`, `video-sound`, `video-dialog-isolate`, `video-subtitles`, `video-background`, `video-library`, `video-seek`, `video-picture`, `video-picture-adjust`, `video-detailplus`, `video-menus`, `sheets-polish`). Unit tests: 141 test classes in `app/src/test`.
 <!-- /AUTO:tests -->
 
 ## Roadmap

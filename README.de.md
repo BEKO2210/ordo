@@ -15,7 +15,7 @@
 
 <p align="center">
 <!-- AUTO:badges -->
-  <a href="https://github.com/BEKO2210/ordo/releases/tag/v0.17.0"><img alt="Version 0.17.0" src="https://img.shields.io/badge/Version-0.17.0-2563EB"></a>
+  <a href="https://github.com/BEKO2210/ordo/releases/tag/v0.18.0"><img alt="Version 0.18.0" src="https://img.shields.io/badge/Version-0.18.0-2563EB"></a>
   <img alt="Android 7.0+" src="https://img.shields.io/badge/Android-7.0%2B-3DDC84">
   <a href="LICENSE"><img alt="Lizenz: GPL-3.0-or-later" src="https://img.shields.io/badge/Lizenz-GPL--3.0--or--later-blue"></a>
 <!-- /AUTO:badges -->
@@ -33,23 +33,20 @@
 </p>
 
 <!-- AUTO:new -->
-> **Neu in 0.17.0**
-> - Software-Decoder: DivX, MPEG-2, HEVC 10-Bit, VC-1, .ts
-> - Menüs neu im Musik-Stil
-> - Untertitel: Umlaute immer richtig, neuer Stil, gut lesbar
-> - Bild anpassen und Zeilensprung entfernen
-> - Detail plus, wo das Gerät es schafft
-> - Kopfhörer-Paket: Raumklang, Leise hören, Korrektur für 500 Modelle
-> - Hi-Res-Ausgabe über USB-DAC
-> - Besser lesbar über hellen Bildern und im erweiterten Dunkel-Design
-> - Ordner heißt „Interner Speicher“ statt „0“
-> - Viele Fehler behoben
+> **Neu in 0.18.0**
+> - HDR-Filme sehen auf normalen Displays natürlicher aus
+> - Detail plus ist schneller und steht jetzt auf „Automatisch“
+> - Neu: „Dialog freistellen plus“ trennt Stimmen auf dem Gerät per KI (optional)
+> - Ton-Verzögerung wird pro Kopfhörer gemerkt
+> - USB-DAC: Ausgabe wieder unverfälscht
+> - Ordo bewerten, teilen und Feedback senden – direkt in den Einstellungen
+> - Viele kleine Verbesserungen
 <!-- /AUTO:new -->
 
 ## Stand
 
 <!-- AUTO:status -->
-Aktuelle Version 0.18.0 · [letztes Release v0.17.0](https://github.com/BEKO2210/ordo/releases/tag/v0.17.0) · ab Android 7.0 (minSdk 24, targetSdk 36 = Android 16) · [GPL-3.0-or-later](LICENSE)
+Aktuelle Version 0.18.0 · [Release v0.18.0](https://github.com/BEKO2210/ordo/releases/tag/v0.18.0) · ab Android 7.0 (minSdk 24, targetSdk 36 = Android 16) · [GPL-3.0-or-later](LICENSE)
 <!-- /AUTO:status -->
 
 Ordo ist in Entwicklung. Bei Google Play läuft ein geschlossener Test; Testversionen erscheinen auch als
@@ -508,7 +505,7 @@ Unit-Tests:
 ```
 
 <!-- AUTO:tests -->
-Gerätetests: 44 Skripte in [`e2e/`](e2e/README.md), gestartet mit `e2e/run.sh`: 15 nur lesend (`first-run`, `smoke`, `settings-visual`, `category-search`, `back-navigation`, `bars-replay`, `home-header`, `header-position`, `home-pull`, `drawer`, `selection-more`, `tablet-landscape`, `analysis`, `ai-show-guard`, `documents-provider`) und 29 weitere mit `--write` (`stress-delete`, `backup-restore`, `home-auto-refresh`, `audio-player`, `cast`, `klang`, `klang-landscape`, `klang-stress`, `music-formats`, `music-library`, `launcher-icons`, `icon-colors`, `ai-show`, `pick-file`, `no-midword-breaks`, `player-seek`, `player-stage2`, `video-player`, `video-network`, `video-sound`, `video-subtitles`, `video-background`, `video-library`, `video-seek`, `video-picture`, `video-picture-adjust`, `video-detailplus`, `video-menus`, `sheets-polish`). Unit-Tests: 136 Testklassen in `app/src/test`.
+Gerätetests: 45 Skripte in [`e2e/`](e2e/README.md), gestartet mit `e2e/run.sh`: 15 nur lesend (`first-run`, `smoke`, `settings-visual`, `category-search`, `back-navigation`, `bars-replay`, `home-header`, `header-position`, `home-pull`, `drawer`, `selection-more`, `tablet-landscape`, `analysis`, `ai-show-guard`, `documents-provider`) und 30 weitere mit `--write` (`stress-delete`, `backup-restore`, `home-auto-refresh`, `audio-player`, `cast`, `klang`, `klang-landscape`, `klang-stress`, `music-formats`, `music-library`, `launcher-icons`, `icon-colors`, `ai-show`, `pick-file`, `no-midword-breaks`, `player-seek`, `player-stage2`, `video-player`, `video-network`, `video-sound`, `video-dialog-isolate`, `video-subtitles`, `video-background`, `video-library`, `video-seek`, `video-picture`, `video-picture-adjust`, `video-detailplus`, `video-menus`, `sheets-polish`). Unit-Tests: 141 Testklassen in `app/src/test`.
 <!-- /AUTO:tests -->
 
 ## Ausblick
