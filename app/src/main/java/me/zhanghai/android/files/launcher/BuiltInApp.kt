@@ -178,6 +178,8 @@ object LauncherIcons {
                 pending.remove(prefix)
                 val chosen = storedColor(prefix) ?: return
                 apply(appContext, IconAliases.switchesFor(prefix, chosen) { isAliasEnabled(appContext, it) })
+                // The long-press entries belonged to the alias that just went off.
+                LauncherShortcuts.publish(appContext)
             }
         })
     }
