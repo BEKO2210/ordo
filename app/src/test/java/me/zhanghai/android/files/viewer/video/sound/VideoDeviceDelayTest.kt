@@ -23,10 +23,11 @@ class VideoDeviceDelayTest {
         val key = VideoDeviceDelay.key(a2dp, "WH-1000XM5", mac)
         assertFalse(key.contains("AA:BB", ignoreCase = true))
         assertFalse(key.contains("112233"))
-        assertTrue(key.startsWith("$a2dp|WH-1000XM5|"))
-        // Same model, other headphones: their own key; same address in other case: the same.
+        assertTrue(key.startsWith("$a2dp|#"))
+        // Same model, other headphones: their own key; same address in other case or renamed: the same.
         assertNotEquals(key, VideoDeviceDelay.key(a2dp, "WH-1000XM5", "AA:BB:CC:11:22:34"))
         assertEquals(key, VideoDeviceDelay.key(a2dp, "WH-1000XM5", mac.lowercase()))
+        assertEquals(key, VideoDeviceDelay.key(a2dp, "Kopfhörer Wohnzimmer", mac))
     }
 
     @Test

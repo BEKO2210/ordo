@@ -56,7 +56,7 @@ import java.util.concurrent.Executors
  */
 class VideoSoundEngine(private val context: Context) {
     private val handler = Handler(Looper.getMainLooper())
-    // Small, quick jobs (storing a device's delay); the loudness of a whole film has its own thread and never holds them up.
+    // Small, quick jobs (dropping 0.17.0's per-film delays); the loudness of a whole film has its own thread and never holds them up.
     private val worker = Executors.newSingleThreadExecutor()
     private val loudnessWorker = Executors.newSingleThreadExecutor()
     private val mono = MonoStage()
@@ -85,7 +85,8 @@ class VideoSoundEngine(private val context: Context) {
         notifyChanged()
     }
     private val delayStore = VideoDelayStore(context)
-    private val deviceDelay = VideoDeviceDelay(delayStore::read) { key, value -> worker.execute { delayStore.write(key, value) } }
+    // Written on the main thread like it is read: SharedPreferences keeps it in memory at once, so no read is stale.
+    private val deviceDelay = VideoDeviceDelay(delayStore::read) { key, value -> delayStore.write(key, value) }
 
     init {
         worker.execute { VideoDelayStore.dropLegacy(context) }

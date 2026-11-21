@@ -99,8 +99,9 @@ und Lautstärke angleichen.
   ist die Audio-Uhr. Nach einem Flush fügt der Prozessor N Frames Stille ein (Ton später) oder verwirft N Frames (Ton
   früher). Eine Änderung wirkt per Seek auf die aktuelle Stelle (kurzes Nachladen). Bei Tempo ≠ 1 gilt der Versatz in
   Filmzeit. Seit 0.18.0 gehört der Versatz zum Ausgabegerät, nicht mehr zum Film (`VideoDeviceDelay`): Schlüssel ist
-  Typ + Produktname aus `AudioDeviceInfo`, bei Bluetooth (A2DP, SCO, LE, Hörgerät) dazu die ersten 6 Byte eines
-  SHA-256 der Adresse, damit zwei gleiche Kopfhörer getrennt bleiben; die MAC selbst wird nie gespeichert. Kabel- und
+  Typ + Produktname aus `AudioDeviceInfo`, bei Bluetooth (A2DP, SCO, LE, Hörgerät) mit Adresse (ab Android 9)
+  stattdessen Typ + die ersten 6 Byte eines SHA-256 der Adresse, damit zwei gleiche Kopfhörer getrennt bleiben und ein
+  umbenannter seinen Wert behält; die MAC selbst wird nie gespeichert. Kabel- und
   USB-Adressen bleiben weg (sie wechseln beim Einstecken). Wird ein Gerät zur Ausgabe (`AudioDeviceCallback`, nach 1 s
   noch einmal geprüft, weil die Medienroute dem Callback nachläuft, und bei jedem Abspielstart), lädt Ordo seinen Wert;
   ein nie gestelltes Gerät, auch Lautsprecher und Kabel, hat 0 ms. Ausgabe ab Android 13

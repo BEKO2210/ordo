@@ -43,16 +43,15 @@ internal class VideoDeviceDelay(private val read: (String) -> Int?, private val 
         )
 
         /**
-         * Type and product name; a Bluetooth device adds a hash of its address, so two headphones of the same model
-         * keep their own delay. The address itself (a MAC) is never stored. Wired and USB addresses change with every
-         * plug, so they are left out.
+         * Type and product name; a Bluetooth device with an address (Android 9+) is type and a hash of the address
+         * instead, so two headphones of the same model keep their own delay and a renamed one keeps it. The address
+         * itself (a MAC) is never stored. Wired and USB addresses change with every plug, so they are left out.
          */
         fun key(type: Int, productName: CharSequence?, address: String?): String {
-            val base = "$type|${productName ?: ""}"
-            if (type !in BLUETOOTH_TYPES || address.isNullOrBlank()) return base
+            if (type !in BLUETOOTH_TYPES || address.isNullOrBlank()) return "$type|${productName ?: ""}"
             val hash = MessageDigest.getInstance("SHA-256").digest(address.uppercase().toByteArray())
                 .take(6).joinToString("") { "%02x".format(it) }
-            return "$base|$hash"
+            return "$type|#$hash"
         }
 
         fun key(device: AudioDeviceInfo): String =
