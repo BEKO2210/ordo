@@ -602,7 +602,8 @@ class VideoPicture(
         val slowBefore = detailSlowBefore
         detailSlowBefore = DetailPlus.slow(detailMs ?: 0.0, detail?.count ?: 0)
         if (unsupported || DetailPlus.fallBack(
-                detailMs ?: 0.0, detail?.count ?: 0, slowBefore, droppedNow, steady && meter.timer != "cpu"
+                detailMs ?: 0.0, detail?.count ?: 0, slowBefore, droppedNow, steady && meter.timer != "cpu",
+                gpuTimed = meter.timer == "gpu"
             )
         ) {
             Log.i(PICTURE_LOG_TAG, "Detail plus $model off: $detailMs ms over ${detail?.count}, " +
@@ -738,9 +739,10 @@ class VideoPicture(
             return
         }
         if (decision?.on != true || !PicturePolicy.tooSlow(droppedFrames, elapsedMs)) return
-        // Detail plus goes first: Lanczos alone may well keep up. Drops while the pipeline settles don't count.
+        // Detail plus goes first: Lanczos alone may well keep up. Drops while the pipeline settles don't count, and where
+        // the GPU times the pass only its time does (tick, DetailPlus.fallBack).
         if (model != null) {
-            if (SystemClock.elapsedRealtime() - steadySince < DetailPlus.SETTLE_MS) return
+            if (meter.timer == "gpu" || SystemClock.elapsedRealtime() - steadySince < DetailPlus.SETTLE_MS) return
             detailFellBack = true
             autoFellBackFor = player?.currentMediaItem?.mediaId
             model?.let { autoFellBack[it] = null }

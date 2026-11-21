@@ -399,10 +399,11 @@ Quelle: `ordo-team/LOKALE-QUALITAETS-KI.md`, Empfehlungen 1 und 2. Logik ohne An
   `EXT_color_buffer_(half_)float`); sonst kopiert der Pass nur und Ordo schaltet auf Lanczos zurück (Signalweg nennt den Grund).
 - **Rückfall:** GPU-Zeit des Netzes im Mittel einer Sekunde **> 8 ms beim höchsten GPU-Takt, zwei Sekunden in Folge** (ab 10 gemessenen
   Bildern; gemessene Zeit × aktueller/höchster Takt aus `/sys/class/kgsl/kgsl-3d0/devfreq`, wo lesbar – Adreno; sonst
-  die gemessene Zeit) oder **jedes**
-  verworfene Bild im eingeschwungenen Abspielen (2 s nach Start, Sprung, Pause oder neuen Effekten) → Lanczos für
-  diesen Bildschirm, mit ruhigem Hinweis. Meldet Media3 einen Ruckel-Block, fällt zuerst Detail plus weg, erst danach
-  die ganze Bildverbesserung. Das ⋮-Umschalten setzt beides zurück.
+  die gemessene Zeit) → Lanczos für diesen Bildschirm, mit ruhigem Hinweis. Verworfene Bilder zählen nur, wo die GPU
+  den Pass nicht messen kann (kein `EXT_disjoint_timer_query`): dann jedes im eingeschwungenen Abspielen (2 s nach
+  Start, Sprung, Pause oder neuen Effekten), und ein Ruckel-Block von Media3 nimmt zuerst Detail plus, erst danach die
+  ganze Bildverbesserung. Mit GPU-Timer sagen sie nichts über den Pass (Tab S9, 21.11.2026: 1–14 verworfene Bilder
+  nach Start und Sprüngen schalteten ein 0,8-ms-Netz ab). Das ⋮-Umschalten setzt beides zurück.
 - **Messwerte** (⋮ › Signalweg, unten, eingeklappt und aus): Antippen startet die Messung, erneutes Antippen beendet
   sie. Ohne Messung wird nichts umhüllt und nichts gemessen, außer der GPU-Zeit des Detail-plus- und des HDR-Passes (für den
   Rückfall). Gemessen werden: GPU-Zeit je Pass (Detail plus, Lanczos, Bildverbesserung, HDR → SDR) per `EXT_disjoint_timer_query`
