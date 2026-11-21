@@ -696,6 +696,8 @@ Downmix (5.1/7.1 also nach Ordos Stereo-Mix) und vor der Klang-Kette, nur bei 16
 - **Zusammen mit dem Dialog-Verstärker:** zwei eigene Schalter. Beide an: erst freistellen, danach misst und steuert
   der Dialog-Verstärker wie bisher auf seinen LU-Abstand.
 - **Zu langsam = weg:** Nach dem Laden misst Ordo 300 Hops (3 s) auf dem Gerät. RTF > 0,7 → Option verschwindet.
+  Schlägt ein Hop fehl, misst Ordo einmal neu; scheitert auch das, bleibt die Option für diesen Film aus und es wird
+  nichts gespeichert (beim nächsten Film misst Ordo wieder).
   Die Bibliothek `libordo_df.so` gibt es nur für arm64-v8a und x86_64 (`utils/deepfilter/build.sh`, wie FFmpeg aus
   festen Quellen gebaut), anderswo erscheint die Option nicht.
 - Messung und Hörtest: `~/ordo-team/DF3-MESSUNG.md` (Tab S9 RTF 0,057, S21 0,10, A8 0,34–0,55).

@@ -80,8 +80,17 @@ class VideoDeviceDelayTest {
     fun legacyPerFilmDelaysAreDeletedOnce() {
         var done = false
         var deletes = 0
-        repeat(3) { VideoDelayStore.dropLegacyOnce({ done }, { deletes++ }, { done = true }) }
+        repeat(3) { VideoDelayStore.dropLegacyOnce({ done }, { deletes++; true }, { done = true }) }
         assertEquals(1, deletes)
         assertTrue(done)
+    }
+
+    @Test
+    fun aFailedLegacyDeleteIsTriedAgain() {
+        var done = false
+        var deletes = 0
+        repeat(2) { VideoDelayStore.dropLegacyOnce({ done }, { deletes++; false }, { done = true }) }
+        assertEquals(2, deletes)
+        assertFalse(done)
     }
 }
