@@ -172,6 +172,24 @@ internal object AudioPlayerColorWash {
         return accent
     }
 
+    /**
+     * [text] as little changed as possible so it reads 4.5:1 on [background]: first more opaque, then step by step
+     * towards [strong] (the primary text colour). Material's dynamic secondary text stayed at 4.3:1 on a light
+     * wallpaper surface (Tab, 20.11.2026).
+     */
+    fun readableText(text: Int, background: Int, strong: Int): Int {
+        for (alpha in (text ushr 24)..0xff step 8) {
+            val color = (alpha shl 24) or (text and 0xffffff)
+            if (contrastRatio(color, background) >= MINIMUM_TEXT_CONTRAST) return color
+        }
+        val opaque = over(text, background)
+        for (percent in 10..100 step 10) {
+            val color = blend(opaque, over(strong, background), percent)
+            if (contrastRatio(color, background) >= MINIMUM_TEXT_CONTRAST) return color
+        }
+        return strong
+    }
+
     fun contrastRatio(first: Int, second: Int): Double = contrast(over(first, second), second)
 
     private fun over(top: Int, bottom: Int): Int {

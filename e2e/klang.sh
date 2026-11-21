@@ -43,7 +43,7 @@ set_switch() {
 }
 # The live picture says "Title: value"; switched on, the value is no longer "Off". It sits under the title, so a
 # short scroll brings it in when the title stands at the bottom edge.
-nudge() { read -r W H < <(screen_size); a shell input swipe $((W / 2)) $((H * 6 / 10)) $((W / 2)) $((H * 4 / 10)) 400; sleep 1; }
+nudge() { read -r W H < <(screen_size); a shell input swipe $((W / 2)) $((H * 6 / 10)) $((W / 2)) $((H * 4 / 10)) 400; sleep 1; still_muted; }
 # ui.py texts prints "text|id|description" with the short id.
 picture_shows() { ui texts | grep -E "^\|picture\|($1): " | grep -vqE ": (Aus|Off)$"; }
 picture_on_id() { ui texts | grep -E "^\|$1\|($2): " | grep -vqE ": (Aus|Off)$"; }
@@ -73,11 +73,15 @@ for effect in "${EFFECTS[@]}"; do
     check "the $name picture reports its value" picture_on "$effect"
 done
 check "a reverb room can be chosen" paused_ui tap "Concert hall|Konzertsaal"
+# "Full sound when quiet" has one place: the Headphones sheet, linked from one row here.
 QUIET="Full sound when quiet|Leise hören mit vollem Klang"
-check "full sound when quiet is reachable" scrolled_to "$QUIET"
+check "the headphones row is reachable" scrolled_to "Headphones|Kopfhörer"
+check "it opens the headphones sheet" paused_ui tap headphonesEntry
+sleep 1
+check "full sound when quiet is in the headphones sheet" scrolled_to "$QUIET"
 check "full sound when quiet switches on" set_switch "$QUIET" on
-check "its picture reports the volume" picture_on_id quietPicture "$QUIET"
 check "full sound when quiet switches off again" set_switch "$QUIET" off
+back 1
 check "the sleep timer shows its picture" scrolled_to "Sleep timer: Off|Schlaf-Timer: Aus|Einschlaf-Timer: Aus"
 # Skip silence, audio focus and resume-with-headphones each have their own card with a picture.
 check "skip silence has its own picture" scrolled_to skipPicture

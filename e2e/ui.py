@@ -50,8 +50,10 @@ def nodes(fresh=False):
     else:
         # One round trip: over Tailscale every adb call costs latency.
         # A busy app (e.g. right after an install) can make the dump give up on waiting for idle: try again.
+        # It gives up with exit code 0 and leaves the old file, so remove that first (a stale screen hid #22).
         for _ in range(3):
-            xml = subprocess.run(ADB + ["exec-out", "uiautomator dump /data/local/tmp/ordo-e2e.xml >/dev/null && "
+            xml = subprocess.run(ADB + ["exec-out", "rm -f /data/local/tmp/ordo-e2e.xml; "
+                                        "uiautomator dump /data/local/tmp/ordo-e2e.xml >/dev/null && "
                                         "cat /data/local/tmp/ordo-e2e.xml"], capture_output=True, text=True).stdout
             if "<node" in xml:
                 break
@@ -254,9 +256,12 @@ elif command == "texts":
     print("\n".join(f"{t}|{rid.split('/')[-1]}|{d}" for t, rid, d, *_ in nodes() if t or d))
 elif command == "shot":
     # Privacy: only Ordo's own screens, never another app, the launcher or a lock screen (lib.sh ordo_front).
-    state = sh("dumpsys activity activities | grep -m1 topResumedActivity; dumpsys window | grep -m1 isKeyguardShowing")
+    state = sh("dumpsys activity activities | grep -m1 topResumedActivity; dumpsys window | grep -m1 isKeyguardShowing; "
+               "dumpsys window | grep -m1 mCurrentFocus")
     pkg = os.environ.get("PKG", "com.beko2210.ordo")
-    if not re.search(r"topResumedActivity=.* " + re.escape(pkg) + "/", state) or "isKeyguardShowing=true" in state:
+    # The focused window too: Samsung's app drawer can cover Ordo while Ordo stays resumed (lib.sh ordo_front).
+    if (not re.search(r"topResumedActivity=.* " + re.escape(pkg) + "/", state) or "isKeyguardShowing=true" in state
+            or not re.search(r"mCurrentFocus=.* " + re.escape(pkg) + "/", state)):
         print(f"SKIP shot (not Ordo): {sys.argv[3]}")
         sys.exit(1)
     with open(sys.argv[3], "wb") as file:

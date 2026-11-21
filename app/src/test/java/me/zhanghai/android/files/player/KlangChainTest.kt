@@ -228,8 +228,11 @@ class KlangChainTest {
         assertTrue(klang.mono.effectEnabled)
         assertFalse(klang.crossfeed.effectEnabled || klang.width.effectEnabled)
         assertTrue(klang.warmth.effectEnabled && klang.reverb.effectEnabled)
-        // One processor for the whole chain (one float conversion, one dither), then the true-peak limiter.
-        assertEquals(2, klang.chain.size)
-        assertTrue(klang.chain[0] === klang.processor && klang.chain[1] === klang.truePeak)
+        // The downmix (only for virtual surround, stereo passes by), one processor for the whole chain (one float
+        // conversion, one dither), then the true-peak limiter.
+        assertEquals(3, klang.chain.size)
+        assertTrue(
+            klang.chain[0] === klang.downmix && klang.chain[1] === klang.processor && klang.chain[2] === klang.truePeak
+        )
     }
 }

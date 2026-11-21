@@ -9,7 +9,7 @@
     <string name="video_subtitles_delay">Verzögerung</string>
     <string name="video_subtitles_earlier_format">%1$s früher zeigen</string>
     <string name="video_subtitles_later_format">%1$s später zeigen</string>
-    <string name="video_subtitles_delay_files_only">Die Verzögerung gilt für Untertitel-Dateien. Spuren im Video behalten ihr eigenes Timing.</string>
+    <string name="video_subtitles_delay_text_only">Verschieben nur für Text-Untertitel.</string>
     <string name="video_subtitles_charset">Zeichenkodierung</string>
     <string name="video_subtitles_charset_auto_format">Automatisch (%1$s)</string>
     <string-array name="video_subtitles_charset_names">
@@ -22,15 +22,30 @@
         <item>Türkisch (Windows-1254)</item>
     </string-array>
     <string name="video_subtitles_size">Größe</string>
-    <string-array name="video_subtitles_size_names">
-        <item>Klein</item>
-        <item>Mittel</item>
-        <item>Groß</item>
-        <item>Sehr groß</item>
+    <string name="video_subtitles_size_smaller">Kleiner</string>
+    <string name="video_subtitles_size_larger">Größer</string>
+    <string name="video_subtitles_style">Untertitel-Stil</string>
+    <string name="video_subtitles_style_system">Wie System</string>
+    <string name="video_subtitles_style_system_summary">Die Untertitel-Einstellungen von Android (Bedienungshilfen › Untertitel)</string>
+    <string name="video_subtitles_style_file">Stil der Datei</string>
+    <string name="video_subtitles_style_file_summary">ASS- und SSA-Dateien behalten ihre eigenen Farben, Schriften und Größen</string>
+    <string name="video_subtitles_style_reset">Stil zurücksetzen</string>
+    <string name="video_subtitles_preview_text">Grüße aus Köln –\nso sehen Untertitel aus.</string>
+    <string name="video_subtitles_preview_description">Vorschau der Untertitel auf hellem und dunklem Bild</string>
+    <string name="video_subtitles_font">Schrift</string>
+    <string-array name="video_subtitles_font_names">
+        <item>Standard</item>
+        <item>Kräftig</item>
+        <item>Schmal</item>
+        <item>Serifen</item>
     </string-array>
-    <string name="video_subtitles_background">Hintergrund</string>
+    <string name="video_subtitles_position">Höhe</string>
+    <string name="video_subtitles_position_summary">Abstand vom unteren Bildrand</string>
+    <string name="video_subtitles_position_lower">Tiefer</string>
+    <string name="video_subtitles_position_higher">Höher</string>
+    <string name="video_subtitles_background">Darstellung</string>
     <string-array name="video_subtitles_background_names">
-        <item>Ohne</item>
+        <item>Kontur</item>
         <item>Schatten</item>
         <item>Kasten</item>
     </string-array>
@@ -38,6 +53,8 @@
     <string-array name="video_subtitles_color_names">
         <item>Weiß</item>
         <item>Gelb</item>
+        <item>Cyan</item>
+        <item>Grün</item>
     </string-array>
     <string name="video_subtitles_bitmap_note">Diese Spur besteht aus Bildern, Größe und Farbe ändern sie nicht.</string>
     <string name="video_subtitles_not_subtitle">Diese Datei ist keine Untertitel-Datei (SRT, VTT, ASS, SSA oder TTML).</string>

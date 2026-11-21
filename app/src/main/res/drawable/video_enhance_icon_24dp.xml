@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- Picture enhancement: a large and a small four-pointed sparkle. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:tint="?attr/colorControlNormal"
+    android:width="24dp" android:height="24dp" android:viewportWidth="960" android:viewportHeight="960">
+    <path android:fillColor="@android:color/white" android:pathData="M400,160L470,410L720,480L470,550L400,800L330,550L80,480L330,410Z" />
+    <path android:fillColor="@android:color/white" android:pathData="M760,80L790,170L880,200L790,230L760,320L730,230L640,200L730,170Z" />
+</vector>

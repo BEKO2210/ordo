@@ -11,13 +11,24 @@ import me.zhanghai.android.files.viewer.video.VideoResumeStore
 
 /**
  * Per film (Ordo paths only, never `content://` of another app, like [VideoResumeStore]): the subtitle choice, the
- * delay of a subtitle file and a manual charset. At most [MAX_ENTRIES], the oldest go first. Also the look of the
+ * delay of a subtitle file and a manual charset for one file ([Entry.charsetFile], its content key). At most [MAX_ENTRIES], the oldest go first. Also the look of the
  * subtitles, which holds for every film.
  */
 class SubtitleStore(context: Context) {
     private val preferences = context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
 
-    data class Entry(val choice: SubtitleChoice?, val delayMs: Long = 0, val charset: String? = null)
+    /**
+     * [charset] holds only for the file whose content key is [charsetFile] ([SubtitleFiles.contentKey]): a choice
+     * never reaches another file of the film, nor the same name with new content.
+     */
+    data class Entry(
+        val choice: SubtitleChoice?,
+        val delayMs: Long = 0,
+        val charset: String? = null,
+        val charsetFile: String? = null
+    ) {
+        fun charsetFor(contentKey: String?): String? = charset?.takeIf { contentKey != null && contentKey == charsetFile }
+    }
 
     fun read(mediaId: String): Entry? = decode(preferences.getString(KEY_PREFIX + mediaId, null))
 
@@ -55,16 +66,22 @@ class SubtitleStore(context: Context) {
         internal const val MAX_ENTRIES = 300
 
         internal fun encode(entry: Entry, savedAtMs: Long): String =
-            listOf(entry.choice?.encode().orEmpty(), entry.delayMs, entry.charset.orEmpty(), savedAtMs)
-                .joinToString(FIELD.toString())
+            listOf(
+                entry.choice?.encode().orEmpty(), entry.delayMs, entry.charset.orEmpty(), entry.charsetFile.orEmpty(),
+                savedAtMs // last: write() reads the age from there
+            ).joinToString(FIELD.toString())
 
         internal fun decode(value: String?): Entry? {
             val parts = value?.split(FIELD) ?: return null
-            if (parts.size != 4) return null
+            // Before 0.17.0 (4 fields) a charset held for every file of the film: a stale choice garbled a UTF-8 file
+            // (owner's Tab S9, 20.11.2026, "fÃ¼r"). Such a charset is dropped, the choice and the delay stay.
+            if (parts.size !in 4..5) return null
+            val charsetFile = if (parts.size == 5) parts[3].ifEmpty { null } else null
             return Entry(
                 SubtitleChoice.decode(parts[0].ifEmpty { null }),
                 SubtitleTimeline.clampDelay(parts[1].toLongOrNull() ?: 0L),
-                parts[2].takeIf { it in SubtitleFiles.CHARSETS }
+                parts[2].takeIf { it in SubtitleFiles.CHARSETS && charsetFile != null },
+                charsetFile
             )
         }
     }

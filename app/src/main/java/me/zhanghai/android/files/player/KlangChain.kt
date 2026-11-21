@@ -12,6 +12,18 @@ import androidx.media3.common.audio.BaseAudioProcessor
 import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.audio.AudioSink
 import androidx.media3.exoplayer.audio.DefaultAudioSink
+import me.zhanghai.android.files.player.headphones.HeadphoneStages
+import me.zhanghai.android.files.viewer.video.sound.DownmixProcessor
+import android.os.Handler
+import androidx.media3.exoplayer.DecoderReuseEvaluation
+import androidx.media3.exoplayer.FormatHolder
+import androidx.media3.exoplayer.Renderer
+import androidx.media3.exoplayer.audio.AudioRendererEventListener
+import androidx.media3.exoplayer.audio.MediaCodecAudioRenderer
+import androidx.media3.exoplayer.mediacodec.MediaCodecSelector
+import me.zhanghai.android.files.player.output.OutputPolicy
+import me.zhanghai.android.files.player.output.HiResAudioSink
+import me.zhanghai.android.files.player.output.HiResOutput
 import java.nio.ByteBuffer
 import kotlin.math.abs
 import kotlin.math.exp
@@ -36,6 +48,10 @@ class KlangAudioProcessor(
     var processing = false
         private set
     private var seed = 0x2545F491
+
+    /** Ordo Video's measurements: gets each buffer's processing time in nanoseconds; null (the default) costs nothing. */
+    @Volatile
+    var meter: ((Long) -> Unit)? = null
     private var limiterGain = 1f
     private var release = 0f
 
@@ -61,6 +77,8 @@ class KlangAudioProcessor(
     override fun queueInput(inputBuffer: ByteBuffer) {
         // Media3 polls with EMPTY_BUFFER, which before the first data is also our output buffer: never copy it.
         if (!inputBuffer.hasRemaining()) return
+        val meter = meter
+        val start = if (meter != null) System.nanoTime() else 0L
         var any = false
         for (index in stages.indices) {
             active[index] = stages[index].begin()
@@ -96,6 +114,7 @@ class KlangAudioProcessor(
             }
         }
         output.flip()
+        meter?.invoke(System.nanoTime() - start)
     }
 
     /** The one dither of the chain, then 16 bit. */
@@ -332,7 +351,9 @@ class WarmthStage : KlangStage() {
 
 /**
  * Ordo's own effects in the order the research chose: Mono → crossfeed → width → warmth → reverb, with the highs
- * right after mono, so its cut detector hears the file before any other stage adds overtones.
+ * right after mono, so its cut detector hears the file before any other stage adds overtones; then the headphone
+ * pack's loudness shelves and headphone correction, last before the limiter. Multichannel files go through the
+ * downmix only for virtual surround ([downmix]); otherwise they reach Android untouched, as before.
  */
 class KlangProcessors(dither: Boolean = true) {
     val mono = MonoStage()
@@ -341,12 +362,16 @@ class KlangProcessors(dither: Boolean = true) {
     val width = WidthStage()
     val warmth = WarmthStage()
     val reverb = ReverbStage()
-    val processor = KlangAudioProcessor(arrayOf(mono, highs, crossfeed, width, warmth, reverb), dither)
+    val headphones = HeadphoneStages()
+    val processor = KlangAudioProcessor(
+        arrayOf(mono, highs, crossfeed, width, warmth, reverb, headphones.quiet, headphones.correction), dither
+    )
+    val downmix = DownmixProcessor().apply { passThroughChannels = ALL_SURROUND }
     // Armed by what the chain actually did with the buffer before, so a stage fading out is still caught;
     // untouched music stays bit-perfect.
     val truePeak = TruePeakLimiter { processor.processing }
 
-    val chain: Array<AudioProcessor> get() = arrayOf(processor, truePeak)
+    val chain: Array<AudioProcessor> get() = arrayOf(downmix, processor, truePeak)
 
     /**
      * Crossfeed only makes sense in headphones; crossfeed and width have nothing left to work on after the mono mix.
@@ -354,6 +379,19 @@ class KlangProcessors(dither: Boolean = true) {
     /** Loudness levelling to the chosen R 128 s2 target, before the true-peak limiter. */
     fun setLoudness(settings: AudioSettings, info: ReplayGainInfo?) {
         truePeak.gainDb = LoudnessTargets.gainDb(settings, info)
+    }
+
+    /**
+     * [spatializerChannels]: what the system's spatializer renders itself; those layouts always pass by. Others go to
+     * Ordo's virtual surround while it is wanted with headphones on; the choice applies from the next track (a format
+     * is set up once), switching off mid-track cross-fades to Ordo's BS.775 downmix.
+     */
+    fun apply(settings: AudioSettings, headphones: Boolean, attenuationDb: Float, spatializerChannels: Set<Int>) {
+        val binaural = settings.binauralEnabled && headphones
+        downmix.binaural = binaural
+        downmix.passThroughChannels = if (binaural) spatializerChannels else ALL_SURROUND
+        this.headphones.apply(settings, headphones, attenuationDb)
+        apply(settings, headphones)
     }
 
     fun apply(settings: AudioSettings, headphones: Boolean) {
@@ -372,20 +410,58 @@ class KlangProcessors(dither: Boolean = true) {
     }
 }
 
+private val ALL_SURROUND = (3..8).toSet()
+
 class AudioRenderersFactory(
     context: Context,
-    private val audioProcessors: Array<AudioProcessor>
+    private val audioProcessors: Array<AudioProcessor>,
+    // Sets the output's mixer per song (rate match, bit-perfect); null keeps Android's mixer as it is.
+    private val output: HiResOutput? = null
 ) : DefaultRenderersFactory(context) {
     init {
         // Platform decoders first, FFmpeg (AC3/E-AC3/DTS/TrueHD) only for what the device cannot decode.
         setExtensionRendererMode(EXTENSION_RENDERER_MODE_ON)
     }
 
+    // The platform renderer tells HiResOutput each song's declared depth before its decoder starts, so the sink can
+    // decide bit-perfect by the source (FLAC STREAMINFO, WAV), not by what the decoder hands over.
+    override fun buildAudioRenderers(
+        context: Context,
+        extensionRendererMode: Int,
+        mediaCodecSelector: MediaCodecSelector,
+        enableDecoderFallback: Boolean,
+        audioSink: AudioSink,
+        eventHandler: Handler,
+        eventListener: AudioRendererEventListener,
+        out: ArrayList<Renderer>
+    ) {
+        super.buildAudioRenderers(
+            context, extensionRendererMode, mediaCodecSelector, enableDecoderFallback, audioSink, eventHandler,
+            eventListener, out
+        )
+        val output = output ?: return
+        val index = out.indexOfFirst { it.javaClass == MediaCodecAudioRenderer::class.java }
+        if (index < 0) return
+        out[index] = object : MediaCodecAudioRenderer(
+            context, codecAdapterFactory, mediaCodecSelector, enableDecoderFallback, eventHandler, eventListener,
+            audioSink
+        ) {
+            override fun onInputFormatChanged(formatHolder: FormatHolder): DecoderReuseEvaluation? {
+                formatHolder.format?.let {
+                    output.onSourceFormat(
+                        it.sampleRate, it.channelCount, OutputPolicy.sourceDepth(it.sampleMimeType, it.pcmEncoding)
+                    )
+                }
+                return super.onInputFormatChanged(formatHolder)
+            }
+        }
+    }
+
     override fun buildAudioSink(
         context: Context,
         enableFloatOutput: Boolean,
         enableAudioOutputPlaybackParams: Boolean
-    ): AudioSink = DefaultAudioSink.Builder(context)
+    ): AudioSink = output?.let { HiResAudioSink(context, audioProcessors, it) } ?: DefaultAudioSink.Builder(context)
         // PCM processors are the Media3-supported insertion point before AudioTrack playback.
         // https://developer.android.com/reference/androidx/media3/exoplayer/audio/DefaultAudioSink.Builder
         .setAudioProcessors(audioProcessors)

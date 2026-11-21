@@ -26,7 +26,10 @@ import me.zhanghai.android.files.R
 import me.zhanghai.android.files.databinding.KlangSwitchRowBinding
 import me.zhanghai.android.files.databinding.VideoSoundSheetBinding
 import me.zhanghai.android.files.player.EqualizerPreset
+import me.zhanghai.android.files.player.AudioSettings
 import me.zhanghai.android.files.player.LoudnessTarget
+import me.zhanghai.android.files.player.headphones.HeadphonesHost
+import me.zhanghai.android.files.player.headphones.HeadphonesSheet
 import me.zhanghai.android.files.ui.Motion
 import me.zhanghai.android.files.viewer.audio.KlangMath
 
@@ -39,7 +42,7 @@ interface VideoSoundHost {
  * Ordo Video › Sound: equalizer curve and presets, dialog enhancer, night mode, bass, mono and balance, in Ordo
  * Musik's Klang look. Every change is stored at once ([VideoSoundStore]) and heard at once.
  */
-class VideoSoundSheet : BottomSheetDialogFragment() {
+class VideoSoundSheet : BottomSheetDialogFragment(), HeadphonesHost {
     private var _binding: VideoSoundSheetBinding? = null
     private val binding get() = checkNotNull(_binding)
     private val engine get() = (activity as? VideoSoundHost)?.videoSound
@@ -128,6 +131,7 @@ class VideoSoundSheet : BottomSheetDialogFragment() {
         }
         bindRow(binding.monoRow, R.drawable.audio_hearing_icon_24dp, R.string.audio_sound_mono,
             R.string.audio_sound_mono_summary) { copy(klang = klang.copy(mono = it)) }
+        HeadphonesSheet.bindEntry(binding.headphonesEntry, this)
         binding.balanceStepper.stepMinus.contentDescription = getString(R.string.video_sound_balance_left_button)
         binding.balanceStepper.stepPlus.contentDescription = getString(R.string.video_sound_balance_right_button)
         binding.balanceStepper.stepMinus.setOnClickListener {
@@ -181,6 +185,11 @@ class VideoSoundSheet : BottomSheetDialogFragment() {
         update { copy(klang = klang.copy(equalizerEnabled = true, preset = preset, bandGainsDb = gains)) }
     }
 
+    override val headphoneSettings: AudioSettings get() = settings.klang
+
+    override fun updateHeadphoneSettings(transform: AudioSettings.() -> AudioSettings) =
+        update { copy(klang = klang.transform()) }
+
     private fun update(transform: VideoSoundSettings.() -> VideoSoundSettings) {
         if (rendering) return
         val engine = engine ?: return
@@ -225,6 +234,7 @@ class VideoSoundSheet : BottomSheetDialogFragment() {
         // The device decides on bass (BassBoost) and balance (per-channel gain in DynamicsProcessing, API 28+).
         binding.bassCard.isVisible = status?.bassBoostAvailable != false
         binding.monoRow.toggle.isChecked = klang.mono
+        HeadphonesSheet.renderEntry(binding.headphonesEntry, klang)
         binding.levelRow.toggle.isChecked = klang.normalizationEnabled
         binding.levelTargetGroup.check(
             if (klang.loudnessTarget == LoudnessTarget.ON_THE_GO) R.id.levelTargetOnTheGo else R.id.levelTargetOriginal
@@ -262,6 +272,7 @@ class VideoSoundSheet : BottomSheetDialogFragment() {
             binding.surroundNote.text = getString(
                 when {
                     engine?.systemSpatializes(channels) == true -> R.string.video_sound_spatial_format
+                    engine?.virtualSurround == true -> R.string.headphones_virtual_surround_format
                     engine?.spatialHeldBack == true -> R.string.video_sound_spatial_held_back_format
                     else -> R.string.video_sound_surround_format
                 },
@@ -278,9 +289,11 @@ class VideoSoundSheet : BottomSheetDialogFragment() {
         val measured = engine?.dialogDistanceLu ?: Float.NaN
         binding.dialogState.isVisible = settings.dialogLevel != VideoSoundMath.DIALOG_OFF && !reached.isNaN()
         if (binding.dialogState.isVisible) {
-            binding.dialogState.text = getString(
+            val text = getString(
                 R.string.video_sound_dialog_state, number.format(reached.toDouble()), number.format(measured.toDouble())
             )
+            // Only a real change: every setText is an accessibility event, even with the same text.
+            if (binding.dialogState.text.toString() != text) binding.dialogState.text = text
         }
     }
 
@@ -341,7 +354,8 @@ class VideoSoundSheet : BottomSheetDialogFragment() {
     companion object {
         private const val TAG = "video_sound"
         private const val BALANCE_STEP = 10
-        private const val TICK_MS = 1_000L
+        // A quiet second between ticks for accessibility clients, as the signal path (VideoPicture.SIGNAL_REFRESH_MS).
+        private const val TICK_MS = 2_000L
         private const val OFF_ALPHA = 0.38f
 
         fun show(activity: FragmentActivity) {

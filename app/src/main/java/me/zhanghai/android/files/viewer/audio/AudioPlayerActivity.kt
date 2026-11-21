@@ -106,6 +106,8 @@ class AudioPlayerActivity : AppActivity(), AppAccentActivity {
     private var colorAnimator: ValueAnimator? = null
     /** accent, onAccent, container: what the controls show now (animated between songs). */
     private var colors = IntArray(3)
+    /** Secondary text (artist, times, lyrics) as drawn: at least 4.5:1 on the current veil. */
+    private var secondaryText = 0
     private var seekBubble: TextView? = null
     private var wavePlaying: Boolean? = null
     private lateinit var lyricsView: PlayerLyricsView
@@ -202,6 +204,7 @@ class AudioPlayerActivity : AppActivity(), AppAccentActivity {
         })
         onBackPressedDispatcher.addCallback(this, lyricsBack)
         colors = themeColors()
+        applySecondaryText(themeColor(com.google.android.material.R.attr.colorSurface))
         // A hairline (24 % onSurface) keeps a pale cover apart from a pale backdrop (review panel 18.11.2026).
         // The cover's shadow and clip follow its own rounded corners. Its outline was a plain rectangle, so the bottom
         // corners carried a square shadow while the top ones looked round (owner's macro photo, 19.11.2026).
@@ -412,10 +415,16 @@ class AudioPlayerActivity : AppActivity(), AppAccentActivity {
             )
         }
         // The TV stays a TV (next to "Play on…", a second cast symbol would read as the same button); casting tints it.
+        // Not null when idle: that drops the icon's own tint as well, and its white fill vanished on a light backdrop.
         binding.toolbar.menu.findItem(R.id.actionCast)?.let { item ->
             MenuItemCompat.setIconTintList(
                 item,
-                if (device != null) ColorStateList.valueOf(themeColor(androidx.appcompat.R.attr.colorPrimary)) else null
+                ColorStateList.valueOf(
+                    themeColor(
+                        if (device != null) androidx.appcompat.R.attr.colorPrimary
+                        else com.google.android.material.R.attr.colorOnSurface
+                    )
+                )
             )
         }
     }
@@ -424,7 +433,9 @@ class AudioPlayerActivity : AppActivity(), AppAccentActivity {
         val future = MediaController.Builder(
             this,
             SessionToken(this, ComponentName(this, AudioPlaybackService::class.java))
-        ).buildAsync()
+        ).setListener(object : MediaController.Listener {
+            override fun onExtrasChanged(controller: MediaController, extras: Bundle) = showOutput(extras)
+        }).buildAsync()
         controllerFuture = future
         future.addListener({
             if (controllerFuture !== future || isFinishing) return@addListener
@@ -438,6 +449,7 @@ class AudioPlayerActivity : AppActivity(), AppAccentActivity {
             }
             controller = newController
             newController.addListener(playerListener)
+            showOutput(newController.sessionExtras)
             // A setting can be persisted while the asynchronous controller connection is still pending.
             applySoundSettings()
             (supportFragmentManager.findFragmentByTag(AudioSoundSettingsSheet.TAG)
@@ -448,7 +460,17 @@ class AudioPlayerActivity : AppActivity(), AppAccentActivity {
         }, ContextCompat.getMainExecutor(this))
     }
 
-    private class LaunchQueue(val items: List<MediaItem>, val startIndex: Int)
+    /** The output badge: bit-perfect with bits and rate, or offload; hidden otherwise. */
+    private fun showOutput(extras: Bundle) {
+        val label = extras.getString(AudioPlayerCommands.EXTRA_OUTPUT)
+        binding.outputBadge.text = label
+        binding.outputBadge.isVisible = label != null
+        // The label changes when a song goes bit-perfect or back: the open sound sheet follows.
+        (supportFragmentManager.findFragmentByTag(AudioSoundSettingsSheet.TAG) as? AudioSoundSettingsSheet)
+            ?.refreshStatus()
+    }
+
+        private class LaunchQueue(val items: List<MediaItem>, val startIndex: Int)
 
     private fun hasLaunchContent(): Boolean =
         intent.getStringExtra(EXTRA_QUEUE_TOKEN) != null || intent.data != null
@@ -731,7 +753,7 @@ class AudioPlayerActivity : AppActivity(), AppAccentActivity {
             ?: drawable.toBitmap(CoverBlur.SIZE, CoverBlur.SIZE, Bitmap.Config.ARGB_8888)
         val surface = themeColor(com.google.android.material.R.attr.colorSurface)
         val onSurface = themeColor(com.google.android.material.R.attr.colorOnSurface)
-        val secondaryText = themeColor(android.R.attr.textColorSecondary)
+        val themeSecondary = themeColor(android.R.attr.textColorSecondary)
         val fallback = themeColors()
         val isLight = ColorUtils.calculateLuminance(surface) > 0.5
         val coverColors = OrdoSettings.MUSIC_COVER_COLORS.valueCompat
@@ -750,6 +772,7 @@ class AudioPlayerActivity : AppActivity(), AppAccentActivity {
                 } ?: fallback
                 CoverBlur.blur(pixels, size, size)
                 val veil = scheme?.tint ?: surface
+                val secondaryText = AudioPlayerColorWash.readableText(themeSecondary, veil, onSurface)
                 val fields = scheme?.let { intArrayOf(it.accent, it.container) } ?: IntArray(0)
                 val alpha = AudioPlayerColorWash.veilAlpha(
                     pixels.filterIndexed { i, _ -> i % VEIL_SAMPLE_STEP == 0 }.toIntArray() + fields,
@@ -761,6 +784,7 @@ class AudioPlayerActivity : AppActivity(), AppAccentActivity {
                 )
             }
             if (artworkKey != key || isFinishing) return@launch
+            applySecondaryText(look.veil)
             atmosphere.show(look)
             fadeColors(target)
         }
@@ -769,8 +793,19 @@ class AudioPlayerActivity : AppActivity(), AppAccentActivity {
     /** No cover: the theme's own colours over the plain surface. */
     private fun updateBackgroundWash() {
         val surface = themeColor(com.google.android.material.R.attr.colorSurface)
+        applySecondaryText(surface)
         atmosphere.show(PlayerAtmosphereView.Look(null, IntArray(0), surface, 1f))
         fadeColors(themeColors())
+    }
+
+    private fun applySecondaryText(veil: Int) {
+        secondaryText = AudioPlayerColorWash.readableText(
+            themeColor(android.R.attr.textColorSecondary), veil,
+            themeColor(com.google.android.material.R.attr.colorOnSurface)
+        )
+        for (view in listOf(binding.artist, binding.album, binding.elapsed, binding.remaining)) {
+            view.setTextColor(secondaryText)
+        }
     }
 
     private fun themeColors(): IntArray {
@@ -833,7 +868,7 @@ class AudioPlayerActivity : AppActivity(), AppAccentActivity {
     private fun showLyrics() {
         val lyrics = lyrics ?: return
         lyricsView.show(lyrics, themeColor(com.google.android.material.R.attr.colorOnSurface),
-            themeColor(android.R.attr.textColorSecondary),
+            secondaryText,
             atmosphere.veilColor.takeIf { it != 0 } ?: themeColor(com.google.android.material.R.attr.colorSurface))
         lyricsView.setSong(binding.title.text, binding.artist.text)
         if (!lyricsView.isVisible) {
@@ -1090,11 +1125,13 @@ class AudioPlayerActivity : AppActivity(), AppAccentActivity {
                     extras.getBoolean(AudioPlayerCommands.EXTRA_CLARITY_AVAILABLE),
                     extras.getBoolean(AudioPlayerCommands.EXTRA_HEADPHONES),
                     extras.getInt(AudioPlayerCommands.EXTRA_HIGHS_CUTOFF),
-                    extras.getFloat(AudioPlayerCommands.EXTRA_VOLUME_FRACTION, 1f),
+                    extras.getFloat(AudioPlayerCommands.EXTRA_QUIET_BASS_DB, 0f),
                     extras.getBoolean(AudioPlayerCommands.EXTRA_SLEEP_ACTIVE),
                     extras.getInt(AudioPlayerCommands.EXTRA_SLEEP_MINUTES),
                     extras.getBoolean(AudioPlayerCommands.EXTRA_END_OF_TRACK),
-                    extras.getLong(AudioPlayerCommands.EXTRA_SLEEP_REMAINING_MS)
+                    extras.getLong(AudioPlayerCommands.EXTRA_SLEEP_REMAINING_MS),
+                    extras.getBoolean(AudioPlayerCommands.EXTRA_SONG_NOT_BIT_PERFECT),
+                    extras.getBoolean(AudioPlayerCommands.EXTRA_SONG_BIT_PERFECT)
                 )
             )
         }, ContextCompat.getMainExecutor(this))
@@ -1121,11 +1158,15 @@ class AudioPlayerActivity : AppActivity(), AppAccentActivity {
         val clarityAvailable: Boolean = false,
         val headphones: Boolean = false,
         val highsCutoffHz: Int = 0,
-        val volumeFraction: Float = 1f,
+        /** The bass lift "full sound when quiet" gives at the current volume, in dB. */
+        val quietBassDb: Float = 0f,
         val sleepActive: Boolean = false,
         val sleepMinutes: Int = 0,
         val sleepAtEndOfTrack: Boolean = false,
-        val sleepRemainingMs: Long = 0L
+        val sleepRemainingMs: Long = 0L,
+        val songNotBitPerfect: Boolean = false,
+        /** This song plays bit-perfect: every Ordo stage is bypassed (the saved settings stay). */
+        val songBitPerfect: Boolean = false
     )
 
     private fun formatTime(milliseconds: Long): String {

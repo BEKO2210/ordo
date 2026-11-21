@@ -5,6 +5,7 @@
 
 package me.zhanghai.android.files.viewer.audio
 
+import me.zhanghai.android.files.player.output.OutputPolicy
 import android.app.Dialog
 import android.content.res.ColorStateList
 import android.graphics.drawable.GradientDrawable
@@ -54,7 +55,8 @@ import me.zhanghai.android.files.viewer.audio.KlangPictureView.Kind
 import me.zhanghai.android.files.ui.Motion
 import kotlin.math.roundToInt
 
-class AudioSoundSettingsSheet : BottomSheetDialogFragment() {
+class AudioSoundSettingsSheet : BottomSheetDialogFragment(),
+    me.zhanghai.android.files.player.headphones.HeadphonesHost {
     private var _binding: AudioSoundSettingsSheetBinding? = null
     private val binding get() = checkNotNull(_binding)
     private var settings = AudioSettings()
@@ -74,7 +76,7 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment() {
     private var firstRender = true
     private var soundStatus: AudioPlayerActivity.SoundStatus? = null
     private var highsRenderer: (() -> Unit)? = null
-    private var quietRenderer: (() -> Unit)? = null
+    private var bypassShown = false
     private lateinit var palette: Palette
 
     private class Palette(
@@ -155,6 +157,7 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment() {
         initializing = true
         firstRender = true
         soundStatus = null
+        bypassShown = false
         renderers.clear()
         tiles.clear()
         sleepButtons.clear()
@@ -206,7 +209,12 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment() {
             binding.monoRow, R.drawable.audio_hearing_icon_24dp, R.string.audio_sound_mono,
             R.string.audio_sound_mono_summary, { settings.mono }, binding.monoPicture, Kind.MONO
         ) { update { copy(mono = it) } }
-        bindQuietFull()
+        me.zhanghai.android.files.player.headphones.HeadphonesSheet.bindEntry(binding.headphonesEntry, this)
+        renderers += {
+            me.zhanghai.android.files.player.headphones.HeadphonesSheet.renderEntry(
+                binding.headphonesEntry, settings, soundStatus?.quietBassDb
+            )
+        }
         bindSwitchRow(
             binding.skipRow, R.drawable.audio_fast_forward_icon_24dp, R.string.audio_sound_skip_silence,
             R.string.audio_sound_skip_silence_summary, { settings.skipSilence }, binding.skipPicture, Kind.SKIP_SILENCE
@@ -216,6 +224,13 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment() {
             R.string.audio_sound_headphones_summary, { settings.resumeOnHeadphones },
             binding.headphonesPicture, Kind.HEADPHONES
         ) { update { copy(resumeOnHeadphones = it) } }
+        // setPreferredMixerAttributes exists from Android 14; the summary says that Ordo's stages are bypassed.
+        binding.bitPerfectCard.isVisible = android.os.Build.VERSION.SDK_INT >= OutputPolicy.MIN_SDK
+        bindSwitchRow(
+            binding.bitPerfectRow, R.drawable.usb_icon_white_24dp, R.string.audio_sound_bit_perfect,
+            R.string.audio_sound_bit_perfect_summary, { settings.bitPerfectUsb },
+            binding.bitPerfectPicture, Kind.BIT_PERFECT
+        ) { update { copy(bitPerfectUsb = it) } }
         setColumns()
         bindBalance()
         bindSpeed()
@@ -315,7 +330,7 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment() {
         listOf(
             binding.fineTuneCard, binding.bassCard.root, binding.crossfeedCard.root, binding.widthCard.root,
             binding.reverbCard.root, binding.warmthCard.root, binding.clarityCard.root, binding.highsCard.root,
-            binding.normalizationCard, binding.balanceCard, binding.monoCard, binding.quietCard,
+            binding.normalizationCard, binding.balanceCard, binding.monoCard, binding.headphonePackCard,
             binding.speedCard, binding.sleepCard, binding.skipCard, binding.focusCard, binding.headphonesCard
         ).forEach { it.setCardBackgroundColor(palette.card) }
         binding.balanceView.setBackgroundSurface(palette.card)
@@ -328,7 +343,7 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment() {
             binding.bassCard.root, binding.crossfeedCard.root, binding.widthCard.root, binding.reverbCard.root,
             binding.warmthCard.root, binding.clarityCard.root, binding.highsCard.root, binding.normalizationCard,
             binding.balanceCard,
-            binding.monoCard, binding.quietCard, binding.speedCard, binding.sleepCard, binding.skipCard, binding.focusCard,
+            binding.monoCard, binding.headphonePackCard, binding.speedCard, binding.sleepCard, binding.skipCard, binding.focusCard,
             binding.headphonesCard
         ).forEach {
             it.strokeColor = outline
@@ -691,31 +706,6 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment() {
         }
     }
 
-    /** "Full sound when quiet": the picture's lift follows the system volume the service reports. */
-    private fun bindQuietFull() {
-        val row = binding.quietRow
-        row.icon.setImageResource(R.drawable.audio_volume_icon_24dp)
-        row.title.text = getString(R.string.audio_sound_quiet)
-        row.summary.text = getString(R.string.audio_sound_quiet_summary)
-        row.toggle.contentDescription = getString(R.string.audio_sound_quiet)
-        row.toggle.setOnCheckedChangeListener { _, checked ->
-            if (!initializing && !rendering) update { copy(quietFullEnabled = checked) }
-        }
-        row.root.setOnClickListener { if (row.toggle.isEnabled) row.toggle.toggle() }
-        binding.quietPicture.kind = Kind.QUIET
-        quietRenderer = {
-            val lift = me.zhanghai.android.files.player.LoudnessCompensation.amount(soundStatus?.volumeFraction ?: 1f)
-            row.toggle.isChecked = settings.quietFullEnabled
-            binding.quietPicture.setState(settings.quietFullEnabled, lift)
-            binding.quietPicture.contentDescription = describe(
-                R.string.audio_sound_quiet,
-                if (!settings.quietFullEnabled) onOff(false)
-                else getString(R.string.audio_sound_quiet_value, (lift * 6).roundToInt())
-            )
-        }
-        renderers += { quietRenderer?.invoke() }
-    }
-
     private fun levelLabel(level: Int): String = getString(
         when (level) {
             1 -> R.string.audio_sound_level_light
@@ -884,6 +874,12 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment() {
         (activity as? AudioPlayerActivity)?.setSleepTimer(0, false, ::refreshStatus)
     }
 
+    override val headphoneSettings: AudioSettings get() = settings
+
+    override val stagesBypassed: Boolean get() = soundStatus?.songBitPerfect == true
+
+    override fun updateHeadphoneSettings(transform: AudioSettings.() -> AudioSettings) = update(transform)
+
     private fun update(transform: AudioSettings.() -> AudioSettings) {
         settings = settings.transform().sanitized()
         AudioSettingsStore.write(settings)
@@ -919,6 +915,7 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment() {
         }
         renderers.forEach { it() }
         renderEqualizerState()
+        renderBypass()
         firstRender = false
         rendering = wasRendering
     }
@@ -935,9 +932,17 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment() {
         showEffect(
             binding.clarityCard.root, binding.clarityUnavailable, status.clarityAvailable, R.string.audio_sound_clarity
         )
+        // A calm note instead of the summary when the DAC cannot take this song unchanged; its effects stay on.
+        binding.bitPerfectRow.summary.text = getString(
+            if (status.songNotBitPerfect) R.string.audio_sound_bit_perfect_song_not
+            else R.string.audio_sound_bit_perfect_summary
+        )
         // What the highs detector found arrives with the status.
         highsRenderer?.invoke()
-        quietRenderer?.invoke()
+        // The bass lift at this volume arrives with the status too.
+        me.zhanghai.android.files.player.headphones.HeadphonesSheet.renderEntry(
+            binding.headphonesEntry, settings, status.quietBassDb
+        )
         val activeTimer = if (status.sleepActive) status.sleepMinutes to status.sleepAtEndOfTrack else 0 to false
         sleepButtons.forEach { (button, timer) -> button.isChecked = timer == activeTimer }
         val chip = binding.sleepRemaining
@@ -952,6 +957,30 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment() {
         )
         binding.sleepPicture.contentDescription =
             describe(R.string.audio_sound_sleep_heading, if (status.sleepActive) chip.text else onOff(false))
+        renderBypass()
+    }
+
+    /**
+     * A bit-perfect song bypasses every stage: they show dimmed and untouchable (the saved values stay), the line at
+     * the top says why. Focus, resuming on headphones, the sleep timer and the bit-perfect switch stay usable.
+     */
+    private fun renderBypass() {
+        val bypassed = soundStatus?.songBitPerfect == true
+        if (!bypassed && !bypassShown) return
+        val ended = bypassShown && !bypassed
+        bypassShown = bypassed
+        listOf(
+            binding.effectsSection, binding.normalizationCard, binding.balanceCard, binding.monoCard,
+            binding.speedCard, binding.skipCard
+        ).forEach { setControlsActive(it, !bypassed) }
+        // Still opens, so the headphone sheet can say the same; only dimmed here.
+        binding.headphonePackCard.alpha = if (bypassed) OFF_ALPHA else 1f
+        childFragmentManager.fragments.filterIsInstance<me.zhanghai.android.files.player.headphones.HeadphonesSheet>().forEach { it.refresh() }
+        if (ended) {
+            // The per-setting states (mono greying, levelling controls, balance support) come back from the settings.
+            render()
+            soundStatus?.let { enableCard(binding.balanceCard, it.usingDynamicsProcessing) }
+        }
     }
 
     /** Target and pre-amp only act while levelling is on (Ordo's own chain, on every device). */
@@ -982,9 +1011,11 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment() {
 
     private fun renderEqualizerState() {
         val status = soundStatus
-        val kind = status?.let { equalizerStatusKind(it.equalizerAvailable, settings.equalizerEnabled) }
+        val bypassed = status?.songBitPerfect == true
+        val kind = status?.let { equalizerStatusKind(it.equalizerAvailable, settings.equalizerEnabled, bypassed) }
         if (kind != null) {
             binding.effectStatus.text = when (kind) {
+                EqualizerStatusKind.BYPASSED -> getString(R.string.audio_sound_bypassed)
                 EqualizerStatusKind.UNSUPPORTED -> getString(R.string.audio_sound_effect_unavailable)
                 EqualizerStatusKind.OFF -> getString(R.string.audio_sound_off)
                 EqualizerStatusKind.PRESET ->
@@ -1000,9 +1031,9 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment() {
         }
         binding.curveOffLabel.text = offText
         binding.curveOffLabel.isInvisible = offText == null // keeps its line: the curve does not jump
-        setEnabledRecursively(binding.equalizerEnabled, status?.equalizerAvailable == true)
+        setEnabledRecursively(binding.equalizerEnabled, status?.equalizerAvailable == true && !bypassed)
         val controlsEnabled = status?.let {
-            equalizerControlsEnabled(it.equalizerAvailable, settings.equalizerEnabled)
+            equalizerControlsEnabled(it.equalizerAvailable, settings.equalizerEnabled, bypassed)
         } == true
         setEnabledRecursively(binding.equalizerControls, controlsEnabled)
         setEnabledRecursively(binding.preGain.root, controlsEnabled && status?.inputGainAvailable == true)
@@ -1075,12 +1106,16 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment() {
     }
 }
 
-internal enum class EqualizerStatusKind { UNSUPPORTED, OFF, PRESET }
+internal enum class EqualizerStatusKind { BYPASSED, UNSUPPORTED, OFF, PRESET }
 
-internal fun equalizerStatusKind(available: Boolean, enabled: Boolean): EqualizerStatusKind = when {
-    !available -> EqualizerStatusKind.UNSUPPORTED
-    !enabled -> EqualizerStatusKind.OFF
-    else -> EqualizerStatusKind.PRESET
-}
+/** [bypassed]: the song plays bit-perfect, so the equalizer is not in the path whatever its setting. */
+internal fun equalizerStatusKind(available: Boolean, enabled: Boolean, bypassed: Boolean = false): EqualizerStatusKind =
+    when {
+        bypassed -> EqualizerStatusKind.BYPASSED
+        !available -> EqualizerStatusKind.UNSUPPORTED
+        !enabled -> EqualizerStatusKind.OFF
+        else -> EqualizerStatusKind.PRESET
+    }
 
-internal fun equalizerControlsEnabled(available: Boolean, enabled: Boolean): Boolean = available && enabled
+internal fun equalizerControlsEnabled(available: Boolean, enabled: Boolean, bypassed: Boolean = false): Boolean =
+    available && enabled && !bypassed

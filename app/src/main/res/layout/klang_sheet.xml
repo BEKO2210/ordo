@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- The frame of every player sheet (KlangSheet): the Klang sheet's handle and header – accent symbol in the 34 dp
+     column, title, close – an info line on the text edge, then the cards in "body". Golden-ratio spacing (klang_*). -->
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:clipToPadding="false">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingStart="@dimen/klang_space_lg"
+        android:paddingTop="@dimen/klang_space_md"
+        android:paddingEnd="@dimen/klang_space_lg"
+        android:paddingBottom="@dimen/klang_space_xl">
+
+        <View
+            android:layout_width="@dimen/klang_handle_width"
+            android:layout_height="@dimen/klang_handle_height"
+            android:layout_gravity="center_horizontal"
+            android:alpha="0.4"
+            android:background="@drawable/klang_handle"
+            android:backgroundTint="?colorOnSurface"
+            android:importantForAccessibility="no" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/klang_space_sm"
+            android:gravity="center_vertical"
+            android:minHeight="@dimen/klang_row_min_height"
+            android:orientation="horizontal">
+            <ImageView
+                android:id="@+id/icon"
+                android:layout_width="@dimen/klang_icon_column"
+                android:layout_height="@dimen/klang_icon_size"
+                android:importantForAccessibility="no"
+                android:scaleType="center"
+                app:tint="?colorPrimary" />
+            <TextView
+                android:id="@+id/sheetTitle"
+                style="@style/Widget.Ordo.Klang.Text"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:accessibilityHeading="true"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:paddingStart="@dimen/klang_space_sm"
+                android:textAppearance="@style/TextAppearance.Ordo.Klang.Title" />
+            <ImageButton
+                android:id="@+id/close"
+                android:layout_width="@dimen/klang_touch_target"
+                android:layout_height="@dimen/klang_touch_target"
+                android:layout_marginStart="@dimen/klang_space_sm"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/close"
+                android:padding="@dimen/klang_space_md"
+                android:src="@drawable/close_icon_control_normal_24dp"
+                app:tint="?colorOnSurface" />
+        </LinearLayout>
+        <TextView
+            android:id="@+id/info"
+            style="@style/Widget.Ordo.Klang.Info"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/klang_text_edge"
+            android:accessibilityLiveRegion="polite"
+            android:visibility="gone" />
+
+        <LinearLayout
+            android:id="@+id/body"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/klang_space_md"
+            android:orientation="vertical" />
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

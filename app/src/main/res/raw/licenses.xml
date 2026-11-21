@@ -190,10 +190,17 @@
     </notice>
 
     <notice>
-        <name>FFmpeg 6.0.1 (This software uses libraries from the FFmpeg project under the LGPLv2.1: decoders ac3, eac3, dca, truehd, mlp; build script utils/ffmpeg-audio/build.sh)</name>
+        <name>FFmpeg 6.0.1 (This software uses libraries from the FFmpeg project under the LGPLv2.1: decoders ac3, eac3, dca, truehd, mlp, h264, hevc, mpeg2video, mpeg4, h263, msmpeg4v2, msmpeg4v3, vc1 and libswscale; build script utils/ffmpeg-audio/build.sh)</name>
         <url>https://ffmpeg.org/releases/ffmpeg-6.0.1.tar.xz</url>
         <copyright>Copyright (c) the FFmpeg developers</copyright>
         <license>GNU Lesser General Public License 2.1</license>
+    </notice>
+
+    <notice>
+        <name>nextlib (software video renderer: ffvideo.cc, FfmpegVideoDecoder, DrainingDecoder)</name>
+        <url>https://github.com/anilbeesetti/nextlib</url>
+        <copyright>Copyright (c) Anil Kumar Beesetti and nextlib contributors</copyright>
+        <license>GNU General Public License 3.0</license>
     </notice>
 
     <notice>
@@ -320,5 +327,33 @@
         <url>https://github.com/haasn/libplacebo</url>
         <copyright>Copyright Niklas Haas and the libplacebo contributors</copyright>
         <license>GNU Lesser General Public License 2.1</license>
+    </notice>
+
+    <notice>
+        <name>Anime4K (Ordo Video's Detail plus: cartoon, CNN x2 M)</name>
+        <url>https://github.com/bloc97/Anime4K</url>
+        <copyright>Copyright (c) 2019-2021 bloc97</copyright>
+        <license>MIT License</license>
+    </notice>
+
+    <notice>
+        <name>FSRCNNX (Ordo Video's Detail plus: film, x2 8-0-4-1)</name>
+        <url>https://github.com/igv/FSRCNN-TensorFlow</url>
+        <copyright>Copyright (C) 2017-2021 igv</copyright>
+        <license>GNU Lesser General Public License 3</license>
+    </notice>
+
+    <notice>
+        <name>SADIE II HRTF Database (Ordo's virtual surround, KU100 subject D1)</name>
+        <url>https://www.york.ac.uk/sadie-project/database.html</url>
+        <copyright>Copyright 2018, University of York</copyright>
+        <license>Apache Software License 2.0</license>
+    </notice>
+
+    <notice>
+        <name>AutoEq (Ordo's headphone correction presets)</name>
+        <url>https://github.com/jaakkopasanen/AutoEq</url>
+        <copyright>Copyright (c) 2018-2022 Jaakko Pasanen</copyright>
+        <license>MIT License</license>
     </notice>
 </notices>

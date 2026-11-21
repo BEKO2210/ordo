@@ -7,10 +7,14 @@ mit Limiter und TPDF-Dither, knackfreies Ein- und Ausblenden je Stufe über 30 m
 
 ## Kette
 
-`DownmixProcessor` → `KlangAudioProcessor(Mono, Dialog, Nacht)` → `TruePeakLimiter` → `AvDelayProcessor`, als
+`DownmixProcessor` (mit virtuellem Raumklang für Kopfhörer) → `KlangAudioProcessor(Mono, Dialog, Nacht, Leise-Hören,
+Kopfhörer-Korrektur)` → `TruePeakLimiter` → `AvDelayProcessor`, als
 Media3-`AudioProcessor`s vor dem AudioTrack (`AudioRenderersFactory`); danach im Audio-Server Equalizer, Bass, Balance
 und Lautstärke angleichen.
 
+- **Kopfhörer-Paket** (Klang › Kopfhörer, gemeinsam mit Ordo Musik): virtueller Raumklang für 5.1/7.1 (HRIR-Faltung,
+  2,7 ms Latenz, nur mit Kopfhörer und ohne System-Spatializer), Leise hören nach ISO 226, AutoEq-Korrektur; siehe
+  [KOPFHOERER.md](KOPFHOERER.md).
 - **Eigene Einstellungen:** `VideoSoundStore` (SharedPreferences `video_sound`, JSON mit dem `AudioSettings`-Codec der
   Musik für den Klang-Teil). Der Video-EQ ändert den Musik-EQ nicht und umgekehrt.
 - **Dialog-Verstärker als Abstand in LU** (Aus / Leicht 10 LU / Stark 15 LU): nicht „Dialog +x dB“, sondern ein

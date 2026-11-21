@@ -97,13 +97,40 @@ open class SettingsPreferenceFragment : PreferenceFragmentCompat() {
     }
 
     override fun onDisplayPreferenceDialog(preference: Preference) {
-        if (preference is VisualListPreference) {
+        if (preference is androidx.preference.ListPreference &&
+            preference.key == getString(R.string.pref_key_video_upscaler)) {
+            showUpscalerSheet(preference)
+        } else if (preference is VisualListPreference) {
             if (parentFragmentManager.findFragmentByTag(DIALOG_FRAGMENT_TAG) == null) {
                 displayPreferenceDialog(VisualListPreferenceDialogFragment(), preference.key)
             }
         } else {
             super.onDisplayPreferenceDialog(preference)
         }
+    }
+
+    /** "Upscaling" in the Klang sheet frame of the video menus: a symbol and a short explanation per choice. */
+    private fun showUpscalerSheet(preference: androidx.preference.ListPreference) {
+        val sheet = me.zhanghai.android.files.viewer.audio.KlangSheet(
+            requireContext(), R.drawable.video_enhance_icon_24dp, preference.title ?: ""
+        )
+        sheet.info(getString(R.string.video_settings_upscaler_info))
+        val icons = listOf(
+            R.drawable.video_upscale_standard_icon_24dp, R.drawable.video_upscale_film_icon_24dp,
+            R.drawable.video_upscale_cartoon_icon_24dp, R.drawable.video_upscale_auto_icon_24dp
+        )
+        val summaries = resources.getStringArray(R.array.video_settings_upscaler_summaries)
+        val card = sheet.card(R.drawable.video_enhance_icon_24dp, null)
+        val values = preference.entryValues
+        preference.entries.forEachIndexed { index, entry ->
+            val value = values[index].toString()
+            val chosen = value == preference.value
+            sheet.row(card, icons.getOrElse(index) { 0 }, entry, summaries.getOrNull(index), sheet.check(chosen)) {
+                if (preference.callChangeListener(value)) preference.value = value
+                sheet.dialog.dismiss()
+            }.isSelected = chosen
+        }
+        sheet.show()
     }
 
     /**
@@ -116,7 +143,12 @@ open class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         )
         if (hidden != null) {
             hidden.summaryProvider = Preference.SummaryProvider<androidx.preference.MultiSelectListPreference> {
-                it.values.map { path -> path.substringAfterLast('/') }.sorted().joinToString(", ")
+                it.values.map { path ->
+                    // The storage root by its name, as in the folder chips (not "0").
+                    me.zhanghai.android.files.viewer.video.VideoLibrary.folderName(
+                        path, getString(R.string.home_storage_internal), getString(R.string.backup_target_sd)
+                    )
+                }.sorted().joinToString(", ")
                     .ifEmpty { getString(R.string.video_settings_hidden_folders_none) }
             }
             hidden.isEnabled = false
@@ -126,7 +158,9 @@ open class SettingsPreferenceFragment : PreferenceFragmentCompat() {
                     // Every folder with videos, hidden ones included, so a hidden folder can be shown again.
                     me.zhanghai.android.files.viewer.video.VideoLibrary(
                         me.zhanghai.android.files.viewer.video.queryVideos(context), true,
-                        java.text.Collator.getInstance(), me.zhanghai.android.files.viewer.video.VideoPrefs.Sort.NAME
+                        java.text.Collator.getInstance(), me.zhanghai.android.files.viewer.video.VideoPrefs.Sort.NAME,
+                        internalStorageName = getString(R.string.home_storage_internal),
+                        sdCardName = getString(R.string.backup_target_sd)
                     ).folders.sortedBy { it.name.lowercase() }
                 }
                 val paths = (folders.map { it.path } + hidden.values).distinct()
@@ -144,6 +178,7 @@ open class SettingsPreferenceFragment : PreferenceFragmentCompat() {
                 .setPositiveButton(R.string.video_settings_clear_history_action) { _, _ ->
                     me.zhanghai.android.files.viewer.video.VideoResumeStore(requireContext()).clear()
                     me.zhanghai.android.files.viewer.video.subtitles.SubtitleStore(requireContext()).clearChoices()
+                    me.zhanghai.android.files.viewer.video.picture.PictureAdjustStore(requireContext()).clear()
                     android.widget.Toast.makeText(
                         requireContext(), R.string.video_settings_clear_history_done, android.widget.Toast.LENGTH_SHORT
                     ).show()

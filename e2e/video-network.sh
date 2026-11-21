@@ -28,7 +28,7 @@ a shell am force-stop "$PKG"
 absent() { ! ui has "$@"; }
 settled() { local i; for i in $(seq 40); do ui has "$@" && return 0; sleep 0.5; done; return 1; }
 # The sheet's notes are whole sentences: these look for words inside them (ui has compares whole labels).
-part() { ui texts | grep -qE -- "$1"; }
+part() { ui texts | grep -E -- "$1" >/dev/null; }
 open_clip() {
     a shell am start -W -a android.intent.action.VIEW -d "file://$DIR" -t inode/directory \
         -n "$PKG/me.zhanghai.android.files.filelist.FileListActivity" >/dev/null

@@ -26,4 +26,12 @@ class AudioSoundUiStateTest {
         assertFalse(equalizerControlsEnabled(true, false))
         assertTrue(equalizerControlsEnabled(true, true))
     }
+
+    @Test
+    fun bitPerfectSongShowsTheEqualizerBypassedWhateverItsSetting() {
+        for (available in listOf(true, false)) for (enabled in listOf(true, false)) {
+            assertEquals(EqualizerStatusKind.BYPASSED, equalizerStatusKind(available, enabled, bypassed = true))
+            assertFalse(equalizerControlsEnabled(available, enabled, bypassed = true))
+        }
+    }
 }

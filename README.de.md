@@ -15,7 +15,7 @@
 
 <p align="center">
 <!-- AUTO:badges -->
-  <a href="https://github.com/BEKO2210/ordo/releases/tag/v0.16.1"><img alt="Version 0.16.1" src="https://img.shields.io/badge/Version-0.16.1-2563EB"></a>
+  <a href="https://github.com/BEKO2210/ordo/releases/tag/v0.17.0"><img alt="Version 0.17.0" src="https://img.shields.io/badge/Version-0.17.0-2563EB"></a>
   <img alt="Android 7.0+" src="https://img.shields.io/badge/Android-7.0%2B-3DDC84">
   <a href="LICENSE"><img alt="Lizenz: GPL-3.0-or-later" src="https://img.shields.io/badge/Lizenz-GPL--3.0--or--later-blue"></a>
 <!-- /AUTO:badges -->
@@ -33,14 +33,23 @@
 </p>
 
 <!-- AUTO:new -->
-> **Neu in 0.16.1**
-> - Lieder und Videos mit Ton enden wieder pünktlich. Vorher lief die Wiedergabe nach dem Ende still weiter, und „Nochmal ansehen“ bzw. das nächste Lied kamen zu spät.
+> **Neu in 0.17.0**
+> - Alle Formate per Software-Decoder, auch HEVC 10-Bit, MPEG-2, Xvid, DivX
+> - Untertitel im Film verschieben, wenn sie zu früh oder zu spät kommen
+> - Bild anpassen: Helligkeit, Kontrast, Farbe, Schärfe
+> - Zeilensprung entfernen
+> - Detail plus: feinere Details beim Vergrößern
+> - Kopfhörer-Raumklang für 5.1 und 7.1
+> - Leise hören mit vollem Klang
+> - Kopfhörer-Korrektur für 500 Modelle
+> - USB-DAC unverfälscht, in passender Abtastrate
+> - Akku-Offload, wenn kein Effekt an ist
 <!-- /AUTO:new -->
 
 ## Stand
 
 <!-- AUTO:status -->
-Aktuelle Version 0.16.1 · [Release v0.16.1](https://github.com/BEKO2210/ordo/releases/tag/v0.16.1) · ab Android 7.0 (minSdk 24, targetSdk 36 = Android 16) · [GPL-3.0-or-later](LICENSE)
+Aktuelle Version 0.17.0 · [Release v0.17.0](https://github.com/BEKO2210/ordo/releases/tag/v0.17.0) · ab Android 7.0 (minSdk 24, targetSdk 36 = Android 16) · [GPL-3.0-or-later](LICENSE)
 <!-- /AUTO:status -->
 
 Ordo ist in Entwicklung. Bei Google Play läuft ein geschlossener Test; Testversionen erscheinen auch als
@@ -315,7 +324,10 @@ Tippe oder diktiere einen Satz wie „Verschiebe alle MP3s aus Download nach Mus
 - Eigene Klangeffekte, auf jedem Handy gleich: Raumklang für Kopfhörer (Crossfeed nach Bauer, eine Portierung des
   MIT-lizenzierten bs2b), Stereobreite (0 % Mono bis 150 % breit), Hall (Freeverb, gemeinfrei) mit Raum, Studio, Club
   und Konzertsaal, analoge Wärme, Klarheit (Mehrband-Kompressor, ab Android 9) und, standardmäßig aus, „Höhen ergänzen“ für stark komprimierte Dateien, das nur oberhalb einer erkannten Grenze wirkt; ebenfalls standardmäßig aus, „Leise hören mit vollem Klang“ hebt den
-  Bass sanft an, je leiser die Systemlautstärke ist. Jede Karte im unteren Klang-Blatt
+  Bass sanft an, je leiser die Systemlautstärke ist (Kurven gleicher Lautheit nach ISO 226, mit der Einstellung
+  „Wie laut spielen deine Kopfhörer?“). Das Blatt „Kopfhörer“ (Musik und Video) bringt virtuellen Raumklang für
+  5.1/7.1 (Kunstkopf-HRIRs aus SADIE II, nur mit Kopfhörer und nur, wenn Android nicht selbst Raumklang macht) und eine
+  Kopfhörer-Korrektur für 500 Modelle aus AutoEq, siehe [docs/KOPFHOERER.md](docs/KOPFHOERER.md). Jede Karte im unteren Klang-Blatt
   zeigt ein kleines lebendiges Bild davon, was sie tut; es steht still, wenn Ordos Animationen aus sind
 - „Abspielen auf …“ im Player öffnet die Ausgabe-Auswahl von Android: Bluetooth-Kopfhörer und -Lautsprecher, Kabel und
   Cast-Geräte, ohne Google-Dienste (ab Android 11; auf Android 6–10 öffnen sich die Bluetooth-Einstellungen)
@@ -495,7 +507,7 @@ Unit-Tests:
 ```
 
 <!-- AUTO:tests -->
-Gerätetests: 40 Skripte in [`e2e/`](e2e/README.md), gestartet mit `e2e/run.sh`: 15 nur lesend (`first-run`, `smoke`, `settings-visual`, `category-search`, `back-navigation`, `bars-replay`, `home-header`, `header-position`, `home-pull`, `drawer`, `selection-more`, `tablet-landscape`, `analysis`, `ai-show-guard`, `documents-provider`) und 25 weitere mit `--write` (`stress-delete`, `backup-restore`, `home-auto-refresh`, `audio-player`, `cast`, `klang`, `klang-landscape`, `klang-stress`, `music-formats`, `music-library`, `launcher-icons`, `icon-colors`, `ai-show`, `pick-file`, `no-midword-breaks`, `player-seek`, `player-stage2`, `video-player`, `video-network`, `video-sound`, `video-subtitles`, `video-background`, `video-library`, `video-seek`, `video-picture`). Unit-Tests: 118 Testklassen in `app/src/test`.
+Gerätetests: 42 Skripte in [`e2e/`](e2e/README.md), gestartet mit `e2e/run.sh`: 15 nur lesend (`first-run`, `smoke`, `settings-visual`, `category-search`, `back-navigation`, `bars-replay`, `home-header`, `header-position`, `home-pull`, `drawer`, `selection-more`, `tablet-landscape`, `analysis`, `ai-show-guard`, `documents-provider`) und 27 weitere mit `--write` (`stress-delete`, `backup-restore`, `home-auto-refresh`, `audio-player`, `cast`, `klang`, `klang-landscape`, `klang-stress`, `music-formats`, `music-library`, `launcher-icons`, `icon-colors`, `ai-show`, `pick-file`, `no-midword-breaks`, `player-seek`, `player-stage2`, `video-player`, `video-network`, `video-sound`, `video-subtitles`, `video-background`, `video-library`, `video-seek`, `video-picture`, `video-picture-adjust`, `video-detailplus`). Unit-Tests: 129 Testklassen in `app/src/test`.
 <!-- /AUTO:tests -->
 
 ## Ausblick
@@ -535,4 +547,6 @@ Außerdem nutzt Ordo [llama.cpp](https://github.com/ggml-org/llama.cpp) (MIT) mi
 
 Diese Software nutzt Code von [FFmpeg](https://ffmpeg.org) unter der
 [LGPLv2.1](https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html); der Quelltext lässt sich
-[hier](https://ffmpeg.org/releases/ffmpeg-6.0.1.tar.xz) herunterladen (nur Ton-Decoder, gebaut von `utils/ffmpeg-audio/build.sh`).
+[hier](https://ffmpeg.org/releases/ffmpeg-6.0.1.tar.xz) herunterladen (einige Ton- und Video-Decoder, gebaut von `utils/ffmpeg-audio/build.sh`).
+Der Software-Video-Renderer (`ffmpeg/src/main/jni/ffvideo.cc`, `FfmpegVideoDecoder`, `DrainingDecoder`) stammt aus
+[nextlib](https://github.com/anilbeesetti/nextlib) (GPL-3.0).

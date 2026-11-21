@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later -->
+<resources>
+    <string name="headphones_title">Headphones</string>
+    <string name="headphones_entry_summary">Off · offers virtual surround, full sound when quiet, headphone correction</string>
+    <string name="headphones_open">Open headphone settings</string>
+    <string name="headphones_virtual_surround">Virtual surround</string>
+    <string name="headphones_virtual_surround_summary">5.1 and 7.1 sound like speakers around you instead of inside your head. Only with headphones, and only when Android isn\'t already doing spatial audio. Music: from the next track.</string>
+    <string name="headphones_virtual_surround_format">Virtual surround: %1$s sound plays as speakers around you</string>
+    <string name="headphones_calibration_title">How loud do your headphones play?</string>
+    <string name="headphones_calibration_summary">Tunes \"Full sound when quiet\" to your headphones. Pick \"Louder\" if they get loud at low volume.</string>
+    <string name="headphones_calibration_quieter">Quieter</string>
+    <string name="headphones_calibration_normal">Normal</string>
+    <string name="headphones_calibration_louder">Louder</string>
+    <string name="headphones_correction_title">Headphone correction</string>
+    <string name="headphones_correction_summary">Evens out the sound of your model, from AutoEq measurements. Only works with headphones connected.</string>
+    <string name="headphones_correction_search">Search model, e.g. HD 650</string>
+    <string name="headphones_correction_off">Turn correction off</string>
+    <string name="headphones_correction_state">Correction: %1$s</string>
+    <string name="headphones_correction_source">Measured by %1$s</string>
+    <string name="headphones_correction_selected">%1$s, selected</string>
+    <string name="headphones_correction_none">No model found</string>
+    <string name="headphones_correction_more">Showing %1$d of %2$d. Type more to narrow it down.</string>
+    <string name="headphones_correction_count">%1$d models</string>
+</resources>

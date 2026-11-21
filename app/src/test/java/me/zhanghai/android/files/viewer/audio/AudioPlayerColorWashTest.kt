@@ -101,4 +101,58 @@ class AudioPlayerColorWashTest {
         val seen = 0xff000000.toInt() or (((0xff * (1 - overWhite) + 0x19 * overWhite).toInt()) * 0x010101)
         assertTrue(AudioPlayerColorWash.contrastRatio(text, seen) >= 4.4)
     }
+
+    @Test
+    fun veilKeepsBothThemesReadableOnLightGreyAndDarkCovers() {
+        // Light and grey backdrops from the owner's Pixel (20.11.2026) plus black, white and mid grey.
+        val covers = intArrayOf(0xffc8d6ea.toInt(), 0xffe4e4e8.toInt(), 0xff000000.toInt(), 0xffffffff.toInt(),
+            0xff777777.toInt(), 0xffb57bee.toInt())
+        // Ordo's light and dark surface, onSurface and secondary text (ordo_m3_colors.xml).
+        val themes = listOf(
+            intArrayOf(0xfffafbfc.toInt(), 0xff0f172a.toInt(), 0xff475569.toInt()),
+            intArrayOf(0xff0b1018.toInt(), 0xffe6edf5.toInt(), 0xff9aa8ba.toInt())
+        )
+        for ((surface, onSurface, secondary) in themes) {
+            val alpha = AudioPlayerColorWash.veilAlpha(covers, surface, intArrayOf(onSurface, secondary), onSurface, 0.4f)
+            for (cover in covers) {
+                val seen = mix(cover, surface, alpha)
+                assertTrue(AudioPlayerColorWash.contrastRatio(onSurface, seen) >= 4.4)
+                assertTrue(AudioPlayerColorWash.contrastRatio(secondary, seen) >= 4.4)
+            }
+        }
+        // What the expanded dark theme showed: the dark theme's text straight on the uninverted light backdrop.
+        assertTrue(AudioPlayerColorWash.contrastRatio(0xffe6edf5.toInt(), 0xffc8d6ea.toInt()) < 1.5)
+        assertTrue(AudioPlayerColorWash.contrastRatio(0xffe6edf5.toInt(), 0xffe4e4e8.toInt()) < 1.5)
+    }
+
+    @Test
+    fun secondaryTextGetsJustEnoughContrast() {
+        val surface = 0xfffaf5f7.toInt()
+        val onSurface = 0xff1d1b1b.toInt()
+        // Translucent: only more opaque, same colour.
+        val faint = 0x8c1d1b1b.toInt()
+        assertTrue(AudioPlayerColorWash.contrastRatio(faint, surface) < 4.5)
+        val readable = AudioPlayerColorWash.readableText(faint, surface, onSurface)
+        assertTrue(AudioPlayerColorWash.contrastRatio(readable, surface) >= 4.5)
+        assertTrue(readable ushr 24 < 0xff)
+        assertEquals(faint and 0xffffff, readable and 0xffffff)
+        // Opaque but too light: Material You's secondary text on a light wallpaper surface, 4.3:1 on the Tab
+        // (20.11.2026). It moves towards onSurface just far enough.
+        val dynamic = 0xff83706d.toInt()
+        assertTrue(AudioPlayerColorWash.contrastRatio(dynamic, surface) < 4.5)
+        val fixed = AudioPlayerColorWash.readableText(dynamic, surface, onSurface)
+        assertTrue(AudioPlayerColorWash.contrastRatio(fixed, surface) >= 4.5)
+        assertTrue(AudioPlayerColorWash.contrastRatio(fixed, surface) < AudioPlayerColorWash.contrastRatio(onSurface, surface))
+        // Already readable: unchanged; dark theme too.
+        assertEquals(0xff475569.toInt(),
+            AudioPlayerColorWash.readableText(0xff475569.toInt(), 0xfffafbfc.toInt(), 0xff0f172a.toInt()))
+        val dark = AudioPlayerColorWash.readableText(0x66e6e1e5, 0xff141218.toInt(), 0xffe6e1e5.toInt())
+        assertTrue(AudioPlayerColorWash.contrastRatio(dark, 0xff141218.toInt()) >= 4.5)
+    }
+
+    private fun mix(bottom: Int, top: Int, alpha: Float): Int {
+        fun channel(shift: Int) =
+            ((bottom shr shift and 0xff) * (1 - alpha) + (top shr shift and 0xff) * alpha).toInt() shl shift
+        return -0x1000000 or channel(16) or channel(8) or channel(0)
+    }
 }

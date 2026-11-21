@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- The player's top bar: cast, subtitles and ⋮, which opens the "More" sheet (video_player_more.xml). -->
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
@@ -8,42 +9,13 @@
         android:title="@string/cast_title"
         app:showAsAction="always" />
     <item
-        android:id="@+id/actionSound"
-        android:title="@string/video_sound_menu"
-        app:showAsAction="never" />
-    <item
-        android:id="@+id/actionAudioTrack"
-        android:title="@string/video_audio_track_menu"
-        app:showAsAction="never" />
-    <item
-        android:id="@+id/actionOpenWith"
-        android:title="@string/video_player_open_with"
-        app:showAsAction="never" />
-    <item
-        android:id="@+id/actionFileInfo"
-        android:title="@string/video_player_file_info"
-        app:showAsAction="never" />
-    <item
         android:id="@+id/actionSubtitles"
         android:icon="@drawable/video_subtitles_icon_24dp"
         android:title="@string/video_subtitles_title"
         app:showAsAction="always" />
     <item
-        android:id="@+id/actionSleepTimer"
-        android:title="@string/video_player_sleep_timer"
-        app:showAsAction="never" />
-    <item
-        android:id="@+id/actionPip"
-        android:title="@string/video_player_pip"
-        android:visible="false"
-        app:showAsAction="never" />
-    <item
-        android:id="@+id/actionPictureEnhance"
-        android:title="@string/video_picture_toggle"
-        android:checkable="true"
-        app:showAsAction="never" />
-    <item
-        android:id="@+id/actionSignalPath"
-        android:title="@string/video_signal_title"
-        app:showAsAction="never" />
+        android:id="@+id/actionMore"
+        android:icon="@drawable/more_vertical_icon_white_24dp"
+        android:title="@string/video_more_button"
+        app:showAsAction="always" />
 </menu>

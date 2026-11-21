@@ -35,8 +35,14 @@ Knopf nicht.
 
 ## Bedienung
 
-- Oben Zurück, Dateiname, ⋮ mit „Mit anderer App öffnen“ (Auswahl ohne Ordos Player) und „Dateiinfo“ (nur für Ordos
-  Pfade). Mitte −10 s · Abspielen/Pause · +10 s. Unten Zeit (Tippen wechselt zur Restzeit) · `PlayerSeekSlider`
+- Oben Zurück, Dateiname, Streamen, Untertitel und ⋮. ⋮ öffnet das Blatt „Mehr“ (`VideoMoreSheet`): Klang-Karten wie im
+  Musik-Player, gruppiert nach „Bild und Ton“ (Klang, Tonspur, Untertitel, Bild anpassen, Bildverbesserung mit Schalter,
+  Signalweg), „Wiedergabe“ (Wiedergabetempo, Kapitel, Einzelbild, A-B-Schleife, Schlaf-Timer, Bild-in-Bild) und „Datei“
+  (Videoinfos, Standbild speichern, „Mit anderer App öffnen“); auf breiten Blättern (Tablet) stehen die Karten in zwei
+  Spalten (`MasonryLayout`, ab 320 dp je Karte). Was es nicht gibt (keine Kapitel, kein Bild-in-Bild, Tresor-Video),
+  fehlt auch dort. Alle Blätter des Players nutzen dasselbe Gerüst `KlangSheet` (Griff, Kopfzeile mit Akzent-Symbol
+  und Schließen, Karten, gleich breite Auswahlknöpfe in ausgewogenen Reihen, keine Fensteranimation ohne Bewegung);
+  Tempo und Schlaf-Timer zeigen die Bilder des Musik-Klangblatts (Pendel, Mondbogen). Mitte −10 s · Abspielen/Pause · +10 s. Unten Zeit (Tippen wechselt zur Restzeit) · `PlayerSeekSlider`
   (erst 150 ms still halten greift) · Dauer, darunter Tempo, Bildformat, Sperre, Drehen (Handy), vorheriges und
   nächstes Video.
 - Größen kommen aus den Musik-Player-Maßen (`audio_player_*`), die auf Tablets schon wachsen (Play 88 dp, sonst
@@ -287,9 +293,86 @@ Quelle der Entscheidungen: `ordo-team/QUALITAET-PANEL.md`, Ideen 1–4. Logik oh
   `setRequestOpenGlToneMapping` ist nicht öffentlich über ExoPlayer erreichbar. Mit HDR-Ausgabe würde Android die
   Umrechnung für ein SDR-Display wieder selbst machen (doppelt), und die Kette verwirft HDR-Metadaten
   (`setHdrStaticInfo(null)`) und Dolby Vision. Darum bleibt HDR wie bisher ohne Kette direkt beim Decoder.
+- **Bild anpassen** (⋮ › „Bild anpassen“, `PictureAdjustSheet`): Helligkeit, Kontrast, Sättigung, Farbtemperatur und
+  Schärfe je −3…+3 mit −/+ (48 dp, kein Regler), live. Alles in **demselben** Pass von `PictureShader`: eine
+  4×4-Farbmatrix (`PictureAdjust.colorMatrix`, getestet in `PictureAdjustTest`; Reihenfolge Farbtemperatur → Sättigung
+  um die Rec.-709-Luma → Kontrast um 0,5 → Helligkeit; je Schritt ±0,03 / ×0,08 / ×0,15 / R·B ±3 %) nach dem
+  Raumlicht-Gamma und vor Körnung und Dither; Schärfe + addiert 0,2 je Schritt zu CAS, Schärfe − mischt bis 60 % zum
+  3×3-Mittel. Die Werte liest der GL-Faden je Bild (`PictureLive`), ohne die Kette neu zu bauen. Läuft die Kette
+  nicht (z. B. Video so groß wie der Bildschirm), gelten die bestehenden Regeln (`PicturePolicy.pipeline(…, adjusted)`,
+  `preEngage(…, adjusted)`): gemerkte Werte schalten die Kette schon vor `prepare()` ein, sonst einmal neu vorbereiten.
+  Ohne Bildverbesserung dann ohne Lanczos und mit `ADJUST_ONLY` (nur Dither). Nicht bei HDR, DRM oder gescheiterter
+  GPU (das Blatt sagt es). Gemerkt je Video (`PictureAdjustStore`, höchstens 300): nie für Tresor-Videos,
+  `content://` anderer Apps oder bei „Keine Stellen merken“; „Weiterschauen löschen“ löscht sie mit. „Zurücksetzen“.
+- **Zeilensprung entfernen** (Automatisch/An/Aus im selben Blatt): erkannt aus `Format.initializationData`
+  (`Deinterlace`, getestet in `DeinterlaceTest`): H.264-SPS `frame_mbs_only_flag` 0, MPEG-2-Sequenz-Erweiterung
+  `progressive_sequence` 0; bei H.264 mit Film-Bildrate (≤ 24,5 fps) gilt das Flag allein als unbekannt
+  (Blu-ray-Encoder setzen es auch bei Vollbildern); andere Codecs gelten als unbekannt (Schalter). Ein eigener erster Pass auf den
+  Original-Zeilen vor Lanczos (`DeinterlaceEffect`): Linear-Blend 1-2-1 nur dort, wo eine Zeile von beiden Nachbarn in
+  dieselbe Richtung abweicht (Kammlinien), ruhige Flächen behalten ihre Auflösung. Kein YADIF (bräuchte die Nachbarbilder).
 - **Lizenzen:** CAS MIT (Text im Kopf von `PictureShader.kt`), libplacebo LGPL-2.1-or-later (nach §3 als GPL-3.0
   weitergegeben); beide in `res/raw/licenses.xml`. Neue Abhängigkeit `media3-effect` 1.11.1.
 - **Gerätetest:** `e2e/video-picture.sh` (`--write`-Liste in `e2e/run.sh`).
+
+### Detail plus und Messwerte (`DetailPlus`, `DetailPlusEffect`, `MpvHook`, `PictureMeter`, `MeteredEffect`)
+
+Quelle: `ordo-team/LOKALE-QUALITAETS-KI.md`, Empfehlungen 1 und 2. Logik ohne Android in `DetailPlus`, `MpvHook` und
+`PictureMeter`, getestet in `DetailPlusTest`, `MpvHookTest`, `PictureMeterTest`.
+
+- **Hochskalieren** (Einstellungen › Bild; die Wahl öffnet ein Klang-Sheet mit Symbol und kurzer Erklärung je Option): Standard (Lanczos, ab Werk) / Detail plus: Film / Detail plus: Zeichentrick /
+  Automatisch. Film = **FSRCNNX x2 8-0-4-1** (igv, Shaderdatei LGPL-3.0-or-later, Repo GPL-3.0), Zeichentrick =
+  **Anime4K CNN x2 M** (bloc97, MIT). „Automatisch“ nimmt Zeichentrick, wenn Datei- oder Ordnername nach Anime klingt
+  (anime, zeichentrick, cartoon, manga, OVA, Fansub-Gruppen, Muster `[Gruppe] Titel - 01`), sonst Film.
+- **Wann:** nur wenn die Bildverbesserung läuft (SDR, ohne DRM, eingeschaltet) und das Video mindestens **1,5-fach**
+  vergrößert wird. Kette: Netz ×2 → `LanczosResample` auf die Oberfläche → Bildverbesserungs-Pass mit **halber**
+  CAS-Stärke (das Netz schärft schon).
+- **Einbau:** Die Original-mpv-Shader liegen unverändert in `assets/detailplus/` (Gewichte als Konstanten, kein
+  Download, zusammen ~109 KB). `MpvHook` liest die `//!HOOK/BIND/SAVE/WIDTH/HEIGHT`-Pässe und erzeugt je Pass einen
+  GLSL-ES-3.00-Fragment-Shader mit mpvs Makros (`NAME_pos/_pt/_size/_tex/_texOff`); weil libplacebo y = 0 oben hat und
+  GL unten, spiegeln die Makros y. `DetailPlusProgram` (ein `GlEffect`) rechnet alle Pässe in eigenen **RGBA16F**-
+  Texturen (Merkmale sind vorzeichenbehaftet, Media3s 8-bit-Pässe würden sie zerstören), Texturen werden nach der
+  letzten Verwendung wiederverwendet. FSRCNNX arbeitet wie in mpv nur auf Luma (Y' aus R'G'B', BT.709); die Farbe kommt
+  bilinear verdoppelt dazu. Braucht OpenGL ES 3 mit Half-Float-Rendertargets (ES 3.2 oder
+  `EXT_color_buffer_(half_)float`); sonst kopiert der Pass nur und Ordo schaltet auf Lanczos zurück (Signalweg nennt den Grund).
+- **Rückfall:** GPU-Zeit des Netzes im Mittel einer Sekunde **> 8 ms** (ab 10 gemessenen Bildern) oder **jedes**
+  verworfene Bild im eingeschwungenen Abspielen (2 s nach Start, Sprung, Pause oder neuen Effekten) → Lanczos für
+  diesen Bildschirm, mit ruhigem Hinweis. Meldet Media3 einen Ruckel-Block, fällt zuerst Detail plus weg, erst danach
+  die ganze Bildverbesserung. Das ⋮-Umschalten setzt beides zurück.
+- **Messwerte** (⋮ › Signalweg, unten, eingeklappt und aus): Antippen startet die Messung, erneutes Antippen beendet
+  sie. Ohne Messung wird nichts umhüllt und nichts gemessen, außer der GPU-Zeit des Detail-plus-Passes (für den
+  Rückfall). Gemessen werden: GPU-Zeit je Pass (Detail plus, Lanczos, Bildverbesserung) per `EXT_disjoint_timer_query`
+  (`GL_TIME_ELAPSED_EXT`, Ergebnis Bilder später abgeholt, nichts wartet; ohne Erweiterung nur beim Messen per
+  `glFinish` und CPU-Uhr), verworfene Bilder (`DecoderCounters`), thermische Reserve (`PowerManager.getThermalHeadroom`
+  ab API 30, alle 5 s, Vorschau 10 s), Rechenzeit der Klang-Kette je Puffer und Ton-Unterläufe
+  (`onAudioUnderrun`), Messdauer. „Als CSV teilen“ schickt eine Zeile je Sekunde (`ordo-messwerte.csv`; Spalten in
+  `PictureMeter.HEADER`).
+- **Qualität auf pop-os** (RTX 3070, ffmpeg 6.1.1 `libplacebo` mit denselben mpv-Dateien): Original → halbe Größe
+  (bikubisch) → ×2 zurück, je 5 s (120–300 Bilder), PSNR/SSIM gegen das Original, alles über libplacebo mit
+  `dithering=-1` und yuv420p (`utils/detailplus/quality.sh`, Rohwerte in `utils/detailplus/results-2026-11-20-pop-os.csv`). Lanczos+CAS: ffmpeg-`cas` 0,4 als Näherung an Ordos CAS.
+
+  | Clip | Lanczos | Lanczos+CAS 0,4 | Anime4K CNN x2 M | FSRCNNX x2 8-0-4-1 |
+  |---|---|---|---|---|
+  | Realfilm (Tears of Steel 720p → 640×266) | 42,24 dB / 0,9905 | 42,22 / 0,9888 | 42,25 / 0,9899 | **43,82 / 0,9931** |
+  | CGI (Sintel 1080p, 1920×816) | 43,89 / 0,9869 | 43,40 / 0,9833 | 44,31 / 0,9859 | **45,22 / 0,9887** |
+  | Grafik/Text (Motion-Design 1080p) | 37,26 / 0,9819 | 37,35 / 0,9777 | 42,37 / 0,9876 | **42,28 / 0,9884** |
+  | 2D-Zeichentrick (Sita Sings the Blues 1080p) | 37,57 / 0,9639 | 37,78 / 0,9656 | 39,63 / 0,9674 | **40,25 / 0,9738** |
+
+  Werte: PSNR der Luma (dB) / SSIM der Luma. FSRCNNX schlägt Lanczos+CAS auf allen vier Clips (+1,6 bis +4,9 dB),
+  Anime4K M nur auf Grafik und Zeichentrick deutlich; auf Realfilm ist es gleichauf und im SSIM knapp schlechter, darum
+  „Automatisch“ = Film außer bei Anime-Namen. Echte Anime-Linienzeichnung (wofür Anime4K trainiert ist) war nicht im
+  Testset; PSNR/SSIM bevorzugen glatte Ergebnisse, ein blinder A/B-Vergleich durch Belkis fehlt noch.
+  **Port geprüft** (20.11.2026, pop-os, Desktop-GL über `#version 300 es`): Die von `MpvHook` erzeugten Pässe (alle 23
+  kompilieren) laufen in einem Python-Nachbau von `DetailPlusProgram` (`utils/detailplus/dump.sh` und `harness.py`, gleiche Texturfolge,
+  gleicher Abschluss-Shader). Anime4K-Ergebnis gegen libplacebos Lauf desselben Shaders auf demselben Bild: **66,4 dB**
+  (Sita) und **61,4 dB** (Tears of Steel), also praktisch gleich; ohne die y-Spiegelung nur 47,7/45,8 dB. Damit stimmt
+  die Ausrichtung. FSRCNNX (Luma-Weg mit bilinearer Farbe, RGB-PSNR eines Bildes): 40,61 dB gegen 40,50 ohne
+  Spiegelung; bilinear allein 36,67 dB.
+- **Am Gerät messen (offen):** Tab S9 Ultra und Pixel 9, 720p und 540p → Bildschirm, 30 fps, 20 min, Messwerte an,
+  CSV teilen: `detailplus_ms` ≤ 8, keine zusätzlichen verworfenen Bilder gegen einen Lauf mit Standard, Thermik-Reserve
+  < 1,0; S21 und W90: muss von selbst zurückfallen, ohne Ruckler. Akku: Pixel 9 über Perfetto `power.rails`.
+- **Lizenzen:** Anime4K MIT, FSRCNNX LGPL-3.0-or-later (beide Hinweise stehen unverändert im Kopf der Shaderdateien und
+  in `res/raw/licenses.xml`). Keine neue Laufzeitbibliothek.
+- **Gerätetest:** `e2e/video-detailplus.sh` (`--write`-Liste).
 
 ## Hintergrund, Bild-in-Bild, Schlaf-Timer (Phase 3)
 
@@ -318,7 +401,7 @@ Umbau, kein Controller-Umweg); der Dienst beherbergt nur ihre Session.
   −Sprung · Abspielen/Pause · +Sprung (Sprungweite aus den Einstellungen) über einen nicht exportierten Receiver.
   Im Fenster zeichnen Leiste, Hinweise und Pillen nichts (leere `clipBounds`, ihre Logik läuft unverändert weiter),
   Untertitel bleiben. Positionsspeicher läuft weiter (5-s-Takt). Fenster schließen pausiert.
-- **Schlaf-Timer** (⋮ › „Schlaf-Timer“, `VideoSleepTimer`): Chips Aus · 15 · 30 · 45 · 60 Min. · Ende des Videos;
+- **Schlaf-Timer** (⋮ › „Schlaf-Timer“, `VideoSleepTimer`): gleich breite Knöpfe Aus · 15 · 30 · 45 · 60 Min. · Ende des Videos;
   läuft er, nennt das Blatt die Restzeit. Die letzten 10 s blendet der Ton aus (`SleepTimerSchedule` der Musik), dann
   Pause. „Ende des Videos“ hält auch bei „Wiederholen“ oder „Automatisch weiter“ an.
 - **Audiofokus, Kopfhörer:** wie bisher ExoPlayer (`handleAudioFocus`, `setHandleAudioBecomingNoisy`) – das entspricht
@@ -348,8 +431,13 @@ abschaltet; Medientasten bei zwei Sessions auf echten Geräten; ob `dumpsys` `mo
 
 Code in `viewer/video/subtitles/`, ohne neue Bibliothek. Knopf „Untertitel“ oben in der Leiste öffnet ein Blatt:
 „Aus“, die Untertitel-Dateien, die Spuren im Film, „Untertitel laden…“ (Ordos eigene Auswahl, im Ordner des Films),
-für eine Datei Verzögerung und Zeichenkodierung, für alle Filme Größe (Klein/Mittel/Groß/Sehr groß), Hintergrund
-(Ohne/Schatten/Kasten) und Farbe (Weiß/Gelb) als Chips. Keine Regler.
+für eine Datei und eine Text-Spur im Film die Verzögerung, für eine Datei die Zeichenkodierung, für alle Filme den
+**Untertitel-Stil** mit Live-Vorschau (16:9, links helles, rechts dunkles Bild, gezeichnet von Media3s eigener
+`SubtitleView` wie im Player): Größe (60–200 % in 10-%-Schritten, −/+), Schrift (Standard, Kräftig, Schmal, Serifen;
+Androids Schriftfamilien, keine mitgelieferte Schrift), Darstellung (Kontur, Schatten, Kasten), Farbe (Weiß, Gelb,
+Cyan, Grün), Höhe (Abstand vom unteren Bildrand 2–30 %, −/+), „Wie System“ (Androids Untertitel-Einstellungen über
+`CaptioningManager`, `setUserDefaultStyle`/`setUserDefaultTextSize`; Größe, Schrift, Darstellung und Farbe blenden
+dann aus), „Stil der Datei“ (ASS/SSA behalten eigene Farben, Schriften, Größen) und „Stil zurücksetzen“. Keine Regler.
 
 - **Dateien daneben** (`SubtitleFiles.sidecars`, getestet in `SubtitleFilesTest`): gleicher Name wie der Film, ohne
   Groß-/Kleinschreibung, Endung `.srt .vtt .ass .ssa .ttml .dfxp`, dazwischen Kürzel wie `film.de.srt`,
@@ -357,17 +445,34 @@ für eine Datei Verzögerung und Zeichenkodierung, für alle Filme Größe (Klei
   samt `ger`/`fre` …, englische Namen); `cc`, `sdh` gelten als Hörgeschädigten-Kennung; `hi` ist als erste Sprachangabe Hindi (`film.hi.srt`), nach einer Sprache
   (`film.en.hi.srt`) zählt nur die erste. Die Codepage wählt die Hauptsprache (`ru-RU` → 1251). Nur für
   Ordos Pfade (auch SMB/SFTP), nie für `content://` anderer Apps; dort geht nur „Untertitel laden…“.
-- **Zeichensatz** (`SubtitleFiles.decode`): BOM (UTF-8, UTF-16), dann streng UTF-8 (`REPORT`), sonst die alte
-  Windows-Codepage der Gerätesprache (1250 Mitteleuropa, 1251 Kyrillisch, 1253 Griechisch, 1254 Türkisch, sonst 1252).
-  Im Blatt „Automatisch (windows-1252)“ zeigt, was erkannt wurde; UTF-8, ISO-8859-15 und die Codepages lassen sich je
-  Film erzwingen.
+- **Zeichensatz** (`TextCharset`, gemeinsam mit Ordo Musik): BOM (UTF-8, UTF-16), dann streng UTF-8 (`REPORT`),
+  sonst eine alte Windows-Codepage: nach dem Sprachkürzel der Datei (1250 Mitteleuropa, 1251 Kyrillisch, 1253
+  Griechisch, 1254 Türkisch, sonst 1252), ohne Kürzel erkennt Ordo kyrillischen/griechischen Text an den Bytes (über
+  80 % der Buchstaben ab 0xC0), sonst zählt die Gerätesprache. Android hat keinen öffentlichen Zeichensatz-Erkenner
+  (`android.icu.text.CharsetDetector` ist verborgen). Im Blatt zeigt „Automatisch (windows-1252)“, was erkannt wurde;
+  UTF-8, ISO-8859-15 und die Codepages lassen sich je Datei erzwingen (`SubtitleStore.Entry.charsetFile`, der
+  Inhalts-Schlüssel der Datei: Größe + CRC32). Gültiges UTF-8 mit Umlauten und Dateien mit BOM liest Ordo immer als
+  Unicode: eine erzwungene Codepage hätte nur „fÃ¼r“ ergeben (Tab S9 des Besitzers, 20.11.2026, nach einem
+  Crawler-Lauf); die Wahl wird dann vergessen. Eine Wahl älterer Versionen (galt für alle Dateien des Films) wird verworfen.
+  Dieselbe Erkennung gilt für Liedtexte (`.lrc`/`.txt`), M3U-Wiedergabelisten und die Untertitel beim Streamen.
 - **Darstellung:** Die Datei wird selbst gelesen und mit Media3s eigenen Parsern (`DefaultSubtitleParserFactory`:
   SubRip, SSA/ASS, WebVTT, TTML) zerlegt, dann alle 50 ms nach der Abspielstelle in die `SubtitleView` des
   `PlayerView` gelegt (`SubtitleTimeline`); die Textspuren des Players sind dabei aus. ASS: nur Text und Lage
   (`\an`, `\pos`), keine Effekte. Höchstens 8 MB je Datei.
-- **Verzögerung** ±0,1 s / ±1 s (höchstens ±10 min) verschiebt nur die Suche in der Zeitleiste, ohne Neuladen. **Grenze:**
-  Media3 hat keine Verzögerung für Spuren im Film (`TextRenderer`); das Blatt sagt bei einer Spur, dass sie für Dateien
-  gilt.
+- **Verzögerung** ±0,1 s / ±1 s (höchstens ±10 min) verschiebt nur die Suche in der Zeitleiste, ohne Neuladen.
+- **Text-Spuren im Film** (SRT, ASS, WebVTT, TX3G, CEA in MKV/MP4) zeichnet Ordo selbst: `Player.Listener.onCues`
+  legt jede Cue-Gruppe mit ihrer Zeit in eine `EmbeddedCueQueue` (getestet in `EmbeddedCueQueueTest`: Verzögerung,
+  Pause, Tempo, Sprung, Lese-Hilfe); gezeigt wird alle 50 ms die Gruppe für Abspielstelle − Verzögerung. Pause und Tempo
+  brauchen nichts Eigenes, ein Sprung leert die Warteschlange, der Renderer schickt die neue Stelle. Für „früher“
+  (negative Verzögerung) fragt `SubtitleLead` (ein `ForwardingRenderer` um Media3s `TextRenderer`) den Renderer um die
+  Verzögerung voraus; die Cues warten dann in der Schlange. Ändert sich dieser Vorlauf, springt Ordo an dieselbe Stelle
+  (kurzes Nachladen wie bei der Ton-Verzögerung), sonst fehlten die übersprungenen Zeilen. Geänderte
+  Hörgeschädigten-Einstellungen gelten für Zeilen ab dann. Grenze: weiter voraus als Media3 gepuffert hat (rund 50 s)
+  kommt eine frühe Zeile zu spät. Nach einem Sprung fehlen bei positiver Verzögerung bis zu deren Länge die Zeilen
+  vor der Sprungstelle. Hörgeschädigten-Optionen (Geräusche, Sprecherfarben) und die Lese-Hilfe (Zeile bleibt ihre
+  Lesezeit, nie über die nächste) gelten wie bei Dateien; „Langsamer bei schnellem Text“ nur für Dateien (die Dauer
+  einer Spur-Zeile ist erst an ihrem Ende bekannt). **Bild-Untertitel** (PGS, VobSub, DVB) bleiben bei Media3s eigener
+  Darstellung ohne Verschiebung; das Blatt sagt „Verschieben nur für Text-Untertitel“.
 - **Spuren im Film** (MKV/MP4: SRT, ASS, WebVTT, TX3G, PGS, VobSub, DVB) gehen über `TrackSelectionOverride`. Ohne Wahl
   kommen nur „erzwungene“ Spuren von selbst (`setIgnoredTextSelectionFlags(SELECTION_FLAG_DEFAULT)`). Bild-Untertitel
   (PGS, VobSub, DVB) nimmt der Stil nicht an; das Blatt sagt das.
@@ -375,9 +480,20 @@ für eine Datei Verzögerung und Zeichenkodierung, für alle Filme Größe (Klei
   (Spur nach ID, sonst nach Sprache); sonst bei „Untertitel automatisch an“ (Standard an), wenn der Ton nicht schon in
   der bevorzugten Sprache ist: Datei in der Sprache, Spur in der Sprache, Datei ohne Sprachkürzel.
 - **Gemerkt je Film** (`SubtitleStore`, SharedPreferences `video_subtitles`, Schlüssel = Pfad-URI): Wahl, Verzögerung,
-  Zeichensatz; höchstens 300, älteste fliegen; nicht bei „Keine Stellen merken“, gelöscht mit „Weiterschauen löschen“.
+  Zeichensatz (nur für die Datei, für die er gewählt wurde); höchstens 300, älteste fliegen; nicht bei „Keine Stellen merken“, gelöscht mit „Weiterschauen löschen“.
   Der Stil gilt für alle Filme.
-- **Lage:** Ist die Bedienleiste sichtbar, rücken die Untertitel über sie (`setBottomPaddingFraction`), sonst Media3s 8 %.
+- **Lage und Größe im Bild:** `SubtitleView`, Content-Frame und Oberfläche füllen den ganzen Player; das Bild setzt
+  Ordos Bild-Pipeline mit Balken ein, und `player.videoSize` ist die Ausgabe der Effekt-Kette (so groß wie die
+  Oberfläche). Die sichtbare Bildhöhe kommt deshalb aus `player.videoFormat` (Breite, Höhe, Drehung,
+  Pixel-Seitenverhältnis) und der Einpassung (nur „Einpassen“ hat Balken; `VideoSubtitles.pictureHeight`). Größe und
+  Abstand rechnet Ordo auf sie um (BBC: Anteil der „active video height“); vorher standen die Zeilen hochkant riesig im schwarzen Balken
+  unter dem Bild (Tab A8, 20.11.2026). Abstand vom unteren Bildrand nach Wahl (Standard 8 % wie Media3). Ist die
+  Bedienleiste sichtbar, rücken die Untertitel 3 % über sie, gemessen auf dem Bildschirm (`getLocationOnScreen` von
+  `SubtitleView` und Leiste), neu bei jedem Layout von beiden und jeder neuen Videogröße. Vorher fehlte das beim
+  ersten Anhalten (Tab A8, 20.11.2026: die Zeile lag auf der Zeitleiste). WebVTT-Zeilen mit Standardlage (negative
+  Zeilennummer) und ASS-Zeilen unten (`\an1`–`\an3`, Bruchteil ≥ 0,8) setzt Media3 an den Rand der View, an der
+  Polsterung vorbei: Ordo macht sie zu Zeilen ohne Lage (`VideoSubtitles.isAtBottom`), damit Abstand und Leiste
+  gelten. Lagen oben und in der Mitte (Schilder, `\pos`) bleiben.
 - **Videoinfos** nennen die Dateien als weitere Untertitel-Zeilen („Deutsch · film.de.srt“).
 - **Schnittstelle für später:** `VideoSubtitles.choices()`, `currentChoice()`, `choose()`, `pickFile()`; keine KI im
   Player.
@@ -399,11 +515,17 @@ Gilt für Untertitel-Dateien (deren Zeiten Ordo selbst führt); Spuren im Film z
   gewordener Zeilen; `(klein geschrieben)` ist Dialog und bleibt (`Sdh`).
 - **Sprechernamen farbig** (Standard an): `ANNA:` am Zeilenanfang bekommt je Sprecher eine Farbe in der Reihenfolge der
   BBC (Gelb, Cyan, Grün; Weiß ist der Text), über den ganzen Film gleich.
-- **Kontrast:** Standard ist jetzt „Kasten“ (Weiß auf Schwarz wie bei der BBC). Sein Alpha ist mindestens 0,75 und so
-  hoch, dass Weiß und Gelb auch über reinem Weiß **≥ 4,5:1** erreichen (WCAG 2.2, 1.4.3; geprüft in `ReadingAidTest`
-  über zehn Hintergründe: Weiß 10,5:1, Gelb 8,6:1). „Ohne“ und „Schatten“ hängen vom Bild ab und halten das nicht
-  sicher ein.
-- Von den Dateien bleiben nur Kursiv, Fett und Unterstrichen; Farben und Größen der Datei weichen der Wahl im Blatt.
+- **Kontrast:** Standard ist „Kasten“ (Weiß auf Schwarz, BBC-Richtlinien 8.1). Sein Alpha ist mindestens 0,75 und so
+  hoch, dass jede Farbe auch über reinem Weiß **≥ 4,5:1** erreicht (WCAG 2.2, 1.4.3; geprüft in `ReadingAidTest`
+  über zehn Hintergründe für Weiß, Gelb, Cyan, Grün). „Ohne“ gibt es nicht mehr (Text ohne Rand verschwand auf hellen
+  Bildern); eine alte Wahl „Ohne“ wird zu „Kontur“, alte Größen S/M/L/XL zu 80/100/130/160 %.
+- **Standard-Größe** (`SubtitleStyle.baseFraction`): auf Handys (kleinste Breite < 600 dp) 6,4 % der Bildhöhe, also
+  eine Zeile von etwa 7,5 % (BBC 9.2.1: 7–8 % bei 16:9; 9.2.2: auf kleinen Handys die volle Größe); auf Tablets
+  Media3s 5,33 % (BBC 9.2.2: 0,6–0,8 der Autorengröße). Standard-Schrift „Kräftig“ (`sans-serif-medium`), wie mpv
+  (`--sub-font=sans-serif`) eine serifenlose. Höchstens zwei Zeilen sind Sache der Datei (BBC 3.3, Netflix TTSG); Ordo
+  bricht nicht selbst um.
+- Von den Dateien bleiben nur Kursiv, Fett und Unterstrichen; Farben und Größen der Datei weichen der Wahl im Blatt,
+  außer bei „Stil der Datei“.
 
 Quellen (geprüft laut `WISSENSCHAFT.md` §7): Netflix *English (USA) Timed Text Style Guide* (≤ 20 Z/s Erwachsene,
 ≤ 17 Kinder) und *Swedish Timed Text Style Guide* (≤ 17 / ≤ 13); *BBC Subtitle Guidelines*
@@ -436,12 +558,13 @@ Decodern.
 - **Nicht in git:** Die `.so` (je ABI gut 1 MB, zusammen über 3 MB) baut Gradle selbst: `:ffmpeg:buildFfmpegAudio`
   läuft vor `preBuild`, einmal je Checkout (rund eine Minute, braucht Netz, git, make, cmake und das NDK) und legt sie
   in `ffmpeg/build/ffmpeg-audio/<abi>/`. Neu nur, wenn sich das Skript ändert oder `clean` lief. In git liegen
-  Media3s Java-Quellen und `proguard-rules.txt` (aus `libraries/decoder_ffmpeg` des Tags, unverändert); bei einem
+  Media3s Java-Quellen und `proguard-rules.txt` (aus `libraries/decoder_ffmpeg` des Tags, unverändert bis auf
+  `ExperimentalFfmpegVideoRenderer` und eine Regel, siehe „Software-Video“); bei einem
   Media3-Update von Hand neu kopieren, das Skript fasst sie nicht an.
 - **Lieferkette:** Das Skript führt fremde Skripte aus (`build_ffmpeg.sh`, FFmpegs `configure`). Darum sind beide
   Quellen auf Commits festgenagelt (`MEDIA3_SHA` 8c6678b6… für Tag 1.11.1, `FFMPEG_SHA` c41ff724… für n6.0.1); nach
   dem Klonen bricht es ab, wenn `git rev-parse HEAD` abweicht (ein umgehängter Tag fällt so auf). In der CI läuft der
-  Bau in einem eigenen Schritt „Build FFmpeg audio decoders“ (NDK installieren, `:ffmpeg:buildFfmpegAudio`, `.so`
+  Bau in einem eigenen Schritt „Build FFmpeg decoders“ (NDK installieren, `:ffmpeg:buildFfmpegAudio`, `.so`
   prüfen), in `play-internal.yml` vor dem Schritt, der den Signierschlüssel schreibt; spätere Gradle-Aufrufe
   überspringen ihn mit `-x :ffmpeg:buildFfmpegAudio`.
 - **16 KB:** `build.sh` linkt mit `-z max-page-size=16384` und bricht ab, wenn ein `.so` kleiner ausgerichtet ist.
@@ -460,11 +583,66 @@ Decodern.
 - **Updates:** Bei einem Media3-Update `MEDIA3_TAG` im Skript mitziehen; `FfmpegRendererTest` schlägt an, wenn der
   Konstruktor nicht mehr passt.
 
+## Software-Video
+
+Günstige Chips können manche Formate nicht oder melden sie und scheitern dann (W90, Unisoc, Android 16: HEVC 10-Bit,
+19.11.2026); Xvid/DivX (MPEG-4 ASP), MPEG-2 und VC-1 sind laut Android-Liste nicht zugesagt. Dafür dekodiert Ordo
+diese Formate selbst mit FFmpeg, aber nur, wenn kein Decoder des Geräts sie nimmt.
+
+- **Wahl des Decoders:** Media3s `ExperimentalFfmpegVideoRenderer` ist in 1.11.1 nur ein Platzhalter (sagt immer
+  „nicht unterstützt“, PR 1591 seit 2024 offen). Ordo ersetzt die Klasse im Modul `:ffmpeg` durch eine echte; der
+  Name und der Konstruktor bleiben, also lädt `DefaultRenderersFactory` sie mit `EXTENSION_RENDERER_MODE_ON` von
+  selbst: hinter dem Video-Renderer des Geräts, im Player, in `VideoInfo.probeTracks` und im Musik-Player. Media3 nimmt
+  den Renderer mit der besten Einstufung; FFmpeg gewinnt also nur, wenn das Gerät „nicht unterstützt“ oder „übersteigt
+  die Fähigkeiten“ meldet.
+- **Gerät meldet das Format und scheitert:** `VideoDecoderFallback` (ein `MediaCodecSelector`) blendet nach einem
+  Fehler des Geräte-Decoders (`DecoderInitializationException`, `MediaCodecDecoderException`, `CodecException` beim
+  Video-Renderer) dessen MIME-Typ für diesen Player aus und ruft `prepare()` noch einmal, an derselben Stelle. Kann
+  FFmpeg den Typ nicht oder scheitert auch FFmpeg, bleibt es bei der ruhigen Fehlermeldung (kein zweiter Versuch).
+  Getestet in `VideoDecoderFallbackTest`.
+- **Herkunft des Renderers:** Der Video-Teil stammt aus nextlib (anilbeesetti/nextlib, GPL-3.0, Tag
+  `v1.11.1-0.18.0`, Commit `d774e7e6…`): `ffvideo.cc` (JNI-Namen auf `androidx.media3.decoder.ffmpeg` umgestellt, die
+  Hilfsfunktionen aus Media3s `ffmpeg_jni.cc`), `FfmpegVideoDecoder` (eigene MIME-Tabelle, Extradaten für jedes Format
+  mit Init-Daten, Java-11-Syntax), `DrainingDecoder` (nur das Paket). Er dekodiert mit allen Kernen
+  (`availableProcessors`), rechnet jedes Bild mit libswscale nach RGBA um und schreibt es selbst in die Surface
+  (`ANativeWindow_lock`); 10-Bit wird dabei auf 8 Bit gebracht, HDR nicht auf den Bildschirm durchgereicht.
+- **Formate:** `h264 hevc mpeg2video mpeg4 h263 msmpeg4v2 msmpeg4v3 vc1`. Damit: HEVC 8/10 Bit, H.264 (High 10,
+  4:2:2), MPEG-2 (TS, PS, MKV), Xvid/DivX in AVI und MKV, DivX 3 (MP43) und MP42 in AVI, H.263, VC-1 in MKV (`WVC1`).
+  Nicht dabei: AV1 (FFmpeg braucht dafür dav1d, Pflicht im Gerät ab Android 14), VP8/VP9 (seit Android 4.4 im Gerät).
+- **ASF/WMV: nicht unterstützt.** Media3 hat keinen ASF-Extractor (nicht in `DefaultExtractorsFactory`), einer wäre
+  kein kleiner Eigenbau. `.wmv`/`.asf` zeigen die Formatmeldung mit „Mit anderer App öffnen“. WMV3 kommt in keinem
+  anderen Container an, darum fehlt auch der Decoder.
+- **Signalweg und Bildverbesserung:** Der Decoder heißt `ffmpegLavc…-hevc`; der Signalweg zeigt „Software-Dekodierung
+  (FFmpeg), weil der Chip dieses Format nicht kann“. Die Bildverbesserung (OpenGL-Kette) bleibt aus
+  (`PicturePolicy.Off.SOFTWARE`): FFmpeg schreibt selbst in die Surface, und die CPU braucht ihre Leistung. Läuft die
+  Kette schon, baut der Player den Bildschirm neu auf (wie bei HDR/DRM); das Video ist für diesen Prozess gemerkt,
+  damit es nicht wieder mit Kette startet. Verwirft das Gerät mehr als 2 Bilder je Sekunde, erscheint einmal je Prozess
+  ruhig „Dieses Video läuft über Software-Dekodierung und kann auf diesem Gerät ruckeln.“
+- **Bau:** derselbe Lauf wie beim FFmpeg-Ton (`utils/ffmpeg-audio/build.sh`, dieselben festgenagelten Commits). Einzige
+  Änderung an Media3s `build_ffmpeg.sh`: die Zeile `--disable-swscale` fällt weg (das Skript prüft vorher, dass es sie
+  gibt). Media3s `ffmpeg_jni.cc` und `ffvideo.cc` baut `ffmpeg/src/main/jni/CMakeLists.txt` zu einer
+  `libffmpegJNI.so`. `proguard-rules.txt` bekam eine Zeile: `VideoDecoderOutputBuffer` bleibt ungekürzt, weil
+  `ffvideo.cc` Felder und Methoden per Namen anspricht.
+- **Abgewogen: nextlib als fertiges AAR** (`nextlib-media3ext:1.11.1-0.18.0`, Maven Central, gemessen 20.11.2026):
+  `.so` gepackt arm64 4 722 836 B, armv7 4 505 327 B, x86_64 5 621 365 B je ABI, also über dem Rahmen von +3 MB; die
+  Decoder-Liste ist fest (kein `mpeg4`, kein `vc1`, dazu libass, dav1d, alle Ton-Decoder) und ließe sich nur mit einem
+  eigenen Bau von nextlibs `setup.sh` kürzen. Der eigene Bau braucht dagegen nur den Video-Renderer (rund 1 300 Zeilen).
+- **Größe** (Beta, 20.11.2026, `bundletool get-size total --dimensions=ABI`, Download MIN, gegen
+  `integrate/0.16.0`): arm64-v8a 10 809 230 → 12 210 765 B (+1 401 535), armeabi-v7a 8 286 365 → 9 551 988 B
+  (+1 265 623), x86_64 11 031 793 → 12 454 112 B (+1 422 319), x86 +12 907 (nur Java). AAB 31 695 581 →
+  35 777 332 B. `libffmpegJNI.so` entpackt (Ton und Video): arm64 4 469 800, armv7 4 007 688, x86_64 5 244 904 B.
+  16 KB: `utils/check-16k.sh` auf Beta-APK und -AAB grün (LOAD align 0x4000).
+- **Lizenz:** FFmpeg bleibt LGPL-2.1-or-later (weiter kein `--enable-gpl`, `--enable-nonfree`, `--enable-version3`;
+  libswscale ist LGPL). Der nextlib-Code ist GPL-3.0 wie Ordo; Über › Lizenzen nennt ihn.
+
 ## Offen (messen)
 
 Ruckler beim Drehen auf dem Tab; AC3/E-AC3/DTS in MKV auf Tab S9 Ultra und S21; Puffer und Spulen großer Filme über
 SMB/SFTP; Vergleich mit Samsung Video und Google Fotos; ob `sensorLandscape` auf dem Tab unter Android 16 wirkt;
-AC3/DTS über FFmpeg auf dem W90 (Ton, CPU-Last); wie `dumpsys media_session` die Session `video.<UUID>` benennt.
+AC3/DTS über FFmpeg auf dem W90 (Ton, CPU-Last); wie `dumpsys media_session` die Session `video.<UUID>` benennt;
+Software-Video auf dem W90: springt FFmpeg bei HEVC 10-Bit ein (Signalweg), CPU-Last und verworfene Bilder bei
+720p/1080p HEVC 10-Bit, MPEG-2 576i, Xvid; Akku je Stunde; ob der Wechsel Gerät → FFmpeg auf derselben Surface sauber
+klappt und zurück beim nächsten Video.
 
 ## Profi-Spulen (`viewer/video/seek`)
 
@@ -479,7 +657,7 @@ die neuen Einträge hängt `VideoSeekPro` selbst ins ⋮-Menü und in die Ansich
   `content://`; SMB/SFTP/WebDAV/FTP zeigen kein Bild (ein zweiter Leser über das Netz würde mit der Wiedergabe
   konkurrieren), nur den Kapitelnamen, wenn es einen gibt.
 - **Kapitel:** Media3 1.11 liest Kapitel aus MP4 (Nero/QuickTime) und Matroska als `Chapter` in den Metadaten der
-  Spuren. Ab zwei Kapiteln: Striche im Balken, ⋮ › „Kapitel“ als Blatt (aktuelles fett, „Läuft gerade“ für TalkBack,
+  Spuren. Ab zwei Kapiteln: Striche im Balken, ⋮ › „Kapitel“ als Blatt (aktuelles mit Abspiel-Symbol in der Akzentfarbe, „Läuft gerade“ für TalkBack,
   Tippen springt), Name in der Vorschau.
 - **Einzelbild:** ⋮ › „Einzelbild“ pausiert und zeigt unter der Titelleiste ‹ Bild n › ✕; Tasten `,` und `.` gehen
   auch ohne die Leiste. Ziel = Anfang des nächsten/vorigen Bildes aus der Bildrate der Videospur (sonst 30 fps),

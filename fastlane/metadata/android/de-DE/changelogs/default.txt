@@ -1,2 +1,13 @@
-Fehlerbehebung:
-• Lieder und Videos mit Ton enden wieder pünktlich. Vorher lief die Wiedergabe nach dem Ende still weiter, und „Nochmal ansehen“ bzw. das nächste Lied kamen zu spät.
+Video:
+• Software-Decoder: DivX, MPEG-2, HEVC 10-Bit, VC-1, .ts
+• Menüs neu im Musik-Stil
+• Untertitel: Umlaute immer richtig, neuer Stil, gut lesbar
+• Bild anpassen und Zeilensprung entfernen
+• Detail plus, wo das Gerät es schafft
+Ton:
+• Kopfhörer-Paket: Raumklang, Leise hören, Korrektur für 500 Modelle
+• Hi-Res-Ausgabe über USB-DAC
+Außerdem:
+• Besser lesbar über hellen Bildern und im erweiterten Dunkel-Design
+• Ordner heißt „Interner Speicher“ statt „0“
+• Viele Fehler behoben

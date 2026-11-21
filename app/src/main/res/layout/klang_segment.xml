@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- One Widget.Ordo.Klang.Segment for KlangSheet (a style needs a layout to apply). -->
+<com.google.android.material.button.MaterialButton xmlns:android="http://schemas.android.com/apk/res/android"
+    style="@style/Widget.Ordo.Klang.Segment"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content" />

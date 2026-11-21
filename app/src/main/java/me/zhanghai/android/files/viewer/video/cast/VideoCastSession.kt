@@ -483,7 +483,7 @@ class VideoCastSession(
                 runCatching {
                     val file = folder.resolve(subtitle.fileName)
                     val bytes = readCapped(file) ?: return@runCatching null
-                    val text = VideoCastFormats.decode(bytes)
+                    val text = VideoCastFormats.decode(bytes, subtitle.language)
                     val vtt = if (subtitle.fileName.endsWith(".srt", ignoreCase = true)) {
                         VideoCastFormats.srtToVtt(text)
                     } else {

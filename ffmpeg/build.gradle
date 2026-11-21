@@ -3,16 +3,20 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-// Media3's decoder_ffmpeg (Apache-2.0), audio only: FfmpegAudioRenderer with FFmpeg's ac3, eac3, dca, truehd and
-// mlp decoders (LGPL-2.1-or-later). Not on Maven; src/main/java and proguard-rules.txt are vendored unchanged from
-// Media3 1.11.1. The .so files are not in git: utils/ffmpeg-audio/build.sh (pinned commits and flags,
-// docs/VIDEO-PLAYER.md, "FFmpeg-Ton") builds them from source once per checkout (about a minute) into build/ffmpeg-audio.
+// Media3's decoder_ffmpeg (Apache-2.0): FfmpegAudioRenderer with FFmpeg's ac3, eac3, dca, truehd, mlp, mp1 and mp2 decoders,
+// plus a software video renderer (ExperimentalFfmpegVideoRenderer, FfmpegVideoDecoder, DrainingDecoder and
+// src/main/jni/ffvideo.cc from nextlib, GPL-3.0) with h264 hevc mpeg2video mpeg4 h263 msmpeg4v2/v3 vc1; FFmpeg is
+// LGPL-2.1-or-later. Not on Maven; Media3's other Java sources are vendored unchanged from 1.11.1 (except FfmpegLibrary: MPEG Layer I/II to mp1/mp2), proguard-rules.txt
+// with one added rule. The .so files are not in git: utils/ffmpeg-audio/build.sh (pinned commits and flags,
+// docs/VIDEO-PLAYER.md, "FFmpeg-Ton" and "Software-Video") builds them from source once per checkout into
+// build/ffmpeg-audio.
 apply plugin: 'com.android.library'
 
 def ffmpegLibs = layout.buildDirectory.dir('ffmpeg-audio')
 def buildFfmpegAudio = tasks.register('buildFfmpegAudio', Exec) {
     def script = rootProject.file('utils/ffmpeg-audio/build.sh')
     inputs.file(script)
+    inputs.dir('src/main/jni')
     outputs.dir(ffmpegLibs)
     commandLine 'bash', script, ffmpegLibs.get().asFile
 }

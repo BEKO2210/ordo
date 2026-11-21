@@ -5,11 +5,8 @@
 
 package me.zhanghai.android.files.viewer.video.cast
 
-import java.nio.ByteBuffer
-import java.nio.charset.CharacterCodingException
-import java.nio.charset.CodingErrorAction
-import java.nio.charset.StandardCharsets
 import java.util.Locale
+import me.zhanghai.android.files.util.TextCharset
 
 object VideoCastFormats {
     fun contentType(fileName: String): String? = when (extension(fileName).lowercase(Locale.ROOT)) {
@@ -50,17 +47,8 @@ object VideoCastFormats {
         return if (cues.isEmpty()) "WEBVTT\n\n" else "WEBVTT\n\n${cues.joinToString("\n\n")}\n"
     }
 
-    fun decode(bytes: ByteArray): String {
-        val text = try {
-            StandardCharsets.UTF_8.newDecoder()
-                .onMalformedInput(CodingErrorAction.REPORT)
-                .onUnmappableCharacter(CodingErrorAction.REPORT)
-                .decode(ByteBuffer.wrap(bytes)).toString()
-        } catch (_: CharacterCodingException) {
-            String(bytes, charset("windows-1252"))
-        }
-        return text.removePrefix("\uFEFF")
-    }
+    /** The same detector as the player's ([TextCharset]): the cast shows what the screen shows. */
+    fun decode(bytes: ByteArray, language: String? = null): String = TextCharset.decode(bytes, language).text
 
     data class Subtitle(val fileName: String, val language: String?)
 

@@ -55,7 +55,7 @@ open_folder() {
 }
 menu() { video_menu "$1"; }
 # part REGEX: a text or description on screen contains it (the signal path rows say "Decoder: Hardware · c2…").
-part() { ui texts | grep -qE -- "$1"; }
+part() { ui texts | grep -E -- "$1" >/dev/null; }
 settings_pick() {
     a shell am start -W -n "$PKG/me.zhanghai.android.files.viewer.video.VideoLauncherActivity" >/dev/null; sleep 2; guard
     ui tap actionSettings >/dev/null; sleep 2
@@ -68,7 +68,8 @@ settings_pick() {
 a shell am start -W -n "$PKG/me.zhanghai.android.files.viewer.video.VideoLauncherActivity" >/dev/null; sleep 2; guard
 ui tap actionSettings >/dev/null; sleep 2
 check "the settings have Picture enhancement, balanced by default" scroll_to "Ausgewogen|Balanced"
-check "and Match frame rate, only when seamless by default" ui has "Nur nahtlos|Only when seamless"
+# Its row can sit below the fold (Tab A8, 21.11.2026).
+check "and Match frame rate, only when seamless by default" scroll_to "Nur nahtlos|Only when seamless" 3
 back 1; back 1
 
 # 2. A small SDR clip: the pipeline engages and frames are processed; their GPU time goes to the report.
@@ -80,7 +81,7 @@ check "the small clip opens Ordo's player" wait_on viewer.video.VideoPlayerActiv
 sleep 2; start=$(log)
 sleep 6
 check "a 360p clip starts with the pipeline, decided before prepare" eval 'grep -q "prepare: pipeline true" <<<"$start"'
-check "and is not prepared a second time" eval '! log | grep -q -- "-> ENGAGE"'
+check "and is not prepared a second time" eval '! log | grep -- "-> ENGAGE"'
 check "the enhancement is applied" eval 'grep -q -- "-> APPLY" <<<"$start"'
 check "frames go through the enhancement pass" eval 'grep -qE "frame [0-9]+ [0-9]+x[0-9]+ [0-9.]+ ms" <<<"$start"'
 log | grep "last 120 frames" | tail -3 | sed 's/^/INFO GPU time /'
@@ -92,7 +93,9 @@ screenshot "$out/small-enhanced.png"
 menu "Signalweg|Signal path"
 check "Signal path opens" ui wait "Signalweg|Signal path" 5
 check "it names the decoder as hardware or software" part "Decoder: (Hardware|Software)"
-check "it shows the Lanczos upscale" part "Lanczos 3"
+# A low-end device that drops frames switches the enhancement off and says why (Tab A8, 21.11.2026: 50 dropped).
+check "it shows the Lanczos upscale, or why the device switched it off" \
+    part "Lanczos 3|Gerät kam nicht hinterher|device couldn.t keep up"
 sound_row() { local i; for i in 1 2 3; do part "(Ausgabe|Output): " && return 0; swipe_up; done; return 1; }
 check "it has the sound section with the output" sound_row
 screenshot "$out/signal-path.png"
@@ -104,16 +107,16 @@ menu "Bildverbesserung|Picture enhancement"
 screenshot "$out/small-plain.png"
 # The hint pill fades after about a second, shorter than one screen read (2-3 s): look at the screenshot instead.
 echo "SKIP the off hint (fades before a screen read; see $out/small-plain.png)"
-check "and clears the effects" eval 'log | grep -q -- "-> CLEAR"'
+check "and clears the effects" eval 'log | grep -- "-> CLEAR"'
 menu "Bildverbesserung|Picture enhancement"
-check "switched on again it applies them" eval 'log | grep -q -- "-> APPLY"'
+check "switched on again it applies them" eval 'log | grep -- "-> APPLY"'
 back 2
 
 # 5. A clip as large as the screen gets nothing.
 relog
 open_folder 02-screen.mp4
 ui tap 02-screen.mp4 >/dev/null; wait_on viewer.video.VideoPlayerActivity 8; sleep 4
-check "a clip as large as the screen is left alone (${long}x$short)" eval 'log | grep -q "NOT_SMALLER"'
+check "a clip as large as the screen is left alone (${long}x$short)" eval 'log | grep "NOT_SMALLER"'
 back 2
 
 # 6. "Always" asks for 24 fps itself from API 31; "Only when seamless" leaves it to Media3.
@@ -123,7 +126,7 @@ relog
 open_folder 01-small.mp4
 ui tap 01-small.mp4 >/dev/null; wait_on viewer.video.VideoPlayerActivity 8; sleep 4
 if [ "${sdk:-0}" -ge 31 ]; then
-    check "under Always Ordo asks the screen for 24 fps" eval 'log | grep -q "setFrameRate 24.0 ALWAYS"'
+    check "under Always Ordo asks the screen for 24 fps" eval 'log | grep "setFrameRate 24.0 ALWAYS"'
     a shell dumpsys display | grep -m2 -oE "renderFrameRate [0-9.]+|mActiveRenderFrameRate=[0-9.]+|refreshRate=[0-9.]+" \
         | sed 's/^/INFO display /'
 else
@@ -144,7 +147,8 @@ else
 fi
 menu "Signalweg|Signal path"
 # Opening the sheet pauses (video_menu) and plays on; the pacing is measured again over 240 frames (10 s at 24 fps).
-pacing_shown() { local i; for i in 1 2 3 4 5 6; do part "(Bildtakt|Frame pacing): .*(gleichmäßig|Pulldown|even|pulldown)" && return 0; sleep 3; done; return 1; }
+# In landscape the row sits below the sheet's fold: scroll the sheet (only while it is open, never the picture).
+pacing_shown() { local i; for i in 1 2 3 4 5 6; do part "(Bildtakt|Frame pacing): .*(gleichmäßig|Pulldown|even|pulldown)" && return 0; [ $i = 2 ] && ui has "Signalweg|Signal path" && swipe_up; sleep 3; done; return 1; }
 check "Signal path shows the frame pacing" pacing_shown
 screenshot "$out/signal-pacing.png"
 back 1
@@ -156,7 +160,7 @@ if [ "$hdr" = 1 ]; then
     relog
     open_folder 03-hdr.mp4
     ui tap 03-hdr.mp4 >/dev/null; wait_on viewer.video.VideoPlayerActivity 8; sleep 4
-    check "an HDR10 clip is not processed" eval 'log | grep -q "off=HDR" && ! log | grep -q -- "-> ENGAGE"'
+    check "an HDR10 clip is not processed" eval 'log | grep "off=HDR" && ! log | grep -- "-> ENGAGE"'
     a shell input keyevent KEYCODE_MEDIA_PAUSE; sleep 1
     menu "Videoinfos|Video info"
     ui tap "Signalweg|Signal path" >/dev/null; sleep 1.5

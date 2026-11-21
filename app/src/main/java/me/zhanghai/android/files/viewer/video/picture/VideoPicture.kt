@@ -15,10 +15,14 @@ import android.media.AudioManager
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.os.PowerManager
+import android.os.SystemClock
+import android.net.Uri
 import android.util.Log
 import android.view.Display
 import android.view.SurfaceView
 import android.view.View
+import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.annotation.OptIn
@@ -38,9 +42,11 @@ import androidx.media3.common.Format
 import androidx.media3.common.MimeTypes
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
+import androidx.media3.common.Timeline
 import androidx.media3.common.Tracks
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.common.util.Util
+import androidx.media3.effect.GlEffect
 import androidx.media3.effect.LanczosResample
 import androidx.media3.exoplayer.DecoderReuseEvaluation
 import androidx.media3.exoplayer.ExoPlayer
@@ -49,16 +55,18 @@ import androidx.media3.exoplayer.audio.AudioSink
 import androidx.media3.exoplayer.mediacodec.MediaCodecUtil
 import androidx.media3.exoplayer.video.VideoFrameMetadataListener
 import androidx.media3.ui.PlayerView
-import com.google.android.material.bottomsheet.BottomSheetDialog
 import java.text.NumberFormat
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import me.zhanghai.android.files.R
+import me.zhanghai.android.files.file.asMimeType
+import me.zhanghai.android.files.file.fileProviderUri
+import me.zhanghai.android.files.util.createSendStreamIntent
 import me.zhanghai.android.files.settings.Settings
 import me.zhanghai.android.files.util.valueCompat
 import me.zhanghai.android.files.viewer.video.VideoInfo
 import me.zhanghai.android.files.viewer.video.audioCodecName
-import me.zhanghai.android.files.viewer.video.showExpanded
+import me.zhanghai.android.files.viewer.audio.KlangSheet
 import me.zhanghai.android.files.viewer.video.videoCodecName
 import me.zhanghai.android.files.viewer.video.picture.PicturePolicy.Off
 import me.zhanghai.android.files.viewer.video.picture.PicturePolicy.Pipeline
@@ -83,7 +91,9 @@ class VideoPicture(
     /** A calm one-time line at the top of the picture (the player's notice). */
     private val onNotice: (String) -> Unit,
     /** The sound's own processing stages in plain words (Klang's), for the signal path; the player has none yet. */
-    private val soundStages: () -> List<String> = { emptyList() }
+    private val soundStages: () -> List<String> = { emptyList() },
+    /** The measurements switched on (the meter to feed the Klang chain's buffer times into) or off (null). */
+    private val onMeter: (PictureMeter?) -> Unit = {}
 ) : AnalyticsListener, DefaultLifecycleObserver {
     private val handler = Handler(Looper.getMainLooper())
     private val surfaceView = playerView.videoSurfaceView as? SurfaceView
@@ -97,6 +107,27 @@ class VideoPicture(
     private var inPip = false
     // What the pipeline got last: the same size and values set again would rebuild it for nothing.
     private var appliedKey: Any? = null
+
+    // Detail plus and the measurements (DetailPlus, PictureMeter): checked once a second while either runs.
+    private val meter = PictureMeter()
+    private var model: DetailPlus.Model? = null
+    private var detailFellBack = false
+    private var lastDropped = 0
+    private var steadySince = 0L
+    private var meterStart = 0L
+    private var underruns = 0
+    private var underrunsTotal = 0
+    private var droppedAtStart = 0
+    private var headroom = Float.NaN
+    private var lastStats: Pair<Map<String, PictureMeter.Stat>, PictureMeter.Stat>? = null
+    private val ticker = object : Runnable {
+        override fun run() {
+            tick()
+            // tick() may have rebuilt the effects, which posts again.
+            handler.removeCallbacks(this)
+            if (model != null || meter.measuring) handler.postDelayed(this, METER_TICK_MS)
+        }
+    }
 
     /** The ⋮ toggle; starts as "the setting is not off". */
     var switchedOn = PicturePolicy.level(Settings.VIDEO_PICTURE.valueCompat) != PicturePolicy.Level.OFF
@@ -148,6 +179,16 @@ class VideoPicture(
         }
     }
 
+    // The "Bild" sheet: per video, remembered by PictureAdjustStore's rules.
+    private val adjustStore = PictureAdjustStore(activity)
+    private var adjustId: String? = null
+    var adjustments = PictureAdjustments()
+        private set
+    /** What the playing video's format says about interlacing: true, false or null (unknown). */
+    var deinterlaceDetected: Boolean? = null
+        private set
+    private var deinterlaceOn = false
+
     private val evaluateRunnable = Runnable { evaluate() }
     private val layoutListener = View.OnLayoutChangeListener { _, l, t, r, b, ol, ot, or, ob ->
         if (r - l != or - ol || b - t != ob - ot) scheduleEvaluate()
@@ -179,12 +220,14 @@ class VideoPicture(
      * effects follow as soon as the tracks and the surface are known. Unknown sources start plain.
      */
     fun prepare(player: ExoPlayer) {
-        if (!switchedOn || failedInProcess || player.mediaItemCount == 0) {
+        val index = player.currentMediaItemIndex
+        val currentId = player.takeIf { it.mediaItemCount > 0 }?.getMediaItemAt(index)?.mediaId
+        // Remembered adjustments (or forced deinterlacing) need the pass at any size.
+        val adjusted = currentId?.let(adjustStore::read)?.let { !it.isNeutral || it.deinterlace == true } == true
+        if ((!switchedOn && !adjusted) || failedInProcess || currentId == null || currentId in softwareMediaIds) {
             player.prepare()
             return
         }
-        val index = player.currentMediaItemIndex
-        val currentId = player.getMediaItemAt(index).mediaId
         val nextId = if (index + 1 < player.mediaItemCount) player.getMediaItemAt(index + 1).mediaId else null
         activity.lifecycleScope.launch {
             val next = nextId?.let { async { PictureProbe.probe(activity, it) } }
@@ -193,7 +236,8 @@ class VideoPicture(
             // Someone pressed play meanwhile (prepare after an error): too late for the pipeline, the fallback rules.
             if (this@VideoPicture.player !== player || player.playbackState != Player.STATE_IDLE) return@launch
             if (PicturePolicy.preEngage(
-                    switchedOn, failedInProcess, current, next?.await(), metrics.widthPixels, metrics.heightPixels
+                    switchedOn, failedInProcess, current, next?.await(), metrics.widthPixels, metrics.heightPixels,
+                    adjusted
                 )) {
                 player.setVideoEffects(emptyList())
                 engaged = true
@@ -207,9 +251,36 @@ class VideoPicture(
     /** The ⋮ toggle: compare with and without. Switching it on again also forgets "too slow". */
     fun toggle(): Boolean {
         switchedOn = !switchedOn
-        if (switchedOn) tooSlow = false
+        if (switchedOn) {
+            tooSlow = false
+            detailFellBack = false
+        }
         evaluate()
         return switchedOn
+    }
+
+    /** The "Bild" sheet changed a step: live in the pass, remembered for this video where allowed. */
+    fun adjust(value: PictureAdjustments) {
+        // Before the first evaluate with tracks: this video's, so evaluate does not read the store over it.
+        if (adjustId == null) adjustId = player?.currentMediaItem?.mediaId
+        adjustments = value
+        adjustId?.let { adjustStore.write(it, value) }
+        applyLive()
+        evaluate()
+        player?.let(::redrawIfPaused)
+    }
+
+    /** False on HDR, DRM or a GPU that failed: the sheet says so. */
+    val adjustable: Boolean
+        get() = decision?.let(PicturePolicy::adjustable) ?: true
+
+    /** Whether this video's adjustments are kept (not Tresor, not content://, not with "Keine Stellen merken"). */
+    val remembersAdjustments: Boolean
+        get() = PictureAdjustStore.remembers(adjustId)
+
+    private fun applyLive() {
+        live.colorMatrix = PictureAdjust.colorMatrix(adjustments)
+        live.sharpnessStep = adjustments.sharpness
     }
 
     /** What the toggle's hint says: on, off, or on but not used on this video and why. */
@@ -233,6 +304,14 @@ class VideoPicture(
         // Between videos and while re-preparing there are no tracks: everything stays as it is (a cleared rate
         // would switch the screen's mode twice under "always").
         val format = selectedVideoFormat(player.currentTracks) ?: return
+        val mediaId = player.currentMediaItem?.mediaId
+        if (mediaId != adjustId) {
+            adjustId = mediaId
+            adjustments = mediaId?.let(adjustStore::read) ?: PictureAdjustments()
+            applyLive()
+        }
+        deinterlaceDetected = Deinterlace.detect(format.sampleMimeType, format.initializationData, format.frameRate)
+        deinterlaceOn = Deinterlace.active(adjustments.deinterlace, deinterlaceDetected)
         val plan = PicturePolicy.frameRatePlan(
             PicturePolicy.frameRateMode(Settings.VIDEO_FRAME_RATE.valueCompat), Build.VERSION.SDK_INT, format.frameRate
         )
@@ -249,13 +328,15 @@ class VideoPicture(
         val isHdr = ColorInfo.isTransferHdr(format.colorInfo) || format.sampleMimeType == MimeTypes.VIDEO_DOLBY_VISION
         val decision = PicturePolicy.decide(
             level, switchedOn, isHdr, format.drmInitData != null, width, height, surfaceWidth, surfaceHeight, tooSlow,
-            failedInProcess
+            failedInProcess, player.currentMediaItem?.mediaId in softwareMediaIds
         )
         this.decision = decision
-        val action = PicturePolicy.pipeline(engaged, decision)
+        val action = PicturePolicy.pipeline(engaged, decision, !adjustments.isNeutral || deinterlaceOn)
         if (Log.isLoggable(PICTURE_LOG_TAG, Log.DEBUG)) {
             Log.d(PICTURE_LOG_TAG, "${width}x$height on ${surfaceWidth}x$surfaceHeight: $decision -> $action, $plan")
         }
+        // Only APPLY and ENGAGE set effects (and with them Detail plus); everything else runs without it.
+        if (action != Pipeline.APPLY && action != Pipeline.ENGAGE) model = null
         when (action) {
             Pipeline.KEEP_PLAIN -> {}
             Pipeline.ENGAGE -> {
@@ -287,13 +368,100 @@ class VideoPicture(
         height: Int,
         redraw: Boolean = true
     ) {
-        val params = PicturePolicy.shaderParams(decision.level, decision.scale)
-        val key = Triple(params, width, height)
+        val model = DetailPlus.model(
+            DetailPlus.upscaler(Settings.VIDEO_UPSCALER.valueCompat), decision.on, decision.scale, mediaName(player),
+            detailFellBack, DetailPlusGl.unsupported
+        )
+        // The network already sharpens: CAS at half strength, or the edges would be sharpened twice.
+        val base = if (decision.on) PicturePolicy.shaderParams(decision.level, decision.scale) else PicturePolicy.ADJUST_ONLY
+        val params = if (model != null) base.copy(sharpness = base.sharpness / 2) else base
+        val key = listOf(params, width, height, decision.on, deinterlaceOn, model, meter.measuring)
         if (appliedKey == key) return
         appliedKey = key
-        // Lanczos fits the frame into the surface, so the final copy onto the screen is pixel for pixel.
-        player.setVideoEffects(listOf(LanczosResample.scaleToFit(width, height), PictureEnhanceEffect(params, live)))
+        this.model = model
+        steadySince = SystemClock.elapsedRealtime()
+        if (Log.isLoggable(PICTURE_LOG_TAG, Log.DEBUG)) {
+            Log.d(PICTURE_LOG_TAG, "effects: detail plus $model, measuring ${meter.measuring}")
+        }
+        fun metered(effect: GlEffect, pass: String, always: Boolean = false): GlEffect =
+            if (always || meter.measuring) MeteredEffect(effect, pass, meter) else effect
+        // Deinterlacing sees the decoded lines; Lanczos fits the frame into the surface, so the final copy onto the
+        // screen is pixel for pixel. Only the adjustments: no scaling, the screen scales as without the pass.
+        player.setVideoEffects(listOfNotNull(
+            DeinterlaceEffect.takeIf { deinterlaceOn },
+            model?.let { metered(DetailPlusEffect(it), PictureMeter.PASS_DETAIL, always = true) },
+            metered(LanczosResample.scaleToFit(width, height), PictureMeter.PASS_LANCZOS).takeIf { decision.on },
+            metered(PictureEnhanceEffect(params, live), PictureMeter.PASS_ENHANCE)
+        ))
         if (redraw) redrawIfPaused(player)
+        startTicker()
+    }
+
+    /** The playing file's path or URI, decoded, for "automatic" (anime by name). */
+    private fun mediaName(player: ExoPlayer): String? =
+        player.currentMediaItem?.mediaId?.let { Uri.decode(it) }
+
+    private fun startTicker() {
+        handler.removeCallbacks(ticker)
+        if (model != null || meter.measuring) handler.postDelayed(ticker, METER_TICK_MS)
+    }
+
+    /**
+     * Once a second: Detail plus gives way to Lanczos when it is too slow ([DetailPlus.fallBack]) or the GPU can't run
+     * it, and while measuring the second becomes a row.
+     */
+    private fun tick() {
+        val player = player ?: return
+        val (stats, audio) = meter.take().also { lastStats = it }
+        val counters = player.videoDecoderCounters?.also { it.ensureUpdated() }
+        val dropped = counters?.droppedBufferCount ?: 0
+        val droppedNow = (dropped - lastDropped).coerceAtLeast(0)
+        lastDropped = dropped
+        val now = SystemClock.elapsedRealtime()
+        if (!player.isPlaying) steadySince = now
+        if (meter.measuring) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && (now - meterStart) / 1000 % HEADROOM_EVERY_S == 0L) {
+                headroom = activity.getSystemService<PowerManager>()?.getThermalHeadroom(HEADROOM_FORECAST_S)
+                    ?: Float.NaN
+            }
+            meter.addRow(
+                (now - meterStart) / 1000, model?.name?.lowercase() ?: "lanczos", stats, droppedNow, headroom, audio,
+                underruns
+            )
+            underruns = 0
+        }
+        val model = model ?: return
+        val detail = stats[PictureMeter.PASS_DETAIL]
+        val steady = now - steadySince >= DetailPlus.SETTLE_MS
+        val unsupported = model in DetailPlusGl.unsupported
+        // glFinish timing (measuring without GPU timers) stalls the pipeline itself: its drops don't count.
+        if (unsupported ||
+            DetailPlus.fallBack(detail?.mean ?: 0.0, detail?.count ?: 0, droppedNow, steady && meter.timer != "cpu")
+        ) {
+            Log.i(PICTURE_LOG_TAG, "Detail plus $model off: ${detail?.mean} ms over ${detail?.count}, " +
+                "$droppedNow dropped, unsupported $unsupported")
+            if (!unsupported) {
+                detailFellBack = true
+                onNotice(activity.getString(R.string.video_detail_plus_slow_notice))
+            }
+            evaluate()
+        }
+    }
+
+    /** The measurements on (from now, with every pass timed) or off (nothing is wrapped or timed any more). */
+    fun setMeasuring(on: Boolean) {
+        if (meter.measuring == on) return
+        meter.measuring = on
+        meter.clear()
+        meterStart = SystemClock.elapsedRealtime()
+        underruns = 0
+        underrunsTotal = 0
+        headroom = Float.NaN
+        lastDropped = player?.videoDecoderCounters?.droppedBufferCount ?: 0
+        droppedAtStart = lastDropped
+        onMeter(if (on) meter else null)
+        evaluate()
+        startTicker()
     }
 
     /**
@@ -335,7 +503,10 @@ class VideoPicture(
         oldPosition: androidx.media3.common.Player.PositionInfo,
         newPosition: androidx.media3.common.Player.PositionInfo,
         reason: Int
-    ) = pacing.reset()
+    ) {
+        pacing.reset()
+        steadySince = SystemClock.elapsedRealtime()
+    }
 
     override fun onPlaybackParametersChanged(
         eventTime: AnalyticsListener.EventTime,
@@ -349,6 +520,12 @@ class VideoPicture(
         initializationDurationMs: Long
     ) {
         videoDecoder = decoderName
+        // FFmpeg took over (the chip can't): never the GL pipeline for this video in this process, not even after
+        // the screen is rebuilt for it.
+        if (SignalPath.isFfmpegDecoderName(decoderName) && !eventTime.timeline.isEmpty) {
+            softwareMediaIds += eventTime.timeline.getWindow(eventTime.windowIndex, Timeline.Window()).mediaItem.mediaId
+            scheduleEvaluate()
+        }
     }
 
     override fun onAudioInputFormatChanged(
@@ -380,13 +557,46 @@ class VideoPicture(
         if (Log.isLoggable(PICTURE_LOG_TAG, Log.DEBUG)) {
             Log.d(PICTURE_LOG_TAG, "dropped $droppedFrames frames in $elapsedMs ms, enhancement ${decision?.on}")
         }
+        // The CPU can't keep up with FFmpeg: say it once per process, calmly; nothing else can be done.
+        // Never blamed on the enhancement or Detail plus, which a stale decision may still show as on.
+        if (player?.currentMediaItem?.mediaId in softwareMediaIds) {
+            if (!softwareNoticeShown && PicturePolicy.tooSlow(droppedFrames, elapsedMs)) {
+                softwareNoticeShown = true
+                onNotice(activity.getString(R.string.video_software_slow_notice))
+            }
+            return
+        }
         if (decision?.on != true || !PicturePolicy.tooSlow(droppedFrames, elapsedMs)) return
+        // Detail plus goes first: Lanczos alone may well keep up. Drops while the pipeline settles don't count.
+        if (model != null) {
+            if (SystemClock.elapsedRealtime() - steadySince < DetailPlus.SETTLE_MS) return
+            detailFellBack = true
+            onNotice(activity.getString(R.string.video_detail_plus_slow_notice))
+            evaluate()
+            return
+        }
         tooSlow = true
         evaluate()
         if (!noticeShown) {
             noticeShown = true
             onNotice(activity.getString(R.string.video_picture_too_slow_notice))
         }
+    }
+
+    override fun onAudioUnderrun(
+        eventTime: AnalyticsListener.EventTime,
+        bufferSize: Int,
+        bufferSizeMs: Long,
+        elapsedSinceLastFeedMs: Long
+    ) {
+        if (meter.measuring) {
+            underruns++
+            underrunsTotal++
+        }
+    }
+
+    override fun onIsPlayingChanged(eventTime: AnalyticsListener.EventTime, isPlaying: Boolean) {
+        steadySince = SystemClock.elapsedRealtime()
     }
 
     /** A GPU that can't build or run the pass: never again in this process, the screen starts over plain. */
@@ -440,6 +650,7 @@ class VideoPicture(
 
     override fun onDestroy(owner: LifecycleOwner) {
         setAmbient(false)
+        if (meter.measuring) onMeter(null)
         handler.removeCallbacksAndMessages(null)
         player?.clearVideoFrameMetadataListener(frameListener)
         activity.removeOnPictureInPictureModeChangedListener(pipListener)
@@ -453,41 +664,54 @@ class VideoPicture(
 
     /** The sheet; its values follow the playback once a second while it is open. */
     fun showSignalPath() {
-        val dialog = BottomSheetDialog(activity)
-        val padding = activity.resources.getDimensionPixelSize(R.dimen.phi_21)
-        val content = LinearLayout(activity).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(padding, padding, padding, padding)
-        }
-        content.addView(heading(R.string.video_signal_title, title = true))
+        val sheet = KlangSheet(activity, R.drawable.video_signal_icon_24dp, R.string.video_signal_title)
+        val grid = sheet.grid()
         // Fixed rows per section, filled by position; a row without a value hides.
-        fun section(@StringRes title: Int, labels: List<Int>): List<Pair<View, TextView>> {
-            content.addView(heading(title, title = false).apply { setPadding(0, padding, 0, 0) })
-            return labels.map { label ->
-                val value = TextView(activity).apply {
-                    setTextAppearance(com.google.android.material.R.style.TextAppearance_MaterialComponents_Body1)
+        fun rows(card: ViewGroup, labels: List<Int>): List<Pair<View, TextView>> =
+            labels.map { label ->
+                val value = TextView(activity, null, 0, R.style.Widget_Ordo_Klang_Title).apply {
                     importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
                 }
                 val row = LinearLayout(activity).apply {
                     orientation = LinearLayout.VERTICAL
-                    minimumHeight = activity.resources.getDimensionPixelSize(R.dimen.phi_55)
-                    setPadding(0, padding / 2, 0, 0)
+                    gravity = android.view.Gravity.CENTER_VERTICAL
+                    minimumHeight = activity.resources.getDimensionPixelSize(R.dimen.klang_row_min_height)
                     isFocusable = true
-                    addView(TextView(activity).apply {
+                    addView(TextView(activity, null, 0, R.style.Widget_Ordo_Klang_Info).apply {
                         setText(label)
-                        setTextAppearance(
-                            com.google.android.material.R.style.TextAppearance_MaterialComponents_Caption
-                        )
                         importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
                     })
                     addView(value)
                 }
-                content.addView(row)
+                card.addView(row)
                 row to value
             }
-        }
-        val pictureRows = section(R.string.video_signal_picture, PICTURE_ROWS)
-        val soundRows = section(R.string.video_signal_sound, SOUND_ROWS)
+        val pictureRows = rows(
+            sheet.card(R.drawable.image_icon_white_24dp, activity.getString(R.string.video_signal_picture), null, grid),
+            PICTURE_ROWS
+        )
+        // Sound and the measurements share the second column: alone under "Picture" the measurements left the right
+        // half of a wide sheet empty (Tab, 20.11.2026). On one column the order stays picture, sound, measurements.
+        val soundColumn = LinearLayout(activity).apply { orientation = LinearLayout.VERTICAL }
+        val half = activity.resources.getDimensionPixelSize(R.dimen.klang_card_gap_half)
+        grid.addView(soundColumn, ViewGroup.MarginLayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT
+        ).apply { setMargins(half, half, half, half) })
+        val soundRows = rows(
+            sheet.card(R.drawable.audio_speaker_icon_24dp, activity.getString(R.string.video_signal_sound), null, soundColumn),
+            SOUND_ROWS
+        )
+        // Measurements: off until the header row is tapped; tapping starts and stops them.
+        val meterCard = sheet.card(R.drawable.audio_graphic_eq_icon_24dp, null, null, soundColumn)
+        ((meterCard.parent as View).layoutParams as ViewGroup.MarginLayoutParams).topMargin =
+            activity.resources.getDimensionPixelSize(R.dimen.klang_card_gap)
+        val meterHeader = sheet.row(
+            meterCard, R.drawable.audio_graphic_eq_icon_24dp, activity.getString(R.string.video_meter_title),
+            activity.getString(R.string.video_meter_off), null
+        ) {}
+        val meterState = meterHeader.findViewById<TextView>(android.R.id.summary)
+        val meterRows = rows(meterCard, METER_ROWS)
+        val share = sheet.textButton(meterCard, activity.getString(R.string.video_meter_share)) { shareCsv() }
         fun fill(rows: List<Pair<View, TextView>>, labels: List<Int>, values: List<String?>) {
             for ((index, views) in rows.withIndex()) {
                 val value = values.getOrNull(index)
@@ -501,6 +725,20 @@ class VideoPicture(
         fun refresh() {
             fill(pictureRows, PICTURE_ROWS, pictureValues())
             fill(soundRows, SOUND_ROWS, soundValues())
+            fill(meterRows, METER_ROWS, meterValues())
+            // Only a real change: every setText is an accessibility event, even with the same text.
+            val state = activity.getString(if (meter.measuring) R.string.video_meter_on else R.string.video_meter_off)
+            if (meterState.text.toString() != state) meterState.text = state
+            meterHeader.contentDescription =
+                "${activity.getString(R.string.video_meter_title)}: ${meterState.text}"
+            ViewCompat.setStateDescription(
+                meterHeader, activity.getString(if (meter.measuring) R.string.video_meter_expanded else R.string.video_meter_collapsed)
+            )
+            share.isVisible = meter.measuring
+        }
+        meterHeader.setOnClickListener {
+            setMeasuring(!meter.measuring)
+            refresh()
         }
         refresh()
         val ticker = object : Runnable {
@@ -510,21 +748,8 @@ class VideoPicture(
             }
         }
         handler.postDelayed(ticker, SIGNAL_REFRESH_MS)
-        dialog.setOnDismissListener { handler.removeCallbacks(ticker) }
-        dialog.setContentView(androidx.core.widget.NestedScrollView(activity).apply { addView(content) })
-        dialog.showExpanded()
-    }
-
-    private fun heading(@StringRes text: Int, title: Boolean) = TextView(activity).apply {
-        setText(text)
-        setTextAppearance(
-            if (title) {
-                com.google.android.material.R.style.TextAppearance_MaterialComponents_Headline6
-            } else {
-                com.google.android.material.R.style.TextAppearance_MaterialComponents_Subtitle1
-            }
-        )
-        ViewCompat.setAccessibilityHeading(this, true)
+        sheet.dialog.setOnDismissListener { handler.removeCallbacks(ticker) }
+        sheet.show()
     }
 
     /**
@@ -588,6 +813,7 @@ class VideoPicture(
                 )
                 else -> activity.getString(R.string.video_signal_off_format, offText(decision.off ?: Off.NO_VIDEO))
             },
+            if (enhanced) upscalerText(decision!!) else null,
             ambientText(enhanced),
             player?.videoDecoderCounters?.droppedBufferCount?.toString(),
             resultText(changes.map {
@@ -606,7 +832,14 @@ class VideoPicture(
         val audio = activity.getSystemService<AudioManager>()
         val passthrough = track != null && !Util.isEncodingLinearPcm(track.encoding)
         val device = audio?.let(::outputDevice)
-        val mixerRate = audio?.getProperty(AudioManager.PROPERTY_OUTPUT_SAMPLE_RATE)?.toIntOrNull() ?: 0
+        // Android 14+: a mixer set for this output (Ordo's rate match, or bit-perfect) is the rate that counts.
+        val mixer = if (audio != null && device != null && Build.VERSION.SDK_INT >= 34) {
+            runCatching { audio.getPreferredMixerAttributes(MEDIA_ATTRIBUTES, device) }.getOrNull()
+        } else null
+        val mixerRate = mixer?.format?.sampleRate
+            ?: audio?.getProperty(AudioManager.PROPERTY_OUTPUT_SAMPLE_RATE)?.toIntOrNull() ?: 0
+        val bitPerfect = Build.VERSION.SDK_INT >= 34 &&
+            mixer?.mixerBehavior == android.media.AudioMixerAttributes.MIXER_BEHAVIOR_BIT_PERFECT
         val trackRate = track?.sampleRate ?: format.sampleRate
         val trackMask = track?.channelConfig ?: 0
         val channels = if (trackMask != 0) Integer.bitCount(trackMask) else format.channelCount
@@ -635,7 +868,13 @@ class VideoPicture(
             stages.joinToString(", ").ifEmpty {
                 activity.getString(R.string.video_signal_none)
             },
-            device?.let(::deviceName),
+            device?.let {
+                listOfNotNull(
+                    deviceName(it),
+                    activity.getString(R.string.video_signal_bit_perfect).takeIf { bitPerfect },
+                    activity.getString(R.string.video_signal_offload).takeIf { track?.offload == true }
+                ).joinToString(" · ")
+            },
             VideoInfo.sampleRate(trackRate)?.let { rate ->
                 val mixer = VideoInfo.sampleRate(mixerRate)
                 if (SignalPath.AudioChange.RESAMPLED in changes && mixer != null) {
@@ -687,6 +926,78 @@ class VideoPicture(
         }
     }
 
+    /** Which upscaler runs, and why not Detail plus when it was asked for. */
+    private fun upscalerText(decision: PicturePolicy.Decision): String {
+        model?.let {
+            return activity.getString(
+                R.string.video_signal_upscaler_detail_format, activity.getString(
+                    if (it == DetailPlus.Model.FILM) R.string.video_signal_upscaler_film else R.string.video_signal_upscaler_cartoon
+                )
+            )
+        }
+        val asked = DetailPlus.upscaler(Settings.VIDEO_UPSCALER.valueCompat) != DetailPlus.Upscaler.STANDARD
+        return activity.getString(
+            when {
+                !asked -> R.string.video_signal_upscaler_lanczos
+                DetailPlusGl.unsupported.isNotEmpty() -> R.string.video_signal_upscaler_unsupported
+                detailFellBack -> R.string.video_signal_upscaler_fell_back
+                decision.scale < DetailPlus.MIN_SCALE -> R.string.video_signal_upscaler_small
+                else -> R.string.video_signal_upscaler_lanczos
+            }
+        )
+    }
+
+    /** In the order of [METER_ROWS]; empty while not measuring (the rows hide). */
+    private fun meterValues(): List<String?> {
+        if (!meter.measuring) return emptyList()
+        val (stats, audio) = lastStats ?: (emptyMap<String, PictureMeter.Stat>() to PictureMeter.Stat(0.0, 0.0, 0))
+        val ms = NumberFormat.getInstance().apply {
+            minimumFractionDigits = 2
+            maximumFractionDigits = 2
+        }
+        fun pass(name: String, @StringRes label: Int) = stats[name]?.takeIf { it.count > 0 }?.let {
+            activity.getString(R.string.video_meter_pass_format, activity.getString(label), ms.format(it.mean), ms.format(it.max))
+        }
+        val seconds = (SystemClock.elapsedRealtime() - meterStart) / 1000
+        return listOf(
+            activity.getString(
+                when (meter.timer) {
+                    "gpu" -> R.string.video_meter_timer_gpu
+                    "cpu" -> R.string.video_meter_timer_cpu
+                    else -> R.string.video_meter_timer_none
+                }
+            ),
+            listOfNotNull(
+                pass(PictureMeter.PASS_DETAIL, R.string.video_meter_pass_detail),
+                pass(PictureMeter.PASS_LANCZOS, R.string.video_meter_pass_lanczos),
+                pass(PictureMeter.PASS_ENHANCE, R.string.video_meter_pass_enhance)
+            ).joinToString("\n").ifEmpty { activity.getString(R.string.video_meter_no_gpu) },
+            ((player?.videoDecoderCounters?.droppedBufferCount ?: 0) - droppedAtStart).coerceAtLeast(0).toString(),
+            if (headroom.isNaN()) {
+                activity.getString(
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) R.string.video_signal_pacing_measuring
+                    else R.string.video_meter_headroom_unknown
+                )
+            } else {
+                activity.getString(R.string.video_meter_headroom_format, ms.format(headroom.toDouble()))
+            },
+            if (audio.count == 0) activity.getString(R.string.video_meter_audio_idle) else activity.getString(
+                R.string.video_meter_audio_format, ms.format(audio.mean), ms.format(audio.max), audio.count
+            ),
+            underrunsTotal.toString(),
+            String.format(java.util.Locale.ROOT, "%d:%02d", seconds / 60, seconds % 60)
+        )
+    }
+
+    /** The rows so far as a CSV file in the cache, handed to the share sheet. */
+    private fun shareCsv() {
+        val file = java.io.File(activity.cacheDir, "ordo-messwerte.csv")
+        file.writeText(meter.csv())
+        val intent = java8.nio.file.Paths.get(file.absolutePath).fileProviderUri
+            .createSendStreamIntent("text/csv".asMimeType())
+        activity.startActivity(android.content.Intent.createChooser(intent, null))
+    }
+
     /** The room light and the gamma it gives; null while the setting is off. */
     private fun ambientText(enhanced: Boolean): String? {
         if (!ambientActive) return null
@@ -717,6 +1028,7 @@ class VideoPicture(
             Off.NO_VIDEO -> R.string.video_picture_off_no_video
             Off.HDR -> R.string.video_picture_off_hdr
             Off.DRM -> R.string.video_picture_off_drm
+            Off.SOFTWARE -> R.string.video_picture_off_software
             Off.FAILED -> R.string.video_picture_off_failed
             Off.SETTING -> R.string.video_picture_off_setting
             Off.SWITCHED_OFF -> R.string.video_picture_off_switched
@@ -726,6 +1038,7 @@ class VideoPicture(
     )
 
     private fun decoderText(name: String, mimeType: String?): String {
+        if (SignalPath.isFfmpegDecoderName(name)) return activity.getString(R.string.video_signal_ffmpeg_format, name)
         val isHardware = hardware.getOrPut(name) {
             runCatching {
                 mimeType?.let { mime ->
@@ -816,8 +1129,17 @@ class VideoPicture(
         @Volatile
         private var failedInProcess = false
 
+        /** Videos FFmpeg decodes (main thread): they never get the pipeline in this process. */
+        private val softwareMediaIds = HashSet<String>()
+        private var softwareNoticeShown = false
+
         private val CLEARED = Any()
-        private const val SIGNAL_REFRESH_MS = 1_000L
+        /**
+         * Every changed row is an accessibility event (the frame count and the measuring time change each tick).
+         * Ticking every second never left a quiet second, which clients that wait for one need: `uiautomator dump`
+         * gave up ("could not get idle state") and its reader saw an old screen (A8, 20.11.2026). Two seconds leave one.
+         */
+        internal const val SIGNAL_REFRESH_MS = 2_000L
         private const val AMBIENT_TICK_MS = 250L
         private const val PACING_LOG_FRAMES = 240L
         private val VIDEO_PROCESSING_ERRORS = setOf(
@@ -827,9 +1149,17 @@ class VideoPicture(
         private val PICTURE_ROWS = listOf(
             R.string.video_signal_decoder, R.string.video_signal_codec, R.string.video_signal_resolution,
             R.string.video_signal_hdr, R.string.video_signal_frame_rate, R.string.video_signal_pacing,
-            R.string.video_signal_enhancement, R.string.video_signal_ambient, R.string.video_signal_dropped,
+            R.string.video_signal_enhancement, R.string.video_signal_upscaler, R.string.video_signal_ambient, R.string.video_signal_dropped,
             R.string.video_signal_result
         )
+        private val METER_ROWS = listOf(
+            R.string.video_meter_timer, R.string.video_meter_gpu, R.string.video_meter_dropped,
+            R.string.video_meter_headroom, R.string.video_meter_audio, R.string.video_meter_underruns,
+            R.string.video_meter_duration
+        )
+        private const val METER_TICK_MS = 1_000L
+        private const val HEADROOM_EVERY_S = 5L
+        private const val HEADROOM_FORECAST_S = 10
         private val SOUND_ROWS = listOf(
             R.string.video_signal_codec, R.string.video_signal_decoder, R.string.video_signal_sound_stages,
             R.string.video_signal_output, R.string.video_signal_sample_rate, R.string.video_signal_channels,

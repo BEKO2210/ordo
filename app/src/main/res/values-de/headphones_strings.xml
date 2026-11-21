@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later -->
+<resources>
+    <string name="headphones_title">Kopfhörer</string>
+    <string name="headphones_entry_summary">Aus · bietet virtuellen Raumklang, leise hören mit vollem Klang, Kopfhörer-Korrektur</string>
+    <string name="headphones_open">Kopfhörer-Einstellungen öffnen</string>
+    <string name="headphones_virtual_surround">Virtueller Raumklang</string>
+    <string name="headphones_virtual_surround_summary">5.1 und 7.1 klingen wie Lautsprecher um dich herum statt im Kopf. Nur mit Kopfhörer und nur, wenn Android nicht schon selbst Raumklang macht. Musik: ab dem nächsten Titel.</string>
+    <string name="headphones_virtual_surround_format">Virtueller Raumklang: %1$s-Ton spielt wie Lautsprecher um dich herum</string>
+    <string name="headphones_calibration_title">Wie laut spielen deine Kopfhörer?</string>
+    <string name="headphones_calibration_summary">Stimmt „Leise hören mit vollem Klang“ auf deine Kopfhörer ab. Wähle „Lauter“, wenn sie schon bei geringer Lautstärke laut sind.</string>
+    <string name="headphones_calibration_quieter">Leiser</string>
+    <string name="headphones_calibration_normal">Normal</string>
+    <string name="headphones_calibration_louder">Lauter</string>
+    <string name="headphones_correction_title">Kopfhörer-Korrektur</string>
+    <string name="headphones_correction_summary">Gleicht den Klang deines Modells aus, nach Messungen von AutoEq. Wirkt nur mit angeschlossenem Kopfhörer.</string>
+    <string name="headphones_correction_search">Modell suchen, z. B. HD 650</string>
+    <string name="headphones_correction_off">Korrektur ausschalten</string>
+    <string name="headphones_correction_state">Korrektur: %1$s</string>
+    <string name="headphones_correction_source">Gemessen von %1$s</string>
+    <string name="headphones_correction_selected">%1$s, ausgewählt</string>
+    <string name="headphones_correction_none">Kein Modell gefunden</string>
+    <string name="headphones_correction_more">%1$d von %2$d. Tippe weiter, um einzugrenzen.</string>
+    <string name="headphones_correction_count">%1$d Modelle</string>
+</resources>

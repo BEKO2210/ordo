@@ -25,7 +25,7 @@
         android:id="@+id/controls"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="#66000000">
+        android:background="@drawable/video_controls_scrim">
 
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"

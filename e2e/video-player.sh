@@ -1,12 +1,14 @@
 #!/bin/bash
 # Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later
 # Video player, phase 1, WRITES: creates /storage/emulated/0/ordo-e2e-video with files made by ffmpeg on the host (two
-# 30-s H.264/AAC 1080p clips with the time burnt in, a 0-byte .mp4, an AVI with MPEG-4 ASP/Xvid) and removes it again.
+# 30-s H.264/AAC 1080p clips with the time burnt in, a 0-byte .mp4, AVIs with Xvid and DivX 3, HEVC 10-bit MKV, MPEG-2 TS
+# and a WMV) and removes it again.
 # A tap in the file list opens Ordo's player and it plays (dumpsys media_session); a tap, a quick swipe and a scroll on
 # the seek bar never move it, 400 ms held and dragged to 3/4 does; a double tap in the left 28 % jumps 10 s back, three
 # quick taps 20 s, the right 28 % ahead; the lock stops taps until its button is held; closing at 0:12 and opening again
 # offers "Resume at 0:12", a tap goes there; "Next video" at the end opens the next of the folder; the 0-byte file and
-# (if the device cannot play it) the AVI show the message with "Open with another app" instead of crashing; an
+# the WMV show the message with "Open with another app" instead of crashing; Xvid, DivX 3, HEVC 10-bit and MPEG-2
+# play (device decoder or FFmpeg); an
 # external file:// intent is refused, a content:// one with a read grant plays; the rotate button (phone) keeps
 # position and playback; at the end it stops with "Watch again"/"Next video"; one left-edge swipe goes back; a
 # vertical swipe on the right half changes the volume; Ordo Video's own colour (Amber) changes the play button's
@@ -27,6 +29,21 @@ done
 : > "$tmp/03-empty.mp4"
 ffmpeg -v error -f lavfi -i "testsrc=size=640x360:rate=25:duration=10" -f lavfi -i "sine=frequency=550:duration=10" \
     -c:v mpeg4 -vtag XVID -q:v 5 -c:a libmp3lame -b:a 128k -shortest "$tmp/04-xvid.avi" || echo "FAIL ffmpeg could not make the AVI"
+# Formats budget chips often can't (Ordo's FFmpeg video fallback): HEVC 10-bit, MPEG-2 in TS, MS-MPEG-4 v3 (DivX 3) in
+# AVI. VC-1 has no encoder in ffmpeg (check by hand with a real file); WMV in ASF has no extractor and must explain.
+src() { echo "testsrc=size=$1:rate=25:duration=10"; }
+tone="sine=frequency=660:duration=10"
+if ffmpeg -v error -hide_banner -encoders 2>/dev/null | grep -q libx265; then
+    ffmpeg -v error -f lavfi -i "$(src 1280x720)" -f lavfi -i "$tone" -c:v libx265 -preset ultrafast -pix_fmt yuv420p10le \
+        -c:a aac -shortest "$tmp/05-hevc10.mkv" || echo "FAIL ffmpeg could not make the HEVC 10-bit MKV"
+fi
+# .ts: by name TypeScript; Ordo sniffs the 0x47 sync bytes and opens a real stream as video (20.11.2026).
+ffmpeg -v error -f lavfi -i "$(src 720x576)" -f lavfi -i "$tone" -c:v mpeg2video -q:v 4 -c:a mp2 -shortest -f mpegts \
+    "$tmp/06-mpeg2.ts" || echo "FAIL ffmpeg could not make the MPEG-2 TS"
+ffmpeg -v error -f lavfi -i "$(src 640x360)" -f lavfi -i "$tone" -c:v msmpeg4 -vtag MP43 -q:v 5 -c:a libmp3lame \
+    -shortest "$tmp/07-divx3.avi" || echo "FAIL ffmpeg could not make the DivX 3 AVI"
+ffmpeg -v error -f lavfi -i "$(src 640x360)" -f lavfi -i "$tone" -c:v wmv2 -c:a wmav2 -shortest "$tmp/08-wmv.wmv" ||
+    echo "FAIL ffmpeg could not make the WMV"
 a shell "rm -rf $DIR; mkdir -p $DIR"
 a push "$tmp/." "$DIR/" >/dev/null
 
@@ -132,7 +149,8 @@ check "Ordo Video opens its library" on viewer.video.VideoLauncherActivity
 check "the library offers Continue watching" ui wait "Weiterschauen|Continue watching" 8
 check "the library lists the clip" ui has 01-clip
 ui tap 01-clip >/dev/null; wait_on viewer.video.VideoPlayerActivity 8; sleep 2; pause; p8b=$(pos)
-check "from Continue watching it starts at its place ($p8b ms)" within "${p8b:-0}" $((${p7:-0} - 1500)) $((${p7:-0} + 4000))
+# It plays 2 s before the pause, plus the start and a slow screen read (landscape Tab: +4.3 s, 20.11.2026).
+check "from Continue watching it starts at its place ($p8b ms)" within "${p8b:-0}" $((${p7:-0} - 1500)) $((${p7:-0} + 6000))
 check "and offers no pill" eval '! ui has resumePill'
 back 2
 check "back returns to the library" on viewer.video.VideoLauncherActivity
@@ -144,7 +162,11 @@ ui tap resumePill >/dev/null 2>&1; sleep 1.5
 
 # 5. The end of a clip: by default ("Stop at the end", the owner's choice) the player stays on the last frame with
 # "Watch again" and "Next video"; Next video opens the next clip of the folder (titles without the extension).
-a shell input keyevent KEYCODE_MEDIA_PLAY; sleep 22
+# Tab S9, 21.11.2026: once the clip stood at 0:16 after 22 s and a rerun passed; this check tells a missed play key
+# from a missed end screen.
+a shell input keyevent KEYCODE_MEDIA_PLAY
+check "the play key plays on" wait_playing
+sleep 20
 check "at the end the player stops with Watch again" ui wait endReplay 6
 check "and offers the next video" ui has endNext
 ui tap endNext >/dev/null; sleep 2; pause
@@ -199,10 +221,19 @@ system_focus() {
 ui tap errorOpenWith >/dev/null
 check "Open with another app hands over to the system chooser" system_focus
 a shell input keyevent KEYCODE_BACK; sleep 1; back 2
-open_folder 04-xvid.avi
-ui tap 04-xvid.avi >/dev/null; wait_on viewer.video.VideoPlayerActivity 8
-avi() { local i; for i in $(seq 1 10); do playing && return 0; ui has errorOpenWith && return 0; sleep 1; done; return 1; }
-check "the Xvid AVI plays or explains itself ($(playing && echo plays || echo message))" avi
+# The device's decoder first, FFmpeg when it can't (or fails to start, W90 with HEVC 10-bit): these play everywhere.
+not_on_error() { ! ui has errorOpenWith; }
+for f in 04-xvid.avi 05-hevc10.mkv 06-mpeg2.ts 07-divx3.avi; do
+    [ -s "$tmp/$f" ] || { echo "SKIP $f (not made on this host)"; continue; }
+    open_folder "$f"
+    ui tap "$f" >/dev/null; wait_on viewer.video.VideoPlayerActivity 8
+    check "$f plays (device decoder or FFmpeg)" wait_playing
+    check "$f shows no error" not_on_error
+    back 2
+done
+open_folder 08-wmv.wmv
+ui tap 08-wmv.wmv >/dev/null; wait_on viewer.video.VideoPlayerActivity 8
+check "WMV (ASF, no extractor) explains itself with Open with another app" ui wait errorOpenWith 8
 back 2
 
 # 6. External callers: file:// is refused, content:// with a read grant plays.
@@ -269,7 +300,7 @@ check "Ordo Video's settings offer the end of a video" ui wait "Am Ende|At the e
 back 1; back 1
 open_paused
 ui tap "Weitere Optionen|More options" >/dev/null; sleep 1
-ui tap "Videoinfos|Video info" >/dev/null; sleep 2
+scroll_to "Videoinfos|Video info" 3 >/dev/null; ui tap "Videoinfos|Video info" >/dev/null; sleep 2
 check "Video info shows resolution and frame rate" \
     ui wait "Auflösung: 1920 × 1080 · 30 fps|Resolution: 1920 × 1080 · 30 fps" 5
 check "Video info names the codec in words" ui has "Video-Codec: H.264|Video codec: H.264"

@@ -21,10 +21,12 @@
     <string name="video_picture_off">Picture enhancement off</string>
     <string name="video_picture_on_idle_format">Picture enhancement on, not used here: %1$s</string>
     <string name="video_picture_too_slow_notice">Picture enhancement paused: this device can’t keep up with it on this video.</string>
+    <string name="video_software_slow_notice">This video is decoded in software and may stutter on this device.</string>
 
     <string name="video_picture_off_no_video">no picture yet</string>
     <string name="video_picture_off_hdr">HDR video is shown as it is</string>
     <string name="video_picture_off_drm">protected video</string>
+    <string name="video_picture_off_software">software decoding needs all the power</string>
     <string name="video_picture_off_setting">switched off in the settings</string>
     <string name="video_picture_off_switched">switched off</string>
     <string name="video_picture_off_too_slow">the device couldn’t keep up</string>
@@ -49,6 +51,7 @@
 
     <string name="video_signal_hardware_format">Hardware · %1$s</string>
     <string name="video_signal_software_format">Software, uses more battery · %1$s</string>
+    <string name="video_signal_ffmpeg_format">Software decoding (FFmpeg), as the chip can’t play this format · %1$s</string>
     <string name="video_signal_passthrough">None: the stream goes to the device unchanged</string>
     <string name="video_signal_resolution_scaled_format">%1$s → %2$s, scaled by the screen</string>
     <string name="video_signal_resolution_lanczos_format">%1$s → %2$s with Lanczos 3</string>
@@ -82,6 +85,8 @@
     <string name="video_signal_device_usb">USB audio</string>
     <string name="video_signal_device_hdmi">HDMI</string>
     <string name="video_signal_device_other">Other device</string>
+    <string name="video_signal_bit_perfect">bit-perfect</string>
+    <string name="video_signal_offload">offload (decoded in the audio chip)</string>
     <string name="video_signal_waiting">Waiting for playback</string>
     <string name="video_info_signal_path">Signal path</string>
     <string name="video_settings_ambient_gamma">Adapt gamma to room light (experimental)</string>
@@ -93,4 +98,76 @@
     <string name="video_signal_ambient">Room light</string>
     <string name="video_signal_ambient_format">%1$s lx → gamma %2$s (reference %3$s)</string>
     <string name="video_signal_ambient_idle_format">%1$s lx, only works while picture enhancement runs</string>
+    <string name="video_picture_adjust_menu">Adjust picture</string>
+    <string name="video_picture_adjust_title">Picture</string>
+    <string name="video_picture_adjust_brightness">Brightness</string>
+    <string name="video_picture_adjust_contrast">Contrast</string>
+    <string name="video_picture_adjust_saturation">Saturation</string>
+    <string name="video_picture_adjust_temperature">Colour temperature</string>
+    <string name="video_picture_adjust_sharpness">Sharpness</string>
+    <string name="video_picture_adjust_less_format">%1$s down</string>
+    <string name="video_picture_adjust_more_format">%1$s up</string>
+    <string name="video_picture_adjust_value_format">%1$s: %2$d</string>
+    <string name="video_picture_adjust_reset">Reset</string>
+    <string name="video_picture_adjust_unavailable">Not possible for HDR or protected videos.</string>
+    <string name="video_picture_adjust_not_remembered">Changes apply now but aren’t remembered for this video.</string>
+    <string name="video_picture_deinterlace">Remove interlacing</string>
+    <string-array name="video_picture_deinterlace_names">
+        <item>Automatic</item>
+        <item>On</item>
+        <item>Off</item>
+    </string-array>
+    <string name="video_picture_deinterlace_detected_interlaced">This video is interlaced: automatic removes it.</string>
+    <string name="video_picture_deinterlace_detected_progressive">This video has full frames: automatic leaves it.</string>
+    <string name="video_picture_deinterlace_detected_unknown">The file doesn’t say whether it is interlaced. Switch it on if you see comb lines when things move.</string>
+    <!-- Detail plus (DetailPlus.kt) and the measurements (PictureMeter.kt). -->
+    <string name="video_settings_upscaler">Upscaling</string>
+    <string-array name="video_settings_upscaler_entries">
+        <item>Standard (Lanczos)</item>
+        <item>Detail plus: film</item>
+        <item>Detail plus: cartoon</item>
+        <item>Automatic</item>
+    </string-array>
+    <!-- The "Upscaling" choice as a Klang sheet: one explanation per choice, in the order of the entries. -->
+    <string name="video_settings_upscaler_info">Detail plus runs on the device only, from 1.5× enlargement. If it gets too slow, Lanczos takes over.</string>
+    <string-array name="video_settings_upscaler_summaries">
+        <item>Lanczos 3 enlarges sharply and quickly, on every device.</item>
+        <item>A small network brings back fine detail in films and series. Uses more battery.</item>
+        <item>A network for clean lines and flat colours. Uses more battery.</item>
+        <item>Cartoon when the file or folder is named like one (such as “Anime”), otherwise film.</item>
+    </string-array>
+    <string name="video_detail_plus_slow_notice">Detail plus paused: this device can’t keep up with this video. Lanczos upscales instead.</string>
+    <string name="video_signal_upscaler">Upscaling</string>
+    <string name="video_signal_upscaler_detail_format">Detail plus %1$s, then Lanczos 3</string>
+    <string name="video_signal_upscaler_film">film (FSRCNNX x2)</string>
+    <string name="video_signal_upscaler_cartoon">cartoon (Anime4K CNN x2 M)</string>
+    <string name="video_signal_upscaler_lanczos">Lanczos 3</string>
+    <string name="video_signal_upscaler_small">Lanczos 3 (Detail plus from 1.5× enlargement)</string>
+    <string name="video_signal_upscaler_fell_back">Lanczos 3 (Detail plus was too slow on this device)</string>
+    <string name="video_signal_upscaler_unsupported">Lanczos 3 (Detail plus needs OpenGL ES 3 with float textures)</string>
+    <string name="video_meter_title">Measurements</string>
+    <string name="video_meter_off">Off. Tap to start measuring.</string>
+    <string name="video_meter_on">Measuring. Tap to stop.</string>
+    <string name="video_meter_expanded">expanded</string>
+    <string name="video_meter_collapsed">collapsed</string>
+    <string name="video_meter_timer">Timing</string>
+    <string name="video_meter_timer_gpu">GPU timer (EXT_disjoint_timer_query)</string>
+    <string name="video_meter_timer_cpu">CPU clock with glFinish (no GPU timer on this device)</string>
+    <string name="video_meter_timer_none">No picture pass is running</string>
+    <string name="video_meter_gpu">GPU time per frame (mean · maximum)</string>
+    <string name="video_meter_pass_format">%1$s: %2$s ms · %3$s ms</string>
+    <string name="video_meter_pass_detail">Detail plus</string>
+    <string name="video_meter_pass_lanczos">Lanczos</string>
+    <string name="video_meter_pass_enhance">Enhancement</string>
+    <string name="video_meter_no_gpu">No values yet</string>
+    <string name="video_meter_dropped">Dropped frames since the start</string>
+    <string name="video_meter_headroom">Thermal headroom</string>
+    <string name="video_meter_headroom_format">%1$s (the device throttles at 1.00)</string>
+    <string name="video_meter_headroom_unknown">Needs Android 11</string>
+    <string name="video_meter_audio">Sound processing per buffer (mean · maximum)</string>
+    <string name="video_meter_audio_format">%1$s ms · %2$s ms, %3$d buffers in the last second</string>
+    <string name="video_meter_audio_idle">No buffers in the last second</string>
+    <string name="video_meter_underruns">Sound underruns</string>
+    <string name="video_meter_duration">Measuring for</string>
+    <string name="video_meter_share">Share as CSV</string>
 </resources>

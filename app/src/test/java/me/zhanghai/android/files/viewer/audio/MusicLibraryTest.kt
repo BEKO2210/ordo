@@ -97,6 +97,15 @@ class MusicLibraryTest {
     }
 
     @Test
+    fun storageRootsShowTheStorageName() {
+        val lib = MusicLibrary(
+            listOf(song("/storage/emulated/0/a.mp3", "A"), song("/storage/1A2B-3C4D/b.mp3", "B")), false, collator,
+            "Interner Speicher", "SD-Karte"
+        )
+        assertEquals(listOf("Interner Speicher", "SD-Karte"), lib.folders.map { it.name })
+    }
+
+    @Test
     fun searchMatchesTitleArtistAlbumAndFolderPath() {
         val s = song("/s/Music/Jazz/a.mp3", "Night Train", artist = "Oscar", album = "Blues")
         assertTrue(MusicLibrary.matches(s, "train"))

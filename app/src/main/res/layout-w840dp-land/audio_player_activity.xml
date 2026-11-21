@@ -44,6 +44,7 @@
                 android:layout_marginTop="8dp" android:gravity="start" />
             <TextView android:id="@+id/album" style="@style/Widget.Ordo.AudioPlayer.Subtitle"
                 android:gravity="start" android:visibility="gone" />
+            <TextView android:id="@+id/outputBadge" style="@style/Widget.Ordo.AudioPlayer.OutputBadge" android:layout_gravity="start" />
             <me.zhanghai.android.files.viewer.audio.PlayerSeekSlider
                 android:id="@+id/seekBar"
                 style="@style/Widget.Ordo.AudioPlayer.Seek"

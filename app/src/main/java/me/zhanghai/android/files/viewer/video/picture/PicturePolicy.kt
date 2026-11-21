@@ -22,7 +22,7 @@ object PicturePolicy {
     enum class Level { OFF, BALANCED, MAX }
 
     /** Why the enhancement does not run on this video, in the order they are checked. */
-    enum class Off { NO_VIDEO, HDR, DRM, FAILED, SETTING, SWITCHED_OFF, TOO_SLOW, NOT_SMALLER }
+    enum class Off { NO_VIDEO, HDR, DRM, SOFTWARE, FAILED, SETTING, SWITCHED_OFF, TOO_SLOW, NOT_SMALLER }
 
     /**
      * [media3Strategy] is handed to `ExoPlayer.setVideoChangeFrameRateStrategy`; [ownRate] > 0 means Ordo itself calls
@@ -57,8 +57,9 @@ object PicturePolicy {
         /** The pipeline runs but this video gets no enhancement: an empty effect list (a plain copy). */
         CLEAR,
         /**
-         * HDR or DRM while the pipeline runs: only a new player draws them untouched (Media3 keeps the pipeline for
-         * the renderer's lifetime), so the screen is rebuilt and starts plain.
+         * HDR, DRM or FFmpeg's software decoder while the pipeline runs: only a new player draws them untouched
+         * (Media3 keeps the pipeline for the renderer's lifetime, and FFmpeg writes to the surface itself), so the
+         * screen is rebuilt and starts plain.
          */
         RECREATE
     }
@@ -107,7 +108,8 @@ object PicturePolicy {
     /**
      * The enhancement runs only on SDR video without DRM that is shown at least [MIN_SCALE] times larger than it is,
      * while it is switched on and the device keeps up. [switchedOn] is the ⋮ toggle (it starts as "setting not off");
-     * [failed]: the GPU could not run the pipeline once in this process, so it is not tried again.
+     * [failed]: the GPU could not run the pipeline once in this process, so it is not tried again. [software]: FFmpeg
+     * decodes this video on the CPU because the chip can't; it draws straight onto the surface and needs all the power.
      */
     fun decide(
         level: Level,
@@ -119,7 +121,8 @@ object PicturePolicy {
         surfaceWidth: Int,
         surfaceHeight: Int,
         tooSlow: Boolean,
-        failed: Boolean = false
+        failed: Boolean = false,
+        software: Boolean = false
     ): Decision {
         val scale = scale(videoWidth, videoHeight, surfaceWidth, surfaceHeight)
         // The toggle can switch it on although the setting says off: then it runs balanced.
@@ -128,6 +131,7 @@ object PicturePolicy {
             videoWidth <= 0 || videoHeight <= 0 -> Off.NO_VIDEO
             isHdr -> Off.HDR
             isDrm -> Off.DRM
+            software -> Off.SOFTWARE
             failed -> Off.FAILED
             !switchedOn -> if (level == Level.OFF) Off.SETTING else Off.SWITCHED_OFF
             tooSlow -> Off.TOO_SLOW
@@ -151,12 +155,27 @@ object PicturePolicy {
         }
     }
 
-    fun pipeline(engaged: Boolean, decision: Decision): Pipeline = when {
-        !engaged -> if (decision.on) Pipeline.ENGAGE else Pipeline.KEEP_PLAIN
-        decision.off == Off.HDR || decision.off == Off.DRM -> Pipeline.RECREATE
-        decision.on -> Pipeline.APPLY
-        else -> Pipeline.CLEAR
+    /**
+     * [adjusted]: the "Bild" sheet changes this video (colour steps, sharpness or deinterlacing); that needs the shader
+     * pass too, at any size and with the enhancement switched off, but never on HDR, DRM or FFmpeg-decoded video.
+     */
+    fun pipeline(engaged: Boolean, decision: Decision, adjusted: Boolean = false): Pipeline {
+        val pass = decision.on || (adjusted && adjustable(decision))
+        return when {
+            !engaged -> if (pass) Pipeline.ENGAGE else Pipeline.KEEP_PLAIN
+            decision.off == Off.HDR || decision.off == Off.DRM || decision.off == Off.SOFTWARE -> Pipeline.RECREATE
+            pass -> Pipeline.APPLY
+            else -> Pipeline.CLEAR
+        }
     }
+
+    /** Whether the "Bild" sheet's adjustments can run on this video: SDR without DRM on a GPU that copes. */
+    fun adjustable(decision: Decision): Boolean =
+        decision.off != Off.NO_VIDEO && decision.off != Off.HDR && decision.off != Off.DRM &&
+            decision.off != Off.SOFTWARE && decision.off != Off.FAILED
+
+    /** The pass's values when only the adjustments run: no sharpening or debanding of its own, just the dither. */
+    val ADJUST_ONLY = ShaderParams(0f, 0, 0f, 0f, 0f, 1f / 255f)
 
     /**
      * Media3 reports dropped frames in batches (every 50, and when playback stops). More than [DROPS_PER_SECOND] a
@@ -229,9 +248,13 @@ object PicturePolicy {
         current: Probe?,
         next: Probe?,
         windowWidth: Int,
-        windowHeight: Int
+        windowHeight: Int,
+        /** The first video has remembered adjustments: it needs the pass at any size. */
+        adjusted: Boolean = false
     ): Boolean {
-        if (!switchedOn || failed || current == null || current.hdr != false || current.drm) return false
+        if (failed || current == null || current.hdr != false || current.drm) return false
+        if (adjusted) return true
+        if (!switchedOn) return false
         return probeEligible(current, windowWidth, windowHeight) || probeEligible(next, windowWidth, windowHeight)
     }
 
