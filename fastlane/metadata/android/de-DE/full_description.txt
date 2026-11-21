@@ -1,56 +1,52 @@
-Ordo bringt Ordnung in deine Dateien. Finde schnell, was du suchst, sieh, was deinen Speicher füllt, schütze Privates und sichere, was dir wichtig ist. Ordo ist komplett kostenlos: ohne Werbung, ohne Tracking, ohne In-App-Käufe. Ordo ist Open Source (GNU GPL 3.0, auf Basis von Material Files), und die KI-Befehle laufen auf deinem Handy, ohne Cloud.
+Ordo vereint die Apps, die du jeden Tag nutzt, in einer privaten App: Dateimanager, Musik-Player und Video-Player. Alles läuft auf deinem Handy, auch offline. Ordo ist komplett kostenlos: ohne Werbung, ohne Tracking, ohne In-App-Käufe. Ordo ist Open Source (GNU GPL 3.0, auf Basis von Material Files). Weitere Apps für die Suite sind in Arbeit.
 
-Dateien finden
-• Startseite mit zuletzt verwendeten Dateien, Kategorien und Speicher
+Dateien
+• Startseite mit zuletzt verwendeten Dateien, Kategorien und Speicher auf einen Blick
 • Suche nach Namen oder nach Text in Dateien
-• Liste oder Raster, Lesezeichen und Schnellzugriff auf häufige Ordner
-
-Platz schaffen
-• Speicheranalyse für internen Speicher, SD-Karte und USB-Stick
-• Deine Dateien nach Art, die Ordner mit dem meisten Platz, große Dateien, Duplikate, lange nicht genutzte Dateien, alte APKs, leere Ordner und Vorschaubilder-Cache
-• Aufräum-Vorschläge mit Vorschau über die KI-Befehle, damit du entscheidest, was gehen soll
+• Kopieren, verschieben, umbenennen und teilen; viele Dateien auf einmal umbenennen
+• ZIP-, TAR- und 7z-Archive erstellen und entpacken; eingebaute Ansicht für Bilder, PDF und Text
+• Speicheranalyse: große Dateien, Duplikate, alte APKs, lange nicht genutzte Dateien
 • Papierkorb: Gelöschtes lässt sich 30 Tage lang wiederherstellen
-• App-Verwaltung: installierte Apps ansehen, APK sichern, deinstallieren
+• App-Verwaltung: APK sichern, deinstallieren
 
-Mit Dateien arbeiten
-• Kopieren, verschieben, umbenennen und teilen
-• Viele Dateien auf einmal nach Muster umbenennen
-• ZIP-, TAR- und 7z-Archive erstellen und entpacken
-• Eingebaute Ansicht für Bilder, PDF und Text
+Ordo Musik
+• Deine Bibliothek nach Titeln, Alben, Interpreten, Ordnern, Playlists und Favoriten
+• Ein Player, der seine Farben vom Cover nimmt, mit Warteschlange und Steuerung auf dem Sperrbildschirm
+• Songtexte im Takt aus .lrc-Dateien oder aus dem Song selbst
+• Klang: 10-Band-Equalizer auf der Kurve, Voreinstellungen, ReplayGain, Raumklang für Kopfhörer, Hall, Einschlaf-Timer
+• Kopfhörer-Korrektur für 500 Modelle und virtueller Raumklang
+• Hi-Res-Ausgabe an einen USB-DAC (ab Android 14)
+• Songinfos und Cover bearbeiten; abspielen auf Bluetooth, Cast-Geräten oder dem Fernseher
 
-Musik und Videos
-• Musik-Player mit Cover, Warteschlange und Steuerung auf dem Sperrbildschirm und per Kopfhörer
-• Klang: 10-Band-Equalizer, Bass, Lautstärke angleichen, Einschlaf-Timer
-• Video-Player mit Weiterschauen, Wischgesten, Schleife und Videoinfos
-• „Abspielen auf …“: Musik an Bluetooth-Kopfhörer, Lautsprecher oder ein Cast-Gerät schicken
-• Auf Wunsch eigene Symbole „Ordo Musik“ und „Ordo Video“
+Ordo Video
+• Weiterschauen, Serien nach Folgen, Wischgesten für Helligkeit, Lautstärke und Spulen
+• Software-Decoder für Formate, die dein Handy selbst nicht kann, etwa DivX, MPEG-2, VC-1, HEVC 10 Bit
+• HDR-Filme passend umgerechnet für normale Bildschirme
+• Detail plus: schärferes Hochskalieren kleiner Videos, wo dein Gerät schnell genug ist
+• Dialog freistellen: macht Stimmen deutlicher, mit einem KI-Modell auf dem Gerät (optionaler Download, 8 MB)
+• Untertitel aus Dateien oder aus dem Video, mit Verzögerung, Lese-Hilfe und gut lesbarem Stil
+• Bild-in-Bild, Einschlaf-Timer, A-B-Schleife, Wiedergabetempo
+• Filme aus deinen Netzwerkfreigaben streamen oder auf den Fernseher schicken
+
+In deinen eigenen Worten
+Tippe oder diktiere „Verschiebe alle MP3s aus Download nach Musik“. Ordo zeigt erst den Plan und handelt erst, wenn du bestätigst. Ein Tipp macht es rückgängig.
+• Verschieben, kopieren, in Unterordner sortieren oder in den Papierkorb legen, auf Deutsch oder Englisch
+• Die KI läuft komplett auf deinem Handy. Deine Befehle und Dateinamen verlassen es nicht.
+• Löschen heißt immer Papierkorb. Systemordner sind geschützt.
+• Beim Einrichten lädt Ordo das Sprachmodell einmalig herunter (rund 2,6 GB, standardmäßig nur über WLAN). Danach arbeitet die KI offline.
+• Braucht ein 64-Bit-Handy mit aktuellem Arm-Chip (Dot-Product, Armv8.2), mindestens 10 GB RAM (Handys mit 12 GB) und rund 3,1 GB freien Speicher
 
 Dateien schützen
 • Tresor: Dateien werden mit AES-256-GCM verschlüsselt und mit deiner Bildschirmsperre geöffnet
 • Sicherung: Ordner und Tresor als ZIP-Datei auf einen USB-Stick oder an jeden Ort, den dein Handy anbietet – auf Wunsch mit Passwort
-• Normale Dateien aus einer Sicherung wiederherstellen, ohne vorhandene zu ersetzen
-
-In deinen eigenen Worten
-Tippe oder diktiere einen Satz wie „Verschiebe alle MP3s aus Download nach Musik“. Ordo zeigt erst den Plan und handelt erst, wenn du bestätigst. Ein Tipp macht es rückgängig.
-• Verschieben, kopieren, in Unterordner sortieren oder in den Papierkorb legen
-• Versteht Deutsch und Englisch
-• Die KI läuft komplett auf deinem Handy. Deine Befehle und Dateinamen verlassen es nicht.
-• Löschen heißt immer Papierkorb. Systemordner sind geschützt. Ist ein Ordner unklar, fragt Ordo nach, statt zu raten.
-• Beim Einrichten lädt Ordo das Sprachmodell einmalig herunter (rund 2,6 GB, standardmäßig nur über WLAN). Danach arbeitet die KI offline.
-• Braucht ein 64-Bit-Handy mit aktuellem Arm-Chip (Dot-Product, Armv8.2), mindestens 10 GB RAM (Handys mit 12 GB) und rund 3,1 GB freiem Speicher
-• Die KI-Befehle sind kostenlos wie der Rest von Ordo
+• Wiederherstellen, ohne vorhandene Dateien zu ersetzen
 
 Für Profis
-• FTP-, SFTP-, SMB- und WebDAV-Server sowie ein eingebauter FTP-Server
+• FTP, SFTP, SMB und WebDAV sowie ein eingebauter FTP-Server
 • Root- und Shizuku-Zugriff, Linux-Rechte, symbolische Links und SELinux-Kontext
 
-Nach deinem Geschmack
-• Fünf Akzentfarben oder die Farben deines Hintergrundbilds ab Android 12
-• Hell, dunkel und echtes Schwarz
-• Animationen voll, dezent oder aus
-
 Deine Daten
-Ordo sammelt keine Daten. Keine Werbung, keine Tracker, keine Analyse. Die App geht nur online, wenn du dich mit einem selbst eingerichteten Server verbindest, und einmalig für den Download des KI-Modells, wenn du die KI-Befehle einrichtest. App-Daten sind von Cloud-Backups ausgenommen, gespeicherte Server-Passwörter bleiben also auf deinem Handy.
+Ordo sammelt keine Daten. Keine Werbung, keine Tracker, keine Analyse. Die App geht nur online, wenn du dich mit einem selbst eingerichteten Server verbindest, auf einen Fernseher streamst oder ein optionales KI-Modell lädst.
 
 Warum Ordo Zugriff auf alle Dateien braucht
 Ein Dateimanager muss die Dateien lesen und ändern können, die du mit ihm öffnest. Ordo schickt deine Dateien nirgendwohin – außer du kopierst sie selbst auf einen Server oder teilst sie.
