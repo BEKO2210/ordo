@@ -40,8 +40,8 @@ jobs:
           fi
           if [ -n "$files" ] && [ "$(wc -l <<<"$files")" -lt 3000 ]; then
             # Device tests, store listing, docs and helper scripts are not in the app. The two native build
-            # scripts under utils/ are.
-            if ! awk '!/^(e2e|fastlane|docs)\/|^utils\/|\.md$/ || /^utils\/(ffmpeg-audio|deepfilter)\//' <<<"$files" | grep -q .; then
+            # scripts and the 16 KB check under utils/ are (the build runs them).
+            if ! awk '!/^(e2e|fastlane|docs)\/|^utils\/|\.md$/ || /^utils\/(ffmpeg-audio\/|deepfilter\/|check-16k\.sh$)/' <<<"$files" | grep -q .; then
               app=false
               # DocsConsistencyTest reads README*.md and docs/.
               grep -Eq '^docs/|\.md$' <<<"$files" || tests=false
