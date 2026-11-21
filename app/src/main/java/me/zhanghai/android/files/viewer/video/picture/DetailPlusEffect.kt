@@ -18,6 +18,7 @@ import androidx.media3.effect.BaseGlShaderProgram
 import androidx.media3.effect.GlEffect
 import androidx.media3.effect.GlShaderProgram
 import java.io.File
+import me.zhanghai.android.files.BuildConfig
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
@@ -35,6 +36,13 @@ internal object DetailPlusGl {
     /** The networks this GPU can't run (no OpenGL ES 3 with half-float render targets, or a build error). */
     @Volatile
     var unsupported: Set<DetailPlus.Model> = emptySet()
+        private set
+
+    /** From the player's GL thread and the offscreen timing's alike: one update at a time, none lost. */
+    @Synchronized
+    fun markUnsupported(model: DetailPlus.Model) {
+        unsupported = unsupported + model
+    }
 
     /** "OpenGL ES 3.2 V@0615.0" -> 3; 0 if unreadable. */
     fun esMajor(version: String): Int = Regex("OpenGL ES (\\d+)").find(version)?.groupValues?.get(1)?.toInt() ?: 0
@@ -101,19 +109,36 @@ internal object DetailPlusBench {
     private fun run(context: Context, model: DetailPlus.Model): Float? {
         val source = context.assets.open(model.asset).bufferedReader().use { it.readText() }
         val program = DetailPlusProgram(model, MpvHook.parse(source))
+        try {
+            // One draw on a quarter frame first: a budget GPU (81 ms a 540p frame) is told apart after ~40 ms of GPU
+            // time instead of eleven full frames competing with the film's own Lanczos.
+            val first = time(program, model, WIDTH / 2, HEIGHT / 2, warmUps = 1, runs = 1) ?: return null
+            if (DetailPlus.clearlyTooSlow(first)) return first
+            return time(program, model, WIDTH, HEIGHT, WARM_UP, RUNS)
+        } finally {
+            program.release()
+        }
+    }
+
+    /** Median GPU ms per input megapixel at the top clock of [runs] draws at width x height, null if it can't run. */
+    private fun time(
+        program: DetailPlusProgram, model: DetailPlus.Model, width: Int, height: Int, warmUps: Int, runs: Int
+    ): Float? {
         val textures = IntArray(2)
         val framebuffer = IntArray(1)
+        val query = IntArray(1)
+        val timer = "GL_EXT_disjoint_timer_query" in GLES20.glGetString(GLES20.GL_EXTENSIONS).orEmpty()
         try {
-            val size = program.configure(WIDTH, HEIGHT)
+            val size = program.configure(width, height)
             // Its init or configure found the GPU can't (it then only copies): nothing to time.
             if (model in DetailPlusGl.unsupported) return null
             GLES20.glGenTextures(2, textures, 0)
-            val noise = ByteBuffer.allocateDirect(WIDTH * HEIGHT * 4).apply {
+            val noise = ByteBuffer.allocateDirect(width * height * 4).apply {
                 val random = java.util.Random(1)
                 while (hasRemaining()) put(random.nextInt().toByte())
                 flip()
             }
-            texture(textures[0], WIDTH, HEIGHT, noise)
+            texture(textures[0], width, height, noise)
             texture(textures[1], size.width, size.height, null)
             GLES20.glGenFramebuffers(1, framebuffer, 0)
             GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, framebuffer[0])
@@ -125,15 +150,14 @@ internal object DetailPlusBench {
                 GLES20.glViewport(0, 0, size.width, size.height)
                 program.drawFrame(textures[0], 0)
             }
-            repeat(WARM_UP) { draw() }
+            repeat(warmUps) { draw() }
             GLES20.glFinish()
-            // Each draw on its own, with the clock right after it: the governor moves the clock during the runs, and a
-            // time at 220 MHz scaled by a clock read at 400 MHz came out twice too high (Tab, 21.11.2026).
-            val timer = "GL_EXT_disjoint_timer_query" in GLES20.glGetString(GLES20.GL_EXTENSIONS).orEmpty()
-            val query = IntArray(1)
             if (timer) GLES30.glGenQueries(1, query, 0)
             val value = IntArray(1)
-            val runs = List(RUNS) {
+            // Each draw on its own, with the clock right after it: the governor moves the clock during the runs, and a
+            // time at 220 MHz scaled by a clock read at 400 MHz came out twice too high (Tab, 21.11.2026).
+            val times = List(runs) {
+                GLES20.glGetError() // a stale error must not void this query
                 val start = System.nanoTime()
                 if (timer) GLES30.glBeginQuery(GL_TIME_ELAPSED_EXT, query[0])
                 draw()
@@ -145,18 +169,18 @@ internal object DetailPlusBench {
                     GLES20.glGetIntegerv(GL_GPU_DISJOINT_EXT, value, 0)
                     val disjoint = value[0] != 0
                     GLES30.glGetQueryObjectuiv(query[0], GLES30.GL_QUERY_RESULT, value, 0)
-                    ((value[0].toLong() and 0xffffffffL) / 1e6f).takeUnless { disjoint }
+                    DetailPlus.timerMs(value[0].toLong() and 0xffffffffL, GLES20.glGetError(), disjoint)
                 } else {
                     null
                 }
-                (gpuMs ?: wallMs) * clock
+                (gpuMs ?: wallMs) * clock * slowdown()
             }
-            if (timer) GLES30.glDeleteQueries(1, query, 0)
-            val ms = runs.sorted()[RUNS / 2]
-            Log.i(PICTURE_LOG_TAG, "Detail plus $model offscreen: ${runs.joinToString { "%.2f".format(it) }} ms at the top clock")
-            return ms * slowdown() / (WIDTH * HEIGHT / 1e6f)
+            val perMp = times.sorted()[runs / 2] / (width * height / 1e6f)
+            Log.i(PICTURE_LOG_TAG, "Detail plus $model offscreen ${width}x$height: " +
+                "${times.joinToString { "%.2f".format(it) }} ms at the top clock, $perMp ms per megapixel")
+            return perMp
         } finally {
-            program.release()
+            if (timer && query[0] != 0) GLES30.glDeleteQueries(1, query, 0)
             GLES20.glDeleteTextures(2, textures, 0)
             GLES20.glDeleteFramebuffers(1, framebuffer, 0)
         }
@@ -172,10 +196,10 @@ internal object DetailPlusBench {
     }
 
     /**
-     * Device tests only: `adb shell setprop debug.ordo.detailplus.slowdown 40` makes a fast GPU look like a budget one
-     * (W90/A8 were unreachable for the 0.18 test). 1 when unset.
+     * Debug builds only: `adb shell setprop debug.ordo.detailplus.slowdown 40` makes a fast GPU look like a budget one
+     * (W90/A8 were unreachable for the 0.18 test). 1 when unset and in every release.
      */
-    private fun slowdown(): Float = runCatching {
+    private fun slowdown(): Float = if (!BuildConfig.DEBUG) 1f else runCatching {
         Class.forName("android.os.SystemProperties").getMethod("get", String::class.java)
             .invoke(null, "debug.ordo.detailplus.slowdown") as String
     }.getOrNull()?.toFloatOrNull()?.takeIf { it > 0f } ?: 1f
@@ -241,7 +265,7 @@ private class DetailPlusProgram(private val model: DetailPlus.Model, passes: Lis
             }
         } catch (e: Exception) {
             Log.w(PICTURE_LOG_TAG, "Detail plus can't run here, copying instead", e)
-            DetailPlusGl.unsupported += model
+            DetailPlusGl.markUnsupported(model)
             copyOnly = true
             copyProgram = runCatching { link(COPY_FRAGMENT) }.getOrDefault(0)
         }
@@ -319,7 +343,7 @@ private class DetailPlusProgram(private val model: DetailPlus.Model, passes: Lis
 
     private fun copyInstead(why: String): Size {
         Log.w(PICTURE_LOG_TAG, "Detail plus: $why, copying instead")
-        DetailPlusGl.unsupported += model
+        DetailPlusGl.markUnsupported(model)
         copyOnly = true
         if (copyProgram == 0) copyProgram = runCatching { link(COPY_FRAGMENT) }.getOrDefault(0)
         deleteTextures()

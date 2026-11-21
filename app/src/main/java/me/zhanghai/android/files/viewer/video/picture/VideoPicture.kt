@@ -122,6 +122,8 @@ class VideoPicture(
     private var autoFellBackFor: String? = null
     private val autoFellBack = HashMap<DetailPlus.Model, Float?>()
     private val measuring = HashSet<DetailPlus.Model>()
+    // Networks whose offscreen timing failed on this screen: Automatic skips them (and tries the next level).
+    private val probeFailed = HashSet<DetailPlus.Model>()
     private var detailSourceSize = 0 to 0
     private val detailPreferences = PreferenceManager.getDefaultSharedPreferences(activity)
     private val detailBudget = DetailPlus.Budget(
@@ -395,7 +397,7 @@ class VideoPicture(
             // By the item's ID: the name can still change when metadata arrives.
             if (autoFellBackFor != player.currentMediaItem?.mediaId) autoFellBack.clear()
             DetailPlus.auto(
-                decision.on, decision.scale, DetailPlus.looksLikeAnime(name), DetailPlusGl.unsupported, autoFellBack.keys
+                decision.on, decision.scale, DetailPlus.looksLikeAnime(name), DetailPlusGl.unsupported, autoFellBack.keys + probeFailed
             ) { autoFellBack[it] ?: detailBudget.predict(it, detailSourceSize.first, detailSourceSize.second) }
         } else {
             null
@@ -446,7 +448,10 @@ class VideoPicture(
             if (msPerMp != null) {
                 detailBudget.record(model, 1_000, 1_000, msPerMp)
                 detailPreferences.edit().putFloat(budgetKey(model), msPerMp).apply()
+            } else {
+                probeFailed += model
             }
+            measuring -= model
             evaluate()
         }
     }

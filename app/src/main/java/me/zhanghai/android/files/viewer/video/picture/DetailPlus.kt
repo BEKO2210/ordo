@@ -42,6 +42,19 @@ object DetailPlus {
         }
     }
 
+    /**
+     * A first offscreen draw ([msPerMp], GPU ms per megapixel at the top clock) so slow that even a 960x540 film would
+     * need over three times [MAX_GPU_MS]: no need to keep the GPU busy with the full timing.
+     */
+    fun clearlyTooSlow(msPerMp: Float): Boolean = msPerMp * 0.5184f > 3 * MAX_GPU_MS
+
+    /**
+     * A timer query's result in ms, or null when it can't be trusted: a GL error around it, a disjoint (clock or power
+     * change), or 0 (what a query that never ran reads as; a 0-ms network would pick itself).
+     */
+    fun timerMs(nanoseconds: Long, glError: Int, disjoint: Boolean): Float? =
+        if (glError != 0 || disjoint || nanoseconds <= 0L) null else nanoseconds / 1e6f
+
     /** Below this growth Lanczos alone is as good, and the network's doubling would mostly be thrown away again. */
     const val MIN_SCALE = 1.5f
 
@@ -59,7 +72,8 @@ object DetailPlus {
     /**
      * Automatic in policy order. Anime tries the cartoon network, then the lighter film network (it beat Lanczos+CAS on
      * cartoons too, docs/VIDEO-PLAYER.md), then Lanczos; everything else the film network, then Lanczos. A network is
-     * skipped when this film already fell back with it ([fellBack]) or its [predict]ed GPU time is over [MAX_GPU_MS].
+     * skipped when this film already fell back with it or its offscreen timing failed ([fellBack]), or its [predict]ed
+     * GPU time is over [MAX_GPU_MS].
      * An unknown time (null) is never tried on screen (a budget tablet took 81 ms a frame): Lanczos until it is measured.
      */
     fun auto(
@@ -106,7 +120,8 @@ object DetailPlus {
             Upscaler.STANDARD -> null
             Upscaler.FILM -> Model.FILM
             Upscaler.CARTOON -> Model.CARTOON
-            Upscaler.AUTO -> if (looksLikeAnime(name)) Model.CARTOON else Model.FILM
+            // Automatic is decided by auto() with the device's measured times, never here.
+            Upscaler.AUTO -> null
         }
         return model?.takeIf { it !in unsupported }
     }
