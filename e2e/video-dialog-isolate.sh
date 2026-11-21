@@ -50,7 +50,7 @@ ui tap "Dialog freistellen plus|Dialogue isolation plus" >/dev/null
 ui tap "Laden|Load" >/dev/null
 for _ in $(seq 1 60); do a shell run-as "$PKG" ls files/models/deepfilternet3_onnx.tar.gz >/dev/null 2>&1 && break; sleep 2; done
 check "the model is there after Load" a shell run-as "$PKG" ls files/models/deepfilternet3_onnx.tar.gz
-sleep 6
+eventually 6 eval 'a logcat -d -s OrdoVideoSound | grep -q "DeepFilterNet3: loaded=true rtf="'
 rtf=$(a logcat -d -s OrdoVideoSound | grep -o 'DeepFilterNet3: loaded=true rtf=[0-9.E-]*' | tail -1 | sed 's/.*rtf=//')
 echo "INFO DeepFilterNet3 RTF on this device: ${rtf:-not logged}"
 if [ -n "$rtf" ] && python3 -c "import sys; sys.exit(0 if float('$rtf') <= 0.7 else 1)"; then

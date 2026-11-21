@@ -26,8 +26,8 @@ a shell settings put system accelerometer_rotation 0; a shell settings put syste
 a shell am start -W -a android.intent.action.VIEW -d "file://$DIR" -t inode/directory \
     -n "$PKG/me.zhanghai.android.files.filelist.FileListActivity" >/dev/null
 guard
-ui tap ordo-e2e-land.wav >/dev/null; sleep 4; guard
-media_key PAUSE 1
+ui tap ordo-e2e-land.wav >/dev/null; wait_on viewer.audio.AudioPlayerActivity 6; guard
+media_wait PLAY 4; media_key PAUSE 1
 check "Sound opens in landscape" ui tap actionSound
 sleep 2
 landscape() { read -r W H < <(screen_size); [ "$W" -gt "$H" ]; }

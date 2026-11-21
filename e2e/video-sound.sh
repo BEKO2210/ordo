@@ -83,13 +83,13 @@ check "the sync says which output it applies to" part "^(Gilt für|Applies to): 
 ui tap "Ton 100 ms später|Sound 100 ms later" >/dev/null; sleep 1
 check "a tap on the value puts it back in sync" part "^(Synchron|In sync)"
 # Kept per output device (0.18.0): still there after the app is closed, also for another film; Reset clears it.
-ui tap "Ton später|Sound later" >/dev/null; sleep 1
+ui tap "Ton später|Sound later" >/dev/null; sleep 1 # deliberate: the choice is taken over before the next step leaves the screen
 back
 a shell am force-stop "$PKG"
 open_clip 02-ac3.mkv; sleep 2
 menu "Tonspur|Audio track"
 check "the output's delay is back after a restart" ui has "Ton 50 ms später|Sound 50 ms later"
-ui tap "Zurücksetzen|Reset" >/dev/null; sleep 1
+ui tap "Zurücksetzen|Reset" >/dev/null; sleep 1 # deliberate: the row is redrawn before it is read
 check "Reset puts it back in sync" part "^(Synchron|In sync)"
 back; back 2
 open_clip 01-surround.mp4
@@ -100,7 +100,7 @@ menu "Klang|Sound"
 switch_on "Dialog-Verstärker|Clear dialogue"
 switch_on "Nachtmodus|Night mode"
 switch_on "Mono-Audio|Mono audio"
-ui tap "Mehr rechts|More right" >/dev/null 2>&1; sleep 1
+ui tap "Mehr rechts|More right" >/dev/null 2>&1; sleep 1 # deliberate: the choice is taken over before the next step leaves the screen
 back; back 2
 
 # 4. An AC3 track this device cannot decode is marked, not hidden.

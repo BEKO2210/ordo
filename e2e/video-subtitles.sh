@@ -82,7 +82,7 @@ scroll_to "Größer|Larger" 4
 check "the size has its − and + steps" ui has "Größer|Larger"
 # One step larger shows 110 % and is kept; one step smaller puts it back.
 was=$(ui texts | awk -F'|' '$1 ~ /^[0-9]+[^0-9]*%$/ { print $1; exit }')
-ui tap "Größer|Larger" >/dev/null; sleep 0.7
+ui tap "Größer|Larger" >/dev/null
 now=$(ui texts | awk -F'|' '$1 ~ /^[0-9]+[^0-9]*%$/ { print $1; exit }')
 check "a step changes the size (${was:-?} -> ${now:-?})" test -n "$was" -a "$was" != "$now"
 ui tap "Kleiner|Smaller" >/dev/null
@@ -102,7 +102,7 @@ ui tap "Englisch · SRT|English · SRT" >/dev/null
 ui tap "+1 s" >/dev/null
 check "a text track inside the film takes the delay" ui see "+1 s"
 check "and has no picture-track note" eval '! ui has "Verschieben nur für Text-Untertitel.|Shifting works for text subtitles only."'
-ui tap "−1 s" >/dev/null; sleep 0.5
+ui tap "−1 s" >/dev/null; sleep 0.5 # deliberate: the choice is taken over before the next step leaves the screen
 back 1; back 2
 
 # 4. Settings: the "Subtitles" group.

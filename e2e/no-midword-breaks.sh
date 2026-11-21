@@ -45,7 +45,7 @@ for t in "Titel|Songs" "Alben|Albums" "Interpreten|Artists" "Wiedergabelisten|Pl
     "Ordner|Folders"; do ui tap "$t" >/dev/null; done
 check "a folder page opens" eval 'ui tap OrdoE2E-Midword title || { swipe_up; ui tap OrdoE2E-Midword title; }'
 sleep 2; back
-ui tap "Alben|Albums" >/dev/null; sleep 2
+ui tap "Alben|Albums" >/dev/null
 check "an album page opens" eval 'ui tap "Ordoe2e Midword Album" || { swipe_up; ui tap "Ordoe2e Midword Album"; }'
 sleep 2
 open_song() {
@@ -61,7 +61,7 @@ back
 check "the queue sheet opens" ui tap queueChip
 sleep 2; back; back
 # Ordo Musik's own settings (side menu): appearance with the colour choices.
-ui tap "Navigationsmenü öffnen|Open navigation drawer" > /dev/null; sleep 1
+ui tap "Navigationsmenü öffnen|Open navigation drawer" > /dev/null
 check "Ordo Musik's settings open" eval 'ui tap "Einstellungen|Settings" && ui wait "Farben aus dem Cover|Colours from the cover" 5'
 sleep 1; back; sleep 1
 # The video player: controls, the locked screen's "hold to unlock", the speed sheet and the player's sheets.

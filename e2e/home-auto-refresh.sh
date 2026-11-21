@@ -10,7 +10,7 @@ a shell dumpsys package "$PKG" | grep -q "flags=\[.*DEBUGGABLE" || { echo "SKIP:
 DIR=/sdcard/Download/ordo-e2e-refresh
 count() { a logcat -d -s HomeViewModel:D | grep -c "reload$"; }
 launch 10
-sleep 5; a logcat -c; sleep 10
+sleep 5; a logcat -c; sleep 10 # deliberate: 10 s in which nothing may reload
 check "no reload while nothing changes" test "$(count)" = 0
 a logcat -c
 # The storage bar is recorded meanwhile: an automatic reload moves it in place, it never empties and grows in again.
@@ -20,7 +20,7 @@ if ! command -v ffmpeg >/dev/null; then echo "SKIP storage bar check: ffmpeg mis
 elif [ -z "$bar" ]; then echo "SKIP storage bar check: no storage bar on the home screen"; fi
 command -v ffmpeg >/dev/null && [ -n "$bar" ] && record 8 /sdcard/ordo-e2e-auto.mp4 & rec=$!
 sleep 1
-a shell "mkdir -p $DIR; for i in \$(seq 50); do echo x > $DIR/f\$i.txt; done"; sleep 6; guard
+a shell "mkdir -p $DIR; for i in \$(seq 50); do echo x > $DIR/f\$i.txt; done"; sleep 6; guard # deliberate: the time in which the reloads are counted
 n=$(count); echo "  50 new files: $n reloads"
 check "50 new files reload the home screen once or twice" test "$n" -ge 1 -a "$n" -le 2
 wait $rec
@@ -42,7 +42,7 @@ PY
     else check "the storage bar does not empty and grow in again on an automatic reload" test "$low" -ge 90; fi
 fi
 a shell input keyevent HOME; sleep 2; a logcat -c
-a shell "for i in \$(seq 50); do echo y > $DIR/g\$i.txt; done"; sleep 6
+a shell "for i in \$(seq 50); do echo y > $DIR/g\$i.txt; done"; sleep 6 # deliberate: 6 s in which nothing may reload
 check "no reload while the home screen is in the background" test "$(count)" = 0
 a shell am start -a android.intent.action.MAIN -c android.intent.category.LAUNCHER -f 0x10200000 -n "$PKG/me.zhanghai.android.files.home.HomeActivity" >/dev/null 2>&1; sleep 5; guard
 check "coming back reloads once" test "$(count)" = 1

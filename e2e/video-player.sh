@@ -118,7 +118,7 @@ check "a double tap on the right 28 % jumps 10 s ahead ($p5 -> $p6 ms)" within $
 
 # The lock: everything goes but "hold to unlock"; taps do nothing until it is held.
 pause
-ui tap lock >/dev/null; sleep 1
+ui tap lock >/dev/null
 check "locked, only the unlock button shows" eval 'ui has unlock && ! ui has playPause'
 a shell "input tap $right $mid; sleep 0.12; input tap $right $mid"; sleep 1.5; p7=$(pos)
 check "locked, a double tap does not seek ($p6 -> $p7 ms)" moved_less "$p6" "$p7"
@@ -166,8 +166,7 @@ ui tap resumePill >/dev/null 2>&1; sleep 1.5
 # from a missed end screen.
 a shell input keyevent KEYCODE_MEDIA_PLAY
 check "the play key plays on" wait_playing
-sleep 20
-check "at the end the player stops with Watch again" ui wait endReplay 6
+check "at the end the player stops with Watch again" ui wait endReplay 26 # the rest of the clip, then the end screen
 check "and offers the next video" ui has endNext
 ui tap endNext >/dev/null; sleep 2; pause
 check "Next video opens the next one of the folder" ui has 02-clip
@@ -277,7 +276,7 @@ play_colour() {
 set_video_colour() {
     a shell am start -W -n "$PKG/me.zhanghai.android.files.viewer.video.VideoLauncherActivity" >/dev/null; guard
     ui tap actionSettings >/dev/null
-    ui tap "$1" >/dev/null; sleep 1.5
+    ui tap "$1" >/dev/null; sleep 1.5 # deliberate: the choice is taken over before the next step leaves the screen
     back 1; back 1
 }
 open_paused() {

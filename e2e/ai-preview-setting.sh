@@ -23,7 +23,7 @@ for locale in de-DE en-US; do
     # A fresh install has it off; a run before may have left it on: then this is the "off" step of that run.
     ui checked "$PREVIEW" && { ui tap "$PREVIEW" >/dev/null; sleep 1; }
     check "$locale: off by default" not_checked
-    ui tap "$PREVIEW" >/dev/null; sleep 1
+    ui tap "$PREVIEW" >/dev/null
     check "$locale: a tap turns it on" ui checked "$PREVIEW"
     a shell am force-stop "$PKG"; launch; open_ai_settings
     check "$locale: still on after a restart" ui checked "$PREVIEW"

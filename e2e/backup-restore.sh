@@ -33,11 +33,11 @@ mapfile -t ticked < <(ui texts | awk -F'|' '$2 == "titleText" { print $1 }' | wh
     [ "$t" != ordo-e2e-restore ] && ui checked "$t" && echo "$t"; done)
 for t in "${ticked[@]}"; do ui tap "$t" titleText >/dev/null; done
 ui checked ordo-e2e-restore || ui tap ordo-e2e-restore titleText >/dev/null
-ui tap sdRow >/dev/null; sleep 0.5
+ui tap sdRow >/dev/null
 # On a short screen (W90) the protection card starts under the bottom bar: a tap on its visible sliver hit the
 # system's Home button. Scrolled into view first, and again once the password fields are open.
 swipe_up; swipe_up
-ui tap encryptRow >/dev/null; sleep 1
+ui tap encryptRow >/dev/null
 swipe_up
 ui tap passwordEdit >/dev/null; a shell input text $PW
 ui tap passwordRepeatEdit >/dev/null; a shell input text $PW; a shell input keyevent 111; sleep 0.5
@@ -84,7 +84,7 @@ st
 
 # The ticks as they were; the test folder goes, so its entry leaves the list by itself.
 ui tap Sicherung >/dev/null; guard
-ui tap ordo-e2e-restore titleText >/dev/null; sleep 0.3
+ui tap ordo-e2e-restore titleText >/dev/null
 for t in "${ticked[@]}"; do ui tap "$t" titleText >/dev/null; done
 all_ticked() { local t; for t in "${ticked[@]}"; do ui checked "$t" || return 1; done; }
 check "the ticks are back as they were" all_ticked

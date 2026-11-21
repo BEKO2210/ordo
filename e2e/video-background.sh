@@ -18,7 +18,7 @@ set_background() {
     settings_open
     scroll_to "Im Hintergrund weiterspielen|Keep playing in the background"
     ui tap "Im Hintergrund weiterspielen|Keep playing in the background" >/dev/null
-    ui tap "$1" >/dev/null; sleep 1
+    ui tap "$1" >/dev/null; sleep 1 # deliberate: the choice is taken over before the next step leaves the screen
     back 1; back 1
 }
 trap 'set_background "Aus|Off"; a shell "rm -rf $DIR"; rm -rf "$tmp"' EXIT

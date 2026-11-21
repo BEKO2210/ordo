@@ -22,6 +22,7 @@ idle() {
     done
 }
 # reloads_after CMD...: once idle, runs it, then prints how many reloads followed.
+# The 5 s are deliberate: the time in which reloads are counted (too many would be the bug).
 reloads_after() { idle; a logcat -c; "$@"; sleep 5; guard; a logcat -d -s HomeViewModel:D | grep -c "reload$"; }
 # pull DP: one finger pull of DP from the top of the page.
 pull() { a shell input swipe $X $Y $X $((Y + $(px "$1"))) 600; }

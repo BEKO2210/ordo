@@ -57,8 +57,8 @@ if ui tap openButton >/dev/null 2>&1; then
 else
     fail "storage card not found"
 fi
-ui tap analyzeButton >/dev/null 2>&1; sleep 12; guard
-check "analysis opens" on analysis.AnalysisActivity
+ui tap analyzeButton >/dev/null 2>&1
+check "analysis opens" wait_on analysis.AnalysisActivity 14; guard
 back 2
 check "back from the analysis returns to home" on home.HomeActivity
 finish

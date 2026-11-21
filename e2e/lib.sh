@@ -76,6 +76,9 @@ on() {
     [ "$t" = "$PKG/me.zhanghai.android.files.$1" ] ||
         { [ "$1" = home.HomeActivity ] && [[ $t == "$PKG/me.zhanghai.android.files.launcher.Home"* ]]; }
 }
+# eventually S COMMAND...: runs the command until it succeeds, for up to S seconds (a log line, a file, a state):
+# `check "…" eventually 8 eval 'log | grep …'`. Never for a check that something does NOT happen.
+eventually() { local end=$((SECONDS + $1)); shift; until "$@"; do [ $SECONDS -ge "$end" ] && return 1; sleep 0.5; done; }
 # wait_on SCREEN [S]: polls until that screen is in front (up to S seconds, default 4) instead of a fixed sleep.
 wait_on() { local end=$((SECONDS + ${2:-4})); until on "$1"; do [ $SECONDS -ge "$end" ] && return 1; sleep 0.3; done; }
 

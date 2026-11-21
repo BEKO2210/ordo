@@ -60,7 +60,7 @@ ui tap castPlayPause >/dev/null; sleep 2
 check "Pause on the remote pauses the TV" settled "Paused|Pausiert"
 for _ in 1 2; do a shell input keyevent KEYCODE_VOLUME_DOWN; sleep 0.3; done
 check "the volume keys set the TV's volume" settled "Volume [0-9]+ %|Lautstärke [0-9]+ %"
-ui tap castStop >/dev/null; sleep 2
+ui tap castStop >/dev/null; sleep 2 # deliberate: the TV hands the clip back
 check "the clip is back on the phone" absent "Watch on this phone|Auf diesem Handy weiterschauen"
 back 1
 # The AVI's "TVs can't play AVI videos" is a toast (not in the UI dump): only that nothing connects is checked.

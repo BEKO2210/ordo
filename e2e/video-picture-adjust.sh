@@ -66,7 +66,7 @@ back 2
 open_video 01-full.mp4
 sheet
 check "the step is remembered for the video" ui has "+2"
-ui tap "Zurücksetzen|Reset" >/dev/null; sleep 1
+ui tap "Zurücksetzen|Reset" >/dev/null
 check "reset goes back to 0" eval '! ui has "+2"'
 back 1; back 2
 

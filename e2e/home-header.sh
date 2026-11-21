@@ -39,7 +39,7 @@ quick() { more; ui checked "Schnellzugriff anzeigen|Show quick access" && echo s
 before=$(quick)
 more; ui tap "Schnellzugriff anzeigen|Show quick access" title >/dev/null; sleep 1.5
 check "show quick access switches the section" test "$(quick)" != "$before"
-more; ui tap "Schnellzugriff anzeigen|Show quick access" title >/dev/null; sleep 1.5
+more; ui tap "Schnellzugriff anzeigen|Show quick access" title >/dev/null; sleep 1.5 # deliberate: the setting is written before it is read back
 check "and switches it back" test "$(quick)" = "$before"
 more; ui tap "Einstellungen|Settings" title >/dev/null
 check "more: settings open" wait_on settings.SettingsActivity 4; guard

@@ -59,6 +59,11 @@ access (granted with `E2E_GRANT=1` on a test device), media volume 0, unlocked a
 density override, Ordo comes to the front. `preflight.sh --install <apk> <serial>` installs first, and only an APK
 that `aapt dump badging` names `com.beko2210.ordo.dev`.
 
+Reusable outside Ordo (notes for `android-baukasten`): `preflight.sh` (only the package name, the activity it starts
+and the resource paths are Ordo's), `farm.sh` with `farm-devices.conf` (it knows nothing about Ordo beyond the suite
+list in `run.sh`; the device lock is any command with the contract `<lock> <device> <cmd...>` that exports
+`ORDO_SERIAL`, as `geraete/device-lock.sh` there does), and from `lib.sh`/`ui.py` the waits below.
+
 ## Waiting
 
 A fixed `sleep` is the slowest way to wait and still too short on a slow device. Use the waits that return as soon

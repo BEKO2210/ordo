@@ -61,7 +61,7 @@ settings_pick() {
     a shell am start -W -n "$PKG/me.zhanghai.android.files.viewer.video.VideoLauncherActivity" >/dev/null; guard
     ui tap actionSettings >/dev/null
     scroll_to "$1"; ui tap "$1" >/dev/null
-    ui tap "$2" >/dev/null; sleep 1.5
+    ui tap "$2" >/dev/null; sleep 1.5 # deliberate: the choice is taken over before the next step leaves the screen
     back 1; back 1
 }
 
@@ -80,7 +80,7 @@ ui tap 01-small.mp4 >/dev/null
 check "the small clip opens Ordo's player" wait_on viewer.video.VideoPlayerActivity 8
 # The start, read early: every frame logs a line, and on the S21 the first lines had left the buffer after 8 s.
 sleep 2; start=$(log)
-sleep 6
+sleep 6 # deliberate: 8 s of film, so a second prepare (ENGAGE), which must not come, would have come
 check "a 360p clip starts with the pipeline, decided before prepare" eval 'grep -q "prepare: pipeline true" <<<"$start"'
 check "and is not prepared a second time" eval '! log | grep -- "-> ENGAGE"'
 check "the enhancement is applied" eval 'grep -q -- "-> APPLY" <<<"$start"'
@@ -116,8 +116,8 @@ back 2
 # 5. A clip as large as the screen gets nothing.
 relog
 open_folder 02-screen.mp4
-ui tap 02-screen.mp4 >/dev/null; wait_on viewer.video.VideoPlayerActivity 8; sleep 4
-check "a clip as large as the screen is left alone (${long}x$short)" eval 'log | grep "NOT_SMALLER"'
+ui tap 02-screen.mp4 >/dev/null; wait_on viewer.video.VideoPlayerActivity 8
+check "a clip as large as the screen is left alone (${long}x$short)" eventually 6 eval 'log | grep "NOT_SMALLER"'
 back 2
 
 # 6. "Always" asks for 24 fps itself from API 31; "Only when seamless" leaves it to Media3.
@@ -135,7 +135,7 @@ else
 fi
 # Frame pacing, twice: Media3's scheduled release times (the log, every 240 frames; the Signal path row) and what the
 # panel really showed (SurfaceFlinger's present times of the video layer, last 127 frames).
-sleep 10
+sleep 10 # deliberate: the pacing line is logged every 240 frames
 log | grep "pacing fps" | tail -2 | sed 's/^/INFO /'
 layer=$(a shell dumpsys SurfaceFlinger --list | tr -d '\r' | grep -m1 "SurfaceView.*VideoPlayerActivity")
 if [ -n "$layer" ]; then

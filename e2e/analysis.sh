@@ -76,9 +76,9 @@ if [ -n "$kind" ] && ui tap "$kind" >/dev/null 2>&1; then
     check "back clears the selection first" not ui has deleteButton
     check "and stays on the page" ui has nameText
     rotation=$(a shell settings get system user_rotation | tr -d '\r'); auto=$(a shell settings get system accelerometer_rotation | tr -d '\r')
-    a shell settings put system accelerometer_rotation 0; a shell settings put system user_rotation 1; sleep 4; guard
+    a shell settings put system accelerometer_rotation 0; a shell settings put system user_rotation 1; sleep 4; guard # deliberate: the rotation and the page built anew
     check "rotation keeps the page" ui has nameText
-    a shell settings put system user_rotation "${rotation:-0}"; a shell settings put system accelerometer_rotation "${auto:-1}"; sleep 4; guard
+    a shell settings put system user_rotation "${rotation:-0}"; a shell settings put system accelerometer_rotation "${auto:-1}"; sleep 4; guard # deliberate: as above
     check "turning back keeps the page" ui has nameText
     back
     check "back from the type page leaves the list" not ui has nameText
