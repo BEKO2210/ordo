@@ -126,18 +126,27 @@ class AudioPlayerColorWashTest {
     }
 
     @Test
-    fun translucentSecondaryTextGetsJustEnoughOpacity() {
-        // Material's dynamic secondary text on a light wallpaper surface measured 4.3:1 on the Tab (20.11.2026).
+    fun secondaryTextGetsJustEnoughContrast() {
         val surface = 0xfffaf5f7.toInt()
+        val onSurface = 0xff1d1b1b.toInt()
+        // Translucent: only more opaque, same colour.
         val faint = 0x8c1d1b1b.toInt()
         assertTrue(AudioPlayerColorWash.contrastRatio(faint, surface) < 4.5)
-        val readable = AudioPlayerColorWash.readableText(faint, surface)
+        val readable = AudioPlayerColorWash.readableText(faint, surface, onSurface)
         assertTrue(AudioPlayerColorWash.contrastRatio(readable, surface) >= 4.5)
         assertTrue(readable ushr 24 < 0xff)
-        assertEquals(readable and 0xffffff, faint and 0xffffff)
+        assertEquals(faint and 0xffffff, readable and 0xffffff)
+        // Opaque but too light: Material You's secondary text on a light wallpaper surface, 4.3:1 on the Tab
+        // (20.11.2026). It moves towards onSurface just far enough.
+        val dynamic = 0xff83706d.toInt()
+        assertTrue(AudioPlayerColorWash.contrastRatio(dynamic, surface) < 4.5)
+        val fixed = AudioPlayerColorWash.readableText(dynamic, surface, onSurface)
+        assertTrue(AudioPlayerColorWash.contrastRatio(fixed, surface) >= 4.5)
+        assertTrue(AudioPlayerColorWash.contrastRatio(fixed, surface) < AudioPlayerColorWash.contrastRatio(onSurface, surface))
         // Already readable: unchanged; dark theme too.
-        assertEquals(0xff475569.toInt(), AudioPlayerColorWash.readableText(0xff475569.toInt(), 0xfffafbfc.toInt()))
-        val dark = AudioPlayerColorWash.readableText(0x66e6e1e5, 0xff141218.toInt())
+        assertEquals(0xff475569.toInt(),
+            AudioPlayerColorWash.readableText(0xff475569.toInt(), 0xfffafbfc.toInt(), 0xff0f172a.toInt()))
+        val dark = AudioPlayerColorWash.readableText(0x66e6e1e5, 0xff141218.toInt(), 0xffe6e1e5.toInt())
         assertTrue(AudioPlayerColorWash.contrastRatio(dark, 0xff141218.toInt()) >= 4.5)
     }
 

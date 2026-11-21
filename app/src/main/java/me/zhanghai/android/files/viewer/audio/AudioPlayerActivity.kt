@@ -772,7 +772,7 @@ class AudioPlayerActivity : AppActivity(), AppAccentActivity {
                 } ?: fallback
                 CoverBlur.blur(pixels, size, size)
                 val veil = scheme?.tint ?: surface
-                val secondaryText = AudioPlayerColorWash.readableText(themeSecondary, veil)
+                val secondaryText = AudioPlayerColorWash.readableText(themeSecondary, veil, onSurface)
                 val fields = scheme?.let { intArrayOf(it.accent, it.container) } ?: IntArray(0)
                 val alpha = AudioPlayerColorWash.veilAlpha(
                     pixels.filterIndexed { i, _ -> i % VEIL_SAMPLE_STEP == 0 }.toIntArray() + fields,
@@ -799,7 +799,10 @@ class AudioPlayerActivity : AppActivity(), AppAccentActivity {
     }
 
     private fun applySecondaryText(veil: Int) {
-        secondaryText = AudioPlayerColorWash.readableText(themeColor(android.R.attr.textColorSecondary), veil)
+        secondaryText = AudioPlayerColorWash.readableText(
+            themeColor(android.R.attr.textColorSecondary), veil,
+            themeColor(com.google.android.material.R.attr.colorOnSurface)
+        )
         for (view in listOf(binding.artist, binding.album, binding.elapsed, binding.remaining)) {
             view.setTextColor(secondaryText)
         }
