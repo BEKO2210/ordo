@@ -15,6 +15,17 @@
         <item>Balanced</item>
         <item>Maximum</item>
     </string-array>
+    <string name="video_settings_hdr">HDR display</string>
+    <string-array name="video_settings_hdr_entries">
+        <item>Automatic</item>
+        <item>Off (Android converts)</item>
+    </string-array>
+    <string name="video_signal_hdr_ordo_format">%1$s → SDR by Ordo for this screen: peak measured %2$s nits, target %3$s nits</string>
+    <string name="video_signal_hdr_ordo_waiting_format">%1$s → SDR by Ordo for this screen: measuring the peak, target %2$s nits</string>
+    <string name="video_signal_stages_hdr">HDR to SDR only (BT.2408 Annex 5 curve, peak measured per scene)</string>
+    <string name="video_signal_hdr_slow_format">%1$s, Android converts it to SDR: Ordo’s conversion was too slow here (%2$s ms per frame, limit %3$s ms)</string>
+    <string name="video_hdr_slow_notice">HDR conversion is too slow on this device: Android converts the video instead.</string>
+    <string name="video_meter_pass_hdr">HDR → SDR</string>
 
     <string name="video_picture_toggle">Picture enhancement</string>
     <string name="video_picture_on">Picture enhancement on</string>
@@ -24,7 +35,7 @@
     <string name="video_software_slow_notice">This video is decoded in software and may stutter on this device.</string>
 
     <string name="video_picture_off_no_video">no picture yet</string>
-    <string name="video_picture_off_hdr">HDR video is shown as it is</string>
+    <string name="video_picture_off_hdr">HDR video</string>
     <string name="video_picture_off_drm">protected video</string>
     <string name="video_picture_off_software">software decoding needs all the power</string>
     <string name="video_picture_off_setting">switched off in the settings</string>

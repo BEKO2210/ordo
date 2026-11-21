@@ -78,6 +78,12 @@
         <item>balanced</item>
         <item>max</item>
     </string-array>
+    <string name="pref_key_video_hdr">key_video_hdr</string>
+    <string name="pref_default_value_video_hdr">auto</string>
+    <string-array name="pref_entry_values_video_hdr">
+        <item>auto</item>
+        <item>off</item>
+    </string-array>
     <string name="pref_key_video_upscaler">key_video_upscaler</string>
     <string name="pref_default_value_video_upscaler">auto</string>
     <string-array name="pref_entry_values_video_upscaler">
