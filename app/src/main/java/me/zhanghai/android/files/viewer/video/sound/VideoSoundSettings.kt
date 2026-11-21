@@ -103,10 +103,10 @@ internal class VideoDelayStore(context: Context) {
             )
         }
 
-        internal fun dropLegacyOnce(done: () -> Boolean, delete: () -> Unit, markDone: () -> Unit) {
+        // A failed delete is tried again on the next start (deleteSharedPreferences is also true when nothing was there).
+        internal fun dropLegacyOnce(done: () -> Boolean, delete: () -> Boolean, markDone: () -> Unit) {
             if (done()) return
-            delete()
-            markDone()
+            if (delete()) markDone()
         }
 
         internal fun encode(delayMs: Int, savedAtMs: Long): String = "$delayMs:$savedAtMs"

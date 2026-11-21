@@ -8,6 +8,7 @@ package me.zhanghai.android.files.viewer.video.picture
 import android.content.Context
 import android.opengl.EGL14
 import android.opengl.EGLConfig
+import android.opengl.EGLDisplay
 import android.opengl.GLES20
 import android.opengl.GLES30
 import android.util.Log
@@ -79,6 +80,15 @@ internal object DetailPlusBench {
         val display = EGL14.eglGetDisplay(EGL14.EGL_DEFAULT_DISPLAY)
         val version = IntArray(2)
         if (!EGL14.eglInitialize(display, version, 0, version, 1)) return null
+        // A pool thread: its EGL state goes back with it. Never eglTerminate, the player shares the default display.
+        try {
+            return probe(context, model, display)
+        } finally {
+            EGL14.eglReleaseThread()
+        }
+    }
+
+    private fun probe(context: Context, model: DetailPlus.Model, display: EGLDisplay): Float? {
         val configs = arrayOfNulls<EGLConfig>(1)
         val count = IntArray(1)
         val attributes = intArrayOf(

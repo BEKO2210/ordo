@@ -510,7 +510,7 @@ class VideoPicture(
     private fun platformDecodes(format: Format): Boolean = runCatching {
         val mimeType = format.sampleMimeType ?: return true
         MediaCodecUtil.getDecoderInfos(mimeType, false, false).any { it.isFormatFunctionallySupported(activity, format) }
-    }.getOrDefault(true)
+    }.getOrDefault(false) // A failed query fails Media3's own decoder choice as well: FFmpeg then draws.
 
     // Per app version: a faster build measures again instead of trusting an older, slower one's time.
     private fun budgetKey(model: DetailPlus.Model) = "detail_plus_ms_per_mp_${model.name}_${BuildConfig.VERSION_CODE}"
