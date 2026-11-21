@@ -34,16 +34,16 @@
 
 <!-- AUTO:new -->
 > **Neu in 0.17.0**
-> - Alle Formate per Software-Decoder, auch HEVC 10-Bit, MPEG-2, Xvid, DivX
-> - Untertitel im Film verschieben, wenn sie zu früh oder zu spät kommen
-> - Bild anpassen: Helligkeit, Kontrast, Farbe, Schärfe
-> - Zeilensprung entfernen
-> - Detail plus: feinere Details beim Vergrößern
-> - Kopfhörer-Raumklang für 5.1 und 7.1
-> - Leise hören mit vollem Klang
-> - Kopfhörer-Korrektur für 500 Modelle
-> - USB-DAC unverfälscht, in passender Abtastrate
-> - Akku-Offload, wenn kein Effekt an ist
+> - Software-Decoder: DivX, MPEG-2, HEVC 10-Bit, VC-1, .ts
+> - Menüs neu im Musik-Stil
+> - Untertitel: Umlaute immer richtig, neuer Stil, gut lesbar
+> - Bild anpassen und Zeilensprung entfernen
+> - Detail plus, wo das Gerät es schafft
+> - Kopfhörer-Paket: Raumklang, Leise hören, Korrektur für 500 Modelle
+> - Hi-Res-Ausgabe über USB-DAC
+> - Besser lesbar über hellen Bildern und im erweiterten Dunkel-Design
+> - Ordner heißt „Interner Speicher“ statt „0“
+> - Viele Fehler behoben
 <!-- /AUTO:new -->
 
 ## Stand
@@ -507,7 +507,7 @@ Unit-Tests:
 ```
 
 <!-- AUTO:tests -->
-Gerätetests: 42 Skripte in [`e2e/`](e2e/README.md), gestartet mit `e2e/run.sh`: 15 nur lesend (`first-run`, `smoke`, `settings-visual`, `category-search`, `back-navigation`, `bars-replay`, `home-header`, `header-position`, `home-pull`, `drawer`, `selection-more`, `tablet-landscape`, `analysis`, `ai-show-guard`, `documents-provider`) und 27 weitere mit `--write` (`stress-delete`, `backup-restore`, `home-auto-refresh`, `audio-player`, `cast`, `klang`, `klang-landscape`, `klang-stress`, `music-formats`, `music-library`, `launcher-icons`, `icon-colors`, `ai-show`, `pick-file`, `no-midword-breaks`, `player-seek`, `player-stage2`, `video-player`, `video-network`, `video-sound`, `video-subtitles`, `video-background`, `video-library`, `video-seek`, `video-picture`, `video-picture-adjust`, `video-detailplus`). Unit-Tests: 129 Testklassen in `app/src/test`.
+Gerätetests: 44 Skripte in [`e2e/`](e2e/README.md), gestartet mit `e2e/run.sh`: 15 nur lesend (`first-run`, `smoke`, `settings-visual`, `category-search`, `back-navigation`, `bars-replay`, `home-header`, `header-position`, `home-pull`, `drawer`, `selection-more`, `tablet-landscape`, `analysis`, `ai-show-guard`, `documents-provider`) und 29 weitere mit `--write` (`stress-delete`, `backup-restore`, `home-auto-refresh`, `audio-player`, `cast`, `klang`, `klang-landscape`, `klang-stress`, `music-formats`, `music-library`, `launcher-icons`, `icon-colors`, `ai-show`, `pick-file`, `no-midword-breaks`, `player-seek`, `player-stage2`, `video-player`, `video-network`, `video-sound`, `video-subtitles`, `video-background`, `video-library`, `video-seek`, `video-picture`, `video-picture-adjust`, `video-detailplus`, `video-menus`, `sheets-polish`). Unit-Tests: 136 Testklassen in `app/src/test`.
 <!-- /AUTO:tests -->
 
 ## Ausblick

@@ -34,16 +34,16 @@
 
 <!-- AUTO:new -->
 > **New in 0.17.0**
-> - Every format via software decoder, also HEVC 10-bit, MPEG-2, Xvid, DivX
-> - Move subtitles inside the film when they come too early or too late
-> - Adjust picture: brightness, contrast, colour, sharpness
-> - Remove interlacing
-> - Detail plus: finer detail when enlarging
-> - Headphone surround for 5.1 and 7.1
-> - Quiet listening with full sound
-> - Headphone correction for 500 models
-> - USB DAC untouched, at the matching sample rate
-> - Battery offload when no effect is on
+> - Software decoder: DivX, MPEG-2, HEVC 10-bit, VC-1, .ts
+> - Menus redone in Music style
+> - Subtitles: accents always right, new style, easy to read
+> - Adjust picture and remove interlacing
+> - Detail plus where the device can handle it
+> - Headphone pack: surround, quiet listening, correction for 500 models
+> - Hi-res output via USB DAC
+> - Easier to read over bright frames and in the extended dark theme
+> - Folder named "Internal storage" instead of "0"
+> - Many fixes
 <!-- /AUTO:new -->
 
 ## Status
@@ -500,7 +500,7 @@ Run the unit tests with:
 ```
 
 <!-- AUTO:tests -->
-Device tests: 42 scripts in [`e2e/`](e2e/README.md), run with `e2e/run.sh`: 15 read-only (`first-run`, `smoke`, `settings-visual`, `category-search`, `back-navigation`, `bars-replay`, `home-header`, `header-position`, `home-pull`, `drawer`, `selection-more`, `tablet-landscape`, `analysis`, `ai-show-guard`, `documents-provider`) and 27 more with `--write` (`stress-delete`, `backup-restore`, `home-auto-refresh`, `audio-player`, `cast`, `klang`, `klang-landscape`, `klang-stress`, `music-formats`, `music-library`, `launcher-icons`, `icon-colors`, `ai-show`, `pick-file`, `no-midword-breaks`, `player-seek`, `player-stage2`, `video-player`, `video-network`, `video-sound`, `video-subtitles`, `video-background`, `video-library`, `video-seek`, `video-picture`, `video-picture-adjust`, `video-detailplus`). Unit tests: 129 test classes in `app/src/test`.
+Device tests: 44 scripts in [`e2e/`](e2e/README.md), run with `e2e/run.sh`: 15 read-only (`first-run`, `smoke`, `settings-visual`, `category-search`, `back-navigation`, `bars-replay`, `home-header`, `header-position`, `home-pull`, `drawer`, `selection-more`, `tablet-landscape`, `analysis`, `ai-show-guard`, `documents-provider`) and 29 more with `--write` (`stress-delete`, `backup-restore`, `home-auto-refresh`, `audio-player`, `cast`, `klang`, `klang-landscape`, `klang-stress`, `music-formats`, `music-library`, `launcher-icons`, `icon-colors`, `ai-show`, `pick-file`, `no-midword-breaks`, `player-seek`, `player-stage2`, `video-player`, `video-network`, `video-sound`, `video-subtitles`, `video-background`, `video-library`, `video-seek`, `video-picture`, `video-picture-adjust`, `video-detailplus`, `video-menus`, `sheets-polish`). Unit tests: 136 test classes in `app/src/test`.
 <!-- /AUTO:tests -->
 
 ## Roadmap
