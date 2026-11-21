@@ -61,15 +61,20 @@ back
 check "back closes the side menu" menu_closed
 check "back stays on the home screen" on home.HomeActivity
 
-# Storages and folders come first and differ per device; the nine tools at the end are fixed.
+# Ordo's own apps come first (21.11.), then storages and folders that differ per device; the nine tools at the end
+# are fixed.
+apps=(viewer.audio.MusicLauncherActivity viewer.video.VideoLauncherActivity)
 tools=(apps.AppsActivity analysis.AnalysisActivity trash.TrashActivity vault.VaultActivity backup.BackupActivity
     ftpserver.FtpServerActivity settings.SettingsActivity about.AboutActivity legal.LegalActivity)
 count=${#entries[@]}
-check "the menu lists a storage and the nine tools" test "$count" -gt "${#tools[@]}"
+check "the menu lists the apps, a storage and the nine tools" test "$count" -gt $((${#apps[@]} + ${#tools[@]}))
+check "Ordo Musik and Ordo Video come first" test "${entries[0]}|${entries[1]}" = "Ordo Musik|Ordo Video" -o \
+    "${entries[0]}|${entries[1]}" = "Ordo Music|Ordo Video"
 for i in "${!entries[@]}"; do
     entry=${entries[$i]}
     tool=$((i - count + ${#tools[@]}))
     if [ "$tool" -ge 0 ]; then screen=${tools[$tool]}
+    elif [ "$i" -lt "${#apps[@]}" ]; then screen=${apps[$i]}
     elif [[ $entry == *… ]]; then screen=storage.AddStorageDialogActivity
     else screen=filelist.FileListActivity; fi
     guard

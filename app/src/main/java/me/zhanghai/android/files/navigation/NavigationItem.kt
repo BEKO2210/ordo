@@ -15,7 +15,11 @@ import me.zhanghai.android.files.compat.getDrawableCompat
 abstract class NavigationItem {
     abstract val id: Long
 
-    fun getIcon(context: Context): Drawable = context.getDrawableCompat(iconRes!!)
+    open fun getIcon(context: Context): Drawable? = context.getDrawableCompat(iconRes!!)
+
+    /** False for an icon with its own colours (a built-in app's launcher icon), which the menu's tint would flatten. */
+    open val tintsIcon: Boolean
+        get() = true
 
     @get:DrawableRes
     protected abstract val iconRes: Int?

@@ -7,6 +7,7 @@ package me.zhanghai.android.files.navigation
 
 import android.content.Context
 import android.content.Intent
+import android.graphics.drawable.Drawable
 import android.os.Build
 import android.os.Environment
 import android.os.storage.StorageVolume
@@ -26,6 +27,8 @@ import me.zhanghai.android.files.compat.pathCompat
 import me.zhanghai.android.files.file.JavaFile
 import me.zhanghai.android.files.file.asFileSize
 import me.zhanghai.android.files.ftpserver.FtpServerActivity
+import me.zhanghai.android.files.launcher.BuiltInApp
+import me.zhanghai.android.files.launcher.LauncherIcons
 import me.zhanghai.android.files.legal.LegalActivity
 import me.zhanghai.android.files.settings.Settings
 import me.zhanghai.android.files.settings.SettingsActivity
@@ -41,10 +44,14 @@ import me.zhanghai.android.files.util.putArgs
 import me.zhanghai.android.files.util.supportsExternalStorageManager
 import me.zhanghai.android.files.util.valueCompat
 import me.zhanghai.android.files.vault.VaultActivity
+import me.zhanghai.android.files.viewer.audio.MusicLauncherActivity
+import me.zhanghai.android.files.viewer.video.VideoLauncherActivity
 
 val navigationItems: List<NavigationItem?>
     get() =
         mutableListOf<NavigationItem?>().apply {
+            addAll(builtInAppItems)
+            add(null)
             addAll(storageItems)
             if (Environment::class.supportsExternalStorageManager()) {
                 // Starting with R, we can get read/write access to non-primary storage volumes with
@@ -67,6 +74,38 @@ val navigationItems: List<NavigationItem?>
             add(null)
             addAll(menuItems)
         }
+
+// Ordo's own apps come first, whether or not their launcher icon is switched on (Settings > Built-in apps).
+// Ordo Bilder joins this list once it has its own screen.
+private val builtInAppItems: List<NavigationItem>
+    get() = listOf(
+        BuiltInAppItem(BuiltInApp.MUSIC, MusicLauncherActivity::class.createIntent()),
+        BuiltInAppItem(BuiltInApp.VIDEO, VideoLauncherActivity::class.createIntent())
+    )
+
+private class BuiltInAppItem(private val app: BuiltInApp, private val intent: Intent) : NavigationItem() {
+    override val id: Long
+        get() = app.labelRes.toLong()
+
+    override val iconRes: Int
+        @DrawableRes
+        get() = app.iconRes
+
+    // The launcher icon in the colour the user chose for it, so the menu entry looks like the app on the home screen.
+    override fun getIcon(context: Context): Drawable? =
+        app.aliasPrefix?.let { LauncherIcons.icon(context, it, LauncherIcons.chosenColor(context, it)) }
+            ?: super.getIcon(context)
+
+    override val tintsIcon: Boolean
+        get() = false
+
+    override fun getTitle(context: Context): String = context.getString(app.labelRes)
+
+    override fun onClick(listener: Listener) {
+        listener.launchIntent(intent)
+        listener.closeNavigationDrawer()
+    }
+}
 
 private val storageItems: List<NavigationItem>
     @Size(min = 0)
