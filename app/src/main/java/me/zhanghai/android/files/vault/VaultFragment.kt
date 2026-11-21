@@ -7,6 +7,7 @@ package me.zhanghai.android.files.vault
 
 import android.app.KeyguardManager
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
 import android.text.format.DateUtils
@@ -32,7 +33,7 @@ import androidx.transition.TransitionManager
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.transition.MaterialFadeThrough
-import java.io.File
+import java.net.URI
 import java8.nio.file.Paths
 import me.zhanghai.android.files.R
 import me.zhanghai.android.files.databinding.CheckableFileItemBinding
@@ -40,7 +41,6 @@ import me.zhanghai.android.files.databinding.VaultFragmentBinding
 import me.zhanghai.android.files.databinding.VaultNoticeItemBinding
 import me.zhanghai.android.files.file.MimeType
 import me.zhanghai.android.files.file.asFileSize
-import me.zhanghai.android.files.file.fileProviderUri
 import me.zhanghai.android.files.file.guessFromPath
 import me.zhanghai.android.files.file.iconRes
 import me.zhanghai.android.files.file.isImage
@@ -51,7 +51,6 @@ import me.zhanghai.android.files.home.setTintedCircleIcon
 import me.zhanghai.android.files.ui.setUpRestoreDeleteBar
 import me.zhanghai.android.files.ui.showRestoreDeleteBar
 import me.zhanghai.android.files.util.createViewIntent
-import me.zhanghai.android.files.util.extraPath
 import me.zhanghai.android.files.util.getQuantityString
 import me.zhanghai.android.files.util.showToast
 import me.zhanghai.android.files.util.startActivitySafe
@@ -152,13 +151,7 @@ class VaultFragment : Fragment() {
         viewModel.openedFile.observe(viewLifecycleOwner) {
             if (it != null) {
                 viewModel.consumeOpenedFile()
-                view(it)
-            }
-        }
-        viewModel.hasOpenError.observe(viewLifecycleOwner) {
-            if (it) {
-                viewModel.consumeOpenError()
-                showToast(R.string.vault_open_error)
+                view(it.first, it.second)
             }
         }
     }
@@ -292,15 +285,14 @@ class VaultFragment : Fragment() {
         }, 800)
     }
 
-    private fun view(file: File) {
-        val path = Paths.get(file.path)
-        val mimeType = MimeType.guessFromPath(file.path)
-        val intent = path.fileProviderUri.createViewIntent(mimeType).apply {
-            extraPath = path
+    // The viewer reads through VaultProvider, decrypting in memory; no plaintext file is written.
+    private fun view(uri: Uri, entry: VaultEntry) {
+        val mimeType = MimeType.guessFromPath(entry.name)
+        val intent = uri.createViewIntent(mimeType).apply {
             // Images and PDFs stay inside Ordo; other types need an app that can show them.
             if (mimeType.isImage) {
                 setClass(requireContext(), ImageViewerActivity::class.java)
-                ImageViewerActivity.putExtras(this, listOf(path), 0)
+                ImageViewerActivity.putExtras(this, listOf(Paths.get(URI.create(uri.toString()))), 0)
             } else if (mimeType.isPdf) {
                 setClass(requireContext(), PdfViewerActivity::class.java)
             }

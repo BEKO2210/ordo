@@ -619,6 +619,13 @@
             android:exported="false"
             android:grantUriPermissions="true" />
 
+        <!-- Tresor files for a viewer, decrypted in memory while read; only what the unlocked vault granted. -->
+        <provider
+            android:name="me.zhanghai.android.files.vault.VaultProvider"
+            android:authorities="${applicationId}.vault"
+            android:exported="false"
+            android:grantUriPermissions="true" />
+
         <provider
             android:name="com.google.firebase.provider.FirebaseInitProvider"
             android:authorities="${applicationId}.firebaseinitprovider"
