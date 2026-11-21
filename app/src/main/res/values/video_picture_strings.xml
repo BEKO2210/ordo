@@ -161,6 +161,7 @@
     <string name="video_signal_upscaler_auto_film_format">Automatic: Detail plus film, because %1$s → %2$s and %3$s</string>
     <string name="video_signal_upscaler_auto_anime_format">Automatic: Detail plus cartoon, because anime was detected, %1$s → %2$s and %3$s</string>
     <string name="video_signal_upscaler_auto_anime_film_format">Automatic: Detail plus film, because anime was detected but the cartoon network is too slow here, %1$s → %2$s and %3$s</string>
+    <string name="video_signal_upscaler_auto_measuring_offscreen">Automatic: Lanczos 3 while Detail plus is measured in the background</string>
     <string name="video_signal_upscaler_auto_slow_format">Automatic: Lanczos 3, because Detail plus would need %1$s ms here (target %2$s ms)</string>
     <string name="video_signal_upscaler_auto_slow_unknown">Automatic: Lanczos 3, because Detail plus was too slow here</string>
     <string name="video_signal_upscaler_auto_small_format">Automatic: Lanczos 3, because it is enlarged only %1$s×</string>

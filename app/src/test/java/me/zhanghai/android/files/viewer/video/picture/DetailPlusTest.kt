@@ -50,11 +50,10 @@ class DetailPlusTest {
     }
 
     @Test
-    fun automaticPicksCartoonByName() {
-        assertEquals(Model.CARTOON, model(Upscaler.AUTO, name = "/sdcard/Anime/Frieren/E01.mkv"))
-        assertEquals(Model.CARTOON, model(Upscaler.AUTO, name = "/sdcard/Download/[SubsPlease] Dandadan - 05 (720p).mkv"))
-        assertEquals(Model.FILM, model(Upscaler.AUTO, name = "/sdcard/Movies/Heat (1995).mkv"))
-        assertEquals(Model.FILM, model(Upscaler.AUTO, name = null))
+    fun automaticIsDecidedByAutoNotByModel() {
+        // VideoPicture asks auto() for Automatic (with the device's times); model() never picks a network for it.
+        assertNull(model(Upscaler.AUTO, name = "/sdcard/Anime/Frieren/E01.mkv"))
+        assertNull(model(Upscaler.AUTO, name = "/sdcard/Movies/Heat (1995).mkv"))
     }
 
     @Test
@@ -91,7 +90,16 @@ class DetailPlusTest {
         assertEquals(Reason.UNSUPPORTED, auto(unsupported = setOf(Model.FILM), predictedMs = 9f).reason)
         assertEquals(Reason.TOO_SLOW, auto(predictedMs = 8.01f).reason)
         assertEquals(DetailPlus.Auto(Model.FILM, Reason.FILM, 8f), auto(predictedMs = 8f))
-        assertEquals(DetailPlus.Auto(Model.FILM, Reason.FILM, null), auto(predictedMs = null))
+        // Never measured: Lanczos while the network is timed offscreen (a budget tablet took 81 ms a frame).
+        assertEquals(DetailPlus.Auto(null, Reason.MEASURING, null, measure = Model.FILM), auto(predictedMs = null))
+        assertEquals(Model.CARTOON, auto(anime = true, cartoonMs = null).measure)
+        // Cartoon's offscreen timing failed (skipped like a fallback): film is next, not MEASURING forever.
+        assertEquals(Model.FILM, auto(anime = true, fellBack = setOf(Model.CARTOON), predictedMs = null).measure)
+        assertEquals(Model.FILM, auto(anime = true, fellBack = setOf(Model.CARTOON)).model)
+        // Measured 81 ms: Lanczos without the network ever on screen.
+        assertEquals(DetailPlus.Auto(null, Reason.TOO_SLOW, 81f), auto(predictedMs = 81f))
+        // Cartoon measured too slow, film not yet: measure film next.
+        assertEquals(Model.FILM, auto(anime = true, predictedMs = null, cartoonMs = 20f).measure)
         assertEquals(DetailPlus.Auto(Model.CARTOON, Reason.ANIME, 4f), auto(anime = true))
         // Anime steps down to the film network before Lanczos: cartoon unsupported, too slow or fallen back.
         assertEquals(DetailPlus.Auto(Model.FILM, Reason.ANIME_FILM, 4f), auto(anime = true, unsupported = setOf(Model.CARTOON)))
@@ -102,6 +110,24 @@ class DetailPlusTest {
         // Dropped frames although the network was fast enough: still Lanczos for this film.
         assertEquals(DetailPlus.Auto(null, Reason.TOO_SLOW, 4f), auto(fellBack = setOf(Model.FILM)))
         assertEquals(Reason.SMALL, auto(scale = 1.2f, fellBack = setOf(Model.FILM)).reason)
+    }
+
+    @Test
+    fun timerResultsThatCantBeTrustedAreNull() {
+        assertEquals(2.5f, DetailPlus.timerMs(2_500_000, 0, false)!!, 0.0001f)
+        // A failed query reads 0: it must not look like a free network.
+        assertNull(DetailPlus.timerMs(0, 0, false))
+        assertNull(DetailPlus.timerMs(2_500_000, 0x502, false))
+        assertNull(DetailPlus.timerMs(2_500_000, 0, true))
+    }
+
+    @Test
+    fun firstOffscreenDrawStopsTheTimingOnlyWhenClearlyTooSlow() {
+        // W90-like: 81 ms per 540p frame = 156 ms per megapixel.
+        assertTrue(DetailPlus.clearlyTooSlow(156f))
+        // Tab S9: 6 ms per megapixel; and a device just over the limit still gets the full timing.
+        assertFalse(DetailPlus.clearlyTooSlow(6f))
+        assertFalse(DetailPlus.clearlyTooSlow(20f))
     }
 
     @Test

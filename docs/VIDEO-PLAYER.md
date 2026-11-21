@@ -367,7 +367,15 @@ Quelle: `ordo-team/LOKALE-QUALITAETS-KI.md`, Empfehlungen 1 und 2. Logik ohne An
   `[Gruppe] Titel - 01`) Zeichentrick → Film → Lanczos, sonst Film → Lanczos (FSRCNNX schlug Lanczos+CAS auch auf
   Zeichentrick, Tabelle unten). Die Vorhersage ist die zuletzt gemessene GPU-Zeit je
   Megapixel Eingabe (`DetailPlus.Budget`, das Netz rechnet in Quellgröße) mal den Pixeln dieses Films, je Netz und
-  App-Version in den Einstellungen gemerkt; ohne Messung probiert Automatisch das Netz, die erste Sekunde misst es.
+  App-Version in den Einstellungen gemerkt; ohne Messung zeigt Automatisch nie ein ungemessenes Netz: Lanczos spielt, während `DetailPlusBench` das Netz in einem eigenen GL-Kontext im Hintergrund misst: erst ein Bild 480×270 (ist es schon so langsam, dass ein 960×540-Film
+  über das Dreifache von 8 ms bräuchte, endet die Messung dort: auf einem Budget-Gerät ~40 ms GPU statt elf volle
+  Bilder), sonst 3 Aufwärm- und 8 Messbilder 960×540; je Bild GPU-Timer (0, GL-Fehler oder Disjoint → Wanduhr) und
+  Takt direkt danach, Median auf den Höchsttakt umgerechnet. Scheitert die Messung, überspringt Automatisch dieses
+  Netz für den Bildschirm (Anime: weiter mit Film). Tab S9 Ultra, frisch installiert (21.11.2026): 0,6 s Lanczos,
+  Messung 4,3 ms/MP (auf dem Bildschirm 3,6 ms/MP, also zur sicheren Seite) → Film, 0 verworfene Bilder. Im
+  Debug-Build simuliert `adb shell setprop debug.ordo.detailplus.slowdown 40` ein Budget-Gerät: ein Bild 480×270,
+  178 ms/MP → Lanczos nach 0,4 s, das Netz erscheint nie auf dem Bildschirm. W90 und Tab A8 waren nicht per adb
+  erreichbar: dort neu messen.
   Der Rückfall ist bei Automatisch still (kein Hinweis), der Signalweg nennt den Grund, z. B. „Automatisch: Detail plus
   Film, weil 960 × 540 → 2960 × 1665 und 5,6 ms frei“ oder „Automatisch: Lanczos 3, weil Detail plus hier 81,0 ms
   bräuchte (Ziel 8,0 ms)“.

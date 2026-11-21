@@ -19,10 +19,13 @@ object DetailPlus {
         CARTOON("detailplus/Anime4K_Upscale_CNN_x2_M.glsl", false)
     }
 
-    enum class Reason { NOT_ENHANCED, SMALL, UNSUPPORTED, TOO_SLOW, ANIME, ANIME_FILM, FILM }
+    enum class Reason { NOT_ENHANCED, SMALL, UNSUPPORTED, TOO_SLOW, MEASURING, ANIME, ANIME_FILM, FILM }
 
-    /** Automatic's network and the reason for using it or Lanczos; null time means this device is not measured yet. */
-    data class Auto(val model: Model?, val reason: Reason, val predictedMs: Float?)
+    /**
+     * Automatic's network and the reason for using it or Lanczos. [measure]: the network this device has no time for
+     * yet; Lanczos plays while it is measured offscreen ([DetailPlusBench]), never on screen.
+     */
+    data class Auto(val model: Model?, val reason: Reason, val predictedMs: Float?, val measure: Model? = null)
 
     /** Last measured network cost per input megapixel, so one sample predicts other source resolutions. */
     class Budget(initial: Map<Model, Float> = emptyMap()) {
@@ -38,6 +41,19 @@ object DetailPlus {
             msPerMp[model] = meanMs * 1_000_000f / (width.toLong() * height)
         }
     }
+
+    /**
+     * A first offscreen draw ([msPerMp], GPU ms per megapixel at the top clock) so slow that even a 960x540 film would
+     * need over three times [MAX_GPU_MS]: no need to keep the GPU busy with the full timing.
+     */
+    fun clearlyTooSlow(msPerMp: Float): Boolean = msPerMp * 0.5184f > 3 * MAX_GPU_MS
+
+    /**
+     * A timer query's result in ms, or null when it can't be trusted: a GL error around it, a disjoint (clock or power
+     * change), or 0 (what a query that never ran reads as; a 0-ms network would pick itself).
+     */
+    fun timerMs(nanoseconds: Long, glError: Int, disjoint: Boolean): Float? =
+        if (glError != 0 || disjoint || nanoseconds <= 0L) null else nanoseconds / 1e6f
 
     /** Below this growth Lanczos alone is as good, and the network's doubling would mostly be thrown away again. */
     const val MIN_SCALE = 1.5f
@@ -56,8 +72,9 @@ object DetailPlus {
     /**
      * Automatic in policy order. Anime tries the cartoon network, then the lighter film network (it beat Lanczos+CAS on
      * cartoons too, docs/VIDEO-PLAYER.md), then Lanczos; everything else the film network, then Lanczos. A network is
-     * skipped when this film already fell back with it ([fellBack]) or its [predict]ed GPU time is over [MAX_GPU_MS];
-     * an unknown time (null) tries it, and its first second measures it.
+     * skipped when this film already fell back with it or its offscreen timing failed ([fellBack]), or its [predict]ed
+     * GPU time is over [MAX_GPU_MS].
+     * An unknown time (null) is never tried on screen (a budget tablet took 81 ms a frame): Lanczos until it is measured.
      */
     fun auto(
         enhanced: Boolean,
@@ -72,8 +89,9 @@ object DetailPlus {
         val usable = (if (anime) listOf(Model.CARTOON, Model.FILM) else listOf(Model.FILM)) - unsupported
         if (usable.isEmpty()) return Auto(null, Reason.UNSUPPORTED, null)
         for (model in usable) {
-            val ms = predict(model)
-            if (model in fellBack || (ms != null && ms > MAX_GPU_MS)) continue
+            if (model in fellBack) continue
+            val ms = predict(model) ?: return Auto(null, Reason.MEASURING, null, measure = model)
+            if (ms > MAX_GPU_MS) continue
             val reason = when {
                 model == Model.CARTOON -> Reason.ANIME
                 anime -> Reason.ANIME_FILM
@@ -102,7 +120,8 @@ object DetailPlus {
             Upscaler.STANDARD -> null
             Upscaler.FILM -> Model.FILM
             Upscaler.CARTOON -> Model.CARTOON
-            Upscaler.AUTO -> auto(true, scale, looksLikeAnime(name), unsupported, emptySet()) { null }.model
+            // Automatic is decided by auto() with the device's measured times, never here.
+            Upscaler.AUTO -> null
         }
         return model?.takeIf { it !in unsupported }
     }

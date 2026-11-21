@@ -160,6 +160,7 @@
     <string name="video_signal_upscaler_auto_film_format">Automatisch: Detail plus Film, weil %1$s → %2$s und %3$s</string>
     <string name="video_signal_upscaler_auto_anime_format">Automatisch: Detail plus Zeichentrick, weil Anime erkannt, %1$s → %2$s und %3$s</string>
     <string name="video_signal_upscaler_auto_anime_film_format">Automatisch: Detail plus Film, weil Anime erkannt, das Zeichentrick-Netz hier aber zu langsam ist, %1$s → %2$s und %3$s</string>
+    <string name="video_signal_upscaler_auto_measuring_offscreen">Automatisch: Lanczos 3, bis Detail plus im Hintergrund gemessen ist</string>
     <string name="video_signal_upscaler_auto_slow_format">Automatisch: Lanczos 3, weil Detail plus hier %1$s ms bräuchte (Ziel %2$s ms)</string>
     <string name="video_signal_upscaler_auto_slow_unknown">Automatisch: Lanczos 3, weil Detail plus hier zu langsam war</string>
     <string name="video_signal_upscaler_auto_small_format">Automatisch: Lanczos 3, weil nur %1$s-fach vergrößert</string>

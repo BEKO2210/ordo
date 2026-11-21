@@ -57,8 +57,10 @@ import androidx.media3.exoplayer.video.VideoFrameMetadataListener
 import androidx.media3.ui.PlayerView
 import androidx.preference.PreferenceManager
 import java.text.NumberFormat
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import me.zhanghai.android.files.BuildConfig
 import me.zhanghai.android.files.R
 import me.zhanghai.android.files.file.asMimeType
@@ -130,6 +132,9 @@ class VideoPicture(
     // Automatic: the film whose networks fell back (that film stays without them), with their last measured time.
     private var autoFellBackFor: String? = null
     private val autoFellBack = HashMap<DetailPlus.Model, Float?>()
+    private val measuring = HashSet<DetailPlus.Model>()
+    // Networks whose offscreen timing failed on this screen: Automatic skips them (and tries the next level).
+    private val probeFailed = HashSet<DetailPlus.Model>()
     private var detailSourceSize = 0 to 0
     private val detailPreferences = PreferenceManager.getDefaultSharedPreferences(activity)
     private val detailBudget = DetailPlus.Budget(
@@ -439,7 +444,7 @@ class VideoPicture(
             // By the item's ID: the name can still change when metadata arrives.
             if (autoFellBackFor != player.currentMediaItem?.mediaId) autoFellBack.clear()
             DetailPlus.auto(
-                decision.on, decision.scale, DetailPlus.looksLikeAnime(name), DetailPlusGl.unsupported, autoFellBack.keys
+                decision.on, decision.scale, DetailPlus.looksLikeAnime(name), DetailPlusGl.unsupported, autoFellBack.keys + probeFailed
             ) { autoFellBack[it] ?: detailBudget.predict(it, detailSourceSize.first, detailSourceSize.second) }
         } else {
             null
@@ -447,6 +452,7 @@ class VideoPicture(
         if (automatic != null && automatic != autoDecision) {
             Log.i(PICTURE_LOG_TAG, "auto: ${automatic.model ?: "lanczos"} ${automatic.reason} predicted ${automatic.predictedMs}")
         }
+        automatic?.measure?.let(::measureOffscreen)
         autoDecision = automatic
         val model = if (automatic != null) automatic.model else DetailPlus.model(
             upscaler, decision.on, decision.scale, name, detailFellBack, DetailPlusGl.unsupported
@@ -475,6 +481,26 @@ class VideoPicture(
         ))
         if (redraw) redrawIfPaused(player)
         startTicker()
+    }
+
+    /**
+     * Times [model] offscreen once per screen (its own GL context, a small frame) while Lanczos plays, remembers the
+     * time like a measured second and decides again.
+     */
+    private fun measureOffscreen(model: DetailPlus.Model) {
+        if (!measuring.add(model)) return
+        activity.lifecycleScope.launch {
+            val msPerMp = withContext(Dispatchers.Default) { DetailPlusBench.msPerMp(activity, model) }
+            Log.i(PICTURE_LOG_TAG, "detail plus $model offscreen: $msPerMp ms per megapixel at the top clock")
+            if (msPerMp != null) {
+                detailBudget.record(model, 1_000, 1_000, msPerMp)
+                detailPreferences.edit().putFloat(budgetKey(model), msPerMp).apply()
+            } else {
+                probeFailed += model
+            }
+            measuring -= model
+            evaluate()
+        }
     }
 
     /**
@@ -1125,6 +1151,7 @@ class VideoPicture(
                 DetailPlus.Reason.SMALL -> R.string.video_signal_upscaler_auto_small_format
                 DetailPlus.Reason.NOT_ENHANCED -> R.string.video_signal_upscaler_auto_not_enhanced
                 DetailPlus.Reason.UNSUPPORTED -> R.string.video_signal_upscaler_auto_unsupported
+                DetailPlus.Reason.MEASURING -> R.string.video_signal_upscaler_auto_measuring_offscreen
             }
             val arguments: Array<out Any> = when (automatic.reason) {
                 DetailPlus.Reason.FILM, DetailPlus.Reason.ANIME, DetailPlus.Reason.ANIME_FILM -> arrayOf(size, surface, time)
