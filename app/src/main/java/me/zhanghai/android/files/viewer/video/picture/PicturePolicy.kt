@@ -30,8 +30,11 @@ object PicturePolicy {
      */
     data class FrameRatePlan(val media3Strategy: Int, val ownRate: Float)
 
-    /** On when [off] is null; [scale] is how much the picture grows to fill its place on the screen. */
-    data class Decision(val level: Level, val off: Off?, val scale: Float) {
+    /**
+     * On when [off] is null; [scale] is how much the picture grows to fill its place on the screen. [toneMap]: an HDR
+     * video goes through Ordo's own HDR to SDR pass ([HdrToneMap]); the enhancement itself stays off for HDR.
+     */
+    data class Decision(val level: Level, val off: Off?, val scale: Float, val toneMap: Boolean = false) {
         val on: Boolean
             get() = off == null
     }
@@ -122,7 +125,8 @@ object PicturePolicy {
         surfaceHeight: Int,
         tooSlow: Boolean,
         failed: Boolean = false,
-        software: Boolean = false
+        software: Boolean = false,
+        toneMap: Boolean = false
     ): Decision {
         val scale = scale(videoWidth, videoHeight, surfaceWidth, surfaceHeight)
         // The toggle can switch it on although the setting says off: then it runs balanced.
@@ -138,8 +142,25 @@ object PicturePolicy {
             scale < MIN_SCALE -> Off.NOT_SMALLER
             else -> null
         }
-        return Decision(effective, off, scale)
+        return Decision(effective, off, scale, toneMap)
     }
+
+    /**
+     * "HDR-Darstellung": automatic (default) or off. Ordo maps HDR10 and HLG down itself only where the screen can't
+     * show that type: an HDR screen gets it untouched. Not Dolby Vision (its picture needs the RPU), not DRM (no
+     * effects), not FFmpeg's decoder (it draws onto the surface itself), not after the GPU failed or was too slow.
+     */
+    fun toneMaps(
+        setting: String?,
+        isHdr10OrHlg: Boolean,
+        screenShowsIt: Boolean,
+        isDrm: Boolean,
+        software: Boolean,
+        failed: Boolean,
+        tooSlow: Boolean
+    ): Boolean = setting != HDR_OFF && isHdr10OrHlg && !screenShowsIt && !isDrm && !software && !failed && !tooSlow
+
+    const val HDR_OFF = "off"
 
     /**
      * The shader's values. Balanced: CAS 0.4 and one deband step with libplacebo's defaults (threshold 3, grain lower
@@ -159,10 +180,18 @@ object PicturePolicy {
      * [adjusted]: the "Bild" sheet changes this video (colour steps, sharpness or deinterlacing); that needs the shader
      * pass too, at any size and with the enhancement switched off, but never on HDR, DRM or FFmpeg-decoded video.
      */
-    fun pipeline(engaged: Boolean, decision: Decision, adjusted: Boolean = false): Pipeline {
-        val pass = decision.on || (adjusted && adjustable(decision))
+    fun pipeline(
+        engaged: Boolean,
+        decision: Decision,
+        adjusted: Boolean = false,
+        /** The running pipeline was built for the HDR pass: its output is fixed for the renderer's lifetime. */
+        engagedToneMap: Boolean = false
+    ): Pipeline {
+        val pass = decision.toneMap || decision.on || (adjusted && adjustable(decision))
         return when {
             !engaged -> if (pass) Pipeline.ENGAGE else Pipeline.KEEP_PLAIN
+            engagedToneMap != decision.toneMap -> Pipeline.RECREATE
+            decision.toneMap -> Pipeline.APPLY
             decision.off == Off.HDR || decision.off == Off.DRM || decision.off == Off.SOFTWARE -> Pipeline.RECREATE
             pass -> Pipeline.APPLY
             else -> Pipeline.CLEAR

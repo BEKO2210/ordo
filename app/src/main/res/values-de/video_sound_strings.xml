@@ -28,13 +28,26 @@
     <string name="video_audio_track_unplayable">auf diesem Gerät nicht abspielbar</string>
     <string name="video_audio_track_none">Dieses Video hat keine Tonspur.</string>
     <string name="video_audio_sync">Ton-Synchronisation</string>
-    <string name="video_audio_sync_summary">Passen Lippen und Stimme nicht zusammen, verschiebe den Ton in 50-ms-Schritten.</string>
+    <string name="video_audio_sync_summary">Passen Lippen und Stimme nicht zusammen, verschiebe den Ton in 50-ms-Schritten. Ordo merkt sich das für jede Ausgabe, etwa deine Bluetooth-Kopfhörer.</string>
     <string name="video_audio_sync_zero">Synchron (0 ms)</string>
     <string name="video_audio_sync_later">Ton %1$d ms später</string>
     <string name="video_audio_sync_earlier">Ton %1$d ms früher</string>
     <string name="video_audio_sync_earlier_button">Ton früher</string>
     <string name="video_audio_sync_later_button">Ton später</string>
+    <string name="video_audio_sync_device">Gilt für: %1$s</string>
+    <string name="video_audio_sync_speaker">Lautsprecher des Geräts</string>
+    <string name="video_audio_sync_unknown_device">diese Ausgabe</string>
+    <string name="video_audio_sync_reset">Zurücksetzen</string>
     <string name="video_sound_balance_left_button">Mehr links</string>
     <string name="video_sound_balance_right_button">Mehr rechts</string>
     <string name="video_signal_stage_downmix">Ordo-Mix auf Stereo</string>
+    <string name="video_sound_isolate">Dialog freistellen plus</string>
+    <string name="video_sound_isolate_summary">Ein Sprachmodell auf dem Gerät trennt Stimmen von Musik und Geräuschen und senkt den Rest um 9\u00A0dB. Für Filme, nicht für Musik.</string>
+    <string name="video_sound_isolate_downloading">Modell wird geladen … %1$d %%</string>
+    <string name="video_sound_isolate_failed">Das Modell konnte nicht geladen werden. Verbindung prüfen und erneut versuchen.</string>
+    <string name="video_sound_isolate_idle">Wirkt nur bei Ton mit 48 kHz. Dieser Film bleibt unverändert.</string>
+    <string name="video_sound_isolate_note">Ab Werk aus. Beim ersten Einschalten fragt Ordo, bevor das Modell einmal von GitHub geladen wird (8\u00A0MB, DeepFilterNet3, MIT oder Apache 2.0). Danach läuft es offline.</string>
+    <string name="video_sound_isolate_confirm_title">Sprachmodell laden?</string>
+    <string name="video_sound_isolate_confirm_message">„Dialog freistellen plus“ braucht das Modell DeepFilterNet3 (8\u00A0MB, MIT oder Apache 2.0). Ordo lädt es einmal von GitHub, danach läuft es offline auf dem Gerät. Lässt sich mit dem Dialog-Verstärker kombinieren.</string>
+    <string name="video_sound_isolate_confirm_load">Laden</string>
 </resources>

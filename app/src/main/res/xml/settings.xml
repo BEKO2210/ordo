@@ -76,6 +76,27 @@
     <PreferenceCategory android:title="@string/settings_group_more">
 
         <me.zhanghai.android.files.settings.SettingsCategoryPreference
+            android:key="link_rate"
+            android:icon="@drawable/settings_pictogram_rate"
+            android:title="@string/settings_rate_title"
+            android:summary="@string/settings_rate_summary"
+            app:ordoCircleColor="#CA8A04" />
+
+        <me.zhanghai.android.files.settings.SettingsCategoryPreference
+            android:key="link_share"
+            android:icon="@drawable/settings_pictogram_share"
+            android:title="@string/settings_share_title"
+            android:summary="@string/settings_share_summary"
+            app:ordoCircleColor="#DB2777" />
+
+        <me.zhanghai.android.files.settings.SettingsCategoryPreference
+            android:key="link_feedback"
+            android:icon="@drawable/settings_pictogram_feedback"
+            android:title="@string/settings_feedback_title"
+            android:summary="@string/settings_feedback_summary"
+            app:ordoCircleColor="#0F766E" />
+
+        <me.zhanghai.android.files.settings.SettingsCategoryPreference
             android:key="link_legal"
             android:icon="@drawable/settings_pictogram_legal"
             android:title="@string/legal_title"

@@ -728,7 +728,6 @@
         <item quantity="other">%1$d Dateien werden verschlüsselt und aus ihren Ordnern entfernt. Sie liegen dann nur noch im Tresor auf diesem Gerät. Stelle sie wieder her, bevor du Ordo deinstallierst.</item>
     </plurals>
     <string name="vault_error_message">Der Tresor ließ sich nicht öffnen. Starte dein Gerät neu und versuche es noch einmal.</string>
-    <string name="vault_open_error">Die Datei ließ sich nicht entschlüsseln. Versuche es noch einmal.</string>
     <string name="file_job_vault_move_notification_title">Verschiebe in den Tresor</string>
     <string name="file_job_vault_restore_notification_title">Stelle aus dem Tresor wieder her</string>
     <string name="file_job_vault_error_title">Fehler beim Verschieben in den Tresor</string>

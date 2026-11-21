@@ -57,17 +57,22 @@ back 1
 check "Sound opens again at the top" paused_ui tap actionSound
 sleep 1.5
 
+# card_shown EFFECT: 0 = its card is on screen, 1 = a "not available" line stands in its place, 2 = neither found.
+# Bass and clarity give way to that line on devices without the platform effect (Tab S9 with Dolby Atmos on:
+# AudioFlinger refuses BassBoost). Both are looked for while scrolling, and as the line sits below the grid, Sound
+# opens again at its top afterwards: scrolling on would leave every later card above the screen.
+card_shown() {
+    local name=${1%%|*}
+    scrolled_to "$1|$name: not available on this device|${1#*|}: auf diesem Gerät nicht verfügbar" || return 2
+    paused_ui has "$1" && return 0
+    back 1; paused_ui tap actionSound >/dev/null; sleep 1.5; return 1
+}
 EFFECTS=("Bass boost|Bassverstärkung" "Room sound for headphones|Raumklang für Kopfhörer" "Stereo width|Stereobreite"
     "Reverb|Hall" "Analogue warmth|Analoge Wärme" "Clarity|Klarheit" "Fill in missing highs|Höhen ergänzen")
 for effect in "${EFFECTS[@]}"; do
     name=${effect%%|*}
-    if ! scrolled_to "$effect"; then
-        # Bass and clarity give way to a "not available" line on devices without the platform effect.
-        if paused_ui has "$name: not available on this device|${effect#*|}: auf diesem Gerät nicht verfügbar"; then
-            echo "SKIP $name (not available on this device)"; continue
-        fi
-        fail "the $name card is reachable"; continue
-    fi
+    card_shown "$effect"; case $? in 1) echo "SKIP $name (not available on this device)"; continue ;;
+        2) fail "the $name card is reachable"; continue ;; esac
     pass "the $name card is reachable"
     check "$name switches on" set_switch "$effect" on
     check "the $name picture reports its value" picture_on "$effect"
@@ -100,7 +105,7 @@ pause_playback
 check "Sound opens for clean-up" paused_ui tap actionSound
 sleep 1.5
 for effect in "${EFFECTS[@]}"; do
-    scrolled_to "$effect" >/dev/null 2>&1 || continue
+    card_shown "$effect" >/dev/null 2>&1 || continue
     check "${effect%%|*} switches off again" set_switch "$effect" off
 done
 back 1

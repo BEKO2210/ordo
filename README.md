@@ -49,7 +49,7 @@
 ## Status
 
 <!-- AUTO:status -->
-Current version 0.17.0 · [release v0.17.0](https://github.com/BEKO2210/ordo/releases/tag/v0.17.0) · Android 7.0 and later (minSdk 24, targetSdk 36 = Android 16) · [GPL-3.0-or-later](LICENSE)
+Current version 0.18.0 · [last release v0.17.0](https://github.com/BEKO2210/ordo/releases/tag/v0.17.0) · Android 7.0 and later (minSdk 24, targetSdk 36 = Android 16) · [GPL-3.0-or-later](LICENSE)
 <!-- /AUTO:status -->
 
 Ordo is in development. A closed test runs on Google Play; test builds are also published as
@@ -281,6 +281,7 @@ Type or dictate a sentence like “Move all MP3s from Download to Music”. Ordo
   while loading and ends with a check; "Refresh" in the menu does the same without the gesture
 - One slim glass bar: side menu, search, AI command and options in a single row, at the top or at the bottom
 - The same side menu on the home screen and in the file list: storage, folders, bookmarks and all tools
+- In the file list the bar with side menu, search, sorting and options stays in place while the list scrolls
 - Search by name or by text inside files, with regular expressions if you need them
 - List or grid in three sizes, for all folders or just one
 - Quick access to bookmarks and common folders as tiles
@@ -524,6 +525,8 @@ backend, archive and server support are the foundation of this app. Thank you.
 Ordo also uses [llama.cpp](https://github.com/ggml-org/llama.cpp) (MIT) with Arm
 [KleidiAI](https://github.com/ARM-software/kleidiai) (Apache-2.0) for on-device AI, the
 [Qwen3.5](https://huggingface.co/Qwen) model (Apache-2.0, downloaded, not bundled),
+[DeepFilterNet](https://github.com/Rikorose/DeepFilterNet) (MIT or Apache-2.0, its model downloaded on request) for
+"Dialog freistellen plus" in the video player,
 [Tink](https://github.com/tink-crypto/tink-java) for encryption and
 [BlurView](https://github.com/Dimezis/BlurView) for the glass effect. The pictograms are
 [Material Symbols](https://github.com/google/material-design-icons) by Google (Apache-2.0).

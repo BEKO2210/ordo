@@ -175,7 +175,6 @@ class NavigationListAdapter(
                         viewAttributes.itemBackground?.constantState?.newDrawable()
                     binding.itemLayout.foregroundCompat =
                         viewAttributes.itemForeground?.constantState?.newDrawable()
-                    binding.iconImage.imageTintList = viewAttributes.itemIconTint
                     binding.textLayout.updateLayoutParams<ViewGroup.MarginLayoutParams> {
                         marginStart = viewAttributes.itemIconPadding
                     }
@@ -228,6 +227,7 @@ class NavigationListAdapter(
                 }
                 binding.itemLayout.setOnClickListener { item.onClick(listener) }
                 binding.itemLayout.setOnLongClickListener { item.onLongClick(listener) }
+                binding.iconImage.imageTintList = if (item.tintsIcon) viewAttributes.itemIconTint else null
                 binding.iconImage.setImageDrawable(item.getIcon(binding.iconImage.context))
                 binding.titleText.text = item.getTitle(binding.titleText.context)
                 binding.subtitleText.text = item.getSubtitle(binding.subtitleText.context)

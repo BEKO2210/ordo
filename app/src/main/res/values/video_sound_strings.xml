@@ -30,13 +30,26 @@
     <string name="video_audio_track_unplayable">can\'t play on this device</string>
     <string name="video_audio_track_none">This video has no audio track.</string>
     <string name="video_audio_sync">Audio sync</string>
-    <string name="video_audio_sync_summary">If lips and voice don\'t match, move the sound in 50 ms steps.</string>
+    <string name="video_audio_sync_summary">If lips and voice don\'t match, move the sound in 50 ms steps. Ordo remembers it for each output, such as your Bluetooth headphones.</string>
     <string name="video_audio_sync_zero">In sync (0 ms)</string>
     <string name="video_audio_sync_later">Sound %1$d ms later</string>
     <string name="video_audio_sync_earlier">Sound %1$d ms earlier</string>
     <string name="video_audio_sync_earlier_button">Sound earlier</string>
     <string name="video_audio_sync_later_button">Sound later</string>
+    <string name="video_audio_sync_device">Applies to: %1$s</string>
+    <string name="video_audio_sync_speaker">device speaker</string>
+    <string name="video_audio_sync_unknown_device">this output</string>
+    <string name="video_audio_sync_reset">Reset</string>
     <string name="video_sound_balance_left_button">More left</string>
     <string name="video_sound_balance_right_button">More right</string>
     <string name="video_signal_stage_downmix">Ordo mix to stereo</string>
+    <string name="video_sound_isolate">Dialogue isolation plus</string>
+    <string name="video_sound_isolate_summary">A speech model on this device separates voices from music and effects and turns the rest down by 9\u00A0dB. For films, not for music.</string>
+    <string name="video_sound_isolate_downloading">Loading model … %1$d %%</string>
+    <string name="video_sound_isolate_failed">The model could not be loaded. Check the connection and try again.</string>
+    <string name="video_sound_isolate_idle">Works on 48 kHz sound only. This film plays unchanged.</string>
+    <string name="video_sound_isolate_note">Off by default. The first time you switch it on, Ordo asks before loading the model once from GitHub (8\u00A0MB, DeepFilterNet3, MIT or Apache 2.0). It then runs offline.</string>
+    <string name="video_sound_isolate_confirm_title">Load the speech model?</string>
+    <string name="video_sound_isolate_confirm_message">Dialogue isolation plus needs the DeepFilterNet3 model (8\u00A0MB, MIT or Apache 2.0). Ordo loads it once from GitHub; after that it runs offline on this device. Works together with Clear dialogue.</string>
+    <string name="video_sound_isolate_confirm_load">Load</string>
 </resources>

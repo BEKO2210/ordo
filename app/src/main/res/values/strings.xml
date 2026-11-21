@@ -861,7 +861,6 @@
         <item quantity="other">%1$d files will be encrypted and removed from their folders. They then exist only in the vault on this device. Restore them before you uninstall Ordo.</item>
     </plurals>
     <string name="vault_error_message">Couldn’t open the vault. Restart your device and try again.</string>
-    <string name="vault_open_error">Couldn’t decrypt this file. Try again.</string>
     <string name="file_job_vault_move_notification_title">Moving to vault</string>
     <string name="file_job_vault_restore_notification_title">Restoring from vault</string>
     <string name="file_job_vault_error_title">Error while moving to vault</string>

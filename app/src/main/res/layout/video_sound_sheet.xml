@@ -254,6 +254,38 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
+            <!-- "Dialog freistellen plus": only where the library exists and the device is fast enough. -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/isolateCard"
+                style="@style/Widget.Ordo.Klang.Card"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="@dimen/klang_card_gap_half"
+                android:visibility="gone">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:paddingStart="@dimen/klang_space_lg"
+                    android:paddingTop="@dimen/klang_space_md"
+                    android:paddingEnd="@dimen/klang_space_lg"
+                    android:paddingBottom="@dimen/klang_space_md">
+                    <include
+                        android:id="@+id/isolateRow"
+                        layout="@layout/klang_switch_row"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
+                    <TextView
+                        android:id="@+id/isolateState"
+                        style="@style/Widget.Ordo.Klang.Info"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/klang_space_sm"
+                        android:accessibilityLiveRegion="polite"
+                        android:visibility="gone" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
             <com.google.android.material.card.MaterialCardView
                 style="@style/Widget.Ordo.Klang.Card"
                 android:layout_width="match_parent"

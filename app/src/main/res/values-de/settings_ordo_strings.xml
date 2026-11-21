@@ -60,6 +60,7 @@
     <string name="launcher_icons_info">Ordo schaltet nie selbst ein Symbol ein.</string>
     <string name="launcher_music_label">Ordo Musik</string>
     <string name="launcher_video_label">Ordo Video</string>
+    <string name="navigation_app_subtitle">Player und Bibliothek</string>
     <string name="launcher_images_label">Bilder</string>
     <string name="launcher_pdf_label">PDF</string>
     <string name="launcher_notes_label">Notizen</string>
@@ -188,4 +189,15 @@
         <item>Ausgewogen</item>
         <item>Sparsam (schont den Akku)</item>
     </string-array>
+
+    <string name="settings_rate_title">Ordo bewerten</string>
+    <string name="settings_rate_summary">Bei Google Play – das hilft anderen, Ordo zu finden</string>
+    <string name="settings_share_title">Ordo teilen</string>
+    <string name="settings_share_summary">Den Link an Freunde schicken</string>
+    <string name="settings_share_text">Ich nutze Ordo, einen kostenlosen Dateimanager ohne Werbung und ohne Tracking: %1$s</string>
+    <string name="settings_feedback_title">Feedback und Fehler melden</string>
+    <string name="settings_feedback_summary">Öffentlich auf GitHub, nur mit App-Version und Gerätetyp</string>
+    <string name="settings_feedback_body">Was ist passiert oder was wünschst du dir?\n\n\n---\nOrdo %1$s · %2$s · Android %3$s</string>
+    <string name="rate_hint_text">Gefällt dir Ordo? Eine Bewertung hilft anderen, die App zu finden.</string>
+    <string name="rate_hint_action">Bewerten</string>
 </resources>

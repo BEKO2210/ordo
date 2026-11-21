@@ -1,13 +1,10 @@
 Video:
-• Software-Decoder: DivX, MPEG-2, HEVC 10-Bit, VC-1, .ts
-• Menüs neu im Musik-Stil
-• Untertitel: Umlaute immer richtig, neuer Stil, gut lesbar
-• Bild anpassen und Zeilensprung entfernen
-• Detail plus, wo das Gerät es schafft
+• HDR-Filme sehen auf normalen Displays natürlicher aus
+• Detail plus ist schneller und steht jetzt auf „Automatisch“
 Ton:
-• Kopfhörer-Paket: Raumklang, Leise hören, Korrektur für 500 Modelle
-• Hi-Res-Ausgabe über USB-DAC
+• Neu: „Dialog freistellen plus“ trennt Stimmen auf dem Gerät per KI (optional)
+• Ton-Verzögerung wird pro Kopfhörer gemerkt
+• USB-DAC: Ausgabe wieder unverfälscht
 Außerdem:
-• Besser lesbar über hellen Bildern und im erweiterten Dunkel-Design
-• Ordner heißt „Interner Speicher“ statt „0“
-• Viele Fehler behoben
+• Ordo bewerten, teilen und Feedback senden – direkt in den Einstellungen
+• Viele kleine Verbesserungen

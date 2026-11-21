@@ -49,7 +49,7 @@
 ## Stand
 
 <!-- AUTO:status -->
-Aktuelle Version 0.17.0 · [Release v0.17.0](https://github.com/BEKO2210/ordo/releases/tag/v0.17.0) · ab Android 7.0 (minSdk 24, targetSdk 36 = Android 16) · [GPL-3.0-or-later](LICENSE)
+Aktuelle Version 0.18.0 · [letztes Release v0.17.0](https://github.com/BEKO2210/ordo/releases/tag/v0.17.0) · ab Android 7.0 (minSdk 24, targetSdk 36 = Android 16) · [GPL-3.0-or-later](LICENSE)
 <!-- /AUTO:status -->
 
 Ordo ist in Entwicklung. Bei Google Play läuft ein geschlossener Test; Testversionen erscheinen auch als
@@ -281,6 +281,7 @@ Tippe oder diktiere einen Satz wie „Verschiebe alle MP3s aus Download nach Mus
   aktualisiert, dreht sich beim Laden und endet mit einem Haken; „Aktualisieren“ im Menü geht auch ohne Geste
 - Eine schlanke Glas-Leiste: Seitenmenü, Suche, KI-Befehl und Optionen in einer Zeile, oben oder unten
 - Dasselbe Seitenmenü auf der Startseite und in der Dateiliste: Speicher, Ordner, Lesezeichen und alle Werkzeuge
+- In der Dateiliste bleibt die Leiste mit Seitenmenü, Suche, Sortierung und Optionen stehen, während die Liste scrollt
 - Suche nach Namen oder nach Text in Dateien, auf Wunsch mit regulären Ausdrücken
 - Liste oder Raster in drei Größen, für alle Ordner oder nur einen
 - Schnellzugriff auf Lesezeichen und häufige Ordner als Kacheln
@@ -532,6 +533,8 @@ Dateisystem, Archiv- und Server-Unterstützung sind die Grundlage dieser App. Da
 Außerdem nutzt Ordo [llama.cpp](https://github.com/ggml-org/llama.cpp) (MIT) mit Arm
 [KleidiAI](https://github.com/ARM-software/kleidiai) (Apache-2.0) für die KI auf dem Gerät, das Modell
 [Qwen3.5](https://huggingface.co/Qwen) (Apache-2.0, wird heruntergeladen, nicht mitgeliefert),
+[DeepFilterNet](https://github.com/Rikorose/DeepFilterNet) (MIT oder Apache-2.0, Modell nur auf Wunsch geladen) für
+„Dialog freistellen plus“ im Videoplayer,
 [Tink](https://github.com/tink-crypto/tink-java) für Verschlüsselung und
 [BlurView](https://github.com/Dimezis/BlurView) für den Glas-Effekt. Die Piktogramme sind
 [Material Symbols](https://github.com/google/material-design-icons) von Google (Apache-2.0).

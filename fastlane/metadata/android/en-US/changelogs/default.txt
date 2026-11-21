@@ -1,13 +1,10 @@
 Video:
-• Software decoder: DivX, MPEG-2, HEVC 10-bit, VC-1, .ts
-• Menus redone in Music style
-• Subtitles: accents always right, new style, easy to read
-• Adjust picture and remove interlacing
-• Detail plus where the device can handle it
+• HDR movies look more natural on regular displays
+• Detail plus is faster and now set to "Automatic"
 Sound:
-• Headphone pack: surround, quiet listening, correction for 500 models
-• Hi-res output via USB DAC
+• New: "Dialogue isolation plus" separates voices on the device with AI (optional)
+• Audio delay is remembered per headphone
+• USB DAC: output is unaltered again
 Also:
-• Easier to read over bright frames and in the extended dark theme
-• Folder named "Internal storage" instead of "0"
-• Many fixes
+• Rate, share and send feedback for Ordo right from Settings
+• Many small improvements

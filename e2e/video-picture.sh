@@ -7,7 +7,7 @@
 # processed and their GPU time is printed (mean and maximum per 120 frames, to compare devices); ⋮ › Signal path names
 # the decoder, "Lanczos 3" and the sound; ⋮ › Picture enhancement switches it off (CLEAR) and on again (APPLY) with a
 # hint; a clip exactly the screen's size is left alone (NOT_SMALLER); with "Match frame rate: Always" Ordo asks for
-# 24 fps itself (API 31+), "Only when seamless" is put back; an HDR10 clip (if ffmpeg has libx265) stays plain; Video
+# 24 fps itself (API 31+), "Only when seamless" is put back; an HDR10 clip (if ffmpeg has libx265) stays plain on an HDR screen and gets Ordo's HDR to SDR pass on an SDR screen; Video
 # info links to the signal path; the settings page has the "Picture" group. Whether the picture LOOKS better, and how
 # long the screen blinks under "Always", is judged by eye: screenshots are saved for that. Needs ffmpeg on the host.
 . "$(dirname "$0")/lib.sh" "$@"
@@ -155,12 +155,20 @@ back 1
 back 2
 settings_pick "Bildrate anpassen|Match frame rate" "Nur nahtlos|Only when seamless"
 
-# 7. HDR stays plain, and Video info links to the signal path.
+# 7. HDR stays plain on HDR screens (mapped by Ordo on SDR screens), and Video info links to the signal path.
 if [ "$hdr" = 1 ]; then
     relog
     open_folder 03-hdr.mp4
     ui tap 03-hdr.mp4 >/dev/null; wait_on viewer.video.VideoPlayerActivity 8; sleep 4
-    check "an HDR10 clip is not processed" eval 'log | grep "off=HDR" && ! log | grep -- "-> ENGAGE"'
+    if a shell dumpsys display | grep -q "mSupportedHdrTypes=\[\]"; then
+        # An SDR screen: Ordo's own HDR to SDR pass (HdrToneMap) runs and reports its GPU time each second.
+        check "an HDR10 clip on an SDR screen gets Ordo's HDR to SDR pass" eval 'log | grep "toneMap=true" && log | grep -- "-> ENGAGE"'
+        sleep 3
+        check "the HDR pass measures a peak and its GPU time" eval 'log | grep -E "hdr pass [0-9.]+ ms .* peak [0-9.]+ nits"'
+        log | grep "hdr pass" | tail -3
+    else
+        check "an HDR10 clip on an HDR screen is not processed" eval 'log | grep "off=HDR" && ! log | grep -- "-> ENGAGE"'
+    fi
     a shell input keyevent KEYCODE_MEDIA_PAUSE; sleep 1
     menu "Videoinfos|Video info"
     ui tap "Signalweg|Signal path" >/dev/null; sleep 1.5

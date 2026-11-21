@@ -51,6 +51,10 @@ jobs:
           yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --install 'ndk;30.0.16248370' > /dev/null
           ./gradlew :ffmpeg:buildFfmpegAudio
           ls -l ffmpeg/build/ffmpeg-audio/{arm64-v8a,armeabi-v7a,x86_64}/libffmpegJNI.so
+      - name: Build DeepFilterNet library
+        run: |
+          ./gradlew :app:buildDeepFilter
+          ls -l app/build/deepfilter/{arm64-v8a,x86_64}/libordo_df.so
 
       - name: Version and signing key
         id: key
@@ -83,7 +87,7 @@ jobs:
           echo "upload=$upload" >> "$GITHUB_OUTPUT"
 
       - name: Unit tests
-        run: ./gradlew testDebugUnitTest -x :ffmpeg:buildFfmpegAudio
+        run: ./gradlew testDebugUnitTest -x :ffmpeg:buildFfmpegAudio -x :app:buildDeepFilter
 
       - name: Build signed bundle
         env:
@@ -91,7 +95,7 @@ jobs:
           STORE_PASSWORD: ${{ secrets.ORDO_STORE_PASSWORD || 'dryrun-only' }}
           KEY_ALIAS: ${{ secrets.ORDO_KEY_ALIAS || 'dryrun' }}
           KEY_PASSWORD: ${{ secrets.ORDO_KEY_PASSWORD || 'dryrun-only' }}
-        run: ./gradlew --no-configuration-cache :app:bundleRelease -PversionCodeOverride="$VERSION_CODE" -x :ffmpeg:buildFfmpegAudio
+        run: ./gradlew --no-configuration-cache :app:bundleRelease -PversionCodeOverride="$VERSION_CODE" -x :ffmpeg:buildFfmpegAudio -x :app:buildDeepFilter
 
       - name: Check 16 KB page alignment
         run: utils/check-16k.sh app/build/outputs/bundle/release/app-release.aab

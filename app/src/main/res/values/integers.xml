@@ -14,7 +14,10 @@
     <integer name="scrollFlags_noScroll">0</integer>
     <integer name="scrollFlags_scroll_enterAlways">5</integer>
 
-    <integer name="file_list_toolbar_scroll_flags">@integer/scrollFlags_scroll_enterAlways</integer>
+    <!-- The file list's toolbar stays while the list scrolls: a list without menu, search and sort read as broken
+         (owner's Pixel, 21.11.2026). Only a phone held sideways (values-land) still lets it slide away and come back
+         with the first scroll up, because bar and path would take 112 of about 390 dp there. -->
+    <integer name="file_list_toolbar_scroll_flags">@integer/scrollFlags_noScroll</integer>
 
     <!-- SevenZOutputFile requires SeekableByteChannel which requires Android N. -->
     <integer name="create_archive_type_seven_z_visibility">@integer/visibility_gone</integer>

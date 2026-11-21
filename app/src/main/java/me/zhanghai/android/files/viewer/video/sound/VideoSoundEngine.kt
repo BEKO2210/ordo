@@ -21,7 +21,6 @@ import androidx.media3.common.Player
 import androidx.media3.common.Tracks
 import androidx.media3.exoplayer.ExoPlayer
 import java8.nio.file.Paths
-import java8.nio.file.attribute.BasicFileAttributes
 import me.zhanghai.android.files.BuildConfig
 import me.zhanghai.android.files.R
 import me.zhanghai.android.files.player.AudioRenderersFactory
@@ -37,21 +36,20 @@ import me.zhanghai.android.files.player.TransportFader
 import me.zhanghai.android.files.player.TruePeakLimiter
 import me.zhanghai.android.files.player.headphones.HeadphoneOutput
 import me.zhanghai.android.files.player.headphones.HeadphoneStages
-import me.zhanghai.android.files.provider.common.readAttributes
 import me.zhanghai.android.files.provider.linux.isLinuxPath
 import me.zhanghai.android.files.settings.Settings
 import me.zhanghai.android.files.util.valueCompat
-import me.zhanghai.android.files.viewer.video.VideoResumeStore
 import java.io.File
 import java.net.URI
 import java.util.concurrent.Executors
+import java.util.concurrent.atomic.AtomicReference
 
 /**
  * The video player's sound, built from Ordo Musik's Klang engine: [SoundEffectController] (equalizer, bass, balance
  * and loudness levelling on the platform's DynamicsProcessing, switched only in silence or inside a short dip) and a
  * [KlangAudioProcessor] chain with mono, the dialog enhancer and night mode. Before it, [DownmixProcessor] folds
  * 5.1/7.1 to stereo with the centre kept audible (unless the system's spatializer takes the channels, [VideoSpatial]);
- * after it the [TruePeakLimiter] (−1 dBTP) and [AvDelayProcessor] (A/V sync, remembered per film). The headphone
+ * after it the [TruePeakLimiter] (−1 dBTP) and [AvDelayProcessor] (A/V sync, remembered per output device). The headphone
  * pack ([HeadphoneStages], virtual surround in the downmix) is shared with Ordo Musik.
  *
  * [settings], [update] and [setDelay] are the public way in, for the sheets today and for anything that wants to set
@@ -59,7 +57,7 @@ import java.util.concurrent.Executors
  */
 class VideoSoundEngine(private val context: Context) {
     private val handler = Handler(Looper.getMainLooper())
-    // Small, quick jobs (the delay of a film); the loudness of a whole film has its own thread and never holds them up.
+    // Small, quick jobs (dropping 0.17.0's per-film delays); the loudness of a whole film has its own thread and never holds them up.
     private val worker = Executors.newSingleThreadExecutor()
     private val loudnessWorker = Executors.newSingleThreadExecutor()
     private val mono = MonoStage()
@@ -78,6 +76,9 @@ class VideoSoundEngine(private val context: Context) {
         override fun onChange(selfChange: Boolean) = applyToChain()
     }
     private val downmix = DownmixProcessor()
+    // "Dialog freistellen plus": active once its model is loaded (downloaded on request, DialogModel).
+    private val isolation = DialogIsolationProcessor()
+    private var isolationLoading = false
     private val truePeak = TruePeakLimiter().apply { armed = true }
     private val delay = AvDelayProcessor()
     // What the system's spatializer could take; used only while none of Ordo's own stages needs the channels.
@@ -88,6 +89,12 @@ class VideoSoundEngine(private val context: Context) {
         notifyChanged()
     }
     private val delayStore = VideoDelayStore(context)
+    // Written on the main thread like it is read: SharedPreferences keeps it in memory at once, so no read is stale.
+    private val deviceDelay = VideoDeviceDelay(delayStore::read) { key, value -> delayStore.write(key, value) }
+
+    init {
+        worker.execute { VideoDelayStore.dropLegacy(context) }
+    }
     // A film's level is measured once and cached (BS.1770, shared cache with Ordo Musik); a film takes longer.
     private val loudness by lazy { LoudnessAnalysis(context, LOUDNESS_MAX_MILLIS) }
     private var player: ExoPlayer? = null
@@ -109,8 +116,6 @@ class VideoSoundEngine(private val context: Context) {
     private val sessionLoudness = HashMap<String, ReplayGainInfo?>()
     private var measuringId: String? = null
     private var measurement: java.util.concurrent.Future<*>? = null
-    private var currentKey: String? = null
-    private var delayChangedByUser = false
     private var released = false
     private val listener = object : Player.Listener {
         override fun onAudioSessionIdChanged(audioSessionId: Int) {
@@ -124,6 +129,7 @@ class VideoSoundEngine(private val context: Context) {
             // Music may have set the mixer meanwhile; the film's rate counts again. Paused, Ordo Musik gets a normal
             // mixer, as music hands it back when paused.
             if (isPlaying) output.onConfigure(output.track) else output.suspend()
+            if (isPlaying) applyDeviceDelay()
         }
 
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) = onItem(mediaItem)
@@ -145,8 +151,12 @@ class VideoSoundEngine(private val context: Context) {
     var settings: VideoSoundSettings = VideoSoundStore.read(context)
         private set
 
-    /** Sound later (+) or earlier (−) than the picture, in ms, for the current film. */
+    /** Sound later (+) or earlier (−) than the picture, in ms, for the current output device. */
     var delayMs: Int = 0
+        private set
+
+    /** The output the delay belongs to, for "Applies to: …"; null while unknown. */
+    var delayDevice: AudioDeviceInfo? = null
         private set
 
     /** Channels of the selected sound track, or -1 while unknown. */
@@ -167,7 +177,8 @@ class VideoSoundEngine(private val context: Context) {
         get() = sourceChannelCount > 2 && sourceChannelCount in spatialChannels && needsOrdoChain()
 
     private fun needsOrdoChain(): Boolean =
-        settings.dialogLevel != VideoSoundMath.DIALOG_OFF || settings.nightMode || settings.klang.mono
+        settings.dialogLevel != VideoSoundMath.DIALOG_OFF || settings.nightMode || settings.klang.mono ||
+            settings.isolateDialog
 
     /**
      * Sets which channel counts pass to the system. The downmix reads it when a format is configured; if the playing
@@ -240,6 +251,7 @@ class VideoSoundEngine(private val context: Context) {
             else context.getString(
                 R.string.video_sound_dialog_state, number.format(reached.toDouble()), number.format(measured.toDouble())
             ),
+            context.getString(R.string.video_sound_isolate).takeIf { isolating },
             context.getString(R.string.video_sound_night).takeIf { value.nightMode },
             context.getString(R.string.audio_sound_quiet).takeIf { headphones.quiet.effectEnabled },
             headphones.correction.profile?.takeIf { headphones.correction.effectEnabled }
@@ -300,8 +312,66 @@ class VideoSoundEngine(private val context: Context) {
     // film's sound always passes downmix, lip-sync delay and limiter.
     private val output = HiResOutput(context, allowsBitPerfect = false)
 
-    fun renderersFactory(): AudioRenderersFactory =
-        AudioRenderersFactory(context, arrayOf(downmix, klang, truePeak, delay), output)
+    fun renderersFactory(videoGraph: androidx.media3.common.VideoGraph.Factory? = null): AudioRenderersFactory =
+        AudioRenderersFactory(context, arrayOf(downmix, isolation, klang, truePeak, delay), output, videoGraph)
+
+    /** "Dialog freistellen plus" can be offered here (64-bit library, not measured too slow). */
+    val isolationOffered: Boolean get() = DialogModel.offered(context)
+
+    /** The model's download state, for the sheet. */
+    internal fun isolationModel(): DialogModel.State = DialogModel.refresh(context)
+
+    /** The user asked for the model (the only way it is ever downloaded); switches the option on when it arrives. */
+    fun downloadIsolationModel() {
+        if (released) return
+        DialogModel.download(context) {
+            handler.post {
+                if (released) return@post
+                if (DialogModel.state == DialogModel.State.Ready) update(settings.copy(isolateDialog = true))
+                notifyChanged()
+            }
+        }
+    }
+
+    /** Switched on, loaded and working on this film's sound (16-bit stereo at 48 kHz). */
+    val isolating: Boolean get() = settings.isolateDialog && isolation.isActive
+
+    /** Switched on and loaded, but this film's sound is not 48 kHz (or not PCM): it passes unchanged. */
+    val isolationIdle: Boolean
+        get() = settings.isolateDialog && isolation.filter != null && !isolation.isActive && sourceChannelCount > 0
+
+    private val loadedFilter = AtomicReference<DeepFilter?>()
+
+    /** Loads the downloaded model off the main thread, measures this device, then lets the chain pick it up. */
+    private fun loadIsolation() {
+        if (isolationLoading || isolation.filter != null || DialogModel.refresh(context) != DialogModel.State.Ready) return
+        isolationLoading = true
+        val path = DialogModel.file(context).path
+        worker.execute {
+            val filter = if (DialogModel.verify(context)) DeepFilter.load(path) else null
+            val rtf = filter?.let(DialogModel::measureRtf) ?: Float.NaN
+            // NaN: not loaded, or the hops failed twice; only a finished measurement is kept.
+            if (!rtf.isNaN()) DialogModel.saveRtf(context, rtf)
+            if (BuildConfig.DEBUG) Log.d(TAG, "DeepFilterNet3: loaded=${filter != null} rtf=$rtf")
+            // Held here until the main thread takes it, so release() closes it if it drops the message below.
+            loadedFilter.set(filter)
+            handler.post {
+                isolationLoading = false
+                val loaded = loadedFilter.getAndSet(null)
+                if (released || loaded == null || rtf.isNaN() || DialogModel.tooSlow(rtf)) {
+                    loaded?.close()
+                    // Too slow here: the option goes away (DialogModel.offered) and switches off.
+                    if (!released && settings.isolateDialog) update(settings.copy(isolateDialog = false))
+                    notifyChanged()
+                    return@post
+                }
+                isolation.filter = loaded
+                // The processor becomes active only with a new format: the audio track is switched off and on once.
+                reconfigureAudio()
+                notifyChanged()
+            }
+        }
+    }
 
     fun attach(player: ExoPlayer) {
         this.player = player
@@ -314,6 +384,7 @@ class VideoSoundEngine(private val context: Context) {
         applyToChain()
         effects.attach(player.audioSessionId)
         effects.setAudible(player.isPlaying)
+        applyDeviceDelay()
         onItem(player.currentMediaItem)
     }
 
@@ -326,19 +397,19 @@ class VideoSoundEngine(private val context: Context) {
         if (settings.klang.normalizationEnabled && !wasLevelling) measureLoudness(player?.currentMediaItem)
     }
 
-    /** A new delay takes effect with a flush: a seek to where the film is (one short re-buffer). Kept per film. */
+    /** A new delay takes effect with a flush: a seek to where the film is (one short re-buffer). Kept per device. */
     fun setDelay(value: Int) {
         if (released) return
-        delayChangedByUser = true
-        applyDelay(VideoSoundMath.stepDelay(value, 0))
-        storeDelay()
+        applyDeviceDelay()
+        deviceDelay.set(VideoSoundMath.stepDelay(value, 0))
+        applyDelay(deviceDelay.delayMs)
     }
 
-    private fun storeDelay() {
-        val key = currentKey ?: return
-        if (Settings.VIDEO_NO_HISTORY.valueCompat) return
-        val stored = delayMs
-        worker.execute { delayStore.write(key, stored) }
+    /** The output may have changed: its own delay applies (0 for one never set). */
+    private fun applyDeviceDelay() {
+        val device = audioManager?.let(VideoDeviceDelay::output)
+        delayDevice = device
+        if (deviceDelay.route(device?.let(VideoDeviceDelay::key))) applyDelay(deviceDelay.delayMs)
     }
 
     private fun applyDelay(value: Int) {
@@ -348,34 +419,14 @@ class VideoSoundEngine(private val context: Context) {
         player?.let { it.seekTo(it.currentPosition) }
     }
 
-    /** A new film: its own delay (from the store) and its own level. */
+    /** A new film: its own level; the delay stays the output's. */
     private fun onItem(item: MediaItem?) {
         // The dialog distance belongs to the film: the next one starts measuring from nothing.
         dialog.steering.resetRequested = true
         downmix.steering.resetRequested = true
-        currentKey = null
-        delayChangedByUser = false
         replayGain = null
         applyToChain()
-        val mediaId = item?.mediaId
-        // "Don't remember places": no key, nothing looked up or stored; the delay lasts while the player is open.
-        if (mediaId == null || Settings.VIDEO_NO_HISTORY.valueCompat) {
-            applyDelay(0)
-            if (mediaId != null) measureLoudness(item)
-            return
-        }
-        measureLoudness(item)
-        worker.execute {
-            val key = keyOf(mediaId)
-            val stored = key?.let(delayStore::read) ?: 0
-            handler.post {
-                if (released || player?.currentMediaItem?.mediaId != mediaId) return@post
-                currentKey = key
-                // Set by hand while the key was being found: that wins, and is stored now.
-                if (delayChangedByUser) storeDelay() else applyDelay(stored)
-                notifyChanged()
-            }
-        }
+        if (item?.mediaId != null) measureLoudness(item)
     }
 
     private fun measureLoudness(item: MediaItem?) {
@@ -425,6 +476,8 @@ class VideoSoundEngine(private val context: Context) {
         dialog.effectEnabled = value.dialogLevel != VideoSoundMath.DIALOG_OFF && !centreSteered()
         downmix.dialogTargetLu = VideoSoundMath.dialogTargetLu(value.dialogLevel) ?: Float.NaN
         night.effectEnabled = value.nightMode
+        isolation.enabled = value.isolateDialog
+        if (value.isolateDialog) loadIsolation()
         val phones = audioManager?.let(HeadphoneOutput::headphones) != null
         downmix.binaural = value.klang.binauralEnabled && phones
         headphones.apply(value.klang, phones, audioManager?.let(HeadphoneOutput::attenuationDb) ?: 0f)
@@ -439,6 +492,9 @@ class VideoSoundEngine(private val context: Context) {
         // A new output: the old one's mixer goes back, the new one gets the film's rate while it plays.
         output.refresh()
         if (player?.isPlaying == true) output.onConfigure(output.track)
+        applyDeviceDelay()
+        // The media route may follow the device callback a moment later (Bluetooth connecting).
+        handler.postDelayed({ applyDeviceDelay(); notifyChanged() }, ROUTE_SETTLE_MS)
         applyToChain()
         notifyChanged()
     }
@@ -461,17 +517,15 @@ class VideoSoundEngine(private val context: Context) {
         loudnessWorker.shutdownNow()
         effects.release()
         output.release()
+        // Safe while the audio thread is still in a hop: DeepFilter.close waits for it, later hops pass the sound.
+        isolation.filter?.close()
+        loadedFilter.getAndSet(null)?.close()
     }
 
     private companion object {
         const val TAG = "OrdoVideoSound"
         const val LOUDNESS_MAX_MILLIS = 10 * 60_000L
-
-        /** The same key as "Continue watching": path, size and modification time. Not on the main thread. */
-        fun keyOf(mediaId: String): String? = if (!remembersDelay(mediaId)) null else runCatching {
-            val attributes = Paths.get(URI.create(mediaId)).readAttributes(BasicFileAttributes::class.java)
-            VideoResumeStore.key(mediaId, attributes.size(), attributes.lastModifiedTime().toMillis())
-        }.getOrNull()
+        const val ROUTE_SETTLE_MS = 1000L
 
         /** Only files on this device are measured: a network film would be read a second time. */
         fun localFile(mediaId: String): File? = runCatching {

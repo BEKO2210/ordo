@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later -->
+
+<resources>
+
+    <!-- A phone held sideways: see values/integers.xml. Tablets keep the toolbar (values-sw600dp wins over -land). -->
+    <integer name="file_list_toolbar_scroll_flags">@integer/scrollFlags_scroll_enterAlways</integer>
+
+</resources>

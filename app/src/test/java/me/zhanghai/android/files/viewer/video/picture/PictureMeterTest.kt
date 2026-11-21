@@ -37,7 +37,7 @@ class PictureMeterTest {
         meter.addRow(3, "film", passes, dropped = 1, headroom = Float.NaN, audio = audio, underruns = 0)
         val lines = meter.csv().trimEnd().lines()
         assertEquals(PictureMeter.HEADER, lines[0])
-        assertEquals("3,gpu,film,,,0,1.250,1.250,1,,,0,1,,,,0,0", lines[1])
+        assertEquals("3,gpu,film,,,0,1.250,1.250,1,,,0,,,0,1,,,,0,0", lines[1])
         assertEquals(lines[0].split(",").size, lines[1].split(",").size)
         meter.clear()
         assertEquals(1, meter.csv().trimEnd().lines().size)

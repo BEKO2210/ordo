@@ -162,8 +162,8 @@ zusammen mit Ordos Token wirksam). Logik ohne Android in `VideoLibrary`, geteste
 
 Ein Video im Tresor öffnet sich (Tresor entsperrt) in Ordos Player, die Videos des Tresors sind die Warteschlange.
 `vault/VaultVideos` streamt es über Tinks `newSeekableDecryptingChannel` (`VaultStore.openSeekable`) als Media3-
-`DataSource`: entschlüsselt wird segmentweise im Speicher, kein Klartext auf dem Speicher (anders als bei Bildern
-und PDFs, die `vault-open` im Cache nutzen). Lesen darf der Player nur Einträge, die der entsperrte Tresor freigegeben
+`DataSource`: entschlüsselt wird segmentweise im Speicher, kein Klartext auf dem Speicher (Bilder, PDFs und
+andere Dateien lesen genauso über `vault/VaultProvider`). Lesen darf der Player nur Einträge, die der entsperrte Tresor freigegeben
 hat; Sperren (auch nach 2 min im Hintergrund) und Prozessende nehmen die Freigabe zurück. Tresor-Videos bekommen
 keine gemerkte Stelle, keine Gesehen-Marke, keine Vorschau und erscheinen nie in der Sammlung (MediaStore sieht den
 Tresor nicht); der Player-Bildschirm ist dann `FLAG_SECURE` (keine Bildschirmfotos, leere Vorschau in „Zuletzt“),
@@ -285,14 +285,52 @@ Quelle der Entscheidungen: `ordo-team/QUALITAET-PANEL.md`, Ideen 1–4. Logik oh
   Pumpen). Im Shader als Exponent-Verhältnis auf der Luma wie HLGs OOTF: rgb · Y'^(γ/1,2 − 1), pro Bild gelesen, ohne
   die Kette neu zu bauen. Wirkt nur, solange der Bildverbesserungs-Pass läuft; der Sensor hört nur bei sichtbarem
   Player zu. Signalweg-Zeile „Raumlicht: 1 200 lx → Gamma 1,11 (Bezug 1,20)“.
-- **HDR→SDR mit eigener EETF (BT.2408-9 Anhang 5): nicht gebaut**, weil Media3 1.11.1 es nicht zulässt. Eigene Effekte
-  bekommen HDR nur dann linear (BT.2020, 16 bit), wenn die Ausgabe HDR ist (`GlEffect`-Javadoc,
-  `DefaultVideoFrameProcessor` L703–722). Ist die Ausgabe SDR, rechnet schon der Eingangs-Shader mit Media3s fester
-  Kurve um (`DefaultShaderProgram`, `uApplyHdrToSdrToneMapping`), bevor ein Effekt das Bild sieht. Welche Ausgabe gewählt
-  wird, entscheidet `PlaybackVideoGraphWrapper.registerInput` (L568–596) selbst; der Schalter
-  `setRequestOpenGlToneMapping` ist nicht öffentlich über ExoPlayer erreichbar. Mit HDR-Ausgabe würde Android die
-  Umrechnung für ein SDR-Display wieder selbst machen (doppelt), und die Kette verwirft HDR-Metadaten
-  (`setHdrStaticInfo(null)`) und Dolby Vision. Darum bleibt HDR wie bisher ohne Kette direkt beim Decoder.
+- **HDR-Darstellung** (Einstellungen › Bild, „Automatisch“ ab Werk oder „Aus (Android rechnet um)“; `HdrToneMap`,
+  `HdrToneMapEffect`, getestet in `HdrToneMapTest`): HDR10 und HLG auf einem Bildschirm, der diese HDR-Art nicht kann
+  (`Display.HdrCapabilities.supportedHdrTypes`), rechnet Ordo selbst auf SDR um; ein HDR-Bildschirm bekommt HDR
+  unverändert direkt vom Decoder. Nicht bei Dolby Vision, DRM und FFmpeg-Dekodierung (z. B. Tab A8: kein Hardware-
+  Decoder für HEVC Main 10, dann rechnet Android wie bisher). Kurve: EETF aus ITU-R **BT.2408-9 Anhang 5** (bis
+  BT.2390-8 dort): im PQ-Bereich 1:1 bis zu einem Knie, darüber ein Hermite-Spline, der genau auf
+  der Spitze des Bildschirms endet; angewandt auf max(R,G,B), damit der Farbton bleibt; danach BT.2020 → BT.709
+  (BT.2087-Matrix), Gamma 2,2. HLG bekommt die BT.2100-OOTF bei 1000 cd/m² (Systemgamma 1,2). Ziel = Spitzenhelligkeit
+  des Bildschirms (`getDesiredMaxLuminance`, 100–2000 cd/m², sonst das HDR-Referenzweiß 203 cd/m² nach BT.2408 § 2.1).
+  Die Quellspitze ist nicht die Mastering-Angabe, sondern gemessen (Idee aus libplacebos Peak-Erkennung in mpv, Code
+  eigen): ein zweiter kleiner Pass vor dem eigentlichen auf 128 × 72 Blöcke (Maximum und mittleres Licht je Block aus
+  2 × 2 von 4 × 4 Abtastpunkten, über vier Bilder versetzt, sodass alle 16 drankommen; über 1080p nur jedes zweite
+  Bild), asynchron über PBO und Fence zurückgelesen (nichts wartet), 99,9-%-Wert eines Histogramms mit 1024 Stufen;
+  geglättet über 20 Messungen, bei einem Sprung der mittleren Helligkeit über 3 % PQ gilt ein Szenenschnitt und die neue
+  Szene zählt sofort (dazwischen gleitend ab 1 %, Schwellen wie libplacebo). Der Pass rechnet ohne `pow`: Kurve über dem
+  Knie (256 Werte, bei neuer Spitze neu) und Ausgabestufe (1024 Werte) sind R16F-Tabellen, Fehler unter 0,2 % bzw. unter
+  einem 10-bit-Code (Tests); größere Videos schreibt er gleich in Bildschirmgröße. Weg durch Media3: Ordos eigener Video-Renderer
+  (`AudioRenderersFactory.buildVideoRenderers`, sonst wie Media3s) baut den Video-Graphen über `HdrGraph`; der lässt für
+  diesen Fall die Ausgabe HDR (nur dann bekommen Effekte lineares BT.2020 in RGBA16F, sonst rechnet schon Media3s
+  Eingangs-Shader mit fester Kurve um) und schreibt auf die Bildschirm-Fläche ohne BT.2020-PQ-Farbraum (wie Media3 auf
+  einen Encoder schreibt). Die Fläche ist damit SDR, Android rechnet nicht ein zweites Mal um; der Effekt gibt dafür
+  die Lichtwerte aus, deren PQ-Code dem gewünschten SDR-Code entspricht. Die Kette ist an den Renderer gebunden: ein
+  Wechsel zwischen HDR-Pass und SDR in der Warteschlange baut den Bildschirm neu auf. Die Bildverbesserung (Lanczos,
+  CAS, Deband) läuft bei HDR weiterhin nicht. Signalweg: „HDR10 → SDR von Ordo für diesen Bildschirm: Spitze gemessen
+  … nits, Ziel … nits“. GPU-Zeit wird immer gemessen; liegt sie nach dem Einschwingen zwei Sekunden in Folge (je ≥ 10
+  Bilder) im Mittel über 10 % der Bildzeit (Bildrate × Tempo: 24 fps 4,2 ms, 60 fps 1,7 ms; ohne Bildrate 2 ms),
+  übernimmt Android bis zum Prozessende. Der neu aufgebaute Bildschirm zeigt dann einmal den Hinweis und im Signalweg
+  „HDR10, Android rechnet auf SDR um: Ordos Umrechnung war hier zu langsam (… ms je Bild, Grenze … ms)“. Zwei Abweichungen vom Anhang nach dem
+  Bild-Prüfpanel (21.11.2026, Lichter zu früh gesättigt): Knie tiefer, `KS = 2·maxLum − 1` statt `1,5·maxLum − 0,5`
+  (`KNEE_OFFSET` 1 statt 0,5; bei Spitze 1083 auf 540 cd/m² liegt es bei 266 statt 380 cd/m², das Referenzweiß 203
+  bleibt 1:1), und der Spline endet mit Steigung 0,75 statt 0 (`END_SLOPE`; 1 machte die Schulter in der zweiten
+  Panel-Runde S-förmig). Gerechnet: Der Graukeil 400…1000 cd/m² liegt dann auf 211…249 (8 bit) statt auf 222…251 mit
+  248–255 zusammengefallen, 900/950/1000 cd/m² liegen 3–4 Codewerte auseinander statt 0. Monoton und nie über dem Ziel
+  für alle Ziele ≥ 100 cd/m² (Start-/Endsteigung 2 bzw. 1,5 × Sekante, innerhalb des Fritsch-Carlson-Kreises; Test).
+  **Gemessen 21.11.2026, Tab S9 Ultra** (Adreno 740, Android 16; der Bildschirm kann HDR, darum im Entwickler-Build
+  als SDR ausgegeben, Ziel 540 cd/m² aus `getDesiredMaxLuminance`), Testclips HDR10/HLG 1920 × 1080 und HDR10 3840 × 2160
+  (Generator siehe PR): GPU-Zeit je Bild (`EXT_disjoint_timer_query`, Mittel je Sekunde) 1080p 0,74–1,07 ms (Spitze
+  1,6 ms), 4K 1,9–2,7 ms. Mit der damals festen Grenze von 2 ms fiel 4K zurück (Log „HDR to SDR off: 2,18 ms“, Neuaufbau
+  ohne Pass); mit der Bildzeit-Grenze bleibt 4K24 (4,2 ms) beim Pass, 4K60 (1,7 ms) fiele zurück. Der Pass ist speicherbegrenzt (RGBA16F lesen und schreiben;
+  helle, schlecht komprimierbare Bilder kosten mehr). Gemessene Spitze: Nacht 191 (Soll 180), Tag 1 054 (Soll 1 000;
+  Überschwinger der Kompression an Kanten), Szenenschnitt bei 4 s sofort erkannt, der stetige Anstieg 200→1000 ohne
+  Schnitt (282 → 441 → 639 → 851 cd/m² je Sekunde). Bildschirmfoto Tag-Szene (8 bit): 203-cd/m²-Weiß 165 (Samsung 166),
+  Streifen 900/950/1000 cd/m² 244/248/252 (Samsung 251/253/253), Graukeil 300…1000 cd/m² 196, 212, 220, 226, 231, 237,
+  244, 252 (Samsung 188 … 251, 255); HLG gleich hell wie PQ (Samsungs eigene HLG-Wiedergabe: Weiß 138). Bild-Prüfpanel
+  (codex, Gemini, Copilot, Cursor) Runde 2 (noch mit Steigung 1): alle vier „Ordo besser“, v. a. Lichter und HLG. Tab A8: kein HEVC-Main-10-Decoder, HDR läuft dort
+  über FFmpeg ohne den Pass.
 - **Bild anpassen** (⋮ › „Bild anpassen“, `PictureAdjustSheet`): Helligkeit, Kontrast, Sättigung, Farbtemperatur und
   Schärfe je −3…+3 mit −/+ (48 dp, kein Regler), live. Alles in **demselben** Pass von `PictureShader`: eine
   4×4-Farbmatrix (`PictureAdjust.colorMatrix`, getestet in `PictureAdjustTest`; Reihenfolge Farbtemperatur → Sättigung
@@ -319,10 +357,28 @@ Quelle der Entscheidungen: `ordo-team/QUALITAET-PANEL.md`, Ideen 1–4. Logik oh
 Quelle: `ordo-team/LOKALE-QUALITAETS-KI.md`, Empfehlungen 1 und 2. Logik ohne Android in `DetailPlus`, `MpvHook` und
 `PictureMeter`, getestet in `DetailPlusTest`, `MpvHookTest`, `PictureMeterTest`.
 
-- **Hochskalieren** (Einstellungen › Bild; die Wahl öffnet ein Klang-Sheet mit Symbol und kurzer Erklärung je Option): Standard (Lanczos, ab Werk) / Detail plus: Film / Detail plus: Zeichentrick /
-  Automatisch. Film = **FSRCNNX x2 8-0-4-1** (igv, Shaderdatei LGPL-3.0-or-later, Repo GPL-3.0), Zeichentrick =
-  **Anime4K CNN x2 M** (bloc97, MIT). „Automatisch“ nimmt Zeichentrick, wenn Datei- oder Ordnername nach Anime klingt
-  (anime, zeichentrick, cartoon, manga, OVA, Fansub-Gruppen, Muster `[Gruppe] Titel - 01`), sonst Film.
+- **Hochskalieren** (Einstellungen › Bild; die Wahl öffnet ein Klang-Sheet mit Symbol und kurzer Erklärung je Option): Standard (Lanczos) / Detail plus: Film / Detail plus: Zeichentrick /
+  Automatisch (ab Werk seit 0.18). Film = **FSRCNNX x2 8-0-4-1** (igv, Shaderdatei LGPL-3.0-or-later, Repo GPL-3.0), Zeichentrick =
+  **Anime4K CNN x2 M** (bloc97, MIT).
+- **Automatisch** (`DetailPlus.auto`, getestet in `DetailPlusTest`) entscheidet je Film, in dieser Reihenfolge:
+  Bildverbesserung aus (HDR, DRM, ausgeschaltet) → Lanczos; weniger als 1,5-fach → Lanczos; Netz auf dieser GPU nicht
+  lauffähig, für diesen Film schon zurückgefallen oder **vorhergesagte** GPU-Zeit > 8 ms → nächste Stufe. Stufen: bei
+  Anime (Pfad, Genre oder Titel: anime, zeichentrick, cartoon, manga, animation, OVA, Fansub-Gruppen, Muster
+  `[Gruppe] Titel - 01`) Zeichentrick → Film → Lanczos, sonst Film → Lanczos (FSRCNNX schlug Lanczos+CAS auch auf
+  Zeichentrick, Tabelle unten). Die Vorhersage ist die zuletzt gemessene GPU-Zeit je
+  Megapixel Eingabe (`DetailPlus.Budget`, das Netz rechnet in Quellgröße) mal den Pixeln dieses Films, je Netz und
+  App-Version in den Einstellungen gemerkt; ohne Messung zeigt Automatisch nie ein ungemessenes Netz: Lanczos spielt, während `DetailPlusBench` das Netz in einem eigenen GL-Kontext im Hintergrund misst: erst ein Bild 480×270 (ist es schon so langsam, dass ein 960×540-Film
+  über das Dreifache von 8 ms bräuchte, endet die Messung dort: auf einem Budget-Gerät ~40 ms GPU statt elf volle
+  Bilder), sonst 3 Aufwärm- und 8 Messbilder 960×540; je Bild GPU-Timer (0, GL-Fehler oder Disjoint → Wanduhr) und
+  Takt direkt danach, Median auf den Höchsttakt umgerechnet. Scheitert die Messung, überspringt Automatisch dieses
+  Netz für den Bildschirm (Anime: weiter mit Film). Tab S9 Ultra, frisch installiert (21.11.2026): 0,6 s Lanczos,
+  Messung 4,3 ms/MP (auf dem Bildschirm 3,6 ms/MP, also zur sicheren Seite) → Film, 0 verworfene Bilder. Im
+  Debug-Build simuliert `adb shell setprop debug.ordo.detailplus.slowdown 40` ein Budget-Gerät: ein Bild 480×270,
+  178 ms/MP → Lanczos nach 0,4 s, das Netz erscheint nie auf dem Bildschirm. W90 und Tab A8 waren nicht per adb
+  erreichbar: dort neu messen.
+  Der Rückfall ist bei Automatisch still (kein Hinweis), der Signalweg nennt den Grund, z. B. „Automatisch: Detail plus
+  Film, weil 960 × 540 → 2960 × 1665 und 5,6 ms frei“ oder „Automatisch: Lanczos 3, weil Detail plus hier 81,0 ms
+  bräuchte (Ziel 8,0 ms)“.
 - **Wann:** nur wenn die Bildverbesserung läuft (SDR, ohne DRM, eingeschaltet) und das Video mindestens **1,5-fach**
   vergrößert wird. Kette: Netz ×2 → `LanczosResample` auf die Oberfläche → Bildverbesserungs-Pass mit **halber**
   CAS-Stärke (das Netz schärft schon).
@@ -332,15 +388,25 @@ Quelle: `ordo-team/LOKALE-QUALITAETS-KI.md`, Empfehlungen 1 und 2. Logik ohne An
   GL unten, spiegeln die Makros y. `DetailPlusProgram` (ein `GlEffect`) rechnet alle Pässe in eigenen **RGBA16F**-
   Texturen (Merkmale sind vorzeichenbehaftet, Media3s 8-bit-Pässe würden sie zerstören), Texturen werden nach der
   letzten Verwendung wiederverwendet. FSRCNNX arbeitet wie in mpv nur auf Luma (Y' aus R'G'B', BT.709); die Farbe kommt
-  bilinear verdoppelt dazu. Braucht OpenGL ES 3 mit Half-Float-Rendertargets (ES 3.2 oder
+  bilinear verdoppelt dazu.
+- **Schneller (0.18):** `MpvHook.groups` zeichnet aufeinanderfolgende Pässe gleicher Größe, die nichts voneinander
+  lesen, in einem Durchgang mit mehreren Render-Targets (FSRCNNX: 14 Pässe → 8 Durchgänge, die Paare lesen ihre
+  Eingaben nur noch einmal; Anime4K bleibt bei 9). Luma liest FSRCNNX direkt aus dem Bild (kein eigener Luma-Pass, keine
+  Luma-Textur). Der letzte Pass, die Verdopplung, schreibt direkt in Media3s Ausgabe samt Farbe (keine 2×-Half-Float-
+  Textur, kein eigener Abschluss-Pass). Pässe in Quellgröße lesen ganze Texel (`texelFetch`, Rand wie
+  `CLAMP_TO_EDGE`) und rechnen in **mediump** (Half-Float, auf Adreno doppelte Rate); der letzte Pass rechnet Positionen
+  in highp, nur seine Summe in mediump. Braucht OpenGL ES 3 mit Half-Float-Rendertargets (ES 3.2 oder
   `EXT_color_buffer_(half_)float`); sonst kopiert der Pass nur und Ordo schaltet auf Lanczos zurück (Signalweg nennt den Grund).
-- **Rückfall:** GPU-Zeit des Netzes im Mittel einer Sekunde **> 8 ms** (ab 10 gemessenen Bildern) oder **jedes**
-  verworfene Bild im eingeschwungenen Abspielen (2 s nach Start, Sprung, Pause oder neuen Effekten) → Lanczos für
-  diesen Bildschirm, mit ruhigem Hinweis. Meldet Media3 einen Ruckel-Block, fällt zuerst Detail plus weg, erst danach
-  die ganze Bildverbesserung. Das ⋮-Umschalten setzt beides zurück.
+- **Rückfall:** GPU-Zeit des Netzes im Mittel einer Sekunde **> 8 ms beim höchsten GPU-Takt, zwei Sekunden in Folge** (ab 10 gemessenen
+  Bildern; gemessene Zeit × aktueller/höchster Takt aus `/sys/class/kgsl/kgsl-3d0/devfreq`, wo lesbar – Adreno; sonst
+  die gemessene Zeit) → Lanczos für diesen Bildschirm, mit ruhigem Hinweis. Verworfene Bilder zählen nur, wo die GPU
+  den Pass nicht messen kann (kein `EXT_disjoint_timer_query`): dann jedes im eingeschwungenen Abspielen (2 s nach
+  Start, Sprung, Pause oder neuen Effekten), und ein Ruckel-Block von Media3 nimmt zuerst Detail plus, erst danach die
+  ganze Bildverbesserung. Mit GPU-Timer sagen sie nichts über den Pass (Tab S9, 21.11.2026: 1–14 verworfene Bilder
+  nach Start und Sprüngen schalteten ein 0,8-ms-Netz ab). Das ⋮-Umschalten setzt beides zurück.
 - **Messwerte** (⋮ › Signalweg, unten, eingeklappt und aus): Antippen startet die Messung, erneutes Antippen beendet
-  sie. Ohne Messung wird nichts umhüllt und nichts gemessen, außer der GPU-Zeit des Detail-plus-Passes (für den
-  Rückfall). Gemessen werden: GPU-Zeit je Pass (Detail plus, Lanczos, Bildverbesserung) per `EXT_disjoint_timer_query`
+  sie. Ohne Messung wird nichts umhüllt und nichts gemessen, außer der GPU-Zeit des Detail-plus- und des HDR-Passes (für den
+  Rückfall). Gemessen werden: GPU-Zeit je Pass (Detail plus, Lanczos, Bildverbesserung, HDR → SDR) per `EXT_disjoint_timer_query`
   (`GL_TIME_ELAPSED_EXT`, Ergebnis Bilder später abgeholt, nichts wartet; ohne Erweiterung nur beim Messen per
   `glFinish` und CPU-Uhr), verworfene Bilder (`DecoderCounters`), thermische Reserve (`PowerManager.getThermalHeadroom`
   ab API 30, alle 5 s, Vorschau 10 s), Rechenzeit der Klang-Kette je Puffer und Ton-Unterläufe
@@ -366,10 +432,44 @@ Quelle: `ordo-team/LOKALE-QUALITAETS-KI.md`, Empfehlungen 1 und 2. Logik ohne An
   gleicher Abschluss-Shader). Anime4K-Ergebnis gegen libplacebos Lauf desselben Shaders auf demselben Bild: **66,4 dB**
   (Sita) und **61,4 dB** (Tears of Steel), also praktisch gleich; ohne die y-Spiegelung nur 47,7/45,8 dB. Damit stimmt
   die Ausrichtung. FSRCNNX (Luma-Weg mit bilinearer Farbe, RGB-PSNR eines Bildes): 40,61 dB gegen 40,50 ohne
-  Spiegelung; bilinear allein 36,67 dB.
-- **Am Gerät messen (offen):** Tab S9 Ultra und Pixel 9, 720p und 540p → Bildschirm, 30 fps, 20 min, Messwerte an,
-  CSV teilen: `detailplus_ms` ≤ 8, keine zusätzlichen verworfenen Bilder gegen einen Lauf mit Standard, Thermik-Reserve
-  < 1,0; S21 und W90: muss von selbst zurückfallen, ohne Ruckler. Akku: Pixel 9 über Perfetto `power.rails`.
+  Spiegelung; bilinear allein 36,67 dB. Seit 0.18 prüft der Nachbau nur noch die Einzelpässe (ohne Gruppen, mit
+  eigenem Abschluss-Shader); Gruppen und Abschluss in die Ausgabe prüft das Gerät (Bildtabelle unten).
+- **Am Gerät gemessen (21.11.2026, Galaxy Tab S9 Ultra quer, 2960×1665, 24 fps, stumm, Ordo Dev 0.18.0 Beta-Build):**
+  Werkzeuge in `utils/detailplus/device-*.sh` (Clips aus `device-clips.sh`: die 5-s-Clips von `quality.sh` auf 3 min
+  geschleift). Je Pass per GPU-Timer in einem Messbuild (nicht im Repo), Takt per `devfreq/cur_freq` alle 5 s.
+
+  | FSRCNNX, Eingabe 1267×540 | Pässe | GPU-Zeit bei 220 MHz | beim Höchsttakt 719 MHz (umgerechnet) |
+  |---|---|---|---|
+  | 0.17.0 | 16 | **13,45 ms** | 4,12 ms |
+  | Gruppen + Luma aus dem Bild + Abschluss in die Ausgabe + texelFetch, highp | 8 | 11,38 ms | 3,48 ms |
+  | … und mediump-Summen (0.18) | 8 | **8,11 ms** (−40 %) | 2,48 ms |
+
+  Der Governor hält die GPU beim Abspielen bei 220–295 MHz (31–41 % des Höchsttakts). Die 8,10 ms aus der 0.17-QA
+  waren darum die Zeit bei niedrigem Takt, nicht das, was das Netz braucht: Erst beim Höchsttakt ist die 8-ms-Grenze
+  eine Grenze. Ein erster Anime-Lauf fiel nach 66 s an **einer** Sekunde mit 8,12 ms zurück (Takt gelesen, als die
+  GPU gerade hochtaktete; sonst 1,4 ms): Seitdem zählt die GPU-Zeit erst, wenn zwei Sekunden in Folge zu langsam sind.
+  Dauerläufe mit „Automatisch“ (echter Build, 3 min je Clip, Thermik-Status vorher/nachher 0):
+
+  | Clip (Eingabe) | Wahl | GPU-Zeit Höchsttakt Mittel / Max | gemessen bei ~230 MHz | verworfene Bilder |
+  |---|---|---|---|---|
+  | 540p (1267×540) | Film | 2,49 / 3,44 ms | 8,13 ms | 0 |
+  | 720p (1725×720) | Film | 4,60 / 6,52 ms | 13,89 ms | 0 |
+  | 1080p (2588×1080) | Lanczos (1,1-fach) | – | – | – |
+  | Anime 540p (960×540) | Zeichentrick | 1,42 / 1,65 ms | – | 0 |
+
+  **Bild** (Standbilder 960×540 → 2960×1665 auf dem Tab, Bildschirmfoto gegen das Original, Lanczos-skaliert,
+  `device-shots.sh`/`device-quality.sh`; SSIM-Y / PSNR-Y):
+
+  | Bild | Lanczos 3 + CAS | Detail plus 0.17.0 | Detail plus 0.18 |
+  |---|---|---|---|
+  | Sintel (CGI) | 0,98884 / 45,35 dB | 0,98938 / 45,76 dB | 0,98936 / 45,64 dB |
+  | Sita (Zeichentrick) | 0,93518 / 36,19 dB | 0,94376 / 37,34 dB | 0,94388 / 37,32 dB |
+
+  0.18 rechnet so gut wie 0.17 (Unterschied im Rauschen des Ditherings) und bleibt über Lanczos+CAS. mediump kostet
+  nichts messbar: highp-Summen 0,94147 / 36,78 dB gegen mediump 0,94144 / 36,77 dB (beide noch mit dem Farbfehler unten).
+  Ein erster Stand verlor die Farbe (Sampler gesetzt, bevor das Programm aktiv war: alles grau, SSIM-Y fiel kaum);
+  `device-quality.sh` misst darum auch die Farbspreizung. Offen: W90 und Tab A8 waren beim Lauf nicht per adb
+  erreichbar; Pixel 9 nicht gemessen. Akku nicht gemessen.
 - **Lizenzen:** Anime4K MIT, FSRCNNX LGPL-3.0-or-later (beide Hinweise stehen unverändert im Kopf der Shaderdateien und
   in `res/raw/licenses.xml`). Keine neue Laufzeitbibliothek.
 - **Gerätetest:** `e2e/video-detailplus.sh` (`--write`-Liste).
@@ -582,6 +682,26 @@ Decodern.
   Patente ungeprüft (FFmpeg selbst: „We do not know“).
 - **Updates:** Bei einem Media3-Update `MEDIA3_TAG` im Skript mitziehen; `FfmpegRendererTest` schlägt an, wenn der
   Konstruktor nicht mehr passt.
+
+## Dialog freistellen plus (`DialogIsolation`, `DialogModel`)
+
+Ein Sprachmodell (DeepFilterNet3, MIT oder Apache-2.0) schätzt die Sprache `S` in der Mitte `M = (L+R)/2`; der Rest
+der Mitte wird um 9 dB gesenkt, die Seite bleibt: `M' = S + g·(M − S)`. Läuft als eigener `AudioProcessor` hinter dem
+Downmix (5.1/7.1 also nach Ordos Stereo-Mix) und vor der Klang-Kette, nur bei 16-bit-Stereo mit 48 kHz.
+- **Lippensynchron:** Das Modell antwortet 1440 Samples (30 ms) später; Mitte und Seite warten gleich lange und die
+  ersten 1440 Ausgabe-Frames nach jedem Flush fallen weg. Ausgabe-Frame i = Eingabe-Frame i, kein A/V-Versatz.
+  Am Ende des Films kommt der zurückgehaltene Rest heraus (`getOutput`/`isEnded`). Ein/Aus gleitet über 0,2 s.
+- **Modell nur nach Einschalten und Bestätigen:** Ab Werk aus. Beim ersten Einschalten fragt ein Dialog; nur „Laden“
+  holt es (8 MB) von GitHub, fest auf Commit `7b14b895`, und behält es nur mit passender SHA-256 (`filesDir/models`,
+  vor jedem Laden erneut geprüft). „Abbrechen“ lässt die Option aus, ohne Verbindung.
+- **Zusammen mit dem Dialog-Verstärker:** zwei eigene Schalter. Beide an: erst freistellen, danach misst und steuert
+  der Dialog-Verstärker wie bisher auf seinen LU-Abstand.
+- **Zu langsam = weg:** Nach dem Laden misst Ordo 300 Hops (3 s) auf dem Gerät. RTF > 0,7 → Option verschwindet.
+  Schlägt ein Hop fehl, misst Ordo einmal neu; scheitert auch das, bleibt die Option für diesen Film aus und es wird
+  nichts gespeichert (beim nächsten Film misst Ordo wieder).
+  Die Bibliothek `libordo_df.so` gibt es nur für arm64-v8a und x86_64 (`utils/deepfilter/build.sh`, wie FFmpeg aus
+  festen Quellen gebaut), anderswo erscheint die Option nicht.
+- Messung und Hörtest: `~/ordo-team/DF3-MESSUNG.md` (Tab S9 RTF 0,057, S21 0,10, A8 0,34–0,55).
 
 ## Software-Video
 

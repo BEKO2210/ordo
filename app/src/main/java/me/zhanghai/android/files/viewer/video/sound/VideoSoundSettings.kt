@@ -13,13 +13,15 @@ import org.json.JSONObject
 
 /**
  * Ordo Video's own sound, apart from Ordo Musik's: the Klang part (equalizer, bass, balance, mono) reuses
- * [AudioSettings] and its codec, the video-only parts sit beside it. The A/V delay is not stored: it belongs to one
- * film, so it lives as long as the player screen.
+ * [AudioSettings] and its codec, the video-only parts sit beside it. The A/V delay belongs to the output device and
+ * has its own store ([VideoDelayStore]).
  */
 data class VideoSoundSettings(
     val klang: AudioSettings = AudioSettings(),
     val dialogLevel: Int = VideoSoundMath.DIALOG_OFF,
-    val nightMode: Boolean = false
+    val nightMode: Boolean = false,
+    /** "Dialog freistellen plus" (DeepFilterNet3, [DialogIsolation]); works once its model is downloaded. */
+    val isolateDialog: Boolean = false
 )
 
 internal object VideoSoundCodec {
@@ -27,6 +29,7 @@ internal object VideoSoundCodec {
         .put("klang", AudioSettingsCodec.encode(value.klang))
         .put("dialog", value.dialogLevel)
         .put("night", value.nightMode)
+        .put("isolate", value.isolateDialog)
         .toString()
 
     /** Anything unreadable falls back to the defaults (everything off), never to an error. */
@@ -38,7 +41,8 @@ internal object VideoSoundCodec {
                 klang = AudioSettingsCodec.decode(json.optString("klang")),
                 dialogLevel = json.optInt("dialog", VideoSoundMath.DIALOG_OFF)
                     .coerceIn(VideoSoundMath.DIALOG_OFF, VideoSoundMath.DIALOG_STRONG),
-                nightMode = json.optBoolean("night", false)
+                nightMode = json.optBoolean("night", false),
+                isolateDialog = json.optBoolean("isolate", false)
             )
         } catch (_: Exception) {
             VideoSoundSettings()
@@ -47,7 +51,7 @@ internal object VideoSoundCodec {
 }
 
 internal object VideoSoundStore {
-    private const val NAME = "video_sound"
+    const val NAME = "video_sound"
     private const val KEY = "settings"
 
     fun read(context: Context): VideoSoundSettings =
@@ -60,8 +64,8 @@ internal object VideoSoundStore {
 }
 
 /**
- * The A/V delay per film, under the same key as "Continue watching" (path, size, modification time), so a replaced
- * file starts in sync. At most [VideoResumeStore.MAX_ENTRIES], the oldest go first; 0 ms removes the entry.
+ * The A/V delay per output device ([VideoDeviceDelay.key]). At most [VideoResumeStore.MAX_ENTRIES], the oldest go
+ * first; 0 ms removes the entry.
  */
 internal class VideoDelayStore(context: Context) {
     private val preferences = context.getSharedPreferences(NAME, Context.MODE_PRIVATE)
@@ -85,7 +89,25 @@ internal class VideoDelayStore(context: Context) {
     }
 
     companion object {
-        private const val NAME = "video_av_delay"
+        private const val NAME = "video_av_delay_device"
+        // 0.17.0 kept the delay per film, keyed by the film's path; never read again, so deleted once.
+        private const val LEGACY_NAME = "video_av_delay"
+        private const val LEGACY_DROPPED = "legacy_av_delay_dropped"
+
+        /** Deletes 0.17.0's per-film delays (film paths are private) once; off the main thread. */
+        fun dropLegacy(context: Context) {
+            val flags = context.getSharedPreferences(VideoSoundStore.NAME, Context.MODE_PRIVATE)
+            dropLegacyOnce(
+                { flags.getBoolean(LEGACY_DROPPED, false) }, { context.deleteSharedPreferences(LEGACY_NAME) },
+                { flags.edit().putBoolean(LEGACY_DROPPED, true).apply() }
+            )
+        }
+
+        // A failed delete is tried again on the next start (deleteSharedPreferences is also true when nothing was there).
+        internal fun dropLegacyOnce(done: () -> Boolean, delete: () -> Boolean, markDone: () -> Unit) {
+            if (done()) return
+            if (delete()) markDone()
+        }
 
         internal fun encode(delayMs: Int, savedAtMs: Long): String = "$delayMs:$savedAtMs"
 

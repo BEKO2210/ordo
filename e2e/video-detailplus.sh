@@ -7,8 +7,8 @@
 # measurements section, unfolded, shows the timer kind, GPU time per pass (Detail plus, Lanczos, enhancement), thermal
 # headroom and the Klang chain's buffers; "Share as CSV" opens the share sheet; folding stops it. After 20 s the device
 # either kept Detail plus or fell back to Lanczos with the calm notice; both are reported (INFO): these numbers are
-# what the test is for (network GPU time per frame, target <= 8 ms; dropped frames; headroom). "Automatic" picks
-# cartoon (Anime4K) for "Anime/[SubsPlease] Show - 01 (360p).mp4". Picture quality is judged by eye from the
+# what the test is for (network GPU time per frame, target <= 8 ms; dropped frames; headroom). "Automatic" (the default)
+# names its choice for "Anime/[SubsPlease] Show - 01 (360p).mp4". Picture quality is judged by eye from the
 # screenshots. Needs ffmpeg on the host.
 . "$(dirname "$0")/lib.sh" "$@"
 DIR=/storage/emulated/0/ordo-e2e-detailplus
@@ -19,8 +19,9 @@ trap 'a shell "rm -rf $DIR"; a shell setprop log.tag.$TAG "\"\""; rm -rf "$tmp"'
 command -v ffmpeg >/dev/null || { echo "SKIP detail plus (no ffmpeg on the host)"; exit 0; }
 
 # Fine detail and text, where the network differs from Lanczos; silent sound, so the Klang chain still gets buffers.
-ffmpeg -v error -f lavfi -i "testsrc2=size=640x360:rate=30:duration=40" -f lavfi -i "anullsrc=r=48000:cl=stereo" \
-    -t 40 -c:v libx264 -preset veryfast -pix_fmt yuv420p -c:a aac -b:a 96k "$tmp/01-film.mp4" \
+# 120 s: a 40-s clip ended during the 20-s measurement on the Tab (21.11.2026: "no values yet", "Lanczos is timed" FAIL).
+ffmpeg -v error -f lavfi -i "testsrc2=size=640x360:rate=30:duration=120" -f lavfi -i "anullsrc=r=48000:cl=stereo" \
+    -t 120 -c:v libx264 -preset veryfast -pix_fmt yuv420p -c:a aac -b:a 96k "$tmp/01-film.mp4" \
     || echo "FAIL ffmpeg could not make 01-film.mp4"
 mkdir -p "$tmp/Anime"
 cp "$tmp/01-film.mp4" "$tmp/Anime/[SubsPlease] Show - 01 (360p).mp4"
@@ -80,7 +81,10 @@ ui has "Als CSV teilen|Share as CSV" || swipe_up
 sleep 20
 check "the timer kind is shown" seen "GPU-Timer|GPU timer|CPU-Uhr|CPU clock"
 if seen "Detail plus: [0-9]"; then echo "INFO Detail plus kept for 20 s"; else echo "INFO Detail plus not timed (fell back?)"; fi
-check "Lanczos is timed" seen "Lanczos: [0-9]"
+# Dropped frames switch the whole enhancement off, Lanczos with it, and the row says why (Tab S9, 21.11.2026: 55
+# dropped while the screen was read, 0.9 ms GPU per frame): then nothing is left to time.
+check "Lanczos is timed, or the enhancement says why it went off" \
+    seen "Lanczos: [0-9]|Gerät kam nicht hinterher|device couldn.t keep up"
 check "the Klang chain's buffers are measured" seen "Puffer in der letzten Sekunde|buffers in the last second"
 screenshot "$out/measurements.png"
 ui texts | grep -E " ms · |1,00|1\.00|Unterläufe|underruns" | sed 's/^/INFO /'
@@ -93,13 +97,17 @@ ui tap "Messwerte|Measurements" >/dev/null; sleep 1.5
 check "folding stops measuring" seen "Aus\. Zum Messen antippen\.|Off\. Tap to start measuring\." 5
 back 1; back 2
 
-# 4. Automatic: an anime-looking name gets the cartoon network.
+# 4. Automatic: an anime-looking name gets the cartoon network (or the film network or Lanczos where too slow).
 upscaling "Automatisch|Automatic"
 a logcat -c
 open_file "$DIR/Anime" "[SubsPlease] Show - 01 (360p).mp4"
 sleep 6
-check "Automatic picks cartoon for an anime name" eval 'log | grep "effects: detail plus CARTOON"'
-back 2
+# The cartoon network, the film network or Lanczos when this device measured it too slow before (all name the reason).
+check "Automatic decides for an anime name and logs why" eval 'log | grep -E "auto: (CARTOON ANIME|FILM ANIME_FILM|lanczos TOO_SLOW)"'
+menu "Signalweg|Signal path"
+check "the signal path says why Automatic chose" seen "Automatisch: |Automatic: " 5
+screenshot "$out/signal-auto.png"
+back 1; back 2
 
 upscaling "Standard (Lanczos)"
 finish

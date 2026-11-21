@@ -25,6 +25,8 @@
     <uses-permission
         android:name="android.permission.MANAGE_EXTERNAL_STORAGE"
         tools:ignore="AllFilesAccessPolicy,ScopedStorage" />
+    <!-- setPreferredMixerAttributes (bit-perfect USB DAC output, HiResOutput) needs it; normal permission, no prompt -->
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission
         android:name="android.permission.QUERY_ALL_PACKAGES"
@@ -165,9 +167,6 @@
                 <action android:name="me.zhanghai.android.files.intent.action.VIEW_DOWNLOADS" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
-            <meta-data
-                android:name="android.app.shortcuts"
-                android:resource="@xml/shortcuts" />
         </activity>
 
         <!--
@@ -617,6 +616,13 @@
         <provider
             android:name="me.zhanghai.android.files.file.FileProvider"
             android:authorities="@string/file_provider_authority"
+            android:exported="false"
+            android:grantUriPermissions="true" />
+
+        <!-- Tresor files for a viewer, decrypted in memory while read; only what the unlocked vault granted. -->
+        <provider
+            android:name="me.zhanghai.android.files.vault.VaultProvider"
+            android:authorities="${applicationId}.vault"
             android:exported="false"
             android:grantUriPermissions="true" />
 
