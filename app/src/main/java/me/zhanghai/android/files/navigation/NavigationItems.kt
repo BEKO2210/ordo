@@ -101,6 +101,9 @@ private class BuiltInAppItem(private val app: BuiltInApp, private val intent: In
 
     override fun getTitle(context: Context): String = context.getString(app.labelRes)
 
+    // Tells the app apart from the Music and Movies folders further down.
+    override fun getSubtitle(context: Context): String = context.getString(R.string.navigation_app_subtitle)
+
     override fun onClick(listener: Listener) {
         listener.launchIntent(intent)
         listener.closeNavigationDrawer()
