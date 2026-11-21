@@ -30,6 +30,7 @@ import me.zhanghai.android.files.trash.Trash
 import me.zhanghai.android.files.vault.Vault
 import me.zhanghai.android.files.provider.ftp.client.Client as FtpClient
 import me.zhanghai.android.files.launcher.LauncherIcons
+import me.zhanghai.android.files.launcher.LauncherShortcuts
 import me.zhanghai.android.files.provider.sftp.client.Client as SftpClient
 import me.zhanghai.android.files.provider.smb.client.Client as SmbClient
 import me.zhanghai.android.files.provider.webdav.client.Client as WebDavClient
@@ -120,5 +121,8 @@ private fun cleanUpVault() {
 
 // Posted: this runs from a ContentProvider, possibly before androidx.startup has attached ProcessLifecycleOwner.
 private fun reconcileLauncherIcon() {
-    Handler(Looper.getMainLooper()).post { LauncherIcons.reconcile(application) }
+    Handler(Looper.getMainLooper()).post {
+        LauncherIcons.reconcile(application)
+        LauncherShortcuts.publish(application)
+    }
 }
