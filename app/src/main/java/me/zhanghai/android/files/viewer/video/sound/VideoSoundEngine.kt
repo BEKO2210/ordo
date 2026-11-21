@@ -75,6 +75,9 @@ class VideoSoundEngine(private val context: Context) {
         override fun onChange(selfChange: Boolean) = applyToChain()
     }
     private val downmix = DownmixProcessor()
+    // "Dialog freistellen plus": active once its model is loaded (downloaded on request, DialogModel).
+    private val isolation = DialogIsolationProcessor()
+    private var isolationLoading = false
     private val truePeak = TruePeakLimiter().apply { armed = true }
     private val delay = AvDelayProcessor()
     // What the system's spatializer could take; used only while none of Ordo's own stages needs the channels.
@@ -173,7 +176,8 @@ class VideoSoundEngine(private val context: Context) {
         get() = sourceChannelCount > 2 && sourceChannelCount in spatialChannels && needsOrdoChain()
 
     private fun needsOrdoChain(): Boolean =
-        settings.dialogLevel != VideoSoundMath.DIALOG_OFF || settings.nightMode || settings.klang.mono
+        settings.dialogLevel != VideoSoundMath.DIALOG_OFF || settings.nightMode || settings.klang.mono ||
+            settings.isolateDialog
 
     /**
      * Sets which channel counts pass to the system. The downmix reads it when a format is configured; if the playing
@@ -246,6 +250,7 @@ class VideoSoundEngine(private val context: Context) {
             else context.getString(
                 R.string.video_sound_dialog_state, number.format(reached.toDouble()), number.format(measured.toDouble())
             ),
+            context.getString(R.string.video_sound_isolate).takeIf { isolating },
             context.getString(R.string.video_sound_night).takeIf { value.nightMode },
             context.getString(R.string.audio_sound_quiet).takeIf { headphones.quiet.effectEnabled },
             headphones.correction.profile?.takeIf { headphones.correction.effectEnabled }
@@ -307,7 +312,59 @@ class VideoSoundEngine(private val context: Context) {
     private val output = HiResOutput(context, allowsBitPerfect = false)
 
     fun renderersFactory(videoGraph: androidx.media3.common.VideoGraph.Factory? = null): AudioRenderersFactory =
-        AudioRenderersFactory(context, arrayOf(downmix, klang, truePeak, delay), output, videoGraph)
+        AudioRenderersFactory(context, arrayOf(downmix, isolation, klang, truePeak, delay), output, videoGraph)
+
+    /** "Dialog freistellen plus" can be offered here (64-bit library, not measured too slow). */
+    val isolationOffered: Boolean get() = DialogModel.offered(context)
+
+    /** The model's download state, for the sheet. */
+    internal fun isolationModel(): DialogModel.State = DialogModel.refresh(context)
+
+    /** The user asked for the model (the only way it is ever downloaded); switches the option on when it arrives. */
+    fun downloadIsolationModel() {
+        if (released) return
+        DialogModel.download(context) {
+            handler.post {
+                if (released) return@post
+                if (DialogModel.state == DialogModel.State.Ready) update(settings.copy(isolateDialog = true))
+                notifyChanged()
+            }
+        }
+    }
+
+    /** Switched on, loaded and working on this film's sound (16-bit stereo at 48 kHz). */
+    val isolating: Boolean get() = settings.isolateDialog && isolation.isActive
+
+    /** Switched on and loaded, but this film's sound is not 48 kHz (or not PCM): it passes unchanged. */
+    val isolationIdle: Boolean
+        get() = settings.isolateDialog && isolation.filter != null && !isolation.isActive && sourceChannelCount > 0
+
+    /** Loads the downloaded model off the main thread, measures this device, then lets the chain pick it up. */
+    private fun loadIsolation() {
+        if (isolationLoading || isolation.filter != null || DialogModel.refresh(context) != DialogModel.State.Ready) return
+        isolationLoading = true
+        val path = DialogModel.file(context).path
+        worker.execute {
+            val filter = if (DialogModel.verify(context)) DeepFilter.load(path) else null
+            val rtf = filter?.let(DialogModel::measureRtf) ?: Float.NaN
+            if (filter != null) DialogModel.saveRtf(context, rtf)
+            if (BuildConfig.DEBUG) Log.d(TAG, "DeepFilterNet3: loaded=${filter != null} rtf=$rtf")
+            handler.post {
+                isolationLoading = false
+                if (released || filter == null || DialogModel.tooSlow(rtf)) {
+                    filter?.close()
+                    // Too slow here: the option goes away (DialogModel.offered) and switches off.
+                    if (!released && settings.isolateDialog) update(settings.copy(isolateDialog = false))
+                    notifyChanged()
+                    return@post
+                }
+                isolation.filter = filter
+                // The processor becomes active only with a new format: the audio track is switched off and on once.
+                reconfigureAudio()
+                notifyChanged()
+            }
+        }
+    }
 
     fun attach(player: ExoPlayer) {
         this.player = player
@@ -412,6 +469,8 @@ class VideoSoundEngine(private val context: Context) {
         dialog.effectEnabled = value.dialogLevel != VideoSoundMath.DIALOG_OFF && !centreSteered()
         downmix.dialogTargetLu = VideoSoundMath.dialogTargetLu(value.dialogLevel) ?: Float.NaN
         night.effectEnabled = value.nightMode
+        isolation.enabled = value.isolateDialog
+        if (value.isolateDialog) loadIsolation()
         val phones = audioManager?.let(HeadphoneOutput::headphones) != null
         downmix.binaural = value.klang.binauralEnabled && phones
         headphones.apply(value.klang, phones, audioManager?.let(HeadphoneOutput::attenuationDb) ?: 0f)
@@ -451,6 +510,8 @@ class VideoSoundEngine(private val context: Context) {
         loudnessWorker.shutdownNow()
         effects.release()
         output.release()
+        // Safe while the audio thread is still in a hop: DeepFilter.close waits for it, later hops pass the sound.
+        isolation.filter?.close()
     }
 
     private companion object {

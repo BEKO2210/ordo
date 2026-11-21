@@ -524,6 +524,8 @@ backend, archive and server support are the foundation of this app. Thank you.
 Ordo also uses [llama.cpp](https://github.com/ggml-org/llama.cpp) (MIT) with Arm
 [KleidiAI](https://github.com/ARM-software/kleidiai) (Apache-2.0) for on-device AI, the
 [Qwen3.5](https://huggingface.co/Qwen) model (Apache-2.0, downloaded, not bundled),
+[DeepFilterNet](https://github.com/Rikorose/DeepFilterNet) (MIT or Apache-2.0, its model downloaded on request) for
+"Dialog freistellen plus" in the video player,
 [Tink](https://github.com/tink-crypto/tink-java) for encryption and
 [BlurView](https://github.com/Dimezis/BlurView) for the glass effect. The pictograms are
 [Material Symbols](https://github.com/google/material-design-icons) by Google (Apache-2.0).

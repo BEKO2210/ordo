@@ -2,6 +2,7 @@ Video:
 • HDR movies look more natural on regular displays
 • Detail plus is faster and now set to "Automatic"
 Sound:
+• New: "Dialogue isolation plus" separates voices on the device with AI (optional)
 • Audio delay is remembered per headphone
 • USB DAC: output is unaltered again
 Also:
