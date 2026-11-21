@@ -60,6 +60,7 @@
     <string name="launcher_icons_info">Ordo schaltet nie selbst ein Symbol ein.</string>
     <string name="launcher_music_label">Ordo Musik</string>
     <string name="launcher_video_label">Ordo Video</string>
+    <string name="navigation_app_subtitle">Player und Bibliothek</string>
     <string name="launcher_images_label">Bilder</string>
     <string name="launcher_pdf_label">PDF</string>
     <string name="launcher_notes_label">Notizen</string>
