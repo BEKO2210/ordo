@@ -75,6 +75,20 @@ st; sleep 6; guard
 check "restoring twice adds no second copy" a shell "test ! -e '$DIR/b (restored 2).txt'"
 st; sleep 2
 
+# GB-10: an older backup chosen as the target must stay as it is; Ordo asks for a new file name.
+zip_sum=$(a shell "md5sum '$zip'" | awk '{print $1}')
+ui tap Sicherung >/dev/null; sleep 2.5; guard
+ui checked ordo-e2e-restore || ui tap ordo-e2e-restore titleText >/dev/null
+ui tap sdRow >/dev/null; sleep 0.5
+ui tap startButton >/dev/null; sleep 3; picker
+ui tap "$(basename "$zip")" title >/dev/null; sleep 2
+ui tap button1 >/dev/null; sleep 6   # the picker's "replace this file?" question
+check "an old backup as target is refused with a hint" \
+    ui has "neuen Dateinamen|new file name" statusMessage
+check "the old backup ZIP is left as it was" \
+    test "$(a shell "md5sum '$zip'" | awk '{print $1}')" = "$zip_sum"
+st; sleep 2
+
 # The ticks as they were; the test folder goes, so its entry leaves the list by itself.
 ui tap Sicherung >/dev/null; sleep 2.5; guard
 ui tap ordo-e2e-restore titleText >/dev/null; sleep 0.3
