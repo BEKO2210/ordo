@@ -281,6 +281,7 @@ Tippe oder diktiere einen Satz wie „Verschiebe alle MP3s aus Download nach Mus
   aktualisiert, dreht sich beim Laden und endet mit einem Haken; „Aktualisieren“ im Menü geht auch ohne Geste
 - Eine schlanke Glas-Leiste: Seitenmenü, Suche, KI-Befehl und Optionen in einer Zeile, oben oder unten
 - Dasselbe Seitenmenü auf der Startseite und in der Dateiliste: Speicher, Ordner, Lesezeichen und alle Werkzeuge
+- In der Dateiliste bleibt die Leiste mit Seitenmenü, Suche, Sortierung und Optionen stehen, während die Liste scrollt
 - Suche nach Namen oder nach Text in Dateien, auf Wunsch mit regulären Ausdrücken
 - Liste oder Raster in drei Größen, für alle Ordner oder nur einen
 - Schnellzugriff auf Lesezeichen und häufige Ordner als Kacheln
