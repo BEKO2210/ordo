@@ -20,6 +20,7 @@ abstract class FileJob {
         this.service = service
         try {
             run()
+            me.zhanghai.android.files.about.RateOrdo.recordSuccess(service)
             // TODO: Toast
         } catch (e: InterruptedIOException) {
             // TODO

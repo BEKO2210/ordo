@@ -104,7 +104,37 @@
                     app:drawableStartCompat="@drawable/ai_privacy_icon_white_24dp" />
             </LinearLayout>
 
-            <!-- 3: AI -->
+            <!-- 3: built-in apps -->
+            <LinearLayout
+                android:id="@+id/pageApps"
+                style="@style/Widget.Ordo.OnboardingPage"
+                android:visibility="gone">
+
+                <TextView
+                    style="@style/Widget.Ordo.OnboardingTitle"
+                    android:layout_marginTop="0dp"
+                    android:text="@string/onboarding_apps_title" />
+
+                <TextView
+                    android:id="@+id/featureAnalysis"
+                    style="@style/Widget.Ordo.OnboardingFeature"
+                    android:text="@string/onboarding_feature_analysis"
+                    app:drawableStartCompat="@drawable/storage_analysis_icon_white_24dp" />
+
+                <TextView
+                    android:id="@+id/featureMusic"
+                    style="@style/Widget.Ordo.OnboardingFeature"
+                    android:text="@string/onboarding_feature_music"
+                    app:drawableStartCompat="@drawable/audio_icon_white_24dp" />
+
+                <TextView
+                    android:id="@+id/featureVideo"
+                    style="@style/Widget.Ordo.OnboardingFeature"
+                    android:text="@string/onboarding_feature_video"
+                    app:drawableStartCompat="@drawable/video_icon_white_24dp" />
+            </LinearLayout>
+
+            <!-- 4: AI -->
             <LinearLayout
                 android:id="@+id/pageAi"
                 style="@style/Widget.Ordo.OnboardingPage"
@@ -135,7 +165,7 @@
                     android:text="@string/onboarding_ai_text" />
             </LinearLayout>
 
-            <!-- 4: access -->
+            <!-- 5: access -->
             <LinearLayout
                 android:id="@+id/pageAccess"
                 style="@style/Widget.Ordo.OnboardingPage"

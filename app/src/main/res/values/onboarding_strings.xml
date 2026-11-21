@@ -22,4 +22,8 @@
     <string name="onboarding_access_title">Access to your files</string>
     <string name="onboarding_access_text">To sort, move and protect your files, Ordo needs access to them. Android asks you once.</string>
     <string name="onboarding_access_done">Access granted. You’re all set.</string>
+    <string name="onboarding_apps_title">More than files</string>
+    <string name="onboarding_feature_analysis">“Analyze storage” shows which folders take up space and finds duplicate files.</string>
+    <string name="onboarding_feature_music">Ordo Music plays your songs, with equalizer and lyrics.</string>
+    <string name="onboarding_feature_video">Ordo Video plays your films. Add home screen icons for both in Settings › Built-in apps.</string>
 </resources>

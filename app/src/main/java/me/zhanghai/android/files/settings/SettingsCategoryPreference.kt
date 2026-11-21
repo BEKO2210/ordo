@@ -103,8 +103,11 @@ class SettingsCategoryPreference @JvmOverloads constructor(
             "section_trash" to 5,
             "link_backup" to 6,
             "link_ftp_server" to 7,
-            "link_legal" to 8,
-            "link_about" to 9
+            "link_rate" to 8,
+            "link_share" to 9,
+            "link_feedback" to 10,
+            "link_legal" to 11,
+            "link_about" to 12
         )
     }
 }
