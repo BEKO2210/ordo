@@ -19,8 +19,9 @@ trap 'a shell "rm -rf $DIR"; a shell setprop log.tag.$TAG "\"\""; rm -rf "$tmp"'
 command -v ffmpeg >/dev/null || { echo "SKIP detail plus (no ffmpeg on the host)"; exit 0; }
 
 # Fine detail and text, where the network differs from Lanczos; silent sound, so the Klang chain still gets buffers.
-ffmpeg -v error -f lavfi -i "testsrc2=size=640x360:rate=30:duration=40" -f lavfi -i "anullsrc=r=48000:cl=stereo" \
-    -t 40 -c:v libx264 -preset veryfast -pix_fmt yuv420p -c:a aac -b:a 96k "$tmp/01-film.mp4" \
+# 120 s: a 40-s clip ended during the 20-s measurement on the Tab (21.11.2026: "no values yet", "Lanczos is timed" FAIL).
+ffmpeg -v error -f lavfi -i "testsrc2=size=640x360:rate=30:duration=120" -f lavfi -i "anullsrc=r=48000:cl=stereo" \
+    -t 120 -c:v libx264 -preset veryfast -pix_fmt yuv420p -c:a aac -b:a 96k "$tmp/01-film.mp4" \
     || echo "FAIL ffmpeg could not make 01-film.mp4"
 mkdir -p "$tmp/Anime"
 cp "$tmp/01-film.mp4" "$tmp/Anime/[SubsPlease] Show - 01 (360p).mp4"
