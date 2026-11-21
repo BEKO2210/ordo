@@ -30,7 +30,7 @@ One file says what is made. To add an app to the suite (say Ordo Pictures): capt
 | `feature` | The 1024×500 graphic: the word "Ordo", `headline`, and three phone raw shots (two upright, one wide) |
 | `sets.<folder>` | One device class: `prefix` of its raw files, `canvas` size, `headline` font size, device `width`, `radius`, `bezel`, and `bars` (status bar and navigation bar in raw pixels, cut off because they show the capture device's own clock and icons) |
 | `shots[].id` | File name part; the order in the list is the order in the store |
-| `shots[].raw` | Raw file name(s) without prefix and `.png`. One for a single device; three with `"layout": "trio"` (two upright, one wide); two wide ones with `"layout": "stack"` |
+| `shots[].raw` | Raw file name(s) without prefix and `.png`. One for a single device; three with `"layout": "trio"` (two upright, one wide); two with `"layout": "stack"` (one above the other). An entry may be `["name", [left, top, right, bottom]]`: that raw shot with a crop of its own, so two parts of one screen can stand as two cards (Sound: the curve and the presets, without the line between them) |
 | `shots[].headline` | Per language; the part between `*stars*` is set in Ordo blue. At most six words |
 | `shots[].accent` | Colour of the glow behind the device |
 | `shots[].crop` | Optional `[left, top, right, bottom]` as fractions of the screen (after the bars are cut): zooms into the part that matters when the whole screen's text would be too small |

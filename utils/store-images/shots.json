@@ -24,7 +24,7 @@
          "headline": {"en": "Private files, *locked away*", "de": "Privates *sicher verschlossen*"}},
         {"id": "storage", "raw": ["storage"], "bars": [63, 126], "accent": "#608CFA",
          "headline": {"en": "See what fills *your storage*", "de": "Sieh, was deinen *Speicher füllt*"}},
-        {"id": "sound", "raw": ["sound"], "crop": [0, 0.05, 1, 0.75], "width": 980, "accent": "#3CC4E6",
+        {"id": "sound", "raw": [["sound", [0, 0.05, 1, 0.435]], ["sound", [0, 0.535, 1, 0.77]]], "layout": "stack", "accent": "#3CC4E6",
          "headline": {"en": "Shape *your sound*", "de": "Forme *deinen Klang*"}}
       ]
     },
@@ -40,7 +40,7 @@
          "headline": {"en": "Your music in *full color*", "de": "Deine Musik in *voller Farbe*"}},
         {"id": "video", "raw": ["video", "more"], "layout": "stack", "accent": "#FAAA5A",
          "headline": {"en": "Films with *subtitles that fit*", "de": "Filme mit *passenden Untertiteln*"}},
-        {"id": "sound", "raw": ["sound"], "crop": [0, 0.02, 1, 1], "width": 960, "accent": "#3CC4E6",
+        {"id": "sound", "raw": [["sound", [0, 0.02, 1, 0.498]], ["sound", [0, 0.6, 1, 0.8]]], "layout": "stack", "accent": "#3CC4E6",
          "headline": {"en": "Shape *your sound*", "de": "Forme *deinen Klang*"}}
       ]
     },
@@ -50,7 +50,7 @@
       "shots": [
         {"id": "suite", "raw": ["home"], "crop": [0, 0, 0.66, 0.66], "accent": "#608CFA",
          "headline": {"en": "Files, music, video. *One app.*", "de": "Dateien, Musik, Video. *Eine App.*"}},
-        {"id": "files", "raw": ["files"], "crop": [0, 0, 0.72, 0.72], "accent": "#3CC4E6",
+        {"id": "files", "raw": ["files"], "crop": [0, 0, 0.693, 0.693], "accent": "#3CC4E6",
          "headline": {"en": "Every file, *right at hand*", "de": "Jede Datei *sofort zur Hand*"}},
         {"id": "music", "raw": ["music"], "crop": [0, 0.1, 0.8, 0.9], "accent": "#EC6EB4",
          "headline": {"en": "Your music in *full color*", "de": "Deine Musik in *voller Farbe*"}},

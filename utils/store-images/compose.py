@@ -88,6 +88,8 @@ def headline(im, text, x0, y, width, size, align="center"):
 
 def raw(lang, kind, shot, name):
     """A raw shot without the system bars (they show the capture device's own icons and clock), cropped if asked."""
+    if isinstance(name, list):  # ["sound", [l, t, r, b]]: this raw shot with a crop of its own
+        name, shot = name[0], {**shot, "crop": name[1]}
     p = os.path.join(RAW, lang, kind.get("prefix", "") + name + ".png")
     if not os.path.exists(p):
         return None
