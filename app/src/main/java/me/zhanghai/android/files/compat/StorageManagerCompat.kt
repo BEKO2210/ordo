@@ -68,7 +68,6 @@ private class PipeWriter(
                     offset += size.toLong()
                     outputStream.write(buffer, 0, size)
                 }
-                runBlocking { callback.awaitOnRelease(handler) }
             }
         } catch (e: Exception) {
             e.printStackTrace()
@@ -77,6 +76,9 @@ private class PipeWriter(
             } catch (e2: IOException) {
                 e2.printStackTrace()
             }
+        } finally {
+            // Also when the reader went away early, or the channel stays open until the process ends.
+            runCatching { runBlocking { callback.awaitOnRelease(handler) } }.exceptionOrNull()?.printStackTrace()
         }
     }
 

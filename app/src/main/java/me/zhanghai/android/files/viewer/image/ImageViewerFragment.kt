@@ -43,6 +43,7 @@ import me.zhanghai.android.files.util.putState
 import me.zhanghai.android.files.util.showToast
 import me.zhanghai.android.files.util.startActivitySafe
 import me.zhanghai.android.files.util.withChooser
+import me.zhanghai.android.files.vault.VaultProvider
 import me.zhanghai.android.systemuihelper.SystemUiHelper
 import java.io.IOException
 
@@ -141,7 +142,10 @@ class ImageViewerFragment : Fragment(), ConfirmDeleteDialogFragment.Listener {
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         super.onCreateOptionsMenu(menu, inflater)
 
-        inflater.inflate(R.menu.image_viewer, menu)
+        // A Tresor image is not deleted or shared from here: restoring it is the way out of the vault.
+        if (argsPaths.none { VaultProvider.isVault(it) }) {
+            inflater.inflate(R.menu.image_viewer, menu)
+        }
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean =

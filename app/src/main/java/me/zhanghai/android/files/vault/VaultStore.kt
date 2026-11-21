@@ -14,6 +14,7 @@ import java.io.IOException
 import java.io.InputStream
 import java.io.InterruptedIOException
 import java.io.OutputStream
+import java.nio.ByteBuffer
 import java.nio.channels.SeekableByteChannel
 import java.security.GeneralSecurityException
 import java.util.Properties
@@ -68,10 +69,17 @@ class VaultStore(private val directory: File, private val aead: StreamingAead) {
     fun openSeekable(id: String): SeekableByteChannel {
         val channel = FileInputStream(File(directory, id)).channel
         try {
-            return aead.newSeekableDecryptingChannel(channel, id.toByteArray())
+            return aead.newSeekableDecryptingChannel(channel, id.toByteArray()).apply {
+                // Tink's keyset channel picks the key on its first read; size() throws before that.
+                read(ByteBuffer.allocate(1))
+                position(0)
+            }
         } catch (e: GeneralSecurityException) {
             channel.close()
             throw IOException(e)
+        } catch (e: IOException) {
+            channel.close()
+            throw e
         }
     }
 

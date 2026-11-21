@@ -5,12 +5,12 @@
 
 package me.zhanghai.android.files.vault
 
+import android.net.Uri
 import android.os.SystemClock
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import java.io.File
 import java.io.IOException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -31,22 +31,15 @@ class VaultViewModel : ViewModel() {
     private val _hasError = MutableLiveData(false)
     val hasError: LiveData<Boolean> = _hasError
 
-    // One-shot results of open(); the fragment calls the matching consume function.
-    private val _openedFile = MutableLiveData<File?>()
-    val openedFile: LiveData<File?> = _openedFile
-
-    private val _hasOpenError = MutableLiveData(false)
-    val hasOpenError: LiveData<Boolean> = _hasOpenError
+    // One-shot result of open(); the fragment calls consumeOpenedFile().
+    private val _openedFile = MutableLiveData<Pair<Uri, VaultEntry>?>()
+    val openedFile: LiveData<Pair<Uri, VaultEntry>?> = _openedFile
 
     val selectedIds = mutableSetOf<String>()
 
     var hasPrompted = false
 
     private var viewerStartedAt = 0L
-
-    init {
-        clearOpenedFiles()
-    }
 
     fun unlock() {
         _isUnlocked.value = true
@@ -60,8 +53,8 @@ class VaultViewModel : ViewModel() {
         _isUnlocked.value = false
         _items.value = emptyList()
         selectedIds.clear()
-        clearOpenedFiles()
-        // A player still open loses its videos too.
+        // A viewer or player still open loses its file too.
+        VaultProvider.revokeAll()
         VaultVideos.revokeAll()
     }
 
@@ -107,28 +100,10 @@ class VaultViewModel : ViewModel() {
         }
     }
 
+    /** Hands [entry] to a viewer: it decrypts while reading, nothing is written out. */
     fun open(entry: VaultEntry) {
-        if (_isLoading.value == true) {
-            return
-        }
-        _isLoading.value = true
-        viewModelScope.launch {
-            val file = withContext(Dispatchers.IO) {
-                try {
-                    Vault.decryptToCache(entry)
-                } catch (e: IOException) {
-                    e.printStackTrace()
-                    null
-                }
-            }
-            _isLoading.value = false
-            if (_isUnlocked.value != true) {
-                clearOpenedFiles()
-            } else if (file != null) {
-                _openedFile.value = file
-            } else {
-                _hasOpenError.value = true
-            }
+        if (_isUnlocked.value == true) {
+            _openedFile.value = VaultProvider.grant(entry) to entry
         }
     }
 
@@ -140,10 +115,6 @@ class VaultViewModel : ViewModel() {
     /** A viewer is on top: stopping now must not lock the vault under it. */
     fun onViewerStarted() {
         viewerStartedAt = SystemClock.elapsedRealtime()
-    }
-
-    fun consumeOpenError() {
-        _hasOpenError.value = false
     }
 
     fun delete(entries: List<VaultEntry>) {
@@ -159,12 +130,8 @@ class VaultViewModel : ViewModel() {
         }
     }
 
-    private fun clearOpenedFiles() {
-        Thread({ Vault.clearOpenedFiles() }, "VaultClear").start()
-    }
-
     override fun onCleared() {
-        clearOpenedFiles()
+        VaultProvider.revokeAll()
         VaultVideos.revokeAll()
     }
 

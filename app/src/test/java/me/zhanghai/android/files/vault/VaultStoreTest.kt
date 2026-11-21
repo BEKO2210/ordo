@@ -61,6 +61,24 @@ class VaultStoreTest {
         assertEquals(setOf(entry.id, entry.id + VaultStore.INFO_SUFFIX), folder.root.list()!!.toSet())
     }
 
+    // What VaultProvider hands a viewer: random access decrypted in memory, nothing written next to the vault.
+    @Test
+    fun openSeekable_readsAnywhereWithoutWritingPlaintext() {
+        val store = newStore()
+        val entry = store.add("/storage/emulated/0/DCIM/a.jpg", content.inputStream())
+        val before = folder.root.list()!!.toSet()
+        store.openSeekable(entry.id).use { channel ->
+            assertEquals(10_000, channel.size())
+            val data = ByteArray(2_000)
+            // Across a segment boundary, and cut short at the end of the file.
+            assertEquals(1_000, VaultProvider.readAt(channel, 9_000, data, 2_000))
+            assertArrayEquals(content.copyOfRange(9_000, 10_000), data.copyOf(1_000))
+            assertEquals(100, VaultProvider.readAt(channel, 4_050, data, 100))
+            assertArrayEquals(content.copyOfRange(4_050, 4_150), data.copyOf(100))
+        }
+        assertEquals(before, folder.root.list()!!.toSet())
+    }
+
     @Test
     fun open_rejectsTamperedContent() {
         val store = newStore()

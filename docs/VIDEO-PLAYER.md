@@ -162,8 +162,8 @@ zusammen mit Ordos Token wirksam). Logik ohne Android in `VideoLibrary`, geteste
 
 Ein Video im Tresor öffnet sich (Tresor entsperrt) in Ordos Player, die Videos des Tresors sind die Warteschlange.
 `vault/VaultVideos` streamt es über Tinks `newSeekableDecryptingChannel` (`VaultStore.openSeekable`) als Media3-
-`DataSource`: entschlüsselt wird segmentweise im Speicher, kein Klartext auf dem Speicher (anders als bei Bildern
-und PDFs, die `vault-open` im Cache nutzen). Lesen darf der Player nur Einträge, die der entsperrte Tresor freigegeben
+`DataSource`: entschlüsselt wird segmentweise im Speicher, kein Klartext auf dem Speicher (Bilder, PDFs und
+andere Dateien lesen genauso über `vault/VaultProvider`). Lesen darf der Player nur Einträge, die der entsperrte Tresor freigegeben
 hat; Sperren (auch nach 2 min im Hintergrund) und Prozessende nehmen die Freigabe zurück. Tresor-Videos bekommen
 keine gemerkte Stelle, keine Gesehen-Marke, keine Vorschau und erscheinen nie in der Sammlung (MediaStore sieht den
 Tresor nicht); der Player-Bildschirm ist dann `FLAG_SECURE` (keine Bildschirmfotos, leere Vorschau in „Zuletzt“),
