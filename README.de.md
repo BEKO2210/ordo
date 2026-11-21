@@ -177,28 +177,34 @@ Die Bilder des Play-Eintrags, aus `fastlane/metadata/android/de-DE/images/`.
 
 <p align="center"><sub>Handy</sub></p>
 <p align="center">
-  <img src="fastlane/metadata/android/de-DE/images/phoneScreenshots/01_home.jpg" width="24%" alt="Handy: home">
-  <img src="fastlane/metadata/android/de-DE/images/phoneScreenshots/02_ai.jpg" width="24%" alt="Handy: ai">
-  <img src="fastlane/metadata/android/de-DE/images/phoneScreenshots/03_analysis.jpg" width="24%" alt="Handy: analysis">
-  <img src="fastlane/metadata/android/de-DE/images/phoneScreenshots/04_files.jpg" width="24%" alt="Handy: files">
+  <img src="fastlane/metadata/android/de-DE/images/phoneScreenshots/01_suite.jpg" width="24%" alt="Handy: suite">
+  <img src="fastlane/metadata/android/de-DE/images/phoneScreenshots/02_music.jpg" width="24%" alt="Handy: music">
+  <img src="fastlane/metadata/android/de-DE/images/phoneScreenshots/03_video.jpg" width="24%" alt="Handy: video">
+  <img src="fastlane/metadata/android/de-DE/images/phoneScreenshots/04_ai.jpg" width="24%" alt="Handy: ai">
 </p>
 <p align="center">
-  <img src="fastlane/metadata/android/de-DE/images/phoneScreenshots/05_vault.jpg" width="24%" alt="Handy: vault">
-  <img src="fastlane/metadata/android/de-DE/images/phoneScreenshots/06_backup.jpg" width="24%" alt="Handy: backup">
-  <img src="fastlane/metadata/android/de-DE/images/phoneScreenshots/07_music.jpg" width="24%" alt="Handy: music">
-  <img src="fastlane/metadata/android/de-DE/images/phoneScreenshots/08_settings.jpg" width="24%" alt="Handy: settings">
+  <img src="fastlane/metadata/android/de-DE/images/phoneScreenshots/05_storage.jpg" width="24%" alt="Handy: storage">
+  <img src="fastlane/metadata/android/de-DE/images/phoneScreenshots/06_sound.jpg" width="24%" alt="Handy: sound">
+  <img src="fastlane/metadata/android/de-DE/images/phoneScreenshots/07_library.jpg" width="24%" alt="Handy: library">
+  <img src="fastlane/metadata/android/de-DE/images/phoneScreenshots/08_lyrics.jpg" width="24%" alt="Handy: lyrics">
 </p>
 <p align="center"><sub>7-Zoll-Tablet</sub></p>
 <p align="center">
-  <img src="fastlane/metadata/android/de-DE/images/sevenInchScreenshots/01_home.jpg" width="32%" alt="7-Zoll-Tablet: home">
-  <img src="fastlane/metadata/android/de-DE/images/sevenInchScreenshots/02_analysis.jpg" width="32%" alt="7-Zoll-Tablet: analysis">
-  <img src="fastlane/metadata/android/de-DE/images/sevenInchScreenshots/03_files.jpg" width="32%" alt="7-Zoll-Tablet: files">
+  <img src="fastlane/metadata/android/de-DE/images/sevenInchScreenshots/01_music.jpg" width="32%" alt="7-Zoll-Tablet: music">
+  <img src="fastlane/metadata/android/de-DE/images/sevenInchScreenshots/02_video.jpg" width="32%" alt="7-Zoll-Tablet: video">
+  <img src="fastlane/metadata/android/de-DE/images/sevenInchScreenshots/03_sound.jpg" width="32%" alt="7-Zoll-Tablet: sound">
+</p>
+<p align="center">
+  <img src="fastlane/metadata/android/de-DE/images/sevenInchScreenshots/04_lyrics.jpg" width="32%" alt="7-Zoll-Tablet: lyrics">
 </p>
 <p align="center"><sub>10-Zoll-Tablet</sub></p>
 <p align="center">
-  <img src="fastlane/metadata/android/de-DE/images/tenInchScreenshots/01_home.jpg" width="32%" alt="10-Zoll-Tablet: home">
-  <img src="fastlane/metadata/android/de-DE/images/tenInchScreenshots/02_analysis.jpg" width="32%" alt="10-Zoll-Tablet: analysis">
-  <img src="fastlane/metadata/android/de-DE/images/tenInchScreenshots/03_files.jpg" width="32%" alt="10-Zoll-Tablet: files">
+  <img src="fastlane/metadata/android/de-DE/images/tenInchScreenshots/01_music.jpg" width="32%" alt="10-Zoll-Tablet: music">
+  <img src="fastlane/metadata/android/de-DE/images/tenInchScreenshots/02_video.jpg" width="32%" alt="10-Zoll-Tablet: video">
+  <img src="fastlane/metadata/android/de-DE/images/tenInchScreenshots/03_more.jpg" width="32%" alt="10-Zoll-Tablet: more">
+</p>
+<p align="center">
+  <img src="fastlane/metadata/android/de-DE/images/tenInchScreenshots/04_sound.jpg" width="32%" alt="10-Zoll-Tablet: sound">
 </p>
 <!-- /AUTO:screenshots -->
 
