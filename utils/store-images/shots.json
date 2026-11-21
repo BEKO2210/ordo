@@ -18,7 +18,7 @@
          "headline": {"en": "Your music in *full color*", "de": "Deine Musik in *voller Farbe*"}},
         {"id": "video", "raw": ["video", "more"], "layout": "stack", "accent": "#FAAA5A",
          "headline": {"en": "Films with *subtitles that fit*", "de": "Filme mit *passenden Untertiteln*"}},
-        {"id": "ai", "raw": ["ai"], "crop": [0, 0.17, 1, 1], "accent": "#9678FA",
+        {"id": "ai", "raw": ["ai"], "crop": [0, 0.17, 1, 1], "width": 940, "accent": "#9678FA",
          "headline": {"en": "AI that *stays on your phone*", "de": "KI, die *auf dem Handy bleibt*"}},
         {"id": "vault", "raw": ["vault"], "width": 940, "accent": "#34D399",
          "headline": {"en": "Private files, *locked away*", "de": "Privates *sicher verschlossen*"}},

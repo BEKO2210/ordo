@@ -142,7 +142,7 @@ def trio(im, top, shots, k):
 def stack(im, top, shots, k):
     """Wide shots one above the other, whole, centred in the space below the headline."""
     W, H = im.size
-    devs = [device(s, round(W * 0.9), k["radius"] * 2 // 3, k["bezel"]) for s in shots]
+    devs = [device(s, round(W * 0.94), k["radius"] * 2 // 3, k["bezel"]) for s in shots]
     gap = 70
     y = top + (H - top - sum(d.height - 2 * p for d, p in devs) - gap * (len(devs) - 1)) // 2
     for dev, pad in devs:
