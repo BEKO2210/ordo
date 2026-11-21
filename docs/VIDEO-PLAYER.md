@@ -583,6 +583,21 @@ Decodern.
 - **Updates:** Bei einem Media3-Update `MEDIA3_TAG` im Skript mitziehen; `FfmpegRendererTest` schlägt an, wenn der
   Konstruktor nicht mehr passt.
 
+## Dialog freistellen plus (`DialogIsolation`, `DialogModel`)
+
+Ein Sprachmodell (DeepFilterNet3, MIT oder Apache-2.0) schätzt die Sprache `S` in der Mitte `M = (L+R)/2`; der Rest
+der Mitte wird um 9 dB gesenkt, die Seite bleibt: `M' = S + g·(M − S)`. Läuft als eigener `AudioProcessor` hinter dem
+Downmix (5.1/7.1 also nach Ordos Stereo-Mix) und vor der Klang-Kette, nur bei 16-bit-Stereo mit 48 kHz.
+- **Lippensynchron:** Das Modell antwortet 1440 Samples (30 ms) später; Mitte und Seite warten gleich lange und die
+  ersten 1440 Ausgabe-Frames nach jedem Flush fallen weg. Ausgabe-Frame i = Eingabe-Frame i, kein A/V-Versatz.
+  Am Ende des Films kommt der zurückgehaltene Rest heraus (`getOutput`/`isEnded`). Ein/Aus gleitet über 0,2 s.
+- **Modell nur auf Tippen** („Modell laden (8 MB)“): von GitHub, fest auf Commit `7b14b895`, nur mit passender
+  SHA-256 behalten (`filesDir/models`). Ohne Tippen keine Verbindung.
+- **Zu langsam = weg:** Nach dem Laden misst Ordo 300 Hops (3 s) auf dem Gerät. RTF > 0,7 → Option verschwindet.
+  Die Bibliothek `libordo_df.so` gibt es nur für arm64-v8a und x86_64 (`utils/deepfilter/build.sh`, wie FFmpeg aus
+  festen Quellen gebaut), anderswo erscheint die Option nicht.
+- Messung und Hörtest: `~/ordo-team/DF3-MESSUNG.md` (Tab S9 RTF 0,057, S21 0,10, A8 0,34–0,55).
+
 ## Software-Video
 
 Günstige Chips können manche Formate nicht oder melden sie und scheitern dann (W90, Unisoc, Android 16: HEVC 10-Bit,

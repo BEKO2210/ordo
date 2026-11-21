@@ -43,4 +43,11 @@
     <string name="video_sound_balance_left_button">More left</string>
     <string name="video_sound_balance_right_button">More right</string>
     <string name="video_signal_stage_downmix">Ordo mix to stereo</string>
+    <string name="video_sound_isolate">Dialogue isolation plus</string>
+    <string name="video_sound_isolate_summary">A speech model on this device separates voices from music and effects and turns the rest down by 9 dB. For films, not for music.</string>
+    <string name="video_sound_isolate_download">Load model (8 MB)</string>
+    <string name="video_sound_isolate_note">Downloaded once from GitHub when you tap (DeepFilterNet3, MIT or Apache 2.0). It then runs offline.</string>
+    <string name="video_sound_isolate_downloading">Loading model … %1$d %%</string>
+    <string name="video_sound_isolate_failed">The model could not be loaded. Check the connection and try again.</string>
+    <string name="video_sound_isolate_idle">Works on 48 kHz sound only. This film plays unchanged.</string>
 </resources>

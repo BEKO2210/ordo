@@ -52,7 +52,10 @@ class VideoSoundSheet : BottomSheetDialogFragment(), HeadphonesHost {
     // The measured and reached dialog distance move with the film: shown fresh once a second while the sheet is open.
     private val ticker = object : Runnable {
         override fun run() {
-            if (_binding != null) renderDialogState()
+            if (_binding != null) {
+                renderDialogState()
+                renderIsolation()
+            }
             handler.postDelayed(this, TICK_MS)
         }
     }
@@ -94,6 +97,13 @@ class VideoSoundSheet : BottomSheetDialogFragment(), HeadphonesHost {
             if (checked) update {
                 copy(dialogLevel = if (id == R.id.dialogStrong) VideoSoundMath.DIALOG_STRONG else VideoSoundMath.DIALOG_LIGHT)
             }
+        }
+        bindRow(binding.isolateRow, R.drawable.audio_hearing_icon_24dp, R.string.video_sound_isolate,
+            R.string.video_sound_isolate_summary) { copy(isolateDialog = it) }
+        // The tap is the consent: nothing is downloaded without it.
+        binding.isolateDownload.setOnClickListener {
+            engine.downloadIsolationModel()
+            renderIsolation()
         }
         bindRow(binding.nightRow, R.drawable.audio_moon_icon_24dp, R.string.video_sound_night,
             R.string.video_sound_night_summary) { copy(nightMode = it) }
@@ -144,7 +154,13 @@ class VideoSoundSheet : BottomSheetDialogFragment(), HeadphonesHost {
         binding.balanceStepper.stepValue.setOnClickListener { update { copy(klang = klang.copy(balance = 0)) } }
         setColumns()
         // The audio session (and with it bass and balance), the track and the measured level can arrive later.
-        engine.onChanged = { if (_binding != null) render() }
+        // The engine may change settings itself (the model arrived, or this device was measured too slow).
+        engine.onChanged = {
+            if (_binding != null) {
+                settings = engine.settings
+                render()
+            }
+        }
         render()
     }
 
@@ -221,6 +237,7 @@ class VideoSoundSheet : BottomSheetDialogFragment(), HeadphonesHost {
             if (settings.dialogLevel == VideoSoundMath.DIALOG_STRONG) R.id.dialogStrong else R.id.dialogLight
         )
         setActive(binding.dialogGroup, dialogOn)
+        renderIsolation()
         binding.nightRow.toggle.isChecked = settings.nightMode
         binding.bassRow.toggle.isChecked = klang.bassBoostEnabled
         binding.bassGroup.check(
@@ -280,6 +297,33 @@ class VideoSoundSheet : BottomSheetDialogFragment(), HeadphonesHost {
             )
         }
         rendering = false
+    }
+
+    /** "Dialog freistellen plus": hidden where it cannot run; until the model is there, a load button instead. */
+    private fun renderIsolation() {
+        val engine = engine ?: return
+        val offered = engine.isolationOffered
+        binding.isolateCard.isVisible = offered
+        if (!offered) return
+        val model = engine.isolationModel()
+        val ready = model == DialogModel.State.Ready
+        val wasRendering = rendering
+        rendering = true
+        binding.isolateRow.toggle.isChecked = settings.isolateDialog && ready
+        rendering = wasRendering
+        binding.isolateRow.toggle.isEnabled = ready
+        binding.isolateDownload.isVisible = model == DialogModel.State.Missing || model == DialogModel.State.Failed
+        val state = when {
+            model is DialogModel.State.Downloading ->
+                getString(R.string.video_sound_isolate_downloading, (model.bytes * 100 / DialogModel.SIZE).toInt())
+            model == DialogModel.State.Failed -> getString(R.string.video_sound_isolate_failed)
+            model == DialogModel.State.Missing -> getString(R.string.video_sound_isolate_note)
+            engine.isolationIdle -> getString(R.string.video_sound_isolate_idle)
+            else -> null
+        }
+        binding.isolateState.isVisible = state != null
+        // Only a real change: every setText is an accessibility event.
+        if (state != null && binding.isolateState.text.toString() != state) binding.isolateState.text = state
     }
 
     /** The measured and reached dialog distance (they move with the film; the ticker refreshes only this line). */

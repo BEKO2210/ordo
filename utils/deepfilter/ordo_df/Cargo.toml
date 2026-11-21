@@ -1,0 +1,22 @@
+# Copyright (c) 2026 Ordo contributors
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Ordo's thin C interface to DeepFilterNet's libDF (MIT OR Apache-2.0). Built by ../build.sh only, which replaces
+# DEEPFILTER_LIBDF with libDF of the pinned DeepFilterNet commit and uses that commit's Cargo.lock.
+[package]
+name = "ordo_df"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[lib]
+crate-type = ["staticlib"]
+
+[dependencies]
+# No default features: no model is built in, it is downloaded on request.
+deep_filter = { path = "DEEPFILTER_LIBDF", default-features = false, features = ["tract"] }
+ndarray = "0.15"
+
+[profile.release]
+opt-level = 3
+lto = "fat"
+codegen-units = 1

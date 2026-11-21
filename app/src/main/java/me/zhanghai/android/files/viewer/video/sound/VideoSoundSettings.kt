@@ -19,7 +19,9 @@ import org.json.JSONObject
 data class VideoSoundSettings(
     val klang: AudioSettings = AudioSettings(),
     val dialogLevel: Int = VideoSoundMath.DIALOG_OFF,
-    val nightMode: Boolean = false
+    val nightMode: Boolean = false,
+    /** "Dialog freistellen plus" (DeepFilterNet3, [DialogIsolation]); works once its model is downloaded. */
+    val isolateDialog: Boolean = false
 )
 
 internal object VideoSoundCodec {
@@ -27,6 +29,7 @@ internal object VideoSoundCodec {
         .put("klang", AudioSettingsCodec.encode(value.klang))
         .put("dialog", value.dialogLevel)
         .put("night", value.nightMode)
+        .put("isolate", value.isolateDialog)
         .toString()
 
     /** Anything unreadable falls back to the defaults (everything off), never to an error. */
@@ -38,7 +41,8 @@ internal object VideoSoundCodec {
                 klang = AudioSettingsCodec.decode(json.optString("klang")),
                 dialogLevel = json.optInt("dialog", VideoSoundMath.DIALOG_OFF)
                     .coerceIn(VideoSoundMath.DIALOG_OFF, VideoSoundMath.DIALOG_STRONG),
-                nightMode = json.optBoolean("night", false)
+                nightMode = json.optBoolean("night", false),
+                isolateDialog = json.optBoolean("isolate", false)
             )
         } catch (_: Exception) {
             VideoSoundSettings()
