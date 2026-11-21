@@ -40,8 +40,14 @@ if ui tap openButton >/dev/null 2>&1; then
         check "scrolled down, the toolbar still shows ${icon##*|} (contrast >= 3:1)" icon_visible "$icon"
     done
     # The end of the list scrolls clear of the + button, so the last row's menu stays reachable.
-    for _ in 1 2 3 4 5 6 7 8; do a shell input swipe $((W / 2)) $((H * 3 / 4)) $((W / 2)) $((H / 4)) 80; done
-    sleep 2; still_muted
+    # Flings until the rows on screen stop changing: that is the end, however long the list is.
+    rows=""
+    for _ in 1 2 3 4 5 6 7 8 9 10 11 12; do
+        for _ in 1 2 3 4; do a shell input swipe $((W / 2)) $((H * 3 / 4)) $((W / 2)) $((H / 4)) 80; done
+        sleep 2; now=$(ui texts | grep '|.*nameText|')
+        [ "$now" = "$rows" ] && break; rows=$now
+    done
+    still_muted
     last=$(ui bounds menuButton | awk '$4 > m { m = $4 } END { print m + 0 }')
     check "at the end of the list the last row's menu ends above the + button" \
         test "$last" -gt 0 -a "$last" -le "$(ui bounds sd_main_fab | awk 'NR == 1 { print $2 }')"
