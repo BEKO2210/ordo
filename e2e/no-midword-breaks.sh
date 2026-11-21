@@ -77,17 +77,15 @@ if command -v ffmpeg >/dev/null; then
         -shortest "$tmp/midword-video.mp4"
     printf '1\n00:00:00,500 --> 00:00:19,000\nUntertitel ohne Wortbruch\n' > "$tmp/midword-video.de.srt"
     a push "$tmp/midword-video.mp4" "$tmp/midword-video.de.srt" "$DIR/" >/dev/null
+    # Ordo Musik's paused session would keep the media keys (Tab S9, 21.11.2026: "Media button session is
+    # androidx.media3.session.id.", the film played on to 0:13 and its controls stayed hidden): start the film alone.
+    a shell am force-stop "$PKG"
     a shell am start -W -a android.intent.action.VIEW -d "file://$DIR" -t inode/directory \
         -n "$PKG/me.zhanghai.android.files.filelist.FileListActivity" >/dev/null
     sleep 3; guard
     ui tap midword-video.mp4 >/dev/null
     check "the video player opens" wait_on viewer.video.VideoPlayerActivity 8
-    # Paused on screen, not by media key: with Ordo Musik's session still around the key did not pause the film
-    # (Tab S9, 21.11.2026: still playing at 0:13, controls hidden again). A tap in the middle shows the controls.
-    read -r W H < <(screen_size)
-    sleep 2; ui has playPause || { a shell input tap $((W / 2)) $((H / 2)); sleep 1; }
-    ui tap playPause >/dev/null; sleep 1
-    ui has lock || { a shell input tap $((W / 2)) $((H / 2)); sleep 1; }
+    sleep 2; a shell input keyevent KEYCODE_MEDIA_PAUSE; sleep 1
     check "the video player locks" eval 'ui tap lock && ui wait unlock 3'
     read -r l t r b < <(ui bounds unlock | head -1)
     a shell input swipe $(((l + r) / 2)) $(((t + b) / 2)) $(((l + r) / 2)) $(((t + b) / 2)) 900; sleep 1
