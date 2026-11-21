@@ -10,8 +10,8 @@ check "the menu icon has a label" ui has "Navigationsmenü öffnen|Open navigati
 check "the wand has a label" ui has "Ordo einen Befehl geben|Give Ordo a command"
 check "more has a label" ui has "Weitere Optionen|More options"
 
-ui tap searchCard >/dev/null; sleep 3; guard
-check "the search field opens the search in the file list" on filelist.FileListActivity
+ui tap searchCard >/dev/null
+check "the search field opens the search in the file list" wait_on filelist.FileListActivity 5; guard
 check "the search is ready for typing" ui has search_src_text
 for _ in 1 2 3; do home && break; guard; back; done   # keyboard, search, list
 check "back from the search returns to the home screen" home
@@ -28,8 +28,8 @@ more() { guard; ui tap moreButton >/dev/null 2>&1; sleep 1; }
 more
 check "more: recent files" ui has "Zuletzt verwendet|Recent files" title
 check "more: hidden files" ui has "Versteckte Dateien anzeigen|Show hidden files" title
-ui tap "Zuletzt verwendet|Recent files" title >/dev/null; sleep 1
-check "recent files: grid" ui has "Raster|Grid" title
+ui tap "Zuletzt verwendet|Recent files" title >/dev/null
+check "recent files: grid" ui see "Raster|Grid" title
 check "recent files: horizontal" ui has "Waagerecht|Horizontal" title
 check "recent files: hide" ui has "Ausblenden|Hide" title
 # Close the submenu and the menu. On a phone the popup does not cover the more button, so check the entries.
@@ -41,11 +41,11 @@ more; ui tap "Schnellzugriff anzeigen|Show quick access" title >/dev/null; sleep
 check "show quick access switches the section" test "$(quick)" != "$before"
 more; ui tap "Schnellzugriff anzeigen|Show quick access" title >/dev/null; sleep 1.5
 check "and switches it back" test "$(quick)" = "$before"
-more; ui tap "Einstellungen|Settings" title >/dev/null; sleep 2; guard
-check "more: settings open" on settings.SettingsActivity
+more; ui tap "Einstellungen|Settings" title >/dev/null
+check "more: settings open" wait_on settings.SettingsActivity 4; guard
 back 2
-more; ui tap "Impressum & Datenschutz|Legal notice & privacy" title >/dev/null; sleep 2; guard
-check "more: legal notice opens" on legal.LegalActivity
+more; ui tap "Impressum & Datenschutz|Legal notice & privacy" title >/dev/null
+check "more: legal notice opens" wait_on legal.LegalActivity 4; guard
 back 2
 check "back returns to the home screen" home
 finish

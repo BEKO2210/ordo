@@ -32,11 +32,11 @@ part() { ui texts | grep -E -- "$1" >/dev/null; }
 open_clip() {
     a shell am start -W -a android.intent.action.VIEW -d "file://$DIR" -t inode/directory \
         -n "$PKG/me.zhanghai.android.files.filelist.FileListActivity" >/dev/null
-    sleep 3; guard
+    guard
     ui wait "$1" 10 >/dev/null && ui tap "$1" >/dev/null
     sleep 3; guard
     # The controls hide after 4 s of playback; pause so the toolbar stays.
-    a shell input keyevent KEYCODE_MEDIA_PAUSE >/dev/null; sleep 1
+    media_key PAUSE 1
 }
 
 open_clip 01-tv-clip.mp4

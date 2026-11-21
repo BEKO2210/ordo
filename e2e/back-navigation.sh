@@ -1,5 +1,6 @@
 #!/bin/bash
 # Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later
+# farm: needs=shots
 # Regression (0.3.2): back from a folder opened elsewhere returns to the caller, not up the folder path. Read-only.
 . "$(dirname "$0")/lib.sh" "$@"
 launch

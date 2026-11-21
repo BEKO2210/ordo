@@ -37,7 +37,7 @@ wait_entries() { local end=$((SECONDS + 8)); until [ "$(entries "$1")" = "$2" ];
 alive() { a shell pidof "$PKG" >/dev/null && on settings.SettingsActivity; }
 
 open_page() {
-    a shell am start -W -n "$PKG/$SETTINGS" >/dev/null; sleep 2; guard
+    a shell am start -W -n "$PKG/$SETTINGS" >/dev/null; guard
     ui tap "$SECTION" >/dev/null; ui wait "$MUSIC" 8 >/dev/null; guard
 }
 to_colours() { swipe_up; swipe_up; }

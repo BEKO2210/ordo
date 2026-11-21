@@ -27,12 +27,12 @@ a push "$tmp/." "$DIR/" >/dev/null
 
 wake; grant; a logcat -b crash -c
 a shell am force-stop "$PKG"
-pause() { a shell input keyevent KEYCODE_MEDIA_PAUSE >/dev/null; sleep 1.5; }
+pause() { media_key PAUSE 1.5; }
 open_video() {
     a shell am start -W -a android.intent.action.VIEW -d "file://$DIR" -t inode/directory \
         -n "$PKG/me.zhanghai.android.files.filelist.FileListActivity" >/dev/null
-    sleep 3; guard; ui wait "$1" 10 >/dev/null
-    ui tap "$1" >/dev/null; wait_on viewer.video.VideoPlayerActivity 8; sleep 2; pause
+    guard; ui wait "$1" 10 >/dev/null
+    ui tap "$1" >/dev/null; wait_on viewer.video.VideoPlayerActivity 8; media_wait PLAY 2; pause
 }
 sheet() { ui tap "Untertitel|Subtitles" >/dev/null; sleep 1.5; }
 
@@ -50,7 +50,7 @@ ui tap "Deutsch · film.de.srt|German · film.de.srt" >/dev/null; sleep 1; back 
 check "the German file is read as Windows-1252" ui has "Automatisch (windows-1252)|Automatic (windows-1252)"
 # 1b. A manual charset belongs to its own file and never garbles UTF-8: Windows-1252 pressed on the UTF-8 file
 # bounces back to "Automatic (UTF-8)", and the picture is kept for a look at "für".
-ui tap "Englisch · film.en.srt|English · film.en.srt" >/dev/null; sleep 1
+ui tap "Englisch · film.en.srt|English · film.en.srt" >/dev/null
 scroll_to "Westeuropäisch (Windows-1252)|Western (Windows-1252)" 3
 ui tap "Westeuropäisch (Windows-1252)|Western (Windows-1252)" >/dev/null; sleep 1.5; back 1; sheet
 scroll_to "Automatisch (UTF-8)|Automatic (UTF-8)" 3
@@ -69,14 +69,14 @@ delay() {
         v = $1; neg = (index(v, "−") == 1); gsub(/[^0-9.,]/, "", v); sub(/,/, ".", v); printf "%d\n", (neg ? -v : v) * 1000; exit }'
 }
 d0=$(delay)
-ui tap "$later" >/dev/null; sleep 0.5; ui tap "$later" >/dev/null; sleep 0.5
+ui tap "$later" >/dev/null; ui tap "$later" >/dev/null; sleep 0.5
 d2=$(delay)
 check "two taps on +1 s add 2 s to the delay (${d0:-?} -> ${d2:-?} ms)" test -n "$d0" -a "${d2:-x}" = "$((${d0:-0} + 2000))"
 back 1; back 2
 open_video film.mp4
 sheet
 check "the delay is remembered for the film" test "$(delay)" = "$d2"
-ui tap "$earlier" >/dev/null; sleep 0.5; ui tap "$earlier" >/dev/null; sleep 0.5
+ui tap "$earlier" >/dev/null; ui tap "$earlier" >/dev/null
 # The size chips lie below the charsets: on a phone the sheet scrolls.
 scroll_to "Größer|Larger" 4
 check "the size has its − and + steps" ui has "Größer|Larger"
@@ -85,7 +85,7 @@ was=$(ui texts | awk -F'|' '$1 ~ /^[0-9]+[^0-9]*%$/ { print $1; exit }')
 ui tap "Größer|Larger" >/dev/null; sleep 0.7
 now=$(ui texts | awk -F'|' '$1 ~ /^[0-9]+[^0-9]*%$/ { print $1; exit }')
 check "a step changes the size (${was:-?} -> ${now:-?})" test -n "$was" -a "$was" != "$now"
-ui tap "Kleiner|Smaller" >/dev/null; sleep 0.7
+ui tap "Kleiner|Smaller" >/dev/null
 scroll_to "Kontur|Outline" 3
 check "the edge offers outline, shadow and box" ui has "Kasten|Box"
 scroll_to "Wie System|Like the system" 3
@@ -97,17 +97,17 @@ back 1; back 2
 open_video intern.mkv
 sheet
 check "the MKV's track shows with its language and kind" ui has "Englisch · SRT|English · SRT"
-ui tap "Englisch · SRT|English · SRT" >/dev/null; sleep 1
+ui tap "Englisch · SRT|English · SRT" >/dev/null
 # A text track inside the film now has the delay steps too (Ordo draws its cues, EmbeddedCueQueue).
-ui tap "+1 s" >/dev/null; sleep 0.5
-check "a text track inside the film takes the delay" ui has "+1 s"
+ui tap "+1 s" >/dev/null
+check "a text track inside the film takes the delay" ui see "+1 s"
 check "and has no picture-track note" eval '! ui has "Verschieben nur für Text-Untertitel.|Shifting works for text subtitles only."'
 ui tap "−1 s" >/dev/null; sleep 0.5
 back 1; back 2
 
 # 4. Settings: the "Subtitles" group.
-a shell am start -W -n "$PKG/me.zhanghai.android.files.viewer.video.VideoLauncherActivity" >/dev/null; sleep 2; guard
-ui tap actionSettings >/dev/null; sleep 2
+a shell am start -W -n "$PKG/me.zhanghai.android.files.viewer.video.VideoLauncherActivity" >/dev/null; guard
+ui tap actionSettings >/dev/null
 scroll_to "Untertitel automatisch an|Subtitles automatically"
 check "Ordo Video's settings have \"Subtitles automatically\"" ui has "Untertitel automatisch an|Subtitles automatically"
 check "Ordo Video's settings have the preferred subtitle language" \

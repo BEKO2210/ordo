@@ -9,7 +9,7 @@ not_checked() { ! ui checked "$PREVIEW"; }
 # inside a longer text (ui.py compares whole texts; the summary is several sentences)
 in_text() { a shell uiautomator dump /sdcard/ordoai-ui.xml >/dev/null 2>&1; a shell cat /sdcard/ordoai-ui.xml | grep -qE "$1"; }
 open_ai_settings() {
-    a shell am start -W -n "$PKG/$SETTINGS" >/dev/null; sleep 2
+    a shell am start -W -n "$PKG/$SETTINGS" >/dev/null
     ui tap "KI-Assistent|AI assistant" >/dev/null; sleep 1
 }
 trap 'a shell cmd locale set-app-locales "$PKG" --locales "" >/dev/null 2>&1' EXIT

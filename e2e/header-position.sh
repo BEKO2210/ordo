@@ -18,8 +18,8 @@ sheet_closed() { ! ui has "headerOrb|setupLayout"; }
 menu_closed() { ! ui visible navigationFragment; }
 at_top() { local y; y=$(bar_top); [ -n "$y" ] && [ "$y" -lt $((H / 2)) ]; }
 appearance() {
-    guard; ui tap moreButton >/dev/null 2>&1; sleep 1
-    ui tap "Einstellungen|Settings" title >/dev/null; sleep 2; guard
+    guard; ui tap moreButton >/dev/null 2>&1
+    ui tap "Einstellungen|Settings" title >/dev/null; guard
     ui tap "Aussehen|Appearance" >/dev/null; sleep 1.5; guard
 }
 # position ENTRY: picks the entry in the settings and returns to the home screen.
@@ -48,8 +48,8 @@ last=$(ui bounds "quickAccessList|storageList" | awk '$4 > m { m = $4 } END { pr
 check "scrolled to the end, the last tiles end above the bar" test "$last" -le "$(bar_top)"
 for _ in 1 2 3 4; do swipe_down; done
 
-ui tap searchCard >/dev/null; sleep 3; guard
-check "the search opens from the bottom bar" on filelist.FileListActivity
+ui tap searchCard >/dev/null
+check "the search opens from the bottom bar" wait_on filelist.FileListActivity 5; guard
 for _ in 1 2 3; do home && break; guard; back; done
 check "back returns to the home screen" home
 
@@ -59,8 +59,8 @@ back
 ui has headerOrb && back   # the first back only hid the keyboard
 check "back closes the command sheet" sheet_closed
 
-guard; ui tap moreButton >/dev/null 2>&1; sleep 1
-check "more opens its menu" ui has "Zuletzt verwendet|Recent files" title
+guard; ui tap moreButton >/dev/null 2>&1
+check "more opens its menu" ui see "Zuletzt verwendet|Recent files" title
 back 1
 
 ui tap menuButton >/dev/null 2>&1; sleep 1

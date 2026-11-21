@@ -50,7 +50,7 @@ a push "$tmp/." "$DIR/" >/dev/null
 wake; grant; a logcat -b crash -c
 # No music session in the way: the video session is the only one of Ordo's.
 a shell am force-stop "$PKG"
-pause() { a shell input keyevent KEYCODE_MEDIA_PAUSE >/dev/null; sleep 1.5; }
+pause() { media_key PAUSE 1.5; }
 # The video session's state line; its ID starts with "video." (messen: how dumpsys prints the tag), else Ordo's first
 # session.
 session() {
@@ -64,7 +64,7 @@ not_on() { ! on "$@"; }
 open_folder() {
     a shell am start -W -a android.intent.action.VIEW -d "file://$DIR" -t inode/directory \
         -n "$PKG/me.zhanghai.android.files.filelist.FileListActivity" >/dev/null
-    sleep 3; guard; ui wait "$1" 10 >/dev/null
+    guard; ui wait "$1" 10 >/dev/null
 }
 dp() { echo $(($1 * $(a shell wm density | tail -1 | sed 's/.*: //' | tr -d '\r') / 160)); }
 # touch_target ID DP: the control's box is at least DP x DP.
@@ -96,7 +96,7 @@ read -r _ y1 x1 y2 < <(ui bounds elapsed | head -1)
 read -r x2 _ _ _ < <(ui bounds duration | head -1)
 y=$(((y1 + y2) / 2)); w=$((x2 - x1)); xa=$((x1 + w / 4)); xb=$((x1 + w * 3 / 4))
 moved_less() { [ $(($2 - $1)) -lt 2000 ] && [ $(($1 - $2)) -lt 2000 ]; }
-p0=$(pos); a shell input tap $xb $y; sleep 1.5; p1=$(pos)
+p0=$(pos); a shell input tap $xb $y; sleep 1.5; p1=$(pos) # deliberate: the gesture has to take effect before the value is read (no event to wait for)
 check "a tap on the bar does not seek ($p0 -> $p1 ms)" moved_less "$p0" "$p1"
 a shell input swipe $xa $y $xb $y 120; sleep 1.5; p2=$(pos)
 check "a quick swipe along the bar does not seek ($p1 -> $p2 ms)" moved_less "$p1" "$p2"
@@ -104,7 +104,7 @@ a shell input swipe $xb $((y - 200)) $xb $((y + 200)) 200; sleep 1.5; p3=$(pos)
 check "a vertical swipe over the bar does not seek ($p2 -> $p3 ms)" moved_less "$p2" "$p3"
 a shell "input motionevent DOWN $xa $y; sleep 0.4; input motionevent MOVE $((xa + w / 8)) $y; \
     input motionevent MOVE $((xa + w / 4)) $y; input motionevent MOVE $xb $y; sleep 0.3; input motionevent UP $xb $y"
-sleep 1.5; p4=$(pos)
+sleep 1.5; p4=$(pos) # deliberate: the gesture has to take effect before the value is read (no event to wait for)
 # 3/4 of 30 s is 22.5 s; the slider's track inset leaves a little either way.
 check "held 400 ms and dragged, the bar seeks to three quarters ($p4 ms)" within "${p4:-0}" 19000 26000
 
@@ -132,7 +132,7 @@ check "back closes the player" not_on viewer.video.VideoPlayerActivity
 # Paused at once: the pill stays while paused, and a playing screen is slow to read on a budget tablet (the W90 run
 # found the pill only after it had gone, 5 s into playback).
 ui tap 01-clip.mp4 >/dev/null; wait_on viewer.video.VideoPlayerActivity 8
-a shell input keyevent KEYCODE_MEDIA_PAUSE; sleep 1
+media_key PAUSE 1
 check "opened again, it offers to resume" ui wait resumePill 6
 check "the pill says where" eval "ui texts | grep -qE 'Weiter bei|Resume at'"
 ui tap resumePill >/dev/null; sleep 1.5; pause; p8=$(pos)
@@ -144,11 +144,11 @@ for n in 01 02; do
     a shell am broadcast -a android.intent.action.MEDIA_SCANNER_SCAN_FILE -d "file://$DIR/$n-clip.mp4" >/dev/null 2>&1
 done
 back 2; sleep 3
-a shell am start -W -n "$PKG/me.zhanghai.android.files.viewer.video.VideoLauncherActivity" >/dev/null; sleep 3; guard
-check "Ordo Video opens its library" on viewer.video.VideoLauncherActivity
+a shell am start -W -n "$PKG/me.zhanghai.android.files.viewer.video.VideoLauncherActivity" >/dev/null
+check "Ordo Video opens its library" wait_on viewer.video.VideoLauncherActivity 5; guard
 check "the library offers Continue watching" ui wait "Weiterschauen|Continue watching" 8
 check "the library lists the clip" ui has 01-clip
-ui tap 01-clip >/dev/null; wait_on viewer.video.VideoPlayerActivity 8; sleep 2; pause; p8b=$(pos)
+ui tap 01-clip >/dev/null; wait_on viewer.video.VideoPlayerActivity 8; media_wait PLAY 2; pause; p8b=$(pos)
 # It plays 2 s before the pause, plus the start and a slow screen read (landscape Tab: +4.3 s, 20.11.2026).
 check "from Continue watching it starts at its place ($p8b ms)" within "${p8b:-0}" $((${p7:-0} - 1500)) $((${p7:-0} + 6000))
 check "and offers no pill" eval '! ui has resumePill'
@@ -157,7 +157,7 @@ check "back returns to the library" on viewer.video.VideoLauncherActivity
 back 2
 open_folder 01-clip.mp4
 ui tap 01-clip.mp4 >/dev/null; wait_on viewer.video.VideoPlayerActivity 8; sleep 1
-a shell input keyevent KEYCODE_MEDIA_PAUSE; sleep 1
+media_key PAUSE 1
 ui tap resumePill >/dev/null 2>&1; sleep 1.5
 
 # 5. The end of a clip: by default ("Stop at the end", the owner's choice) the player stays on the last frame with
@@ -275,8 +275,8 @@ play_colour() {
     pixel $((l + (r - l) / 8)) $(((t + b) / 2))
 }
 set_video_colour() {
-    a shell am start -W -n "$PKG/me.zhanghai.android.files.viewer.video.VideoLauncherActivity" >/dev/null; sleep 2; guard
-    ui tap actionSettings >/dev/null; sleep 2
+    a shell am start -W -n "$PKG/me.zhanghai.android.files.viewer.video.VideoLauncherActivity" >/dev/null; guard
+    ui tap actionSettings >/dev/null
     ui tap "$1" >/dev/null; sleep 1.5
     back 1; back 1
 }
@@ -294,12 +294,12 @@ check "Ordo Video's own colour tints the play button ($c_ordo -> $c_amber)" \
 
 # Ordo Video's settings page has its groups; the player's ⋮ › Video info names resolution and codec in plain words
 # (each row is one node "label: value" for TalkBack).
-a shell am start -W -n "$PKG/me.zhanghai.android.files.viewer.video.VideoLauncherActivity" >/dev/null; sleep 2; guard
-ui tap actionSettings >/dev/null; sleep 2
+a shell am start -W -n "$PKG/me.zhanghai.android.files.viewer.video.VideoLauncherActivity" >/dev/null; guard
+ui tap actionSettings >/dev/null
 check "Ordo Video's settings offer the end of a video" ui wait "Am Ende|At the end" 5
 back 1; back 1
 open_paused
-ui tap "Weitere Optionen|More options" >/dev/null; sleep 1
+ui tap "Weitere Optionen|More options" >/dev/null
 scroll_to "Videoinfos|Video info" 3 >/dev/null; ui tap "Videoinfos|Video info" >/dev/null; sleep 2
 check "Video info shows resolution and frame rate" \
     ui wait "Auflösung: 1920 × 1080 · 30 fps|Resolution: 1920 × 1080 · 30 fps" 5
@@ -311,10 +311,10 @@ open_folder 02-clip.mp4
 ui tap 02-clip.mp4 >/dev/null; wait_on viewer.video.VideoPlayerActivity 8; pause
 if ui has rotate; then
     read -r l t r b < <(ui bounds rotate | head -1)
-    a shell input keyevent KEYCODE_MEDIA_PLAY; sleep 1; p9=$(pos)
+    media_key PLAY 1; p9=$(pos)
     # The controls stay up 4 s after play: the button is still where it was read.
-    a shell input tap $(((l + r) / 2)) $(((t + b) / 2)); sleep 3
-    check "after rotating the player is still in front" on viewer.video.VideoPlayerActivity
+    a shell input tap $(((l + r) / 2)) $(((t + b) / 2))
+    check "after rotating the player is still in front" wait_on viewer.video.VideoPlayerActivity 5
     check "after rotating it still plays" playing
     pause; p10=$(pos)
     check "after rotating the position went on ($p9 -> $p10 ms)" test "${p10:-0}" -ge "${p9:-0}"

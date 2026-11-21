@@ -29,7 +29,7 @@ pause_playback() { a shell input keyevent KEYCODE_MEDIA_PAUSE >/dev/null; }
 paused_ui() { pause_playback; sleep 0.3; ui "$@"; }
 a shell am start -W -a android.intent.action.VIEW -d "file://$DIR" -t inode/directory \
     -n "$PKG/me.zhanghai.android.files.filelist.FileListActivity" >/dev/null
-sleep 3; guard
+guard
 check "the test folder opens" paused_ui wait 01-one.wav 10
 paused_ui tap 01-one.wav >/dev/null; sleep 3; guard
 pause_playback; sleep 1
@@ -109,10 +109,10 @@ a shell input keyevent KEYCODE_MEDIA_NEXT; sleep 2
 # A stereo title must actually play: a failed player leaves the session in ERROR instead of PLAYING.
 # Next keeps the paused state from the checks above, so press play first.
 session_playing() { a shell dumpsys media_session | grep -A25 "package=$PKG" | grep -q "state=PLAYING"; }
-a shell input keyevent KEYCODE_MEDIA_PLAY; sleep 3
+media_key PLAY 3
 check "a stereo title plays" session_playing
-a shell am start -W -n "$PKG/$PLAYER" >/dev/null; sleep 2; guard
-check "the player reconnects" on viewer.audio.AudioPlayerActivity
+a shell am start -W -n "$PKG/$PLAYER" >/dev/null
+check "the player reconnects" wait_on viewer.audio.AudioPlayerActivity 4; guard
 check "media Next selected the second title" paused_ui has 02-two.wav
 back 1
 # The player is exported: another app may only hand it content:// URIs, never file:// paths (nor Ordo path extras).

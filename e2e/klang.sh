@@ -1,5 +1,6 @@
 #!/bin/bash
 # Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later
+# farm: timeout=1500
 # Sound effects, WRITES: creates /storage/emulated/0/ordo-e2e-klang with one 16-bit stereo WAV and removes it again.
 # Opens the Sound sheet, reaches every effect card of the lower part, switches each one on and checks that its live
 # picture reports the value; then a 16-bit stereo title must still reach state=PLAYING with all effects on.
@@ -24,7 +25,7 @@ pause_playback() { a shell input keyevent KEYCODE_MEDIA_PAUSE >/dev/null; }
 paused_ui() { pause_playback; sleep 0.3; ui "$@"; }
 a shell am start -W -a android.intent.action.VIEW -d "file://$DIR" -t inode/directory \
     -n "$PKG/me.zhanghai.android.files.filelist.FileListActivity" >/dev/null
-sleep 3; guard
+guard
 check "the test folder opens" paused_ui wait klang-stereo.wav 10
 paused_ui tap klang-stereo.wav >/dev/null; sleep 3; guard
 pause_playback; sleep 1
@@ -95,7 +96,7 @@ check "resume with headphones has its own picture" scrolled_to headphonesPicture
 back 1
 
 session_playing() { a shell dumpsys media_session | grep -A25 "package=$PKG" | grep -q "state=PLAYING"; }
-a shell input keyevent KEYCODE_MEDIA_PLAY; sleep 4
+media_key PLAY 4
 check "a 16-bit stereo title plays with all effects on" session_playing
 sleep 4
 check "it is still playing seconds later" session_playing

@@ -32,8 +32,8 @@ first_of() { for name in "$@"; do ui has "$name" && { echo "$name"; return 0; };
 
 launch
 swipe_up
-ui tap analyzeButton >/dev/null 2>&1; sleep 1; guard
-check "analysis opens" on analysis.AnalysisActivity
+ui tap analyzeButton >/dev/null 2>&1
+check "analysis opens" wait_on analysis.AnalysisActivity 4; guard
 check "the scan ends in the overview" ui wait "$OVERVIEW" 120
 sleep 2
 check "the ring of your files is there" settle filesChart 200
@@ -69,8 +69,7 @@ fi
 swipe_up
 kind=$(first_of "Videos" "Bilder|Pictures" "Dokumente|Documents" "Audio" "Andere Dateien|Other files")
 if [ -n "$kind" ] && ui tap "$kind" >/dev/null 2>&1; then
-    sleep 1; guard
-    check "type row opens its page" ui has nameText
+    check "type row opens its page" ui see nameText; guard
     ui longtap nameText >/dev/null 2>&1; guard
     check "long press selects a file" ui has deleteButton
     back

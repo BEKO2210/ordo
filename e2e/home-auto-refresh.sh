@@ -1,5 +1,6 @@
 #!/bin/bash
 # Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later
+# farm: needs=shots
 # The home screen updates itself when files change, but a burst of 50 new files reloads it once or twice, not 50
 # times, and nothing reloads while it is in the background. WRITES: 50 tiny files in Download/ordo-e2e-refresh,
 # removed at the end.

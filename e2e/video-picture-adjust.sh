@@ -1,5 +1,6 @@
 #!/bin/bash
 # Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later
+# farm: needs=shots
 # "Bild anpassen" (⋮ › Adjust picture), WRITES: creates /storage/emulated/0/ordo-e2e-adjust with clips made by ffmpeg
 # on the host and removes it again: 01-full.mp4 (1080p progressive H.264, as big as a phone screen, so no enhancement)
 # and 02-interlaced.mp4 (576i H.264, x264 interlaced=1). The sheet has the five rows with −/+ (never a slider); two
@@ -25,15 +26,15 @@ wake; grant; a logcat -b crash -c
 a shell am force-stop "$PKG"
 a shell setprop log.tag.$TAG DEBUG
 log() { a logcat -d -s "$TAG:D" | tr -d '\r'; }
-pause() { a shell input keyevent KEYCODE_MEDIA_PAUSE >/dev/null; sleep 1.5; }
+pause() { media_key PAUSE 1.5; }
 open_video() {
     a shell am start -W -a android.intent.action.VIEW -d "file://$DIR" -t inode/directory \
         -n "$PKG/me.zhanghai.android.files.filelist.FileListActivity" >/dev/null
-    sleep 3; guard; ui wait "$1" 10 >/dev/null
-    ui tap "$1" >/dev/null; wait_on viewer.video.VideoPlayerActivity 8; sleep 3; pause
+    guard; ui wait "$1" 10 >/dev/null
+    ui tap "$1" >/dev/null; wait_on viewer.video.VideoPlayerActivity 8; media_wait PLAY 3; pause
 }
 sheet() {
-    ui tap "Weitere Optionen|More options" >/dev/null; sleep 1
+    ui tap "Weitere Optionen|More options" >/dev/null
     ui tap "Bild anpassen|Adjust picture" >/dev/null; sleep 1.5
 }
 
@@ -51,9 +52,9 @@ check "a 1080p progressive clip is not called interlaced" ui has \
     "Dieses Video hat Vollbilder: Automatisch lässt es, wie es ist.|This video has full frames: automatic leaves it."
 
 # 2. Two steps up: +2, and the pass runs on a video that is not smaller than the screen.
-ui tap "Helligkeit erhöhen|Brightness up" >/dev/null; sleep 0.5
-ui tap "Helligkeit erhöhen|Brightness up" >/dev/null; sleep 1
-check "two taps show +2" ui has "+2"
+ui tap "Helligkeit erhöhen|Brightness up" >/dev/null
+ui tap "Helligkeit erhöhen|Brightness up" >/dev/null
+check "two taps show +2" ui see "+2"
 sleep 3
 check "the pass is set although the enhancement has nothing to do" eval 'log | grep -E -- "-> (ENGAGE|APPLY)"'
 back 1
