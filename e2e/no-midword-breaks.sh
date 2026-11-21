@@ -82,7 +82,12 @@ if command -v ffmpeg >/dev/null; then
     sleep 3; guard
     ui tap midword-video.mp4 >/dev/null
     check "the video player opens" wait_on viewer.video.VideoPlayerActivity 8
-    sleep 2; a shell input keyevent KEYCODE_MEDIA_PAUSE; sleep 1
+    # Paused on screen, not by media key: with Ordo Musik's session still around the key did not pause the film
+    # (Tab S9, 21.11.2026: still playing at 0:13, controls hidden again). A tap in the middle shows the controls.
+    read -r W H < <(screen_size)
+    sleep 2; ui has playPause || { a shell input tap $((W / 2)) $((H / 2)); sleep 1; }
+    ui tap playPause >/dev/null; sleep 1
+    ui has lock || { a shell input tap $((W / 2)) $((H / 2)); sleep 1; }
     check "the video player locks" eval 'ui tap lock && ui wait unlock 3'
     read -r l t r b < <(ui bounds unlock | head -1)
     a shell input swipe $(((l + r) / 2)) $(((t + b) / 2)) $(((l + r) / 2)) $(((t + b) / 2)) 900; sleep 1

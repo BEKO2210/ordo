@@ -80,7 +80,10 @@ ui has "Als CSV teilen|Share as CSV" || swipe_up
 sleep 20
 check "the timer kind is shown" seen "GPU-Timer|GPU timer|CPU-Uhr|CPU clock"
 if seen "Detail plus: [0-9]"; then echo "INFO Detail plus kept for 20 s"; else echo "INFO Detail plus not timed (fell back?)"; fi
-check "Lanczos is timed" seen "Lanczos: [0-9]"
+# Dropped frames switch the whole enhancement off, Lanczos with it, and the row says why (Tab S9, 21.11.2026: 55
+# dropped while the screen was read, 0.9 ms GPU per frame): then nothing is left to time.
+check "Lanczos is timed, or the enhancement says why it went off" \
+    seen "Lanczos: [0-9]|Gerät kam nicht hinterher|device couldn.t keep up"
 check "the Klang chain's buffers are measured" seen "Puffer in der letzten Sekunde|buffers in the last second"
 screenshot "$out/measurements.png"
 ui texts | grep -E " ms · |1,00|1\.00|Unterläufe|underruns" | sed 's/^/INFO /'
