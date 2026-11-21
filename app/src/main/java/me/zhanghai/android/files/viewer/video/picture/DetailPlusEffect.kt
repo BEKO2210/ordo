@@ -6,6 +6,8 @@
 package me.zhanghai.android.files.viewer.video.picture
 
 import android.content.Context
+import android.opengl.EGL14
+import android.opengl.EGLConfig
 import android.opengl.GLES20
 import android.opengl.GLES30
 import android.util.Log
@@ -46,6 +48,141 @@ internal object DetailPlusGl {
         fun read(name: String) = File("/sys/class/kgsl/kgsl-3d0/devfreq/$name").readText().trim().toFloat()
         (read("cur_freq") / read("max_freq")).takeIf { it > 0f && it <= 1f }
     }.getOrNull()
+}
+
+/**
+ * Times a network offscreen, in its own OpenGL ES 3 context on a background thread, so "Automatic" never shows a
+ * network it has not measured (W90: 81 ms a frame on screen for a second, 0.18 review).
+ */
+@OptIn(UnstableApi::class)
+internal object DetailPlusBench {
+    // shortcut: a 960x540 noise frame, scaled per megapixel; the fixed cost of a pass counts a little more than on a
+    // film, so the estimate errs towards Lanczos. Time with the real first frame if that ever shuts out a device.
+    private const val WIDTH = 960
+    private const val HEIGHT = 540
+    private const val WARM_UP = 3
+    private const val RUNS = 8
+
+    /**
+     * GPU milliseconds per input megapixel at the top clock (median of the draws), or null where it can't run. GPU timer
+     * per draw where the GPU has one (the wall time around glFinish was 3.5x too high on the Tab).
+     */
+    fun msPerMp(context: Context, model: DetailPlus.Model): Float? {
+        val display = EGL14.eglGetDisplay(EGL14.EGL_DEFAULT_DISPLAY)
+        val version = IntArray(2)
+        if (!EGL14.eglInitialize(display, version, 0, version, 1)) return null
+        val configs = arrayOfNulls<EGLConfig>(1)
+        val count = IntArray(1)
+        val attributes = intArrayOf(
+            EGL14.EGL_RENDERABLE_TYPE, EGL_OPENGL_ES3_BIT, EGL14.EGL_SURFACE_TYPE, EGL14.EGL_PBUFFER_BIT,
+            EGL14.EGL_RED_SIZE, 8, EGL14.EGL_GREEN_SIZE, 8, EGL14.EGL_BLUE_SIZE, 8, EGL14.EGL_ALPHA_SIZE, 8, EGL14.EGL_NONE
+        )
+        if (!EGL14.eglChooseConfig(display, attributes, 0, configs, 0, 1, count, 0) || count[0] == 0) return null
+        val eglContext = EGL14.eglCreateContext(
+            display, configs[0], EGL14.EGL_NO_CONTEXT, intArrayOf(EGL14.EGL_CONTEXT_CLIENT_VERSION, 3, EGL14.EGL_NONE), 0
+        )
+        if (eglContext == EGL14.EGL_NO_CONTEXT) return null
+        val surface = EGL14.eglCreatePbufferSurface(
+            display, configs[0], intArrayOf(EGL14.EGL_WIDTH, 1, EGL14.EGL_HEIGHT, 1, EGL14.EGL_NONE), 0
+        )
+        try {
+            if (!EGL14.eglMakeCurrent(display, surface, surface, eglContext)) return null
+            return run(context, model)
+        } catch (e: Exception) {
+            Log.w(PICTURE_LOG_TAG, "Detail plus offscreen timing failed", e)
+            return null
+        } finally {
+            EGL14.eglMakeCurrent(display, EGL14.EGL_NO_SURFACE, EGL14.EGL_NO_SURFACE, EGL14.EGL_NO_CONTEXT)
+            EGL14.eglDestroySurface(display, surface)
+            EGL14.eglDestroyContext(display, eglContext)
+        }
+    }
+
+    private fun run(context: Context, model: DetailPlus.Model): Float? {
+        val source = context.assets.open(model.asset).bufferedReader().use { it.readText() }
+        val program = DetailPlusProgram(model, MpvHook.parse(source))
+        val textures = IntArray(2)
+        val framebuffer = IntArray(1)
+        try {
+            val size = program.configure(WIDTH, HEIGHT)
+            // Its init or configure found the GPU can't (it then only copies): nothing to time.
+            if (model in DetailPlusGl.unsupported) return null
+            GLES20.glGenTextures(2, textures, 0)
+            val noise = ByteBuffer.allocateDirect(WIDTH * HEIGHT * 4).apply {
+                val random = java.util.Random(1)
+                while (hasRemaining()) put(random.nextInt().toByte())
+                flip()
+            }
+            texture(textures[0], WIDTH, HEIGHT, noise)
+            texture(textures[1], size.width, size.height, null)
+            GLES20.glGenFramebuffers(1, framebuffer, 0)
+            GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, framebuffer[0])
+            GLES20.glFramebufferTexture2D(
+                GLES20.GL_FRAMEBUFFER, GLES20.GL_COLOR_ATTACHMENT0, GLES20.GL_TEXTURE_2D, textures[1], 0
+            )
+            fun draw() {
+                GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, framebuffer[0])
+                GLES20.glViewport(0, 0, size.width, size.height)
+                program.drawFrame(textures[0], 0)
+            }
+            repeat(WARM_UP) { draw() }
+            GLES20.glFinish()
+            // Each draw on its own, with the clock right after it: the governor moves the clock during the runs, and a
+            // time at 220 MHz scaled by a clock read at 400 MHz came out twice too high (Tab, 21.11.2026).
+            val timer = "GL_EXT_disjoint_timer_query" in GLES20.glGetString(GLES20.GL_EXTENSIONS).orEmpty()
+            val query = IntArray(1)
+            if (timer) GLES30.glGenQueries(1, query, 0)
+            val value = IntArray(1)
+            val runs = List(RUNS) {
+                val start = System.nanoTime()
+                if (timer) GLES30.glBeginQuery(GL_TIME_ELAPSED_EXT, query[0])
+                draw()
+                if (timer) GLES30.glEndQuery(GL_TIME_ELAPSED_EXT)
+                GLES20.glFinish()
+                val wallMs = (System.nanoTime() - start) / 1e6f
+                val clock = DetailPlusGl.clockShare() ?: 1f
+                val gpuMs = if (timer) {
+                    GLES20.glGetIntegerv(GL_GPU_DISJOINT_EXT, value, 0)
+                    val disjoint = value[0] != 0
+                    GLES30.glGetQueryObjectuiv(query[0], GLES30.GL_QUERY_RESULT, value, 0)
+                    ((value[0].toLong() and 0xffffffffL) / 1e6f).takeUnless { disjoint }
+                } else {
+                    null
+                }
+                (gpuMs ?: wallMs) * clock
+            }
+            if (timer) GLES30.glDeleteQueries(1, query, 0)
+            val ms = runs.sorted()[RUNS / 2]
+            Log.i(PICTURE_LOG_TAG, "Detail plus $model offscreen: ${runs.joinToString { "%.2f".format(it) }} ms at the top clock")
+            return ms * slowdown() / (WIDTH * HEIGHT / 1e6f)
+        } finally {
+            program.release()
+            GLES20.glDeleteTextures(2, textures, 0)
+            GLES20.glDeleteFramebuffers(1, framebuffer, 0)
+        }
+    }
+
+    private fun texture(id: Int, width: Int, height: Int, pixels: ByteBuffer?) {
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, id)
+        GLES20.glTexImage2D(
+            GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, width, height, 0, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, pixels
+        )
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR)
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR)
+    }
+
+    /**
+     * Device tests only: `adb shell setprop debug.ordo.detailplus.slowdown 40` makes a fast GPU look like a budget one
+     * (W90/A8 were unreachable for the 0.18 test). 1 when unset.
+     */
+    private fun slowdown(): Float = runCatching {
+        Class.forName("android.os.SystemProperties").getMethod("get", String::class.java)
+            .invoke(null, "debug.ordo.detailplus.slowdown") as String
+    }.getOrNull()?.toFloatOrNull()?.takeIf { it > 0f } ?: 1f
+
+    private const val EGL_OPENGL_ES3_BIT = 0x40
+    private const val GL_TIME_ELAPSED_EXT = 0x88BF
+    private const val GL_GPU_DISJOINT_EXT = 0x8FBB
 }
 
 /**

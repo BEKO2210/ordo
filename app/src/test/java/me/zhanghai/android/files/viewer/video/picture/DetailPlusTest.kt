@@ -91,7 +91,13 @@ class DetailPlusTest {
         assertEquals(Reason.UNSUPPORTED, auto(unsupported = setOf(Model.FILM), predictedMs = 9f).reason)
         assertEquals(Reason.TOO_SLOW, auto(predictedMs = 8.01f).reason)
         assertEquals(DetailPlus.Auto(Model.FILM, Reason.FILM, 8f), auto(predictedMs = 8f))
-        assertEquals(DetailPlus.Auto(Model.FILM, Reason.FILM, null), auto(predictedMs = null))
+        // Never measured: Lanczos while the network is timed offscreen (a budget tablet took 81 ms a frame).
+        assertEquals(DetailPlus.Auto(null, Reason.MEASURING, null, measure = Model.FILM), auto(predictedMs = null))
+        assertEquals(Model.CARTOON, auto(anime = true, cartoonMs = null).measure)
+        // Measured 81 ms: Lanczos without the network ever on screen.
+        assertEquals(DetailPlus.Auto(null, Reason.TOO_SLOW, 81f), auto(predictedMs = 81f))
+        // Cartoon measured too slow, film not yet: measure film next.
+        assertEquals(Model.FILM, auto(anime = true, predictedMs = null, cartoonMs = 20f).measure)
         assertEquals(DetailPlus.Auto(Model.CARTOON, Reason.ANIME, 4f), auto(anime = true))
         // Anime steps down to the film network before Lanczos: cartoon unsupported, too slow or fallen back.
         assertEquals(DetailPlus.Auto(Model.FILM, Reason.ANIME_FILM, 4f), auto(anime = true, unsupported = setOf(Model.CARTOON)))
