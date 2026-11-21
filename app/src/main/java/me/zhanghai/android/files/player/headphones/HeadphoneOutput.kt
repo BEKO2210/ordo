@@ -44,7 +44,7 @@ object HeadphoneOutput {
     internal fun <T> routedOrConnected(routed: List<T>?, connected: () -> List<T>, isHeadphones: (T) -> Boolean): T? =
         if (routed.isNullOrEmpty()) connected().firstOrNull(isHeadphones) else routed.firstOrNull(isHeadphones)
 
-    private fun routedDevices(audioManager: AudioManager): List<AudioDeviceInfo>? =
+    internal fun routedDevices(audioManager: AudioManager): List<AudioDeviceInfo>? =
         if (Build.VERSION.SDK_INT >= 33) {
             runCatching { audioManager.getAudioDevicesForAttributes(MEDIA) }.getOrNull()
         } else null

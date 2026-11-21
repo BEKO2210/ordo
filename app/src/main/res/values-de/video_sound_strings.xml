@@ -28,12 +28,16 @@
     <string name="video_audio_track_unplayable">auf diesem Gerät nicht abspielbar</string>
     <string name="video_audio_track_none">Dieses Video hat keine Tonspur.</string>
     <string name="video_audio_sync">Ton-Synchronisation</string>
-    <string name="video_audio_sync_summary">Passen Lippen und Stimme nicht zusammen, verschiebe den Ton in 50-ms-Schritten.</string>
+    <string name="video_audio_sync_summary">Passen Lippen und Stimme nicht zusammen, verschiebe den Ton in 50-ms-Schritten. Ordo merkt sich das für jede Ausgabe, etwa deine Bluetooth-Kopfhörer.</string>
     <string name="video_audio_sync_zero">Synchron (0 ms)</string>
     <string name="video_audio_sync_later">Ton %1$d ms später</string>
     <string name="video_audio_sync_earlier">Ton %1$d ms früher</string>
     <string name="video_audio_sync_earlier_button">Ton früher</string>
     <string name="video_audio_sync_later_button">Ton später</string>
+    <string name="video_audio_sync_device">Gilt für: %1$s</string>
+    <string name="video_audio_sync_speaker">Lautsprecher des Geräts</string>
+    <string name="video_audio_sync_unknown_device">diese Ausgabe</string>
+    <string name="video_audio_sync_reset">Zurücksetzen</string>
     <string name="video_sound_balance_left_button">Mehr links</string>
     <string name="video_sound_balance_right_button">Mehr rechts</string>
     <string name="video_signal_stage_downmix">Ordo-Mix auf Stereo</string>

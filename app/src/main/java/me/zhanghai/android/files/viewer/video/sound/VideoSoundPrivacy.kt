@@ -18,13 +18,5 @@ internal fun loudnessPolicy(mediaId: String, noHistory: Boolean): LoudnessPolicy
     else -> LoudnessPolicy.CACHE
 }
 
-/** A delay is kept for Ordo's own paths, never for another app's `content:` items or vault items. */
-internal fun remembersDelay(mediaId: String): Boolean = when (scheme(mediaId)) {
-    null, "content", VAULT_SCHEME -> false
-    else -> true
-}
-
-private const val VAULT_SCHEME = "ordo-vault"
-
 private fun scheme(mediaId: String): String? =
     mediaId.substringBefore(':', "").lowercase().takeIf { it.isNotEmpty() }

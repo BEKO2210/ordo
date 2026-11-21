@@ -21,7 +21,6 @@ import androidx.media3.common.Player
 import androidx.media3.common.Tracks
 import androidx.media3.exoplayer.ExoPlayer
 import java8.nio.file.Paths
-import java8.nio.file.attribute.BasicFileAttributes
 import me.zhanghai.android.files.BuildConfig
 import me.zhanghai.android.files.R
 import me.zhanghai.android.files.player.AudioRenderersFactory
@@ -37,11 +36,9 @@ import me.zhanghai.android.files.player.TransportFader
 import me.zhanghai.android.files.player.TruePeakLimiter
 import me.zhanghai.android.files.player.headphones.HeadphoneOutput
 import me.zhanghai.android.files.player.headphones.HeadphoneStages
-import me.zhanghai.android.files.provider.common.readAttributes
 import me.zhanghai.android.files.provider.linux.isLinuxPath
 import me.zhanghai.android.files.settings.Settings
 import me.zhanghai.android.files.util.valueCompat
-import me.zhanghai.android.files.viewer.video.VideoResumeStore
 import java.io.File
 import java.net.URI
 import java.util.concurrent.Executors
@@ -51,7 +48,7 @@ import java.util.concurrent.Executors
  * and loudness levelling on the platform's DynamicsProcessing, switched only in silence or inside a short dip) and a
  * [KlangAudioProcessor] chain with mono, the dialog enhancer and night mode. Before it, [DownmixProcessor] folds
  * 5.1/7.1 to stereo with the centre kept audible (unless the system's spatializer takes the channels, [VideoSpatial]);
- * after it the [TruePeakLimiter] (−1 dBTP) and [AvDelayProcessor] (A/V sync, remembered per film). The headphone
+ * after it the [TruePeakLimiter] (−1 dBTP) and [AvDelayProcessor] (A/V sync, remembered per output device). The headphone
  * pack ([HeadphoneStages], virtual surround in the downmix) is shared with Ordo Musik.
  *
  * [settings], [update] and [setDelay] are the public way in, for the sheets today and for anything that wants to set
@@ -59,7 +56,7 @@ import java.util.concurrent.Executors
  */
 class VideoSoundEngine(private val context: Context) {
     private val handler = Handler(Looper.getMainLooper())
-    // Small, quick jobs (the delay of a film); the loudness of a whole film has its own thread and never holds them up.
+    // Small, quick jobs (dropping 0.17.0's per-film delays); the loudness of a whole film has its own thread and never holds them up.
     private val worker = Executors.newSingleThreadExecutor()
     private val loudnessWorker = Executors.newSingleThreadExecutor()
     private val mono = MonoStage()
@@ -88,6 +85,12 @@ class VideoSoundEngine(private val context: Context) {
         notifyChanged()
     }
     private val delayStore = VideoDelayStore(context)
+    // Written on the main thread like it is read: SharedPreferences keeps it in memory at once, so no read is stale.
+    private val deviceDelay = VideoDeviceDelay(delayStore::read) { key, value -> delayStore.write(key, value) }
+
+    init {
+        worker.execute { VideoDelayStore.dropLegacy(context) }
+    }
     // A film's level is measured once and cached (BS.1770, shared cache with Ordo Musik); a film takes longer.
     private val loudness by lazy { LoudnessAnalysis(context, LOUDNESS_MAX_MILLIS) }
     private var player: ExoPlayer? = null
@@ -109,8 +112,6 @@ class VideoSoundEngine(private val context: Context) {
     private val sessionLoudness = HashMap<String, ReplayGainInfo?>()
     private var measuringId: String? = null
     private var measurement: java.util.concurrent.Future<*>? = null
-    private var currentKey: String? = null
-    private var delayChangedByUser = false
     private var released = false
     private val listener = object : Player.Listener {
         override fun onAudioSessionIdChanged(audioSessionId: Int) {
@@ -124,6 +125,7 @@ class VideoSoundEngine(private val context: Context) {
             // Music may have set the mixer meanwhile; the film's rate counts again. Paused, Ordo Musik gets a normal
             // mixer, as music hands it back when paused.
             if (isPlaying) output.onConfigure(output.track) else output.suspend()
+            if (isPlaying) applyDeviceDelay()
         }
 
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) = onItem(mediaItem)
@@ -145,8 +147,12 @@ class VideoSoundEngine(private val context: Context) {
     var settings: VideoSoundSettings = VideoSoundStore.read(context)
         private set
 
-    /** Sound later (+) or earlier (−) than the picture, in ms, for the current film. */
+    /** Sound later (+) or earlier (−) than the picture, in ms, for the current output device. */
     var delayMs: Int = 0
+        private set
+
+    /** The output the delay belongs to, for "Applies to: …"; null while unknown. */
+    var delayDevice: AudioDeviceInfo? = null
         private set
 
     /** Channels of the selected sound track, or -1 while unknown. */
@@ -314,6 +320,7 @@ class VideoSoundEngine(private val context: Context) {
         applyToChain()
         effects.attach(player.audioSessionId)
         effects.setAudible(player.isPlaying)
+        applyDeviceDelay()
         onItem(player.currentMediaItem)
     }
 
@@ -326,19 +333,19 @@ class VideoSoundEngine(private val context: Context) {
         if (settings.klang.normalizationEnabled && !wasLevelling) measureLoudness(player?.currentMediaItem)
     }
 
-    /** A new delay takes effect with a flush: a seek to where the film is (one short re-buffer). Kept per film. */
+    /** A new delay takes effect with a flush: a seek to where the film is (one short re-buffer). Kept per device. */
     fun setDelay(value: Int) {
         if (released) return
-        delayChangedByUser = true
-        applyDelay(VideoSoundMath.stepDelay(value, 0))
-        storeDelay()
+        applyDeviceDelay()
+        deviceDelay.set(VideoSoundMath.stepDelay(value, 0))
+        applyDelay(deviceDelay.delayMs)
     }
 
-    private fun storeDelay() {
-        val key = currentKey ?: return
-        if (Settings.VIDEO_NO_HISTORY.valueCompat) return
-        val stored = delayMs
-        worker.execute { delayStore.write(key, stored) }
+    /** The output may have changed: its own delay applies (0 for one never set). */
+    private fun applyDeviceDelay() {
+        val device = audioManager?.let(VideoDeviceDelay::output)
+        delayDevice = device
+        if (deviceDelay.route(device?.let(VideoDeviceDelay::key))) applyDelay(deviceDelay.delayMs)
     }
 
     private fun applyDelay(value: Int) {
@@ -348,34 +355,14 @@ class VideoSoundEngine(private val context: Context) {
         player?.let { it.seekTo(it.currentPosition) }
     }
 
-    /** A new film: its own delay (from the store) and its own level. */
+    /** A new film: its own level; the delay stays the output's. */
     private fun onItem(item: MediaItem?) {
         // The dialog distance belongs to the film: the next one starts measuring from nothing.
         dialog.steering.resetRequested = true
         downmix.steering.resetRequested = true
-        currentKey = null
-        delayChangedByUser = false
         replayGain = null
         applyToChain()
-        val mediaId = item?.mediaId
-        // "Don't remember places": no key, nothing looked up or stored; the delay lasts while the player is open.
-        if (mediaId == null || Settings.VIDEO_NO_HISTORY.valueCompat) {
-            applyDelay(0)
-            if (mediaId != null) measureLoudness(item)
-            return
-        }
-        measureLoudness(item)
-        worker.execute {
-            val key = keyOf(mediaId)
-            val stored = key?.let(delayStore::read) ?: 0
-            handler.post {
-                if (released || player?.currentMediaItem?.mediaId != mediaId) return@post
-                currentKey = key
-                // Set by hand while the key was being found: that wins, and is stored now.
-                if (delayChangedByUser) storeDelay() else applyDelay(stored)
-                notifyChanged()
-            }
-        }
+        if (item?.mediaId != null) measureLoudness(item)
     }
 
     private fun measureLoudness(item: MediaItem?) {
@@ -439,6 +426,9 @@ class VideoSoundEngine(private val context: Context) {
         // A new output: the old one's mixer goes back, the new one gets the film's rate while it plays.
         output.refresh()
         if (player?.isPlaying == true) output.onConfigure(output.track)
+        applyDeviceDelay()
+        // The media route may follow the device callback a moment later (Bluetooth connecting).
+        handler.postDelayed({ applyDeviceDelay(); notifyChanged() }, ROUTE_SETTLE_MS)
         applyToChain()
         notifyChanged()
     }
@@ -466,12 +456,7 @@ class VideoSoundEngine(private val context: Context) {
     private companion object {
         const val TAG = "OrdoVideoSound"
         const val LOUDNESS_MAX_MILLIS = 10 * 60_000L
-
-        /** The same key as "Continue watching": path, size and modification time. Not on the main thread. */
-        fun keyOf(mediaId: String): String? = if (!remembersDelay(mediaId)) null else runCatching {
-            val attributes = Paths.get(URI.create(mediaId)).readAttributes(BasicFileAttributes::class.java)
-            VideoResumeStore.key(mediaId, attributes.size(), attributes.lastModifiedTime().toMillis())
-        }.getOrNull()
+        const val ROUTE_SETTLE_MS = 1000L
 
         /** Only files on this device are measured: a network film would be read a second time. */
         fun localFile(mediaId: String): File? = runCatching {
