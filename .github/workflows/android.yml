@@ -144,7 +144,9 @@ jobs:
         with:
           cache-read-only: ${{ github.event_name == 'pull_request' }}
       - name: Unit tests
-        run: ./gradlew --build-cache testDebugUnitTest $SKIP_NATIVE
+        # --rerun: several tests read files Gradle does not know as inputs (README, docs/, res/), so a result from
+        # the build cache could be one for other files. Compiling still comes from the cache.
+        run: ./gradlew --build-cache testDebugUnitTest --rerun $SKIP_NATIVE
 
   lint:
     needs: changes
