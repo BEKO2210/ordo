@@ -50,7 +50,7 @@
       "shots": [
         {"id": "suite", "raw": ["home"], "crop": [0, 0, 0.66, 0.66], "accent": "#608CFA",
          "headline": {"en": "Files, music, video. *One app.*", "de": "Dateien, Musik, Video. *Eine App.*"}},
-        {"id": "files", "raw": ["files"], "accent": "#3CC4E6",
+        {"id": "files", "raw": ["files"], "crop": [0, 0, 0.72, 0.72], "accent": "#3CC4E6",
          "headline": {"en": "Every file, *right at hand*", "de": "Jede Datei *sofort zur Hand*"}},
         {"id": "music", "raw": ["music"], "crop": [0, 0.1, 0.8, 0.9], "accent": "#EC6EB4",
          "headline": {"en": "Your music in *full color*", "de": "Deine Musik in *voller Farbe*"}},
