@@ -6,6 +6,7 @@
 package me.zhanghai.android.files.viewer.video.picture
 
 import me.zhanghai.android.files.viewer.video.picture.DetailPlus.Model
+import me.zhanghai.android.files.viewer.video.picture.DetailPlus.Reason
 import me.zhanghai.android.files.viewer.video.picture.DetailPlus.Upscaler
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -62,6 +63,8 @@ class DetailPlusTest {
         assertTrue(DetailPlus.looksLikeAnime("/storage/Cartoons/x.mp4"))
         assertTrue(DetailPlus.looksLikeAnime("/x/[Erai-raws] Show - 12 [1080p].mkv"))
         assertTrue(DetailPlus.looksLikeAnime("/x/Ghibli OVA.mkv"))
+        assertTrue(DetailPlus.looksLikeAnime("Animation"))
+        assertFalse(DetailPlus.looksLikeAnime("Animal Kingdom"))
         assertFalse(DetailPlus.looksLikeAnime("/storage/DCIM/Camera/VID_20260101.mp4"))
         assertFalse(DetailPlus.looksLikeAnime("/x/Novara Rennen.mp4"))
         // A bracketed tag only counts with an episode number after " - ".
@@ -70,14 +73,62 @@ class DetailPlusTest {
     }
 
     @Test
+    fun automaticReasonsFollowPolicyOrder() {
+        fun auto(
+            enhanced: Boolean = true,
+            scale: Float = 2f,
+            anime: Boolean = false,
+            unsupported: Set<Model> = emptySet(),
+            fellBack: Set<Model> = emptySet(),
+            predictedMs: Float? = 4f,
+            cartoonMs: Float? = predictedMs
+        ) = DetailPlus.auto(enhanced, scale, anime, unsupported, fellBack) {
+            if (it == Model.CARTOON) cartoonMs else predictedMs
+        }
+
+        assertEquals(Reason.NOT_ENHANCED, auto(enhanced = false, scale = 1f, unsupported = setOf(Model.FILM), predictedMs = 9f).reason)
+        assertEquals(Reason.SMALL, auto(scale = 1.49f, unsupported = setOf(Model.FILM), predictedMs = 9f).reason)
+        assertEquals(Reason.UNSUPPORTED, auto(unsupported = setOf(Model.FILM), predictedMs = 9f).reason)
+        assertEquals(Reason.TOO_SLOW, auto(predictedMs = 8.01f).reason)
+        assertEquals(DetailPlus.Auto(Model.FILM, Reason.FILM, 8f), auto(predictedMs = 8f))
+        assertEquals(DetailPlus.Auto(Model.FILM, Reason.FILM, null), auto(predictedMs = null))
+        assertEquals(DetailPlus.Auto(Model.CARTOON, Reason.ANIME, 4f), auto(anime = true))
+        // Anime steps down to the film network before Lanczos: cartoon unsupported, too slow or fallen back.
+        assertEquals(DetailPlus.Auto(Model.FILM, Reason.ANIME_FILM, 4f), auto(anime = true, unsupported = setOf(Model.CARTOON)))
+        assertEquals(DetailPlus.Auto(Model.FILM, Reason.ANIME_FILM, 4f), auto(anime = true, cartoonMs = 8.1f))
+        assertEquals(Model.FILM, auto(anime = true, fellBack = setOf(Model.CARTOON)).model)
+        assertEquals(Reason.UNSUPPORTED, auto(anime = true, unsupported = setOf(Model.CARTOON, Model.FILM)).reason)
+        assertEquals(DetailPlus.Auto(null, Reason.TOO_SLOW, 9f), auto(anime = true, predictedMs = 9f, cartoonMs = 20f))
+        // Dropped frames although the network was fast enough: still Lanczos for this film.
+        assertEquals(DetailPlus.Auto(null, Reason.TOO_SLOW, 4f), auto(fellBack = setOf(Model.FILM)))
+        assertEquals(Reason.SMALL, auto(scale = 1.2f, fellBack = setOf(Model.FILM)).reason)
+    }
+
+    @Test
+    fun budgetPredictsFromInputPixelsAndRecordOverwrites() {
+        val budget = DetailPlus.Budget()
+        assertNull(budget.predict(Model.FILM, 1_000, 1_000))
+        budget.record(Model.FILM, 1_000, 1_000, 4f)
+        assertEquals(4f, budget.predict(Model.FILM, 1_000, 1_000)!!, 0.0001f)
+        assertEquals(8f, budget.predict(Model.FILM, 2_000, 1_000)!!, 0.0001f)
+        assertNull(budget.predict(Model.CARTOON, 1_000, 1_000))
+        budget.record(Model.FILM, 1_000, 1_000, 3f)
+        assertEquals(3f, budget.predict(Model.FILM, 1_000, 1_000)!!, 0.0001f)
+    }
+
+    @Test
     fun fallBackOnGpuTimeOrAnyDropInSteadyPlayback() {
-        assertFalse(DetailPlus.fallBack(7.9, 30, 0, steady = true))
-        assertTrue(DetailPlus.fallBack(8.1, 30, 0, steady = true))
+        assertFalse(DetailPlus.fallBack(7.9, 30, slowBefore = true, 0, steady = true))
+        assertTrue(DetailPlus.fallBack(8.1, 30, slowBefore = true, 0, steady = true))
+        // One slow second alone is not enough.
+        assertFalse(DetailPlus.fallBack(8.1, 30, slowBefore = false, 0, steady = true))
+        assertTrue(DetailPlus.slow(8.1, 30))
+        assertFalse(DetailPlus.slow(8.1, 9))
         // Too few timed frames say nothing yet.
-        assertFalse(DetailPlus.fallBack(20.0, 9, 0, steady = true))
-        assertTrue(DetailPlus.fallBack(2.0, 30, 1, steady = true))
+        assertFalse(DetailPlus.fallBack(20.0, 9, slowBefore = true, 0, steady = true))
+        assertTrue(DetailPlus.fallBack(2.0, 30, slowBefore = false, 1, steady = true))
         // Drops right after a start, a seek or new effects are the pipeline settling.
-        assertFalse(DetailPlus.fallBack(2.0, 30, 3, steady = false))
+        assertFalse(DetailPlus.fallBack(2.0, 30, slowBefore = false, 3, steady = false))
     }
 
     @Test

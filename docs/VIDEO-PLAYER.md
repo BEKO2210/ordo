@@ -319,10 +319,20 @@ Quelle der Entscheidungen: `ordo-team/QUALITAET-PANEL.md`, Ideen 1–4. Logik oh
 Quelle: `ordo-team/LOKALE-QUALITAETS-KI.md`, Empfehlungen 1 und 2. Logik ohne Android in `DetailPlus`, `MpvHook` und
 `PictureMeter`, getestet in `DetailPlusTest`, `MpvHookTest`, `PictureMeterTest`.
 
-- **Hochskalieren** (Einstellungen › Bild; die Wahl öffnet ein Klang-Sheet mit Symbol und kurzer Erklärung je Option): Standard (Lanczos, ab Werk) / Detail plus: Film / Detail plus: Zeichentrick /
-  Automatisch. Film = **FSRCNNX x2 8-0-4-1** (igv, Shaderdatei LGPL-3.0-or-later, Repo GPL-3.0), Zeichentrick =
-  **Anime4K CNN x2 M** (bloc97, MIT). „Automatisch“ nimmt Zeichentrick, wenn Datei- oder Ordnername nach Anime klingt
-  (anime, zeichentrick, cartoon, manga, OVA, Fansub-Gruppen, Muster `[Gruppe] Titel - 01`), sonst Film.
+- **Hochskalieren** (Einstellungen › Bild; die Wahl öffnet ein Klang-Sheet mit Symbol und kurzer Erklärung je Option): Standard (Lanczos) / Detail plus: Film / Detail plus: Zeichentrick /
+  Automatisch (ab Werk seit 0.18). Film = **FSRCNNX x2 8-0-4-1** (igv, Shaderdatei LGPL-3.0-or-later, Repo GPL-3.0), Zeichentrick =
+  **Anime4K CNN x2 M** (bloc97, MIT).
+- **Automatisch** (`DetailPlus.auto`, getestet in `DetailPlusTest`) entscheidet je Film, in dieser Reihenfolge:
+  Bildverbesserung aus (HDR, DRM, ausgeschaltet) → Lanczos; weniger als 1,5-fach → Lanczos; Netz auf dieser GPU nicht
+  lauffähig, für diesen Film schon zurückgefallen oder **vorhergesagte** GPU-Zeit > 8 ms → nächste Stufe. Stufen: bei
+  Anime (Pfad, Genre oder Titel: anime, zeichentrick, cartoon, manga, animation, OVA, Fansub-Gruppen, Muster
+  `[Gruppe] Titel - 01`) Zeichentrick → Film → Lanczos, sonst Film → Lanczos (FSRCNNX schlug Lanczos+CAS auch auf
+  Zeichentrick, Tabelle unten). Die Vorhersage ist die zuletzt gemessene GPU-Zeit je
+  Megapixel Eingabe (`DetailPlus.Budget`, das Netz rechnet in Quellgröße) mal den Pixeln dieses Films, je Netz und
+  App-Version in den Einstellungen gemerkt; ohne Messung probiert Automatisch das Netz, die erste Sekunde misst es.
+  Der Rückfall ist bei Automatisch still (kein Hinweis), der Signalweg nennt den Grund, z. B. „Automatisch: Detail plus
+  Film, weil 960 × 540 → 2960 × 1665 und 5,6 ms frei“ oder „Automatisch: Lanczos 3, weil Detail plus hier 81,0 ms
+  bräuchte (Ziel 8,0 ms)“.
 - **Wann:** nur wenn die Bildverbesserung läuft (SDR, ohne DRM, eingeschaltet) und das Video mindestens **1,5-fach**
   vergrößert wird. Kette: Netz ×2 → `LanczosResample` auf die Oberfläche → Bildverbesserungs-Pass mit **halber**
   CAS-Stärke (das Netz schärft schon).
@@ -332,9 +342,18 @@ Quelle: `ordo-team/LOKALE-QUALITAETS-KI.md`, Empfehlungen 1 und 2. Logik ohne An
   GL unten, spiegeln die Makros y. `DetailPlusProgram` (ein `GlEffect`) rechnet alle Pässe in eigenen **RGBA16F**-
   Texturen (Merkmale sind vorzeichenbehaftet, Media3s 8-bit-Pässe würden sie zerstören), Texturen werden nach der
   letzten Verwendung wiederverwendet. FSRCNNX arbeitet wie in mpv nur auf Luma (Y' aus R'G'B', BT.709); die Farbe kommt
-  bilinear verdoppelt dazu. Braucht OpenGL ES 3 mit Half-Float-Rendertargets (ES 3.2 oder
+  bilinear verdoppelt dazu.
+- **Schneller (0.18):** `MpvHook.groups` zeichnet aufeinanderfolgende Pässe gleicher Größe, die nichts voneinander
+  lesen, in einem Durchgang mit mehreren Render-Targets (FSRCNNX: 14 Pässe → 8 Durchgänge, die Paare lesen ihre
+  Eingaben nur noch einmal; Anime4K bleibt bei 9). Luma liest FSRCNNX direkt aus dem Bild (kein eigener Luma-Pass, keine
+  Luma-Textur). Der letzte Pass, die Verdopplung, schreibt direkt in Media3s Ausgabe samt Farbe (keine 2×-Half-Float-
+  Textur, kein eigener Abschluss-Pass). Pässe in Quellgröße lesen ganze Texel (`texelFetch`, Rand wie
+  `CLAMP_TO_EDGE`) und rechnen in **mediump** (Half-Float, auf Adreno doppelte Rate); der letzte Pass rechnet Positionen
+  in highp, nur seine Summe in mediump. Braucht OpenGL ES 3 mit Half-Float-Rendertargets (ES 3.2 oder
   `EXT_color_buffer_(half_)float`); sonst kopiert der Pass nur und Ordo schaltet auf Lanczos zurück (Signalweg nennt den Grund).
-- **Rückfall:** GPU-Zeit des Netzes im Mittel einer Sekunde **> 8 ms** (ab 10 gemessenen Bildern) oder **jedes**
+- **Rückfall:** GPU-Zeit des Netzes im Mittel einer Sekunde **> 8 ms beim höchsten GPU-Takt, zwei Sekunden in Folge** (ab 10 gemessenen
+  Bildern; gemessene Zeit × aktueller/höchster Takt aus `/sys/class/kgsl/kgsl-3d0/devfreq`, wo lesbar – Adreno; sonst
+  die gemessene Zeit) oder **jedes**
   verworfene Bild im eingeschwungenen Abspielen (2 s nach Start, Sprung, Pause oder neuen Effekten) → Lanczos für
   diesen Bildschirm, mit ruhigem Hinweis. Meldet Media3 einen Ruckel-Block, fällt zuerst Detail plus weg, erst danach
   die ganze Bildverbesserung. Das ⋮-Umschalten setzt beides zurück.
@@ -366,10 +385,44 @@ Quelle: `ordo-team/LOKALE-QUALITAETS-KI.md`, Empfehlungen 1 und 2. Logik ohne An
   gleicher Abschluss-Shader). Anime4K-Ergebnis gegen libplacebos Lauf desselben Shaders auf demselben Bild: **66,4 dB**
   (Sita) und **61,4 dB** (Tears of Steel), also praktisch gleich; ohne die y-Spiegelung nur 47,7/45,8 dB. Damit stimmt
   die Ausrichtung. FSRCNNX (Luma-Weg mit bilinearer Farbe, RGB-PSNR eines Bildes): 40,61 dB gegen 40,50 ohne
-  Spiegelung; bilinear allein 36,67 dB.
-- **Am Gerät messen (offen):** Tab S9 Ultra und Pixel 9, 720p und 540p → Bildschirm, 30 fps, 20 min, Messwerte an,
-  CSV teilen: `detailplus_ms` ≤ 8, keine zusätzlichen verworfenen Bilder gegen einen Lauf mit Standard, Thermik-Reserve
-  < 1,0; S21 und W90: muss von selbst zurückfallen, ohne Ruckler. Akku: Pixel 9 über Perfetto `power.rails`.
+  Spiegelung; bilinear allein 36,67 dB. Seit 0.18 prüft der Nachbau nur noch die Einzelpässe (ohne Gruppen, mit
+  eigenem Abschluss-Shader); Gruppen und Abschluss in die Ausgabe prüft das Gerät (Bildtabelle unten).
+- **Am Gerät gemessen (21.11.2026, Galaxy Tab S9 Ultra quer, 2960×1665, 24 fps, stumm, Ordo Dev 0.18.0 Beta-Build):**
+  Werkzeuge in `utils/detailplus/device-*.sh` (Clips aus `device-clips.sh`: die 5-s-Clips von `quality.sh` auf 3 min
+  geschleift). Je Pass per GPU-Timer in einem Messbuild (nicht im Repo), Takt per `devfreq/cur_freq` alle 5 s.
+
+  | FSRCNNX, Eingabe 1267×540 | Pässe | GPU-Zeit bei 220 MHz | beim Höchsttakt 719 MHz (umgerechnet) |
+  |---|---|---|---|
+  | 0.17.0 | 16 | **13,45 ms** | 4,12 ms |
+  | Gruppen + Luma aus dem Bild + Abschluss in die Ausgabe + texelFetch, highp | 8 | 11,38 ms | 3,48 ms |
+  | … und mediump-Summen (0.18) | 8 | **8,11 ms** (−40 %) | 2,48 ms |
+
+  Der Governor hält die GPU beim Abspielen bei 220–295 MHz (31–41 % des Höchsttakts). Die 8,10 ms aus der 0.17-QA
+  waren darum die Zeit bei niedrigem Takt, nicht das, was das Netz braucht: Erst beim Höchsttakt ist die 8-ms-Grenze
+  eine Grenze. Ein erster Anime-Lauf fiel nach 66 s an **einer** Sekunde mit 8,12 ms zurück (Takt gelesen, als die
+  GPU gerade hochtaktete; sonst 1,4 ms): Seitdem zählt die GPU-Zeit erst, wenn zwei Sekunden in Folge zu langsam sind.
+  Dauerläufe mit „Automatisch“ (echter Build, 3 min je Clip, Thermik-Status vorher/nachher 0):
+
+  | Clip (Eingabe) | Wahl | GPU-Zeit Höchsttakt Mittel / Max | gemessen bei ~230 MHz | verworfene Bilder |
+  |---|---|---|---|---|
+  | 540p (1267×540) | Film | 2,49 / 3,44 ms | 8,13 ms | 0 |
+  | 720p (1725×720) | Film | 4,60 / 6,52 ms | 13,89 ms | 0 |
+  | 1080p (2588×1080) | Lanczos (1,1-fach) | – | – | – |
+  | Anime 540p (960×540) | Zeichentrick | 1,42 / 1,65 ms | – | 0 |
+
+  **Bild** (Standbilder 960×540 → 2960×1665 auf dem Tab, Bildschirmfoto gegen das Original, Lanczos-skaliert,
+  `device-shots.sh`/`device-quality.sh`; SSIM-Y / PSNR-Y):
+
+  | Bild | Lanczos 3 + CAS | Detail plus 0.17.0 | Detail plus 0.18 |
+  |---|---|---|---|
+  | Sintel (CGI) | 0,98884 / 45,35 dB | 0,98938 / 45,76 dB | 0,98936 / 45,64 dB |
+  | Sita (Zeichentrick) | 0,93518 / 36,19 dB | 0,94376 / 37,34 dB | 0,94388 / 37,32 dB |
+
+  0.18 rechnet so gut wie 0.17 (Unterschied im Rauschen des Ditherings) und bleibt über Lanczos+CAS. mediump kostet
+  nichts messbar: highp-Summen 0,94147 / 36,78 dB gegen mediump 0,94144 / 36,77 dB (beide noch mit dem Farbfehler unten).
+  Ein erster Stand verlor die Farbe (Sampler gesetzt, bevor das Programm aktiv war: alles grau, SSIM-Y fiel kaum);
+  `device-quality.sh` misst darum auch die Farbspreizung. Offen: W90 und Tab A8 waren beim Lauf nicht per adb
+  erreichbar; Pixel 9 nicht gemessen. Akku nicht gemessen.
 - **Lizenzen:** Anime4K MIT, FSRCNNX LGPL-3.0-or-later (beide Hinweise stehen unverändert im Kopf der Shaderdateien und
   in `res/raw/licenses.xml`). Keine neue Laufzeitbibliothek.
 - **Gerätetest:** `e2e/video-detailplus.sh` (`--write`-Liste).
