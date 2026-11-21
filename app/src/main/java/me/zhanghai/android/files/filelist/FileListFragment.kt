@@ -58,6 +58,7 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.snackbar.Snackbar
 import com.leinardi.android.speeddial.SpeedDialView
 import eightbitlab.com.blurview.BlurView
 import java8.nio.file.Path
@@ -66,6 +67,7 @@ import java.net.URI
 import kotlin.math.roundToInt
 import kotlinx.parcelize.Parcelize
 import me.zhanghai.android.files.R
+import me.zhanghai.android.files.about.RateOrdo
 import me.zhanghai.android.files.app.application
 import me.zhanghai.android.files.app.clipboardManager
 import me.zhanghai.android.files.compat.checkSelfPermissionCompat
@@ -506,6 +508,17 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
         if (!viewModel.isStorageAccessRequested) {
             ensureNotificationPermission()
         }
+        maybeShowRateHint()
+    }
+
+    // Once ever, and never on top of a dialog or sheet (players are their own activities, so this is not resumed).
+    private fun maybeShowRateHint() {
+        val dialogOpen = (parentFragmentManager.fragments + childFragmentManager.fragments)
+            .any { it is androidx.fragment.app.DialogFragment && it.isAdded }
+        if (dialogOpen || !RateOrdo.takeIfDue(requireContext())) return
+        Snackbar.make(binding.contentLayout, R.string.rate_hint_text, Snackbar.LENGTH_LONG)
+            .setAction(R.string.rate_hint_action) { RateOrdo.openStore(requireContext()) }
+            .show()
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {

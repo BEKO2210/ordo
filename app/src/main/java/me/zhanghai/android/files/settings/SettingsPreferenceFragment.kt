@@ -26,6 +26,7 @@ import me.zhanghai.android.files.BuildConfig
 import me.zhanghai.android.files.R
 import me.zhanghai.android.files.util.getColorByAttr
 import me.zhanghai.android.files.about.AboutActivity
+import me.zhanghai.android.files.about.RateOrdo
 import me.zhanghai.android.files.ai.CommandDesign
 import me.zhanghai.android.files.ai.CommandModel
 import me.zhanghai.android.files.ai.CommandSheetFragment
@@ -199,6 +200,15 @@ open class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         SettingsActivity.SECTIONS.forEach { section -> open("section_$section") { SettingsActivity.createIntent(section) } }
         open("link_backup") { BackupActivity::class.createIntent() }
         open("link_ftp_server") { FtpServerActivity::class.createIntent() }
+        fun onClick(key: String, action: (android.content.Context) -> Unit) {
+            preferenceScreen.findPreference<Preference>(key)!!.setOnPreferenceClickListener {
+                action(requireContext())
+                true
+            }
+        }
+        onClick("link_rate", RateOrdo::openStore)
+        onClick("link_share", RateOrdo::share)
+        onClick("link_feedback", RateOrdo::reportIssue)
         open("link_legal") { LegalActivity::class.createIntent() }
         open("link_about") { AboutActivity::class.createIntent() }
         preferenceScreen.findPreference<Preference>("link_about")!!.summary =

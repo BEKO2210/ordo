@@ -43,9 +43,11 @@
     <string name="video_signal_stage_downmix">Ordo-Mix auf Stereo</string>
     <string name="video_sound_isolate">Dialog freistellen plus</string>
     <string name="video_sound_isolate_summary">Ein Sprachmodell auf dem Gerät trennt Stimmen von Musik und Geräuschen und senkt den Rest um 9\u00A0dB. Für Filme, nicht für Musik.</string>
-    <string name="video_sound_isolate_download">Modell laden (8\u00A0MB)</string>
-    <string name="video_sound_isolate_note">Wird nur auf Tippen einmal von GitHub geladen (DeepFilterNet3, MIT oder Apache 2.0). Danach läuft es offline.</string>
     <string name="video_sound_isolate_downloading">Modell wird geladen … %1$d %%</string>
     <string name="video_sound_isolate_failed">Das Modell konnte nicht geladen werden. Verbindung prüfen und erneut versuchen.</string>
     <string name="video_sound_isolate_idle">Wirkt nur bei Ton mit 48 kHz. Dieser Film bleibt unverändert.</string>
+    <string name="video_sound_isolate_note">Ab Werk aus. Beim ersten Einschalten fragt Ordo, bevor das Modell einmal von GitHub geladen wird (8\u00A0MB, DeepFilterNet3, MIT oder Apache 2.0). Danach läuft es offline.</string>
+    <string name="video_sound_isolate_confirm_title">Sprachmodell laden?</string>
+    <string name="video_sound_isolate_confirm_message">„Dialog freistellen plus“ braucht das Modell DeepFilterNet3 (8\u00A0MB, MIT oder Apache 2.0). Ordo lädt es einmal von GitHub, danach läuft es offline auf dem Gerät. Lässt sich mit dem Dialog-Verstärker kombinieren.</string>
+    <string name="video_sound_isolate_confirm_load">Laden</string>
 </resources>

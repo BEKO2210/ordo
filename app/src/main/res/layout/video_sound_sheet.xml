@@ -283,16 +283,6 @@
                         android:layout_marginTop="@dimen/klang_space_sm"
                         android:accessibilityLiveRegion="polite"
                         android:visibility="gone" />
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/isolateDownload"
-                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/klang_space_sm"
-                        android:minHeight="@dimen/klang_touch_target"
-                        android:text="@string/video_sound_isolate_download"
-                        android:textAllCaps="false"
-                        android:visibility="gone" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 

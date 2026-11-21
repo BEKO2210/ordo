@@ -1,10 +1,11 @@
 #!/bin/bash
 # Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later
 # "Dialog freistellen plus", WRITES: a 48 kHz stereo clip made by ffmpeg in /storage/emulated/0/ordo-e2e-isolate
-# (removed again). ⋮ › Sound shows the card on a 64-bit device; before any tap the model is not there and nothing
-# was downloaded; "Load model" (the user's consent) fetches it, the switch then turns on by itself and the film plays
-# on; the debug log reports the model loaded with a real-time factor (RTF) ≤ 0.7, or the card is gone (too slow);
-# switching off and on keeps it playing; no crash. The model stays for the next run (8 MB in the app's files).
+# (removed again). ⋮ › Sound shows the card on a 64-bit device, off. The model of an earlier run is deleted first, so
+# the consent is checked each time: switching on asks; Cancel leaves it off and downloads nothing; Load fetches the
+# model, the switch then turns on by itself and the film plays on; the debug log reports a real-time factor (RTF)
+# ≤ 0.7, or the card is gone (too slow); with Clear dialogue on as well it plays on; switching off and on keeps it
+# playing; no crash. The model stays afterwards (8 MB in the app's files).
 # Whether it sounds better needs ears: SKIP, by hand (~/ordo-team/df3-hoertest).
 . "$(dirname "$0")/lib.sh" "$@"
 DIR=/storage/emulated/0/ordo-e2e-isolate
@@ -40,18 +41,25 @@ if ! scroll_to "Dialog freistellen plus|Dialogue isolation plus" 4; then
     esac
     back; a shell am force-stop "$PKG"; finish; exit
 fi
-if scroll_to isolateDownload 2; then
-    check "before the tap no model was downloaded" eval '! a shell run-as "$PKG" ls files/models/deepfilternet3_onnx.tar.gz'
-    ui tap isolateDownload >/dev/null
-    for _ in $(seq 1 60); do a shell run-as "$PKG" ls files/models/deepfilternet3_onnx.tar.gz >/dev/null 2>&1 && break; sleep 2; done
-fi
-check "the model is there after the tap" a shell run-as "$PKG" ls files/models/deepfilternet3_onnx.tar.gz
+a shell run-as "$PKG" rm -f files/models/deepfilternet3_onnx.tar.gz
+ui tap "Dialog freistellen plus|Dialogue isolation plus" >/dev/null; sleep 1.5
+check "switching on asks before any download" ui has "Sprachmodell laden?|Load the speech model?"
+ui tap "Abbrechen|Cancel" >/dev/null; sleep 1
+check "Cancel downloads nothing" eval '! a shell run-as "$PKG" ls files/models/deepfilternet3_onnx.tar.gz'
+ui tap "Dialog freistellen plus|Dialogue isolation plus" >/dev/null; sleep 1.5
+ui tap "Laden|Load" >/dev/null
+for _ in $(seq 1 60); do a shell run-as "$PKG" ls files/models/deepfilternet3_onnx.tar.gz >/dev/null 2>&1 && break; sleep 2; done
+check "the model is there after Load" a shell run-as "$PKG" ls files/models/deepfilternet3_onnx.tar.gz
 sleep 6
 rtf=$(a logcat -d -s OrdoVideoSound | grep -o 'DeepFilterNet3: loaded=true rtf=[0-9.E-]*' | tail -1 | sed 's/.*rtf=//')
 echo "INFO DeepFilterNet3 RTF on this device: ${rtf:-not logged}"
 if [ -n "$rtf" ] && python3 -c "import sys; sys.exit(0 if float('$rtf') <= 0.7 else 1)"; then
     pass "the model runs fast enough here (RTF $rtf)"
     check "with Dialog isolation plus on it plays on" wait_playing
+    scroll_to "Dialog-Verstärker|Clear dialogue" 3; ui tap "Dialog-Verstärker|Clear dialogue" >/dev/null; sleep 1.5
+    check "together with Clear dialogue it plays on" wait_playing
+    ui tap "Dialog-Verstärker|Clear dialogue" >/dev/null; sleep 1
+    scroll_to "Dialog freistellen plus|Dialogue isolation plus" 3
     ui tap "Dialog freistellen plus|Dialogue isolation plus" >/dev/null; sleep 1.5
     check "switched off it plays on" wait_playing
     ui tap "Dialog freistellen plus|Dialogue isolation plus" >/dev/null; sleep 1.5

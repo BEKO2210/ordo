@@ -311,8 +311,8 @@ class VideoSoundEngine(private val context: Context) {
     // film's sound always passes downmix, lip-sync delay and limiter.
     private val output = HiResOutput(context, allowsBitPerfect = false)
 
-    fun renderersFactory(): AudioRenderersFactory =
-        AudioRenderersFactory(context, arrayOf(downmix, isolation, klang, truePeak, delay), output)
+    fun renderersFactory(videoGraph: androidx.media3.common.VideoGraph.Factory? = null): AudioRenderersFactory =
+        AudioRenderersFactory(context, arrayOf(downmix, isolation, klang, truePeak, delay), output, videoGraph)
 
     /** "Dialog freistellen plus" can be offered here (64-bit library, not measured too slow). */
     val isolationOffered: Boolean get() = DialogModel.offered(context)

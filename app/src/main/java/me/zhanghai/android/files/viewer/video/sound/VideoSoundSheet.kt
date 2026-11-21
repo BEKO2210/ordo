@@ -100,10 +100,15 @@ class VideoSoundSheet : BottomSheetDialogFragment(), HeadphonesHost {
         }
         bindRow(binding.isolateRow, R.drawable.audio_hearing_icon_24dp, R.string.video_sound_isolate,
             R.string.video_sound_isolate_summary) { copy(isolateDialog = it) }
-        // The tap is the consent: nothing is downloaded without it.
-        binding.isolateDownload.setOnClickListener {
-            engine.downloadIsolationModel()
-            renderIsolation()
+        // Switching on without the model asks first: only a confirmed dialog downloads it, nothing else does.
+        binding.isolateRow.toggle.setOnCheckedChangeListener { toggle, checked ->
+            if (rendering) return@setOnCheckedChangeListener
+            if (checked && engine.isolationModel() != DialogModel.State.Ready) {
+                toggle.isChecked = false
+                confirmDownload()
+            } else {
+                update { copy(isolateDialog = checked) }
+            }
         }
         bindRow(binding.nightRow, R.drawable.audio_moon_icon_24dp, R.string.video_sound_night,
             R.string.video_sound_night_summary) { copy(nightMode = it) }
@@ -311,8 +316,7 @@ class VideoSoundSheet : BottomSheetDialogFragment(), HeadphonesHost {
         rendering = true
         binding.isolateRow.toggle.isChecked = settings.isolateDialog && ready
         rendering = wasRendering
-        binding.isolateRow.toggle.isEnabled = ready
-        binding.isolateDownload.isVisible = model == DialogModel.State.Missing || model == DialogModel.State.Failed
+        binding.isolateRow.toggle.isEnabled = model !is DialogModel.State.Downloading
         val state = when {
             model is DialogModel.State.Downloading ->
                 getString(R.string.video_sound_isolate_downloading, (model.bytes * 100 / DialogModel.SIZE).toInt())
@@ -324,6 +328,18 @@ class VideoSoundSheet : BottomSheetDialogFragment(), HeadphonesHost {
         binding.isolateState.isVisible = state != null
         // Only a real change: every setText is an accessibility event.
         if (state != null && binding.isolateState.text.toString() != state) binding.isolateState.text = state
+    }
+
+    private fun confirmDownload() {
+        com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.video_sound_isolate_confirm_title)
+            .setMessage(R.string.video_sound_isolate_confirm_message)
+            .setPositiveButton(R.string.video_sound_isolate_confirm_load) { _, _ ->
+                engine?.downloadIsolationModel()
+                if (_binding != null) renderIsolation()
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
     }
 
     /** The measured and reached dialog distance (they move with the film; the ticker refreshes only this line). */
