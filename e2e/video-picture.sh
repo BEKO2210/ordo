@@ -68,7 +68,8 @@ settings_pick() {
 a shell am start -W -n "$PKG/me.zhanghai.android.files.viewer.video.VideoLauncherActivity" >/dev/null; sleep 2; guard
 ui tap actionSettings >/dev/null; sleep 2
 check "the settings have Picture enhancement, balanced by default" scroll_to "Ausgewogen|Balanced"
-check "and Match frame rate, only when seamless by default" ui has "Nur nahtlos|Only when seamless"
+# Its row can sit below the fold (Tab A8, 21.11.2026).
+check "and Match frame rate, only when seamless by default" scroll_to "Nur nahtlos|Only when seamless" 3
 back 1; back 1
 
 # 2. A small SDR clip: the pipeline engages and frames are processed; their GPU time goes to the report.
@@ -92,7 +93,9 @@ screenshot "$out/small-enhanced.png"
 menu "Signalweg|Signal path"
 check "Signal path opens" ui wait "Signalweg|Signal path" 5
 check "it names the decoder as hardware or software" part "Decoder: (Hardware|Software)"
-check "it shows the Lanczos upscale" part "Lanczos 3"
+# A low-end device that drops frames switches the enhancement off and says why (Tab A8, 21.11.2026: 50 dropped).
+check "it shows the Lanczos upscale, or why the device switched it off" \
+    part "Lanczos 3|Gerät kam nicht hinterher|device couldn.t keep up"
 sound_row() { local i; for i in 1 2 3; do part "(Ausgabe|Output): " && return 0; swipe_up; done; return 1; }
 check "it has the sound section with the output" sound_row
 screenshot "$out/signal-path.png"

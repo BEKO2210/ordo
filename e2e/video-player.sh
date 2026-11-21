@@ -162,7 +162,11 @@ ui tap resumePill >/dev/null 2>&1; sleep 1.5
 
 # 5. The end of a clip: by default ("Stop at the end", the owner's choice) the player stays on the last frame with
 # "Watch again" and "Next video"; Next video opens the next clip of the folder (titles without the extension).
-a shell input keyevent KEYCODE_MEDIA_PLAY; sleep 22
+# Tab S9, 21.11.2026: once the clip stood at 0:16 after 22 s and a rerun passed; this check tells a missed play key
+# from a missed end screen.
+a shell input keyevent KEYCODE_MEDIA_PLAY
+check "the play key plays on" wait_playing
+sleep 20
 check "at the end the player stops with Watch again" ui wait endReplay 6
 check "and offers the next video" ui has endNext
 ui tap endNext >/dev/null; sleep 2; pause
