@@ -24,7 +24,8 @@ e2e/farm.sh --write --only "klang video-seek" --orient landscape tab # a few sui
 - **Devices** are named in `farm-devices.conf` with what they can do (`shots`, `hdr`, `slow`, …). Each one is taken
   through a lock command (`FARM_LOCK`, on pop-os `~/ordo-geraet.sh <name> <cmd>`: it waits for the device, exports
   `ORDO_SERIAL` and runs the command), so two jobs never drive one device. Without a lock command a device's name is
-  its adb serial. A device that is offline, locked, held by someone else or fails `preflight.sh` is left out; the
+  its adb serial. The farm holds a device for its whole share of the run (one lock, not one per suite), so rotation
+  and screen state stay its own; other jobs for that device wait until the farm is done. A device that is offline, locked, held by someone else or fails `preflight.sh` is left out; the
   others take its share.
 - **Jobs** are suite × orientation. A free device takes the next job it is able to run, longest first (times of the
   last run), and keeps its orientation as long as there is work in it. The time limit of a suite (900 s, doubled on a
@@ -154,5 +155,5 @@ Rules for every test:
 - It ends with `finish`, which also fails the test if the crash log is not empty.
 - A bug found on a device gets a test here in the same pull request as its fix.
 
-Needs: `adb`, `python3`, and `ffmpeg` for `bars-replay.sh`. `ADB` and `PKG` can be overridden through the
+Needs: `adb`, `python3` (with Pillow), and `ffmpeg` for the suites that make their own media; `preflight.sh` checks all of it. `ADB` and `PKG` can be overridden through the
 environment.

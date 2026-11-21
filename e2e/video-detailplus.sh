@@ -37,7 +37,7 @@ open_file() {
     a shell am start -W -a android.intent.action.VIEW -d "file://$1" -t inode/directory \
         -n "$PKG/me.zhanghai.android.files.filelist.FileListActivity" >/dev/null
     guard; ui wait "$2" 10 >/dev/null; ui tap "$2" >/dev/null
-    wait_on viewer.video.VideoPlayerActivity 8
+    wait_on viewer.video.VideoPlayerActivity 8; media_wait PLAY 6 # the menu helper pauses only what already plays
 }
 menu() { video_menu "$1"; }
 # ui has/wait compare whole texts (no regex): content checks grep the screen's texts instead.

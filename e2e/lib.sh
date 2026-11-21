@@ -18,7 +18,7 @@ ui() { python3 "$HERE/ui.py" "$SERIAL" "$@" < /dev/null; local c=$?; [ $c = 3 ] 
 top() { a shell "dumpsys activity activities 2>/dev/null | grep -m1 topResumedActivity" | grep -o 'com[^ }]*'; }
 crashes() { a logcat -b crash -d | grep -c FATAL; }
 # focus_window: the focused window (an activity, or a dialog, menu or sheet in a window of its own).
-focus_window() { a shell "dumpsys window | grep -m1 mCurrentFocus" 2>/dev/null; }
+focus_window() { a shell "dumpsys window 2>/dev/null | grep -m1 mCurrentFocus" 2>/dev/null; }
 # back [S]: Back, then up to S seconds (default 1.5) for what it closes. It returns early only once the focused window
 # has changed (a screen, dialog or menu went away); a layer inside the same window still gets the whole time.
 back() {
@@ -37,7 +37,7 @@ back() {
 # Ordo is the resumed activity and no keyguard shows. ordo_front checks that; screenshot FILE and raw_screenshot FILE
 # are the only ways the tests take one ("SKIP shot (not Ordo)" otherwise, and the file is not written).
 ordo_front() {
-    local s; s=$(a shell "dumpsys activity activities | grep -m1 topResumedActivity; dumpsys window | grep -m1 isKeyguardShowing; dumpsys window | grep -m1 mCurrentFocus")
+    local s; s=$(a shell "dumpsys activity activities 2>/dev/null | grep -m1 topResumedActivity; dumpsys window 2>/dev/null | grep -m1 isKeyguardShowing; dumpsys window 2>/dev/null | grep -m1 mCurrentFocus")
     # The focused window too: Samsung's app drawer (opened from the taskbar) covers Ordo while Ordo stays the resumed
     # activity (Tab A8, 20.11.2026: a drawer screenshot passed the check).
     grep -q "topResumedActivity=.* $PKG/" <<<"$s" && ! grep -q "isKeyguardShowing=true" <<<"$s" &&
