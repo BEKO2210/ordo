@@ -1,0 +1,64 @@
+{
+  "locales": {"en": "en-US", "de": "de-DE"},
+  "feature": {
+    "raw": ["home", "music", "video"],
+    "accent": "#608CFA",
+    "headline": {"en": "Files, music, video. *Private and offline.*", "de": "Dateien, Musik, Video. *Privat und offline.*"}
+  },
+  "sets": {
+    "phoneScreenshots": {
+      "prefix": "", "canvas": [1080, 1920], "headline": 96, "width": 820, "radius": 58, "bezel": 18,
+      "bars": {"portrait": [84, 40], "landscape": [64, 44]},
+      "shots": [
+        {"id": "suite", "raw": ["home", "music", "video"], "layout": "trio", "accent": "#608CFA",
+         "headline": {"en": "Files, music, video. *One app.*", "de": "Dateien, Musik, Video. *Eine App.*"}},
+        {"id": "files", "raw": ["files"], "accent": "#3CC4E6",
+         "headline": {"en": "Every file, *right at hand*", "de": "Jede Datei *sofort zur Hand*"}},
+        {"id": "music", "raw": ["music"], "accent": "#EC6EB4",
+         "headline": {"en": "Your music in *full color*", "de": "Deine Musik in *voller Farbe*"}},
+        {"id": "video", "raw": ["video", "more"], "layout": "stack", "accent": "#FAAA5A",
+         "headline": {"en": "Films with *subtitles that fit*", "de": "Filme mit *passenden Untertiteln*"}},
+        {"id": "ai", "raw": ["ai"], "crop": [0, 0.17, 1, 1], "accent": "#9678FA",
+         "headline": {"en": "AI that *stays on your phone*", "de": "KI, die *auf dem Handy bleibt*"}},
+        {"id": "vault", "raw": ["vault"], "width": 940, "accent": "#34D399",
+         "headline": {"en": "Private files, *locked away*", "de": "Privates *sicher verschlossen*"}},
+        {"id": "storage", "raw": ["storage"], "bars": [63, 126], "accent": "#608CFA",
+         "headline": {"en": "See what fills *your storage*", "de": "Sieh, was deinen *Speicher füllt*"}},
+        {"id": "sound", "raw": ["sound"], "crop": [0, 0.05, 1, 0.75], "width": 980, "accent": "#3CC4E6",
+         "headline": {"en": "Shape *your sound*", "de": "Forme *deinen Klang*"}}
+      ]
+    },
+    "sevenInchScreenshots": {
+      "prefix": "seven-", "canvas": [1080, 1920], "headline": 96, "width": 880, "radius": 30, "bezel": 26,
+      "bars": {"portrait": [80, 60], "landscape": [80, 60]},
+      "shots": [
+        {"id": "suite", "raw": ["home"], "accent": "#608CFA",
+         "headline": {"en": "Files, music, video. *One app.*", "de": "Dateien, Musik, Video. *Eine App.*"}},
+        {"id": "files", "raw": ["files"], "accent": "#3CC4E6",
+         "headline": {"en": "Every file, *right at hand*", "de": "Jede Datei *sofort zur Hand*"}},
+        {"id": "music", "raw": ["music"], "accent": "#EC6EB4",
+         "headline": {"en": "Your music in *full color*", "de": "Deine Musik in *voller Farbe*"}},
+        {"id": "video", "raw": ["video", "more"], "layout": "stack", "accent": "#FAAA5A",
+         "headline": {"en": "Films with *subtitles that fit*", "de": "Filme mit *passenden Untertiteln*"}},
+        {"id": "sound", "raw": ["sound"], "crop": [0, 0.02, 1, 1], "width": 960, "accent": "#3CC4E6",
+         "headline": {"en": "Shape *your sound*", "de": "Forme *deinen Klang*"}}
+      ]
+    },
+    "tenInchScreenshots": {
+      "prefix": "tablet-", "canvas": [1920, 1080], "headline": 84, "width": 1400, "radius": 26, "bezel": 24,
+      "bars": {"portrait": [60, 44], "landscape": [60, 44]},
+      "shots": [
+        {"id": "suite", "raw": ["home"], "crop": [0, 0, 0.66, 0.66], "accent": "#608CFA",
+         "headline": {"en": "Files, music, video. *One app.*", "de": "Dateien, Musik, Video. *Eine App.*"}},
+        {"id": "files", "raw": ["files"], "accent": "#3CC4E6",
+         "headline": {"en": "Every file, *right at hand*", "de": "Jede Datei *sofort zur Hand*"}},
+        {"id": "music", "raw": ["music"], "crop": [0, 0.1, 0.8, 0.9], "accent": "#EC6EB4",
+         "headline": {"en": "Your music in *full color*", "de": "Deine Musik in *voller Farbe*"}},
+        {"id": "video", "raw": ["video"], "crop": [0.06, 0.12, 0.94, 0.88], "accent": "#FAAA5A",
+         "headline": {"en": "Films with *subtitles that fit*", "de": "Filme mit *passenden Untertiteln*"}},
+        {"id": "sound", "raw": ["sound"], "accent": "#3CC4E6",
+         "headline": {"en": "Shape *your sound*", "de": "Forme *deinen Klang*"}}
+      ]
+    }
+  }
+}

@@ -2,11 +2,12 @@
 # Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later
 # Raw screenshots for the Play listing: capture.sh <serial> <en|de> <phone|tablet|seven> <out dir>
 # Uses the e2e helpers, so a picture is only taken while Ordo is in front and unlocked, and media stays at volume 0.
-# Run demo_media.py first and push its Music/OrdoDemo and Movies/OrdoDemo to the device: only demo media is shown.
+# Run demo_media.py first and push its Music/OrdoDemo, Movies/OrdoDemo and Documents/OrdoDemo to the device: only
+# demo files are opened. The home screen and the storage analysis show the device's own numbers and folder names.
 # phone: the window is set to 1080x2280 at 420 dpi (411 dp wide), so a tablet renders Ordo's real phone layout;
 # seven: 600 dp wide like a 7-inch tablet; tablet: the device as it is. Size, density, rotation, night mode and the
 # app language are put back at the end.
-# PARTS (default "music video files") picks what to capture. LIBRARY=0 skips the music library, for a device that
+# PARTS (default "home files vault ai music video storage") picks what to capture. LIBRARY=0 skips the music library, for a device that
 # also holds its owner's music: the player then opens from the demo folder.
 . "$(dirname "$0")/../../e2e/lib.sh" "$1"
 LANG_=$2; MODE=$3; OUT=$4; mkdir -p "$OUT"
@@ -34,23 +35,25 @@ BASE=$([ "$MODE" = tablet ] && echo 1 || echo 0)
 rotate $BASE; wake
 a shell content call --uri content://media --method scan_volume --arg external_primary >/dev/null
 
-PARTS=${PARTS:-music video files}
+PARTS=${PARTS:-home files vault ai music video storage}
 part() { [[ " $PARTS " == *" $1 "* ]]; }
 folder() {
-    a shell am start -W -a android.intent.action.VIEW -d "file:///storage/emulated/0/$1" -t inode/directory \
+    a shell am start -W -a android.intent.action.VIEW -d "file:///storage/emulated/0/${1// /%20}" -t inode/directory \
         -n "$PKG/me.zhanghai.android.files.filelist.FileListActivity" >/dev/null; sleep 3; guard
 }
 
-# Ordo Music: library, player, Sound, lyrics
+# Ordo Music: library, player, Sound, lyrics. SONG picks the song ("Artist - Title" as demo_media.py names the file);
+# only "Nova Reed - City Lights" has lyrics.
+SONG=${SONG:-Nova Reed - City Lights}
 if part music; then
 a shell am force-stop "$PKG"
 if [ "${LIBRARY:-1}" = 1 ]; then
     a shell am start -n "$PKG/me.zhanghai.android.files.viewer.audio.MusicLauncherActivity" >/dev/null; sleep 4; guard
     ui tap "Alben|Albums" >/dev/null; sleep 4; shot library
     ui tap "Titel|Songs" >/dev/null; sleep 2
-    ui tap "City Lights" >/dev/null
+    ui tap "${SONG#* - }" >/dev/null
 else
-    folder Music/OrdoDemo; scroll_to "Nova Reed - City Lights.mp3" 4 >/dev/null; ui tap "Nova Reed - City Lights.mp3" >/dev/null
+    folder Music/OrdoDemo; scroll_to "$SONG.mp3" 6 >/dev/null; ui tap "$SONG.mp3" >/dev/null
 fi
 wait_on viewer.audio.AudioPlayerActivity 8; sleep 3
 a shell input keyevent KEYCODE_MEDIA_PAUSE; sleep 2; shot music
@@ -106,7 +109,64 @@ rotate $BASE
 fi
 
 
-# Files: the demo music folder and the storage analysis
-part files || exit 0
-folder Music/OrdoDemo; sleep 1; shot files
+# Files: the home screen and its side menu, a trip folder with photos, the vault, the storage analysis.
+DE=$([ "$LANG_" = de ] && echo 1 || echo 0)
+TRIP=$([ $DE = 1 ] && echo "Lissabon" || echo "Lisbon")
+DOCS=/sdcard/Documents/OrdoDemo
+if part home; then
+    # "Recent files" shows the newest files: the trip's photos in the shot's language.
+    a shell "touch '$DOCS/$TRIP'/*.jpg"
+    a shell content call --uri content://media --method scan_volume --arg external_primary >/dev/null; sleep 4
+    launch; sleep 2; shot home
+    ui tap menuButton >/dev/null; sleep 1.5; shot drawer; back
+fi
+# The trip folder as a grid, so the photos show; the view goes back to the list afterwards.
+view() { ui tap "Anzeigen und Sortieren|View and sort" >/dev/null; sleep 1; ui tap "$1" >/dev/null; sleep 2; }
+if part files; then
+    folder "Documents/OrdoDemo/$TRIP"; sleep 1; view "Raster|Grid"; shot files; view "Liste|List"
+fi
+
+# The vault opens with the screen lock, and a test device has none: this part needs the debug build made for the
+# shots (README.md), where the vault opens without it. Only on a device whose vault is empty; the demo papers are
+# copied, the copies moved into the vault through the app, and the vault's files deleted afterwards.
+if part vault; then
+    PAPERS=$([ $DE = 1 ] && echo "Papiere" || echo "Papers")
+    if a shell run-as "$PKG" ls no_backup/vault/ 2>/dev/null | grep -q .; then echo "SKIP vault: it holds files"; else
+        a shell "rm -rf '$DOCS/$PAPERS'; cp -r '$DOCS/.papers/$PAPERS' '$DOCS/$PAPERS'"
+        folder "Documents/OrdoDemo/$PAPERS"
+        # Everything in the folder through the menu: a tap on a row under the selection bar would end the selection.
+        ui tap "Weitere Optionen|More options" >/dev/null; sleep 1; ui tap "Alles auswählen|Select all" >/dev/null; sleep 1
+        ui tap selectionMoreButton >/dev/null; sleep 1; ui tap "In den Tresor|Move to vault" >/dev/null; sleep 1
+        ui tap "Verschieben|Move" >/dev/null; sleep 4
+        # Scrolled past the note above the list, so the picture shows the files.
+        launch; ui tap "Tresor|Vault" >/dev/null; sleep 3; guard
+        read -r W H < <(screen_size); a shell input swipe $((W / 2)) $((H * 60 / 100)) $((W / 2)) $((H * 47 / 100)) 1500; sleep 1.5
+        shot vault
+        a shell am force-stop "$PKG"
+        a shell run-as "$PKG" rm -rf no_backup/vault
+        a shell "rmdir '$DOCS/$PAPERS'" 2>/dev/null
+    fi
+fi
+
+# The command sheet with a plan, from DebugAiActivity (debug builds): the answer the model gives for this sentence.
+# A command names a folder of the storage's top level, so the trip folder is copied there for this shot and the copy
+# removed afterwards; skipped when a folder of that name is already there (it would not be ours).
+if part ai; then
+    if a shell "[ -e '/sdcard/$TRIP' ]"; then echo "SKIP ai: /sdcard/$TRIP exists"; else
+        a shell "cp -r '$DOCS/$TRIP' '/sdcard/$TRIP'"
+        TEXT=$([ $DE = 1 ] && echo "Verschiebe alle Fotos aus $TRIP nach Pictures" || echo "Move all photos from $TRIP to Pictures")
+        a shell am force-stop "$PKG"
+        a shell am start -W --activity-clear-task -n "$PKG/me.zhanghai.android.files.ai.DebugAiActivity" --es text "'$TEXT'" \
+            --es answer "'{\"action\":\"move\",\"source\":\"$TRIP\",\"destination\":\"Pictures\",\"kinds\":[\"image\"]}'" >/dev/null
+        sleep 3; guard
+        # Tab S9 Ultra, 21.11.2026: the sheet asked which folder is meant; the trip folder's chip answers it.
+        ui has confirmButton || { ui tap "$TRIP" >/dev/null; sleep 2; }
+        # Without the plan the sheet asks which folder is meant and lists the device's own folders: no picture then.
+        if ui wait confirmButton 10 >/dev/null; then sleep 1; shot ai; else echo "no plan on screen: ai not taken"; fi
+        a shell am force-stop "$PKG"
+        a shell "rm -r '/sdcard/$TRIP'"
+    fi
+fi
+
+part storage || exit 0
 launch; swipe_up; ui tap analyzeButton >/dev/null; sleep 1; guard; ui wait usageHero 120 >/dev/null; sleep 3; shot storage

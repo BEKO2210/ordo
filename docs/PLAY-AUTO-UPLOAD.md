@@ -133,9 +133,10 @@ Play: *Actions › Play store listing › Run workflow*. Standardmäßig ist **O
 Google nur und ändert nichts. Für den echten Upload den Haken entfernen. Der Workflow nutzt `fastlane supply`
 2.241.2. Bilder und Screenshots lädt er nicht hoch (`SUPPLY_SKIP_UPLOAD_IMAGES`, `SUPPLY_SKIP_UPLOAD_SCREENSHOTS`):
 Die Dateien in `fastlane/metadata/android/<sprache>/images/` kommen von Hand in die Play Console
-(*Store-Präsenz › Haupteintrag im Play Store*). Sie entstehen mit `utils/store-images/`: `demo_media.py` (nur
-Demo-Medien), `capture.sh` (Aufnahmen am Gerät, nur wenn Ordo vorne ist), `compose.py` (Rahmen und Überschriften),
-`check.py` (Play-Regeln).
+(*Store-Präsenz › Haupteintrag im Play Store*). Sie entstehen mit `utils/store-images/` (Ablauf in der dortigen `README.md`):
+`demo_media.py` (nur Demo-Dateien), `capture.sh` (Aufnahmen am Gerät, nur wenn Ordo vorne ist), `compose.py` (Rahmen
+und Überschriften nach `shots.json`: Reihenfolge, Ausschnitt, Überschrift je Sprache, Farbe), `check.py`
+(Play-Regeln).
 
 ## Fehlersuche
 

@@ -15,7 +15,7 @@
 
 <p align="center">
 <!-- AUTO:badges -->
-  <a href="https://github.com/BEKO2210/ordo/releases/tag/v0.17.0"><img alt="release 0.17.0" src="https://img.shields.io/badge/release-0.17.0-2563EB"></a>
+  <a href="https://github.com/BEKO2210/ordo/releases/tag/v0.18.0"><img alt="release 0.18.0" src="https://img.shields.io/badge/release-0.18.0-2563EB"></a>
   <img alt="Android 7.0+" src="https://img.shields.io/badge/Android-7.0%2B-3DDC84">
   <a href="LICENSE"><img alt="License: GPL-3.0-or-later" src="https://img.shields.io/badge/license-GPL--3.0--or--later-blue"></a>
 <!-- /AUTO:badges -->
@@ -33,23 +33,20 @@
 </p>
 
 <!-- AUTO:new -->
-> **New in 0.17.0**
-> - Software decoder: DivX, MPEG-2, HEVC 10-bit, VC-1, .ts
-> - Menus redone in Music style
-> - Subtitles: accents always right, new style, easy to read
-> - Adjust picture and remove interlacing
-> - Detail plus where the device can handle it
-> - Headphone pack: surround, quiet listening, correction for 500 models
-> - Hi-res output via USB DAC
-> - Easier to read over bright frames and in the extended dark theme
-> - Folder named "Internal storage" instead of "0"
-> - Many fixes
+> **New in 0.18.0**
+> - HDR movies look more natural on regular displays
+> - Detail plus is faster and now set to "Automatic"
+> - New: "Dialogue isolation plus" separates voices on the device with AI (optional)
+> - Audio delay is remembered per headphone
+> - USB DAC: output is unaltered again
+> - Rate, share and send feedback for Ordo right from Settings
+> - Many small improvements
 <!-- /AUTO:new -->
 
 ## Status
 
 <!-- AUTO:status -->
-Current version 0.18.0 · [last release v0.17.0](https://github.com/BEKO2210/ordo/releases/tag/v0.17.0) · Android 7.0 and later (minSdk 24, targetSdk 36 = Android 16) · [GPL-3.0-or-later](LICENSE)
+Current version 0.18.0 · [release v0.18.0](https://github.com/BEKO2210/ordo/releases/tag/v0.18.0) · Android 7.0 and later (minSdk 24, targetSdk 36 = Android 16) · [GPL-3.0-or-later](LICENSE)
 <!-- /AUTO:status -->
 
 Ordo is in development. A closed test runs on Google Play; test builds are also published as
@@ -178,33 +175,35 @@ The pictures of the Play listing, from `fastlane/metadata/android/en-US/images/`
 <p align="center"><sub>Phone</sub></p>
 <p align="center">
   <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/01_suite.jpg" width="24%" alt="Phone: suite">
-  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/02_music.jpg" width="24%" alt="Phone: music">
-  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/03_video.jpg" width="24%" alt="Phone: video">
-  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/04_ai.jpg" width="24%" alt="Phone: ai">
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/02_files.jpg" width="24%" alt="Phone: files">
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/03_music.jpg" width="24%" alt="Phone: music">
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/04_video.jpg" width="24%" alt="Phone: video">
 </p>
 <p align="center">
-  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/05_storage.jpg" width="24%" alt="Phone: storage">
-  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/06_sound.jpg" width="24%" alt="Phone: sound">
-  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/07_library.jpg" width="24%" alt="Phone: library">
-  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/08_lyrics.jpg" width="24%" alt="Phone: lyrics">
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/05_ai.jpg" width="24%" alt="Phone: ai">
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/06_vault.jpg" width="24%" alt="Phone: vault">
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/07_storage.jpg" width="24%" alt="Phone: storage">
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/08_sound.jpg" width="24%" alt="Phone: sound">
 </p>
 <p align="center"><sub>7-inch tablet</sub></p>
 <p align="center">
-  <img src="fastlane/metadata/android/en-US/images/sevenInchScreenshots/01_music.jpg" width="32%" alt="7-inch tablet: music">
-  <img src="fastlane/metadata/android/en-US/images/sevenInchScreenshots/02_video.jpg" width="32%" alt="7-inch tablet: video">
-  <img src="fastlane/metadata/android/en-US/images/sevenInchScreenshots/03_sound.jpg" width="32%" alt="7-inch tablet: sound">
+  <img src="fastlane/metadata/android/en-US/images/sevenInchScreenshots/01_suite.jpg" width="32%" alt="7-inch tablet: suite">
+  <img src="fastlane/metadata/android/en-US/images/sevenInchScreenshots/02_files.jpg" width="32%" alt="7-inch tablet: files">
+  <img src="fastlane/metadata/android/en-US/images/sevenInchScreenshots/03_music.jpg" width="32%" alt="7-inch tablet: music">
 </p>
 <p align="center">
-  <img src="fastlane/metadata/android/en-US/images/sevenInchScreenshots/04_lyrics.jpg" width="32%" alt="7-inch tablet: lyrics">
+  <img src="fastlane/metadata/android/en-US/images/sevenInchScreenshots/04_video.jpg" width="32%" alt="7-inch tablet: video">
+  <img src="fastlane/metadata/android/en-US/images/sevenInchScreenshots/05_sound.jpg" width="32%" alt="7-inch tablet: sound">
 </p>
 <p align="center"><sub>10-inch tablet</sub></p>
 <p align="center">
-  <img src="fastlane/metadata/android/en-US/images/tenInchScreenshots/01_music.jpg" width="32%" alt="10-inch tablet: music">
-  <img src="fastlane/metadata/android/en-US/images/tenInchScreenshots/02_video.jpg" width="32%" alt="10-inch tablet: video">
-  <img src="fastlane/metadata/android/en-US/images/tenInchScreenshots/03_more.jpg" width="32%" alt="10-inch tablet: more">
+  <img src="fastlane/metadata/android/en-US/images/tenInchScreenshots/01_suite.jpg" width="32%" alt="10-inch tablet: suite">
+  <img src="fastlane/metadata/android/en-US/images/tenInchScreenshots/02_files.jpg" width="32%" alt="10-inch tablet: files">
+  <img src="fastlane/metadata/android/en-US/images/tenInchScreenshots/03_music.jpg" width="32%" alt="10-inch tablet: music">
 </p>
 <p align="center">
-  <img src="fastlane/metadata/android/en-US/images/tenInchScreenshots/04_sound.jpg" width="32%" alt="10-inch tablet: sound">
+  <img src="fastlane/metadata/android/en-US/images/tenInchScreenshots/04_video.jpg" width="32%" alt="10-inch tablet: video">
+  <img src="fastlane/metadata/android/en-US/images/tenInchScreenshots/05_sound.jpg" width="32%" alt="10-inch tablet: sound">
 </p>
 <!-- /AUTO:screenshots -->
 
@@ -213,63 +212,62 @@ The pictures of the Play listing, from `fastlane/metadata/android/en-US/images/`
 <!-- AUTO:features -->
 From the Play listing, `fastlane/metadata/android/en-US/full_description.txt`.
 
-**Find your files**
+**Files**
 
 - Home screen with recent files, categories and your storage at a glance
 - Search by name or by text inside files
-- List or grid, bookmarks and quick access to common folders
-
-**Free up space**
-
-- Storage analysis for internal storage, SD cards and USB drives
-- See your files by type, the folders that take the most space, large files, duplicates, files you have not used for a long time, old APKs, empty folders and thumbnail caches
-- Cleanup suggestions with a preview through the AI commands, so you decide what goes
+- Copy, move, rename and share, with speed and time remaining; rename many files at once
+- Create and extract ZIP, TAR and 7z archives; built-in viewers for images, PDF and text
+- Storage analysis for internal storage, SD cards and USB drives: large files, duplicates, old APKs, files you have not used for a long time
 - Trash: deleted files can be restored for 30 days
-- App manager: see installed apps, save their APK, uninstall
+- App manager: save an APK, uninstall
 
-**Work with files**
+**Ordo Music**
 
-- Copy, move, rename and share, with speed and time remaining
-- Rename many files at once using a pattern
-- Create and extract ZIP, TAR and 7z archives
-- Built-in viewers for images, PDF and text
+- Your library by songs, albums, artists, folders, playlists and favorites
+- A player that takes its colors from the cover, with a queue and lock screen controls
+- Synced lyrics from .lrc files or embedded in the song
+- Sound: 10-band equalizer you shape on the curve, presets, ReplayGain, room sound for headphones, reverb and a fading sleep timer
+- Headphone correction for 500 models and virtual surround
+- Hi-res output to a USB DAC (Android 14 and later)
+- Edit song info and cover art; play on Bluetooth, cast devices or a TV
 
-**Music and videos**
+**Ordo Video**
 
-- Music player with cover art, a queue and controls in the notification, on the lock screen and on headphone buttons
-- Sound: 10-band equalizer with presets, bass boost, loudness levelling, speed that keeps the pitch, sleep timer
-- Video player with continue watching, swipe gestures, repeat and video details
-- “Play on…”: send music to Bluetooth headphones, a speaker or a cast device
-- Optional own “Ordo Music” and “Ordo Video” icons on your home screen
+- Continue watching, series sorted into episodes, swipe gestures for brightness, volume and seeking
+- Software decoders for formats your phone cannot play itself, such as DivX, MPEG-2, VC-1 and 10-bit HEVC
+- HDR movies converted for regular screens
+- Detail plus: sharper upscaling of low-resolution videos, where your device is fast enough
+- Dialogue isolation: makes voices clearer with an on-device AI model (optional download, 8 MB)
+- Subtitles from files or the video, with delay, reading aid and an easy-to-read style
+- Picture-in-picture, sleep timer, A-B repeat, playback speed
+- Stream from your network shares or cast to a TV
+
+**Ask in your own words**
+
+Type or dictate “Move all MP3s from Download to Music”. Ordo shows the plan first and acts only when you confirm. One tap undoes it.
+
+- Move, copy, sort into subfolders or move to the trash, in English or German
+- The AI runs entirely on your phone. Your commands and file names never leave the device.
+- Deleting always means the trash. System folders are protected.
+- Setup downloads the language model once (about 2.6 GB, over Wi-Fi by default). After that it works offline.
+- Needs a 64-bit phone with a recent Arm chip (Armv8.2 dot product), at least 10 GB of RAM (phones sold with 12 GB) and about 3.1 GB of free space
 
 **Keep files safe**
 
 - Vault: files are encrypted with AES-256-GCM and opened with your screen lock
 - Backup: folders and the vault as a ZIP file to a USB drive or any storage your phone offers, with an optional password
-- Restore normal files from a backup without replacing the ones you already have
-
-**Ask in your own words**
-
-Type or dictate a sentence like “Move all MP3s from Download to Music”. Ordo shows the plan first and acts only when you confirm. One tap undoes it.
-
-- Move, copy, sort into subfolders or move to the trash
-- Works in English and German
-- The AI runs entirely on your phone. Your commands and file names never leave the device.
-- Deleting always means the trash. System folders are protected. If a folder is unclear, Ordo asks instead of guessing.
-- Setup downloads the language model once (about 2.6 GB, over Wi-Fi by default). After that it works offline.
-- Needs a 64-bit phone with a recent Arm chip (Armv8.2 dot product), at least 10 GB of RAM (phones sold with 12 GB) and about 3.1 GB of free space
-- AI commands are free, like the rest of Ordo
+- Restore without replacing the files you already have
 
 **For power users**
 
-- FTP, SFTP, SMB and WebDAV servers, plus a built-in FTP server
+- FTP, SFTP, SMB and WebDAV, plus a built-in FTP server
 - Root and Shizuku access, Linux permissions, symbolic links and SELinux context
 
 **Make it yours**
 
-- Five accent colors, or your wallpaper’s colors on Android 12 and later
-- Light, dark and true black
-- Motion full, subtle or off
+- Five accent colors or your wallpaper’s colors; light, dark and true black
+- Optional own “Ordo Music” and “Ordo Video” icons on your home screen
 <!-- /AUTO:features -->
 
 <details>
@@ -507,7 +505,7 @@ Run the unit tests with:
 ```
 
 <!-- AUTO:tests -->
-Device tests: 44 scripts in [`e2e/`](e2e/README.md), run with `e2e/run.sh`: 15 read-only (`first-run`, `smoke`, `settings-visual`, `category-search`, `back-navigation`, `bars-replay`, `home-header`, `header-position`, `home-pull`, `drawer`, `selection-more`, `tablet-landscape`, `analysis`, `ai-show-guard`, `documents-provider`) and 29 more with `--write` (`stress-delete`, `backup-restore`, `home-auto-refresh`, `audio-player`, `cast`, `klang`, `klang-landscape`, `klang-stress`, `music-formats`, `music-library`, `launcher-icons`, `icon-colors`, `ai-show`, `pick-file`, `no-midword-breaks`, `player-seek`, `player-stage2`, `video-player`, `video-network`, `video-sound`, `video-subtitles`, `video-background`, `video-library`, `video-seek`, `video-picture`, `video-picture-adjust`, `video-detailplus`, `video-menus`, `sheets-polish`). Unit tests: 136 test classes in `app/src/test`.
+Device tests: 45 scripts in [`e2e/`](e2e/README.md), run with `e2e/run.sh`: 15 read-only (`first-run`, `smoke`, `settings-visual`, `category-search`, `back-navigation`, `bars-replay`, `home-header`, `header-position`, `home-pull`, `drawer`, `selection-more`, `tablet-landscape`, `analysis`, `ai-show-guard`, `documents-provider`) and 30 more with `--write` (`stress-delete`, `backup-restore`, `home-auto-refresh`, `audio-player`, `cast`, `klang`, `klang-landscape`, `klang-stress`, `music-formats`, `music-library`, `launcher-icons`, `icon-colors`, `ai-show`, `pick-file`, `no-midword-breaks`, `player-seek`, `player-stage2`, `video-player`, `video-network`, `video-sound`, `video-dialog-isolate`, `video-subtitles`, `video-background`, `video-library`, `video-seek`, `video-picture`, `video-picture-adjust`, `video-detailplus`, `video-menus`, `sheets-polish`). Unit tests: 141 test classes in `app/src/test`.
 <!-- /AUTO:tests -->
 
 ## Roadmap

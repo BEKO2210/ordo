@@ -2,63 +2,29 @@
 """Play Store screenshots and feature graphic for Ordo: real device screenshots in a device frame on a soft Ordo
 blue, one short headline per image. Reproducible: the same raw shots give the same images.
 
-Usage: compose.py <raw dir> <repo root>
-<raw dir>/<en|de>/<name>.png are raw screenshots from capture.sh (only taken while Ordo is in front, demo media only):
-phone shots without prefix, 10-inch shots as tablet-<name>.png, 7-inch shots as seven-<name>.png. A shot that is
-missing in the raw dir is taken from docs/screenshots/<en|de>/ (older phone captures with demo data).
-Writes fastlane/metadata/android/<locale>/images/{phone,sevenInch,tenInch}Screenshots/*.jpg and featureGraphic.png.
+Usage: compose.py <raw dir> <repo root> [strip dir]
+What is made stands in shots.json next to this file (README.md explains every field): the sets (phone, 7-inch,
+10-inch), their shots in order, and per shot the raw screenshot(s), an optional crop, the headline per language and
+the glow colour. A new app in the suite is a few lines there, no code.
+<raw dir>/<en|de>/<prefix><raw>.png are the screenshots from capture.sh (only taken while Ordo is in front, demo
+files only). A shot whose raw file is missing is left out with a note; a set without any raw file keeps its images.
+Writes fastlane/metadata/android/<locale>/images/{phone,sevenInch,tenInch}Screenshots/*.jpg and featureGraphic.png,
+and with a strip dir a row of 200 px wide thumbnails per set: the size at which Play shows them first, to read.
 
 Rules followed (Play Console help "Add preview assets", read 21.11.2026): 9:16 at 1080x1920 and 16:9 at 1920x1080,
 the UI is the main thing, the headline takes far less than 20 % of the image, no small text, no "best", "free" or
 call to action, no pure white or black background, and no app icon on the feature graphic (it would repeat the icon).
 Font: Geologica (OFL), the font of Ordo's website (docs/fonts).
 """
-import os, sys
+import json, os, sys
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 RAW, ROOT = sys.argv[1], sys.argv[2]
+STRIP = sys.argv[3] if len(sys.argv) > 3 else None
+M = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "shots.json"), encoding="utf-8"))
 FONT = os.path.join(ROOT, "docs/fonts/geologica-latin.woff2")
 INK, BLUE = (13, 23, 54), (29, 78, 216)
-BG_TOP, BG_BOTTOM, GLOW = (238, 243, 255), (205, 220, 254), (96, 140, 250)
-# The glow behind the device takes a colour from what the screen shows, so the row of thumbnails is not monotone.
-TINT = {"music": (236, 110, 180), "lyrics": (236, 110, 180), "library": (150, 120, 250), "sound": (60, 196, 230),
-        "ai": (60, 196, 230), "video": (250, 170, 90), "more": (250, 170, 90), "picture": (250, 170, 90)}
-
-HEAD = {
-    "en": {
-        "suite": "Files, music and video. *One app.*",
-        "music": "Your music in *full color*",
-        "video": "Films with *subtitles that fit*",
-        "sound": "Shape *your sound*",
-        "picture": "*HDR films* on any screen",
-        "ai": "Tell Ordo *what you need*",
-        "storage": "See what fills *your storage*",
-        "lyrics": "Sing along with *synced lyrics*",
-        "library": "All your music, *beautifully sorted*",
-        "files": "Every file, *in order*",
-        "more": "Picture and sound, *your way*",
-    },
-    "de": {
-        "suite": "Dateien, Musik und Video. *Eine App.*",
-        "music": "Deine Musik in *voller Farbe*",
-        "video": "Filme mit *passenden Untertiteln*",
-        "sound": "Forme *deinen Klang*",
-        "picture": "*HDR-Filme* auf jedem Bildschirm",
-        "ai": "Sag Ordo, *was du brauchst*",
-        "storage": "Sieh, was deinen *Speicher füllt*",
-        "lyrics": "Sing mit – *Songtexte im Takt*",
-        "library": "Deine Musik, *schön sortiert*",
-        "files": "Jede Datei *in Ordnung*",
-        "more": "Bild und Ton, *wie du willst*",
-    },
-}
-LOCALE = {"en": "en-US", "de": "de-DE"}
-# Story: the suite, then each part (music, video, files), then the depth of each.
-PHONE = ["suite", "music", "video", "ai", "storage", "sound", "library", "lyrics"]
-# Tablets: no storage (a tablet shows its owner's folders), no lyrics or signal path (too small to read there).
-TABLET = ["library", "music", "video", "more", "sound"]
-SEVEN = ["library", "music", "video", "sound", "lyrics"]
-SHOT = {"picture": "signal"}  # headline -> raw shot, where they differ
+BG_TOP, BG_BOTTOM = (238, 243, 255), (205, 220, 254)
 
 
 def font(size, weight=b"Bold"):
@@ -67,13 +33,18 @@ def font(size, weight=b"Bold"):
     return f
 
 
-def background(w, h, glow, name=""):
+def rgb(hex_):
+    return tuple(int(hex_[i:i + 2], 16) for i in (1, 3, 5))
+
+
+def background(w, h, glow, accent):
+    """Soft blue from top to bottom with a glow in the shot's colour, so a row of thumbnails is not monotone."""
     mask = Image.linear_gradient("L").resize((w, h))
     im = Image.composite(Image.new("RGB", (w, h), BG_BOTTOM), Image.new("RGB", (w, h), BG_TOP), mask)
     layer = Image.new("L", (w, h), 0)
     ImageDraw.Draw(layer).ellipse(glow, fill=150)
     layer = layer.filter(ImageFilter.GaussianBlur(min(w, h) // 5))
-    return Image.composite(Image.new("RGB", (w, h), TINT.get(name, GLOW)), im, layer)
+    return Image.composite(Image.new("RGB", (w, h), rgb(accent)), im, layer)
 
 
 def wrap(d, text, f, width):
@@ -115,25 +86,19 @@ def headline(im, text, x0, y, width, size, align="center"):
     return y
 
 
-# Galaxy Tab S9 Ultra with gesture handle: as it is (280 dpi) and at 600 dp wide like a 7-inch tablet (493 dpi).
-TABLET_BARS = {"tablet": (50, 44), "seven": (80, 60)}
-
-
-def raw(lang, name):
-    """A raw shot with the system bars cut off (they show the capture device's own icons and clock)."""
-    p = os.path.join(RAW, lang, name + ".png")
+def raw(lang, kind, shot, name):
+    """A raw shot without the system bars (they show the capture device's own icons and clock), cropped if asked."""
+    p = os.path.join(RAW, lang, kind.get("prefix", "") + name + ".png")
     if not os.path.exists(p):
-        p = os.path.join(ROOT, "docs/screenshots", lang, name.split("-")[-1] + ".png")
-        if not os.path.exists(p):
-            return None
+        return None
     im = Image.open(p).convert("RGB")
     w, h = im.size
-    # Status bar on top and navigation bar or gesture handle at the bottom, in pixels of the capture (measured).
-    bars = {(1080, 2280): (63, 126),   # phone layout, upright, three-button navigation (W90)
-            (2280, 1080): (64, 44),    # phone layout, landscape, gesture handle (Tab S9 Ultra)
-            (540, 1200): (66, 30)}     # docs/screenshots (emulator)
-    top, bottom = TABLET_BARS.get(name.split("-")[0]) or bars.get((w, h), (0, 0))
-    return im.crop((0, top, w, h - bottom))
+    top, bottom = shot.get("bars") or kind["bars"]["portrait" if h > w else "landscape"]
+    im = im.crop((0, top, w, h - bottom))
+    if "crop" in shot:  # the part of the screen that matters, as fractions: left, top, right, bottom
+        l, t, r, b = shot["crop"]
+        im = im.crop((round(l * im.width), round(t * im.height), round(r * im.width), round(b * im.height)))
+    return im
 
 
 def device(shot, width, radius, bezel):
@@ -163,74 +128,66 @@ def put(canvas, dev, pad, x, y, angle=0):
     canvas.paste(dev, (x - pad, y - pad), dev)
 
 
-def phone_image(lang, name):
-    W, H = 1080, 1920
-    im = background(W, H, (90, 700, 990, 1900), name)
-    top = headline(im, HEAD[lang][name], 80, 118, W - 160, 92) + 70
-    if name == "suite":
-        files, music, film = raw(lang, "files"), raw(lang, "music"), raw(lang, "video")
-        for shot, x, angle in ((files, 70, 6), (music, 530, -6)):
-            dev, pad = device(shot, 470, 40, 14)
-            put(im, dev, pad, x, top + 10, angle)
-        dev, pad = device(film, 900, 34, 14)
-        put(im, dev, pad, (W - dev.width + 2 * pad) // 2, H - dev.height + 2 * pad - 90)
-        return im
-    if name == "video":  # two landscape player shots
-        stacked(im, top, [raw(lang, "video"), raw(lang, "more")], 1150, 36, 14, shift=150)
-        return im
-    shot = raw(lang, name)
-    if name == "ai":  # the older emulator capture: start at the top of the AI sheet, not at the empty screen above
-        shot = shot.crop((0, round(shot.height * 0.22), shot.width, shot.height))
-    dev, pad = device(shot, 800, 58, 18)
-    put(im, dev, pad, (W - dev.width + 2 * pad) // 2, top)  # runs off the bottom edge like a phone in the hand
-    return im
-
-
-def stacked(im, top, shots, width, radius, bezel, shift=24):
-    """Landscape shots one above the other, staggered, centred in the space below the headline."""
+def trio(im, top, shots, k):
+    """The suite at a glance: two upright screens side by side, a wide film across them at the bottom."""
     W, H = im.size
-    devs = [device(s, width, radius, bezel) for s in shots]
+    left, right, film = shots
+    for shot, x, angle in ((left, round(W * 0.06), 5), (right, round(W * 0.50), -5)):
+        dev, pad = device(shot, round(W * 0.44), k["radius"] * 2 // 3, k["bezel"])
+        put(im, dev, pad, x, top + 10, angle)
+    dev, pad = device(film, round(W * 0.84), k["radius"] * 2 // 3, k["bezel"])
+    put(im, dev, pad, (W - dev.width + 2 * pad) // 2, H - dev.height + 2 * pad - round(H * 0.045))
+
+
+def stack(im, top, shots, k):
+    """Wide shots one above the other, whole, centred in the space below the headline."""
+    W, H = im.size
+    devs = [device(s, round(W * 0.9), k["radius"] * 2 // 3, k["bezel"]) for s in shots]
     gap = 70
     y = top + (H - top - sum(d.height - 2 * p for d, p in devs) - gap * (len(devs) - 1)) // 2
-    for (dev, pad), dx in zip(devs, (-shift, shift)):
-        put(im, dev, pad, (W - dev.width + 2 * pad) // 2 + dx, y)
+    for dev, pad in devs:
+        put(im, dev, pad, (W - dev.width + 2 * pad) // 2, y)
         y += dev.height - 2 * pad + gap
 
 
-def seven_image(lang, name):
-    W, H = 1080, 1920
-    im = background(W, H, (90, 700, 990, 1900), name)
-    top = headline(im, HEAD[lang][name], 80, 118, W - 160, 92) + 70
-    if name == "video":  # the film is landscape on a 7-inch tablet too
-        stacked(im, top, [raw(lang, "seven-video"), raw(lang, "seven-more")], 1000, 24, 18)
-        return im
-    dev, pad = device(raw(lang, "seven-" + SHOT.get(name, name)), 860, 30, 26)
-    put(im, dev, pad, (W - dev.width + 2 * pad) // 2, top)
-    return im
-
-
-def tablet_image(lang, name):
-    W, H = 1920, 1080
-    im = background(W, H, (760, 80, 1900, 1080), name)
-    d = ImageDraw.Draw(im)
-    lines = len(wrap(d, HEAD[lang][name], font(80), 540))
-    headline(im, HEAD[lang][name], 110, (H - lines * 91) // 2 - 10, 540, 80, align="left")
-    dev, pad = device(raw(lang, "tablet-" + SHOT.get(name, name)), 1100, 26, 24)
-    put(im, dev, pad, W - (dev.width - 2 * pad) - 90, (H - dev.height + 2 * pad) // 2)
+def image(lang, kind, shot):
+    """One store image, or None when a raw shot is missing."""
+    shots = [raw(lang, kind, shot, n) for n in shot["raw"]]
+    if None in shots:
+        return None
+    W, H = kind["canvas"]
+    wide = W > H
+    im = background(W, H, (W * 0.3, H * 0.1, W, H) if wide else (W * 0.08, H * 0.36, W * 0.92, H), shot["accent"])
+    top = headline(im, shot["headline"][lang], 80, 62 if wide else 118, W - 160, kind["headline"]) + (44 if wide else 70)
+    layout = shot.get("layout", "device")
+    if layout == "trio":
+        trio(im, top, shots, kind)
+    elif layout == "stack":
+        stack(im, top, shots, kind)
+    else:  # one device; a tall one runs off the bottom edge like a phone in the hand
+        dev, pad = device(shots[0], shot.get("width", kind["width"]), kind["radius"], kind["bezel"])
+        put(im, dev, pad, (W - dev.width + 2 * pad) // 2, top)
     return im
 
 
 def feature(lang):
-    """1024x500: the music player and a film side by side under one line; no icon (Play shows it next to this)."""
+    """1024x500: the name as a word and one promise on the left, the suite's screens on the right. No app icon:
+    Play shows it next to the graphic."""
+    F = M["feature"]
     W, H = 1024, 500
-    im = background(W, H, (300, 120, 1000, 600))
-    # Not the first screenshot's line: Play shows both side by side and asks not to repeat a message.
-    tag = {"en": "Music, films and files. *Offline.*", "de": "Musik, Filme und Dateien. *Offline.*"}[lang]
-    headline(im, tag, 50, 46, W - 100, 50)
-    dev, pad = device(raw(lang, "video"), 560, 18, 8)
-    put(im, dev, pad, 380, 170)
-    dev, pad = device(raw(lang, "music"), 170, 16, 7)
-    put(im, dev, pad, 160, 150, 4)
+    im = background(W, H, (380, 60, 1100, 620), F["accent"])
+    ImageDraw.Draw(im).text((56, 96), "Ordo", font=font(132), fill=INK)
+    headline(im, F["headline"][lang], 60, 276, 450, 40, align="left")
+    phone = M["sets"]["phoneScreenshots"]
+    get = lambda n: raw(lang, phone, {}, n)
+    a, b, film = (get(n) for n in F["raw"])
+    if a and b and film:
+        dev, pad = device(b, 190, 18, 7)
+        put(im, dev, pad, 770, 96, -5)
+        dev, pad = device(a, 210, 20, 7)
+        put(im, dev, pad, 520, 60, 4)
+        dev, pad = device(film, 400, 16, 7)
+        put(im, dev, pad, 556, 286)
     return im
 
 
@@ -239,21 +196,37 @@ def save(im, path):
     im.convert("RGB").save(path, quality=93, optimize=True)
 
 
-for lang in HEAD:
+def strip(images, path):
+    """The set as Play's small thumbnails (200 px wide), side by side."""
+    thumbs = [im.resize((200, round(im.height * 200 / im.width)), Image.LANCZOS) for im in images]
+    out = Image.new("RGB", (sum(t.width + 8 for t in thumbs) + 8, max(t.height for t in thumbs) + 16), "white")
+    x = 8
+    for t in thumbs:
+        out.paste(t, (x, 8))
+        x += t.width + 8
+    save(out, path)
+
+
+for lang, locale in M["locales"].items():
     if not os.path.isdir(os.path.join(RAW, lang)):
         continue
-    base = os.path.join(ROOT, "fastlane/metadata/android", LOCALE[lang], "images")
-    have = lambda n: os.path.exists(os.path.join(RAW, lang, n + ".png"))
-    sets = {"phoneScreenshots": (PHONE, phone_image),
-            "tenInchScreenshots": ([n for n in TABLET if have("tablet-" + SHOT.get(n, n))], tablet_image),
-            "sevenInchScreenshots": ([n for n in SEVEN if have("seven-" + SHOT.get(n, n))], seven_image)}
-    for kind, (names, make) in sets.items():
-        if not names:  # no raw shots for this device class: its old images stay
+    base = os.path.join(ROOT, "fastlane/metadata/android", locale, "images")
+    for name, kind in M["sets"].items():
+        made = []
+        for shot in kind["shots"]:
+            im = image(lang, kind, shot)
+            if im:
+                made.append((shot["id"], im))
+            else:
+                print(f"{lang} {name}: no raw shot for {shot['id']}, left out")
+        if not made:  # no raw shots for this device class: its old images stay
             continue
-        d = os.path.join(base, kind)
+        d = os.path.join(base, name)
         for f in os.listdir(d) if os.path.isdir(d) else []:
             os.remove(os.path.join(d, f))
-        for i, name in enumerate(names, 1):
-            save(make(lang, name), os.path.join(d, f"{i:02d}_{name}.jpg"))
+        for i, (id_, im) in enumerate(made, 1):
+            save(im, os.path.join(d, f"{i:02d}_{id_}.jpg"))
+        if STRIP:
+            strip([im for _, im in made], os.path.join(STRIP, f"strip-{lang}-{name}.jpg"))
     save(feature(lang), os.path.join(base, "featureGraphic.png"))
     print(lang, "done")

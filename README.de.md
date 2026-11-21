@@ -15,7 +15,7 @@
 
 <p align="center">
 <!-- AUTO:badges -->
-  <a href="https://github.com/BEKO2210/ordo/releases/tag/v0.17.0"><img alt="Version 0.17.0" src="https://img.shields.io/badge/Version-0.17.0-2563EB"></a>
+  <a href="https://github.com/BEKO2210/ordo/releases/tag/v0.18.0"><img alt="Version 0.18.0" src="https://img.shields.io/badge/Version-0.18.0-2563EB"></a>
   <img alt="Android 7.0+" src="https://img.shields.io/badge/Android-7.0%2B-3DDC84">
   <a href="LICENSE"><img alt="Lizenz: GPL-3.0-or-later" src="https://img.shields.io/badge/Lizenz-GPL--3.0--or--later-blue"></a>
 <!-- /AUTO:badges -->
@@ -33,23 +33,20 @@
 </p>
 
 <!-- AUTO:new -->
-> **Neu in 0.17.0**
-> - Software-Decoder: DivX, MPEG-2, HEVC 10-Bit, VC-1, .ts
-> - Menüs neu im Musik-Stil
-> - Untertitel: Umlaute immer richtig, neuer Stil, gut lesbar
-> - Bild anpassen und Zeilensprung entfernen
-> - Detail plus, wo das Gerät es schafft
-> - Kopfhörer-Paket: Raumklang, Leise hören, Korrektur für 500 Modelle
-> - Hi-Res-Ausgabe über USB-DAC
-> - Besser lesbar über hellen Bildern und im erweiterten Dunkel-Design
-> - Ordner heißt „Interner Speicher“ statt „0“
-> - Viele Fehler behoben
+> **Neu in 0.18.0**
+> - HDR-Filme sehen auf normalen Displays natürlicher aus
+> - Detail plus ist schneller und steht jetzt auf „Automatisch“
+> - Neu: „Dialog freistellen plus“ trennt Stimmen auf dem Gerät per KI (optional)
+> - Ton-Verzögerung wird pro Kopfhörer gemerkt
+> - USB-DAC: Ausgabe wieder unverfälscht
+> - Ordo bewerten, teilen und Feedback senden – direkt in den Einstellungen
+> - Viele kleine Verbesserungen
 <!-- /AUTO:new -->
 
 ## Stand
 
 <!-- AUTO:status -->
-Aktuelle Version 0.18.0 · [letztes Release v0.17.0](https://github.com/BEKO2210/ordo/releases/tag/v0.17.0) · ab Android 7.0 (minSdk 24, targetSdk 36 = Android 16) · [GPL-3.0-or-later](LICENSE)
+Aktuelle Version 0.18.0 · [Release v0.18.0](https://github.com/BEKO2210/ordo/releases/tag/v0.18.0) · ab Android 7.0 (minSdk 24, targetSdk 36 = Android 16) · [GPL-3.0-or-later](LICENSE)
 <!-- /AUTO:status -->
 
 Ordo ist in Entwicklung. Bei Google Play läuft ein geschlossener Test; Testversionen erscheinen auch als
@@ -178,33 +175,35 @@ Die Bilder des Play-Eintrags, aus `fastlane/metadata/android/de-DE/images/`.
 <p align="center"><sub>Handy</sub></p>
 <p align="center">
   <img src="fastlane/metadata/android/de-DE/images/phoneScreenshots/01_suite.jpg" width="24%" alt="Handy: suite">
-  <img src="fastlane/metadata/android/de-DE/images/phoneScreenshots/02_music.jpg" width="24%" alt="Handy: music">
-  <img src="fastlane/metadata/android/de-DE/images/phoneScreenshots/03_video.jpg" width="24%" alt="Handy: video">
-  <img src="fastlane/metadata/android/de-DE/images/phoneScreenshots/04_ai.jpg" width="24%" alt="Handy: ai">
+  <img src="fastlane/metadata/android/de-DE/images/phoneScreenshots/02_files.jpg" width="24%" alt="Handy: files">
+  <img src="fastlane/metadata/android/de-DE/images/phoneScreenshots/03_music.jpg" width="24%" alt="Handy: music">
+  <img src="fastlane/metadata/android/de-DE/images/phoneScreenshots/04_video.jpg" width="24%" alt="Handy: video">
 </p>
 <p align="center">
-  <img src="fastlane/metadata/android/de-DE/images/phoneScreenshots/05_storage.jpg" width="24%" alt="Handy: storage">
-  <img src="fastlane/metadata/android/de-DE/images/phoneScreenshots/06_sound.jpg" width="24%" alt="Handy: sound">
-  <img src="fastlane/metadata/android/de-DE/images/phoneScreenshots/07_library.jpg" width="24%" alt="Handy: library">
-  <img src="fastlane/metadata/android/de-DE/images/phoneScreenshots/08_lyrics.jpg" width="24%" alt="Handy: lyrics">
+  <img src="fastlane/metadata/android/de-DE/images/phoneScreenshots/05_ai.jpg" width="24%" alt="Handy: ai">
+  <img src="fastlane/metadata/android/de-DE/images/phoneScreenshots/06_vault.jpg" width="24%" alt="Handy: vault">
+  <img src="fastlane/metadata/android/de-DE/images/phoneScreenshots/07_storage.jpg" width="24%" alt="Handy: storage">
+  <img src="fastlane/metadata/android/de-DE/images/phoneScreenshots/08_sound.jpg" width="24%" alt="Handy: sound">
 </p>
 <p align="center"><sub>7-Zoll-Tablet</sub></p>
 <p align="center">
-  <img src="fastlane/metadata/android/de-DE/images/sevenInchScreenshots/01_music.jpg" width="32%" alt="7-Zoll-Tablet: music">
-  <img src="fastlane/metadata/android/de-DE/images/sevenInchScreenshots/02_video.jpg" width="32%" alt="7-Zoll-Tablet: video">
-  <img src="fastlane/metadata/android/de-DE/images/sevenInchScreenshots/03_sound.jpg" width="32%" alt="7-Zoll-Tablet: sound">
+  <img src="fastlane/metadata/android/de-DE/images/sevenInchScreenshots/01_suite.jpg" width="32%" alt="7-Zoll-Tablet: suite">
+  <img src="fastlane/metadata/android/de-DE/images/sevenInchScreenshots/02_files.jpg" width="32%" alt="7-Zoll-Tablet: files">
+  <img src="fastlane/metadata/android/de-DE/images/sevenInchScreenshots/03_music.jpg" width="32%" alt="7-Zoll-Tablet: music">
 </p>
 <p align="center">
-  <img src="fastlane/metadata/android/de-DE/images/sevenInchScreenshots/04_lyrics.jpg" width="32%" alt="7-Zoll-Tablet: lyrics">
+  <img src="fastlane/metadata/android/de-DE/images/sevenInchScreenshots/04_video.jpg" width="32%" alt="7-Zoll-Tablet: video">
+  <img src="fastlane/metadata/android/de-DE/images/sevenInchScreenshots/05_sound.jpg" width="32%" alt="7-Zoll-Tablet: sound">
 </p>
 <p align="center"><sub>10-Zoll-Tablet</sub></p>
 <p align="center">
-  <img src="fastlane/metadata/android/de-DE/images/tenInchScreenshots/01_music.jpg" width="32%" alt="10-Zoll-Tablet: music">
-  <img src="fastlane/metadata/android/de-DE/images/tenInchScreenshots/02_video.jpg" width="32%" alt="10-Zoll-Tablet: video">
-  <img src="fastlane/metadata/android/de-DE/images/tenInchScreenshots/03_more.jpg" width="32%" alt="10-Zoll-Tablet: more">
+  <img src="fastlane/metadata/android/de-DE/images/tenInchScreenshots/01_suite.jpg" width="32%" alt="10-Zoll-Tablet: suite">
+  <img src="fastlane/metadata/android/de-DE/images/tenInchScreenshots/02_files.jpg" width="32%" alt="10-Zoll-Tablet: files">
+  <img src="fastlane/metadata/android/de-DE/images/tenInchScreenshots/03_music.jpg" width="32%" alt="10-Zoll-Tablet: music">
 </p>
 <p align="center">
-  <img src="fastlane/metadata/android/de-DE/images/tenInchScreenshots/04_sound.jpg" width="32%" alt="10-Zoll-Tablet: sound">
+  <img src="fastlane/metadata/android/de-DE/images/tenInchScreenshots/04_video.jpg" width="32%" alt="10-Zoll-Tablet: video">
+  <img src="fastlane/metadata/android/de-DE/images/tenInchScreenshots/05_sound.jpg" width="32%" alt="10-Zoll-Tablet: sound">
 </p>
 <!-- /AUTO:screenshots -->
 
@@ -213,63 +212,57 @@ Die Bilder des Play-Eintrags, aus `fastlane/metadata/android/de-DE/images/`.
 <!-- AUTO:features -->
 Aus dem Play-Eintrag, `fastlane/metadata/android/de-DE/full_description.txt`.
 
-**Dateien finden**
+**Dateien**
 
-- Startseite mit zuletzt verwendeten Dateien, Kategorien und Speicher
+- Startseite mit zuletzt verwendeten Dateien, Kategorien und Speicher auf einen Blick
 - Suche nach Namen oder nach Text in Dateien
-- Liste oder Raster, Lesezeichen und Schnellzugriff auf häufige Ordner
-
-**Platz schaffen**
-
-- Speicheranalyse für internen Speicher, SD-Karte und USB-Stick
-- Deine Dateien nach Art, die Ordner mit dem meisten Platz, große Dateien, Duplikate, lange nicht genutzte Dateien, alte APKs, leere Ordner und Vorschaubilder-Cache
-- Aufräum-Vorschläge mit Vorschau über die KI-Befehle, damit du entscheidest, was gehen soll
+- Kopieren, verschieben, umbenennen und teilen; viele Dateien auf einmal umbenennen
+- ZIP-, TAR- und 7z-Archive erstellen und entpacken; eingebaute Ansicht für Bilder, PDF und Text
+- Speicheranalyse: große Dateien, Duplikate, alte APKs, lange nicht genutzte Dateien
 - Papierkorb: Gelöschtes lässt sich 30 Tage lang wiederherstellen
-- App-Verwaltung: installierte Apps ansehen, APK sichern, deinstallieren
+- App-Verwaltung: APK sichern, deinstallieren
 
-**Mit Dateien arbeiten**
+**Ordo Musik**
 
-- Kopieren, verschieben, umbenennen und teilen
-- Viele Dateien auf einmal nach Muster umbenennen
-- ZIP-, TAR- und 7z-Archive erstellen und entpacken
-- Eingebaute Ansicht für Bilder, PDF und Text
+- Deine Bibliothek nach Titeln, Alben, Interpreten, Ordnern, Playlists und Favoriten
+- Ein Player, der seine Farben vom Cover nimmt, mit Warteschlange und Steuerung auf dem Sperrbildschirm
+- Songtexte im Takt aus .lrc-Dateien oder aus dem Song selbst
+- Klang: 10-Band-Equalizer auf der Kurve, Voreinstellungen, ReplayGain, Raumklang für Kopfhörer, Hall, Einschlaf-Timer
+- Kopfhörer-Korrektur für 500 Modelle und virtueller Raumklang
+- Hi-Res-Ausgabe an einen USB-DAC (ab Android 14)
+- Songinfos und Cover bearbeiten; abspielen auf Bluetooth, Cast-Geräten oder dem Fernseher
 
-**Musik und Videos**
+**Ordo Video**
 
-- Musik-Player mit Cover, Warteschlange und Steuerung auf dem Sperrbildschirm und per Kopfhörer
-- Klang: 10-Band-Equalizer, Bass, Lautstärke angleichen, Einschlaf-Timer
-- Video-Player mit Weiterschauen, Wischgesten, Schleife und Videoinfos
-- „Abspielen auf …“: Musik an Bluetooth-Kopfhörer, Lautsprecher oder ein Cast-Gerät schicken
-- Auf Wunsch eigene Symbole „Ordo Musik“ und „Ordo Video“
+- Weiterschauen, Serien nach Folgen, Wischgesten für Helligkeit, Lautstärke und Spulen
+- Software-Decoder für Formate, die dein Handy selbst nicht kann, etwa DivX, MPEG-2, VC-1, HEVC 10 Bit
+- HDR-Filme passend umgerechnet für normale Bildschirme
+- Detail plus: schärferes Hochskalieren kleiner Videos, wo dein Gerät schnell genug ist
+- Dialog freistellen: macht Stimmen deutlicher, mit einem KI-Modell auf dem Gerät (optionaler Download, 8 MB)
+- Untertitel aus Dateien oder aus dem Video, mit Verzögerung, Lese-Hilfe und gut lesbarem Stil
+- Bild-in-Bild, Einschlaf-Timer, A-B-Schleife, Wiedergabetempo
+- Filme aus deinen Netzwerkfreigaben streamen oder auf den Fernseher schicken
+
+**In deinen eigenen Worten**
+
+Tippe oder diktiere „Verschiebe alle MP3s aus Download nach Musik“. Ordo zeigt erst den Plan und handelt erst, wenn du bestätigst. Ein Tipp macht es rückgängig.
+
+- Verschieben, kopieren, in Unterordner sortieren oder in den Papierkorb legen, auf Deutsch oder Englisch
+- Die KI läuft komplett auf deinem Handy. Deine Befehle und Dateinamen verlassen es nicht.
+- Löschen heißt immer Papierkorb. Systemordner sind geschützt.
+- Beim Einrichten lädt Ordo das Sprachmodell einmalig herunter (rund 2,6 GB, standardmäßig nur über WLAN). Danach arbeitet die KI offline.
+- Braucht ein 64-Bit-Handy mit aktuellem Arm-Chip (Dot-Product, Armv8.2), mindestens 10 GB RAM (Handys mit 12 GB) und rund 3,1 GB freien Speicher
 
 **Dateien schützen**
 
 - Tresor: Dateien werden mit AES-256-GCM verschlüsselt und mit deiner Bildschirmsperre geöffnet
 - Sicherung: Ordner und Tresor als ZIP-Datei auf einen USB-Stick oder an jeden Ort, den dein Handy anbietet – auf Wunsch mit Passwort
-- Normale Dateien aus einer Sicherung wiederherstellen, ohne vorhandene zu ersetzen
-
-**In deinen eigenen Worten**
-
-Tippe oder diktiere einen Satz wie „Verschiebe alle MP3s aus Download nach Musik“. Ordo zeigt erst den Plan und handelt erst, wenn du bestätigst. Ein Tipp macht es rückgängig.
-
-- Verschieben, kopieren, in Unterordner sortieren oder in den Papierkorb legen
-- Versteht Deutsch und Englisch
-- Die KI läuft komplett auf deinem Handy. Deine Befehle und Dateinamen verlassen es nicht.
-- Löschen heißt immer Papierkorb. Systemordner sind geschützt. Ist ein Ordner unklar, fragt Ordo nach, statt zu raten.
-- Beim Einrichten lädt Ordo das Sprachmodell einmalig herunter (rund 2,6 GB, standardmäßig nur über WLAN). Danach arbeitet die KI offline.
-- Braucht ein 64-Bit-Handy mit aktuellem Arm-Chip (Dot-Product, Armv8.2), mindestens 10 GB RAM (Handys mit 12 GB) und rund 3,1 GB freiem Speicher
-- Die KI-Befehle sind kostenlos wie der Rest von Ordo
+- Wiederherstellen, ohne vorhandene Dateien zu ersetzen
 
 **Für Profis**
 
-- FTP-, SFTP-, SMB- und WebDAV-Server sowie ein eingebauter FTP-Server
+- FTP, SFTP, SMB und WebDAV sowie ein eingebauter FTP-Server
 - Root- und Shizuku-Zugriff, Linux-Rechte, symbolische Links und SELinux-Kontext
-
-**Nach deinem Geschmack**
-
-- Fünf Akzentfarben oder die Farben deines Hintergrundbilds ab Android 12
-- Hell, dunkel und echtes Schwarz
-- Animationen voll, dezent oder aus
 <!-- /AUTO:features -->
 
 <details>
@@ -514,7 +507,7 @@ Unit-Tests:
 ```
 
 <!-- AUTO:tests -->
-Gerätetests: 44 Skripte in [`e2e/`](e2e/README.md), gestartet mit `e2e/run.sh`: 15 nur lesend (`first-run`, `smoke`, `settings-visual`, `category-search`, `back-navigation`, `bars-replay`, `home-header`, `header-position`, `home-pull`, `drawer`, `selection-more`, `tablet-landscape`, `analysis`, `ai-show-guard`, `documents-provider`) und 29 weitere mit `--write` (`stress-delete`, `backup-restore`, `home-auto-refresh`, `audio-player`, `cast`, `klang`, `klang-landscape`, `klang-stress`, `music-formats`, `music-library`, `launcher-icons`, `icon-colors`, `ai-show`, `pick-file`, `no-midword-breaks`, `player-seek`, `player-stage2`, `video-player`, `video-network`, `video-sound`, `video-subtitles`, `video-background`, `video-library`, `video-seek`, `video-picture`, `video-picture-adjust`, `video-detailplus`, `video-menus`, `sheets-polish`). Unit-Tests: 136 Testklassen in `app/src/test`.
+Gerätetests: 45 Skripte in [`e2e/`](e2e/README.md), gestartet mit `e2e/run.sh`: 15 nur lesend (`first-run`, `smoke`, `settings-visual`, `category-search`, `back-navigation`, `bars-replay`, `home-header`, `header-position`, `home-pull`, `drawer`, `selection-more`, `tablet-landscape`, `analysis`, `ai-show-guard`, `documents-provider`) und 30 weitere mit `--write` (`stress-delete`, `backup-restore`, `home-auto-refresh`, `audio-player`, `cast`, `klang`, `klang-landscape`, `klang-stress`, `music-formats`, `music-library`, `launcher-icons`, `icon-colors`, `ai-show`, `pick-file`, `no-midword-breaks`, `player-seek`, `player-stage2`, `video-player`, `video-network`, `video-sound`, `video-dialog-isolate`, `video-subtitles`, `video-background`, `video-library`, `video-seek`, `video-picture`, `video-picture-adjust`, `video-detailplus`, `video-menus`, `sheets-polish`). Unit-Tests: 141 Testklassen in `app/src/test`.
 <!-- /AUTO:tests -->
 
 ## Ausblick
