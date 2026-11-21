@@ -6,6 +6,7 @@
 package me.zhanghai.android.files.viewer.video.sound
 
 import android.content.Context
+import android.media.AudioDeviceInfo
 import android.view.ViewGroup
 import androidx.core.view.ViewCompat
 import androidx.media3.common.C
@@ -20,7 +21,7 @@ import java.util.Locale
 
 /**
  * Ordo Video › Audio track: every sound track by language, codec and channels; one this device cannot decode is
- * marked and cannot be chosen. Below it the A/V sync in 50 ms steps (−/+, never a slider).
+ * marked and cannot be chosen. Below it the A/V sync in 50 ms steps (−/+, never a slider), kept per output device.
  */
 object VideoAudioTrackSheet {
     /** What one row says; pure, so the wording is unit-tested. */
@@ -98,6 +99,8 @@ object VideoAudioTrackSheet {
             context.getString(R.string.video_audio_sync_summary), grid
         )
         val stepper = KlangValueStepperBinding.inflate(android.view.LayoutInflater.from(context), card, true)
+        val device = sheet.info(deviceLabel(context, engine.delayDevice), card)
+        val reset = sheet.textButton(card, context.getString(R.string.video_audio_sync_reset)) {}
         stepper.stepMinus.contentDescription = context.getString(R.string.video_audio_sync_earlier_button)
         stepper.stepPlus.contentDescription = context.getString(R.string.video_audio_sync_later_button)
         fun render() {
@@ -111,11 +114,24 @@ object VideoAudioTrackSheet {
             ViewCompat.setStateDescription(stepper.stepValue, text)
             stepper.stepMinus.isEnabled = delay > -VideoSoundMath.DELAY_MAX_MS
             stepper.stepPlus.isEnabled = delay < VideoSoundMath.DELAY_MAX_MS
+            device.text = deviceLabel(context, engine.delayDevice)
+            reset.isEnabled = delay != 0
         }
         stepper.stepMinus.setOnClickListener { engine.setDelay(VideoSoundMath.stepDelay(engine.delayMs, -1)); render() }
         stepper.stepPlus.setOnClickListener { engine.setDelay(VideoSoundMath.stepDelay(engine.delayMs, 1)); render() }
         // A tap on the value puts it back in sync.
         stepper.stepValue.setOnClickListener { engine.setDelay(0); render() }
+        reset.setOnClickListener { engine.setDelay(0); render() }
         render()
+    }
+
+    /** "Applies to: …" with the device's own name; the speaker by its role, its product name is the phone's model. */
+    private fun deviceLabel(context: Context, device: AudioDeviceInfo?): String {
+        val name = when {
+            device == null -> null
+            device.type == AudioDeviceInfo.TYPE_BUILTIN_SPEAKER -> context.getString(R.string.video_audio_sync_speaker)
+            else -> device.productName?.toString()?.takeIf { it.isNotBlank() }
+        } ?: context.getString(R.string.video_audio_sync_unknown_device)
+        return context.getString(R.string.video_audio_sync_device, name)
     }
 }

@@ -5,7 +5,8 @@
 # ⋮ › Sound opens the sheet with "Only for videos", the 5.1 note, Clear dialogue, Night mode and Mono; each switch on
 # keeps the film playing (dumpsys media_session state=PLAYING), Strong too; ⋮ › Audio track lists both tracks with
 # their language, "5.1" and "Stereo"; choosing English keeps it playing; "Sound later" twice says 100 ms later and it
-# plays on; a tap on the value goes back to 0 ms. The AC3 clip on a device without an AC3 decoder marks its track as
+# plays on, the sheet names the output it applies to; a tap on the value goes back to 0 ms; 50 ms later survives a
+# restart (kept per output device) and Reset clears it. The AC3 clip on a device without an AC3 decoder marks its track as
 # not playable. Everything is switched off again at the end. Whether it sounds right needs ears: SKIP, by hand.
 . "$(dirname "$0")/lib.sh" "$@"
 DIR=/storage/emulated/0/ordo-e2e-video-sound
@@ -78,9 +79,21 @@ ui tap "Ton später|Sound later" >/dev/null; sleep 1
 ui tap "Ton später|Sound later" >/dev/null; sleep 1
 check "two steps later say 100 ms" ui has "Ton 100 ms später|Sound 100 ms later"
 check "with the sound 100 ms later it plays on" wait_playing
+check "the sync says which output it applies to" part "^(Gilt für|Applies to): "
 ui tap "Ton 100 ms später|Sound 100 ms later" >/dev/null; sleep 1
 check "a tap on the value puts it back in sync" part "^(Synchron|In sync)"
+# Kept per output device (0.18.0): still there after the app is closed, also for another film; Reset clears it.
+ui tap "Ton später|Sound later" >/dev/null; sleep 1
 back
+a shell am force-stop "$PKG"
+open_clip 02-ac3.mkv; sleep 2
+menu "Tonspur|Audio track"
+check "the output's delay is back after a restart" ui has "Ton 50 ms später|Sound 50 ms later"
+ui tap "Zurücksetzen|Reset" >/dev/null; sleep 1
+check "Reset puts it back in sync" part "^(Synchron|In sync)"
+back; back 2
+open_clip 01-surround.mp4
+check "the surround clip plays again" wait_playing
 
 # 3. Everything off again, so the next run and the owner start clean.
 menu "Klang|Sound"

@@ -95,12 +95,19 @@ und Lautstärke angleichen.
   beide Kanäle, Surrounds −3 dB auf ihre Seite, LFE weggelassen, alles × 1/(1+0,7071); eigener Spitzenbegrenzer mit der
   Decke der Klang-Kette (−1,5 dBFS). Kanalreihenfolge wie Androids Kanalmaske (5.1: FL FR FC LFE BL BR; 6.1: + BC; 7.1: + SL SR). Ein Wechsel der
   Center-Stärke gleitet über einen Puffer.
-- **Ton-Synchronisation** (`AvDelayProcessor`, ±1000 ms in 50-ms-Schritten, je Film gemerkt): ExoPlayers Uhr
+- **Ton-Synchronisation** (`AvDelayProcessor`, ±1000 ms in 50-ms-Schritten, je Ausgabegerät gemerkt): ExoPlayers Uhr
   ist die Audio-Uhr. Nach einem Flush fügt der Prozessor N Frames Stille ein (Ton später) oder verwirft N Frames (Ton
   früher). Eine Änderung wirkt per Seek auf die aktuelle Stelle (kurzes Nachladen). Bei Tempo ≠ 1 gilt der Versatz in
-  Filmzeit. Gespeichert in `video_av_delay` unter demselben Schlüssel wie „Weiterschauen“ (Pfad, Größe, Änderungszeit),
-  höchstens 300 Einträge; 0 ms löscht den Eintrag; „Orte nicht merken“ liest und speichert nichts; `content:`- und
-  Tresor-Einträge nie (`remembersDelay`). Wer schon verschiebt, bevor der gespeicherte Wert geladen ist, behält seinen.
+  Filmzeit. Seit 0.18.0 gehört der Versatz zum Ausgabegerät, nicht mehr zum Film (`VideoDeviceDelay`): Schlüssel ist
+  Typ + Produktname aus `AudioDeviceInfo`, bei Bluetooth (A2DP, SCO, LE, Hörgerät) dazu die ersten 6 Byte eines
+  SHA-256 der Adresse, damit zwei gleiche Kopfhörer getrennt bleiben; die MAC selbst wird nie gespeichert. Kabel- und
+  USB-Adressen bleiben weg (sie wechseln beim Einstecken). Wird ein Gerät zur Ausgabe (`AudioDeviceCallback`, nach 1 s
+  noch einmal geprüft, weil die Medienroute dem Callback nachläuft, und bei jedem Abspielstart), lädt Ordo seinen Wert;
+  ein nie gestelltes Gerät, auch Lautsprecher und Kabel, hat 0 ms. Ausgabe ab Android 13
+  `getAudioDevicesForAttributes(MEDIA)`, davor verbundene Kopfhörer, sonst der Lautsprecher (ein USB-DAC oder HDMI
+  zählt dort als Lautsprecher). Gespeichert in `video_av_delay_device`, höchstens 300 Geräte; 0 ms löscht den
+  Eintrag. Die Werte je Film aus 0.17.0 (`video_av_delay`) liest Ordo nicht mehr. Das Blatt zeigt „Gilt für: <Gerät>“
+  (der eingebaute Lautsprecher heißt „Lautsprecher des Geräts“) und „Zurücksetzen“.
 - **Tonspur-Blatt** (`VideoAudioTrackSheet`): Sprache (in der App-Sprache), Codec, Kanäle (Stereo, 5.1 …); Spuren ohne
   Decoder heißen „auf diesem Gerät nicht abspielbar“ und sind nicht wählbar. Darunter die Ton-Synchronisation (−/+).
 - Bedienung: ⋮ › Klang, ⋮ › Tonspur. Keine Schieberegler (Schalter, Segmente, −/+), 48 dp, Texte Deutsch/Englisch.

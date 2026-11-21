@@ -13,8 +13,8 @@ import org.json.JSONObject
 
 /**
  * Ordo Video's own sound, apart from Ordo Musik's: the Klang part (equalizer, bass, balance, mono) reuses
- * [AudioSettings] and its codec, the video-only parts sit beside it. The A/V delay is not stored: it belongs to one
- * film, so it lives as long as the player screen.
+ * [AudioSettings] and its codec, the video-only parts sit beside it. The A/V delay belongs to the output device and
+ * has its own store ([VideoDelayStore]).
  */
 data class VideoSoundSettings(
     val klang: AudioSettings = AudioSettings(),
@@ -60,8 +60,8 @@ internal object VideoSoundStore {
 }
 
 /**
- * The A/V delay per film, under the same key as "Continue watching" (path, size, modification time), so a replaced
- * file starts in sync. At most [VideoResumeStore.MAX_ENTRIES], the oldest go first; 0 ms removes the entry.
+ * The A/V delay per output device ([VideoDeviceDelay.key]). At most [VideoResumeStore.MAX_ENTRIES], the oldest go
+ * first; 0 ms removes the entry.
  */
 internal class VideoDelayStore(context: Context) {
     private val preferences = context.getSharedPreferences(NAME, Context.MODE_PRIVATE)
@@ -85,7 +85,8 @@ internal class VideoDelayStore(context: Context) {
     }
 
     companion object {
-        private const val NAME = "video_av_delay"
+        // Not "video_av_delay": that held the per-film delays of 0.17.0, which are no longer read.
+        private const val NAME = "video_av_delay_device"
 
         internal fun encode(delayMs: Int, savedAtMs: Long): String = "$delayMs:$savedAtMs"
 
