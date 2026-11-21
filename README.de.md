@@ -180,13 +180,13 @@ Die Bilder des Play-Eintrags, aus `fastlane/metadata/android/de-DE/images/`.
   <img src="fastlane/metadata/android/de-DE/images/phoneScreenshots/01_suite.jpg" width="24%" alt="Handy: suite">
   <img src="fastlane/metadata/android/de-DE/images/phoneScreenshots/02_music.jpg" width="24%" alt="Handy: music">
   <img src="fastlane/metadata/android/de-DE/images/phoneScreenshots/03_video.jpg" width="24%" alt="Handy: video">
-  <img src="fastlane/metadata/android/de-DE/images/phoneScreenshots/04_sound.jpg" width="24%" alt="Handy: sound">
+  <img src="fastlane/metadata/android/de-DE/images/phoneScreenshots/04_ai.jpg" width="24%" alt="Handy: ai">
 </p>
 <p align="center">
-  <img src="fastlane/metadata/android/de-DE/images/phoneScreenshots/05_lyrics.jpg" width="24%" alt="Handy: lyrics">
-  <img src="fastlane/metadata/android/de-DE/images/phoneScreenshots/06_ai.jpg" width="24%" alt="Handy: ai">
-  <img src="fastlane/metadata/android/de-DE/images/phoneScreenshots/07_storage.jpg" width="24%" alt="Handy: storage">
-  <img src="fastlane/metadata/android/de-DE/images/phoneScreenshots/08_library.jpg" width="24%" alt="Handy: library">
+  <img src="fastlane/metadata/android/de-DE/images/phoneScreenshots/05_storage.jpg" width="24%" alt="Handy: storage">
+  <img src="fastlane/metadata/android/de-DE/images/phoneScreenshots/06_sound.jpg" width="24%" alt="Handy: sound">
+  <img src="fastlane/metadata/android/de-DE/images/phoneScreenshots/07_library.jpg" width="24%" alt="Handy: library">
+  <img src="fastlane/metadata/android/de-DE/images/phoneScreenshots/08_lyrics.jpg" width="24%" alt="Handy: lyrics">
 </p>
 <p align="center"><sub>7-Zoll-Tablet</sub></p>
 <p align="center">

@@ -27,11 +27,11 @@ TINT = {"music": (236, 110, 180), "lyrics": (236, 110, 180), "library": (150, 12
 HEAD = {
     "en": {
         "suite": "Files, music and video. *One app.*",
-        "music": "Your music in *full colour*",
+        "music": "Your music in *full color*",
         "video": "Films with *subtitles that fit*",
         "sound": "Shape *your sound*",
         "picture": "*HDR films* on any screen",
-        "ai": "Just say *what you need*",
+        "ai": "Tell Ordo *what you need*",
         "storage": "See what fills *your storage*",
         "lyrics": "Sing along with *synced lyrics*",
         "library": "All your music, *beautifully sorted*",
@@ -44,7 +44,7 @@ HEAD = {
         "video": "Filme mit *passenden Untertiteln*",
         "sound": "Forme *deinen Klang*",
         "picture": "*HDR-Filme* auf jedem Bildschirm",
-        "ai": "Sag einfach, *was du brauchst*",
+        "ai": "Sag Ordo, *was du brauchst*",
         "storage": "Sieh, was deinen *Speicher füllt*",
         "lyrics": "Sing mit – *Songtexte im Takt*",
         "library": "Deine Musik, *schön sortiert*",
@@ -53,7 +53,8 @@ HEAD = {
     },
 }
 LOCALE = {"en": "en-US", "de": "de-DE"}
-PHONE = ["suite", "music", "video", "sound", "lyrics", "ai", "storage", "library"]
+# Story: the suite, then each part (music, video, files), then the depth of each.
+PHONE = ["suite", "music", "video", "ai", "storage", "sound", "library", "lyrics"]
 # Tablets: no storage (a tablet shows its owner's folders), no lyrics or signal path (too small to read there).
 TABLET = ["library", "music", "video", "more", "sound"]
 SEVEN = ["library", "music", "video", "sound", "lyrics"]
