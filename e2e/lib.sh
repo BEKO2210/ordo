@@ -186,3 +186,4 @@ media_volume() { a shell cmd media_session volume --stream 3 --get 2>/dev/null |
 a shell 'for i in $(seq 25); do input keyevent KEYCODE_VOLUME_DOWN; done'
 [ "$(media_volume)" = 0 ] || a shell cmd media_session volume --stream 3 --set 0 >/dev/null 2>&1
 [ "$(media_volume)" = 0 ] || { echo "ABORT: media volume is $(media_volume), not 0"; exit 2; }
+# ci test, never merged
