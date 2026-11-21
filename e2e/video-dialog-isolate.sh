@@ -40,10 +40,10 @@ if ! scroll_to "Dialog freistellen plus|Dialogue isolation plus" 4; then
     esac
     back; a shell am force-stop "$PKG"; finish; exit
 fi
-if ui has "Modell laden|Load model"; then
+if scroll_to isolateDownload 2; then
     check "before the tap no model was downloaded" eval '! a shell run-as "$PKG" ls files/models/deepfilternet3_onnx.tar.gz'
-    ui tap "Modell laden|Load model" >/dev/null
-    for _ in $(seq 1 60); do ui has "Modell laden|Load model|Modell wird geladen|Loading model" || break; sleep 2; done
+    ui tap isolateDownload >/dev/null
+    for _ in $(seq 1 60); do a shell run-as "$PKG" ls files/models/deepfilternet3_onnx.tar.gz >/dev/null 2>&1 && break; sleep 2; done
 fi
 check "the model is there after the tap" a shell run-as "$PKG" ls files/models/deepfilternet3_onnx.tar.gz
 sleep 6

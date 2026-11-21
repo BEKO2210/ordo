@@ -42,8 +42,8 @@
     <string name="video_sound_balance_right_button">Mehr rechts</string>
     <string name="video_signal_stage_downmix">Ordo-Mix auf Stereo</string>
     <string name="video_sound_isolate">Dialog freistellen plus</string>
-    <string name="video_sound_isolate_summary">Ein Sprachmodell auf dem Gerät trennt Stimmen von Musik und Geräuschen und senkt den Rest um 9 dB. Für Filme, nicht für Musik.</string>
-    <string name="video_sound_isolate_download">Modell laden (8 MB)</string>
+    <string name="video_sound_isolate_summary">Ein Sprachmodell auf dem Gerät trennt Stimmen von Musik und Geräuschen und senkt den Rest um 9\u00A0dB. Für Filme, nicht für Musik.</string>
+    <string name="video_sound_isolate_download">Modell laden (8\u00A0MB)</string>
     <string name="video_sound_isolate_note">Wird nur auf Tippen einmal von GitHub geladen (DeepFilterNet3, MIT oder Apache 2.0). Danach läuft es offline.</string>
     <string name="video_sound_isolate_downloading">Modell wird geladen … %1$d %%</string>
     <string name="video_sound_isolate_failed">Das Modell konnte nicht geladen werden. Verbindung prüfen und erneut versuchen.</string>
