@@ -36,6 +36,38 @@ class MpvHookTest {
     }
 
     @Test
+    fun fsrcnnxPairsAreDrawnTogetherAnime4kStaysSequential() {
+        val fsr = MpvHook.groups(MpvHook.parse(asset("FSRCNNX_x2_8-0-4-1.glsl")))
+        assertEquals(listOf(2, 2, 2, 2, 2, 2, 1, 1), fsr.map { it.size })
+        // A group of several never reads what one of them writes (a single pass may replace its own plane).
+        for (group in fsr.filter { it.size > 1 }) {
+            val reads = group.flatMap { it.binds + it.hook }
+            assertTrue(group.none { MpvHook.target(it) in reads })
+        }
+        val a4k = MpvHook.groups(MpvHook.parse(asset("Anime4K_Upscale_CNN_x2_M.glsl")))
+        assertEquals(9, a4k.size)
+    }
+
+    @Test
+    fun fusedFragmentWritesOneTargetPerPassAndReadsLumaFromTheFrame() {
+        val group = MpvHook.groups(MpvHook.parse(asset("FSRCNNX_x2_8-0-4-1.glsl"))).first()
+        val frag = MpvHook.fragment(group, rgbLuma = true, sameSize = true)
+        assertTrue(frag.contains("#define LUMA_texOff(off) LUMA_sample(texelFetch(LUMA_raw, clamp("))
+        assertTrue(frag.contains("layout(location = 0) out vec4 fragColor0;"))
+        assertTrue(frag.contains("layout(location = 1) out vec4 fragColor1;"))
+        assertTrue(frag.contains("fragColor0 = hook0(); fragColor1 = hook1();"))
+        assertFalse(Regex("\\bhook\\(").containsMatchIn(frag))
+        assertTrue(frag.contains("#define LUMA_sample(v) vec4(dot("))
+        // Whole texels: all mediump. The doubling computes positions: highp but for its sum.
+        assertTrue(frag.contains("precision mediump float;"))
+        assertTrue(frag.contains("uniform highp vec2 uOutSize;"))
+        val aggregation = MpvHook.fragment(MpvHook.parse(asset("FSRCNNX_x2_8-0-4-1.glsl")).last())
+        assertTrue(aggregation.contains("precision highp float;"))
+        assertTrue(aggregation.contains("\nvec2 fcoord"))
+        assertTrue(aggregation.contains("mediump vec4 res"))
+    }
+
+    @Test
     fun evalSizeExpressionsAndWhen() {
         val sizes = mapOf(
             "LUMA" to (640 to 360),

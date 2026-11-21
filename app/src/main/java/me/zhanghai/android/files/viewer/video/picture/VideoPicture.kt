@@ -55,9 +55,11 @@ import androidx.media3.exoplayer.audio.AudioSink
 import androidx.media3.exoplayer.mediacodec.MediaCodecUtil
 import androidx.media3.exoplayer.video.VideoFrameMetadataListener
 import androidx.media3.ui.PlayerView
+import androidx.preference.PreferenceManager
 import java.text.NumberFormat
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
+import me.zhanghai.android.files.BuildConfig
 import me.zhanghai.android.files.R
 import me.zhanghai.android.files.file.asMimeType
 import me.zhanghai.android.files.file.fileProviderUri
@@ -123,6 +125,19 @@ class VideoPicture(
     private val meter = PictureMeter()
     private var model: DetailPlus.Model? = null
     private var detailFellBack = false
+    private var detailSlowBefore = false
+    private var autoDecision: DetailPlus.Auto? = null
+    // Automatic: the film whose networks fell back (that film stays without them), with their last measured time.
+    private var autoFellBackFor: String? = null
+    private val autoFellBack = HashMap<DetailPlus.Model, Float?>()
+    private var detailSourceSize = 0 to 0
+    private val detailPreferences = PreferenceManager.getDefaultSharedPreferences(activity)
+    private val detailBudget = DetailPlus.Budget(
+        DetailPlus.Model.values().mapNotNull { model ->
+            val value = detailPreferences.getFloat(budgetKey(model), Float.NaN)
+            (model to value).takeIf { value.isFinite() && value >= 0f }
+        }.toMap()
+    )
     private var lastDropped = 0
     private var steadySince = 0L
     private var meterStart = 0L
@@ -265,6 +280,7 @@ class VideoPicture(
         if (switchedOn) {
             tooSlow = false
             detailFellBack = false
+            autoFellBack.clear()
         }
         evaluate()
         return switchedOn
@@ -329,6 +345,8 @@ class VideoPicture(
         player.setVideoChangeFrameRateStrategy(plan.media3Strategy)
         frameRate?.setRate(plan.ownRate)
         val (width, height) = displaySize(format)
+        // What Detail plus gets: the picture at its display aspect (Media3 applies the pixel aspect ratio first).
+        detailSourceSize = width to height
         // Pinch zoom (#102) enlarges the view up to 5x; the pass only needs what the screen area can show.
         val parent = playerView.parent as? View
         val surfaceWidth = (surfaceView?.width ?: 0).let { if (parent != null && parent.width > 0) minOf(it, parent.width) else it }
@@ -415,9 +433,23 @@ class VideoPicture(
             startTicker()
             return
         }
-        val model = DetailPlus.model(
-            DetailPlus.upscaler(Settings.VIDEO_UPSCALER.valueCompat), decision.on, decision.scale, mediaName(player),
-            detailFellBack, DetailPlusGl.unsupported
+        val upscaler = DetailPlus.upscaler(Settings.VIDEO_UPSCALER.valueCompat)
+        val name = mediaName(player)
+        val automatic = if (upscaler == DetailPlus.Upscaler.AUTO) {
+            // By the item's ID: the name can still change when metadata arrives.
+            if (autoFellBackFor != player.currentMediaItem?.mediaId) autoFellBack.clear()
+            DetailPlus.auto(
+                decision.on, decision.scale, DetailPlus.looksLikeAnime(name), DetailPlusGl.unsupported, autoFellBack.keys
+            ) { autoFellBack[it] ?: detailBudget.predict(it, detailSourceSize.first, detailSourceSize.second) }
+        } else {
+            null
+        }
+        if (automatic != null && automatic != autoDecision) {
+            Log.i(PICTURE_LOG_TAG, "auto: ${automatic.model ?: "lanczos"} ${automatic.reason} predicted ${automatic.predictedMs}")
+        }
+        autoDecision = automatic
+        val model = if (automatic != null) automatic.model else DetailPlus.model(
+            upscaler, decision.on, decision.scale, name, detailFellBack, DetailPlusGl.unsupported
         )
         // The network already sharpens: CAS at half strength, or the edges would be sharpened twice.
         val base = if (decision.on) PicturePolicy.shaderParams(decision.level, decision.scale) else PicturePolicy.ADJUST_ONLY
@@ -427,6 +459,7 @@ class VideoPicture(
         appliedKey = key
         this.model = model
         steadySince = SystemClock.elapsedRealtime()
+        detailSlowBefore = false
         if (Log.isLoggable(PICTURE_LOG_TAG, Log.DEBUG)) {
             Log.d(PICTURE_LOG_TAG, "effects: detail plus $model, measuring ${meter.measuring}")
         }
@@ -453,9 +486,18 @@ class VideoPicture(
         MediaCodecUtil.getDecoderInfos(mimeType, false, false).any { it.isFormatFunctionallySupported(activity, format) }
     }.getOrDefault(true)
 
-    /** The playing file's path or URI, decoded, for "automatic" (anime by name). */
-    private fun mediaName(player: ExoPlayer): String? =
-        player.currentMediaItem?.mediaId?.let { Uri.decode(it) }
+    // Per app version: a faster build measures again instead of trusting an older, slower one's time.
+    private fun budgetKey(model: DetailPlus.Model) = "detail_plus_ms_per_mp_${model.name}_${BuildConfig.VERSION_CODE}"
+
+    /** The decoded path and descriptive metadata used only to recognize anime for Automatic. */
+    private fun mediaName(player: ExoPlayer): String? {
+        val item = player.currentMediaItem ?: return null
+        return listOfNotNull(
+            item.mediaId.takeIf { it.isNotBlank() }?.let(Uri::decode),
+            item.mediaMetadata.genre?.toString()?.takeIf { it.isNotBlank() },
+            item.mediaMetadata.title?.toString()?.takeIf { it.isNotBlank() }
+        ).takeIf { it.isNotEmpty() }?.joinToString(" ")
+    }
 
     private fun startTicker() {
         handler.removeCallbacks(ticker)
@@ -511,17 +553,41 @@ class VideoPicture(
         }
         val model = model ?: return
         val detail = stats[PictureMeter.PASS_DETAIL]
+        // The network's GPU time at the top clock (where readable): what it takes once the GPU has to hurry.
+        val clock = DetailPlusGl.clockShare()
+        val detailMs = detail?.mean?.times(clock ?: 1f)
+        if (Log.isLoggable(PICTURE_LOG_TAG, Log.DEBUG)) {
+            Log.d(
+                PICTURE_LOG_TAG,
+                "detail plus $model: $detailMs ms over ${detail?.count ?: 0}, $droppedNow dropped, " +
+                    "${detail?.mean} ms at clock $clock"
+            )
+        }
+        if (detail != null && detailMs != null && detail.count >= 10) {
+            val mean = detailMs.toFloat()
+            detailBudget.record(model, detailSourceSize.first, detailSourceSize.second, mean)
+            val pixels = detailSourceSize.first.toLong() * detailSourceSize.second
+            if (pixels > 0) detailPreferences.edit().putFloat(budgetKey(model), mean * 1_000_000f / pixels).apply()
+            autoDecision = autoDecision?.takeIf { it.model == model }?.copy(predictedMs = mean) ?: autoDecision
+        }
         val steady = now - steadySince >= DetailPlus.SETTLE_MS
         val unsupported = model in DetailPlusGl.unsupported
         // glFinish timing (measuring without GPU timers) stalls the pipeline itself: its drops don't count.
-        if (unsupported ||
-            DetailPlus.fallBack(detail?.mean ?: 0.0, detail?.count ?: 0, droppedNow, steady && meter.timer != "cpu")
+        val slowBefore = detailSlowBefore
+        detailSlowBefore = DetailPlus.slow(detailMs ?: 0.0, detail?.count ?: 0)
+        if (unsupported || DetailPlus.fallBack(
+                detailMs ?: 0.0, detail?.count ?: 0, slowBefore, droppedNow, steady && meter.timer != "cpu"
+            )
         ) {
-            Log.i(PICTURE_LOG_TAG, "Detail plus $model off: ${detail?.mean} ms over ${detail?.count}, " +
+            Log.i(PICTURE_LOG_TAG, "Detail plus $model off: $detailMs ms over ${detail?.count}, " +
                 "$droppedNow dropped, unsupported $unsupported")
             if (!unsupported) {
                 detailFellBack = true
-                onNotice(activity.getString(R.string.video_detail_plus_slow_notice))
+                autoFellBackFor = player.currentMediaItem?.mediaId
+                autoFellBack[model] = detailMs?.takeIf { (detail?.count ?: 0) >= 10 }?.toFloat()
+                if (DetailPlus.upscaler(Settings.VIDEO_UPSCALER.valueCompat) != DetailPlus.Upscaler.AUTO) {
+                    onNotice(activity.getString(R.string.video_detail_plus_slow_notice))
+                }
             }
             evaluate()
         }
@@ -650,7 +716,11 @@ class VideoPicture(
         if (model != null) {
             if (SystemClock.elapsedRealtime() - steadySince < DetailPlus.SETTLE_MS) return
             detailFellBack = true
-            onNotice(activity.getString(R.string.video_detail_plus_slow_notice))
+            autoFellBackFor = player?.currentMediaItem?.mediaId
+            model?.let { autoFellBack[it] = null }
+            if (DetailPlus.upscaler(Settings.VIDEO_UPSCALER.valueCompat) != DetailPlus.Upscaler.AUTO) {
+                onNotice(activity.getString(R.string.video_detail_plus_slow_notice))
+            }
             evaluate()
             return
         }
@@ -915,7 +985,7 @@ class VideoPicture(
                 )
                 else -> activity.getString(R.string.video_signal_off_format, offText(decision.off ?: Off.NO_VIDEO))
             },
-            if (enhanced) upscalerText(decision!!) else null,
+            if (enhanced) upscalerText(decision!!, size, surface) else null,
             ambientText(enhanced),
             player?.videoDecoderCounters?.droppedBufferCount?.toString(),
             resultText(changes.map {
@@ -1029,7 +1099,44 @@ class VideoPicture(
     }
 
     /** Which upscaler runs, and why not Detail plus when it was asked for. */
-    private fun upscalerText(decision: PicturePolicy.Decision): String {
+    private fun upscalerText(decision: PicturePolicy.Decision, size: String, surface: String): String {
+        if (DetailPlus.upscaler(Settings.VIDEO_UPSCALER.valueCompat) == DetailPlus.Upscaler.AUTO) {
+            val automatic = autoDecision ?: DetailPlus.Auto(null, DetailPlus.Reason.NOT_ENHANCED, null)
+            val number = NumberFormat.getInstance().apply {
+                minimumFractionDigits = 1
+                maximumFractionDigits = 1
+            }
+            val time = automatic.predictedMs?.let {
+                activity.getString(
+                    R.string.video_signal_upscaler_auto_free_format,
+                    number.format((DetailPlus.MAX_GPU_MS - it).coerceAtLeast(0f).toDouble())
+                )
+            } ?: activity.getString(R.string.video_signal_upscaler_auto_measuring)
+            val text = when (automatic.reason) {
+                DetailPlus.Reason.FILM -> R.string.video_signal_upscaler_auto_film_format
+                DetailPlus.Reason.ANIME -> R.string.video_signal_upscaler_auto_anime_format
+                DetailPlus.Reason.ANIME_FILM -> R.string.video_signal_upscaler_auto_anime_film_format
+                // Over the time, or it dropped frames (then the time alone would not explain it).
+                DetailPlus.Reason.TOO_SLOW -> if ((automatic.predictedMs ?: 0f) > DetailPlus.MAX_GPU_MS) {
+                    R.string.video_signal_upscaler_auto_slow_format
+                } else {
+                    R.string.video_signal_upscaler_auto_slow_unknown
+                }
+                DetailPlus.Reason.SMALL -> R.string.video_signal_upscaler_auto_small_format
+                DetailPlus.Reason.NOT_ENHANCED -> R.string.video_signal_upscaler_auto_not_enhanced
+                DetailPlus.Reason.UNSUPPORTED -> R.string.video_signal_upscaler_auto_unsupported
+            }
+            val arguments: Array<out Any> = when (automatic.reason) {
+                DetailPlus.Reason.FILM, DetailPlus.Reason.ANIME, DetailPlus.Reason.ANIME_FILM -> arrayOf(size, surface, time)
+                DetailPlus.Reason.TOO_SLOW -> if ((automatic.predictedMs ?: 0f) > DetailPlus.MAX_GPU_MS) arrayOf(
+                    number.format((automatic.predictedMs ?: 0f).toDouble()),
+                    number.format(DetailPlus.MAX_GPU_MS.toDouble())
+                ) else emptyArray()
+                DetailPlus.Reason.SMALL -> arrayOf(number.format(decision.scale.toDouble()))
+                else -> emptyArray()
+            }
+            return activity.getString(text, *arguments)
+        }
         model?.let {
             return activity.getString(
                 R.string.video_signal_upscaler_detail_format, activity.getString(
