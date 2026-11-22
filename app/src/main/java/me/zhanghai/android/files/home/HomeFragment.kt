@@ -338,11 +338,16 @@ class HomeFragment : Fragment(), ShowRequestAllFilesAccessRationaleDialogFragmen
 
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
-        if (_binding != null) applyHomeLayout()
+        _binding ?: return
+        applyHomeLayout()
+        if (!recentAdapter.isRow) updateRecentItems()
     }
 
     private fun homeWidthDp(): Int =
         (resources.displayMetrics.widthPixels / resources.displayMetrics.density).toInt()
+
+    private fun homeHeightDp(): Int =
+        (resources.displayMetrics.heightPixels / resources.displayMetrics.density).toInt()
 
     // Runs on every state update, so it only touches a list whose column count really changed: a new layout
     // manager rebuilds all item views, which would restart the storage bars and flicker.
@@ -373,7 +378,7 @@ class HomeFragment : Fragment(), ShowRequestAllFilesAccessRationaleDialogFragmen
         recentAdapter.items = if (recentAdapter.isRow) {
             files
         } else {
-            files.take(2 * recentAdapter.columns)
+            files.take(homeRecentGridRows(homeHeightDp()) * recentAdapter.columns)
         }
     }
 

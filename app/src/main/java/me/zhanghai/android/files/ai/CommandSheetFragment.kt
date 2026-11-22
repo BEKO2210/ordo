@@ -29,6 +29,7 @@ import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.ColorUtils
 import androidx.core.view.isVisible
+import androidx.core.view.updateLayoutParams
 import androidx.core.widget.TextViewCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.transition.TransitionManager
@@ -246,12 +247,23 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
 
     // ---- Setup -------------------------------------------------------------------------------
 
+    private fun applySetupCompact() {
+        val heightDp = resources.configuration.screenHeightDp
+        val orbPx = (commandSetupOrbDp(heightDp) * resources.displayMetrics.density).toInt()
+        (binding.setupOrb.parent as View).updateLayoutParams {
+            width = orbPx
+            height = orbPx
+        }
+        binding.checkList.isVisible = !commandSetupCompact(heightDp)
+    }
+
     private fun showSetup(modelState: CommandModel.State) {
         val context = requireContext()
         binding.titleText.setText(R.string.ai_setup_title)
         binding.subtitleText.setText(R.string.ai_setup_subtitle)
         binding.headerOrb.isVisible = false
         binding.removeModelButton.isVisible = false
+        applySetupCompact()
         show(binding.setupLayout)
         // A download that already runs (or a file waiting for its check) always gets followed,
         // whatever the free space says now.
@@ -272,8 +284,12 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
             !check.dotProd -> R.string.ai_check_device_old
             else -> R.string.ai_check_device_ok
         }))
-        listOf(binding.setupPrivacy, binding.checkRam, binding.checkSpace, binding.checkDevice)
-            .forEachIndexed { i, row -> row.reveal(80L + 90L * i) }
+        if (binding.checkList.isVisible) {
+            listOf(binding.setupPrivacy, binding.checkRam, binding.checkSpace, binding.checkDevice)
+                .forEachIndexed { i, row -> row.reveal(80L + 90L * i) }
+        } else {
+            binding.setupPrivacy.reveal(80L)
+        }
         if (modelState is CommandModel.State.Failed) {
             binding.downloadText.isVisible = true
             binding.downloadText.setText(
