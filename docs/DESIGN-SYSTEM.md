@@ -66,6 +66,8 @@ Jeder Schritt: Abstände auf die Reihe umstellen, auf Telefon (412 dp) und Table
 - Kategorie-, Schnellzugriff- und „Zuletzt“-Kacheln sind φ : 1 breit zu hoch (`PhiTileCardView`, `PhiImageView`); braucht
   der Inhalt mehr Höhe (große Schrift, schmales Telefon), wächst die Kachel mit, statt etwas abzuschneiden.
 - Speicherkarte: Beschriftung zu Prozentwert 61,8 : 38,2; „Öffnen“ und „Analysieren“ bleiben gleich breit.
+- Zwei-Tasten-Zeilen (Speicherkarte, „Abspielen“/„Zufällig“ in Ordo Musik): eine Zeile, Schrift 14 → 12 sp; passt ein Wort
+  dann noch nicht, entfallen die Symbole, danach stehen die Tasten untereinander. Nie ein Umbruch im Wort (`ActionRowFit`).
 - Rundungen: Karten 21 dp, Kacheln 13 dp, Suchleiste 21 dp (Höhe 48 dp bleibt). Keine Silbentrennung auf der Startseite.
 - Spaltenzahlen (3/9, 4/6/8, 3/5/8) bleiben; die Inhaltsbreite ist auf der Startseite **nicht** auf 610 dp begrenzt,
   weil die neun Kategorien ab 840 dp in einer Reihe stehen und sonst unter die Lesbarkeit schrumpfen.

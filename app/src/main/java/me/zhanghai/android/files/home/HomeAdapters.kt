@@ -15,6 +15,7 @@ import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import android.content.res.ColorStateList
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.annotation.ColorInt
 import androidx.annotation.ColorRes
@@ -33,6 +34,7 @@ import me.zhanghai.android.files.databinding.HomeStorageItemBinding
 import me.zhanghai.android.files.databinding.HomeQuickAccessItemBinding
 import me.zhanghai.android.files.file.asFileSize
 import me.zhanghai.android.files.ui.WordBreaks
+import me.zhanghai.android.files.ui.fitActionRow
 import me.zhanghai.android.files.util.getColorByAttr
 import me.zhanghai.android.files.util.getQuantityString
 import java.util.Locale
@@ -164,6 +166,7 @@ class StorageAdapter(
     override fun getItemCount() = items.size
     override fun onBindViewHolder(holder: ViewHolder, position: Int) = holder.bind(items[position])
     inner class ViewHolder(private val binding: HomeStorageItemBinding) : RecyclerView.ViewHolder(binding.root) {
+        private val icons = listOf(binding.openButton.icon, binding.analyzeButton.icon)
         fun bind(item: StorageSummary) {
             val context = binding.root.context
             // Storage belongs to no file type, so it wears the chosen accent like its bar.
@@ -202,6 +205,9 @@ class StorageAdapter(
             binding.analyzeButton.setOnClickListener { onAnalyze(item) }
             binding.root.setOnClickListener { onClick(item) }
             binding.openButton.setOnClickListener { onClick(item) }
+            binding.actionsRow.doOnLayout {
+                fitActionRow(binding.actionsRow, listOf(binding.openButton, binding.analyzeButton), icons)
+            }
         }
     }
 }
