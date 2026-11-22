@@ -45,14 +45,20 @@ import me.zhanghai.android.files.util.hasBits
 import java.io.Closeable
 import java.io.IOException
 import java.net.Inet4Address
+import java.net.InetAddress
+import java.net.InetSocketAddress
+import java.net.Socket
+import java.net.SocketAddress
 import java.net.UnknownHostException
 import java.util.Collections
 import java.util.WeakHashMap
 import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
+import javax.net.SocketFactory
 
 object Client {
     private const val CONNECT_TIMEOUT_SECONDS = 15L
+    private const val CONNECT_TIMEOUT_MILLIS = 15_000
 
     @Volatile
     lateinit var authenticator: Authenticator
@@ -60,7 +66,7 @@ object Client {
     private val client = SMBClient(
         SmbConfig.builder()
             .withTimeout(CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
-            .withSoTimeout(CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+            .withSocketFactory(ConnectTimeoutSocketFactory(CONNECT_TIMEOUT_MILLIS))
             .build()
     )
 
@@ -673,5 +679,41 @@ object Client {
             val name: String,
             val path: String
         )
+    }
+}
+
+private class ConnectTimeoutSocketFactory(
+    private val timeoutMillis: Int
+) : SocketFactory() {
+    override fun createSocket(): Socket = object : Socket() {
+        override fun connect(endpoint: SocketAddress?, timeout: Int) {
+            super.connect(endpoint, if (timeout > 0) timeout else timeoutMillis)
+        }
+    }
+
+    override fun createSocket(host: String, port: Int): Socket =
+        createSocket().also { it.connect(InetSocketAddress(host, port)) }
+
+    override fun createSocket(
+        host: String,
+        port: Int,
+        localHost: InetAddress,
+        localPort: Int
+    ): Socket = createSocket().also {
+        it.bind(InetSocketAddress(localHost, localPort))
+        it.connect(InetSocketAddress(host, port))
+    }
+
+    override fun createSocket(host: InetAddress, port: Int): Socket =
+        createSocket().also { it.connect(InetSocketAddress(host, port)) }
+
+    override fun createSocket(
+        host: InetAddress,
+        port: Int,
+        localHost: InetAddress,
+        localPort: Int
+    ): Socket = createSocket().also {
+        it.bind(InetSocketAddress(localHost, localPort))
+        it.connect(InetSocketAddress(host, port))
     }
 }

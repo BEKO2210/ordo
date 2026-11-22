@@ -25,6 +25,24 @@ class LinuxCopyMoveTest {
     }
 
     @Test
+    fun partFileShortensNamesThatWouldExceedNameMax() {
+        val name = "a".repeat(245).toByteString()
+        val part = LinuxCopyMove.partFile("/storage/emulated/0/".toByteString() + name)
+        val fileName = part.toString().substringAfterLast('/')
+        assertTrue(fileName.length <= 255)
+        assertTrue(fileName.startsWith(".ordo-part-"))
+        assertTrue(LinuxCopyMove.isPartFileName(fileName.toByteString()))
+    }
+
+    @Test
+    fun isPartFileNameMatchesHiddenPartFiles() {
+        assertTrue(LinuxCopyMove.isPartFileName(".photo.jpg.ordo-part".toByteString()))
+        assertTrue(LinuxCopyMove.isPartFileName(".ordo-part-deadbeef".toByteString()))
+        assertFalse(LinuxCopyMove.isPartFileName("photo.jpg".toByteString()))
+        assertFalse(LinuxCopyMove.isPartFileName("notes.ordo-part".toByteString()))
+    }
+
+    @Test
     fun sameInodeStillRenamesWhenOnlyTheSpellingDiffers() {
         val lower = "/sdcard/foto.jpg".toByteString()
         val mixed = "/sdcard/Foto.jpg".toByteString()

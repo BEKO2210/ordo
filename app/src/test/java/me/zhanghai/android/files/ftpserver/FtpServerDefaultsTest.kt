@@ -47,4 +47,26 @@ class FtpServerDefaultsTest {
             .substringBefore("override fun createOutputStream")
         assertTrue(listFiles.contains("newDirectoryStream().use"))
     }
+
+    @Test
+    fun passwordIsRequiredOrGeneratedWhenAnonymousIsOff() {
+        val server = File("src/main/java/me/zhanghai/android/files/ftpserver/FtpServer.kt").readText()
+        val service = File(
+            "src/main/java/me/zhanghai/android/files/ftpserver/FtpServerService.kt"
+        ).readText()
+        assertTrue(server.contains("password.isEmpty()"))
+        assertTrue(server.contains("isAnonymousLoginEnabled = this@FtpServer.password == null"))
+        assertTrue(service.contains("FTP_SERVER_PASSWORD.valueCompat.isEmpty()"))
+        assertTrue(service.contains("randomPassword()"))
+    }
+
+    @Test
+    fun homeDirectoryDefaultsToTheDownloadFolder() {
+        val settings = File("src/main/java/me/zhanghai/android/files/settings/Settings.kt")
+            .readText()
+            .substringAfter("FTP_SERVER_HOME_DIRECTORY")
+            .substringBefore("FTP_SERVER_WRITABLE")
+        assertTrue(settings.contains("DIRECTORY_DOWNLOADS"))
+        assertFalse(settings.contains("getExternalStorageDirectory()"))
+    }
 }

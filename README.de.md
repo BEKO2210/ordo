@@ -459,8 +459,9 @@ jederzeit wieder entfernen; unter Einstellungen › KI-Assistent siehst du, ob e
 - App-Daten sind von Cloud-Sicherung und Geräteumzug ausgenommen, Server-Passwörter verlassen das Handy nie.
 - SFTP-Schlüssel und selbstsignierte FTPS-Zertifikate werden beim ersten Kontakt gemerkt; ändern sie sich, bricht
   die Verbindung ab. CA-Zertifikate werden samt Hostname geprüft.
-- Der eingebaute FTP-Server startet mit Benutzername und ohne Schreibrecht. Anonymer Zugang und Schreiben bleiben
-  aus, bis du sie einschaltest.
+- Der eingebaute FTP-Server startet mit Benutzername, Passwort und ohne Schreibrecht. Die Wurzel ist der
+  Download-Ordner. Anonymer Zugang und Schreiben bleiben aus, bis du sie einschaltest. Fehlt ein Passwort, wird
+  eines erzeugt.
 - Beim Entpacken landet nichts außerhalb des gewählten Ordners, auch nicht über Links im Archiv.
 - Andere Apps können Ordo nur Dateien im geteilten Speicher öffnen lassen, und nur zum Lesen.
 - Testversionen nutzen die Release-Einstellungen (R8, nicht debugbar, Screenshots im Tresor gesperrt).

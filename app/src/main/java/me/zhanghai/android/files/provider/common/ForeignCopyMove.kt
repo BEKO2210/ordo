@@ -45,18 +45,31 @@ internal object ForeignCopyMove {
                 } else {
                     emptyArray()
                 }
-                val temp = partFile(target)
-                try {
-                    temp.deleteIfExists()
-                } catch (e: IOException) {
-                    e.printStackTrace()
-                } catch (e: UnsupportedOperationException) {
-                    e.printStackTrace()
+                removeLeftoverPartFiles(target)
+                // shortcut: no prompt on low-space overwrite, FileJob confirm when a dialog exists
+                val usePart = !copyOptions.replaceExisting
+                    || !target.exists(LinkOption.NOFOLLOW_LINKS)
+                    || hasRoomForPart(target, sourceAttributes.size())
+                val dest = if (usePart) partFile(target) else target
+                if (usePart) {
+                    try {
+                        dest.deleteIfExists()
+                    } catch (e: IOException) {
+                        e.printStackTrace()
+                    } catch (e: UnsupportedOperationException) {
+                        e.printStackTrace()
+                    }
+                }
+                val destOpenOptions = if (usePart) {
+                    arrayOf(StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE)
+                } else {
+                    arrayOf(
+                        StandardOpenOption.CREATE, StandardOpenOption.WRITE,
+                        StandardOpenOption.TRUNCATE_EXISTING
+                    )
                 }
                 source.newInputStream(*openOptions).use { inputStream ->
-                    val outputStream = temp.newOutputStream(
-                        StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE
-                    )
+                    val outputStream = dest.newOutputStream(*destOpenOptions)
                     var successful = false
                     try {
                         inputStream.copyTo(
@@ -68,9 +81,9 @@ internal object ForeignCopyMove {
                         try {
                             outputStream.close()
                         } finally {
-                            if (!successful) {
+                            if (!successful && usePart) {
                                 try {
-                                    temp.deleteIfExists()
+                                    dest.deleteIfExists()
                                 } catch (e: IOException) {
                                     e.printStackTrace()
                                 } catch (e: UnsupportedOperationException) {
@@ -80,7 +93,9 @@ internal object ForeignCopyMove {
                         }
                     }
                 }
-                replaceWithPart(temp, target, copyOptions.replaceExisting)
+                if (usePart) {
+                    replaceWithPart(dest, target, copyOptions.replaceExisting)
+                }
             }
             sourceAttributes.isDirectory -> {
                 if (copyOptions.replaceExisting) {
@@ -172,10 +187,60 @@ internal object ForeignCopyMove {
         }
     }
 
+    private const val NAME_MAX = 255
+
     internal fun partFile(target: Path): Path {
         val name = target.fileName?.toString()
             ?: throw IOException("Cannot copy to $target without a file name")
-        return target.resolveSibling(".$name.ordo-part")
+        val longName = ".$name.ordo-part"
+        if (longName.toByteArray(Charsets.UTF_8).size <= NAME_MAX) {
+            return target.resolveSibling(longName)
+        }
+        return target.resolveSibling(".ordo-part-${Integer.toHexString(name.hashCode())}")
+    }
+
+    internal fun isPartFileName(name: String): Boolean =
+        (name.startsWith(".") && name.endsWith(".ordo-part")
+            && name.length > ".ordo-part".length + 1)
+            || (name.startsWith(".ordo-part-") && name.length > ".ordo-part-".length)
+
+    private fun hasRoomForPart(target: Path, sourceSize: Long): Boolean {
+        if (sourceSize <= 0L) {
+            return true
+        }
+        val directory = target.parent ?: return true
+        return try {
+            directory.getFileStore().usableSpace >= sourceSize
+        } catch (e: IOException) {
+            true
+        } catch (e: UnsupportedOperationException) {
+            true
+        }
+    }
+
+    private fun removeLeftoverPartFiles(target: Path) {
+        val directory = target.parent ?: return
+        try {
+            directory.newDirectoryStream().use { stream ->
+                for (path in stream) {
+                    val name = path.fileName?.toString() ?: continue
+                    if (!isPartFileName(name)) {
+                        continue
+                    }
+                    try {
+                        path.deleteIfExists()
+                    } catch (e: IOException) {
+                        e.printStackTrace()
+                    } catch (e: UnsupportedOperationException) {
+                        e.printStackTrace()
+                    }
+                }
+            }
+        } catch (e: IOException) {
+            e.printStackTrace()
+        } catch (e: UnsupportedOperationException) {
+            e.printStackTrace()
+        }
     }
 
     private fun replaceWithPart(temp: Path, target: Path, replaceExisting: Boolean) {

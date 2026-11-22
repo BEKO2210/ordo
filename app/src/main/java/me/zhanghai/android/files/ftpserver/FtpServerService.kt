@@ -18,6 +18,7 @@ import me.zhanghai.android.files.settings.Settings
 import me.zhanghai.android.files.util.WakeWifiLock
 import me.zhanghai.android.files.util.showToast
 import me.zhanghai.android.files.util.valueCompat
+import java.security.SecureRandom
 import java.util.concurrent.Executors
 
 class FtpServerService : Service() {
@@ -57,6 +58,10 @@ class FtpServerService : Service() {
     private fun executeStart() {
         if (state == State.STARTING || state == State.RUNNING) {
             return
+        }
+        if (!Settings.FTP_SERVER_ANONYMOUS_LOGIN.valueCompat
+            && Settings.FTP_SERVER_PASSWORD.valueCompat.isEmpty()) {
+            Settings.FTP_SERVER_PASSWORD.putValue(randomPassword())
         }
         wakeWifiLock.isAcquired = true
         notification.startForeground()
@@ -149,6 +154,12 @@ class FtpServerService : Service() {
                 State.STOPPED -> start(context)
                 else -> throw AssertionError(state)
             }
+        }
+
+        internal fun randomPassword(): String {
+            val alphabet = "abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+            val random = SecureRandom()
+            return CharArray(12) { alphabet[random.nextInt(alphabet.length)] }.concatToString()
         }
     }
 
