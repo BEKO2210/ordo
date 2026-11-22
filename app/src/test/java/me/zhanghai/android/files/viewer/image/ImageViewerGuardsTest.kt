@@ -61,6 +61,65 @@ class ImageViewerGuardsTest {
     }
 
     @Test
+    fun procRootAndFileProviderCannotReachAppData() {
+        val packages = listOf(pkg)
+        assertTrue(fileUriTargetsAppData("file:///proc/self/root/data/data/$pkg/files/secret.jpg", roots))
+        assertTrue(fileUriTargetsAppData("file:///proc/self/root/data/user/0/$pkg/files/secret.jpg", roots))
+        assertTrue(fileUriTargetsAppData("file:///proc/999999/root/data/data/$pkg/files/secret.jpg", roots))
+        assertTrue(fileUriTargetsAppData("file://localhost/proc/thread-self/root/data/data/$pkg/a.jpg", roots))
+        assertFalse(fileUriTargetsAppData("file:///proc/self/root/sdcard/a.jpg", roots))
+        val provider =
+            "content://$pkg.file_provider/file%3A%2F%2F%2Fdata%2Fuser%2F0%2F$pkg%2Ffiles%2Fx.jpg"
+        assertTrue(externalImageUriRejected(provider, roots, packages))
+        assertTrue(
+            externalImageUriRejected(
+                "content://user@$pkg.file_provider/file%3A%2F%2F%2Fproc%2Fself%2Froot%2Fdata%2Fdata%2F$pkg%2Fx.jpg",
+                roots,
+                packages
+            )
+        )
+        assertFalse(
+            externalImageUriRejected(
+                "content://$pkg.file_provider/file%3A%2F%2F%2Fsdcard%2Fa.jpg",
+                roots,
+                packages
+            )
+        )
+        assertFalse(
+            externalImageUriRejected(
+                "content://$pkg.file_provider/smb%3A%2F%2Fhost%2Fshare%2Fa.jpg",
+                roots,
+                packages
+            )
+        )
+        assertFalse(externalImageUriRejected("content://media/external/images/1", roots, packages))
+        assertFalse(externalImageUriRejected("file:///sdcard/a.png", roots, packages))
+        assertTrue(launchTokenValid(1_000L, 1_000L))
+        assertFalse(launchTokenValid(1_000L, 1_001L))
+        assertFalse(launchTokenValid(null, 0L))
+        assertEquals(30_000L, IMAGE_VIEWER_LAUNCH_TOKEN_TTL_MILLIS)
+    }
+
+    @Test
+    fun symlinkIntoAppDataIsRejected() {
+        val root = java.nio.file.Files.createTempDirectory("ordo-root")
+        val outside = java.nio.file.Files.createTempDirectory("ordo-out")
+        val link = outside.resolve("link")
+        try {
+            java.nio.file.Files.createDirectories(root.resolve("files"))
+            java.nio.file.Files.createSymbolicLink(link, root)
+            val secret = link.resolve("files").resolve("a.jpg").toUri().toString()
+            assertTrue(fileUriTargetsAppData(secret, listOf(root.toString())))
+            val plain = outside.resolve("plain.jpg").toUri().toString()
+            assertFalse(fileUriTargetsAppData(plain, listOf(root.toString())))
+        } finally {
+            java.nio.file.Files.deleteIfExists(link)
+            root.toFile().deleteRecursively()
+            outside.toFile().deleteRecursively()
+        }
+    }
+
+    @Test
     fun lostShowFinishesOnlyWhenTheRestoredRequestIsGone() {
         assertTrue(shouldFinishLostShow(restored = true, action = null, showToken = "token", requestFound = false))
         assertFalse(shouldFinishLostShow(restored = false, action = null, showToken = "forged", requestFound = false))

@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.RecyclerView
 import coil.dispose
 import coil.load
 import coil.size.Size
+import com.caverock.androidsvg.SVG
 import com.davemorrissey.labs.subscaleview.ImageSource
 import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView
 import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView.DefaultOnImageEventListener
@@ -25,6 +26,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import okio.buffer
+import okio.source
 import me.zhanghai.android.files.coil.fadeIn
 import me.zhanghai.android.files.databinding.ImageViewerItemBinding
 import me.zhanghai.android.files.file.MimeType
@@ -40,6 +43,7 @@ import me.zhanghai.android.files.util.fadeOutUnsafe
 import me.zhanghai.android.files.util.layoutInflater
 import me.zhanghai.android.files.util.shortAnimTime
 import kotlin.math.max
+import kotlin.math.roundToInt
 
 class ImageViewerAdapter(
     private val lifecycleOwner: LifecycleOwner,
@@ -99,12 +103,37 @@ class ImageViewerAdapter(
     private fun Path.loadImageInfo(): ImageInfo {
         val attributes = readAttributes(BasicFileAttributes::class.java)
         val mimeType = AndroidFileTypeDetector.getMimeType(this, attributes).asMimeType()
+        if (mimeType == MimeType.IMAGE_SVG_XML) {
+            val (width, height) = svgBounds()
+            return ImageInfo(attributes, width, height, mimeType)
+        }
         val bitmapOptions = BitmapFactory.Options().apply { inJustDecodeBounds = true }
         newInputStream().use { BitmapFactory.decodeStream(it, null, bitmapOptions) }
         return ImageInfo(
             attributes, bitmapOptions.outWidth, bitmapOptions.outHeight,
             bitmapOptions.outMimeType?.asMimeTypeOrNull() ?: mimeType
         )
+    }
+
+    /** BitmapFactory does not report SVG size. Read it so a small icon is not scaled up to the cap. */
+    private fun Path.svgBounds(): Pair<Int, Int> = try {
+        val svg = newInputStream().source().buffer().use { SVG.getFromInputStream(it.inputStream()) }
+        val width = svg.documentWidth
+        val height = svg.documentHeight
+        if (width > 0f && height > 0f) {
+            width.roundToInt() to height.roundToInt()
+        } else {
+            val box = svg.documentViewBox
+            if (box != null && box.width() > 0f && box.height() > 0f) {
+                box.width().roundToInt() to box.height().roundToInt()
+            } else {
+                0 to 0
+            }
+        }
+    } catch (e: CancellationException) {
+        throw e
+    } catch (_: Exception) {
+        0 to 0
     }
 
     private fun loadImageWithInfo(
@@ -197,8 +226,8 @@ internal const val MAX_BITMAP_BYTES = 100 * 1024 * 1024
 internal const val UNKNOWN_IMAGE_EDGE_CAP_PX = 4096
 
 internal fun shouldUseLargeImageView(width: Int, height: Int, mimeType: String): Boolean {
-    // See BitmapFactory.cpp encodedFormatToString(). GIF stays in Coil.
-    if (mimeType == "image/gif") return false
+    // See BitmapFactory.cpp encodedFormatToString(). GIF stays in Coil. SVG has no tiled decoder.
+    if (mimeType == "image/gif" || mimeType == "image/svg+xml") return false
     if (width <= 0 || height <= 0) return false
     // 4 bytes per pixel for ARGB_8888. Int overflows around 23 170 px square and then looks small.
     if (width.toLong() * height * 4 > MAX_BITMAP_BYTES) return true
@@ -209,6 +238,14 @@ internal fun shouldUseLargeImageView(width: Int, height: Int, mimeType: String):
     return false
 }
 
-/** Null means Coil's Size.ORIGINAL. */
-internal fun coilEdgeCapPx(width: Int, height: Int, mimeType: String): Int? =
-    if (mimeType == "image/svg+xml" || width <= 0 || height <= 0) UNKNOWN_IMAGE_EDGE_CAP_PX else null
+/**
+ * Null means Coil's Size.ORIGINAL. SVG is capped only when an edge is already larger than the cap;
+ * a smaller target would scale the icon up (Coil's SvgDecoder uses the requested size as the bitmap).
+ */
+internal fun coilEdgeCapPx(width: Int, height: Int, mimeType: String): Int? {
+    if (mimeType == "image/svg+xml") {
+        val longEdge = max(width, height)
+        return if (longEdge > UNKNOWN_IMAGE_EDGE_CAP_PX) UNKNOWN_IMAGE_EDGE_CAP_PX else null
+    }
+    return if (width <= 0 || height <= 0) UNKNOWN_IMAGE_EDGE_CAP_PX else null
+}

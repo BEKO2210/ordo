@@ -38,6 +38,7 @@ class LargeImageDecisionTest {
         assertFalse(shouldUseLargeImageView(30000, 30000, "image/gif"))
         assertFalse(shouldUseLargeImageView(0, 0, "image/jpeg"))
         assertFalse(shouldUseLargeImageView(-1, 100, "image/png"))
+        assertFalse(shouldUseLargeImageView(12000, 12000, "image/svg+xml"))
     }
 
     @Test
@@ -45,6 +46,10 @@ class LargeImageDecisionTest {
         assertEquals(UNKNOWN_IMAGE_EDGE_CAP_PX, coilEdgeCapPx(0, 0, "image/jpeg"))
         assertEquals(UNKNOWN_IMAGE_EDGE_CAP_PX, coilEdgeCapPx(-1, 8000, "image/png"))
         assertEquals(4096, coilEdgeCapPx(12000, 12000, "image/svg+xml"))
+        assertEquals(4096, coilEdgeCapPx(4097, 24, "image/svg+xml"))
+        assertNull(coilEdgeCapPx(24, 24, "image/svg+xml"))
+        assertNull(coilEdgeCapPx(4096, 100, "image/svg+xml"))
+        assertNull(coilEdgeCapPx(0, 0, "image/svg+xml"))
         assertNull(coilEdgeCapPx(800, 600, "image/jpeg"))
         assertNull(coilEdgeCapPx(30000, 30000, "image/gif"))
     }

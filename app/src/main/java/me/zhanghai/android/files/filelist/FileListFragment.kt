@@ -1606,6 +1606,10 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
                 .addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
                 .apply {
                     extraPath = path
+                    // Token only after the intent is explicit. The chooser and other image apps must not see it.
+                    if (!withChooser && mimeType.isImage) {
+                        setClass(requireContext(), ImageViewerActivity::class.java)
+                    }
                     maybeAddImageViewerActivityExtras(this, path, mimeType)
                     if (!withChooser) maybeAddAudioPlayerActivityExtras(this, path, mimeType)
                     if (!withChooser) maybeAddVideoPlayerActivityExtras(this, path, mimeType)

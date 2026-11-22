@@ -18,24 +18,21 @@ import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.doOnPreDraw
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import androidx.lifecycle.lifecycleScope
 import androidx.viewpager2.widget.ViewPager2
 import dev.chrisbanes.insetter.applySystemWindowInsetsToPadding
 import java8.nio.file.Path
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import kotlinx.parcelize.Parcelize
 import kotlinx.parcelize.WriteWith
 import me.zhanghai.android.files.BuildConfig
 import me.zhanghai.android.files.R
 import me.zhanghai.android.files.databinding.ImageViewerFragmentBinding
 import me.zhanghai.android.files.file.fileProviderUri
-import me.zhanghai.android.files.provider.common.delete
 import me.zhanghai.android.files.ui.DepthPageTransformer
-import me.zhanghai.android.files.trash.Trash
 import me.zhanghai.android.files.util.ParcelableArgs
 import me.zhanghai.android.files.util.ParcelableListParceler
 import me.zhanghai.android.files.util.ParcelableState
@@ -55,6 +52,7 @@ import me.zhanghai.android.systemuihelper.SystemUiHelper
 class ImageViewerFragment : Fragment(), ConfirmDeleteDialogFragment.Listener {
     private val args by args<Args>()
     private val argsPaths by lazy { args.intent.extraPathList }
+    private val pathsModel by viewModels<ImageViewerPathsViewModel>()
 
     private lateinit var paths: MutableList<Path>
 
@@ -70,7 +68,9 @@ class ImageViewerFragment : Fragment(), ConfirmDeleteDialogFragment.Listener {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        paths = (savedInstanceState?.getState<State>()?.paths ?: argsPaths).toMutableList()
+        // The model outlives a rotation. Its list wins over the state saved before the delete finished.
+        pathsModel.ensure(savedInstanceState?.getState<State>()?.paths ?: argsPaths)
+        paths = pathsModel.paths.value.orEmpty().toMutableList()
 
         setHasOptionsMenu(true)
     }
@@ -126,6 +126,15 @@ class ImageViewerFragment : Fragment(), ConfirmDeleteDialogFragment.Listener {
                     updateTitle()
                 }
             })
+        }
+        viewLifecycleOwner.lifecycleScope.launch {
+            pathsModel.paths.filterNotNull().collect { updated ->
+                if (updated == paths) return@collect
+                onPathsChanged(updated)
+            }
+        }
+        viewLifecycleOwner.lifecycleScope.launch {
+            pathsModel.deleteError.collect { message -> showToast(message) }
         }
     }
 
@@ -206,39 +215,28 @@ class ImageViewerFragment : Fragment(), ConfirmDeleteDialogFragment.Listener {
 
     override fun delete(path: Path) {
         // A network file deleted on the main thread throws NetworkOnMainThreadException, which is
-        // not an IOException, and the viewer died. The list moves only after the delete worked.
-        viewLifecycleOwner.lifecycleScope.launch {
-            try {
-                withContext(Dispatchers.IO) {
-                    if (Trash.isEnabled && Trash.canTrash(path)) {
-                        Trash.moveToTrash(path)
-                    } else {
-                        path.delete()
-                    }
-                }
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                e.printStackTrace()
-                showToast(e.toString())
-                return@launch
-            }
-            paths.removeAll(listOf(path))
-            if (paths.isEmpty()) {
-                finish()
-                return@launch
-            }
-            adapter.replace(paths)
-            // ViewPager only asynchronously sets current item to 0, which isn't a desirable behavior
-            // for us and will make updateTitle() crash for index out of bounds.
-            if (binding.viewPager.currentItem > paths.lastIndex) {
-                binding.viewPager.currentItem = paths.lastIndex
-            }
-            updateTitle()
-            // Work around blank screen due to ViewPager2.PageTransformer not being called (and thus the
-            // next item keeps its 0 alpha) when we have offscreenPageLimit = 1.
-            binding.viewPager.doOnPreDraw { binding.viewPager.requestTransform() }
+        // not an IOException, and the viewer died. The model deletes off the main thread and keeps
+        // the list across a rotation that would cancel this view.
+        pathsModel.delete(path)
+    }
+
+    private fun onPathsChanged(updated: List<Path>) {
+        paths = updated.toMutableList()
+        if (!::adapter.isInitialized || view == null) return
+        if (paths.isEmpty()) {
+            finish()
+            return
         }
+        adapter.replace(paths)
+        // ViewPager only asynchronously sets current item to 0, which isn't a desirable behavior
+        // for us and will make updateTitle() crash for index out of bounds.
+        if (binding.viewPager.currentItem > paths.lastIndex) {
+            binding.viewPager.currentItem = paths.lastIndex
+        }
+        updateTitle()
+        // Work around blank screen due to ViewPager2.PageTransformer not being called (and thus the
+        // next item keeps its 0 alpha) when we have offscreenPageLimit = 1.
+        binding.viewPager.doOnPreDraw { binding.viewPager.requestTransform() }
     }
 
     private fun updateTitle() {
