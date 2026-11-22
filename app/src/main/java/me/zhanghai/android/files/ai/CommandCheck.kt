@@ -198,41 +198,26 @@ object CommandCheck {
     }
 
     private val NEGATIONS = setOf(
-        "nicht", "nichts", "kein", "keine", "keinen", "keiner", "keinesfalls", "keineswegs",
+        "nicht", "nichts", "kein", "keine", "keinen", "keiner", "keines", "keinerlei",
+        "keinesfalls", "keineswegs",
         "nie", "niemals", "nimmer", "nirgends", "nein", "ohne", "außer", "ausser",
-        "not", "no", "don't", "dont", "never", "nowhere", "neither", "nor", "except", "without",
+        "not", "no", "don't", "dont", "never", "nowhere", "neither", "nor", "none", "nothing",
+        "except", "without",
         "auf keinen fall", "bloß nicht", "bloss nicht", "bitte nicht"
     )
-    // These narrow a delete; they do not cancel it ("alles außer den Fotos", "ohne Backup im Namen").
-    private val FILTER_NEGS = setOf("ohne", "außer", "ausser", "except", "without")
     private val ADDITIVE = setOf("nur", "only", "just")
-    private val POLITE = setOf("bitte", "danke", "please", "thanks", "thank")
-    private val DETERMINERS = setOf(
-        "der", "die", "das", "den", "dem", "des", "ein", "eine", "einen", "einem", "einer", "eines",
-        "the", "a", "an", "my", "your", "mein", "meine", "deine", "dein", "seine", "ihre"
-    )
     private val CLAUSE_BREAK = Regex("[.!?;,\\u2013\\u2014\\u2015\\u2026]+")
     private val TOKEN_BREAK = Regex("[^\\p{L}'/]+")
     private val APOSTROPHES = Regex("[\\u2018\\u2019\\u02BC\\u00B4\\uFF07]")
 
     /**
-     * A delete word counts only if the command is not cancelled. "bitte nicht" / "nein" after a comma
-     * still cancel; "nicht nur … auch …" and "lösche X, nicht Y" do not.
+     * A delete word counts only if the sentence has no negation. Parsing restrictions
+     * ("nicht die Originale") is too fine: any negation asks back. "nicht nur" is not a negation.
      */
     private fun saidDelete(words: String): Boolean {
-        val clauses = foldMarks(words).split(CLAUSE_BREAK).map { it.trim() }.filter { it.isNotEmpty() }
-        if (clauses.any { clause ->
-                val tokens = tokensOf(clause)
-                !hasStem(clause, tokens, DELETE_WORDS) && commandNegated(clause, tokens) &&
-                    !isRestrictionClause(tokens)
-            }
-        ) {
-            return false
-        }
-        return clauses.any { clause ->
-            val tokens = tokensOf(clause)
-            !commandNegated(clause, tokens) && hasStem(clause, tokens, DELETE_WORDS)
-        }
+        val folded = foldMarks(words)
+        val tokens = tokensOf(folded)
+        return !hasNegation(folded, tokens) && hasStem(folded, tokens, DELETE_WORDS)
     }
 
     /**
@@ -242,8 +227,7 @@ object CommandCheck {
     private fun said(words: String, stems: List<String>): Boolean =
         foldMarks(words).split(CLAUSE_BREAK).any { clause ->
             val tokens = tokensOf(clause)
-            if (negated(clause, tokens)) return@any false
-            hasStem(clause, tokens, stems)
+            !hasNegation(clause, tokens) && hasStem(clause, tokens, stems)
         }
 
     private fun hasStem(clause: String, tokens: List<String>, stems: List<String>): Boolean =
@@ -251,26 +235,10 @@ object CommandCheck {
             stems.any { stem -> token.startsWith(stem) || (' ' in stem && stem in clause) }
         }
 
-    private fun negated(clause: String, tokens: List<String>): Boolean {
+    private fun hasNegation(text: String, tokens: List<String>): Boolean {
         val t = skipAdditive(tokens)
-        return t.any { it in NEGATIONS } || NEGATIONS.any { ' ' in it && it in clause }
-    }
-
-    private fun commandNegated(clause: String, tokens: List<String>): Boolean {
-        val t = skipAdditive(tokens)
-        return t.any { it in NEGATIONS && it !in FILTER_NEGS } ||
-            NEGATIONS.any { ' ' in it && it in clause }
-    }
-
-    // "nicht die Bilder" / "die Kamera nicht" / "except photos" exclude a target; they do not cancel.
-    private fun isRestrictionClause(tokens: List<String>): Boolean {
-        val t = skipAdditive(tokens)
-        val i = t.indexOfFirst { it in FILTER_NEGS || it == "nicht" || it == "not" || it == "no" }
-        if (i < 0) return false
-        val after = t.drop(i + 1).filter { it !in POLITE && it !in NEGATIONS }
-        if (after.isNotEmpty()) return true
-        val neg = t[i]
-        return (neg == "nicht" || neg == "not") && t.take(i).any { it in DETERMINERS }
+        return t.any { it in NEGATIONS || it.startsWith("kein") } ||
+            NEGATIONS.any { ' ' in it && it in text }
     }
 
     private fun skipAdditive(tokens: List<String>): List<String> {

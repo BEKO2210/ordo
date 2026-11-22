@@ -425,9 +425,10 @@ Typos, slang and German or English all work.
 then checks the plan itself before showing it:
 
 - Deleting always means the trash, and only when the sentence clearly asks for it – a negation
-  (“don’t delete”, “nicht löschen”, “nie”, “keineswegs”, “bitte nicht” even after a comma) or a delete word
-  inside a file name does not count. “Nicht nur …, auch …” and “delete X, not Y” still count as a delete;
-  unclear sentences are asked back.
+  (“don’t delete”, “nicht löschen”, “nie”, “keineswegs”, “keines”, “keinerlei”, “bitte nicht” even after a comma,
+  “nothing”, “none”) or a delete word inside a file name does not count. “Nicht nur …, auch …” still counts as a
+  delete; any other sentence with a negation is asked back, including restrictions such as “not the originals”
+  or “keine Fotos”.
 - System folders, hidden folders, `Android/data` and the camera folder are off limits unless the user names the
   camera folder explicitly. Paths are compared after resolving `..` and links.
 - Unknown or ambiguous folders lead to a question, never to a guess.
