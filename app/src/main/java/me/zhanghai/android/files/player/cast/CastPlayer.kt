@@ -62,6 +62,7 @@ class CastPlayer(
     private var loadGeneration = 0
     private var awaitingRequestId = NO_REQUEST
     private var previousMediaSessionId: Int? = null
+    @Volatile private var released = false
 
     /** Takes over queue, position and modes from the local player; [current] has the tags it already read. */
     fun start(
@@ -107,6 +108,7 @@ class CastPlayer(
 
     // Called on the cast reader thread.
     fun onMediaStatus(newStatus: CastProtocol.MediaStatus) = handler.post {
+        if (released) return@post
         if (awaitingRequestId != NO_REQUEST) {
             // Until our LOAD is answered, statuses still belong to the track before (INTERRUPTED and the like).
             // A Chromecast with Google TV first answers LOAD with a bare IDLE, then BUFFERING (measured 17.11.2026).
@@ -161,6 +163,7 @@ class CastPlayer(
     }
 
     private fun load(newIndex: Int, positionMs: Long, autoplay: Boolean) {
+        if (released) return
         val entry = entries.getOrNull(newIndex) ?: return
         index = newIndex
         pendingPositionMs = positionMs
@@ -175,7 +178,7 @@ class CastPlayer(
         io.execute {
             val prepared = runCatching { prepareTrack(entry.item) }
             handler.post {
-                if (generation != loadGeneration) return@post
+                if (released || generation != loadGeneration) return@post
                 prepared.onSuccess {
                     entry.metadata = it.metadata
                     // A pause while the file was being prepared still counts.
@@ -352,6 +355,7 @@ class CastPlayer(
     }
 
     override fun handleRelease(): ListenableFuture<*> {
+        released = true
         loadGeneration++
         io.shutdownNow()
         handler.removeCallbacksAndMessages(null)

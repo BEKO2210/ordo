@@ -43,6 +43,7 @@ class SoundEffectController(
     private val dynamicsTarget = FloatArray(DYNAMICS_VALUES)
     private var bassApplied = 0
     private var bassTarget = 0
+    private var appliedClarityLevel = 0
     private val glideTick = Runnable { glide() }
     private val gate = EffectGate()
     /** Whether sound is being heard right now; set by the service from the player. */
@@ -162,6 +163,7 @@ class SoundEffectController(
                 )
             )
         }
+        appliedClarityLevel = currentSettings.clarityLevel
     }
 
     private fun applyEqualizer() {
@@ -205,6 +207,11 @@ class SoundEffectController(
             dynamicsTarget[AudioSettings.BAND_COUNT + channel] = inputGainDb + balanceAttenuation
         }
         dynamicsTarget[CLARITY_INDEX] = if (status.clarityAvailable && currentSettings.clarityEnabled) 1f else 0f
+        if (clarityLevelChanged(
+                dynamicsApplied[CLARITY_INDEX], appliedClarityLevel, currentSettings.clarityLevel
+            )) {
+            applyClarity(dynamicsProcessing as DynamicsProcessing, dynamicsApplied[CLARITY_INDEX])
+        }
         if (Build.VERSION.SDK_INT >= 28) applyLimiter()
         return true
     }
@@ -348,6 +355,7 @@ class SoundEffectController(
     fun release() {
         handler.removeCallbacks(glideTick)
         dynamicsApplied.fill(0f)
+        appliedClarityLevel = 0
         bassApplied = 0
         gate.reset()
         releaseEffect(dynamicsProcessing as? AudioEffect)
@@ -405,6 +413,10 @@ class SoundEffectController(
             val step = (abs(distance) * fraction).coerceIn(minStep, maxStep)
             return if (abs(distance) <= step) target else current + step * kotlin.math.sign(distance)
         }
+
+        /** A settled non-zero compressor must be written again when only its level changes. */
+        internal fun clarityLevelChanged(amount: Float, appliedLevel: Int, wantedLevel: Int): Boolean =
+            amount > 0f && appliedLevel != wantedLevel
 
         // Three bands: lows, mids (voices, most instruments), highs; the top cutoff closes the last band.
         private val CLARITY_CUTOFFS_HZ = floatArrayOf(250f, 4_000f, 22_050f)

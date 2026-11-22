@@ -167,6 +167,22 @@ class LyricsRepositoryTest {
         assertEquals("Getaktet", lyrics.lines[0].text)
     }
 
+    @Test
+    fun vaultUriIsNeverCopiedToAPlaintextTempFile() {
+        val file = File(folder.root, "secret.mp3").apply { writeBytes(ByteArray(16)) }
+        var opened = false
+        val vault = object : LyricsFile by TestFile(file, listable = false, local = false) {
+            override val key = "content://me.zhanghai.android.files.vault/secret.mp3"
+            override fun newInputStream(): InputStream = file.inputStream().also { opened = true }
+        }
+        val tmp = File(System.getProperty("java.io.tmpdir")!!)
+        fun temps() = tmp.list().orEmpty().count { it.startsWith("ordo-lyrics-") }
+        val before = temps()
+        assertNull(LyricsRepository.loadBlocking(vault))
+        assertEquals(before, temps())
+        assertEquals(false, opened)
+    }
+
     // Endless zeros: a file that keeps growing while it is read.
     private fun endless() = object : InputStream() {
         override fun read(): Int = 0

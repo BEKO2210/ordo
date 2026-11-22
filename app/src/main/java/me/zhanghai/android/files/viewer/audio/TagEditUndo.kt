@@ -55,11 +55,21 @@ object TagEditUndo {
             .setAction(R.string.music_tag_undo) {
                 undone = true
                 scope.launch {
-                    withContext(Dispatchers.IO) {
+                    val failed = withContext(Dispatchers.IO) {
                         files.zip(backups).forEach { (file, backup) ->
-                            runCatching { SongTagIo.restore(file, backup) }.onFailure { it.printStackTrace() }
-                            backup.delete()
+                            runCatching { SongTagIo.restore(file, backup) }
+                                .onSuccess { backup.delete() }
+                                .onFailure { it.printStackTrace() }
                         }
+                        backups.any { it.exists() }
+                    }
+                    if (failed) {
+                        Snackbar.make(
+                            anchor, context.getString(
+                                R.string.music_tag_failed, context.getString(R.string.music_tag_restore_error)
+                            ), Snackbar.LENGTH_LONG
+                        ).show()
+                        return@launch
                     }
                     MusicTagEditorActivity.scan(context, files)
                     Snackbar.make(anchor, R.string.music_tag_undone, Snackbar.LENGTH_SHORT).show()
