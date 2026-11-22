@@ -625,6 +625,7 @@
     <string name="text_editor_close_message">האם בוודאות ברצונך למחוק שינויים שלא נשמרו במסמך זה?</string>
 
     <string name="ftp_server_title">שרת FTP</string>
+    <string name="ftp_server_unencrypted_warning">ההעברה אינה מוצפנת. השתמשו בשרת רק ברשתות מהימנות וכבו אותו לאחר השימוש.</string>
     <string name="ftp_server_state_title">סטטוס</string>
     <string name="ftp_server_state_summary_starting">מתחיל…</string>
     <string name="ftp_server_state_summary_running">פועל</string>

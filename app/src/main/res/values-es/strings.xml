@@ -623,6 +623,7 @@
     <string name="text_editor_close_message">¿Seguro que quieres descartar los cambios sin guardar en el documento?</string>
 
     <string name="ftp_server_title">Servidor FTP</string>
+    <string name="ftp_server_unencrypted_warning">La transferencia no está cifrada. Usa el servidor solo en redes de confianza y apágalo después de usarlo.</string>
     <string name="ftp_server_state_title">Estado</string>
     <string name="ftp_server_state_summary_starting">Iniciando…</string>
     <string name="ftp_server_state_summary_running">Activo</string>

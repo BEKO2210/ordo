@@ -602,6 +602,7 @@
     <string name="text_editor_close_message">Sollen alle ungespeicherten Änderungen verworfen werden?</string>
 
     <string name="ftp_server_title">FTP-Server</string>
+    <string name="ftp_server_unencrypted_warning">Die Übertragung ist unverschlüsselt. Nur in vertrauenswürdigen Netzen nutzen und den Server nach Gebrauch ausschalten.</string>
     <string name="ftp_server_state_title">Status</string>
     <string name="ftp_server_state_summary_starting">Startet…</string>
     <string name="ftp_server_state_summary_running">Läuft</string>

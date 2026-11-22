@@ -625,6 +625,7 @@
     <string name="text_editor_close_message">Êtes-vous sûr de vouloir rejeter les modifications non enregistrées apportées à ce document ?</string>
 
     <string name="ftp_server_title">Serveur FTP</string>
+    <string name="ftp_server_unencrypted_warning">Le transfert n\'est pas chiffré. Utilisez le serveur uniquement sur des réseaux de confiance et éteignez-le après usage.</string>
     <string name="ftp_server_state_title">Status</string>
     <string name="ftp_server_state_summary_starting">Démarrage…</string>
     <string name="ftp_server_state_summary_running">Fonctionne</string>

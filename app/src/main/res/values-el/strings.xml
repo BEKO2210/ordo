@@ -593,6 +593,7 @@
     <string name="text_editor_close_message">Σίγουρα θέλετε να απορρίψετε τις μη αποθηκευμένες αλλαγές σε αυτό το έγγραφο;</string>
 
     <string name="ftp_server_title">Διακομιστής FTP</string>
+    <string name="ftp_server_unencrypted_warning">Η μεταφορά δεν είναι κρυπτογραφημένη. Χρησιμοποιήστε τον διακομιστή μόνο σε αξιόπιστα δίκτυα και απενεργοποιήστε τον μετά τη χρήση.</string>
     <string name="ftp_server_state_title">Κατάσταση</string>
     <string name="ftp_server_state_summary_starting">Εκκίνηση…</string>
     <string name="ftp_server_state_summary_running">Εκτελείται</string>

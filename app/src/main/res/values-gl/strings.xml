@@ -593,6 +593,7 @@
     <string name="text_editor_close_message">Seguro que queres descartar os trocos non gardados neste documento?</string>
 
     <string name="ftp_server_title">Servidor FTP</string>
+    <string name="ftp_server_unencrypted_warning">A transferencia non está cifrada. Usa o servidor só en redes de confianza e apágao despois de usalo.</string>
     <string name="ftp_server_state_title">Estado</string>
     <string name="ftp_server_state_summary_starting">Comezando…</string>
     <string name="ftp_server_state_summary_running">Correndo</string>

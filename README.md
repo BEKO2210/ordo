@@ -460,6 +460,7 @@ ready.
   the connection. CA certificates are checked with their host name.
 - The built-in FTP server starts with a username, a password and without write access. Its root is the Download
   folder. Anonymous login and writing stay off until you switch them on. If no password is set, one is generated.
+  Transfers are unencrypted; the server screen says to use it only in trusted networks and to turn it off after use.
 - Extracting archives never writes outside the chosen folder, also not through links inside the archive.
 - Other apps can only ask Ordo to open files on shared storage, and only for reading.
 - Test builds use the release configuration (R8, not debuggable, screenshots blocked in the vault).

@@ -593,6 +593,7 @@
     <string name="text_editor_close_message">Сигурни ли сте, че желаете да отхвърлите незапазените промени в документа?</string>
 
     <string name="ftp_server_title">Сървър за FTP</string>
+    <string name="ftp_server_unencrypted_warning">Предаването не е криптирано. Използвайте сървъра само в надеждни мрежи и го изключвайте след употреба.</string>
     <string name="ftp_server_state_title">Състояние</string>
     <string name="ftp_server_state_summary_starting">Стартиране…</string>
     <string name="ftp_server_state_summary_running">Работещ</string>

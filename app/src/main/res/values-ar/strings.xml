@@ -713,6 +713,7 @@
     <string name="text_editor_close_message">أمتأكد أنك تريد تجاهل التغييرات غير المحفوظة في هذا المستند؟</string>
 
     <string name="ftp_server_title">خادم FTP </string>
+    <string name="ftp_server_unencrypted_warning">النقل غير مشفّر. استخدم الخادم في الشبكات الموثوقة فقط وأوقف تشغيله بعد الاستخدام.</string>
     <string name="ftp_server_state_title">الحالة</string>
     <string name="ftp_server_state_summary_starting">يبدء…</string>
     <string name="ftp_server_state_summary_running">قيد التشغيل</string>
