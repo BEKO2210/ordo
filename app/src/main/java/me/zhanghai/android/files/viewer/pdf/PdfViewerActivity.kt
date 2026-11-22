@@ -28,9 +28,11 @@ import me.zhanghai.android.files.R
 import me.zhanghai.android.files.app.AppActivity
 import me.zhanghai.android.files.databinding.PdfViewerActivityBinding
 import me.zhanghai.android.files.util.extraPath
+import me.zhanghai.android.files.viewer.image.STATE_VAULT_STOPPED_AT
 import me.zhanghai.android.files.viewer.image.debugVaultTimeoutOverride
 import me.zhanghai.android.files.viewer.image.isVaultContentUri
 import me.zhanghai.android.files.viewer.image.shouldSecureViewer
+import me.zhanghai.android.files.viewer.image.vaultLeaveOnStop
 import me.zhanghai.android.files.viewer.image.vaultViewerTimedOut
 import me.zhanghai.android.files.viewer.image.vaultViewerTimeoutMillis
 
@@ -44,8 +46,13 @@ class PdfViewerActivity : AppActivity() {
     /** Elapsed realtime when a vault PDF left the screen, or 0 while it is visible. */
     private var vaultStoppedAt = 0L
 
+    /** True after the window was focused. A background recreate never sets this, so its onStop keeps [vaultStoppedAt]. */
+    private var vaultInFront = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        vaultStoppedAt = savedInstanceState?.getLong(STATE_VAULT_STOPPED_AT) ?: 0L
 
         // Same as VaultActivity: screenshots stay empty outside debug builds. Set before the open,
         // so a vault PDF that fails to render is still covered.
@@ -90,6 +97,8 @@ class PdfViewerActivity : AppActivity() {
     override fun onStart() {
         super.onStart()
 
+        // Do not clear the leave time here. A recreate in the background also runs onStart, and
+        // clearing it would let the following onStop start the two minutes over.
         if (!isVaultDocument()) {
             vaultStoppedAt = 0L
             return
@@ -98,17 +107,46 @@ class PdfViewerActivity : AppActivity() {
         if (vaultViewerTimedOut(vaultStoppedAt, SystemClock.elapsedRealtime(), timeout)) {
             vaultStoppedAt = 0L
             finish()
-            return
         }
-        vaultStoppedAt = 0L
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        if (hasWindowFocus()) markVaultInFront()
+    }
+
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+
+        if (hasFocus) markVaultInFront()
     }
 
     override fun onStop() {
         super.onStop()
 
         // A rotation must not count as leaving. A debug timeout of 0 would otherwise close on rotate.
-        if (isFinishing || isChangingConfigurations) return
-        if (isVaultDocument()) vaultStoppedAt = SystemClock.elapsedRealtime()
+        vaultStoppedAt = vaultLeaveOnStop(
+            isVault = isVaultDocument(),
+            finishing = isFinishing,
+            changingConfigurations = isChangingConfigurations,
+            inFront = vaultInFront,
+            stoppedAt = vaultStoppedAt,
+            now = SystemClock.elapsedRealtime()
+        )
+        vaultInFront = false
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+
+        outState.putLong(STATE_VAULT_STOPPED_AT, vaultStoppedAt)
+    }
+
+    private fun markVaultInFront() {
+        if (isFinishing) return
+        vaultInFront = true
+        vaultStoppedAt = 0L
     }
 
     override fun onDestroy() {

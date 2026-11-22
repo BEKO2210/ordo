@@ -30,6 +30,68 @@ class ImageViewerGuardsTest {
     }
 
     @Test
+    fun backgroundConfigChangeKeepsTheVaultLeaveTime() {
+        val left = 10_000L
+        // Recreated while stopped: this instance never had the window, then onStop runs again.
+        assertEquals(
+            left,
+            vaultLeaveOnStop(
+                isVault = true,
+                finishing = false,
+                changingConfigurations = false,
+                inFront = false,
+                stoppedAt = left,
+                now = 40_000L
+            )
+        )
+        assertTrue(vaultViewerTimedOut(left, left + VAULT_VIEWER_TIMEOUT_MILLIS + 1, VAULT_VIEWER_TIMEOUT_MILLIS))
+        assertEquals(
+            0L,
+            vaultLeaveOnStop(
+                isVault = true,
+                finishing = false,
+                changingConfigurations = true,
+                inFront = true,
+                stoppedAt = 0L,
+                now = 5_000L
+            )
+        )
+        assertEquals(
+            5_000L,
+            vaultLeaveOnStop(
+                isVault = true,
+                finishing = false,
+                changingConfigurations = false,
+                inFront = true,
+                stoppedAt = 0L,
+                now = 5_000L
+            )
+        )
+        assertEquals(
+            0L,
+            vaultLeaveOnStop(
+                isVault = false,
+                finishing = false,
+                changingConfigurations = false,
+                inFront = true,
+                stoppedAt = 0L,
+                now = 5_000L
+            )
+        )
+        assertEquals(
+            left,
+            vaultLeaveOnStop(
+                isVault = true,
+                finishing = true,
+                changingConfigurations = false,
+                inFront = false,
+                stoppedAt = left,
+                now = 40_000L
+            )
+        )
+    }
+
+    @Test
     fun timeoutMatchesTheVaultScreenUnlessDebugOverridesIt() {
         assertEquals(2 * 60 * 1000L, VAULT_VIEWER_TIMEOUT_MILLIS)
         assertFalse(vaultViewerTimedOut(stoppedAtElapsed = 0L, nowElapsed = 5_000L, timeoutMillis = 0L))

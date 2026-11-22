@@ -15,6 +15,7 @@ import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewTreeObserver
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.doOnPreDraw
 import androidx.fragment.app.Fragment
@@ -59,6 +60,13 @@ class ImageViewerFragment : Fragment(), ConfirmDeleteDialogFragment.Listener {
     /** Elapsed realtime when a vault image left the screen, or 0 while it is visible. */
     private var vaultStoppedAt = 0L
 
+    /** True after the window was focused. A background recreate never sets this, so its onStop keeps [vaultStoppedAt]. */
+    private var vaultInFront = false
+
+    private val vaultFocusListener = ViewTreeObserver.OnWindowFocusChangeListener { hasFocus ->
+        if (hasFocus) markVaultInFront()
+    }
+
     private lateinit var binding: ImageViewerFragmentBinding
 
     private lateinit var systemUiHelper: SystemUiHelper
@@ -68,6 +76,7 @@ class ImageViewerFragment : Fragment(), ConfirmDeleteDialogFragment.Listener {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        vaultStoppedAt = savedInstanceState?.getLong(STATE_VAULT_STOPPED_AT) ?: 0L
         // The model outlives a rotation. Its list wins over the state saved before the delete finished.
         pathsModel.ensure(savedInstanceState?.getState<State>()?.paths ?: argsPaths)
         paths = pathsModel.paths.value.orEmpty().toMutableList()
@@ -141,6 +150,8 @@ class ImageViewerFragment : Fragment(), ConfirmDeleteDialogFragment.Listener {
     override fun onStart() {
         super.onStart()
 
+        // Do not clear the leave time here. A recreate in the background also runs onStart, and
+        // clearing it would let the following onStop start the two minutes over.
         if (!::paths.isInitialized || paths.none { VaultProvider.isVault(it) }) {
             vaultStoppedAt = 0L
             return
@@ -149,9 +160,25 @@ class ImageViewerFragment : Fragment(), ConfirmDeleteDialogFragment.Listener {
         if (vaultViewerTimedOut(vaultStoppedAt, SystemClock.elapsedRealtime(), timeout)) {
             vaultStoppedAt = 0L
             finish()
-            return
         }
-        vaultStoppedAt = 0L
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        if (!::binding.isInitialized) return
+        val observer = binding.root.viewTreeObserver
+        observer.removeOnWindowFocusChangeListener(vaultFocusListener)
+        observer.addOnWindowFocusChangeListener(vaultFocusListener)
+        if (binding.root.hasWindowFocus()) markVaultInFront()
+    }
+
+    override fun onPause() {
+        if (::binding.isInitialized) {
+            val observer = binding.root.viewTreeObserver
+            if (observer.isAlive) observer.removeOnWindowFocusChangeListener(vaultFocusListener)
+        }
+        super.onPause()
     }
 
     override fun onStop() {
@@ -159,10 +186,21 @@ class ImageViewerFragment : Fragment(), ConfirmDeleteDialogFragment.Listener {
 
         val host = activity ?: return
         // A rotation must not count as leaving. A debug timeout of 0 would otherwise close on rotate.
-        if (host.isFinishing || host.isChangingConfigurations) return
-        if (::paths.isInitialized && paths.any { VaultProvider.isVault(it) }) {
-            vaultStoppedAt = SystemClock.elapsedRealtime()
-        }
+        vaultStoppedAt = vaultLeaveOnStop(
+            isVault = ::paths.isInitialized && paths.any { VaultProvider.isVault(it) },
+            finishing = host.isFinishing,
+            changingConfigurations = host.isChangingConfigurations,
+            inFront = vaultInFront,
+            stoppedAt = vaultStoppedAt,
+            now = SystemClock.elapsedRealtime()
+        )
+        vaultInFront = false
+    }
+
+    private fun markVaultInFront() {
+        if (activity?.isFinishing == true) return
+        vaultInFront = true
+        vaultStoppedAt = 0L
     }
 
     override fun onViewStateRestored(savedInstanceState: Bundle?) {
@@ -180,6 +218,7 @@ class ImageViewerFragment : Fragment(), ConfirmDeleteDialogFragment.Listener {
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
 
+        outState.putLong(STATE_VAULT_STOPPED_AT, vaultStoppedAt)
         // The intent already carries the opened list. A second copy of a long list overflows the
         // binder transaction. Keep a copy only after a delete changed it.
         if (::paths.isInitialized && shouldKeepImageViewerState(argsPaths, paths)) {

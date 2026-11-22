@@ -153,6 +153,27 @@ internal fun isVaultContentUri(uri: String?, packageName: String): Boolean {
 internal fun vaultViewerTimedOut(stoppedAtElapsed: Long, nowElapsed: Long, timeoutMillis: Long): Boolean =
     stoppedAtElapsed != 0L && nowElapsed - stoppedAtElapsed > timeoutMillis
 
+/** Saved with the viewer so a config change in the background does not drop the leave time. */
+internal const val STATE_VAULT_STOPPED_AT = "vault_stopped_at"
+
+/**
+ * Elapsed realtime to keep when the viewer stops. 0 means it is in front.
+ * A rotation does not start the clock. A later stop that never came to the front keeps the
+ * original leave time, so recreating the screen in the background does not start the two minutes over.
+ */
+internal fun vaultLeaveOnStop(
+    isVault: Boolean,
+    finishing: Boolean,
+    changingConfigurations: Boolean,
+    inFront: Boolean,
+    stoppedAt: Long,
+    now: Long
+): Long {
+    if (!isVault || finishing || changingConfigurations) return stoppedAt
+    if (!inFront && stoppedAt != 0L) return stoppedAt
+    return now
+}
+
 internal fun vaultViewerTimeoutMillis(debuggable: Boolean, overrideMs: Long?): Long =
     if (debuggable && overrideMs != null && overrideMs >= 0) overrideMs else VAULT_VIEWER_TIMEOUT_MILLIS
 
