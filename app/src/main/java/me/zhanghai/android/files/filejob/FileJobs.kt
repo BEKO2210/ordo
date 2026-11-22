@@ -10,6 +10,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
+import android.provider.OpenableColumns
 import android.provider.DocumentsContract
 import android.system.ErrnoException
 import android.system.Os
@@ -302,8 +303,13 @@ private fun FileJob.scan(sources: List<Path?>, @PluralsRes notificationTitleRes:
 
             @Throws(IOException::class)
             override fun visitFileFailed(file: Path, exception: IOException): FileVisitResult {
-                // TODO: Prompt retry, skip, skip-all or abort.
-                return super.visitFileFailed(file, exception)
+                exception.printStackTrace()
+                if (exception is InterruptedIOException) {
+                    throw exception
+                }
+                scanInfo.incrementFileCount()
+                throwIfInterrupted()
+                return FileVisitResult.CONTINUE
             }
         })
     }
@@ -626,6 +632,73 @@ private fun FileJob.showConflictDialog(
         throw InterruptedIOException().apply { initCause(e) }
     }
 
+/**
+ * A file or folder that cannot be read while walking a tree: asks to retry, skip or cancel instead
+ * of ending the whole job. [type] is null for deleting.
+ */
+@Throws(IOException::class)
+private fun FileJob.handleVisitFailed(
+    file: Path,
+    exception: IOException,
+    visitor: FileVisitor<Path>,
+    transferInfo: TransferInfo,
+    actionAllInfo: ActionAllInfo,
+    type: CopyMoveType?
+): FileVisitResult {
+    if (exception is InterruptedIOException) {
+        throw exception
+    }
+    exception.printStackTrace()
+    val skipAll = if (type == null) actionAllInfo.skipDeleteError else actionAllInfo.skipCopyMoveError
+    if (skipAll) {
+        transferInfo.skipFileIgnoringSize()
+        return FileVisitResult.CONTINUE
+    }
+    val title = if (type == null) {
+        getString(R.string.file_job_delete_error_title)
+    } else {
+        getString(
+            type.getResourceId(
+                R.string.file_job_copy_error_title_format,
+                R.string.file_job_extract_error_title_format,
+                R.string.file_job_move_error_title_format
+            ), getFileName(file)
+        )
+    }
+    val result = showErrorDialog(
+        title,
+        getString(R.string.file_job_read_error_message_format, getFileName(file), exception.toString()),
+        null,
+        true,
+        getString(R.string.retry),
+        getString(R.string.skip),
+        getString(android.R.string.cancel)
+    )
+    return when (result.action) {
+        FileJobErrorAction.POSITIVE -> {
+            // Walking the entry again either succeeds or lands here again.
+            Files.walkFileTree(file, visitor)
+            FileVisitResult.CONTINUE
+        }
+        FileJobErrorAction.NEGATIVE -> {
+            if (result.isAll) {
+                if (type == null) {
+                    actionAllInfo.skipDeleteError = true
+                } else {
+                    actionAllInfo.skipCopyMoveError = true
+                }
+            }
+            transferInfo.skipFileIgnoringSize()
+            FileVisitResult.CONTINUE
+        }
+        FileJobErrorAction.CANCELED -> {
+            transferInfo.skipFileIgnoringSize()
+            FileVisitResult.CONTINUE
+        }
+        FileJobErrorAction.NEUTRAL -> throw InterruptedIOException()
+    }
+}
+
 enum class CopyMoveType {
     COPY,
     EXTRACT,
@@ -852,10 +925,14 @@ class CopyFileJob(private val sources: List<Path>, private val targetDirectory: 
             }
 
             @Throws(IOException::class)
-            override fun visitFileFailed(file: Path, exception: IOException): FileVisitResult {
-                // TODO: Prompt retry, skip, skip-all or abort.
-                return super.visitFileFailed(file, exception)
-            }
+            override fun visitFileFailed(file: Path, exception: IOException): FileVisitResult =
+                handleVisitFailed(
+                    file, exception, this, transferInfo, actionAllInfo, if (isExtract) {
+                        CopyMoveType.EXTRACT
+                    } else {
+                        CopyMoveType.COPY
+                    }
+                )
         })
     }
 
@@ -1114,10 +1191,10 @@ class DeleteFileJob(
             }
 
             @Throws(IOException::class)
-            override fun visitFileFailed(file: Path, exception: IOException): FileVisitResult {
-                // TODO: Prompt retry, skip, skip-all or abort.
-                return super.visitFileFailed(file, exception)
-            }
+            override fun visitFileFailed(file: Path, exception: IOException): FileVisitResult =
+                handleVisitFailed(
+                    file, exception, this, transferInfo, actionAllInfo, null
+                )
 
             @Throws(IOException::class)
             override fun postVisitDirectory(
@@ -1283,10 +1360,10 @@ class MoveFileJob(private val sources: List<Path>, private val targetDirectory: 
             }
 
             @Throws(IOException::class)
-            override fun visitFileFailed(file: Path, exception: IOException): FileVisitResult {
-                // TODO: Prompt retry, skip, skip-all or abort.
-                return super.visitFileFailed(file, exception)
-            }
+            override fun visitFileFailed(file: Path, exception: IOException): FileVisitResult =
+                handleVisitFailed(
+                    file, exception, this, transferInfo, actionAllInfo, CopyMoveType.MOVE
+                )
 
             @Throws(IOException::class)
             override fun postVisitDirectory(
@@ -1450,10 +1527,6 @@ private fun FileJob.copyOrMove(
             val targetFile = target.loadFileItem()
             val sourceIsDirectory = sourceFile.attributesNoFollowLinks.isDirectory
             val targetIsDirectory = targetFile.attributesNoFollowLinks.isDirectory
-            if (!sourceIsDirectory && targetIsDirectory) {
-                // TODO: Don't allow replace directory with file.
-                throw e
-            }
             val isMerge = sourceIsDirectory && targetIsDirectory
             if (isMerge && actionAllInfo.merge) {
                 transferInfo.addTransferredFile(target)
@@ -1650,11 +1723,19 @@ class OpenFileJob(
     }
 }
 
+// Private cache: files in the external cache are readable by other apps and outlive the job.
 private val FileJob.cacheDirectory: File
-    get() =
-        service.externalCacheDir?.takeIf {
-            Environment.getExternalStorageState(it) == Environment.MEDIA_MOUNTED
-        } ?: service.cacheDir
+    get() = service.cacheDir
+
+private const val OPEN_CACHE_MAX_AGE_MILLIS = 60 * 60 * 1000L
+
+internal fun deleteStaleCacheEntries(directory: File, now: Long, maxAgeMillis: Long) {
+    directory.listFiles()?.forEach {
+        if (now - it.lastModified() > maxAgeMillis) {
+            it.deleteRecursively()
+        }
+    }
+}
 
 @Throws(IOException::class)
 private fun FileJob.open(
@@ -1671,7 +1752,9 @@ private fun FileJob.open(
             R.plurals.file_job_copy_scan_notification_title_format
         }
     )
-    val cacheDirectory = Paths.get(cacheDirectory.path, "open_cache")
+    val openCache = File(cacheDirectory, "open_cache")
+    deleteStaleCacheEntries(openCache, System.currentTimeMillis(), OPEN_CACHE_MAX_AGE_MILLIS)
+    val cacheDirectory = Paths.get(openCache.path)
     cacheDirectory.createDirectories()
     val targetFileName = getTargetFileName(file)
     val targetFile = cacheDirectory.resolveForeign(targetFileName)
@@ -2409,8 +2492,31 @@ class WriteFileJob(
 ) : FileJob() {
     @Throws(IOException::class)
     override fun run() {
-        val successful = write(file, content)
-        listener?.let { mainExecutor.execute { it(successful) } }
+        var successful = false
+        try {
+            successful = write(file, content)
+        } finally {
+            listener?.let { mainExecutor.execute { it(successful) } }
+        }
+    }
+}
+
+/**
+ * Runs [writeTemp], then [commit] to move the finished temporary file over the original, so a
+ * failed write leaves the original as it was. [cleanup] removes the temporary file on every failure.
+ */
+@Throws(IOException::class)
+internal fun writeReplacing(writeTemp: () -> Unit, commit: () -> Unit, cleanup: () -> Unit) {
+    try {
+        writeTemp()
+        commit()
+    } catch (e: Throwable) {
+        try {
+            cleanup()
+        } catch (suppressed: Exception) {
+            e.addSuppressed(suppressed)
+        }
+        throw e
     }
 }
 
@@ -2420,17 +2526,39 @@ private fun FileJob.write(file: Path, content: ByteArray): Boolean {
         incrementFileCount()
         addToSize(content.size.toLong())
     }
+    // Other file systems cannot move atomically, so they are written in place as before.
+    val temp = if (file.isLinuxPath) {
+        file.resolveSibling(".${file.fileName}.ordo-tmp")
+    } else {
+        null
+    }
     var retry: Boolean
     do {
         retry = false
         val transferInfo = TransferInfo(scanInfo, file)
         try {
-            file.newOutputStream().use { outputStream ->
-                ByteArrayInputStream(content).copyTo(outputStream, PROGRESS_INTERVAL_MILLIS) {
-                    transferInfo.addToTransferredSize(it)
+            val writeTo = { path: Path ->
+                path.newOutputStream().use { outputStream ->
+                    ByteArrayInputStream(content).copyTo(outputStream, PROGRESS_INTERVAL_MILLIS) {
+                        transferInfo.addToTransferredSize(it)
+                        postWriteNotification(transferInfo)
+                    }
                     postWriteNotification(transferInfo)
                 }
-                postWriteNotification(transferInfo)
+            }
+            if (temp != null) {
+                writeReplacing(
+                    { writeTo(temp) },
+                    {
+                        temp.moveTo(
+                            file, StandardCopyOption.ATOMIC_MOVE,
+                            StandardCopyOption.REPLACE_EXISTING
+                        )
+                    },
+                    { temp.deleteIfExists() }
+                )
+            } else {
+                writeTo(file)
             }
         } catch (e: InterruptedIOException) {
             throw e
@@ -2602,9 +2730,12 @@ class RestoreVaultJob(private val entries: List<VaultEntry>) : FileJob() {
             try {
                 val target = Paths.get(Trash.restoreTarget(entry.originalPath) { File(it).exists() })
                 target.parent?.createDirectories()
+                // A kill during the copy must not leave a half file under the real name.
+                val part = target.resolveSibling(".${target.fileName}.ordo-part")
                 Vault.store.open(entry).use { input ->
-                    val channel = target.newByteChannel(
-                        StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE
+                    val channel = part.newByteChannel(
+                        StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING,
+                        StandardOpenOption.WRITE
                     )
                     try {
                         channel.use {
@@ -2612,8 +2743,9 @@ class RestoreVaultJob(private val entries: List<VaultEntry>) : FileJob() {
                             // The vault copy is deleted next, so the restored file must be on disk.
                             (it as? FileChannel)?.force(true)
                         }
+                        part.moveTo(target)
                     } catch (e: IOException) {
-                        target.deleteIfExists()
+                        part.deleteIfExists()
                         throw e
                     }
                 }
@@ -3154,6 +3286,21 @@ class BackupJob(
             } catch (e: Exception) {
                 null
             }
+            val existingDataSize = existingPfd?.let {
+                try {
+                    Os.fstat(it.fileDescriptor).st_size
+                } catch (e: ErrnoException) {
+                    UNKNOWN_SIZE
+                }
+            } ?: documentSize()
+            // An unknown size must not count as empty: the old backup would be cut.
+            if (existingDataSize != 0L) {
+                existingPfd?.close()
+                BackupStatusLiveData.postValue(
+                    BackupStatus.Failed(null, false, getString(R.string.backup_failed_name_taken))
+                )
+                return
+            }
             val mode = if (existingPfd != null) "rw" else "wt"
             val pfd = existingPfd ?: service.contentResolver.openFileDescriptor(target, "wt")
                 ?: throw IOException("Cannot open $target")
@@ -3346,6 +3493,17 @@ class BackupJob(
         )
     }
 
+    private fun documentSize(): Long =
+        try {
+            service.contentResolver.query(
+                target, arrayOf(OpenableColumns.SIZE), null, null, null
+            )?.use {
+                if (it.moveToFirst() && !it.isNull(0)) it.getLong(0) else UNKNOWN_SIZE
+            } ?: UNKNOWN_SIZE
+        } catch (e: Exception) {
+            UNKNOWN_SIZE
+        }
+
     // A half-written backup looks like a real one, so it must not stay on the drive. A file the
     // picker handed out that still holds data, such as an older backup, is not ours to delete.
     private fun deleteTarget() {
@@ -3370,5 +3528,6 @@ class BackupJob(
     companion object {
         // FAT32 drives cannot hold a file of 4 GB or more.
         private const val FAT32_FILE_SIZE_HINT = 3_900_000_000L
+        private const val UNKNOWN_SIZE = -1L
     }
 }

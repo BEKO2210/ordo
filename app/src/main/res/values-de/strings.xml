@@ -200,6 +200,7 @@
     <string name="file_job_extract_error_message_format">Es ist ein Fehler beim Extrahieren der Datei nach \"%1$s\" aufgetreten.\n%2$s</string>
     <string name="file_job_move_error_title_format">Fehler beim Verschieben von \"%1$s\"</string>
     <string name="file_job_move_error_message_format">Es ist ein Fehler beim Verschieben der Datei nach \"%1$s\" aufgetreten.\n%2$s</string>
+    <string name="file_job_read_error_message_format">„%1$s“ kann nicht gelesen werden.\n%2$s</string>
     <string name="file_job_delete_error_title">Fehler beim Löschen</string>
     <string name="file_job_delete_error_message_format">Es ist ein Fehler beim Löschen von \"%1$s\" aufgetreten.\n%2$s</string>
     <string name="file_job_rename_error_title_format">Fehler beim Umbenennen von \"%1$s\"</string>
@@ -792,6 +793,7 @@
     <string name="backup_failed_title">Sicherung nicht abgeschlossen</string>
     <string name="backup_failed_empty">In den gewählten Ordnern liegen keine Dateien.</string>
     <string name="backup_failed_large">Die Sicherung ist größer als 4 GB. Viele USB-Sticks können so große Dateien nicht speichern. Wähle weniger Ordner oder einen anderen Ort.</string>
+    <string name="backup_failed_name_taken">Unter diesem Namen liegt schon eine Sicherung oder eine andere Datei. Bitte einen neuen Dateinamen wählen.</string>
     <string name="backup_failed_message">Prüfe, ob der USB-Stick noch angeschlossen ist und genug Platz hat. Versuche es dann noch einmal.</string>
     <string name="backup_failed_space_format">Der Platz reicht nicht. Die Sicherung braucht %1$s, frei sind nur %2$s. Wähle weniger Ordner oder einen anderen Ort.</string>
     <string name="backup_failed_read_format">„%1$s“ ließ sich nicht vollständig lesen, darum wurde die Sicherung abgebrochen. Prüfe die Datei oder lass ihren Ordner weg und versuche es noch einmal.</string>

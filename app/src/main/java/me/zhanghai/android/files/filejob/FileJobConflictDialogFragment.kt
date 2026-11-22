@@ -43,6 +43,7 @@ import me.zhanghai.android.files.util.ParcelableArgs
 import me.zhanghai.android.files.util.ParcelableState
 import me.zhanghai.android.files.util.RemoteCallback
 import me.zhanghai.android.files.util.args
+import me.zhanghai.android.files.util.asFileNameOrNull
 import me.zhanghai.android.files.util.finish
 import me.zhanghai.android.files.util.getArgs
 import me.zhanghai.android.files.util.getState
@@ -245,7 +246,7 @@ class FileJobConflictDialogFragment : AppCompatDialogFragment() {
             return false
         }
         val fileName = args.targetFile.path.fileName.toString()
-        return name != fileName
+        return name != fileName && name.asFileNameOrNull() != null
     }
 
     override fun onStart() {

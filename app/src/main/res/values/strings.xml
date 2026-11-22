@@ -201,6 +201,7 @@
     <string name="file_job_extract_error_message_format">There was an error extracting the file into “%1$s”.\n%2$s</string>
     <string name="file_job_move_error_title_format">Error while moving “%1$s”</string>
     <string name="file_job_move_error_message_format">There was an error moving the file into “%1$s”.\n%2$s</string>
+    <string name="file_job_read_error_message_format">“%1$s” can’t be read.\n%2$s</string>
     <string name="file_job_delete_error_title">Error while deleting</string>
     <string name="file_job_delete_error_message_format">There was an error deleting “%1$s”.\n%2$s</string>
     <string name="file_job_rename_error_title_format">Error while renaming “%1$s”</string>
@@ -925,6 +926,7 @@
     <string name="backup_failed_title">Backup not finished</string>
     <string name="backup_failed_empty">There are no files in the chosen folders.</string>
     <string name="backup_failed_large">The backup is larger than 4 GB. Many USB drives can’t store files that large. Choose fewer folders or another place.</string>
+    <string name="backup_failed_name_taken">There is already a backup or another file with this name. Please choose a new file name.</string>
     <string name="backup_failed_message">Check that the USB drive is still plugged in and has enough space. Then try again.</string>
     <string name="backup_failed_space_format">There isn’t enough space. The backup needs %1$s, but only %2$s is free. Choose fewer folders or another place.</string>
     <string name="backup_failed_read_format">Couldn’t read “%1$s” completely, so the backup was stopped. Check the file or leave its folder out, then try again.</string>
