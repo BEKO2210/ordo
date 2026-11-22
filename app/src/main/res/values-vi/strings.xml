@@ -473,6 +473,7 @@
     <string name="text_editor_close_message">Bạn có chắc chắn muốn huỷ bỏ những thay đổi chưa lưu đối với tài liệu này?</string>
 
     <string name="ftp_server_title">Máy chủ FTP</string>
+    <string name="ftp_server_unencrypted_warning">Dữ liệu truyền không được mã hóa. Chỉ dùng máy chủ trong mạng đáng tin cậy và tắt sau khi dùng.</string>
     <string name="ftp_server_state_title">Trạng thái</string>
     <string name="ftp_server_state_summary_starting">Đang khởi động…</string>
     <string name="ftp_server_state_summary_running">Đang chạy</string>

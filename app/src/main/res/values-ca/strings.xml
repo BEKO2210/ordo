@@ -534,6 +534,7 @@
     <string name="text_editor_close_message">Esteu segur que voleu descartar els canvis no desats en aquest document?</string>
 
     <string name="ftp_server_title">Servidor FTP</string>
+    <string name="ftp_server_unencrypted_warning">La transferència no està xifrada. Useu el servidor només en xarxes de confiança i apagueu-lo després d\'usar-lo.</string>
     <string name="ftp_server_state_title">Estat</string>
     <string name="ftp_server_state_summary_starting">S\'està iniciant…</string>
     <string name="ftp_server_state_summary_running">S\'està executant</string>

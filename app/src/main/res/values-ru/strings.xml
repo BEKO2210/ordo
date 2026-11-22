@@ -655,6 +655,7 @@
     <string name="text_editor_close_message">Вы уверены что хотите отказаться от несохраненных изменений в документе?</string>
 
     <string name="ftp_server_title">FTP сервер</string>
+    <string name="ftp_server_unencrypted_warning">Передача не шифруется. Используйте сервер только в доверенных сетях и выключайте его после использования.</string>
     <string name="ftp_server_state_title">Статус</string>
     <string name="ftp_server_state_summary_starting">Запуск…</string>
     <string name="ftp_server_state_summary_running">Запущен</string>

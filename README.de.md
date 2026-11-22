@@ -461,7 +461,8 @@ jederzeit wieder entfernen; unter Einstellungen › KI-Assistent siehst du, ob e
   die Verbindung ab. CA-Zertifikate werden samt Hostname geprüft.
 - Der eingebaute FTP-Server startet mit Benutzername, Passwort und ohne Schreibrecht. Die Wurzel ist der
   Download-Ordner. Anonymer Zugang und Schreiben bleiben aus, bis du sie einschaltest. Fehlt ein Passwort, wird
-  eines erzeugt.
+  eines erzeugt. Die Übertragung ist unverschlüsselt; der Bildschirm weist darauf hin, den Server nur in
+  vertrauenswürdigen Netzen zu nutzen und nach Gebrauch auszuschalten.
 - Beim Entpacken landet nichts außerhalb des gewählten Ordners, auch nicht über Links im Archiv.
 - Andere Apps können Ordo nur Dateien im geteilten Speicher öffnen lassen, und nur zum Lesen.
 - Testversionen nutzen die Release-Einstellungen (R8, nicht debugbar, Screenshots im Tresor gesperrt).

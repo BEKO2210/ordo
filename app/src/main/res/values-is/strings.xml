@@ -595,6 +595,7 @@
     <string name="text_editor_close_message">Ertu viss um að þú viljir henda óvistuðum breytingum á þessu skjali?</string>
 
     <string name="ftp_server_title">FTP-netþjónn</string>
+    <string name="ftp_server_unencrypted_warning">Flutningurinn er ekki dulkóðaður. Notaðu þjóninn aðeins á traustum netum og slökktu á honum eftir notkun.</string>
     <string name="ftp_server_state_title">Staða</string>
     <string name="ftp_server_state_summary_starting">Ræsing…</string>
     <string name="ftp_server_state_summary_running">Keyrandi</string>

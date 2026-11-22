@@ -623,6 +623,7 @@
     <string name="text_editor_close_message">Sei sicuro di volere scartare le modifiche a questo documento non salvate?</string>
 
     <string name="ftp_server_title">Server FTP</string>
+    <string name="ftp_server_unencrypted_warning">Il trasferimento non è crittografato. Usa il server solo su reti attendibili e spegnilo dopo l\'uso.</string>
     <string name="ftp_server_state_title">Stato</string>
     <string name="ftp_server_state_summary_starting">Avvio…</string>
     <string name="ftp_server_state_summary_running">In esecuzione</string>

@@ -314,6 +314,7 @@
     <string name="text_editor_close_message">Ziur dokumentu honi egindako gorde gabeko aldaketak baztertu nahi dituzula?</string>
 
     <string name="ftp_server_title">FTP zerbitzaria</string>
+    <string name="ftp_server_unencrypted_warning">Transferentzia ez dago enkriptatuta. Erabili zerbitzaria sare fidagarrietan soilik eta itzali erabili ondoren.</string>
     <string name="ftp_server_state_title">Egoera</string>
     <string name="ftp_server_state_summary_starting">Hasten…</string>
     <string name="ftp_server_state_summary_running">Abian</string>

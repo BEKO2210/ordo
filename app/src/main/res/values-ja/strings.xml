@@ -563,6 +563,7 @@
     <string name="text_editor_close_message">本当にこのドキュメントの保存していない変更は破棄しますか？</string>
 
     <string name="ftp_server_title">FTP サーバー</string>
+    <string name="ftp_server_unencrypted_warning">転送は暗号化されません。信頼できるネットワークでのみ使用し、使用後はサーバーをオフにしてください。</string>
     <string name="ftp_server_state_title">状態</string>
     <string name="ftp_server_state_summary_starting">開始中…</string>
     <string name="ftp_server_state_summary_running">実行中</string>

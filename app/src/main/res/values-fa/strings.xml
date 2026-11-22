@@ -494,6 +494,7 @@
     <string name="text_editor_close_message">آیا مطمئن هستید که می‌خواهید تغییرات ذخیره نشده در این سند را دور بریزید؟</string>
 
     <string name="ftp_server_title">کارساز اف‌تی‌پی</string>
+    <string name="ftp_server_unencrypted_warning">انتقال رمزگذاری نشده است. از کارساز فقط در شبکه‌های مورداعتماد استفاده کنید و پس از استفاده آن را خاموش کنید.</string>
     <string name="ftp_server_state_title">وضعیت</string>
     <string name="ftp_server_state_summary_starting">در حال شروع…</string>
     <string name="ftp_server_state_summary_running">در حال اجرا</string>

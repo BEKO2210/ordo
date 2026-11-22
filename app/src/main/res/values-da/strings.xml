@@ -593,6 +593,7 @@
     <string name="text_editor_close_message">Er du sikker på, at du vil kassere ikke-gemte ændringer i dette dokument?</string>
 
     <string name="ftp_server_title">FTP-server</string>
+    <string name="ftp_server_unencrypted_warning">Overførslen er ikke krypteret. Brug kun serveren på pålidelige netværk, og sluk den efter brug.</string>
     <string name="ftp_server_state_title">Status</string>
     <string name="ftp_server_state_summary_starting">Starter…</string>
     <string name="ftp_server_state_summary_running">Kører</string>

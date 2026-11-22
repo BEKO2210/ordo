@@ -563,6 +563,7 @@
     <string name="text_editor_close_message">您確定要捨棄對此文件未儲存的變更嗎？</string>
 
     <string name="ftp_server_title">FTP 伺服器</string>
+    <string name="ftp_server_unencrypted_warning">傳輸未加密。請僅在可信任的網路中使用，並在使用後關閉伺服器。</string>
     <string name="ftp_server_state_title">狀態</string>
     <string name="ftp_server_state_summary_starting">正在啓動…</string>
     <string name="ftp_server_state_summary_running">正在執行</string>

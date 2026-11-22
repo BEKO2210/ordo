@@ -655,6 +655,7 @@
     <string name="text_editor_close_message">Ви впевнені, що бажаєте скасувати незбережені зміни в цьому документі?</string>
 
     <string name="ftp_server_title">FTP-сервер</string>
+    <string name="ftp_server_unencrypted_warning">Передавання не шифрується. Використовуйте сервер лише в довірених мережах і вимикайте його після використання.</string>
     <string name="ftp_server_state_title">Стан</string>
     <string name="ftp_server_state_summary_starting">Запуск…</string>
     <string name="ftp_server_state_summary_running">Працює</string>

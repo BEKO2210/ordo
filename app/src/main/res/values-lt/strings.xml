@@ -556,6 +556,7 @@
     <string name="text_editor_close_message">Ar tikrai norite atmesti neišsaugotus šio dokumento pakeitimus?</string>
 
     <string name="ftp_server_title">FTP serveris</string>
+    <string name="ftp_server_unencrypted_warning">Perdavimas nešifruojamas. Naudokite serverį tik patikimuose tinkluose ir išjunkite jį pasinaudoję.</string>
     <string name="ftp_server_state_title">Būsena</string>
     <string name="ftp_server_state_summary_starting">Startuojamas…</string>
     <string name="ftp_server_state_summary_running">Veikia</string>
