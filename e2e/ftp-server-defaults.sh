@@ -3,14 +3,19 @@
 # FTP server factory defaults (blocker before 1.0.0). Needs a debug build (run-as) and PKG set to it, e.g.
 # PKG=com.beko2210.ordo.dev: the FTP settings are taken out of Ordo's preferences for the run (so the factory defaults
 # apply) and the preferences are put back exactly as they were at the end, also on Ctrl-C.
-# On the FTP server screen (ftpserver.FtpServerActivity) out of the box: "Anonymous login" is off, or "Allow writing"
-# is off (no anonymous write access either way), and the root folder is not the whole internal storage.
+# On the FTP server screen (ftpserver.FtpServerActivity) out of the box: "Anonymous login" is off, the login has a
+# password (the "Password" row shows a masked value, not "Not set"), there is no anonymous write access, and the root
+# folder is not the whole internal storage. A named user with an empty password (e.g. admin, as on fix/stabil-p4) is as
+# open as anonymous login and fails too. The preference keys are the same on every branch (key_ftp_server_anonymous_login,
+# _username, _password); only their default values differ, so the suite reads the screen, not the resources.
 # Live check, only on an emulator or with E2E_FTP_LIVE=1 (the server is reachable from the network while it runs, and
 # out of the box that may mean the whole storage, writable, without a password): the server is started from its own
-# switch, reached through `adb forward`, and Python's ftplib (control connection only, no data port needed) tries an
-# anonymous login, MKD of a probe folder and CWD into Android/ (there only when the root is the whole storage). The
-# probe folder is removed again and the server stopped. Regression: Ordo shipped Material Files' defaults (anonymous
-# login on, writing on, root = /storage/emulated/0).
+# switch, reached through `adb forward`, and Python's ftplib (control connection only, no data port needed) tries, each
+# on a fresh connection, an anonymous login and an empty-password login for "admin" and for the username shown on the
+# screen; any of them getting in fails. For every login that got in, MKD of a probe folder and CWD into Android/ (there
+# only when the root is the whole storage) are tried too. The probe folder is removed again and the server stopped.
+# Regression: Ordo shipped Material Files' defaults (anonymous login on, writing on, root = /storage/emulated/0); turning
+# only anonymous off and leaving "admin" with an empty password is not enough.
 . "$(dirname "$0")/lib.sh" "$@"
 PREFS=shared_prefs/${PKG}_preferences.xml
 PORT=2121 # pref_default_value_ftp_server_port
@@ -53,11 +58,20 @@ check "the FTP server screen opens" on ftpserver.FtpServerActivity
 check "the server is not running" ui summary Status "Nicht gestartet|Not started"
 anon=0; write=0
 ui checked "Anonymer Login|Anonymous login" && anon=1
+# Summary of the row titled $1 (title|summary lines from `ui texts`).
+row_summary() { ui texts | awk -F'|' -v t="^($1)\$" 'found && $2 == "summary" { print $1; exit } $2 == "title" { found = ($1 ~ t) }'; }
+scroll_to "Benutzername|Username" 3 >/dev/null
+user=$(row_summary "Benutzername|Username")
+scroll_to "Passwort|Password" 3 >/dev/null
+password=$(row_summary "Passwort|Password")
 scroll_to "Erlaube Schreiben|Allow writing" 3 >/dev/null
 ui checked "Erlaube Schreiben|Allow writing" && write=1
-echo "INFO out of the box: anonymous login=$anon, allow writing=$write"
+echo "INFO out of the box: anonymous login=$anon, allow writing=$write, username=${user:-?}, password row=${password:-?}"
 check "out of the box: anonymous login is off" test "$anon" = 0
 check "out of the box: no anonymous write access" test "$anon$write" != 11
+# A set password is shown masked (bullets); an empty one shows "Not set" or nothing. Anything else counts as no password.
+has_password() { grep -qE '^[•*●]+$' <<<"$password"; }
+check "out of the box: the login has a password (no user with an empty password)" has_password
 # The root folder row shows the folder it shares; the whole internal storage must not be the default.
 scroll_to "Stammverzeichnis|Root folder" 3 >/dev/null
 root=$(ui texts | awk -F'|' 'found && $2 == "summary" { print $1; exit } $2 == "title" { found = ($1 == "Stammverzeichnis" || $1 == "Root folder") }')
@@ -71,21 +85,43 @@ if is_emulator || [ "${E2E_FTP_LIVE:-}" = 1 ]; then
     ui tap Status title >/dev/null; sleep 3; guard
     if ui summary Status "Läuft|Running"; then
         fwd=$("$ADB" -s "$SERIAL" forward tcp:0 tcp:$PORT | tr -d '\r')
-        # One line: anon=0|1 write=0|1 whole=0|1|? (ftplib over the control connection only).
-        probe=$(python3 - "${fwd:-0}" "$PROBE" <<'PY'
+        # One line: anon=0|1 nopass=<users let in with an empty password, or -> write=0|1 whole=0|1|?
+        probe=$(python3 - "${fwd:-0}" "$PROBE" admin "$user" <<'PY'
 import ftplib, sys
 port, probe = int(sys.argv[1]), sys.argv[2]
+users = []
+for name in sys.argv[3:]:
+    name = name.strip()
+    if name and name != "?" and name.lower() != "anonymous" and name not in users:
+        users.append(name)
 anon = write = 0
 whole = "?"
-try:
+nopass = []
+def attempt(user, password):
+    """A logged-in connection or None. A fresh connection each time: failed logins may close it."""
     ftp = ftplib.FTP()
     ftp.connect("127.0.0.1", port, timeout=10)
     try:
-        ftp.login("anonymous", "ordo-e2e@example.invalid")
-        anon = 1
+        ftp.login(user, password)
+        return ftp
     except ftplib.all_errors:
-        pass
-    if anon:
+        try:
+            ftp.close()
+        except OSError:
+            pass
+        return None
+try:
+    opened = []
+    ftp = attempt("anonymous", "ordo-e2e@example.invalid")
+    if ftp:
+        anon = 1
+        opened.append(ftp)
+    for user in users:
+        ftp = attempt(user, "")
+        if ftp:
+            nopass.append(user)
+            opened.append(ftp)
+    for ftp in opened:
         try:
             ftp.mkd(probe); write = 1
             ftp.rmd(probe)
@@ -94,12 +130,16 @@ try:
         try:
             ftp.cwd("/Android"); whole = 1
         except ftplib.all_errors:
-            whole = 0
-    ftp.close()
+            if whole == "?":
+                whole = 0
+        try:
+            ftp.close()
+        except OSError:
+            pass
 except (OSError, EOFError) as e:
     print(f"error={e}")
     sys.exit(0)
-print(f"anon={anon} write={write} whole={whole}")
+print(f"anon={anon} nopass={','.join(nopass) or '-'} write={write} whole={whole}")
 PY
 )
         echo "INFO FTP probe on the device's port $PORT: ${probe:-no answer}"
@@ -107,8 +147,9 @@ PY
         not_said() { ! said "$1"; }
         check "the server answers over adb forward" said 'anon='
         check "live: an anonymous login is refused" said 'anon=0'
-        check "live: no anonymous write (MKD refused)" said 'write=0'
-        check "live: the whole storage is not shared (no Android/ at the root)" not_said 'whole=1'
+        check "live: an empty password is refused (admin and the configured user)" said 'nopass=- '
+        check "live: no write without a password (MKD refused)" said 'write=0'
+        check "live: the whole storage is not shared without a password (no Android/ at the root)" not_said 'whole=1'
         check "live: the probe folder is not left behind" a shell "test ! -e /storage/emulated/0/$PROBE"
         guard; ui tap Status title >/dev/null; sleep 3
         check "the server stops again" ui summary Status "Nicht gestartet|Not started"
