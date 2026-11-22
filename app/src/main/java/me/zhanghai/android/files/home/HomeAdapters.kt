@@ -34,6 +34,7 @@ import me.zhanghai.android.files.databinding.HomeStorageItemBinding
 import me.zhanghai.android.files.databinding.HomeQuickAccessItemBinding
 import me.zhanghai.android.files.file.asFileSize
 import me.zhanghai.android.files.ui.WordBreaks
+import me.zhanghai.android.files.ui.fitActionRow
 import me.zhanghai.android.files.util.getColorByAttr
 import me.zhanghai.android.files.util.getQuantityString
 import java.util.Locale
@@ -204,35 +205,8 @@ class StorageAdapter(
             binding.analyzeButton.setOnClickListener { onAnalyze(item) }
             binding.root.setOnClickListener { onClick(item) }
             binding.openButton.setOnClickListener { onClick(item) }
-            binding.actionsRow.doOnLayout { fitActions() }
-        }
-
-        // The labels shrink to 12 sp first; if a word still does not fit, drop the icons, then stack the buttons.
-        private fun fitActions() {
-            val row = binding.actionsRow
-            val buttons = listOf(binding.openButton, binding.analyzeButton)
-            val gap = row.resources.getDimensionPixelSize(R.dimen.phi_8)
-            val half = (row.width - gap) / 2
-            val paint = android.text.TextPaint(buttons[0].paint).apply {
-                textSize = android.util.TypedValue.applyDimension(
-                    android.util.TypedValue.COMPLEX_UNIT_SP, 12f, row.resources.displayMetrics
-                )
-            }
-            fun fits(withIcon: Boolean) = buttons.all {
-                val icon = if (withIcon) it.iconSize + it.iconPadding else 0
-                paint.measureText(it.text.toString()) <= half - it.paddingStart - it.paddingEnd - icon
-            }
-            val stacked = !fits(false)
-            val showIcon = fits(true)
-            row.orientation = if (stacked) LinearLayout.VERTICAL else LinearLayout.HORIZONTAL
-            buttons.forEachIndexed { index, button ->
-                button.icon = if (showIcon || stacked) icons[index] else null
-                button.updateLayoutParams<LinearLayout.LayoutParams> {
-                    width = if (stacked) ViewGroup.LayoutParams.MATCH_PARENT else 0
-                    weight = if (stacked) 0f else 1f
-                    marginEnd = if (!stacked && index == 0) gap else 0
-                    topMargin = if (stacked && index == 1) gap else 0
-                }
+            binding.actionsRow.doOnLayout {
+                fitActionRow(binding.actionsRow, listOf(binding.openButton, binding.analyzeButton), icons)
             }
         }
     }

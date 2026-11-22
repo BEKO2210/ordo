@@ -51,7 +51,8 @@ hellere (um Tonwert 80) mit dunklem `onPrimary`, Container bei 90 und 30. Blau u
 
 - **Tippflächen:** im Code sind interaktive Elemente 48 dp hoch; ein Test dafür gibt es nicht.
 - **TalkBack:** Beschriftungen (`contentDescription`), Lesereihenfolge und Ansagen.
-- **Schriftgröße:** Verhalten bei großer Systemschrift und Anzeigegröße.
+- **Schriftgröße:** Verhalten bei großer Systemschrift und Anzeigegröße. Die Stufenwahl der Tastenzeilen (Schrift
+  verkleinern, Symbole ausblenden, untereinander stellen) ist per Unit-Test geprüft, das Aussehen nicht.
 - Kontrast von Text auf Fotos, Diagrammfarben der Dateitypen und der KI-Identität (feste Markenfarben).
 - Zustände wie deaktiviert, gedrückt oder fokussiert.
 
