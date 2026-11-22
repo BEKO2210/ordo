@@ -183,7 +183,9 @@ class AudioPlaybackService : MediaSessionService() {
             soundEffects.setAudible(isPlaying)
             // Ordo's video player may have set the mixer for a film meanwhile; take it back for this song.
             // Paused, Ordo Video gets a normal mixer.
-            if (isPlaying) hiRes.onConfigure(hiRes.track) else hiRes.suspend()
+            // Buffering after a seek keeps the mixer: the AudioTrack reopens with it (GE-7).
+            if (isPlaying) hiRes.onConfigure(hiRes.track)
+            else if (!player.playWhenReady || player.playbackState != Player.STATE_BUFFERING) hiRes.suspend()
         }
 
         override fun onEvents(player: Player, events: Player.Events) {
@@ -222,7 +224,15 @@ class AudioPlaybackService : MediaSessionService() {
             }
             if (events.contains(Player.EVENT_PLAY_WHEN_READY_CHANGED)) {
                 if (player.playWhenReady) audioFocusController.requestForPlayback()
-                else audioFocusController.onPlaybackPaused()
+                else {
+                    audioFocusController.onPlaybackPaused()
+                    // Paused while buffering: isPlaying was already false, so onIsPlayingChanged did not suspend.
+                    if (!events.contains(Player.EVENT_IS_PLAYING_CHANGED)) hiRes.suspend()
+                }
+            }
+            if (events.contains(Player.EVENT_PLAYBACK_STATE_CHANGED) &&
+                player.playbackState == Player.STATE_ENDED && sleepAtEndOfTrack) {
+                cancelSleepTimer()
             }
         }
 
@@ -327,8 +337,11 @@ class AudioPlaybackService : MediaSessionService() {
         val sessionPlayer = object : ForwardingPlayer(player) {
             override fun play() = fader.fadeIn { player.play() }
 
-            override fun pause() = if (player.isPlaying) fader.fadeOutThen { player.pause() }
-            else fader.immediate { player.pause() }
+            override fun pause() {
+                audioFocusController.onUserPause()
+                if (player.isPlaying) fader.fadeOutThen { player.pause() }
+                else fader.immediate { player.pause() }
+            }
 
             override fun stop() = if (player.isPlaying) fader.fadeOutThen { player.stop() }
             else fader.immediate { player.stop() }
@@ -368,8 +381,8 @@ class AudioPlaybackService : MediaSessionService() {
     override fun onDestroy() {
         // Ends casting first, so the session holds the local player again when it is released.
         CastManager.detach()
-        handler.removeCallbacks(savePosition)
-        handler.removeCallbacks(sleepTimer)
+        if (::hiRes.isInitialized) hiRes.onChanged = null
+        handler.removeCallbacksAndMessages(null)
         runCatching { unregisterReceiver(noisyReceiver) }
         contentResolver.unregisterContentObserver(volumeObserver)
         spatial.stop()
@@ -380,9 +393,9 @@ class AudioPlaybackService : MediaSessionService() {
             persistPosition()
             player.removeListener(playerListener)
         }
+        if (::hiRes.isInitialized) hiRes.release()
         if (::mediaSession.isInitialized) mediaSession.release()
         if (::player.isInitialized) player.release()
-        if (::hiRes.isInitialized) hiRes.release()
         ioExecutor.shutdown()
         loudnessExecutor.shutdownNow()
         super.onDestroy()

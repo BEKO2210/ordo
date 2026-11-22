@@ -44,14 +44,16 @@ class PlaylistStore(val dir: File) {
 
     /** Adds what is not in it yet, at the end, in the given order. Returns how many were new. */
     fun add(name: String, paths: List<String>): Int {
-        val current = read(name)
-        val new = paths.distinct().filter { it !in current }
-        if (new.isNotEmpty() || !File(dir, name).exists()) write(name, current + new)
-        return new.size
+        synchronized(READ_MODIFY_WRITE_LOCK) {
+            val current = read(name)
+            val new = paths.distinct().filter { it !in current }
+            if (new.isNotEmpty() || !File(dir, name).exists()) write(name, current + new)
+            return new.size
+        }
     }
 
     fun remove(name: String, paths: Collection<String>) {
-        write(name, read(name).filter { it !in paths })
+        synchronized(READ_MODIFY_WRITE_LOCK) { write(name, read(name).filter { it !in paths }) }
     }
 
     fun delete(name: String): Boolean = File(dir, name).delete()
@@ -60,17 +62,20 @@ class PlaylistStore(val dir: File) {
 
     /** Turns the heart on or off; returns whether the song is a favourite now. */
     fun toggleFavorite(path: String): Boolean =
-        if (isFavorite(path)) {
-            remove(FAVORITES_FILE, listOf(path))
-            false
-        } else {
-            add(FAVORITES_FILE, listOf(path))
-            true
+        synchronized(READ_MODIFY_WRITE_LOCK) {
+            if (isFavorite(path)) {
+                remove(FAVORITES_FILE, listOf(path))
+                false
+            } else {
+                add(FAVORITES_FILE, listOf(path))
+                true
+            }
         }
 
     companion object {
         const val FAVORITES_FILE = "Favorites.m3u8"
         private val EXTENSIONS = setOf("m3u8", "m3u")
+        private val READ_MODIFY_WRITE_LOCK = Any()
 
         /** A file name for a new playlist: what the user typed, without characters a file name can't have. */
         fun fileName(title: String): String? =

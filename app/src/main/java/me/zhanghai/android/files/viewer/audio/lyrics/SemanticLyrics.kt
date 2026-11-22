@@ -583,7 +583,7 @@ fun parseLrc(lyricText: String, trimEnabled: Boolean, multiLineEnabled: Boolean)
         when (element) {
             is SyntacticLrc.Metadata if element.name == "offset" -> {
                 // positive offset means lyric played earlier in lrc, hence multiply with -1
-                offset = element.value.toLong() * -1
+                offset = element.value.trim().toLongOrNull()?.let { -it } ?: 0L
             }
 
             is SyntacticLrc.Metadata if element.name == "emptyIsEnd" -> {

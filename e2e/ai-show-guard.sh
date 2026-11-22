@@ -1,5 +1,6 @@
 #!/bin/bash
 # Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later
+# farm: orient=once
 # Read-only checks around the AI "show" list (PR #51 review):
 # - Another app cannot open a "show" list: FileListActivity is exported, so an explicit intent with the list's
 #   extras (and a made-up token) must open the normal file list, never Ordo's private folder. Holds in every build.

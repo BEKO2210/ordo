@@ -14,11 +14,11 @@ check "the provider is registered for the system picker" \
     bash -c "'$ADB' -s '$SERIAL' shell dumpsys package '$PKG' | grep -q '$AUTHORITY'"
 a shell am start -a android.intent.action.OPEN_DOCUMENT -c android.intent.category.OPENABLE -t '*/*' >/dev/null
 sleep 3
-ui tap "$ROOTS" >/dev/null 2>&1; sleep 1.5
+E2E_TAP_ANY=1 ui tap "$ROOTS" >/dev/null 2>&1; sleep 1.5 # the system picker, opened by this test
 if ui has "Ordo|Ordo Dev"; then
     pass "the system picker lists Ordo as a place"
-    ui tap "Ordo|Ordo Dev" >/dev/null; sleep 2
-    check "Ordo shows the bookmarks there" ui has "Screenshots|Bildschirmfotos"
+    E2E_TAP_ANY=1 ui tap "Ordo|Ordo Dev" >/dev/null
+    check "Ordo shows the bookmarks there" ui see "Screenshots|Bildschirmfotos"
 else
     echo "SKIP the system picker lists Ordo (no all-files access or no existing bookmark folder on this device)"
 fi

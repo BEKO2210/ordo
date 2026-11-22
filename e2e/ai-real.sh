@@ -80,6 +80,15 @@ echo "  first open incl. hash check: $((SECONDS - started)) s; load $(ms 'thread
 check "the prompt state is written" wait_log "prompt state saved" 60
 log | grep -E "loaded|saved|restored|read in" | sed 's/^/  /'
 
+# Closing the sheet while the native model is thinking cancels generation without killing the process.
+a logcat -c
+ui tap commandEdit >/dev/null
+a shell input text "'Zeig%smir%salle%sPDFs'"
+a shell input keyevent KEYCODE_ENTER; sleep 1
+a shell input keyevent BACK; a shell input keyevent BACK; sleep 3
+check "closing the sheet while the model thinks keeps the app alive" a shell "pidof $PKG >/dev/null"
+launch; ui tap assistantButton >/dev/null; ui wait commandEdit 30 >/dev/null
+
 # ADAPTER_ONLY=1: only the base answer the adapter part compares with, then the adapter part.
 if [ -n "${ADAPTER_ONLY:-}" ]; then
     ask "Verschiebe alle PDFs aus Download nach Documents"; with=$(answer_json)
@@ -100,6 +109,9 @@ check "tidy Download: preview with confirm" ui wait confirmButton 20
 back_to_input
 ask "Wie viele Fotos habe ich auf dem Handy?"
 check "a question gets no confirm button" no_confirm
+back_to_input
+ask "Zeig mir PDFs im Ordner DenGibtEsNicht"
+check "an invented folder is handled without an ANR" no_confirm
 back_to_input
 ask "Loesche alles im Download Ordner"
 check "delete all in Download: preview with the confirm button" ui wait confirmButton 20

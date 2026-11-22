@@ -37,7 +37,9 @@ class CastDiscovery(context: Context, private val onChange: (List<CastDevice>) -
 
         override fun onDiscoveryStarted(serviceType: String) {}
         override fun onDiscoveryStopped(serviceType: String) {}
-        override fun onStartDiscoveryFailed(serviceType: String, errorCode: Int) {}
+        override fun onStartDiscoveryFailed(serviceType: String, errorCode: Int) {
+            handler.post { running = false }
+        }
         override fun onStopDiscoveryFailed(serviceType: String, errorCode: Int) {}
     }
 
