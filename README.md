@@ -33,14 +33,13 @@
 </p>
 
 <!-- AUTO:new -->
-> **New in 0.18.0**
-> - HDR movies look more natural on regular displays
-> - Detail plus is faster and now set to "Automatic"
-> - New: "Dialogue isolation plus" separates voices on the device with AI (optional)
-> - Audio delay is remembered per headphone
-> - USB DAC: output is unaltered again
-> - Rate, share and send feedback for Ordo right from Settings
-> - Many small improvements
+> **New in 0.18.1**
+> - Fixed a crash when tapping the video notification
+> - Safer file handling: mixed selections go to the trash, undo works again
+> - Vault and image viewer protected against opening internal files
+> - FTP server now starts with a password and no anonymous access
+> - Network shares stay connected while idle
+> - Music and Cast: more reliable playback and sleep timer
 <!-- /AUTO:new -->
 
 ## Status
@@ -507,7 +506,7 @@ Run the unit tests with:
 ```
 
 <!-- AUTO:tests -->
-Device tests: 45 scripts in [`e2e/`](e2e/README.md), run with `e2e/run.sh`: 15 read-only (`first-run`, `smoke`, `settings-visual`, `category-search`, `back-navigation`, `bars-replay`, `home-header`, `header-position`, `home-pull`, `drawer`, `selection-more`, `tablet-landscape`, `analysis`, `ai-show-guard`, `documents-provider`) and 30 more with `--write` (`stress-delete`, `backup-restore`, `home-auto-refresh`, `audio-player`, `cast`, `klang`, `klang-landscape`, `klang-stress`, `music-formats`, `music-library`, `launcher-icons`, `icon-colors`, `ai-show`, `pick-file`, `no-midword-breaks`, `player-seek`, `player-stage2`, `video-player`, `video-network`, `video-sound`, `video-dialog-isolate`, `video-subtitles`, `video-background`, `video-library`, `video-seek`, `video-picture`, `video-picture-adjust`, `video-detailplus`, `video-menus`, `sheets-polish`). Unit tests: 141 test classes in `app/src/test`.
+Device tests: 53 scripts in [`e2e/`](e2e/README.md), run with `e2e/run.sh`: 15 read-only (`first-run`, `smoke`, `settings-visual`, `category-search`, `back-navigation`, `bars-replay`, `home-header`, `header-position`, `home-pull`, `drawer`, `selection-more`, `tablet-landscape`, `analysis`, `ai-show-guard`, `documents-provider`) and 38 more with `--write` (`stress-delete`, `backup-restore`, `copy-unreadable`, `home-auto-refresh`, `audio-player`, `cast`, `klang`, `klang-landscape`, `klang-stress`, `music-formats`, `music-library`, `launcher-icons`, `icon-colors`, `ai-show`, `pick-file`, `no-midword-breaks`, `player-seek`, `player-stage2`, `video-player`, `video-network`, `video-sound`, `video-dialog-isolate`, `video-subtitles`, `video-background`, `video-library`, `video-seek`, `video-picture`, `video-picture-adjust`, `video-detailplus`, `video-menus`, `sheets-polish`, `copy-replace`, `ftp-server-fd`, `video-notification`, `ftp-server-defaults`, `backup-self-include`, `vault-secure-flag`, `text-editor-atomic-save`). Unit tests: 150 test classes in `app/src/test`.
 <!-- /AUTO:tests -->
 
 ## Roadmap

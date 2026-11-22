@@ -33,14 +33,13 @@
 </p>
 
 <!-- AUTO:new -->
-> **Neu in 0.18.0**
-> - HDR-Filme sehen auf normalen Displays natürlicher aus
-> - Detail plus ist schneller und steht jetzt auf „Automatisch“
-> - Neu: „Dialog freistellen plus“ trennt Stimmen auf dem Gerät per KI (optional)
-> - Ton-Verzögerung wird pro Kopfhörer gemerkt
-> - USB-DAC: Ausgabe wieder unverfälscht
-> - Ordo bewerten, teilen und Feedback senden – direkt in den Einstellungen
-> - Viele kleine Verbesserungen
+> **Neu in 0.18.1**
+> - Absturz beim Antippen der Video-Benachrichtigung behoben
+> - Sicherer mit Dateien: Gemischte Auswahl landet im Papierkorb, Rückgängig geht wieder
+> - Tresor und Bildbetrachter gegen das Öffnen interner Dateien geschützt
+> - FTP-Server startet mit Passwort und ohne anonymen Zugang
+> - Netzwerkfreigaben bleiben im Leerlauf verbunden
+> - Musik und Cast: zuverlässigere Wiedergabe und Schlaf-Timer
 <!-- /AUTO:new -->
 
 ## Stand
@@ -510,7 +509,7 @@ Unit-Tests:
 ```
 
 <!-- AUTO:tests -->
-Gerätetests: 45 Skripte in [`e2e/`](e2e/README.md), gestartet mit `e2e/run.sh`: 15 nur lesend (`first-run`, `smoke`, `settings-visual`, `category-search`, `back-navigation`, `bars-replay`, `home-header`, `header-position`, `home-pull`, `drawer`, `selection-more`, `tablet-landscape`, `analysis`, `ai-show-guard`, `documents-provider`) und 30 weitere mit `--write` (`stress-delete`, `backup-restore`, `home-auto-refresh`, `audio-player`, `cast`, `klang`, `klang-landscape`, `klang-stress`, `music-formats`, `music-library`, `launcher-icons`, `icon-colors`, `ai-show`, `pick-file`, `no-midword-breaks`, `player-seek`, `player-stage2`, `video-player`, `video-network`, `video-sound`, `video-dialog-isolate`, `video-subtitles`, `video-background`, `video-library`, `video-seek`, `video-picture`, `video-picture-adjust`, `video-detailplus`, `video-menus`, `sheets-polish`). Unit-Tests: 141 Testklassen in `app/src/test`.
+Gerätetests: 53 Skripte in [`e2e/`](e2e/README.md), gestartet mit `e2e/run.sh`: 15 nur lesend (`first-run`, `smoke`, `settings-visual`, `category-search`, `back-navigation`, `bars-replay`, `home-header`, `header-position`, `home-pull`, `drawer`, `selection-more`, `tablet-landscape`, `analysis`, `ai-show-guard`, `documents-provider`) und 38 weitere mit `--write` (`stress-delete`, `backup-restore`, `copy-unreadable`, `home-auto-refresh`, `audio-player`, `cast`, `klang`, `klang-landscape`, `klang-stress`, `music-formats`, `music-library`, `launcher-icons`, `icon-colors`, `ai-show`, `pick-file`, `no-midword-breaks`, `player-seek`, `player-stage2`, `video-player`, `video-network`, `video-sound`, `video-dialog-isolate`, `video-subtitles`, `video-background`, `video-library`, `video-seek`, `video-picture`, `video-picture-adjust`, `video-detailplus`, `video-menus`, `sheets-polish`, `copy-replace`, `ftp-server-fd`, `video-notification`, `ftp-server-defaults`, `backup-self-include`, `vault-secure-flag`, `text-editor-atomic-save`). Unit-Tests: 150 Testklassen in `app/src/test`.
 <!-- /AUTO:tests -->
 
 ## Ausblick
