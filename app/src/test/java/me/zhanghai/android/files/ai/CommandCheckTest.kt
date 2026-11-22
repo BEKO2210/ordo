@@ -178,5 +178,26 @@ class CommandCheckTest {
             check("lösche alles in Download, die Kamera nicht", CommandPlan("delete", "Kamera")))
     }
 
+    @Test
+    fun negationAnywhereInTheClause_refusesDelete() {
+        val plan = CommandPlan("delete", "Download")
+        assertEquals(Outcome.Refused(Reason.UNSURE_DELETE),
+            check("Lösche niemals meine Fotos", plan))
+        assertEquals(Outcome.Refused(Reason.UNSURE_DELETE),
+            check("Die Bilder im Download nie löschen", plan))
+        assertEquals(Outcome.Refused(Reason.UNSURE_DELETE),
+            check("Lösche alle Fotos aus dem Download-Ordner heute bitte nicht", plan))
+    }
+
+    @Test
+    fun duplicateDeleteThatKeepsOriginals_isNotBlocked() {
+        val outcome = check(
+            "Lösche die doppelten Dateien, aber behalte die Originale",
+            CommandPlan("delete", "Download")
+        )
+        assertTrue(outcome is Outcome.Ready)
+        assertTrue((outcome as Outcome.Ready).plan.duplicates)
+    }
+
     private fun Outcome.plan(): CommandPlan = (this as Outcome.Ready).plan
 }

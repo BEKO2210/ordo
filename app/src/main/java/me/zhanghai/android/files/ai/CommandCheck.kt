@@ -198,23 +198,27 @@ object CommandCheck {
     }
 
     private val NEGATIONS = setOf(
-        "nicht", "nichts", "kein", "keine", "keinen", "keiner", "ohne", "außer", "ausser",
-        "not", "no", "don't", "dont", "never", "except", "without"
+        "nicht", "nichts", "kein", "keine", "keinen", "keiner", "keinesfalls",
+        "nie", "niemals", "nimmer", "nirgends", "ohne", "außer", "ausser",
+        "not", "no", "don't", "dont", "never", "nowhere", "neither", "nor", "except", "without",
+        "auf keinen fall", "bloß nicht", "bloss nicht", "bitte nicht"
     )
 
     /**
-     * True when one of [stems] starts a word with no negation among the three words before or five after it,
-     * within the same clause ("nicht löschen", "lösche die Dateien nicht"; but "lösche X, nicht Y" is fine).
+     * True when one of [stems] starts a word in a clause that has no negation anywhere
+     * ("nicht löschen", "lösche … bitte nicht"; but "lösche X, nicht Y" is a later clause and is fine).
      */
     private fun said(words: String, stems: List<String>): Boolean =
         words.split(',', ';', '.', '!', '?').any { clause ->
             val tokens = clause.split(Regex("[^\\p{L}'/]+")).filter { it.isNotEmpty() }
+            if (negated(clause, tokens)) return@any false
             tokens.indices.any { i ->
-                stems.any { stem -> tokens[i].startsWith(stem) || (stem.contains(' ') && clause.contains(stem)) } &&
-                    tokens.subList((i - 3).coerceAtLeast(0), (i + 6).coerceAtMost(tokens.size))
-                        .none { it in NEGATIONS }
+                stems.any { stem -> tokens[i].startsWith(stem) || (stem.contains(' ') && clause.contains(stem)) }
             }
         }
+
+    private fun negated(clause: String, tokens: List<String>): Boolean =
+        tokens.any { it in NEGATIONS } || NEGATIONS.any { ' ' in it && it in clause }
 
     // Composed and decomposed umlauts ("é" as one or two characters) count as the same name.
     private fun sameName(a: String, b: String): Boolean =
