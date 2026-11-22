@@ -9,7 +9,7 @@ not_checked() { ! ui checked "$PREVIEW"; }
 # inside a longer text (ui.py compares whole texts; the summary is several sentences)
 in_text() { a shell uiautomator dump /sdcard/ordoai-ui.xml >/dev/null 2>&1; a shell cat /sdcard/ordoai-ui.xml | grep -qE "$1"; }
 open_ai_settings() {
-    a shell am start -W -n "$PKG/$SETTINGS" >/dev/null; sleep 2
+    a shell am start -W -n "$PKG/$SETTINGS" >/dev/null
     ui tap "KI-Assistent|AI assistant" >/dev/null; sleep 1
 }
 trap 'a shell cmd locale set-app-locales "$PKG" --locales "" >/dev/null 2>&1' EXIT
@@ -23,7 +23,7 @@ for locale in de-DE en-US; do
     # A fresh install has it off; a run before may have left it on: then this is the "off" step of that run.
     ui checked "$PREVIEW" && { ui tap "$PREVIEW" >/dev/null; sleep 1; }
     check "$locale: off by default" not_checked
-    ui tap "$PREVIEW" >/dev/null; sleep 1
+    ui tap "$PREVIEW" >/dev/null
     check "$locale: a tap turns it on" ui checked "$PREVIEW"
     a shell am force-stop "$PKG"; launch; open_ai_settings
     check "$locale: still on after a restart" ui checked "$PREVIEW"

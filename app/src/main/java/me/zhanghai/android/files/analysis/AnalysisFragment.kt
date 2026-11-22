@@ -31,6 +31,8 @@ import coil.load
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dev.chrisbanes.insetter.applySystemWindowInsetsToPadding
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java8.nio.file.Paths
 import java8.nio.file.attribute.BasicFileAttributes
 import java8.nio.file.attribute.FileTime
@@ -434,8 +436,11 @@ class AnalysisFragment : Fragment() {
         }
         val context = requireContext()
         val size = files.sumOf { it.size }.asFileSize().formatHumanReadable(context)
-        val paths = files.map { Paths.get(it.path) }
-        val toTrash = Trash.isEnabled && paths.all { Trash.canTrash(it) }
+        val emptyPaths = files.filter { it in emptyFolders }.map { it.path }.toSet()
+        val filePaths = files.map { it.path }.filter { it !in emptyPaths }
+        val paths = filePaths.map { Paths.get(it) }
+        // Empty folders are removed outright (nothing to restore); the files beside them still go to the trash.
+        val toTrash = paths.isNotEmpty() && Trash.isEnabled && paths.all { Trash.canTrash(it) }
         // Empty folders have no size to tell; the message names them as folders.
         val folders = files.all { it in emptyFolders }
         MaterialAlertDialogBuilder(context)
@@ -452,10 +457,15 @@ class AnalysisFragment : Fragment() {
             .setPositiveButton(
                 if (toTrash) R.string.trash_move_action else R.string.trash_delete_permanently_action
             ) { _, _ ->
-                FileJobService.delete(paths, context)
-                viewModel.removeDeleted(files.map { it.path }.toSet())
-                // The lists follow once the view model has updated them; the selection bar goes at once.
-                updateSelection()
+                viewLifecycleOwner.lifecycleScope.launch {
+                    val deletedEmpty = withContext(Dispatchers.IO) {
+                        emptyPaths.filterTo(mutableSetOf(), StorageAnalysis::deleteIfStillEmpty)
+                    }
+                    if (paths.isNotEmpty()) FileJobService.delete(paths, context)
+                    viewModel.removeDeleted(deletedEmpty + filePaths)
+                    // The lists follow once the view model has updated them; the selection bar goes at once.
+                    updateSelection()
+                }
             }
             .setNegativeButton(android.R.string.cancel, null)
             .show()

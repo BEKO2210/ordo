@@ -9,6 +9,7 @@ import me.zhanghai.android.files.theme.custom.AppAccentActivity
 import me.zhanghai.android.files.settings.SettingLiveData
 import me.zhanghai.android.files.settings.Settings
 import android.app.Activity
+import android.app.Application
 import android.content.Context
 import android.content.Intent
 import android.media.MediaScannerConnection
@@ -27,11 +28,17 @@ import androidx.annotation.StringRes
 import androidx.core.view.isVisible
 import androidx.core.widget.doAfterTextChanged
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.viewModelScope
+import androidx.activity.viewModels
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import java.io.File
+import java.util.UUID
 import kotlin.coroutines.resume
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -42,6 +49,49 @@ import me.zhanghai.android.files.R
 import me.zhanghai.android.files.app.AppActivity
 import me.zhanghai.android.files.databinding.MusicTagEditorActivityBinding
 import me.zhanghai.android.files.ui.Motion
+
+private sealed interface SavedCover {
+    data object Keep : SavedCover
+    data object Remove : SavedCover
+    class Set(val file: File, val mimeType: String) : SavedCover
+}
+
+internal sealed interface TagEditorWriteState {
+    data object Idle : TagEditorWriteState
+    data object Saving : TagEditorWriteState
+    class Failed(val message: String) : TagEditorWriteState
+    class Success(val done: List<Pair<File, File>>) : TagEditorWriteState
+}
+
+internal class TagEditorWriteViewModel(application: Application) : AndroidViewModel(application) {
+    private val mutableState = MutableLiveData<TagEditorWriteState>(TagEditorWriteState.Idle)
+    val state: LiveData<TagEditorWriteState> = mutableState
+
+    fun write(files: List<File>, changes: TagChanges) {
+        if (mutableState.value == TagEditorWriteState.Saving) return
+        mutableState.value = TagEditorWriteState.Saving
+        viewModelScope.launch(Dispatchers.IO) {
+            val done = mutableListOf<Pair<File, File>>()
+            val result = runCatching {
+                val backupDir = TagEditUndo.backupDir(getApplication())
+                for (file in files) done += file to SongTagIo.write(file, changes, backupDir)
+                MusicTagEditorActivity.scan(getApplication(), files)
+                done.toList()
+            }
+            if (result.isFailure) {
+                result.exceptionOrNull()?.printStackTrace()
+                // Keep a backup when restoring it failed: deleting it would make recovery impossible.
+                done.forEach { (file, backup) ->
+                    if (runCatching { SongTagIo.restore(file, backup) }.isSuccess) backup.delete()
+                }
+            }
+            mutableState.postValue(result.fold(
+                onSuccess = { TagEditorWriteState.Success(it) },
+                onFailure = { TagEditorWriteState.Failed(it.message ?: it.javaClass.simpleName) }
+            ))
+        }
+    }
+}
 
 /**
  * Ordo Music's tag editor for one song or all songs of a page. Only the fields the user changed are written, a
@@ -59,6 +109,12 @@ class MusicTagEditorActivity : AppActivity(), AppAccentActivity {
     private var originalCover: Cover? = null
     private var coverChange: CoverChange = CoverChange.Keep
     private var writable = false
+    private val writeModel by viewModels<TagEditorWriteViewModel>()
+    private var saving: Snackbar? = null
+    private var restoredInputs: Map<TagField, String>? = null
+    private var restoredCover: SavedCover? = null
+    private var coverStateFile: File? = null
+    private var fieldsLoaded = false
 
     private val pickCover = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         if (uri != null) loadCover(uri)
@@ -102,13 +158,46 @@ class MusicTagEditorActivity : AppActivity(), AppAccentActivity {
         }
         binding.art.root.radius = resources.getDimension(R.dimen.phi_21)
         createFields()
+        restoredInputs = savedInstanceState?.getBundle(STATE_INPUTS)?.let { state ->
+            TagField.entries.associateWith { state.getString(it.name).orEmpty() }
+        }
+        restoredCover = savedInstanceState?.let { state ->
+            when (state.getInt(STATE_COVER_KIND, COVER_KEEP)) {
+                COVER_REMOVE -> SavedCover.Remove
+                COVER_SET -> state.getString(STATE_COVER_FILE)?.let {
+                    SavedCover.Set(File(it), state.getString(STATE_COVER_TYPE).orEmpty())
+                }
+                else -> SavedCover.Keep
+            }
+        }.also { if (it is SavedCover.Set) coverStateFile = it.file }
         binding.changeCover.setOnClickListener { pickCover.launch("image/*") }
         binding.removeCover.setOnClickListener {
+            coverStateFile?.delete()
+            coverStateFile = null
             coverChange = CoverChange.Remove
             showCover()
         }
         binding.editCopy.setOnClickListener { editCopy() }
+        writeModel.state.observe(this, ::showWriteState)
         load()
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        if (fieldsLoaded) {
+            outState.putBundle(STATE_INPUTS, Bundle().apply {
+                edited().forEach { (field, value) -> putString(field.name, value) }
+            })
+        }
+        when (val change = coverChange) {
+            CoverChange.Keep -> outState.putInt(STATE_COVER_KIND, COVER_KEEP)
+            CoverChange.Remove -> outState.putInt(STATE_COVER_KIND, COVER_REMOVE)
+            is CoverChange.Set -> {
+                outState.putInt(STATE_COVER_KIND, COVER_SET)
+                outState.putString(STATE_COVER_FILE, coverStateFile?.path)
+                outState.putString(STATE_COVER_TYPE, change.cover.mimeType)
+            }
+        }
     }
 
     private fun createFields() {
@@ -204,12 +293,31 @@ class MusicTagEditorActivity : AppActivity(), AppAccentActivity {
             }
             original = SongTagIo.merge(tags)
             originalCover = tags.map { it.cover }.distinctBy { it?.data?.contentHashCode() }.singleOrNull()
+            val savedInputs = restoredInputs
             for ((field, layout) in inputs) {
                 val value = original[field]
-                layout.editText!!.setText(value.orEmpty())
+                layout.editText!!.setText(savedInputs?.get(field) ?: value.orEmpty())
                 if (value == null) layout.placeholderText = getString(R.string.music_tag_several)
                 if (value == null) layout.helperText = getString(R.string.music_tag_several)
             }
+            coverChange = when (val saved = restoredCover) {
+                SavedCover.Remove -> CoverChange.Remove
+                is SavedCover.Set -> withContext(Dispatchers.IO) {
+                    // The cache file may be gone (cache cleared while in the background): keep the old cover then.
+                    runCatching {
+                        saved.file.inputStream().use { input ->
+                            with(me.zhanghai.android.files.viewer.audio.lyrics.LyricsRepository) {
+                                input.readAtMost(MAX_COVER_BYTES)
+                            }
+                        }
+                    }.getOrNull()
+                }?.let { CoverChange.Set(Cover(it, saved.mimeType)) } ?: CoverChange.Keep
+                else -> CoverChange.Keep
+            }
+            (restoredCover as? SavedCover.Set)?.file?.let { coverStateFile = it }
+            restoredInputs = null
+            restoredCover = null
+            fieldsLoaded = true
             showCover()
             showBlock(block)
         }
@@ -278,16 +386,24 @@ class MusicTagEditorActivity : AppActivity(), AppAccentActivity {
                 runCatching {
                     val size = contentResolver.openAssetFileDescriptor(uri, "r")?.use { it.length } ?: -1L
                     if (size > MAX_COVER_BYTES) return@runCatching null
-                    val data = contentResolver.openInputStream(uri)!!.use { it.readBytes() }
-                    if (data.size > MAX_COVER_BYTES) null
-                    else Cover(data, contentResolver.getType(uri)?.takeIf { it.startsWith("image/") } ?: "image/jpeg")
+                    val data = contentResolver.openInputStream(uri)!!.use { input ->
+                        with(me.zhanghai.android.files.viewer.audio.lyrics.LyricsRepository) {
+                            input.readAtMost(MAX_COVER_BYTES)
+                        }
+                    } ?: return@runCatching null
+                    val cover = Cover(data, contentResolver.getType(uri)?.takeIf { it.startsWith("image/") } ?: "image/jpeg")
+                    val stateFile = File(cacheDir, "tag-cover-state-${UUID.randomUUID()}")
+                    stateFile.writeBytes(data)
+                    cover to stateFile
                 }.getOrNull()
             }
             if (cover == null) {
                 Snackbar.make(binding.root, R.string.music_tag_cover_too_large, Snackbar.LENGTH_LONG).show()
                 return@launch
             }
-            coverChange = CoverChange.Set(cover)
+            coverStateFile?.delete()
+            coverStateFile = cover.second
+            coverChange = CoverChange.Set(cover.first)
             showCover()
         }
     }
@@ -341,36 +457,32 @@ class MusicTagEditorActivity : AppActivity(), AppAccentActivity {
 
     private fun write(changes: TagChanges) {
         binding.toolbar.menu.findItem(R.id.actionSave).isEnabled = false
-        val saving = Snackbar.make(binding.root, R.string.music_tag_saving, Snackbar.LENGTH_INDEFINITE)
-        saving.show()
-        lifecycleScope.launch {
-            val result = withContext(Dispatchers.IO) {
-                val backupDir = TagEditUndo.backupDir(this@MusicTagEditorActivity)
-                val done = mutableListOf<Pair<File, File>>()
-                try {
-                    for (file in files) done += file to SongTagIo.write(file, changes, backupDir)
-                    Result.success(done)
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                    // All or nothing: the songs already written get their originals back.
-                    done.forEach { (file, backup) -> runCatching { SongTagIo.restore(file, backup) }; backup.delete() }
-                    Result.failure(e)
-                }
-            }
-            saving.dismiss()
-            result.onFailure {
+        writeModel.write(files, changes)
+    }
+
+    private fun showWriteState(state: TagEditorWriteState) {
+        saving?.dismiss()
+        saving = null
+        when (state) {
+            TagEditorWriteState.Idle -> Unit
+            TagEditorWriteState.Saving -> saving = Snackbar.make(
+                binding.root, R.string.music_tag_saving, Snackbar.LENGTH_INDEFINITE
+            ).also { it.show() }
+            is TagEditorWriteState.Failed -> {
                 binding.toolbar.menu.findItem(R.id.actionSave).isEnabled = true
-                Snackbar.make(
-                    binding.root, getString(R.string.music_tag_failed, it.message ?: it.javaClass.simpleName),
-                    Snackbar.LENGTH_LONG
-                ).show()
+                Snackbar.make(binding.root, getString(R.string.music_tag_failed, state.message), Snackbar.LENGTH_LONG).show()
             }
-            result.onSuccess { done ->
-                scan(this@MusicTagEditorActivity, files)
-                setResult(Activity.RESULT_OK, TagEditUndo.resultIntent(done))
+            is TagEditorWriteState.Success -> {
+                coverStateFile?.delete()
+                setResult(Activity.RESULT_OK, TagEditUndo.resultIntent(state.done))
                 finish()
             }
         }
+    }
+
+    override fun onDestroy() {
+        if (isFinishing) coverStateFile?.delete()
+        super.onDestroy()
     }
 
     /** A read-only file: a copy in the Music folder, then the editor on that copy. */
@@ -404,6 +516,13 @@ class MusicTagEditorActivity : AppActivity(), AppAccentActivity {
     companion object {
         private const val EXTRA_PATHS = "me.zhanghai.android.files.viewer.audio.extra.TAG_PATHS"
         private const val MAX_COVER_BYTES = 10L * 1024 * 1024
+        private const val STATE_INPUTS = "inputs"
+        private const val STATE_COVER_KIND = "coverKind"
+        private const val STATE_COVER_FILE = "coverFile"
+        private const val STATE_COVER_TYPE = "coverType"
+        private const val COVER_KEEP = 0
+        private const val COVER_REMOVE = 1
+        private const val COVER_SET = 2
 
         /** Ordo's own local files only; the activity is not exported. */
         fun createIntent(context: Context, paths: List<String>): Intent =

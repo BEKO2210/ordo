@@ -31,7 +31,7 @@ launch
 # Internal storage's top folder: it has entries on every device (Downloads may be empty, as on a fresh tablet).
 a shell am start -W -a android.intent.action.VIEW -d "file:///storage/emulated/0" -t inode/directory \
     -n "$PKG/me.zhanghai.android.files.filelist.FileListActivity" >/dev/null
-sleep 4
+sleep 4 # deliberate: a crash on opening needs this long to reach the crash log
 # Checked before guard(): a crash puts the launcher in front, which would only abort the run.
 check "a folder opens on a tablet in landscape without a crash" test "$(crashes)" = 0
 guard

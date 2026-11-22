@@ -22,12 +22,12 @@ with wave.open(str(pathlib.Path(sys.argv[1]) / "ordo-e2e-land.wav"), "wb") as ou
 PY
 a shell "rm -rf $DIR; mkdir -p $DIR"; a push "$tmp/ordo-e2e-land.wav" "$DIR/" >/dev/null
 wake; grant; a logcat -b crash -c
-a shell settings put system accelerometer_rotation 0; a shell settings put system user_rotation 1; sleep 2
+a shell settings put system accelerometer_rotation 0; a shell settings put system user_rotation 1; sleep 2 # deliberate: the rotation animation
 a shell am start -W -a android.intent.action.VIEW -d "file://$DIR" -t inode/directory \
     -n "$PKG/me.zhanghai.android.files.filelist.FileListActivity" >/dev/null
-sleep 3; guard
-ui tap ordo-e2e-land.wav >/dev/null; sleep 4; guard
-a shell input keyevent KEYCODE_MEDIA_PAUSE; sleep 1
+guard
+ui tap ordo-e2e-land.wav >/dev/null; wait_on viewer.audio.AudioPlayerActivity 6; guard
+media_wait PLAY 4; media_key PAUSE 1
 check "Sound opens in landscape" ui tap actionSound
 sleep 2
 landscape() { read -r W H < <(screen_size); [ "$W" -gt "$H" ]; }

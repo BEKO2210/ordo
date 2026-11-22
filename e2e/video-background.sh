@@ -17,8 +17,8 @@ settings_open() {
 set_background() {
     settings_open
     scroll_to "Im Hintergrund weiterspielen|Keep playing in the background"
-    ui tap "Im Hintergrund weiterspielen|Keep playing in the background" >/dev/null; sleep 1
-    ui tap "$1" >/dev/null; sleep 1
+    ui tap "Im Hintergrund weiterspielen|Keep playing in the background" >/dev/null
+    ui tap "$1" >/dev/null; sleep 1 # deliberate: the choice is taken over before the next step leaves the screen
     back 1; back 1
 }
 trap 'set_background "Aus|Off"; a shell "rm -rf $DIR"; rm -rf "$tmp"' EXIT
@@ -42,7 +42,7 @@ wait_playing() { local i; for i in $(seq 1 16); do playing && return 0; sleep 0.
 open_clip() {
     a shell am start -W -a android.intent.action.VIEW -d "file://$DIR" -t inode/directory \
         -n "$PKG/me.zhanghai.android.files.filelist.FileListActivity" >/dev/null
-    sleep 3; guard; ui wait clip.mp4 10 >/dev/null
+    guard; ui wait clip.mp4 10 >/dev/null
     ui tap clip.mp4 >/dev/null
     wait_on viewer.video.VideoPlayerActivity 8
 }
@@ -77,7 +77,7 @@ if a shell pm has-feature android.software.picture_in_picture | grep -q true; th
     a shell input keyevent KEYCODE_HOME; sleep 3
     check "Home opens picture-in-picture (windowingMode=pinned)" wait_pinned
     check "the video keeps playing in picture-in-picture" wait_playing
-    a shell input keyevent KEYCODE_MEDIA_PAUSE; sleep 1.5
+    media_key PAUSE 1.5
     check "media keys reach the video in picture-in-picture" not_playing
 else
     ui tap "Weitere Optionen|More options" >/dev/null; sleep 1
@@ -105,7 +105,7 @@ check "Ordo Video's own notification channel exists" bash -c \
     "for i in 1 2 3 4 5; do '$ADB' -s '$SERIAL' shell dumpsys notification | grep -q 'video_playback' && exit 0; sleep 1; done; exit 1"
 wake
 check "waking up shows the player" wait_on viewer.video.VideoPlayerActivity 6
-a shell input keyevent KEYCODE_MEDIA_PAUSE; sleep 1
+media_key PAUSE 1
 back 2
 
 check "no crash" test "$(crashes)" = 0

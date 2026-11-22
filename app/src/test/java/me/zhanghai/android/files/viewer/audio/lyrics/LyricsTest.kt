@@ -85,6 +85,13 @@ class LyricsTest {
     }
 
     @Test
+    fun offsetAcceptsWhitespaceEmptyAndExplicitPlus() {
+        assertEquals(1000uL, synced("[offset: 0]\n[00:01.00]A").text.single().start)
+        assertEquals(1000uL, synced("[offset:]\n[00:01.00]A").text.single().start)
+        assertEquals(800uL, synced("[offset: +200]\n[00:01.00]A").text.single().start)
+    }
+
+    @Test
     fun malformedLinesAreSkipped() {
         val lines = synced("[00:01.00]A\n[00:xx]kaputt\n<<>>\n[00:02.00]B").text
         assertEquals(listOf("A", "B"), lines.map { it.text })

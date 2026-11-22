@@ -18,6 +18,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.appcompat.app.AppCompatDelegateCompat
 import me.zhanghai.android.files.app.application
+import me.zhanghai.android.files.app.AppActivity
 import me.zhanghai.android.files.settings.Settings
 import me.zhanghai.android.files.util.SimpleActivityLifecycleCallbacks
 import me.zhanghai.android.files.util.valueCompat
@@ -32,11 +33,12 @@ object NightModeHelper {
     fun initialize(application: Application) {
         application.registerActivityLifecycleCallbacks(object : SimpleActivityLifecycleCallbacks {
                 override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
+                    if (activity !is AppActivity) return
                     check(activity in activities) { "Activity must extend AppActivity: $activity" }
                 }
 
                 override fun onActivityDestroyed(activity: Activity) {
-                    activities -= activity as AppCompatActivity
+                    (activity as? AppCompatActivity)?.let { activities -= it }
                 }
             })
         // The user can switch the expanded dark theme on and off without a configuration change.

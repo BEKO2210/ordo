@@ -261,6 +261,7 @@ object ReplayGain {
         ?.let { if (it.endsWith("dB", ignoreCase = true)) it.dropLast(2).trim() else it }
         ?.toFloatOrNull()
         ?.takeIf { it.isFinite() }
+        ?.coerceIn(-60f, 60f)
 
     fun parsePeak(value: String?): Float? = value?.trim()?.toFloatOrNull()
         ?.takeIf { it.isFinite() && it > 0f }

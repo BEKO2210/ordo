@@ -37,15 +37,15 @@ sleep 3
 a logcat -c
 launch
 swipe_up; swipe_down
-a shell am start -n "$PKG/me.zhanghai.android.files.settings.SettingsActivity" >/dev/null; sleep 3; guard
+a shell am start -n "$PKG/me.zhanghai.android.files.settings.SettingsActivity" >/dev/null; guard
 ui tap "Aussehen|Appearance" >/dev/null && sleep 2 && back
 back
 a shell am start -W -n "$PKG/$LIBRARY" >/dev/null; sleep 3; guard
 for t in "Titel|Songs" "Alben|Albums" "Interpreten|Artists" "Wiedergabelisten|Playlists" "Favoriten|Favorites" \
-    "Ordner|Folders"; do ui tap "$t" >/dev/null; sleep 2; done
+    "Ordner|Folders"; do ui tap "$t" >/dev/null; done
 check "a folder page opens" eval 'ui tap OrdoE2E-Midword title || { swipe_up; ui tap OrdoE2E-Midword title; }'
 sleep 2; back
-ui tap "Alben|Albums" >/dev/null; sleep 2
+ui tap "Alben|Albums" >/dev/null
 check "an album page opens" eval 'ui tap "Ordoe2e Midword Album" || { swipe_up; ui tap "Ordoe2e Midword Album"; }'
 sleep 2
 open_song() {
@@ -54,14 +54,14 @@ open_song() {
 }
 check "the player opens" open_song || { echo "DIAG:"; ui texts | head -15 | sed 's/^/  /'; }
 # The wave flows while music plays and uiautomator waits for a still screen: pause first, by key.
-sleep 2; a shell input keyevent KEYCODE_MEDIA_PAUSE; sleep 1
+sleep 2; media_key PAUSE 1
 check "the Sound sheet opens" ui tap actionSound
 sleep 2; swipe_up; swipe_up; sleep 1
-back; sleep 1
+back
 check "the queue sheet opens" ui tap queueChip
-sleep 2; back; back; sleep 2
+sleep 2; back; back
 # Ordo Musik's own settings (side menu): appearance with the colour choices.
-ui tap "Navigationsmenü öffnen|Open navigation drawer" > /dev/null; sleep 1
+ui tap "Navigationsmenü öffnen|Open navigation drawer" > /dev/null
 check "Ordo Musik's settings open" eval 'ui tap "Einstellungen|Settings" && ui wait "Farben aus dem Cover|Colours from the cover" 5'
 sleep 1; back; sleep 1
 # The video player: controls, the locked screen's "hold to unlock", the speed sheet and the player's sheets.
@@ -82,10 +82,10 @@ if command -v ffmpeg >/dev/null; then
     a shell am force-stop "$PKG"
     a shell am start -W -a android.intent.action.VIEW -d "file://$DIR" -t inode/directory \
         -n "$PKG/me.zhanghai.android.files.filelist.FileListActivity" >/dev/null
-    sleep 3; guard
+    guard
     ui tap midword-video.mp4 >/dev/null
     check "the video player opens" wait_on viewer.video.VideoPlayerActivity 8
-    sleep 2; a shell input keyevent KEYCODE_MEDIA_PAUSE; sleep 1
+    sleep 2; media_key PAUSE 1
     check "the video player locks" eval 'ui tap lock && ui wait unlock 3'
     read -r l t r b < <(ui bounds unlock | head -1)
     a shell input swipe $(((l + r) / 2)) $(((t + b) / 2)) $(((l + r) / 2)) $(((t + b) / 2)) 900; sleep 1

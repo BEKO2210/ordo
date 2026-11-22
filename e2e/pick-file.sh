@@ -15,6 +15,9 @@ with wave.open(buf, "wb") as out:
     out.writeframes(struct.pack("<hh", 0, 0) * 4410)
 sys.stdout.buffer.write(buf.getvalue())
 PY
+# Revoked for the check below and given back at the end, whatever kind of device: a suite that came after this one
+# met the notification question on a real device (21.11.2026).
+had=$(a shell dumpsys package "$PKG" | grep -m1 -o "POST_NOTIFICATIONS: granted=true")
 a shell pm revoke "$PKG" android.permission.POST_NOTIFICATIONS >/dev/null 2>&1
 a shell am force-stop "$PKG"
 a shell am start -W -a android.intent.action.GET_CONTENT -c android.intent.category.OPENABLE -t "audio/*" \
@@ -25,9 +28,10 @@ no_prompt() { ! focus | grep -q GrantPermissions; }
 ordo_closed() { ! focus | grep -q "$PKG/"; }
 check "Ordo opens in pick mode" ui has "Datei wählen|Select a file"
 check "no notification prompt while picking" no_prompt
-ui tap ordo-e2e-pick >/dev/null 2>&1; sleep 2
-check "the test file is offered" ui has upload-test.wav
+ui tap ordo-e2e-pick >/dev/null 2>&1
+check "the test file is offered" ui see upload-test.wav
 ui tap upload-test.wav >/dev/null; sleep 2
 check "picking the file closes Ordo" ordo_closed
+[ -z "$had" ] || a shell pm grant "$PKG" android.permission.POST_NOTIFICATIONS >/dev/null 2>&1
 grant
 finish

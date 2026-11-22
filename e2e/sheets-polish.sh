@@ -1,5 +1,6 @@
 #!/bin/bash
 # Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later
+# farm: needs=shots
 # Screens and checks of the 0.17 polish (#121), WRITES /storage/emulated/0/ordo-e2e-polish (removed again): Ordo Video's settings
 # and the Upscaling sheet, the Klang sheet's last cards (headphones, USB DAC), Musik's queue, the stepper bounds of
 # "Adjust picture". In portrait and landscape; photos only while Ordo is in front (E2E_SHOTS=<dir>). Volume stays 0.
@@ -36,11 +37,11 @@ open_dir() {
 shot() { screenshot "$OUT/$1-$orient.png" && echo "SHOT $1-$orient"; }
 for orient in portrait landscape; do
     a shell settings put system accelerometer_rotation 0
-    a shell settings put system user_rotation $([ $orient = portrait ] && echo 0 || echo 1); sleep 2
+    a shell settings put system user_rotation $([ $orient = portrait ] && echo 0 || echo 1); sleep 2 # deliberate: the rotation animation
 
     # Ordo Video settings and the Upscaling sheet.
-    a shell am start -W -n "$PKG/me.zhanghai.android.files.viewer.video.VideoLauncherActivity" >/dev/null; sleep 3; guard
-    ui tap actionSettings >/dev/null; sleep 2; shot 01-video-settings
+    a shell am start -W -n "$PKG/me.zhanghai.android.files.viewer.video.VideoLauncherActivity" >/dev/null; guard
+    ui tap actionSettings >/dev/null; sleep 2; shot 01-video-settings # deliberate: the screenshot waits for the end of the slide-in animation
     # One more swipe: a Samsung taskbar covers the bottom row, and a tap there opens the app drawer.
     scroll_to "Hochskalieren|Upscaling" 6 >/dev/null
     read -r W H < <(screen_size); a shell input swipe $((W / 2)) $((H / 2)) $((W / 2)) $((H / 3)) 400; sleep 1.5; still_muted
@@ -49,23 +50,23 @@ for orient in portrait landscape; do
     back 1; back 1
 
     # Klang sheet: the last cards.
-    open_dir; ui tap a-eins.wav >/dev/null; sleep 3; a shell input keyevent KEYCODE_MEDIA_PAUSE; sleep 1
-    ui tap actionSound >/dev/null; sleep 2
+    open_dir; ui tap a-eins.wav >/dev/null; sleep 3; media_key PAUSE 1
+    ui tap actionSound >/dev/null
     scroll_to "Unverfälscht an USB-DAC|Bit-perfect to USB DAC" 14 >/dev/null; swipe_up; shot 04-klang-ende
     for i in 1 2 3 4 5 6; do ui has "bietet virtuellen|offers virtual|Virtueller Raumklang, leise|Virtual surround, full" && break; swipe_down; done
     shot 05-klang-kopfhoerer
     back 1
     # Musik's queue (three songs in the folder).
-    ui tap "Warteschlange|Queue" >/dev/null || { ui tap "Weitere Optionen|More options" >/dev/null; sleep 1
+    ui tap "Warteschlange|Queue" >/dev/null || { ui tap "Weitere Optionen|More options" >/dev/null
         ui tap "Warteschlange|Queue" >/dev/null; }
-    sleep 2; shot 06-warteschlange
+    sleep 2; shot 06-warteschlange # deliberate: the screenshot waits for the end of the slide-in animation
     back 1
 
     # Musik's Folders tab: a song right at the storage root.
     a shell am force-stop "$PKG"
     a shell am start -W -n "$PKG/me.zhanghai.android.files.viewer.audio.MusicLauncherActivity" >/dev/null
     wait_on viewer.audio.MusicLauncherActivity 10 || guard
-    ui tap "Ordner|Folders" >/dev/null; sleep 2; shot 09-musik-ordner
+    ui tap "Ordner|Folders" >/dev/null; sleep 2; shot 09-musik-ordner # deliberate: the screenshot waits for the end of the slide-in animation
     check "Musik names the storage root ($orient)" ui has "Interner Speicher|Internal storage"
 
     # Adjust picture: stepper bounds.
@@ -77,7 +78,7 @@ for orient in portrait landscape; do
         [ -n "$y2" ] && [ $(((y2 - y1) * 160)) -ge $((48 * dpi - dpi / 2)) ] && [ $(((x2 - x1) * 160)) -ge $((48 * dpi - dpi / 2)) ]; }
     check "the picture steppers are 48 dp ($orient)" eval 'target_48dp stepMinus && target_48dp stepPlus'
     back 1
-    video_menu "Signalweg|Signal path"; sleep 2; shot 08-signalweg
+    video_menu "Signalweg|Signal path"; sleep 2; shot 08-signalweg # deliberate: the screenshot waits for the end of the slide-in animation
     scroll_to "Messwerte|Measurements" 4 >/dev/null; shot 08b-signalweg-messwerte
     back 1
 done

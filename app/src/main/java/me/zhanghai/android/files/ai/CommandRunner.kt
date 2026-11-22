@@ -106,6 +106,9 @@ class CommandRunner(
         if (copy) {
             try {
                 file.copyTo(target, overwrite = false)
+            } catch (e: kotlin.io.FileAlreadyExistsException) {
+                // It appeared after the check above; it belongs to somebody else and must stay untouched.
+                return null
             } catch (e: IOException) {
                 target.delete()
                 return null
