@@ -98,8 +98,8 @@ a shell cmd locale set-app-locales "$PKG" --locales de-DE >/dev/null 2>&1
 trap 'a shell cmd locale set-app-locales "$PKG" --locales "" >/dev/null 2>&1; a shell am start -n "$PKG/$DEBUG" --es design "" >/dev/null 2>&1; a shell settings put system user_rotation "${OLD_ROTATION:-0}"; a shell settings put system accelerometer_rotation "${OLD_AUTO:-1}"; [ -n "$KEYBOARD" ] && { a shell ime enable "$KEYBOARD"; a shell ime set "$KEYBOARD"; } >/dev/null 2>&1' EXIT
 PREVIEW="Neue Befehle ausprobieren (Vorschau)|Try new commands (preview)"
 preview_switch() {   # opens Settings › AI assistant and taps the preview switch
-    a shell am start -W -n "$PKG/me.zhanghai.android.files.settings.SettingsActivity" >/dev/null; sleep 2
-    ui tap "KI-Assistent|AI assistant" >/dev/null; sleep 1
+    a shell am start -W -n "$PKG/me.zhanghai.android.files.settings.SettingsActivity" >/dev/null
+    ui tap "KI-Assistent|AI assistant" >/dev/null
     ui tap "$PREVIEW" >/dev/null; sleep 1
 }
 case $DESIGN in
@@ -208,8 +208,8 @@ ask "Loesche alles im Download Ordner"
 check "regression delete all in Download: preview with the confirm button" ui wait confirmButton 20
 ALL=$(a shell "ls $D | wc -l" | tr -d '\r')
 check "regression delete all: all $ALL files of Download" on_screen "text=\"$ALL (Dateien|files)"
-ui tap confirmButton >/dev/null; sleep 2
-check "regression delete all: a second confirmation, as before" ui has "Abbrechen|Cancel"
+ui tap confirmButton >/dev/null
+check "regression delete all: a second confirmation, as before" ui see "Abbrechen|Cancel"
 ui tap "Abbrechen|Cancel" >/dev/null; sleep 1
 check "regression: nothing changed without a confirm" test "$(listing)" = "$before"
 

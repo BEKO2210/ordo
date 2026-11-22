@@ -33,7 +33,7 @@ wake; grant; a logcat -b crash -c
 pause() { a shell input keyevent KEYCODE_MEDIA_PAUSE > /dev/null; sleep 1.5; }
 song() { a shell dumpsys media_session | grep -A25 "package=$PKG" | grep -m1 -o "description=[^,]*"; }
 a shell am force-stop "$PKG"
-a shell am start -W -n "$PKG/$LIBRARY" > /dev/null; sleep 3; guard
+a shell am start -W -n "$PKG/$LIBRARY" > /dev/null; guard
 ui tap "Titel|Songs" > /dev/null
 search() { ui tap actionSearch > /dev/null && sleep 1 && a shell input text "$1" && a shell input keyevent KEYCODE_ENTER && sleep 2; }
 search Ordoe2e

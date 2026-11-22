@@ -37,9 +37,9 @@ shot() { [ -z "$OUT" ] || screenshot "$OUT/$1.png" >/dev/null; }
 open_clip() {
     a shell am start -W -a android.intent.action.VIEW -d "file://$DIR" -t inode/directory \
         -n "$PKG/me.zhanghai.android.files.filelist.FileListActivity" >/dev/null
-    sleep 3; guard; ui wait "01-menus.mkv" 10 >/dev/null
+    guard; ui wait "01-menus.mkv" 10 >/dev/null
     ui tap "01-menus.mkv" >/dev/null; wait_on viewer.video.VideoPlayerActivity 8; sleep 3
-    a shell input keyevent KEYCODE_MEDIA_PAUSE; sleep 1.5
+    media_key PAUSE 1.5
 }
 controls() { on viewer.video.VideoPlayerActivity || open_clip; ui has "Weitere Optionen|More options" || { read -r W H < <(screen_size); a shell input tap $((W / 2)) $((H / 2)); sleep 1; }; }
 # entry ENTRY EXPECTED NAME: ⋮ › ENTRY shows EXPECTED; the screen is NAME; Back closes the sheet.
@@ -52,8 +52,8 @@ entry() {
 open_clip
 for orient in portrait landscape; do
     a shell settings put system accelerometer_rotation 0
-    a shell settings put system user_rotation "$([ $orient = portrait ] && echo 0 || echo 1)"; sleep 3
-    controls; ui tap "Weitere Optionen|More options" >/dev/null; sleep 1.5
+    a shell settings put system user_rotation "$([ $orient = portrait ] && echo 0 || echo 1)"; sleep 3 # deliberate: the rotation animation
+    controls; ui tap "Weitere Optionen|More options" >/dev/null
     check "⋮ lists the sound entry ($orient)" ui wait "Klang|Sound" 5
     shot "more-$orient"
     back 1
@@ -65,7 +65,7 @@ for orient in portrait landscape; do
     entry "Videoinfos|Video info" "video info" "Auflösung|Resolution" info
     entry "Kapitel|Chapters" "the chapter list" "Anfang" chapters
     entry "Schlaf-Timer|Sleep timer" "the sleep timer" "15 Min.|15 min" sleep
-    controls; ui tap "Tempo|Speed" >/dev/null; sleep 1.5
+    controls; ui tap "Tempo|Speed" >/dev/null
     check "the speed button opens the speed sheet ($orient)" ui wait "Wiedergabetempo|Playback speed" 5
     shot "speed-$orient"; back 1
 done

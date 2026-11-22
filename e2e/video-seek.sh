@@ -47,7 +47,7 @@ session() {
 pos() { session | grep -oE '[{ ]position=[0-9]+' | head -1 | cut -d= -f2; }
 playing() { session | grep -q 'state=PLAYING'; }
 not_playing() { ! playing; }
-pause() { a shell input keyevent KEYCODE_MEDIA_PAUSE >/dev/null; sleep 1.5; }
+pause() { media_key PAUSE 1.5; }
 within() { [ "$1" -ge "$2" ] && [ "$1" -le "$3" ]; }
 dp() { echo $(($1 * $(a shell wm density | tail -1 | sed 's/.*: //' | tr -d '\r') / 160)); }
 touch_target() {
@@ -59,7 +59,7 @@ menu() { ui tap "Weitere Optionen|More options" >/dev/null; sleep 1; ui wait "$1
 
 a shell am start -W -a android.intent.action.VIEW -d "file://$DIR" -t inode/directory \
     -n "$PKG/me.zhanghai.android.files.filelist.FileListActivity" >/dev/null
-sleep 3; guard; ui wait 01-chapters.mp4 10 >/dev/null
+guard; ui wait 01-chapters.mp4 10 >/dev/null
 ui tap 01-chapters.mp4 >/dev/null
 check "the clip opens Ordo's player" wait_on viewer.video.VideoPlayerActivity 8
 sleep 2; pause
@@ -86,7 +86,7 @@ ui tap "Einzelbild beenden|End frame by frame" >/dev/null; sleep 1
 # 3. Keys: "." and "," step a frame, space plays and pauses.
 k0=$(pos); a shell input keyevent KEYCODE_PERIOD; sleep 1; k1=$(pos)
 check "the . key steps a frame ($k0 -> $k1)" within $(( ${k1:-0} - ${k0:-0} )) 20 50
-a shell input keyevent KEYCODE_COMMA; sleep 1; k2=$(pos)
+a shell input keyevent KEYCODE_COMMA; sleep 1; k2=$(pos) # deliberate: the gesture has to take effect before the value is read (no event to wait for)
 check "the , key steps back ($k1 -> $k2)" within $(( ${k1:-0} - ${k2:-0} )) 20 50
 a shell input keyevent KEYCODE_SPACE; sleep 1.5
 check "space plays" playing
@@ -95,14 +95,14 @@ check "space pauses again" not_playing
 
 # 4. A-B: A here, B about 3 s later; playing on for 5 s comes back to A instead of passing B.
 pa=$(pos); menu "Schleifenstart A setzen|Set loop start \\(A\\)"
-a shell input keyevent KEYCODE_MEDIA_PLAY; sleep 3; pause
+a shell input keyevent KEYCODE_MEDIA_PLAY; sleep 3; pause # deliberate: 3 s of film between A and B
 pb=$(pos); menu "Schleifenende B setzen|Set loop end \\(B\\)"
-a shell input keyevent KEYCODE_MEDIA_PLAY; sleep 5; pause
+a shell input keyevent KEYCODE_MEDIA_PLAY; sleep 5; pause # deliberate: long enough to pass B once
 p4=$(pos)
 check "the A-B loop keeps playback between A and B ($pa .. $pb: $p4 ms)" \
     within "${p4:-0}" $(( ${pa:-0} - 300 )) $(( ${pb:-0} + 300 ))
 menu "A-B-Schleife beenden|End A-B loop"
-ui tap "Weitere Optionen|More options" >/dev/null; sleep 1
+ui tap "Weitere Optionen|More options" >/dev/null
 check "after ending the loop the menu offers A again" scroll_to "Schleifenstart A setzen|Set loop start \\(A\\)"
 back 1
 

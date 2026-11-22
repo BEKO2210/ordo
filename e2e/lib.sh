@@ -7,20 +7,37 @@ export ADB=${ADB:-$(command -v adb || echo "$HOME/Android/Sdk/platform-tools/adb
 export PKG=${PKG:-com.beko2210.ordo} # ui.py reads it for its screenshot guard
 HERE=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 FAILS=0
+# With E2E_STATS=<file> every sleep of the test script is noted there (farm.sh adds them up: time spent only waiting).
+[ -z "${E2E_STATS:-}" ] || sleep() { echo "$1" >> "$E2E_STATS"; command sleep "$@"; }
 
 # Anything that acts on the screen drops ui.py's remembered screen read, so the next check reads it fresh.
 DUMP=~/.cache/ordo-e2e/${SERIAL//[^A-Za-z0-9]/_}.xml
 a() { case " $* " in *" input "*|*" am "*|*" monkey "*) rm -f "$DUMP" ;; esac; "$ADB" -s "$SERIAL" "$@" < /dev/null; }
-ui() { python3 "$HERE/ui.py" "$SERIAL" "$@" < /dev/null; }
+# ui.py never taps while another app is in front (exit code 3): the test then stops as with guard().
+ui() { python3 "$HERE/ui.py" "$SERIAL" "$@" < /dev/null; local c=$?; [ $c = 3 ] && guard >&2; return $c; }
 top() { a shell "dumpsys activity activities 2>/dev/null | grep -m1 topResumedActivity" | grep -o 'com[^ }]*'; }
 crashes() { a logcat -b crash -d | grep -c FATAL; }
-back() { a shell input keyevent BACK; sleep "${1:-1.5}"; }
+# focus_window: the focused window (an activity, or a dialog, menu or sheet in a window of its own).
+focus_window() { a shell "dumpsys window 2>/dev/null | grep -m1 mCurrentFocus" 2>/dev/null; }
+# back [S]: Back, then up to S seconds (default 1.5) for what it closes. It returns early only once the focused window
+# has changed (a screen, dialog or menu went away); a layer inside the same window still gets the whole time.
+back() {
+    local before now end; before=$(focus_window)
+    end=$(($(date +%s%3N) + $(awk "BEGIN { print int(${1:-1.5} * 1000) }")))
+    a shell input keyevent BACK
+    while [ "$(date +%s%3N)" -lt "$end" ]; do
+        now=$(focus_window)
+        # A new window has the focus (not the "null" in between): that is the screen behind, already resumed.
+        [ "$now" != "$before" ] && [[ $now != *mCurrentFocus=null* ]] && [ -n "$now" ] && { sleep 0.3; return 0; }
+        sleep 0.2
+    done
+}
 
 # Privacy (20.11.2026, a phone's home screen went into a screenshot): a screenshot or recording is only taken while
 # Ordo is the resumed activity and no keyguard shows. ordo_front checks that; screenshot FILE and raw_screenshot FILE
 # are the only ways the tests take one ("SKIP shot (not Ordo)" otherwise, and the file is not written).
 ordo_front() {
-    local s; s=$(a shell "dumpsys activity activities | grep -m1 topResumedActivity; dumpsys window | grep -m1 isKeyguardShowing; dumpsys window | grep -m1 mCurrentFocus")
+    local s; s=$(a shell "dumpsys activity activities 2>/dev/null | grep -m1 topResumedActivity; dumpsys window 2>/dev/null | grep -m1 isKeyguardShowing; dumpsys window 2>/dev/null | grep -m1 mCurrentFocus")
     # The focused window too: Samsung's app drawer (opened from the taskbar) covers Ordo while Ordo stays the resumed
     # activity (Tab A8, 20.11.2026: a drawer screenshot passed the check).
     grep -q "topResumedActivity=.* $PKG/" <<<"$s" && ! grep -q "isKeyguardShowing=true" <<<"$s" &&
@@ -59,10 +76,17 @@ on() {
     [ "$t" = "$PKG/me.zhanghai.android.files.$1" ] ||
         { [ "$1" = home.HomeActivity ] && [[ $t == "$PKG/me.zhanghai.android.files.launcher.Home"* ]]; }
 }
+# eventually S COMMAND...: runs the command until it succeeds, for up to S seconds (a log line, a file, a state):
+# `check "…" eventually 8 eval 'log | grep …'`. Never for a check that something does NOT happen.
+eventually() { local end=$((SECONDS + $1)); shift; until "$@"; do [ $SECONDS -ge "$end" ] && return 1; sleep 0.5; done; }
 # wait_on SCREEN [S]: polls until that screen is in front (up to S seconds, default 4) instead of a fixed sleep.
 wait_on() { local end=$((SECONDS + ${2:-4})); until on "$1"; do [ $SECONDS -ge "$end" ] && return 1; sleep 0.3; done; }
 
-wake() { a shell input keyevent KEYCODE_WAKEUP; a shell wm dismiss-keyguard; sleep 1; }
+# The second for the screen to come on is only spent when it was off.
+wake() {
+    a shell 'dumpsys power 2>/dev/null | grep -q mWakefulness=Awake; r=$?; input keyevent KEYCODE_WAKEUP; wm dismiss-keyguard; exit $r' ||
+        sleep 1
+}
 # Only the platform's own property counts: adb also names a real phone forwarded to a local port "emulator-<port>".
 is_emulator() {
     [ "$(a shell getprop ro.kernel.qemu | tr -d '\r')" = 1 ] || [ "$(a shell getprop ro.boot.qemu | tr -d '\r')" = 1 ]
@@ -84,12 +108,18 @@ open_app() {
     a shell am force-stop "$PKG"
     # The home screen by name: with the "Ordo Musik" icon switched on, a launcher pick (monkey) may open the music app.
     a shell am start -a android.intent.action.MAIN -c android.intent.category.LAUNCHER -f 0x10200000 -n "$PKG/me.zhanghai.android.files.home.HomeActivity" >/dev/null 2>&1
-    sleep "${1:-6}"
+    # Up to the old fixed time (default 6 s) for a screen of Ordo, or the system question guard() names, to be in
+    # front; the first screen read after it waits for an idle UI by itself.
+    local end=$((SECONDS + ${1:-6}))
+    until case "$(top)" in "$PKG"/*|*permissioncontroller*|com.android.settings/*) true ;; *) false ;; esac; do
+        [ $SECONDS -ge "$end" ] && break; sleep 0.3
+    done
+    sleep 1 # deliberate: the first frame, and a permission question that follows the start comes within it
 }
 # After a fresh install or cleared data Ordo first shows its welcome pages; they are skipped through their own button.
 skip_onboarding() {
     on home.OnboardingActivity || return 0
-    ui tap "Überspringen|Skip" >/dev/null; sleep 3
+    ui tap "Überspringen|Skip" >/dev/null; wait_on home.HomeActivity 3
     on home.OnboardingActivity && { echo "first run: onboarding did not close"; return 1; }
     echo "first run: onboarding skipped"
 }
@@ -113,8 +143,9 @@ record() {
     ordo_front || { echo "SKIP recording (not Ordo): $2"; return 1; }
     a shell "screenrecord $size --time-limit $1 $2"
 }
-swipe_up() { read -r W H < <(screen_size); a shell input swipe $((W / 2)) $((H * 3 / 4)) $((W / 2)) $((H / 3)) 500; sleep 1.5; still_muted; }
-swipe_down() { read -r W H < <(screen_size); a shell input swipe $((W / 2)) $((H / 3)) $((W / 2)) $((H * 3 / 4)) 500; sleep 1.5; still_muted; }
+# The 0.5 s after a swipe is deliberate (the fling runs out); the screen read that follows waits for an idle UI.
+swipe_up() { read -r W H < <(screen_size); a shell input swipe $((W / 2)) $((H * 3 / 4)) $((W / 2)) $((H / 3)) 500; sleep 0.5; still_muted; }
+swipe_down() { read -r W H < <(screen_size); a shell input swipe $((W / 2)) $((H / 3)) $((W / 2)) $((H * 3 / 4)) 500; sleep 0.5; still_muted; }
 # A vertical swipe that misses a sheet lands on the video player's volume gesture (Tab went 0 -> 15 at 09:12,
 # 20.11.2026): unless volume steps are allowed, mute again at once and fail the run.
 still_muted() {
@@ -147,7 +178,9 @@ trash_count() {
     a shell "grep -lE '$(trash_pattern "$1")' /storage/emulated/0/.OrdoTrash/info/*.info 2>/dev/null | wc -l" | tr -d '\r'
 }
 trash_drop() {
-    a shell "cd /storage/emulated/0/.OrdoTrash/info 2>/dev/null && for f in \$(grep -lE '$(trash_pattern "$1")' *.info); do rm -rf \"../files/\${f%.info}\" \"\$f\"; done"
+    # One rm for all of them: a loop with one rm per entry took 97 s for stress-delete's 3000 (Tab S9, 21.11.2026).
+    a shell "cd /storage/emulated/0/.OrdoTrash/info 2>/dev/null && grep -lE '$(trash_pattern "$1")' *.info |
+        sed 's|\\(.*\\)\\.info\$|../files/\\1\\n&|' | tr '\\n' '\\0' | xargs -0 rm -rf"
 }
 
 finish() {
@@ -180,9 +213,24 @@ video_menu() {
     [ -z "$was" ] || a shell input keyevent KEYCODE_MEDIA_PLAY
 }
 
+# media_key PLAY|PAUSE [S]: the media key, then up to S seconds (default 2) until Ordo's media session says so
+# (PAUSE: no longer PLAYING). Instead of a fixed sleep after the key; a pause already in effect costs nothing.
+# Where the playing time itself is the point (play 3 s, then compare positions), keep the key and a sleep.
+session_playing() { a shell dumpsys media_session | grep -A25 "package=$PKG" | grep -q "state=PLAYING"; }
+media_key() { a shell input keyevent "KEYCODE_MEDIA_$1" >/dev/null; media_wait "$@"; }
+# media_wait PLAY|PAUSE [S]: the same wait without a key, e.g. for playback to start once the player is in front.
+media_wait() {
+    local end; end=$(($(date +%s%3N) + $(awk "BEGIN { print int(${2:-2} * 1000) }")))
+    while [ "$(date +%s%3N)" -lt "$end" ]; do
+        if session_playing; then [ "$1" = PLAY ] && return 0; else [ "$1" = PAUSE ] && return 0; fi
+        sleep 0.2
+    done
+}
+
 # Night rule (20.11.2026, a test device was heard): every suite starts with media at 0 or does not start at all.
 # Volume keys first (on the W90 and the Pixel `cmd media_session volume --set` was unreliable), then --set as a fallback.
 media_volume() { a shell cmd media_session volume --stream 3 --get 2>/dev/null | grep -oE 'volume is [0-9]+' | grep -oE '[0-9]+'; }
-a shell 'for i in $(seq 25); do input keyevent KEYCODE_VOLUME_DOWN; done'
+# Already at 0: nothing to press (25 key presses cost 5 s per suite on the Tab S9, more on slower devices).
+[ "$(media_volume)" = 0 ] || a shell 'for i in $(seq 25); do input keyevent KEYCODE_VOLUME_DOWN; done'
 [ "$(media_volume)" = 0 ] || a shell cmd media_session volume --stream 3 --set 0 >/dev/null 2>&1
 [ "$(media_volume)" = 0 ] || { echo "ABORT: media volume is $(media_volume), not 0"; exit 2; }

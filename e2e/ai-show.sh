@@ -38,8 +38,8 @@ check "the subtitle counts and says what was understood" on_screen "1 (Datei|fil
 check "the big video is listed" ui wait big_ordoe2e.mp4 10
 check "the small one is not" not_has small_ordoe2e.mp4
 shot ai-show-list
-ui longtap big_ordoe2e.mp4 >/dev/null 2>&1; sleep 1.5
-check "long press selects as usual" ui has selectionBar
+ui longtap big_ordoe2e.mp4 >/dev/null 2>&1
+check "long press selects as usual" ui see selectionBar
 back; back
 
 # --- a question never becomes a delete: the rules turn it into show
@@ -54,8 +54,8 @@ check "the hint says Ordo cannot know it" ui wait "Das kann Ordo noch nicht wiss
 check "the hint offers unchanged files instead" ui has "Unveränderte Dateien zeigen|Show unchanged files"
 check "no confirm button" not_has confirmButton
 shot ai-show-hint
-ui tap messageLayout >/dev/null 2>&1; sleep 1
-check "a tap on the hint goes back to the command field" ui has commandEdit
+ui tap messageLayout >/dev/null 2>&1
+check "a tap on the hint goes back to the command field" ui see commandEdit
 back
 
 # --- storage questions and duplicates go to the existing analysis pages, without the model

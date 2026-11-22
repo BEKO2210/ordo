@@ -1,5 +1,6 @@
 #!/bin/bash
 # Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later
+# farm: needs=shots timeout=1200
 # Ordo Musik's library, WRITES: creates two folders with tagged 16-bit stereo test songs (three MP3, one WAV) and
 # removes them afterwards. Opens the library in its own task, checks the tabs, the Songs list and search, plays a
 # song, comes back to the library with the mini player, pauses from there, walks through the Folders and Albums tabs,
@@ -100,8 +101,8 @@ check "MediaStore indexed the four test songs" indexed
 
 wake; grant; a logcat -b crash -c
 a shell am force-stop "$PKG"
-a shell am start -W -n "$PKG/$LIBRARY" >/dev/null; sleep 3; guard
-check "Ordo Musik opens its library, not the player" on viewer.audio.MusicLauncherActivity
+a shell am start -W -n "$PKG/$LIBRARY" >/dev/null
+check "Ordo Musik opens its library, not the player" wait_on viewer.audio.MusicLauncherActivity 5; guard
 # Ordo Musik is its own app: a task of its own affinity, a separate card in Recents next to the file manager.
 music_task() { a shell dumpsys activity recents | grep -Eq "A=[0-9]+:me\.zhanghai\.android\.files\.music([ }]|$)"; }
 check "Recents shows Ordo Musik as a task of its own" music_task
@@ -232,7 +233,7 @@ edit_title() {
     wait_on viewer.audio.MusicTagEditorActivity 8 || return 1
     ui wait Fixture 8 && ui tap Fixture || return 1
     a shell input keycombination 113 29; sleep 0.5   # Ctrl+A: the new title replaces the old one
-    a shell input text "${new// /%s}"; sleep 1
+    a shell input text "${new// /%s}"; sleep 1 # deliberate: the search waits for the end of typing (debounce) and then loads
     a shell input keyevent KEYCODE_BACK; sleep 1      # hide the keyboard
     local old_auto old_rotation next_rotation
     old_auto=$(a shell settings get system accelerometer_rotation | tr -d '\r')

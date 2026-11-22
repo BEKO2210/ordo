@@ -1,5 +1,6 @@
 #!/bin/bash
 # Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later
+# farm: needs=shots
 # Regression (0.4.2, 0.4.3): every storage bar grows in again when the home screen comes back, also a bar whose
 # numbers did not change (the SD card). Records the screen and measures each bar on its own: at the first frame in
 # which the home screen is visible the bar must still be nearly empty, later it must be full. Read-only.
@@ -18,8 +19,8 @@ for _ in 1 2 3 4; do
 done
 ui has usageBar || fail "no storage bar on the home screen"
 ui bounds usageBar > "$tmp/bars.txt"
-ui tap openButton >/dev/null; sleep 4; guard
-check "left the home screen" on filelist.FileListActivity
+ui tap openButton >/dev/null
+check "left the home screen" wait_on filelist.FileListActivity 6; guard
 record 6 /sdcard/ordo-e2e-bars.mp4 &
 sleep 1.5; back 0; wait
 "$ADB" -s "$SERIAL" pull /sdcard/ordo-e2e-bars.mp4 "$tmp/bars.mp4" >/dev/null 2>&1; a shell rm -f /sdcard/ordo-e2e-bars.mp4

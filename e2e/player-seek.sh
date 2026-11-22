@@ -15,7 +15,7 @@ with wave.open(sys.argv[1], "wb") as out:
 PY
 a shell "rm -rf $DIR; mkdir -p $DIR"; a push "$tmp/seek.wav" "$DIR/" >/dev/null
 wake; grant; a logcat -b crash -c
-pause() { a shell input keyevent KEYCODE_MEDIA_PAUSE >/dev/null; sleep 1.5; }
+pause() { media_key PAUSE 1.5; }
 pos() { a shell dumpsys media_session | grep -A25 "package=$PKG" | grep -m1 "position=" | grep -o "position=[0-9]*" \
     | head -1 | cut -d= -f2; }
 a shell am start -W -a android.intent.action.VIEW -d "file://$DIR" -t inode/directory \
@@ -30,7 +30,7 @@ read -r x1 bottom _ _ < <(ui bounds elapsed | head -1)
 read -r _ _ x2 _ < <(ui bounds remaining | head -1)
 y=$(((top + bottom) / 2)); w=$((x2 - x1)); xa=$((x1 + w / 4)); xb=$((x1 + w * 3 / 4))
 moved_less() { [ $(($2 - $1)) -lt 3000 ] && [ $(($1 - $2)) -lt 3000 ]; }
-p0=$(pos); a shell input tap $xb $y; sleep 1.5; p1=$(pos)
+p0=$(pos); a shell input tap $xb $y; sleep 1.5; p1=$(pos) # deliberate: the gesture has to take effect before the value is read (no event to wait for)
 check "a tap on the bar does not seek ($p0 -> $p1 ms)" moved_less "$p0" "$p1"
 a shell input swipe $xa $y $xb $y 120; sleep 1.5; p2=$(pos)
 check "a quick swipe along the bar does not seek ($p1 -> $p2 ms)" moved_less "$p1" "$p2"
@@ -38,7 +38,7 @@ a shell input swipe $xb $((y - 300)) $xb $((y + 300)) 200; sleep 1.5; p3=$(pos)
 check "a vertical scroll over the bar does not seek ($p2 -> $p3 ms)" moved_less "$p2" "$p3"
 a shell "input motionevent DOWN $xa $y; sleep 0.4; input motionevent MOVE $((xa + w / 8)) $y; \
     input motionevent MOVE $((xa + w / 4)) $y; input motionevent MOVE $xb $y; sleep 0.3; input motionevent UP $xb $y"
-sleep 1.5; p4=$(pos)
+sleep 1.5; p4=$(pos) # deliberate: the gesture has to take effect before the value is read (no event to wait for)
 # Three quarters of 180 s is 135 s; the slider's own track inset leaves a few seconds either way.
 check "held 400 ms and dragged, the bar seeks to three quarters ($p4 ms)" test "$p4" -gt 120000 -a "$p4" -lt 150000
 read -r c1 d1 c2 d2 < <(ui bounds artworkCard | head -1)

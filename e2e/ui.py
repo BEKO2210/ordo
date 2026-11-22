@@ -5,6 +5,8 @@
     ui.py SERIAL tap TARGET [ID]   tap a node; TARGET is a visible text, a content description or a resource id
     ui.py SERIAL longtap TARGET [ID]
     ui.py SERIAL has TARGET [ID]   exit 0 if a node matches
+    ui.py SERIAL see TARGET [ID]   like has, but waits up to E2E_SEE seconds (default 5) for the node: the check right
+                                   after an action, instead of a fixed sleep before `has`. Never negate it.
     ui.py SERIAL checked TEXT      exit 0 if the check box after the node with that text is ticked
     ui.py SERIAL summary TITLE TEXT exit 0 if a preference row has that summary
     ui.py SERIAL visible ID        exit 0 if that view of the front activity's window is shown (fast; no popups/dialogs)
@@ -123,8 +125,19 @@ def in_scroller(point):
     return any(int(x1) <= point[0] <= int(x2) and int(y1) <= point[1] <= int(y2) for x1, y1, x2, y2 in boxes)
 
 
-def need(target, inside=None):
+def poll(target, inside=None, seconds=3.0):
+    """find(), read fresh again until it matches or the time is up: what a fixed sleep before the read used to cover."""
+    deadline = time.time() + seconds
     point = find(target, inside)
+    while point is None and time.time() < deadline:
+        time.sleep(0.3)
+        point = find(target, inside, fresh=True)
+    return point
+
+
+def need(target, inside=None):
+    # A target that is still on its way in (the screen after a tap) gets 3 s; one that is missing costs those 3 s.
+    point = poll(target, inside)
     if point is None:
         sys.exit(f"not found: {target}")
     return point
@@ -153,6 +166,21 @@ def visible(name):
     return False
 
 
+def act(*gesture):
+    """Sends a tap or swipe, but only into Ordo: with another app resumed nothing is touched and the exit code is 3
+    (lib.sh's `ui` then stops the test like guard()). A test that means to tap a system screen it opened itself (the
+    file picker, the share chooser) says so with E2E_TAP_ANY=1 for that one call."""
+    if os.environ.get("E2E_TAP_ANY") == "1":
+        sh("input", *gesture)
+        return
+    pkg = os.environ.get("PKG", "com.beko2210.ordo")
+    out = sh('t=$(dumpsys activity activities 2>/dev/null | grep -m1 topResumedActivity); case "$t" in *" %s/"*) input %s ;; '
+             '*) echo "NOT-ORDO $t" ;; esac' % (pkg, " ".join(gesture)))
+    if "NOT-ORDO" in out:
+        print(f"ABORT: not tapped, Ordo is not in front: {out.strip()}", file=sys.stderr)
+        sys.exit(3)
+
+
 def forget_screen():
     try:
         os.remove(DUMP)
@@ -175,19 +203,21 @@ if command == "tap" and os.environ.get("E2E_FAST") == "1":
         # and control labels are remembered.
         if not in_scroller(point) and not FOUND_BY_TEXT:
             cache_store(key, target, point)
-    sh("input", "tap", str(point[0]), str(point[1]))
+    act("tap", str(point[0]), str(point[1]))
     forget_screen()
     time.sleep(0.5)
 elif command == "tap":
     x, y = need(sys.argv[3], *sys.argv[4:5])
-    sh("input", "tap", str(x), str(y))
+    act("tap", str(x), str(y))
     forget_screen()
-    time.sleep(1.2)
+    # Deliberate: the tap's ripple and focus change. The next screen read waits for an idle UI by itself (uiautomator
+    # dump returns after 1 s without accessibility events), so 0.5 s is enough here (it was 1.2 s).
+    time.sleep(0.5)
 elif command == "longtap":
     x, y = need(sys.argv[3], *sys.argv[4:5])
-    sh("input", "swipe", str(x), str(y), str(x), str(y), "900")
+    act("swipe", str(x), str(y), str(x), str(y), "900")
     forget_screen()
-    time.sleep(1.2)
+    time.sleep(0.5)  # deliberate, as after a tap
 elif command == "visible":
     sys.exit(0 if visible(sys.argv[3]) else 1)
 elif command == "checked":
@@ -230,6 +260,8 @@ elif command == "summary":
     sys.exit(1)
 elif command == "has":
     sys.exit(0 if find(sys.argv[3], *sys.argv[4:5]) else 1)
+elif command == "see":
+    sys.exit(0 if poll(sys.argv[3], *sys.argv[4:5], seconds=float(os.environ.get("E2E_SEE", 5))) else 1)
 elif command == "wait":
     deadline = time.time() + float(sys.argv[4] if len(sys.argv) > 4 else 10)
     while time.time() < deadline:
