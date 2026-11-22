@@ -1527,11 +1527,6 @@ private fun FileJob.copyOrMove(
             val targetFile = target.loadFileItem()
             val sourceIsDirectory = sourceFile.attributesNoFollowLinks.isDirectory
             val targetIsDirectory = targetFile.attributesNoFollowLinks.isDirectory
-            if (!sourceIsDirectory && targetIsDirectory) {
-                transferInfo.skipFile(source)
-                postCopyMoveNotification(transferInfo, source, type)
-                return false
-            }
             val isMerge = sourceIsDirectory && targetIsDirectory
             if (isMerge && actionAllInfo.merge) {
                 transferInfo.addTransferredFile(target)
@@ -3295,10 +3290,11 @@ class BackupJob(
                 try {
                     Os.fstat(it.fileDescriptor).st_size
                 } catch (e: ErrnoException) {
-                    0L
+                    UNKNOWN_SIZE
                 }
             } ?: documentSize()
-            if (existingDataSize > 0) {
+            // An unknown size must not count as empty: the old backup would be cut.
+            if (existingDataSize != 0L) {
                 existingPfd?.close()
                 BackupStatusLiveData.postValue(
                     BackupStatus.Failed(null, false, getString(R.string.backup_failed_name_taken))
@@ -3501,9 +3497,11 @@ class BackupJob(
         try {
             service.contentResolver.query(
                 target, arrayOf(OpenableColumns.SIZE), null, null, null
-            )?.use { if (it.moveToFirst() && !it.isNull(0)) it.getLong(0) else 0L } ?: 0L
+            )?.use {
+                if (it.moveToFirst() && !it.isNull(0)) it.getLong(0) else UNKNOWN_SIZE
+            } ?: UNKNOWN_SIZE
         } catch (e: Exception) {
-            0L
+            UNKNOWN_SIZE
         }
 
     // A half-written backup looks like a real one, so it must not stay on the drive. A file the
@@ -3530,5 +3528,6 @@ class BackupJob(
     companion object {
         // FAT32 drives cannot hold a file of 4 GB or more.
         private const val FAT32_FILE_SIZE_HINT = 3_900_000_000L
+        private const val UNKNOWN_SIZE = -1L
     }
 }
