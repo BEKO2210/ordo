@@ -199,5 +199,35 @@ class CommandCheckTest {
         assertTrue((outcome as Outcome.Ready).plan.duplicates)
     }
 
+    @Test
+    fun negationAfterComma_refusesDelete() {
+        val plan = CommandPlan("delete", "Download")
+        assertEquals(Outcome.Refused(Reason.UNSURE_DELETE),
+            check("Lösche alle Dateien, bitte nicht", plan))
+    }
+
+    @Test
+    fun missingNegationForms_refuseDelete() {
+        val plan = CommandPlan("delete", "Download")
+        assertEquals(Outcome.Refused(Reason.UNSURE_DELETE),
+            check("Lösche keineswegs meine Fotos", plan))
+        assertEquals(Outcome.Refused(Reason.UNSURE_DELETE),
+            check("Lösche die Fotos \u2013 nein", plan))
+        assertEquals(Outcome.Refused(Reason.UNSURE_DELETE),
+            check("don\u2019t delete the photos", plan))
+    }
+
+    @Test
+    fun additiveAndRestrictiveNegation_stillDeletes() {
+        val plan = CommandPlan("delete", "Download")
+        assertTrue(check("Nicht nur die Videos löschen, sondern auch die Fotos", plan) is Outcome.Ready)
+        assertTrue(check("Nicht nur die Videos löschen, auch die Bilder", plan) is Outcome.Ready)
+        assertTrue(check("Lösche die Videos, nicht die Bilder", plan) is Outcome.Ready)
+        assertTrue(check("Lösche alles außer den Fotos", plan) is Outcome.Ready)
+        assertTrue(check("Delete everything except the photos", plan) is Outcome.Ready)
+        assertTrue(check("Lösche die Dateien ohne Backup im Namen", plan) is Outcome.Ready)
+        assertTrue(check("Delete the videos, no images", plan) is Outcome.Ready)
+    }
+
     private fun Outcome.plan(): CommandPlan = (this as Outcome.Ready).plan
 }

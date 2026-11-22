@@ -424,8 +424,10 @@ Tippfehler, Umgangssprache, Deutsch oder Englisch – alles geht.
 **So bleibt es sicher.** Das Modell schreibt nur einen kleinen Plan in einem festen JSON-Format (durch eine
 Grammatik erzwungen). Ordo prüft diesen Plan selbst, bevor es ihn zeigt:
 
-- Löschen heißt immer Papierkorb, und nur, wenn der Satz es klar verlangt – eine Verneinung im selben Teilsatz
-  („nicht löschen“, „nie“, „bitte nicht“ am Ende, “don’t delete”) oder ein Lösch-Wort im Dateinamen zählt nicht.
+- Löschen heißt immer Papierkorb, und nur, wenn der Satz es klar verlangt – eine Verneinung
+  („nicht löschen“, „nie“, „keineswegs“, „bitte nicht“ auch nach Komma, “don’t delete”) oder ein Lösch-Wort im
+  Dateinamen zählt nicht. „Nicht nur …, auch …“ und „Lösche X, nicht Y“ bleiben ein Löschen; unklare Sätze werden
+  nachgefragt.
 - Systemordner, versteckte Ordner, `Android/data` und der Kamera-Ordner sind tabu, außer du nennst den
   Kamera-Ordner ausdrücklich. Pfade werden nach Auflösen von `..` und Links verglichen.
 - Unbekannte oder mehrdeutige Ordner führen zu einer Rückfrage, nie zu einer Vermutung.
