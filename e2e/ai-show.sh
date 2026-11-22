@@ -39,10 +39,12 @@ check "the subtitle counts and says what was understood" on_screen "1 (Datei|fil
 check "the big video is listed" ui wait big_ordoe2e.mp4 10
 check "the small one is not" not_has small_ordoe2e.mp4
 shot ai-show-list
-ui longtap big_ordoe2e.mp4 >/dev/null 2>&1; sleep 1.5
-check "long press selects as usual" ui has selectionBar
+ui longtap big_ordoe2e.mp4 >/dev/null 2>&1
+check "long press selects as usual" ui see selectionBar
 # CP-8: leave the list so its state is saved, kill the background process, then come back.
 # `am task focus` restores that task. Starting Home on top would cover a list that failed to close.
+# `back; back` from integrate would leave this list before the kill, so the process-death check could not run.
+# The next scenario starts with --activity-clear-task, which replaces that dismissal.
 a shell input keyevent KEYCODE_HOME
 sleep 1
 if ! a shell dumpsys activity activities | tr -d '\r' | grep -q 'filelist.FileListActivity'; then
@@ -87,8 +89,8 @@ check "the hint says Ordo cannot know it" ui wait "Das kann Ordo noch nicht wiss
 check "the hint offers unchanged files instead" ui has "Unveränderte Dateien zeigen|Show unchanged files"
 check "no confirm button" not_has confirmButton
 shot ai-show-hint
-ui tap messageLayout >/dev/null 2>&1; sleep 1
-check "a tap on the hint goes back to the command field" ui has commandEdit
+ui tap messageLayout >/dev/null 2>&1
+check "a tap on the hint goes back to the command field" ui see commandEdit
 back
 
 # --- storage questions and duplicates go to the existing analysis pages, without the model

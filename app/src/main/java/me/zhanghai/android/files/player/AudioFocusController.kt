@@ -34,6 +34,7 @@ class AudioFocusController(
     }
 
     fun requestForPlayback(): Boolean {
+        resumeOnGain = false
         if (hasFocus) return true
         val result = if (Build.VERSION.SDK_INT >= 26) {
             requestFocusApi26()
@@ -52,6 +53,10 @@ class AudioFocusController(
     fun onPlaybackPaused() {
         // Keep the request only while a transient focus loss is expected to resume playback.
         if (!resumeOnGain) abandon()
+    }
+
+    fun onUserPause() {
+        resumeOnGain = false
     }
 
     override fun onAudioFocusChange(focusChange: Int) {

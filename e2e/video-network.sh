@@ -32,11 +32,11 @@ part() { ui texts | grep -E -- "$1" >/dev/null; }
 open_clip() {
     a shell am start -W -a android.intent.action.VIEW -d "file://$DIR" -t inode/directory \
         -n "$PKG/me.zhanghai.android.files.filelist.FileListActivity" >/dev/null
-    sleep 3; guard
+    guard
     ui wait "$1" 10 >/dev/null && ui tap "$1" >/dev/null
     sleep 3; guard
     # The controls hide after 4 s of playback; pause so the toolbar stays.
-    a shell input keyevent KEYCODE_MEDIA_PAUSE >/dev/null; sleep 1
+    media_key PAUSE 1
 }
 
 open_clip 01-tv-clip.mp4
@@ -60,7 +60,7 @@ ui tap castPlayPause >/dev/null; sleep 2
 check "Pause on the remote pauses the TV" settled "Paused|Pausiert"
 for _ in 1 2; do a shell input keyevent KEYCODE_VOLUME_DOWN; sleep 0.3; done
 check "the volume keys set the TV's volume" settled "Volume [0-9]+ %|Lautstärke [0-9]+ %"
-ui tap castStop >/dev/null; sleep 2
+ui tap castStop >/dev/null; sleep 2 # deliberate: the TV hands the clip back
 check "the clip is back on the phone" absent "Watch on this phone|Auf diesem Handy weiterschauen"
 back 1
 # The AVI's "TVs can't play AVI videos" is a toast (not in the UI dump): only that nothing connects is checked.

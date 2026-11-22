@@ -100,6 +100,9 @@ object StorageAnalysis {
     /** Whether the folder at [path] is empty right now; a missing or unreadable folder is not. */
     fun isStillEmpty(path: String): Boolean = File(path).list()?.isEmpty() == true
 
+    /** Deletes the folder only if it is still empty: File.delete never removes a folder with something inside. */
+    fun deleteIfStillEmpty(path: String): Boolean = isStillEmpty(path) && File(path).delete()
+
     /** Thumbnail caches in ".thumbnails" folders (DCIM/.thumbnails and the like): the gallery makes them again. */
     fun thumbnailFiles(root: String, files: List<ScannedFile>): List<ScannedFile> =
         files.filter {

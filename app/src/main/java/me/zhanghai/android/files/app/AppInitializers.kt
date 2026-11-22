@@ -116,7 +116,13 @@ private fun purgeExpiredTrash() {
 }
 
 private fun cleanUpVault() {
-    Thread({ Vault.cleanUp() }, "VaultCleanUp").start()
+    Thread({
+        try {
+            Vault.cleanUp()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }, "VaultCleanUp").start()
 }
 
 // Posted: this runs from a ContentProvider, possibly before androidx.startup has attached ProcessLifecycleOwner.

@@ -20,6 +20,11 @@ import org.junit.Assert.fail
 import org.junit.Test
 
 class CastFileServerTest {
+    @Test
+    fun ipv6UrlsUseBracketsAndDropTheZone() {
+        assertEquals("[fe80::1234]", CastFileServer.hostForUrl("fe80::1234%wlan0"))
+        assertEquals("192.0.2.1", CastFileServer.hostForUrl("192.0.2.1"))
+    }
     private val loopback = InetAddress.getByName("127.0.0.1")
     private val data = ByteArray(10_000) { (it * 7).toByte() }
     private val source = CastFileServer.Source(data.size.toLong(), "audio/mpeg") { offset ->

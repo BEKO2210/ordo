@@ -13,6 +13,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
+import java.util.concurrent.CountDownLatch
 
 class PlaylistsTest {
     @get:Rule
@@ -52,6 +53,20 @@ class PlaylistsTest {
         assertEquals(listOf(song("a.mp3"), song("b.mp3"), song("c.mp3")), store.read("Mix.m3u8"))
         store.remove("Mix.m3u8", listOf(song("b.mp3")))
         assertEquals(listOf(song("a.mp3"), song("c.mp3")), store.read("Mix.m3u8"))
+    }
+
+    @Test
+    fun concurrentAddsLoseNoEntries() {
+        val start = CountDownLatch(1)
+        val threads = (0..1).map { thread ->
+            Thread {
+                start.await()
+                repeat(200) { store.add("Together.m3u8", listOf(song("$thread-$it.mp3"))) }
+            }.apply { start() }
+        }
+        start.countDown()
+        threads.forEach { it.join() }
+        assertEquals(400, store.read("Together.m3u8").size)
     }
 
     @Test

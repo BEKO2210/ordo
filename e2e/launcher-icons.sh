@@ -47,7 +47,7 @@ restore() { set_alias "$initial"; set_video "$initial_video"; }
 trap restore EXIT
 
 open_page() {
-    a shell am start -W -n "$PKG/$SETTINGS" >/dev/null; sleep 2; guard
+    a shell am start -W -n "$PKG/$SETTINGS" >/dev/null; guard
     ui tap "$SECTION" >/dev/null; ui wait "$MUSIC" 8 >/dev/null; guard
 }
 

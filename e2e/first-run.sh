@@ -1,5 +1,6 @@
 #!/bin/bash
 # Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later
+# farm: orient=once
 # First run after a fresh install: the welcome pages appear, Skip closes them, the home screen then shows its
 # categories and the storage card, and the next start goes straight home. Clears Ordo's data, so it runs only on
 # an emulator; a real device prints SKIP and is left untouched.

@@ -1,5 +1,6 @@
 #!/bin/bash
 # Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later
+# farm: needs=shots,hdr
 # Ordo Video's picture, WRITES: creates /storage/emulated/0/ordo-e2e-picture with clips made by ffmpeg on the host and
 # removes it again; switches the debug log on (setprop log.tag.OrdoVideoPicture DEBUG) and off.
 # A 640x360 24p SDR clip (a slow gradient, where banding shows) gets the enhancement decided before prepare (no
@@ -51,22 +52,22 @@ log() { tr -d '\r' < "$tmp/log.txt"; }
 open_folder() {
     a shell am start -W -a android.intent.action.VIEW -d "file://$DIR" -t inode/directory \
         -n "$PKG/me.zhanghai.android.files.filelist.FileListActivity" >/dev/null
-    sleep 3; guard; ui wait "$1" 10 >/dev/null
+    guard; ui wait "$1" 10 >/dev/null
 }
 menu() { video_menu "$1"; }
 # part REGEX: a text or description on screen contains it (the signal path rows say "Decoder: Hardware · c2…").
 part() { ui texts | grep -E -- "$1" >/dev/null; }
 settings_pick() {
-    a shell am start -W -n "$PKG/me.zhanghai.android.files.viewer.video.VideoLauncherActivity" >/dev/null; sleep 2; guard
-    ui tap actionSettings >/dev/null; sleep 2
-    scroll_to "$1"; ui tap "$1" >/dev/null; sleep 1.5
-    ui tap "$2" >/dev/null; sleep 1.5
+    a shell am start -W -n "$PKG/me.zhanghai.android.files.viewer.video.VideoLauncherActivity" >/dev/null; guard
+    ui tap actionSettings >/dev/null
+    scroll_to "$1"; ui tap "$1" >/dev/null
+    ui tap "$2" >/dev/null; sleep 1.5 # deliberate: the choice is taken over before the next step leaves the screen
     back 1; back 1
 }
 
 # 1. The settings page has the Picture group with both rows and their defaults.
-a shell am start -W -n "$PKG/me.zhanghai.android.files.viewer.video.VideoLauncherActivity" >/dev/null; sleep 2; guard
-ui tap actionSettings >/dev/null; sleep 2
+a shell am start -W -n "$PKG/me.zhanghai.android.files.viewer.video.VideoLauncherActivity" >/dev/null; guard
+ui tap actionSettings >/dev/null
 check "the settings have Picture enhancement, balanced by default" scroll_to "Ausgewogen|Balanced"
 # Its row can sit below the fold (Tab A8, 21.11.2026).
 check "and Match frame rate, only when seamless by default" scroll_to "Nur nahtlos|Only when seamless" 3
@@ -79,14 +80,14 @@ ui tap 01-small.mp4 >/dev/null
 check "the small clip opens Ordo's player" wait_on viewer.video.VideoPlayerActivity 8
 # The start, read early: every frame logs a line, and on the S21 the first lines had left the buffer after 8 s.
 sleep 2; start=$(log)
-sleep 6
+sleep 6 # deliberate: 8 s of film, so a second prepare (ENGAGE), which must not come, would have come
 check "a 360p clip starts with the pipeline, decided before prepare" eval 'grep -q "prepare: pipeline true" <<<"$start"'
 check "and is not prepared a second time" eval '! log | grep -- "-> ENGAGE"'
 check "the enhancement is applied" eval 'grep -q -- "-> APPLY" <<<"$start"'
 check "frames go through the enhancement pass" eval 'grep -qE "frame [0-9]+ [0-9]+x[0-9]+ [0-9.]+ ms" <<<"$start"'
 log | grep "last 120 frames" | tail -3 | sed 's/^/INFO GPU time /'
 log | grep "dropped" | tail -2 | sed 's/^/INFO /'
-a shell input keyevent KEYCODE_MEDIA_PAUSE; sleep 1
+media_key PAUSE 1
 screenshot "$out/small-enhanced.png"
 
 # 3. The signal path: decoder, Lanczos, sound.
@@ -115,8 +116,8 @@ back 2
 # 5. A clip as large as the screen gets nothing.
 relog
 open_folder 02-screen.mp4
-ui tap 02-screen.mp4 >/dev/null; wait_on viewer.video.VideoPlayerActivity 8; sleep 4
-check "a clip as large as the screen is left alone (${long}x$short)" eval 'log | grep "NOT_SMALLER"'
+ui tap 02-screen.mp4 >/dev/null; wait_on viewer.video.VideoPlayerActivity 8
+check "a clip as large as the screen is left alone (${long}x$short)" eventually 6 eval 'log | grep "NOT_SMALLER"'
 back 2
 
 # 6. "Always" asks for 24 fps itself from API 31; "Only when seamless" leaves it to Media3.
@@ -134,7 +135,7 @@ else
 fi
 # Frame pacing, twice: Media3's scheduled release times (the log, every 240 frames; the Signal path row) and what the
 # panel really showed (SurfaceFlinger's present times of the video layer, last 127 frames).
-sleep 10
+sleep 10 # deliberate: the pacing line is logged every 240 frames
 log | grep "pacing fps" | tail -2 | sed 's/^/INFO /'
 layer=$(a shell dumpsys SurfaceFlinger --list | tr -d '\r' | grep -m1 "SurfaceView.*VideoPlayerActivity")
 if [ -n "$layer" ]; then
@@ -169,9 +170,9 @@ if [ "$hdr" = 1 ]; then
     else
         check "an HDR10 clip on an HDR screen is not processed" eval 'log | grep "off=HDR" && ! log | grep -- "-> ENGAGE"'
     fi
-    a shell input keyevent KEYCODE_MEDIA_PAUSE; sleep 1
+    media_key PAUSE 1
     menu "Videoinfos|Video info"
-    ui tap "Signalweg|Signal path" >/dev/null; sleep 1.5
+    ui tap "Signalweg|Signal path" >/dev/null
     check "Video info opens the signal path, which names HDR10" ui wait "HDR: HDR10" 5
     back 1; back 2
 else

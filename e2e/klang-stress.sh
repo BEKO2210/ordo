@@ -52,14 +52,14 @@ cpu() {
 cores() { a shell nproc | tr -d '\r'; }
 a shell am start -W -a android.intent.action.VIEW -d "file://$DIR" -t inode/directory \
     -n "$PKG/me.zhanghai.android.files.filelist.FileListActivity" >/dev/null
-sleep 2; guard
+guard
 check "the test folder opens" ui wait stress.flac 10
 ui tap stress.flac >/dev/null
 check "the FLAC plays with every effect on" wait_state PLAYING
 before=$(cpu 20)
 echo "INFO CPU with every effect on, $RATE Hz: ${before:-?} % of one core ($(cores) cores)"
 # A playing screen cannot be dumped reliably: every read of the screen happens paused, every storm while playing.
-pause() { a shell input keyevent KEYCODE_MEDIA_PAUSE; sleep 0.4; }
+pause() { media_key PAUSE 0.4; }
 resume() { a shell input keyevent KEYCODE_MEDIA_PLAY; wait_state PLAYING; }
 pause
 check "Sound opens" ui tap actionSound

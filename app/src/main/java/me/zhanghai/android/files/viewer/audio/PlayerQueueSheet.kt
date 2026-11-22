@@ -179,6 +179,7 @@ class PlayerQueueSheet : BottomSheetDialogFragment() {
                 override fun performAccessibilityAction(host: View, action: Int, args: Bundle?): Boolean {
                     val position = holder.bindingAdapterPosition
                     val player = player ?: return false
+                    if (position !in 0 until player.mediaItemCount) return false
                     when (action) {
                         R.id.queue_move_up -> player.moveMediaItem(position, position - 1)
                         R.id.queue_move_down -> player.moveMediaItem(position, position + 1)

@@ -6,7 +6,95 @@ script, so the same bug cannot come back unnoticed.
 ```bash
 e2e/run.sh <adb serial>            # read-only tests
 e2e/run.sh --write <adb serial>    # plus tests that create and delete their own files
+e2e/preflight.sh <adb serial>      # a few seconds: can a run start at all?
+e2e/farm.sh --write                # every suite, portrait and landscape, on all test devices at once
 ```
+
+## The farm
+
+`run.sh` walks through the suites on one device, one after the other. `farm.sh` shares the same list out over every
+test device that is connected, each suite once in portrait and once in landscape:
+
+```bash
+PKG=com.beko2210.ordo.dev E2E_GRANT=1 e2e/farm.sh --write            # all devices of farm-devices.conf
+PKG=com.beko2210.ordo.dev E2E_GRANT=1 e2e/farm.sh --write tab a8     # only these
+e2e/farm.sh --write --only "klang video-seek" --orient landscape tab # a few suites, one orientation
+```
+
+- **Devices** are named in `farm-devices.conf` with what they can do (`shots`, `hdr`, `slow`, …). Each one is taken
+  through a lock command (`FARM_LOCK`, on pop-os `~/ordo-geraet.sh <name> <cmd>`: it waits for the device, exports
+  `ORDO_SERIAL` and runs the command), so two jobs never drive one device. Without a lock command a device's name is
+  its adb serial. The lock is taken per suite and given back after it, with the rotation as it was: between two
+  suites other jobs get the device. `touch <FARM_OUT>/hold/<device>` lends a device out for longer (its running
+  suite finishes, no new one starts until the file is gone). A device that is offline, locked or fails `preflight.sh`
+  is left out; the others take its share.
+- **Jobs** are suite × orientation. A free device takes the next job it is able to run, longest first (times of the
+  last run), and keeps its orientation as long as there is work in it. The time limit of a suite (900 s, doubled on a
+  `slow` device) runs inside the device lock, so waiting for a device never eats it.
+- **A failed suite is run once more on another device** (on the same one only if no other device can run it). Passed
+  there, it is listed as `FLAKY` with the device it failed on; failed twice, it is a `FAIL`.
+- **A suite that stops with exit code 2** (another app in front, media volume not 0) takes its device out of the run:
+  somebody is using it. The job goes back and another device takes it.
+- `summary.txt` in the run's folder (`FARM_OUT`, default `~/.cache/ordo-e2e/farm/<start time>/`) is rewritten every
+  3 s; at the end the table suite × orientation × result × device × seconds × checks is printed. Exit code 0: all
+  passed; 1: a suite failed twice or ran out of time; 3: a suite could not run on any device.
+- What the farm changes on a device it puts back after every suite, also on Ctrl-C: rotation, a size or density override a suite left,
+  and at night (22–7) do-not-disturb, which it switches on for the run. It never sets `E2E_ALLOW_VOLUME`.
+
+Measured on 21.11.2026, Galaxy Tab S9 Ultra, Ordo Dev 0.18.0 (versionCode 37), `--write`, portrait, one device: the
+38 suites that also ran in the morning's `run.sh` pass took 7608 s there and 5427 s through the farm, although two
+of them (`ai-show-guard`, `video-player`) broke off early in the morning and now run to their end; all 45 suites of
+the list took 6329 s (105 min), 44 passed at once and `video-detailplus` after a fix to its test. `stress-delete`
+went from 822 s to 145 s, `music-formats` from 1111 s to 574 s, `backup-restore` from 369 s to 233 s. A second
+device was not reachable that night, so two devices at once and a whole landscape pass through the farm are not
+measured yet; what a screen read costs (2.3 s for one `uiautomator dump`) is the floor of a single device.
+
+**Adding a suite:** put its name into the list in `run.sh`, make the file executable, and if it needs something
+special add one comment line to it:
+
+```bash
+# farm: needs=shots,hdr timeout=1200 orient=once
+```
+
+`needs` are capabilities from `farm-devices.conf`: `shots` for a suite that compares screenshots or recordings by
+colour (the Tab A8 has a blue-light tint and is too slow for recordings), `hdr` for HDR and "Detail plus".
+`timeout` is in seconds. `orient=once` is for a suite that does not touch the layout (it runs in the first
+orientation only). **Adding a device:** one line in `farm-devices.conf`, and the lock command must know the name.
+
+`preflight.sh` is what the farm runs first on every device, and worth running by hand before a long run: test
+resources (`app/src/test/resources`, a copy of only `e2e/` fails here), every suite of `run.sh` present and
+executable, adb, python3 with Pillow, ffmpeg with every encoder the suites ask for, and on the device the package
+with the expected versionCode (`app/build.gradle`, or `E2E_VERSION_CODE`), notification permission and all-files
+access (granted with `E2E_GRANT=1` on a test device), media volume 0, unlocked and awake, 2 GB free, no size or
+density override, Ordo comes to the front. `preflight.sh --install <apk> <serial>` installs first, and only an APK
+that `aapt dump badging` names `com.beko2210.ordo.dev`.
+
+Reusable outside Ordo (notes for `android-baukasten`): `preflight.sh` (only the package name, the activity it starts
+and the resource paths are Ordo's), `farm.sh` with `farm-devices.conf` (it knows nothing about Ordo beyond the suite
+list in `run.sh`; the device lock is any command with the contract `<lock> <device> <cmd...>` that exports
+`ORDO_SERIAL`, as `geraete/device-lock.sh` there does), and from `lib.sh`/`ui.py` the waits below.
+
+## Waiting
+
+A fixed `sleep` is the slowest way to wait and still too short on a slow device. Use the waits that return as soon
+as the thing has happened:
+
+| Instead of | Write | Returns when |
+|---|---|---|
+| `ui tap X; sleep 2; check "…" ui has Y` | `ui tap X; check "…" ui see Y` | Y is on screen (up to 5 s, `E2E_SEE`) |
+| `…; sleep 2; check "…" on Screen` | `check "…" wait_on Screen 4` | that screen is in front |
+| `ui tap X; sleep 1; ui tap Y` | `ui tap X; ui tap Y` | `tap` looks for its target for up to 3 s |
+| `back; sleep 1` | `back` | the focused window has changed (up to 1.5 s) |
+| `…MEDIA_PAUSE; sleep 1.5` | `media_key PAUSE 1.5` | the media session no longer says PLAYING |
+| `wait_on …VideoPlayerActivity 8; sleep 3` | `…; media_wait PLAY 3` | playback has started |
+
+Every screen read (`uiautomator dump`) already waits until the UI has been quiet for a second, so a sleep in front
+of `ui has`, `ui tap` or `ui wait` only adds time. Never negate `ui see` (it would wait its whole time); for
+something that has to go away there is `ui waitgone`. A sleep stays where time itself is the test or nothing can be
+polled, and then it carries a comment saying why (`# deliberate: …`): a gesture whose effect is read right after, an
+animation before a screenshot, playing for N seconds, a debounce. `ui tap` and `ui longtap` refuse to touch anything
+while another app is in front (the test stops like with `guard`); a system screen the test opened itself (file
+picker) is tapped with `E2E_TAP_ANY=1 ui tap …`.
 
 `E2E_FAST=1 e2e/run.sh <adb serial>` remembers every tap position per device, screen size and screen in
 `~/.cache/ordo-e2e/` and taps it straight away next time; checks still read the real screen. Delete the cache file
@@ -54,6 +142,11 @@ scroll position). A control that moves on a fixed screen (e.g. below a message o
 | `video-player.sh` (`--write`) | video player phase 1 with clips made by ffmpeg on the host: a tap in the file list opens Ordo's player and it plays (`dumpsys media_session`); buttons keep 48 dp (play 88 dp on a tablet); a tap, a quick swipe and a vertical swipe on the seek bar never seek, 400 ms held and dragged to 3/4 does; three quick taps on the left 28 % jump 20 s back, a double tap on the right 28 % 10 s ahead; locked, taps do nothing until "hold to unlock" is held; closed after 10 s and opened again it offers "Resume at …", a tap goes there; Ordo Video's library lists the clip under "Continue watching" and opens it at its place without the pill; Ordo Video's own colour (Amber, from its library's settings) changes the play button's tint and is put back to "Same as Ordo"; its settings page offers "At the end"; the player's ⋮ › Video info names "1920 × 1080 · 30 fps" and "H.264"; at the end the player stops on the last frame with "Watch again" and "Next video" (the default), Next video opens the next clip; one swipe from the left edge leaves the player (gesture navigation); a vertical swipe on the right half raises the volume (restored); a 0-byte `.mp4` (and an Xvid AVI the device cannot play) shows the message with "Open with another app", which opens the system chooser; an external `file://` intent is refused, a `content://` one with a read grant plays; the rotate button (phone) keeps position and playback. Headphones and audio focus: SKIP, by hand | after 0.14.4 |
 | `player-stage2.sh` (`--write`) | a song with a `.lrc` beside it offers lyrics, the lyrics layer shows its lines and back closes only the layer; the queue sheet lists the songs; a vertical drag on the cover keeps the song, a sideways swipe plays the next; a crafted 20,000-line `.lrc` still offers lyrics within 20 s, opens, and flinging through it leaves no app-not-responding | after 0.14.1 |
 | `stress-delete.sh` (`--write`) | 3000 files to the trash: no crash, bounded memory, the list follows | fixed in 0.3.1 / 0.3.3 |
+| `video-notification.sh` (`--write`) | with "Sound only", the media notification's target (`VideoSessionActivity`) opened over the playing player and again after Home: no crash, Ordo still runs, the player is back in front (or in its picture-in-picture window) and still plays. Reached by `am start` (adb root) or, with `E2E_SHADE=1`, by tapping Ordo Video's notification in the shade; else SKIP | blocker before 1.0.0 |
+| `ftp-server-defaults.sh` (`--write`, debug build) | with Ordo's FTP settings taken out of its preferences (put back at the end): anonymous login off, the login has a password (no user such as `admin` with an empty password), no anonymous write access, the root folder not the whole internal storage; on an emulator or with `E2E_FTP_LIVE=1` also live through `adb forward` and ftplib: an anonymous login and an empty-password login for `admin` and the configured user are refused, and for any login that gets in, MKD and CWD into `Android/` are refused | blocker before 1.0.0 |
+| `backup-self-include.sh` (`--write`) | a backup saved through the system picker into the very folder it backs up, twice (the second time over the first ZIP): "Backup finished", the ZIP still exists, passes a CRC test, holds the three files and no entry for itself; the ticks are put back | blocker before 1.0.0 |
+| `vault-secure-flag.sh` (`--write`, `E2E_VAULT_HAND=1`, release build) | a test PNG and PDF moved into the Tresor and opened from it: each viewer window has FLAG_SECURE like the Tresor screen (`dumpsys window windows`) and a screen capture (stand-in for the Recents preview) shows no picture; the owner unlocks by hand, both files are restored out of the Tresor; a debug build only says SKIP | blocker before 1.0.0 |
+| `text-editor-atomic-save.sh` (`--write`, emulator or `E2E_FILL_DISK=1`) | a 128-KiB text file edited in the text editor and saved while the storage is full: the file keeps its size and MD5, the editor keeps the typed word; the filler file goes at once | blocker before 1.0.0 |
 
 Every test starts through `launch` in `lib.sh`, which also copes with a fresh install: on an emulator it grants what
 adb may grant (notifications on Android 13+, all-files access as an app op on Android 11+), so no system dialog comes
@@ -76,5 +169,5 @@ Rules for every test:
 - It ends with `finish`, which also fails the test if the crash log is not empty.
 - A bug found on a device gets a test here in the same pull request as its fix.
 
-Needs: `adb`, `python3`, and `ffmpeg` for `bars-replay.sh`. `ADB` and `PKG` can be overridden through the
+Needs: `adb`, `python3` (with Pillow), and `ffmpeg` for the suites that make their own media; `preflight.sh` checks all of it. `ADB` and `PKG` can be overridden through the
 environment.

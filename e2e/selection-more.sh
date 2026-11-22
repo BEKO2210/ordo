@@ -9,7 +9,7 @@ read -r W H < <(screen_size)
 # Internal storage's top folder: it has entries on every device (Downloads may be empty, as on a fresh tablet).
 a shell am start -W -a android.intent.action.VIEW -d "file:///storage/emulated/0" -t inode/directory \
     -n "$PKG/me.zhanghai.android.files.filelist.FileListActivity" >/dev/null
-sleep 4; guard
+ui wait nameText 6 >/dev/null; guard
 first=$(ui texts | grep -m1 '|nameText|' | cut -d'|' -f1)
 ui longtap "$first" >/dev/null; sleep 1.5; guard
 read -r mx1 my1 mx2 _ < <(ui bounds selectionMoreButton | head -1)

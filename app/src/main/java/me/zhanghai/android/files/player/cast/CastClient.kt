@@ -75,6 +75,7 @@ class CastClient(
         // queue (measured 18.11.2026: 4 waiting, 8 more in CLOSE_WAIT, then no one could cast).
         try {
             socket = openSocket(host, port, timeoutMs)
+            if (closed) throw IOException("Connection closed while opening socket")
             // A sleeping Chromecast accepted TCP but never finished TLS (17.11.2026): without a timeout this hung forever.
             socket.soTimeout = timeoutMs
             socket.startHandshake()
@@ -95,6 +96,8 @@ class CastClient(
             writer.scheduleWithFixedDelay(::heartbeat, HEARTBEAT_MS, HEARTBEAT_MS, TimeUnit.MILLISECONDS)
             return device
         } catch (e: Exception) {
+            // Closed meanwhile: shutdown() already ran and missed this socket.
+            if (closed && ::socket.isInitialized) runCatching { socket.close() }
             close()
             throw e
         }

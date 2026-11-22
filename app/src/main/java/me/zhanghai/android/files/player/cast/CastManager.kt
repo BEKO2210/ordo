@@ -293,13 +293,27 @@ object CastManager {
             if (size < 0) throw java.io.IOException("Unknown file size")
             name = displayName
             source = CastFileServer.Source(size, "", open = { offset ->
-                checkNotNull(resolver.openInputStream(uri)).also { it.skipFully(offset) }
+                val input = checkNotNull(resolver.openInputStream(uri))
+                try {
+                    input.skipFully(offset)
+                    input
+                } catch (e: Exception) {
+                    runCatching { input.close() }
+                    throw e
+                }
             })
         } else {
             val path = Paths.get(URI.create(item.mediaId))
             name = path.fileName?.toString().orEmpty()
             source = CastFileServer.Source(path.readAttributes(BasicFileAttributes::class.java).size(), "", open = { offset ->
-                ChannelInputStream(path.newByteChannel(setOf(StandardOpenOption.READ)).apply { position(offset) })
+                val channel = path.newByteChannel(setOf(StandardOpenOption.READ))
+                try {
+                    channel.position(offset)
+                    ChannelInputStream(channel)
+                } catch (e: Exception) {
+                    runCatching { channel.close() }
+                    throw e
+                }
             })
         }
         val tags = readTags(uri, item, context)
@@ -340,11 +354,13 @@ object CastManager {
 
     private fun readTags(uri: Uri, item: MediaItem, context: Context): Tags {
         val retriever = MediaMetadataRetriever()
+        var dataSource: PathMediaDataSource? = null
         return try {
             if (uri.scheme == ContentResolver.SCHEME_CONTENT) {
                 retriever.setDataSource(context, uri)
             } else {
-                retriever.setDataSource(PathMediaDataSource(Paths.get(URI.create(item.mediaId))))
+                dataSource = PathMediaDataSource(Paths.get(URI.create(item.mediaId)))
+                retriever.setDataSource(dataSource)
             }
             fun text(key: Int) = retriever.extractMetadata(key)?.takeIf { it.isNotBlank() }
             Tags(
@@ -360,6 +376,7 @@ object CastManager {
             Tags(null, null, null, null, null)
         } finally {
             runCatching { retriever.release() }
+            runCatching { dataSource?.close() }
         }
     }
 

@@ -1,5 +1,6 @@
 #!/bin/bash
 # Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later
+# farm: timeout=1800
 # Format matrix, WRITES: creates /storage/emulated/0/ordo-e2e-formats with 12-s files made by ffmpeg (MP3 CBR/VBR,
 # AAC, FLAC 16/24-bit, Opus, Vorbis, WAV 16/24/32-bit float; 44.1 to 192 kHz; mono, stereo, 5.1) and removes it again.
 # Each file, once with every Klang effect off and once with all of them on: it plays (state=PLAYING), the player shows
@@ -128,12 +129,12 @@ moves_on() { # position when paused at the seek
 open_folder() {
     a shell am start -W -a android.intent.action.VIEW -d "file://$DIR/$1" -t inode/directory \
         -n "$PKG/me.zhanghai.android.files.filelist.FileListActivity" >/dev/null
-    sleep 2; guard; ui wait "$2" 10 >/dev/null
+    guard; ui wait "$2" 10 >/dev/null
 }
 
 play_file() { # name file label
     open_folder "$1" "$2" || { fail "$3: the folder shows $2"; return; }
-    ui tap "$2" >/dev/null; sleep 2
+    ui tap "$2" >/dev/null
     check "$3: plays" wait_playing
     pause_playback; sleep 0.5
     a shell input keyevent KEYCODE_MEDIA_PREVIOUS >/dev/null; sleep 0.5 # back to 0:00 for the duration

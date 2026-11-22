@@ -239,7 +239,7 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
 
     override fun onDestroyView() {
         // Do not keep the cores busy for an answer nobody will see.
-        if (job?.isActive == true) CommandEngine.cancel()
+        if (job?.isCompleted == false) CommandEngine.cancel()
         super.onDestroyView()
         _binding = null
     }
@@ -646,7 +646,7 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
             showResults(plan)
             return
         }
-        when (val outcome = CommandCheck.check(text, plan, null, root, paths)) {
+        when (val outcome = withContext(Dispatchers.IO) { CommandCheck.check(text, plan, null, root, paths) }) {
             is Outcome.Ready -> {
                 if (outcome.plan.action == "delete" && !Trash.isEnabled) {
                     showMessage(
@@ -878,19 +878,16 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
         val outcome = ready ?: return
         val plan = outcome.plan
         val context = requireContext().applicationContext
-        val anchor = requireActivity().findViewById<View>(android.R.id.content)
         val chosen = files
         val chosenSeen = seen
         val kindNames = KINDS.associateWith { kindName(it) }
         val runner = runner(context, outcome)
         job?.cancel()
-        job = viewLifecycleOwner.lifecycleScope.launch {
-            show(binding.loadingLayout)
-            binding.cancelButton.isVisible = false
-            binding.loadingText.setText(getString(R.string.ai_running))
-            val journal = withContext(Dispatchers.IO) {
-                runner.run(plan, outcome.source, outcome.destination, chosen, kindNames, chosenSeen)
-            }
+        show(binding.loadingLayout)
+        binding.cancelButton.isVisible = false
+        binding.loadingText.setText(getString(R.string.ai_running))
+        job = UNDO_SCOPE.launch {
+            val journal = runner.run(plan, outcome.source, outcome.destination, chosen, kindNames, chosenSeen)
             scan(context, journal)
             val done = when (plan.action) {
                 "move" -> R.plurals.ai_done_move
@@ -907,21 +904,26 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
             if (journal.changed > 0) {
                 message += " · " + context.quantity(R.plurals.ai_changed, journal.changed, journal.changed)
             }
-            val snackbar = Snackbar.make(anchor, message, UNDO_MILLIS).setTextMaxLines(3)
-            if (journal.done > 0) {
-                snackbar.setAction(R.string.ai_undo) {
-                    UNDO_SCOPE.launch {
-                        val undone = runner.undo(journal)
-                        scan(context, journal)
-                        withContext(Dispatchers.Main) {
-                            Snackbar.make(anchor, context.quantity(R.plurals.ai_undone, undone, undone),
-                                Snackbar.LENGTH_SHORT).show()
+            withContext(Dispatchers.Main) {
+                if (!isAdded) return@withContext
+                val anchor = requireActivity().findViewById<View>(android.R.id.content)
+                val snackbar = Snackbar.make(anchor, message, UNDO_MILLIS).setTextMaxLines(3)
+                if (journal.done > 0) {
+                    snackbar.setAction(R.string.ai_undo) {
+                        UNDO_SCOPE.launch {
+                            val undone = runner.undo(journal)
+                            scan(context, journal)
+                            withContext(Dispatchers.Main) {
+                                // The sheet is gone by now; the snackbar's own anchor is still on screen.
+                                Snackbar.make(anchor, context.quantity(R.plurals.ai_undone, undone, undone),
+                                    Snackbar.LENGTH_SHORT).show()
+                            }
                         }
                     }
                 }
+                snackbar.show()
+                dismiss()
             }
-            snackbar.show()
-            dismiss()
         }
     }
 
@@ -963,7 +965,7 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
 
     /** Read-only: finds the files and opens them in the app's own list, sorted as asked. Nothing to confirm. */
     private suspend fun showResults(plan: CommandPlan) {
-        val sources = CommandCheck.showSources(plan.source, root)
+        val sources = withContext(Dispatchers.IO) { CommandCheck.showSources(plan.source, root) }
         if (sources == null) {
             showAsk(Outcome.AskFolder(plan, forDestination = false))
             return

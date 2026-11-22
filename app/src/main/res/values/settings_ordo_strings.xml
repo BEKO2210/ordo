@@ -148,6 +148,7 @@
     <string name="music_tag_undo">Undo</string>
     <string name="music_tag_undone">The previous info is back</string>
     <string name="music_tag_failed">Not saved, the file is unchanged: %1$s</string>
+    <string name="music_tag_restore_error">The backup could not be restored</string>
     <string name="music_tag_cover_too_large">This picture is larger than 10 MB. Please pick a smaller one.</string>
     <string name="music_tag_read_failed">Ordo couldn’t read this file’s info.</string>
     <string name="music_nav_favorites">Favorites</string>

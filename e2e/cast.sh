@@ -1,5 +1,6 @@
 #!/bin/bash
 # Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later
+# farm: orient=once
 # Casting to a real Chromecast / Google TV, WRITES: creates /storage/emulated/0/ordo-e2e-cast with two quiet WAV files
 # and removes it afterwards. Needs a cast device on the same Wi-Fi: CAST_TV=<its name> (SKIP without it).
 # Lower the TV's volume beforehand; the test turns it down further with the phone's volume keys.
@@ -37,7 +38,7 @@ settled() { local i; for i in $(seq 40); do ui has "$@" && return 0; sleep 0.5; 
 
 a shell am start -W -a android.intent.action.VIEW -d "file://$DIR" -t inode/directory \
     -n "$PKG/me.zhanghai.android.files.filelist.FileListActivity" >/dev/null
-sleep 3; guard
+guard
 check "the test folder opens" ui wait 01-cast-one.wav 10
 ui tap 01-cast-one.wav >/dev/null; sleep 3; guard
 pause_playback; sleep 1
@@ -46,7 +47,7 @@ check "the cast sheet offers this phone" settled "This phone|Dieses Handy"
 # Without the TV on the network every later check would only measure the phone: stop here.
 settled "$TV" >/dev/null 2>&1 || { fail "the cast sheet finds $TV (is it awake and on this Wi-Fi?)"; back 1; back 1; finish; }
 pass "the cast sheet finds $TV"
-sleep 1; shot cast-sheet
+sleep 1; shot cast-sheet # deliberate: the screenshot waits for the end of the slide-in animation
 ui tap "$TV" >/dev/null
 check "the player shows it is casting" settled "Playing on $TV|Läuft auf $TV"
 guard; shot casting
@@ -62,7 +63,7 @@ a shell input keyevent KEYCODE_MEDIA_PAUSE
 check "the TV is paused again" session_state PAUSED
 shot before-sheet-again
 check "the cast sheet opens again" ui tap actionCast
-sleep 1; shot cast-sheet-casting
+sleep 1; shot cast-sheet-casting # deliberate: the screenshot waits for the end of the slide-in animation
 check "Stop casting ends it" ui tap "Stop casting|Streaming beenden"
 sleep 2; back 1
 not_casting() { ! ui has "Playing on|Läuft auf"; }

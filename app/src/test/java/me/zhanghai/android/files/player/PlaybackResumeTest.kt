@@ -7,6 +7,8 @@ package me.zhanghai.android.files.player
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class PlaybackResumeTest {
@@ -36,5 +38,15 @@ class PlaybackResumeTest {
     @Test
     fun nothingLeftMeansNothingToResume() {
         assertNull(restorableState(state) { false })
+    }
+
+    @Test
+    fun mediaButtonChecksOnlyLocalPathsAndKeepsNetworkQueues() {
+        var checked = false
+        assertTrue(mediaButtonQueueItemCanResume("smb") { checked = true; false })
+        assertFalse(checked)
+        assertFalse(mediaButtonQueueItemCanResume("file") { false })
+        assertTrue(mediaButtonQueueItemCanResume("file") { true })
+        assertFalse(mediaButtonQueueItemCanResume("content") { true })
     }
 }
