@@ -8,33 +8,37 @@ package me.zhanghai.android.files.viewer.image
 import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
+import android.os.SystemClock
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewTreeObserver
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.doOnPreDraw
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
+import androidx.lifecycle.lifecycleScope
 import androidx.viewpager2.widget.ViewPager2
 import dev.chrisbanes.insetter.applySystemWindowInsetsToPadding
 import java8.nio.file.Path
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
 import kotlinx.parcelize.WriteWith
+import me.zhanghai.android.files.BuildConfig
 import me.zhanghai.android.files.R
 import me.zhanghai.android.files.databinding.ImageViewerFragmentBinding
 import me.zhanghai.android.files.file.fileProviderUri
-import me.zhanghai.android.files.provider.common.delete
 import me.zhanghai.android.files.ui.DepthPageTransformer
-import me.zhanghai.android.files.trash.Trash
 import me.zhanghai.android.files.util.ParcelableArgs
 import me.zhanghai.android.files.util.ParcelableListParceler
 import me.zhanghai.android.files.util.ParcelableState
 import me.zhanghai.android.files.util.args
 import me.zhanghai.android.files.util.createSendImageIntent
-import me.zhanghai.android.files.util.extraPath
 import me.zhanghai.android.files.util.extraPathList
 import me.zhanghai.android.files.util.finish
 import me.zhanghai.android.files.util.getState
@@ -45,13 +49,23 @@ import me.zhanghai.android.files.util.startActivitySafe
 import me.zhanghai.android.files.util.withChooser
 import me.zhanghai.android.files.vault.VaultProvider
 import me.zhanghai.android.systemuihelper.SystemUiHelper
-import java.io.IOException
 
 class ImageViewerFragment : Fragment(), ConfirmDeleteDialogFragment.Listener {
     private val args by args<Args>()
     private val argsPaths by lazy { args.intent.extraPathList }
+    private val pathsModel by viewModels<ImageViewerPathsViewModel>()
 
     private lateinit var paths: MutableList<Path>
+
+    /** Elapsed realtime when a vault image left the screen, or 0 while it is visible. */
+    private var vaultStoppedAt = 0L
+
+    /** True after the window was focused. A background recreate never sets this, so its onStop keeps [vaultStoppedAt]. */
+    private var vaultInFront = false
+
+    private val vaultFocusListener = ViewTreeObserver.OnWindowFocusChangeListener { hasFocus ->
+        if (hasFocus) markVaultInFront()
+    }
 
     private lateinit var binding: ImageViewerFragmentBinding
 
@@ -62,7 +76,10 @@ class ImageViewerFragment : Fragment(), ConfirmDeleteDialogFragment.Listener {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        paths = (savedInstanceState?.getState<State>()?.paths ?: argsPaths).toMutableList()
+        vaultStoppedAt = savedInstanceState?.getLong(STATE_VAULT_STOPPED_AT) ?: 0L
+        // The model outlives a rotation. Its list wins over the state saved before the delete finished.
+        pathsModel.ensure(savedInstanceState?.getState<State>()?.paths ?: argsPaths)
+        paths = pathsModel.paths.value.orEmpty().toMutableList()
 
         setHasOptionsMenu(true)
     }
@@ -119,6 +136,71 @@ class ImageViewerFragment : Fragment(), ConfirmDeleteDialogFragment.Listener {
                 }
             })
         }
+        viewLifecycleOwner.lifecycleScope.launch {
+            pathsModel.paths.filterNotNull().collect { updated ->
+                if (updated == paths) return@collect
+                onPathsChanged(updated)
+            }
+        }
+        viewLifecycleOwner.lifecycleScope.launch {
+            pathsModel.deleteError.collect { message -> showToast(message) }
+        }
+    }
+
+    override fun onStart() {
+        super.onStart()
+
+        // Do not clear the leave time here. A recreate in the background also runs onStart, and
+        // clearing it would let the following onStop start the two minutes over.
+        if (!::paths.isInitialized || paths.none { VaultProvider.isVault(it) }) {
+            vaultStoppedAt = 0L
+            return
+        }
+        val timeout = vaultViewerTimeoutMillis(BuildConfig.DEBUG, debugVaultTimeoutOverride())
+        if (vaultViewerTimedOut(vaultStoppedAt, SystemClock.elapsedRealtime(), timeout)) {
+            vaultStoppedAt = 0L
+            finish()
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        if (!::binding.isInitialized) return
+        val observer = binding.root.viewTreeObserver
+        observer.removeOnWindowFocusChangeListener(vaultFocusListener)
+        observer.addOnWindowFocusChangeListener(vaultFocusListener)
+        if (binding.root.hasWindowFocus()) markVaultInFront()
+    }
+
+    override fun onPause() {
+        if (::binding.isInitialized) {
+            val observer = binding.root.viewTreeObserver
+            if (observer.isAlive) observer.removeOnWindowFocusChangeListener(vaultFocusListener)
+        }
+        super.onPause()
+    }
+
+    override fun onStop() {
+        super.onStop()
+
+        val host = activity ?: return
+        // A rotation must not count as leaving. A debug timeout of 0 would otherwise close on rotate.
+        vaultStoppedAt = vaultLeaveOnStop(
+            isVault = ::paths.isInitialized && paths.any { VaultProvider.isVault(it) },
+            finishing = host.isFinishing,
+            changingConfigurations = host.isChangingConfigurations,
+            inFront = vaultInFront,
+            stoppedAt = vaultStoppedAt,
+            now = SystemClock.elapsedRealtime()
+        )
+        vaultInFront = false
+    }
+
+    private fun markVaultInFront() {
+        if (activity?.isFinishing == true) return
+        vaultInFront = true
+        vaultStoppedAt = 0L
     }
 
     override fun onViewStateRestored(savedInstanceState: Bundle?) {
@@ -136,7 +218,12 @@ class ImageViewerFragment : Fragment(), ConfirmDeleteDialogFragment.Listener {
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
 
-        outState.putState(State(paths))
+        outState.putLong(STATE_VAULT_STOPPED_AT, vaultStoppedAt)
+        // The intent already carries the opened list. A second copy of a long list overflows the
+        // binder transaction. Keep a copy only after a delete changed it.
+        if (::paths.isInitialized && shouldKeepImageViewerState(argsPaths, paths)) {
+            outState.putState(State(paths))
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
@@ -166,18 +253,15 @@ class ImageViewerFragment : Fragment(), ConfirmDeleteDialogFragment.Listener {
     }
 
     override fun delete(path: Path) {
-        try {
-            if (Trash.isEnabled && Trash.canTrash(path)) {
-                Trash.moveToTrash(path)
-            } else {
-                path.delete()
-            }
-        } catch (e: IOException) {
-            e.printStackTrace()
-            showToast(e.toString())
-            return
-        }
-        paths.removeAll(listOf(path))
+        // A network file deleted on the main thread throws NetworkOnMainThreadException, which is
+        // not an IOException, and the viewer died. The model deletes off the main thread and keeps
+        // the list across a rotation that would cancel this view.
+        pathsModel.delete(path)
+    }
+
+    private fun onPathsChanged(updated: List<Path>) {
+        paths = updated.toMutableList()
+        if (!::adapter.isInitialized || view == null) return
         if (paths.isEmpty()) {
             finish()
             return
@@ -209,9 +293,7 @@ class ImageViewerFragment : Fragment(), ConfirmDeleteDialogFragment.Listener {
 
     private fun share() {
         val path = currentPath
-        val intent = path.fileProviderUri.createSendImageIntent()
-            .apply { extraPath = path }
-            .withChooser()
+        val intent = path.fileProviderUri.createSendImageIntent().withChooser()
         startActivitySafe(intent)
     }
 
@@ -224,3 +306,7 @@ class ImageViewerFragment : Fragment(), ConfirmDeleteDialogFragment.Listener {
     @Parcelize
     private class State(val paths: @WriteWith<ParcelableListParceler> List<Path>) : ParcelableState
 }
+
+/** True when the open list is no longer the one the intent carried, so the saved state must keep it. */
+internal fun shouldKeepImageViewerState(openedPaths: List<*>, currentPaths: List<*>): Boolean =
+    currentPaths != openedPaths
