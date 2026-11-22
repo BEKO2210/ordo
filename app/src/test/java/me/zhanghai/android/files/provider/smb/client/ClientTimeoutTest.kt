@@ -17,8 +17,10 @@ class ClientTimeoutTest {
     @Test
     fun soTimeoutIsNotSetOnTheSocket() {
         val config = source.substringAfter("SmbConfig.builder()").substringBefore(".build()")
-        assertTrue(config.contains("withTimeout"))
+        assertTrue(config.contains("withTimeout(TRANSFER_TIMEOUT_SECONDS"))
         assertTrue(config.contains("withSocketFactory"))
         assertFalse(config.contains("withSoTimeout"))
+        assertTrue(source.contains("TRANSFER_TIMEOUT_SECONDS = 60L"))
+        assertTrue(source.contains("CONNECT_TIMEOUT_MILLIS = 15_000"))
     }
 }

@@ -5,6 +5,7 @@
 
 package me.zhanghai.android.files.provider.linux
 
+import java.io.File
 import me.zhanghai.android.files.provider.common.toByteString
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -40,6 +41,17 @@ class LinuxCopyMoveTest {
         assertTrue(LinuxCopyMove.isPartFileName(".ordo-part-deadbeef".toByteString()))
         assertFalse(LinuxCopyMove.isPartFileName("photo.jpg".toByteString()))
         assertFalse(LinuxCopyMove.isPartFileName("notes.ordo-part".toByteString()))
+    }
+
+    @Test
+    fun newFileCopyCreatesTheTargetExclusively() {
+        val copy = File("src/main/java/me/zhanghai/android/files/provider/linux/LinuxCopyMove.kt")
+            .readText()
+            .substringAfter("if (OsConstants.S_ISREG(sourceStat.st_mode))")
+            .substringBefore("} else if (OsConstants.S_ISDIR(sourceStat.st_mode))")
+        assertTrue(copy.contains("usePart = copyOptions.replaceExisting && targetStat != null"))
+        assertTrue(copy.contains("usePart || !copyOptions.replaceExisting"))
+        assertTrue(copy.contains("O_EXCL"))
     }
 
     @Test

@@ -47,9 +47,9 @@ internal object ForeignCopyMove {
                 }
                 removeLeftoverPartFiles(target)
                 // shortcut: no prompt on low-space overwrite, FileJob confirm when a dialog exists
-                val usePart = !copyOptions.replaceExisting
-                    || !target.exists(LinkOption.NOFOLLOW_LINKS)
-                    || hasRoomForPart(target, sourceAttributes.size())
+                val usePart = copyOptions.replaceExisting
+                    && target.exists(LinkOption.NOFOLLOW_LINKS)
+                    && hasRoomForPart(target, sourceAttributes.size())
                 val dest = if (usePart) partFile(target) else target
                 if (usePart) {
                     try {
@@ -60,7 +60,7 @@ internal object ForeignCopyMove {
                         e.printStackTrace()
                     }
                 }
-                val destOpenOptions = if (usePart) {
+                val destOpenOptions = if (usePart || !copyOptions.replaceExisting) {
                     arrayOf(StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE)
                 } else {
                     arrayOf(
@@ -204,6 +204,16 @@ internal object ForeignCopyMove {
             && name.length > ".ordo-part".length + 1)
             || (name.startsWith(".ordo-part-") && name.length > ".ordo-part-".length)
 
+    internal fun backupFile(target: Path): Path {
+        val name = target.fileName?.toString()
+            ?: throw IOException("Cannot copy to $target without a file name")
+        val longName = ".$name.ordo-bak"
+        if (longName.toByteArray(Charsets.UTF_8).size <= NAME_MAX) {
+            return target.resolveSibling(longName)
+        }
+        return target.resolveSibling(".ordo-bak-${Integer.toHexString(name.hashCode())}")
+    }
+
     private fun hasRoomForPart(target: Path, sourceSize: Long): Boolean {
         if (sourceSize <= 0L) {
             return true
@@ -244,34 +254,80 @@ internal object ForeignCopyMove {
     }
 
     private fun replaceWithPart(temp: Path, target: Path, replaceExisting: Boolean) {
-        val moveOptions = buildList {
-            add(StandardCopyOption.ATOMIC_MOVE)
-            if (replaceExisting) {
-                add(StandardCopyOption.REPLACE_EXISTING)
+        if (!replaceExisting) {
+            try {
+                moveWithoutReplace(temp, target)
+            } catch (e: Exception) {
+                deleteQuietly(temp, e)
+                throw e
             }
-        }.toTypedArray()
+            return
+        }
+        val backup = backupFile(target)
+        val targetExisted = try {
+            target.exists(LinkOption.NOFOLLOW_LINKS)
+        } catch (e: IOException) {
+            true
+        } catch (e: UnsupportedOperationException) {
+            true
+        }
+        if (targetExisted) {
+            try {
+                moveWithoutReplace(target, backup)
+            } catch (e: FileAlreadyExistsException) {
+                try {
+                    backup.deleteIfExists()
+                } catch (e2: IOException) {
+                    e.addSuppressed(e2)
+                } catch (e2: UnsupportedOperationException) {
+                    e.addSuppressed(e2)
+                }
+                moveWithoutReplace(target, backup)
+            } catch (e: Exception) {
+                deleteQuietly(temp, e)
+                throw e
+            }
+        }
         try {
-            try {
-                temp.moveTo(target, *moveOptions)
-                return
-            } catch (e: AtomicMoveNotSupportedException) {
-                // Fall through to delete-then-move on providers that cannot rename atomically.
-            } catch (e: UnsupportedOperationException) {
-                // Same: some foreign providers reject ATOMIC_MOVE.
-            }
-            if (replaceExisting) {
-                target.deleteIfExists()
-            }
-            temp.moveTo(target)
+            moveWithoutReplace(temp, target)
         } catch (e: Exception) {
-            try {
-                temp.deleteIfExists()
-            } catch (e2: IOException) {
-                e.addSuppressed(e2)
-            } catch (e2: UnsupportedOperationException) {
-                e.addSuppressed(e2)
+            if (targetExisted) {
+                try {
+                    moveWithoutReplace(backup, target)
+                } catch (e2: Exception) {
+                    e.addSuppressed(e2)
+                    throw e
+                }
             }
+            deleteQuietly(temp, e)
             throw e
+        }
+        try {
+            backup.deleteIfExists()
+        } catch (e: IOException) {
+            e.printStackTrace()
+        } catch (e: UnsupportedOperationException) {
+            e.printStackTrace()
+        }
+    }
+
+    private fun moveWithoutReplace(source: Path, target: Path) {
+        try {
+            source.moveTo(target, StandardCopyOption.ATOMIC_MOVE)
+        } catch (e: AtomicMoveNotSupportedException) {
+            source.moveTo(target)
+        } catch (e: UnsupportedOperationException) {
+            source.moveTo(target)
+        }
+    }
+
+    private fun deleteQuietly(path: Path, cause: Exception) {
+        try {
+            path.deleteIfExists()
+        } catch (e: IOException) {
+            cause.addSuppressed(e)
+        } catch (e: UnsupportedOperationException) {
+            cause.addSuppressed(e)
         }
     }
 }

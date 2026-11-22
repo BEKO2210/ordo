@@ -241,7 +241,7 @@ object Client {
             val sshClient = SSHClient().apply {
                 addHostKeyVerifier(TofuHostKeyVerifier)
                 connectTimeout = CONNECT_TIMEOUT_MILLIS
-                timeout = CONNECT_TIMEOUT_MILLIS
+                timeout = 0
             }
             try {
                 sshClient.connect(authority.host, authority.port)

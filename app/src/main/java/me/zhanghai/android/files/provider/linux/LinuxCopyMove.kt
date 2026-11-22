@@ -69,14 +69,15 @@ internal object LinuxCopyMove {
             }
             removeLeftoverPartFiles(target)
             // shortcut: no prompt on low-space overwrite, FileJob confirm when a dialog exists
-            val usePart = targetStat == null || hasRoomForPart(target, sourceStat.st_size)
+            val usePart = copyOptions.replaceExisting && targetStat != null
+                && hasRoomForPart(target, sourceStat.st_size)
             val dest = if (usePart) partFile(target) else target
             try {
                 if (usePart) {
                     removeIfExists(dest)
                 }
                 var destFlags = OsConstants.O_WRONLY or OsConstants.O_TRUNC or OsConstants.O_CREAT
-                if (usePart) {
+                if (usePart || !copyOptions.replaceExisting) {
                     destFlags = destFlags or OsConstants.O_EXCL
                 }
                 val destFd = try {

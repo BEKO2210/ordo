@@ -57,15 +57,15 @@ import java.util.concurrent.TimeUnit
 import javax.net.SocketFactory
 
 object Client {
-    private const val CONNECT_TIMEOUT_SECONDS = 15L
     private const val CONNECT_TIMEOUT_MILLIS = 15_000
+    private const val TRANSFER_TIMEOUT_SECONDS = 60L
 
     @Volatile
     lateinit var authenticator: Authenticator
 
     private val client = SMBClient(
         SmbConfig.builder()
-            .withTimeout(CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+            .withTimeout(TRANSFER_TIMEOUT_SECONDS, TimeUnit.SECONDS)
             .withSocketFactory(ConnectTimeoutSocketFactory(CONNECT_TIMEOUT_MILLIS))
             .build()
     )
