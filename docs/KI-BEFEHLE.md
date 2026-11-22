@@ -83,7 +83,11 @@ Einbau in der App (`llm/`, `app/.../ai/`):
   Speicher nach 3 Minuten Leerlauf frei.
 - Einrichtung im Blatt: Gerätecheck (≥ 6 GB RAM, Platz, 64 Bit), Download über DownloadManager von
   Hugging Face (feste Revision), SHA-256-Prüfung, danach direkt zur Eingabe.
-- Prüfregeln (`CommandCheck`, Unit-Tests): Löschen nur mit Lösch-Wort, nur in den Papierkorb; geschützt sind
+- Prüfregeln (`CommandCheck`, Unit-Tests): Löschen nur mit Lösch-Wort ohne Verneinung
+  (auch nach Komma oder Gedankenstrich: „bitte nicht“, „keineswegs“, „keines“, „keinerlei“, „nein“, „nie“,
+  „nix“, „nichts“, „weder … noch“, „never“, “neither … nor”, “nothing”, “none”, “no one”;
+  „Nicht nur …, auch …“ bleibt ein Löschen, „not just“ ohne diese Fortsetzung nicht; jede andere Verneinung =
+  nachfragen, auch „nicht die Originale“ oder „keine Fotos“), nur in den Papierkorb; geschützt sind
   System-, versteckte und Kamera-Ordner (kanonischer Pfad, ohne Groß-/Kleinschreibung); unbekannter Ordner =
   Rückfrage; Rückgängig fasst nur Dateien an, die der Befehl angelegt hat.
 - Duplikate (15.11.2026): Das 4B plante bei „Lösche die doppelten Dateien im Download“ den **ganzen** Ordner

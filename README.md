@@ -424,8 +424,12 @@ Typos, slang and German or English all work.
 **How it is kept safe.** The model only writes a small plan in a fixed JSON format (enforced by a grammar). Ordo
 then checks the plan itself before showing it:
 
-- Deleting always means the trash, and only when the sentence clearly asks for it – a negation (“don’t delete”,
-  “nicht löschen”) or a delete word inside a file name does not count.
+- Deleting always means the trash, and only when the sentence clearly asks for it – a negation
+  (“don’t delete”, “nicht löschen”, “nie”, “keineswegs”, “keines”, “keinerlei”, “bitte nicht” even after a comma,
+  “nix”, “nichts”, “weder … noch”, “neither … nor”, “nothing”, “none”, “no one”) or a delete word inside a file
+  name does not count. “Nicht nur …, auch …” still counts as a delete; “not just” without that continuation does
+  not. Any other sentence with a negation is asked back, including restrictions such as “not the originals”
+  or “keine Fotos”.
 - System folders, hidden folders, `Android/data` and the camera folder are off limits unless the user names the
   camera folder explicitly. Paths are compared after resolving `..` and links.
 - Unknown or ambiguous folders lead to a question, never to a guess.

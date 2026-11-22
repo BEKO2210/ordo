@@ -174,8 +174,126 @@ class CommandCheckTest {
     fun negationAfterTheWord_alsoRefuses() {
         assertEquals(Outcome.Refused(Reason.UNSURE_DELETE),
             check("lösche die Dateien in Download nicht", CommandPlan("delete", "Download")))
-        assertEquals(Outcome.Refused(Reason.PROTECTED_FOLDER),
+        assertEquals(Outcome.Refused(Reason.UNSURE_DELETE),
             check("lösche alles in Download, die Kamera nicht", CommandPlan("delete", "Kamera")))
+    }
+
+    @Test
+    fun negationAnywhereInTheClause_refusesDelete() {
+        val plan = CommandPlan("delete", "Download")
+        assertEquals(Outcome.Refused(Reason.UNSURE_DELETE),
+            check("Lösche niemals meine Fotos", plan))
+        assertEquals(Outcome.Refused(Reason.UNSURE_DELETE),
+            check("Die Bilder im Download nie löschen", plan))
+        assertEquals(Outcome.Refused(Reason.UNSURE_DELETE),
+            check("Lösche alle Fotos aus dem Download-Ordner heute bitte nicht", plan))
+    }
+
+    @Test
+    fun duplicateDeleteThatKeepsOriginals_isNotBlocked() {
+        val outcome = check(
+            "Lösche die doppelten Dateien, aber behalte die Originale",
+            CommandPlan("delete", "Download")
+        )
+        assertTrue(outcome is Outcome.Ready)
+        assertTrue((outcome as Outcome.Ready).plan.duplicates)
+    }
+
+    @Test
+    fun negationAfterComma_refusesDelete() {
+        val plan = CommandPlan("delete", "Download")
+        assertEquals(Outcome.Refused(Reason.UNSURE_DELETE),
+            check("Lösche alle Dateien, bitte nicht", plan))
+    }
+
+    @Test
+    fun missingNegationForms_refuseDelete() {
+        val plan = CommandPlan("delete", "Download")
+        assertEquals(Outcome.Refused(Reason.UNSURE_DELETE),
+            check("Lösche keineswegs meine Fotos", plan))
+        assertEquals(Outcome.Refused(Reason.UNSURE_DELETE),
+            check("Lösche die Fotos \u2013 nein", plan))
+        assertEquals(Outcome.Refused(Reason.UNSURE_DELETE),
+            check("don\u2019t delete the photos", plan))
+    }
+
+    @Test
+    fun additiveNotOnly_stillDeletes() {
+        val plan = CommandPlan("delete", "Download")
+        assertTrue(check("Nicht nur die Videos löschen, sondern auch die Fotos", plan) is Outcome.Ready)
+        assertTrue(check("Nicht nur die Videos löschen, auch die Bilder", plan) is Outcome.Ready)
+    }
+
+    @Test
+    fun notJustWithoutAdditive_refusesDelete() {
+        val plan = CommandPlan("delete", "Download")
+        assertEquals(Outcome.Refused(Reason.UNSURE_DELETE),
+            check("Do not just delete files from Download; move them instead", plan))
+    }
+
+    @Test
+    fun colloquialAndCorrelativeNegations_refuseDelete() {
+        val plan = CommandPlan("delete", "Download")
+        assertEquals(Outcome.Refused(Reason.UNSURE_DELETE),
+            check("Lösch nix aus Download", plan))
+        assertEquals(Outcome.Refused(Reason.UNSURE_DELETE),
+            check("Lösch nichts aus Download", plan))
+        assertEquals(Outcome.Refused(Reason.UNSURE_DELETE),
+            check("Lösche weder Fotos noch Videos aus Download", plan))
+        assertEquals(Outcome.Refused(Reason.UNSURE_DELETE),
+            check("Delete neither photos nor videos from Download", plan))
+        assertEquals(Outcome.Refused(Reason.UNSURE_DELETE),
+            check("Delete none from Download", plan))
+        assertEquals(Outcome.Refused(Reason.UNSURE_DELETE),
+            check("Delete nothing from Download", plan))
+        assertEquals(Outcome.Refused(Reason.UNSURE_DELETE),
+            check("Delete no one from Download", plan))
+    }
+
+    @Test
+    fun negatedFollowUpWithDeleteWord_refusesDelete() {
+        val plan = CommandPlan("delete", "Download")
+        assertEquals(Outcome.Refused(Reason.UNSURE_DELETE),
+            check("Lösche alle Dateien, bitte nicht löschen", plan))
+    }
+
+    @Test
+    fun negationPlusUnrelatedWord_isNotARestriction() {
+        val plan = CommandPlan("delete", "Download")
+        assertEquals(Outcome.Refused(Reason.UNSURE_DELETE),
+            check("Lösche alle Dateien, bitte nicht ausführen", plan))
+    }
+
+    @Test
+    fun inflectedAndEnglishNegations_refuseDelete() {
+        val plan = CommandPlan("delete", "Download")
+        assertEquals(Outcome.Refused(Reason.UNSURE_DELETE),
+            check("Lösche keines der Bilder", plan))
+        assertEquals(Outcome.Refused(Reason.UNSURE_DELETE),
+            check("Lösche keinerlei Dateien", plan))
+        assertEquals(Outcome.Refused(Reason.UNSURE_DELETE),
+            check("Delete nothing", plan))
+        assertEquals(Outcome.Refused(Reason.UNSURE_DELETE),
+            check("Delete none", plan))
+    }
+
+    @Test
+    fun restrictionWithNegation_asksInsteadOfDeleting() {
+        val plan = CommandPlan("delete", "Download")
+        assertEquals(Outcome.Refused(Reason.UNSURE_DELETE),
+            check("Lösche die Duplikate aber nicht die Originale", plan))
+        assertEquals(Outcome.Refused(Reason.UNSURE_DELETE),
+            check("Lösche alle Dateien, aber keine Fotos", plan))
+        assertEquals(Outcome.Refused(Reason.UNSURE_DELETE),
+            check("Lösche die Videos, nicht die Bilder", plan))
+        assertEquals(Outcome.Refused(Reason.UNSURE_DELETE),
+            check("Lösche alles außer den Fotos", plan))
+        assertEquals(Outcome.Refused(Reason.UNSURE_DELETE),
+            check("Delete everything except the photos", plan))
+        assertEquals(Outcome.Refused(Reason.UNSURE_DELETE),
+            check("Lösche die Dateien ohne Backup im Namen", plan))
+        assertEquals(Outcome.Refused(Reason.UNSURE_DELETE),
+            check("Delete the videos, no images", plan))
     }
 
     private fun Outcome.plan(): CommandPlan = (this as Outcome.Ready).plan

@@ -113,8 +113,8 @@ class CommandCheckSafetyTest {
             CommandPlan("delete", "Kamera")
         )
         // The source is DCIM/Camera; the user named the camera only to exclude it.
-        // The lock must still hold unless the command is clearly about that folder.
-        assertEquals(Outcome.Refused(Reason.PROTECTED_FOLDER), outcome)
+        // A negation asks back, so the camera folder is never unlocked.
+        assertEquals(Outcome.Refused(Reason.UNSURE_DELETE), outcome)
         assertTrue(CommandCheck.isProtected(camera, root, cameraNamed = false))
     }
 
