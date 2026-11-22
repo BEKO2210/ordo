@@ -41,6 +41,14 @@ e2e/farm.sh --write --only "klang video-seek" --orient landscape tab # a few sui
 - What the farm changes on a device it puts back after every suite, also on Ctrl-C: rotation, a size or density override a suite left,
   and at night (22–7) do-not-disturb, which it switches on for the run. It never sets `E2E_ALLOW_VOLUME`.
 
+Measured on 21.11.2026, Galaxy Tab S9 Ultra, Ordo Dev 0.18.0 (versionCode 37), `--write`, portrait, one device: the
+38 suites that also ran in the morning's `run.sh` pass took 7608 s there and 5427 s through the farm, although two
+of them (`ai-show-guard`, `video-player`) broke off early in the morning and now run to their end; all 45 suites of
+the list took 6329 s (105 min), 44 passed at once and `video-detailplus` after a fix to its test. `stress-delete`
+went from 822 s to 145 s, `music-formats` from 1111 s to 574 s, `backup-restore` from 369 s to 233 s. A second
+device was not reachable that night, so two devices at once and a whole landscape pass through the farm are not
+measured yet; what a screen read costs (2.3 s for one `uiautomator dump`) is the floor of a single device.
+
 **Adding a suite:** put its name into the list in `run.sh`, make the file executable, and if it needs something
 special add one comment line to it:
 
