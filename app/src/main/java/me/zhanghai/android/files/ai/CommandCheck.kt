@@ -198,21 +198,23 @@ object CommandCheck {
     }
 
     private val NEGATIONS = setOf(
-        "nicht", "nichts", "kein", "keine", "keinen", "keiner", "keines", "keinerlei",
-        "keinesfalls", "keineswegs",
+        "nicht", "nichts", "nix", "kein", "keine", "keinen", "keiner", "keines", "keinerlei",
+        "keinesfalls", "keineswegs", "weder",
         "nie", "niemals", "nimmer", "nirgends", "nein", "ohne", "außer", "ausser",
         "not", "no", "don't", "dont", "never", "nowhere", "neither", "nor", "none", "nothing",
-        "except", "without",
+        "no one", "except", "without",
         "auf keinen fall", "bloß nicht", "bloss nicht", "bitte nicht"
     )
     private val ADDITIVE = setOf("nur", "only", "just")
+    private val ADDITIVE_CONT = setOf("auch", "also")
     private val CLAUSE_BREAK = Regex("[.!?;,\\u2013\\u2014\\u2015\\u2026]+")
     private val TOKEN_BREAK = Regex("[^\\p{L}'/]+")
     private val APOSTROPHES = Regex("[\\u2018\\u2019\\u02BC\\u00B4\\uFF07]")
 
     /**
      * A delete word counts only if the sentence has no negation. Parsing restrictions
-     * ("nicht die Originale") is too fine: any negation asks back. "nicht nur" is not a negation.
+     * ("nicht die Originale") is too fine: any negation asks back. "nicht nur"/"not just"
+     * is not a negation only when an additive continuation follows ("auch"/"also").
      */
     private fun saidDelete(words: String): Boolean {
         val folded = foldMarks(words)
@@ -222,7 +224,7 @@ object CommandCheck {
 
     /**
      * True when one of [stems] starts a word in a clause that has no negation anywhere
-     * ("nicht die Kamera" does not name the camera; "nicht nur" is not a negation).
+     * ("nicht die Kamera" does not name the camera; "nicht nur … auch …" is not a negation).
      */
     private fun said(words: String, stems: List<String>): Boolean =
         foldMarks(words).split(CLAUSE_BREAK).any { clause ->
@@ -245,7 +247,9 @@ object CommandCheck {
         val out = ArrayList<String>(tokens.size)
         var i = 0
         while (i < tokens.size) {
-            if (i + 1 < tokens.size && tokens[i] in setOf("nicht", "not") && tokens[i + 1] in ADDITIVE) {
+            if (i + 1 < tokens.size && tokens[i] in setOf("nicht", "not") && tokens[i + 1] in ADDITIVE &&
+                tokens.subList(i + 2, tokens.size).any { it in ADDITIVE_CONT }
+            ) {
                 i += 2
                 continue
             }

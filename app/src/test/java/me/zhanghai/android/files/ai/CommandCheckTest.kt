@@ -225,6 +225,32 @@ class CommandCheckTest {
     }
 
     @Test
+    fun notJustWithoutAdditive_refusesDelete() {
+        val plan = CommandPlan("delete", "Download")
+        assertEquals(Outcome.Refused(Reason.UNSURE_DELETE),
+            check("Do not just delete files from Download; move them instead", plan))
+    }
+
+    @Test
+    fun colloquialAndCorrelativeNegations_refuseDelete() {
+        val plan = CommandPlan("delete", "Download")
+        assertEquals(Outcome.Refused(Reason.UNSURE_DELETE),
+            check("Lösch nix aus Download", plan))
+        assertEquals(Outcome.Refused(Reason.UNSURE_DELETE),
+            check("Lösch nichts aus Download", plan))
+        assertEquals(Outcome.Refused(Reason.UNSURE_DELETE),
+            check("Lösche weder Fotos noch Videos aus Download", plan))
+        assertEquals(Outcome.Refused(Reason.UNSURE_DELETE),
+            check("Delete neither photos nor videos from Download", plan))
+        assertEquals(Outcome.Refused(Reason.UNSURE_DELETE),
+            check("Delete none from Download", plan))
+        assertEquals(Outcome.Refused(Reason.UNSURE_DELETE),
+            check("Delete nothing from Download", plan))
+        assertEquals(Outcome.Refused(Reason.UNSURE_DELETE),
+            check("Delete no one from Download", plan))
+    }
+
+    @Test
     fun negatedFollowUpWithDeleteWord_refusesDelete() {
         val plan = CommandPlan("delete", "Download")
         assertEquals(Outcome.Refused(Reason.UNSURE_DELETE),

@@ -425,9 +425,10 @@ Tippfehler, Umgangssprache, Deutsch oder Englisch – alles geht.
 Grammatik erzwungen). Ordo prüft diesen Plan selbst, bevor es ihn zeigt:
 
 - Löschen heißt immer Papierkorb, und nur, wenn der Satz es klar verlangt – eine Verneinung
-  („nicht löschen“, „nie“, „keineswegs“, „keines“, „keinerlei“, „bitte nicht“ auch nach Komma, “don’t delete”,
-  “nothing”, “none”) oder ein Lösch-Wort im Dateinamen zählt nicht. „Nicht nur …, auch …“ bleibt ein Löschen;
-  jeder andere Satz mit einer Verneinung wird nachgefragt, auch Einschränkungen wie „nicht die Originale“
+  („nicht löschen“, „nie“, „keineswegs“, „keines“, „keinerlei“, „bitte nicht“ auch nach Komma, „nix“, „nichts“,
+  „weder … noch“, “don’t delete”, “neither … nor”, “nothing”, “none”, “no one”) oder ein Lösch-Wort im Dateinamen
+  zählt nicht. „Nicht nur …, auch …“ bleibt ein Löschen; „not just“ ohne diese Fortsetzung nicht. Jeder andere
+  Satz mit einer Verneinung wird nachgefragt, auch Einschränkungen wie „nicht die Originale“
   oder „keine Fotos“.
 - Systemordner, versteckte Ordner, `Android/data` und der Kamera-Ordner sind tabu, außer du nennst den
   Kamera-Ordner ausdrücklich. Pfade werden nach Auflösen von `..` und Links verglichen.
