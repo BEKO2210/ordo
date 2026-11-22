@@ -20,7 +20,9 @@ import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView
 import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView.DefaultOnImageEventListener
 import java8.nio.file.Path
 import java8.nio.file.attribute.BasicFileAttributes
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import me.zhanghai.android.files.coil.fadeIn
@@ -54,32 +56,42 @@ class ImageViewerAdapter(
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val path = getItem(position)
         val binding = holder.binding
+        holder.loadJob?.cancel()
+        // The path the view is showing. A late read must not paint the previous file into this holder.
+        binding.root.tag = path
         binding.image.setOnPhotoTapListener { view, _, _ -> listener(view) }
         binding.largeImage.setOnClickListener(listener)
-        loadImage(binding, path)
+        loadImage(holder, path)
     }
 
     override fun onViewRecycled(holder: ViewHolder) {
         super.onViewRecycled(holder)
 
+        holder.loadJob?.cancel()
+        holder.loadJob = null
         val binding = holder.binding
+        binding.root.tag = null
         binding.image.dispose()
         binding.largeImage.recycle()
     }
 
-    private fun loadImage(binding: ImageViewerItemBinding, path: Path) {
+    private fun loadImage(holder: ViewHolder, path: Path) {
+        val binding = holder.binding
         binding.progress.fadeInUnsafe(true)
         binding.errorText.fadeOutUnsafe()
         binding.image.isVisible = false
         binding.largeImage.isVisible = false
-        lifecycleOwner.lifecycleScope.launch {
+        holder.loadJob = lifecycleOwner.lifecycleScope.launch {
             val imageInfo = try {
                 withContext(Dispatchers.IO) { path.loadImageInfo() }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 e.printStackTrace()
-                showError(binding, e)
+                if (binding.root.tag == path) showError(binding, e)
                 return@launch
             }
+            if (binding.root.tag != path) return@launch
             loadImageWithInfo(binding, path, imageInfo)
         }
     }
@@ -104,11 +116,16 @@ class ImageViewerAdapter(
             binding.image.apply {
                 isVisible = true
                 load(path to imageInfo.attributes) {
-                    size(Size.ORIGINAL)
+                    val cap = coilEdgeCapPx(imageInfo.width, imageInfo.height, imageInfo.mimeType.value)
+                    size(if (cap == null) Size.ORIGINAL else Size(cap, cap))
                     fadeIn(context.shortAnimTime)
                     listener(
-                        onSuccess = { _, _ -> binding.progress.fadeOutUnsafe() },
-                        onError = { _, result -> showError(binding, result.throwable) }
+                        onSuccess = { _, _ ->
+                            if (binding.root.tag == path) binding.progress.fadeOutUnsafe()
+                        },
+                        onError = { _, result ->
+                            if (binding.root.tag == path) showError(binding, result.throwable)
+                        }
                     )
                 }
             }
@@ -121,12 +138,14 @@ class ImageViewerAdapter(
                 alpha = 0f
                 setOnImageEventListener(object : DefaultOnImageEventListener() {
                     override fun onReady() {
+                        if (binding.root.tag != path) return
                         setDoubleTapZoomScale(binding.largeImage.cropScale)
                         binding.progress.fadeOutUnsafe()
                         binding.largeImage.fadeInUnsafe(true)
                     }
 
                     override fun onImageLoadError(e: Exception) {
+                        if (binding.root.tag != path) return
                         e.printStackTrace()
                         showError(binding, e)
                     }
@@ -137,26 +156,7 @@ class ImageViewerAdapter(
     }
 
     private val ImageInfo.shouldUseLargeImageView: Boolean
-        get() {
-            // See BitmapFactory.cpp encodedFormatToString()
-            if (mimeType == MimeType.IMAGE_GIF) {
-                return false
-            }
-            if (width <= 0 || height <= 0) {
-                return false
-            }
-            // 4 bytes per pixel for ARGB_8888.
-            if (width * height * 4 > MAX_BITMAP_SIZE) {
-                return true
-            }
-            if (width > 2048 || height > 2048) {
-                val ratio = width.toFloat() / height
-                if (ratio < 0.5 || ratio > 2) {
-                    return true
-                }
-            }
-            return false
-        }
+        get() = shouldUseLargeImageView(width, height, mimeType.value)
 
     private val SubsamplingScaleImageView.cropScale: Float
         get() {
@@ -178,12 +178,9 @@ class ImageViewerAdapter(
         binding.largeImage.isVisible = false
     }
 
-    companion object {
-        // @see android.graphics.RecordingCanvas#MAX_BITMAP_SIZE
-        private const val MAX_BITMAP_SIZE = 100 * 1024 * 1024
+    class ViewHolder(val binding: ImageViewerItemBinding) : RecyclerView.ViewHolder(binding.root) {
+        var loadJob: Job? = null
     }
-
-    class ViewHolder(val binding: ImageViewerItemBinding) : RecyclerView.ViewHolder(binding.root)
 
     private class ImageInfo(
         val attributes: BasicFileAttributes,
@@ -192,3 +189,26 @@ class ImageViewerAdapter(
         val mimeType: MimeType
     )
 }
+
+// @see android.graphics.RecordingCanvas#MAX_BITMAP_SIZE
+internal const val MAX_BITMAP_BYTES = 100 * 1024 * 1024
+
+/** SVG and images with no measured size are decoded at most this long on each edge, not at Size.ORIGINAL. */
+internal const val UNKNOWN_IMAGE_EDGE_CAP_PX = 4096
+
+internal fun shouldUseLargeImageView(width: Int, height: Int, mimeType: String): Boolean {
+    // See BitmapFactory.cpp encodedFormatToString(). GIF stays in Coil.
+    if (mimeType == "image/gif") return false
+    if (width <= 0 || height <= 0) return false
+    // 4 bytes per pixel for ARGB_8888. Int overflows around 23 170 px square and then looks small.
+    if (width.toLong() * height * 4 > MAX_BITMAP_BYTES) return true
+    if (width > 2048 || height > 2048) {
+        val ratio = width.toFloat() / height
+        if (ratio < 0.5f || ratio > 2f) return true
+    }
+    return false
+}
+
+/** Null means Coil's Size.ORIGINAL. */
+internal fun coilEdgeCapPx(width: Int, height: Int, mimeType: String): Int? =
+    if (mimeType == "image/svg+xml" || width <= 0 || height <= 0) UNKNOWN_IMAGE_EDGE_CAP_PX else null

@@ -8,6 +8,7 @@ package me.zhanghai.android.files.viewer.image
 import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
+import android.os.SystemClock
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuInflater
@@ -18,11 +19,17 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.doOnPreDraw
 import androidx.fragment.app.Fragment
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
+import androidx.lifecycle.lifecycleScope
 import androidx.viewpager2.widget.ViewPager2
 import dev.chrisbanes.insetter.applySystemWindowInsetsToPadding
 import java8.nio.file.Path
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.parcelize.Parcelize
 import kotlinx.parcelize.WriteWith
+import me.zhanghai.android.files.BuildConfig
 import me.zhanghai.android.files.R
 import me.zhanghai.android.files.databinding.ImageViewerFragmentBinding
 import me.zhanghai.android.files.file.fileProviderUri
@@ -34,7 +41,6 @@ import me.zhanghai.android.files.util.ParcelableListParceler
 import me.zhanghai.android.files.util.ParcelableState
 import me.zhanghai.android.files.util.args
 import me.zhanghai.android.files.util.createSendImageIntent
-import me.zhanghai.android.files.util.extraPath
 import me.zhanghai.android.files.util.extraPathList
 import me.zhanghai.android.files.util.finish
 import me.zhanghai.android.files.util.getState
@@ -45,13 +51,15 @@ import me.zhanghai.android.files.util.startActivitySafe
 import me.zhanghai.android.files.util.withChooser
 import me.zhanghai.android.files.vault.VaultProvider
 import me.zhanghai.android.systemuihelper.SystemUiHelper
-import java.io.IOException
 
 class ImageViewerFragment : Fragment(), ConfirmDeleteDialogFragment.Listener {
     private val args by args<Args>()
     private val argsPaths by lazy { args.intent.extraPathList }
 
     private lateinit var paths: MutableList<Path>
+
+    /** Elapsed realtime when a vault image left the screen, or 0 while it is visible. */
+    private var vaultStoppedAt = 0L
 
     private lateinit var binding: ImageViewerFragmentBinding
 
@@ -121,6 +129,33 @@ class ImageViewerFragment : Fragment(), ConfirmDeleteDialogFragment.Listener {
         }
     }
 
+    override fun onStart() {
+        super.onStart()
+
+        if (!::paths.isInitialized || paths.none { VaultProvider.isVault(it) }) {
+            vaultStoppedAt = 0L
+            return
+        }
+        val timeout = vaultViewerTimeoutMillis(BuildConfig.DEBUG, debugVaultTimeoutOverride())
+        if (vaultViewerTimedOut(vaultStoppedAt, SystemClock.elapsedRealtime(), timeout)) {
+            vaultStoppedAt = 0L
+            finish()
+            return
+        }
+        vaultStoppedAt = 0L
+    }
+
+    override fun onStop() {
+        super.onStop()
+
+        val host = activity ?: return
+        // A rotation must not count as leaving. A debug timeout of 0 would otherwise close on rotate.
+        if (host.isFinishing || host.isChangingConfigurations) return
+        if (::paths.isInitialized && paths.any { VaultProvider.isVault(it) }) {
+            vaultStoppedAt = SystemClock.elapsedRealtime()
+        }
+    }
+
     override fun onViewStateRestored(savedInstanceState: Bundle?) {
         super.onViewStateRestored(savedInstanceState)
 
@@ -136,7 +171,11 @@ class ImageViewerFragment : Fragment(), ConfirmDeleteDialogFragment.Listener {
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
 
-        outState.putState(State(paths))
+        // The intent already carries the opened list. A second copy of a long list overflows the
+        // binder transaction. Keep a copy only after a delete changed it.
+        if (::paths.isInitialized && shouldKeepImageViewerState(argsPaths, paths)) {
+            outState.putState(State(paths))
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
@@ -166,32 +205,40 @@ class ImageViewerFragment : Fragment(), ConfirmDeleteDialogFragment.Listener {
     }
 
     override fun delete(path: Path) {
-        try {
-            if (Trash.isEnabled && Trash.canTrash(path)) {
-                Trash.moveToTrash(path)
-            } else {
-                path.delete()
+        // A network file deleted on the main thread throws NetworkOnMainThreadException, which is
+        // not an IOException, and the viewer died. The list moves only after the delete worked.
+        viewLifecycleOwner.lifecycleScope.launch {
+            try {
+                withContext(Dispatchers.IO) {
+                    if (Trash.isEnabled && Trash.canTrash(path)) {
+                        Trash.moveToTrash(path)
+                    } else {
+                        path.delete()
+                    }
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                e.printStackTrace()
+                showToast(e.toString())
+                return@launch
             }
-        } catch (e: IOException) {
-            e.printStackTrace()
-            showToast(e.toString())
-            return
+            paths.removeAll(listOf(path))
+            if (paths.isEmpty()) {
+                finish()
+                return@launch
+            }
+            adapter.replace(paths)
+            // ViewPager only asynchronously sets current item to 0, which isn't a desirable behavior
+            // for us and will make updateTitle() crash for index out of bounds.
+            if (binding.viewPager.currentItem > paths.lastIndex) {
+                binding.viewPager.currentItem = paths.lastIndex
+            }
+            updateTitle()
+            // Work around blank screen due to ViewPager2.PageTransformer not being called (and thus the
+            // next item keeps its 0 alpha) when we have offscreenPageLimit = 1.
+            binding.viewPager.doOnPreDraw { binding.viewPager.requestTransform() }
         }
-        paths.removeAll(listOf(path))
-        if (paths.isEmpty()) {
-            finish()
-            return
-        }
-        adapter.replace(paths)
-        // ViewPager only asynchronously sets current item to 0, which isn't a desirable behavior
-        // for us and will make updateTitle() crash for index out of bounds.
-        if (binding.viewPager.currentItem > paths.lastIndex) {
-            binding.viewPager.currentItem = paths.lastIndex
-        }
-        updateTitle()
-        // Work around blank screen due to ViewPager2.PageTransformer not being called (and thus the
-        // next item keeps its 0 alpha) when we have offscreenPageLimit = 1.
-        binding.viewPager.doOnPreDraw { binding.viewPager.requestTransform() }
     }
 
     private fun updateTitle() {
@@ -209,9 +256,7 @@ class ImageViewerFragment : Fragment(), ConfirmDeleteDialogFragment.Listener {
 
     private fun share() {
         val path = currentPath
-        val intent = path.fileProviderUri.createSendImageIntent()
-            .apply { extraPath = path }
-            .withChooser()
+        val intent = path.fileProviderUri.createSendImageIntent().withChooser()
         startActivitySafe(intent)
     }
 
@@ -224,3 +269,7 @@ class ImageViewerFragment : Fragment(), ConfirmDeleteDialogFragment.Listener {
     @Parcelize
     private class State(val paths: @WriteWith<ParcelableListParceler> List<Path>) : ParcelableState
 }
+
+/** True when the open list is no longer the one the intent carried, so the saved state must keep it. */
+internal fun shouldKeepImageViewerState(openedPaths: List<*>, currentPaths: List<*>): Boolean =
+    currentPaths != openedPaths
