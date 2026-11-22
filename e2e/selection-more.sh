@@ -12,12 +12,13 @@ a shell am start -W -a android.intent.action.VIEW -d "file:///storage/emulated/0
 ui wait nameText 6 >/dev/null; guard
 first=$(ui texts | grep -m1 '|nameText|' | cut -d'|' -f1)
 ui longtap "$first" >/dev/null; sleep 1.5; guard
-read -r mx1 my1 mx2 _ < <(ui bounds selectionMoreButton | head -1)
+read -r mx1 _ mx2 _ < <(ui bounds selectionMoreButton | head -1)
+read -r _ by1 _ _ < <(ui bounds selectionBar | head -1)
 ui tap selectionMoreButton >/dev/null; sleep 1.2; guard
-# The last entry of the menu, "Select all", sits just above the bar.
+# The last entry of the menu, "Select all", sits just above the bar, never over it.
 read -r sx1 _ sx2 sy2 < <(ui bounds "Alles auswählen|Select all" | head -1)
 check "the menu opens in the lower half" test "${sy2:-0}" -gt $((H / 2))
-check "the menu ends at the bar, not below it" test "${sy2:-0}" -le "${my1:-0}"
+check "the menu ends at the bar, not below it" test "${sy2:-0}" -le "${by1:-0}"
 # On the button's side: in LTR the menu's right edge and the button's right edge are on the same half.
 mid() { echo $((($1 + $2) / 2)); }
 check "the menu is on the side of the More button" \

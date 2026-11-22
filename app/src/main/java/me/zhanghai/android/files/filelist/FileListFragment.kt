@@ -1163,20 +1163,30 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
     }
 
     // The toolbar's own overflow would open at the top of the screen, far from the thumb that tapped "More" at the
-    // bottom. The same menu (and the same click handling) opens anchored to the button instead and grows upwards.
+    // bottom. Overflow style also overlaps its anchor, so a y-offset of 0 on the button covers the selection bar on a
+    // short landscape screen. Same menu and clicks, anchored to the bar, no overlap, growing upwards.
     @SuppressLint("RestrictedApi")
     private fun showSelectionMoreMenu(anchor: View) {
         val menu = binding.overlayToolbar.menu as? MenuBuilder ?: return
-        MenuPopupHelper(
-            requireContext(), menu, anchor, true, androidx.appcompat.R.attr.actionOverflowMenuStyle
-        ).apply {
-            gravity = Gravity.END
-            // The overflow style nudges the menu 4 dp to the left, which in RTL pushes it against the screen edge.
-            // Explicit offsets: the menu sits 4 dp inside the button's outer edge in both directions.
-            val inset = (4 * resources.displayMetrics.density).toInt()
-            val isRtl = anchor.layoutDirection == View.LAYOUT_DIRECTION_RTL
-            show(if (isRtl) inset else anchor.width - inset, 0)
-        }
+        val selectionBar = requireView().findViewById<View>(R.id.selectionBar)
+        val helper = MenuPopupHelper(
+            requireContext(), menu, selectionBar, true, androidx.appcompat.R.attr.popupMenuStyle
+        )
+        helper.gravity = Gravity.END
+        val barOnScreen = IntArray(2)
+        val buttonOnScreen = IntArray(2)
+        selectionBar.getLocationOnScreen(barOnScreen)
+        anchor.getLocationOnScreen(buttonOnScreen)
+        // popupMenuStyle has overlapAnchor false, so y = 0 flips the menu above the bar instead of over it.
+        helper.show(
+            SelectionMorePopup.showX(
+                barOnScreen[0], buttonOnScreen[0], buttonOnScreen[0] + anchor.width,
+                selectionBar.layoutDirection == View.LAYOUT_DIRECTION_RTL
+            ),
+            0
+        )
+        // Last item ("Select all") stays at the bar when the list is taller than the space above it.
+        helper.listView?.isStackFromBottom = true
     }
 
     private fun onOverlayActionModeMenuItemClicked(item: MenuItem): Boolean =
