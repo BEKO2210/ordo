@@ -25,10 +25,12 @@ import java.util.WeakHashMap
 import java8.nio.file.Path as Java8Path
 
 object Client {
+    private const val CONNECT_TIMEOUT_MILLIS = 15_000
+
     @Volatile
     lateinit var authenticator: Authenticator
 
-    private val clients = mutableMapOf<Authority, SFTPClient>()
+    private val clients = mutableMapOf<Authority, OpenedClient>()
 
     private val directoryFileAttributesCache =
         Collections.synchronizedMap(WeakHashMap<Path, FileAttributes>())
@@ -225,18 +227,22 @@ object Client {
     @Throws(ClientException::class)
     private fun getClient(authority: Authority): SFTPClient {
         synchronized(clients) {
-            var client = clients[authority]
-            if (client != null) {
-                if (client.sftpEngine.subsystem.isOpen) {
-                    return client
+            val opened = clients[authority]
+            if (opened != null) {
+                if (opened.sftp.sftpEngine.subsystem.isOpen) {
+                    return opened.sftp
                 } else {
-                    client.closeSafe()
+                    closeOpened(opened)
                     clients -= authority
                 }
             }
             val authentication = authenticator.getAuthentication(authority)
                 ?: throw ClientException("No authentication found for $authority")
-            val sshClient = SSHClient().apply { addHostKeyVerifier(TofuHostKeyVerifier) }
+            val sshClient = SSHClient().apply {
+                addHostKeyVerifier(TofuHostKeyVerifier)
+                connectTimeout = CONNECT_TIMEOUT_MILLIS
+                timeout = 0
+            }
             try {
                 sshClient.connect(authority.host, authority.port)
             } catch (e: IOException) {
@@ -252,11 +258,28 @@ object Client {
                 sshClient.closeSafe()
                 throw ClientException(e)
             }
-            client = sshClient.newSFTPClient()
-            clients[authority] = client
-            return client
+            val sftp = try {
+                sshClient.newSFTPClient()
+            } catch (e: IOException) {
+                sshClient.closeSafe()
+                throw ClientException(e)
+            }
+            clients[authority] = OpenedClient(sshClient, sftp)
+            return sftp
         }
     }
+
+    private fun closeOpened(opened: OpenedClient) {
+        opened.sftp.closeSafe()
+        try {
+            opened.ssh.disconnect()
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
+        opened.ssh.closeSafe()
+    }
+
+    private class OpenedClient(val ssh: SSHClient, val sftp: SFTPClient)
 
     interface Path {
         val authority: Authority

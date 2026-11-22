@@ -40,18 +40,36 @@ internal object ForeignCopyMove {
         }
         when {
             sourceAttributes.isRegularFile -> {
-                if (copyOptions.replaceExisting) {
-                    target.deleteIfExists()
-                }
                 val openOptions = if (copyOptions.noFollowLinks) {
                     arrayOf(LinkOption.NOFOLLOW_LINKS)
                 } else {
                     emptyArray()
                 }
-                source.newInputStream(*openOptions).use { inputStream ->
-                    val outputStream = target.newOutputStream(
-                        StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE
+                removeLeftoverPartFiles(target)
+                // shortcut: no prompt on low-space overwrite, FileJob confirm when a dialog exists
+                val usePart = copyOptions.replaceExisting
+                    && target.exists(LinkOption.NOFOLLOW_LINKS)
+                    && hasRoomForPart(target, sourceAttributes.size())
+                val dest = if (usePart) partFile(target) else target
+                if (usePart) {
+                    try {
+                        dest.deleteIfExists()
+                    } catch (e: IOException) {
+                        e.printStackTrace()
+                    } catch (e: UnsupportedOperationException) {
+                        e.printStackTrace()
+                    }
+                }
+                val destOpenOptions = if (usePart || !copyOptions.replaceExisting) {
+                    arrayOf(StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE)
+                } else {
+                    arrayOf(
+                        StandardOpenOption.CREATE, StandardOpenOption.WRITE,
+                        StandardOpenOption.TRUNCATE_EXISTING
                     )
+                }
+                source.newInputStream(*openOptions).use { inputStream ->
+                    val outputStream = dest.newOutputStream(*destOpenOptions)
                     var successful = false
                     try {
                         inputStream.copyTo(
@@ -63,9 +81,9 @@ internal object ForeignCopyMove {
                         try {
                             outputStream.close()
                         } finally {
-                            if (!successful) {
+                            if (!successful && usePart) {
                                 try {
-                                    target.deleteIfExists()
+                                    dest.deleteIfExists()
                                 } catch (e: IOException) {
                                     e.printStackTrace()
                                 } catch (e: UnsupportedOperationException) {
@@ -74,6 +92,9 @@ internal object ForeignCopyMove {
                             }
                         }
                     }
+                }
+                if (usePart) {
+                    replaceWithPart(dest, target, copyOptions.replaceExisting)
                 }
             }
             sourceAttributes.isDirectory -> {
@@ -163,6 +184,150 @@ internal object ForeignCopyMove {
                 e.addSuppressed(e2)
             }
             throw e
+        }
+    }
+
+    private const val NAME_MAX = 255
+
+    internal fun partFile(target: Path): Path {
+        val name = target.fileName?.toString()
+            ?: throw IOException("Cannot copy to $target without a file name")
+        val longName = ".$name.ordo-part"
+        if (longName.toByteArray(Charsets.UTF_8).size <= NAME_MAX) {
+            return target.resolveSibling(longName)
+        }
+        return target.resolveSibling(".ordo-part-${Integer.toHexString(name.hashCode())}")
+    }
+
+    internal fun isPartFileName(name: String): Boolean =
+        (name.startsWith(".") && name.endsWith(".ordo-part")
+            && name.length > ".ordo-part".length + 1)
+            || (name.startsWith(".ordo-part-") && name.length > ".ordo-part-".length)
+
+    internal fun backupFile(target: Path): Path {
+        val name = target.fileName?.toString()
+            ?: throw IOException("Cannot copy to $target without a file name")
+        val longName = ".$name.ordo-bak"
+        if (longName.toByteArray(Charsets.UTF_8).size <= NAME_MAX) {
+            return target.resolveSibling(longName)
+        }
+        return target.resolveSibling(".ordo-bak-${Integer.toHexString(name.hashCode())}")
+    }
+
+    private fun hasRoomForPart(target: Path, sourceSize: Long): Boolean {
+        if (sourceSize <= 0L) {
+            return true
+        }
+        val directory = target.parent ?: return true
+        return try {
+            directory.getFileStore().usableSpace >= sourceSize
+        } catch (e: IOException) {
+            true
+        } catch (e: UnsupportedOperationException) {
+            true
+        }
+    }
+
+    private fun removeLeftoverPartFiles(target: Path) {
+        val directory = target.parent ?: return
+        try {
+            directory.newDirectoryStream().use { stream ->
+                for (path in stream) {
+                    val name = path.fileName?.toString() ?: continue
+                    if (!isPartFileName(name)) {
+                        continue
+                    }
+                    try {
+                        path.deleteIfExists()
+                    } catch (e: IOException) {
+                        e.printStackTrace()
+                    } catch (e: UnsupportedOperationException) {
+                        e.printStackTrace()
+                    }
+                }
+            }
+        } catch (e: IOException) {
+            e.printStackTrace()
+        } catch (e: UnsupportedOperationException) {
+            e.printStackTrace()
+        }
+    }
+
+    private fun replaceWithPart(temp: Path, target: Path, replaceExisting: Boolean) {
+        if (!replaceExisting) {
+            try {
+                moveWithoutReplace(temp, target)
+            } catch (e: Exception) {
+                deleteQuietly(temp, e)
+                throw e
+            }
+            return
+        }
+        val backup = backupFile(target)
+        val targetExisted = try {
+            target.exists(LinkOption.NOFOLLOW_LINKS)
+        } catch (e: IOException) {
+            true
+        } catch (e: UnsupportedOperationException) {
+            true
+        }
+        if (targetExisted) {
+            try {
+                moveWithoutReplace(target, backup)
+            } catch (e: FileAlreadyExistsException) {
+                try {
+                    backup.deleteIfExists()
+                } catch (e2: IOException) {
+                    e.addSuppressed(e2)
+                } catch (e2: UnsupportedOperationException) {
+                    e.addSuppressed(e2)
+                }
+                moveWithoutReplace(target, backup)
+            } catch (e: Exception) {
+                deleteQuietly(temp, e)
+                throw e
+            }
+        }
+        try {
+            moveWithoutReplace(temp, target)
+        } catch (e: Exception) {
+            if (targetExisted) {
+                try {
+                    moveWithoutReplace(backup, target)
+                } catch (e2: Exception) {
+                    e.addSuppressed(e2)
+                    throw e
+                }
+            }
+            deleteQuietly(temp, e)
+            throw e
+        }
+        try {
+            backup.deleteIfExists()
+        } catch (e: IOException) {
+            e.printStackTrace()
+        } catch (e: UnsupportedOperationException) {
+            e.printStackTrace()
+        }
+    }
+
+    private fun moveWithoutReplace(source: Path, target: Path) {
+        try {
+            source.moveTo(target, StandardCopyOption.ATOMIC_MOVE)
+        } catch (e: AtomicMoveNotSupportedException) {
+            source.moveTo(target)
+        } catch (e: UnsupportedOperationException) {
+            source.moveTo(target)
+        }
+    }
+
+    private fun deleteQuietly(path: Path, cause: Exception) {
+        try {
+            path.deleteIfExists()
+        } catch (e: IOException) {
+            cause.addSuppressed(e)
+        } catch (e: UnsupportedOperationException) {
+            cause.addSuppressed(e)
         }
     }
 }

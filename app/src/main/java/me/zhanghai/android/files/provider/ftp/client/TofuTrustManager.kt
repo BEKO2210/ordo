@@ -6,6 +6,7 @@
 package me.zhanghai.android.files.provider.ftp.client
 
 import android.util.Base64
+import androidx.core.util.AtomicFile
 import me.zhanghai.android.files.app.application
 import java.io.File
 import java.io.IOException
@@ -64,11 +65,8 @@ object TofuTrustManager : X509ExtendedTrustManager(), HostnameVerifier {
             return
         }
         if (isPublic(chain, authType)) {
-            // Remember that this host had a real certificate, so it can never be swapped for a self-signed one.
-            if (host != null && stored == null) {
-                known.setProperty(host, CA)
-                save(known)
-            }
+            // CA pin is written in verify() after the host name check, so a captive-portal
+            // certificate cannot lock out the real self-signed server.
             return
         }
         if (host == null || chain.isEmpty()) {
@@ -86,9 +84,18 @@ object TofuTrustManager : X509ExtendedTrustManager(), HostnameVerifier {
     }
 
     private fun save(known: Properties) {
-        try {
-            file.outputStream().use { known.store(it, null) }
+        val atomic = AtomicFile(file)
+        val stream = try {
+            atomic.startWrite()
         } catch (e: IOException) {
+            e.printStackTrace()
+            return
+        }
+        try {
+            known.store(stream, null)
+            atomic.finishWrite(stream)
+        } catch (e: IOException) {
+            atomic.failWrite(stream)
             e.printStackTrace()
         }
     }
@@ -99,8 +106,10 @@ object TofuTrustManager : X509ExtendedTrustManager(), HostnameVerifier {
      * The host name check is skipped only for the exact self-signed certificate pinned for this host;
      * everything else (CA certificates included) gets the platform's host name verification.
      */
+    @Synchronized
     override fun verify(hostname: String, session: SSLSession): Boolean {
-        val stored = load().getProperty(hostname)
+        val known = load()
+        val stored = known.getProperty(hostname)
         if (stored != null && stored != CA) {
             val leaf = try {
                 session.peerCertificates.firstOrNull() as? X509Certificate
@@ -109,7 +118,12 @@ object TofuTrustManager : X509ExtendedTrustManager(), HostnameVerifier {
             }
             return leaf != null && fingerprint(leaf) == stored
         }
-        return HttpsURLConnection.getDefaultHostnameVerifier().verify(hostname, session)
+        val ok = HttpsURLConnection.getDefaultHostnameVerifier().verify(hostname, session)
+        if (ok && stored == null) {
+            known.setProperty(hostname, CA)
+            save(known)
+        }
+        return ok
     }
 
     private fun isPublic(chain: Array<X509Certificate>, authType: String): Boolean =

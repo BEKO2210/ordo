@@ -284,8 +284,13 @@ object Client {
     fun openByteChannel(path: Path, isAppend: Boolean): SeekableByteChannel {
         val authority = path.authority
         val client = acquireClient(authority)
-        if (!client.hasFeature(FTPCmd.REST)) {
-            throw IOException("Missing feature ${FTPCmd.REST.command}")
+        try {
+            if (!client.hasFeature(FTPCmd.REST)) {
+                throw IOException("Missing feature ${FTPCmd.REST.command}")
+            }
+        } catch (t: Throwable) {
+            closeClient(client)
+            throw t
         }
         return NotifyEntryModifiedSeekableByteChannel(
             FileByteChannel(
