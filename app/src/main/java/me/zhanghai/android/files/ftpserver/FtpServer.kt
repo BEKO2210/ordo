@@ -25,6 +25,9 @@ class FtpServer(
 
     @Throws(FtpException::class, RuntimeException::class)
     fun start() {
+        if (password != null && password.isEmpty()) {
+            throw IllegalStateException("FTP password is empty")
+        }
         server = FtpServerFactory()
             .apply {
                 val listener = ListenerFactory()
@@ -40,7 +43,7 @@ class FtpServer(
                 userManager.save(user)
                 fileSystem = ProviderFileSystemFactory()
                 connectionConfig = ConnectionConfigFactory()
-                    .apply { isAnonymousLoginEnabled = true }
+                    .apply { isAnonymousLoginEnabled = this@FtpServer.password == null }
                     .createConnectionConfig()
             }
             .createServer()

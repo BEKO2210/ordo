@@ -214,7 +214,7 @@ If the system defers or stops the service, the operation does not finish. Files 
 
 ### `FtpServerService`
 
-**(b)** `ftpserver/FtpServerService.kt`: `START_STICKY`, Wifi-Lock, Benachrichtigung mit Adresse (`FtpServerNotification`, Text aus `FtpServerUrl.getUrl()`) und Stop-Aktion. Der Subtype-Text im Manifest sagt, der Nutzer erwarte, dass der Server tagelang läuft, bis er ihn beendet. Im Code endet der Server, wenn der Dienst zerstört oder die Stop-Aktion ausgeführt wird. Eine Laufzeit über Tage ist nicht gemessen.
+**(b)** `ftpserver/FtpServerService.kt`: `START_NOT_STICKY`, Wifi-Lock, Benachrichtigung mit Adresse (`FtpServerNotification`, Text aus `FtpServerUrl.getUrl()`) und Stop-Aktion. Der Subtype-Text im Manifest sagt, der Nutzer erwarte, dass der Server tagelang läuft, bis er ihn beendet. Im Code endet der Server, wenn der Dienst zerstört oder die Stop-Aktion ausgeführt wird, und startet nach einem Prozess-Kill nicht von selbst neu. Eine Laufzeit über Tage ist nicht gemessen.
 
 **(c)** Paste-Text, Beschreibung:
 

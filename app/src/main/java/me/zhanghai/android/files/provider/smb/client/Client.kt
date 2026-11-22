@@ -22,6 +22,7 @@ import com.hierynomus.mssmb2.messages.SMB2ChangeNotifyResponse
 import com.hierynomus.protocol.commons.EnumWithValue
 import com.hierynomus.smbj.ProgressListener
 import com.hierynomus.smbj.SMBClient
+import com.hierynomus.smbj.SmbConfig
 import com.hierynomus.smbj.auth.AuthenticationContext
 import com.hierynomus.smbj.common.SMBRuntimeException
 import com.hierynomus.smbj.session.Session
@@ -44,16 +45,30 @@ import me.zhanghai.android.files.util.hasBits
 import java.io.Closeable
 import java.io.IOException
 import java.net.Inet4Address
+import java.net.InetAddress
+import java.net.InetSocketAddress
+import java.net.Socket
+import java.net.SocketAddress
 import java.net.UnknownHostException
 import java.util.Collections
 import java.util.WeakHashMap
 import java.util.concurrent.Future
+import java.util.concurrent.TimeUnit
+import javax.net.SocketFactory
 
 object Client {
+    private const val CONNECT_TIMEOUT_MILLIS = 15_000
+    private const val TRANSFER_TIMEOUT_SECONDS = 60L
+
     @Volatile
     lateinit var authenticator: Authenticator
 
-    private val client = SMBClient()
+    private val client = SMBClient(
+        SmbConfig.builder()
+            .withTimeout(TRANSFER_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+            .withSocketFactory(ConnectTimeoutSocketFactory(CONNECT_TIMEOUT_MILLIS))
+            .build()
+    )
 
     private val sessions = mutableMapOf<Authority, Session>()
 
@@ -664,5 +679,41 @@ object Client {
             val name: String,
             val path: String
         )
+    }
+}
+
+private class ConnectTimeoutSocketFactory(
+    private val timeoutMillis: Int
+) : SocketFactory() {
+    override fun createSocket(): Socket = object : Socket() {
+        override fun connect(endpoint: SocketAddress?, timeout: Int) {
+            super.connect(endpoint, if (timeout > 0) timeout else timeoutMillis)
+        }
+    }
+
+    override fun createSocket(host: String, port: Int): Socket =
+        createSocket().also { it.connect(InetSocketAddress(host, port)) }
+
+    override fun createSocket(
+        host: String,
+        port: Int,
+        localHost: InetAddress,
+        localPort: Int
+    ): Socket = createSocket().also {
+        it.bind(InetSocketAddress(localHost, localPort))
+        it.connect(InetSocketAddress(host, port))
+    }
+
+    override fun createSocket(host: InetAddress, port: Int): Socket =
+        createSocket().also { it.connect(InetSocketAddress(host, port)) }
+
+    override fun createSocket(
+        host: InetAddress,
+        port: Int,
+        localHost: InetAddress,
+        localPort: Int
+    ): Socket = createSocket().also {
+        it.bind(InetSocketAddress(localHost, localPort))
+        it.connect(InetSocketAddress(host, port))
     }
 }

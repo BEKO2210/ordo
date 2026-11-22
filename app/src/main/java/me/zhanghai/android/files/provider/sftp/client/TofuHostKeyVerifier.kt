@@ -6,6 +6,7 @@
 package me.zhanghai.android.files.provider.sftp.client
 
 import android.util.Base64
+import androidx.core.util.AtomicFile
 import me.zhanghai.android.files.app.application
 import net.schmizz.sshj.transport.verification.HostKeyVerifier
 import java.io.File
@@ -33,13 +34,26 @@ object TofuHostKeyVerifier : HostKeyVerifier {
             return stored == fingerprint
         }
         known.setProperty(id, fingerprint)
-        try {
-            file.outputStream().use { known.store(it, null) }
+        save(known)
+        return true
+    }
+
+    private fun save(known: Properties) {
+        val atomic = AtomicFile(file)
+        val stream = try {
+            atomic.startWrite()
         } catch (e: IOException) {
             // Not remembered means asked again next time; the connection itself is still first-use.
             e.printStackTrace()
+            return
         }
-        return true
+        try {
+            known.store(stream, null)
+            atomic.finishWrite(stream)
+        } catch (e: IOException) {
+            atomic.failWrite(stream)
+            e.printStackTrace()
+        }
     }
 
     override fun findExistingAlgorithms(hostname: String, port: Int): List<String> = emptyList()
