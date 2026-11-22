@@ -36,4 +36,11 @@ class SoundEffectGlideTest {
         assertEquals(0.75f, SoundEffectController.moveToward(1f, 0f, 0.25f, 0.1f, 1f), 0.0001f)
         assertEquals(5f, SoundEffectController.moveToward(4.9f, 5f, 0.25f, 0.3f, 1f), 0f)
     }
+
+    @Test
+    fun aSettledClarityEffectIsReappliedWhenItsLevelChanges() {
+        assertTrue(SoundEffectController.clarityLevelChanged(1f, 1, 2))
+        assertEquals(false, SoundEffectController.clarityLevelChanged(0f, 1, 2))
+        assertEquals(false, SoundEffectController.clarityLevelChanged(1f, 2, 2))
+    }
 }

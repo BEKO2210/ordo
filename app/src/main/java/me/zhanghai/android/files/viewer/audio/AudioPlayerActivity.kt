@@ -142,7 +142,10 @@ class AudioPlayerActivity : AppActivity(), AppAccentActivity {
     private var favorite = false
     private val editTagsLauncher =
         registerForActivityResult(androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult()) {
-            if (it.resultCode == RESULT_OK) TagEditUndo.offer(this, binding.root, lifecycleScope, it.data) {}
+            if (it.resultCode == RESULT_OK) TagEditUndo.offer(this, binding.root, lifecycleScope, it.data) {
+                lyricsKey = null
+                controller?.let(::updateLyrics)
+            }
         }
     private lateinit var castChip: Chip
     private val castListener: () -> Unit = { updateCastState() }
@@ -243,7 +246,10 @@ class AudioPlayerActivity : AppActivity(), AppAccentActivity {
                 if (path != null) {
                     lifecycleScope.launch {
                         val now = withContext(Dispatchers.IO) { runCatching { playlists.toggleFavorite(path) }.getOrNull() }
-                        if (now == null) return@launch
+                        if (now == null) {
+                            Snackbar.make(binding.root, R.string.music_playlist_failed, Snackbar.LENGTH_LONG).show()
+                            return@launch
+                        }
                         favorite = now
                         showFavorite()
                         Snackbar.make(
@@ -331,7 +337,8 @@ class AudioPlayerActivity : AppActivity(), AppAccentActivity {
             }
         }
         showPlaceholder()
-        openLyricsPending = savedInstanceState == null && intent.getBooleanExtra(EXTRA_LYRICS, false)
+        openLyricsPending = savedInstanceState?.getBoolean(STATE_LYRICS_VISIBLE) == true ||
+            (savedInstanceState == null && intent.getBooleanExtra(EXTRA_LYRICS, false))
         // Ordo Music's menu opens Sound or the sleep timer over the player.
         if (savedInstanceState == null && intent.hasExtra(EXTRA_SOUND_SHEET)) {
             AudioSoundSettingsSheet().apply {
@@ -345,6 +352,7 @@ class AudioPlayerActivity : AppActivity(), AppAccentActivity {
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putBoolean(STATE_QUEUE_STARTED, queueStarted)
+        outState.putBoolean(STATE_LYRICS_VISIBLE, lyricsView.isVisible || openLyricsPending)
     }
 
     override fun onDestroy() {
@@ -1187,6 +1195,7 @@ class AudioPlayerActivity : AppActivity(), AppAccentActivity {
         private const val EXTRA_SOUND_SHEET = "me.zhanghai.android.files.viewer.audio.extra.SOUND_SHEET"
         private const val EXTRA_LYRICS = "me.zhanghai.android.files.viewer.audio.extra.LYRICS"
         private const val STATE_QUEUE_STARTED = "queueStarted"
+        private const val STATE_LYRICS_VISIBLE = "lyricsVisible"
         private const val SEEK_MAX = 1_000
         // Once per displayed second, on the second: the times only change then, and a screen that redraws twice a
         // second never goes idle for accessibility tools (uiautomator could not read the player while it played).
