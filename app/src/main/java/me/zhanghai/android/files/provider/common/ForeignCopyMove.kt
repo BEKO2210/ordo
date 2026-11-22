@@ -40,16 +40,21 @@ internal object ForeignCopyMove {
         }
         when {
             sourceAttributes.isRegularFile -> {
-                if (copyOptions.replaceExisting) {
-                    target.deleteIfExists()
-                }
                 val openOptions = if (copyOptions.noFollowLinks) {
                     arrayOf(LinkOption.NOFOLLOW_LINKS)
                 } else {
                     emptyArray()
                 }
+                val temp = partFile(target)
+                try {
+                    temp.deleteIfExists()
+                } catch (e: IOException) {
+                    e.printStackTrace()
+                } catch (e: UnsupportedOperationException) {
+                    e.printStackTrace()
+                }
                 source.newInputStream(*openOptions).use { inputStream ->
-                    val outputStream = target.newOutputStream(
+                    val outputStream = temp.newOutputStream(
                         StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE
                     )
                     var successful = false
@@ -65,7 +70,7 @@ internal object ForeignCopyMove {
                         } finally {
                             if (!successful) {
                                 try {
-                                    target.deleteIfExists()
+                                    temp.deleteIfExists()
                                 } catch (e: IOException) {
                                     e.printStackTrace()
                                 } catch (e: UnsupportedOperationException) {
@@ -75,6 +80,7 @@ internal object ForeignCopyMove {
                         }
                     }
                 }
+                replaceWithPart(temp, target, copyOptions.replaceExisting)
             }
             sourceAttributes.isDirectory -> {
                 if (copyOptions.replaceExisting) {
@@ -157,6 +163,44 @@ internal object ForeignCopyMove {
         } catch (e: UnsupportedOperationException) {
             try {
                 target.delete()
+            } catch (e2: IOException) {
+                e.addSuppressed(e2)
+            } catch (e2: UnsupportedOperationException) {
+                e.addSuppressed(e2)
+            }
+            throw e
+        }
+    }
+
+    internal fun partFile(target: Path): Path {
+        val name = target.fileName?.toString()
+            ?: throw IOException("Cannot copy to $target without a file name")
+        return target.resolveSibling(".$name.ordo-part")
+    }
+
+    private fun replaceWithPart(temp: Path, target: Path, replaceExisting: Boolean) {
+        val moveOptions = buildList {
+            add(StandardCopyOption.ATOMIC_MOVE)
+            if (replaceExisting) {
+                add(StandardCopyOption.REPLACE_EXISTING)
+            }
+        }.toTypedArray()
+        try {
+            try {
+                temp.moveTo(target, *moveOptions)
+                return
+            } catch (e: AtomicMoveNotSupportedException) {
+                // Fall through to delete-then-move on providers that cannot rename atomically.
+            } catch (e: UnsupportedOperationException) {
+                // Same: some foreign providers reject ATOMIC_MOVE.
+            }
+            if (replaceExisting) {
+                target.deleteIfExists()
+            }
+            temp.moveTo(target)
+        } catch (e: Exception) {
+            try {
+                temp.deleteIfExists()
             } catch (e2: IOException) {
                 e.addSuppressed(e2)
             } catch (e2: UnsupportedOperationException) {

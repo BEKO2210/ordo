@@ -458,6 +458,8 @@ ready.
 - App data is excluded from cloud backup and device transfer, so server passwords never leave the phone.
 - SFTP host keys and self-signed FTPS certificates are pinned on first use; a changed key or certificate refuses
   the connection. CA certificates are checked with their host name.
+- The built-in FTP server starts with a username and without write access. Anonymous login and writing stay off
+  until you switch them on.
 - Extracting archives never writes outside the chosen folder, also not through links inside the archive.
 - Other apps can only ask Ordo to open files on shared storage, and only for reading.
 - Test builds use the release configuration (R8, not debuggable, screenshots blocked in the vault).

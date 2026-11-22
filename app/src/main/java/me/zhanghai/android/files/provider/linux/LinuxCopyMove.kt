@@ -24,6 +24,10 @@ internal object LinuxCopyMove {
 
     private val XATTR_NAME_PREFIX_USER = "user.".toByteString()
 
+    private val PART_SUFFIX = ".ordo-part".toByteString()
+    private val DOT = ".".toByteString()
+    private val SLASH = '/'.code.toByte()
+
     @Throws(IOException::class)
     fun copy(source: ByteString, target: ByteString, copyOptions: CopyOptions) {
         if (copyOptions.atomicMove) {
@@ -54,31 +58,24 @@ internal object LinuxCopyMove {
             // Symbolic links may not be supported so we cannot simply remove the target here.
         }
         if (OsConstants.S_ISREG(sourceStat.st_mode)) {
-            if (targetStat != null) {
-                try {
-                    Syscall.remove(target)
-                } catch (e: SyscallException) {
-                    if (e.errno != OsConstants.ENOENT) {
-                        throw e.toFileSystemException(target.toString())
-                    }
-                }
-            }
             val sourceFd = try {
                 Syscall.open(source, OsConstants.O_RDONLY, 0)
             } catch (e: SyscallException) {
                 throw e.toFileSystemException(source.toString())
             }
+            val temp = partFile(target)
             try {
-                var targetFlags = (OsConstants.O_WRONLY or OsConstants.O_TRUNC
-                    or OsConstants.O_CREAT)
-                if (!copyOptions.replaceExisting) {
-                    targetFlags = targetFlags or OsConstants.O_EXCL
-                }
-                val targetFd = try {
-                    Syscall.open(target, targetFlags, sourceStat.st_mode)
+                removeIfExists(temp)
+                val tempFd = try {
+                    Syscall.open(
+                        temp,
+                        OsConstants.O_WRONLY or OsConstants.O_TRUNC or OsConstants.O_CREAT
+                            or OsConstants.O_EXCL,
+                        sourceStat.st_mode
+                    )
                 } catch (e: SyscallException) {
-                    e.maybeThrowInvalidFileNameException(target.toString())
-                    throw e.toFileSystemException(target.toString())
+                    e.maybeThrowInvalidFileNameException(temp.toString())
+                    throw e.toFileSystemException(temp.toString())
                 }
                 var successful = false
                 try {
@@ -88,7 +85,7 @@ internal object LinuxCopyMove {
                     var copiedSize = 0L
                     while (true) {
                         val sentSize = try {
-                            Syscall.sendfile(targetFd, sourceFd, null, SEND_FILE_COUNT.toLong())
+                            Syscall.sendfile(tempFd, sourceFd, null, SEND_FILE_COUNT.toLong())
                         } catch (e: SyscallException) {
                             throw e.toFileSystemException(source.toString(), target.toString())
                         }
@@ -109,19 +106,20 @@ internal object LinuxCopyMove {
                     successful = true
                 } finally {
                     try {
-                        Syscall.close(targetFd)
+                        Syscall.close(tempFd)
                     } catch (e: SyscallException) {
-                        throw e.toFileSystemException(target.toString())
+                        throw e.toFileSystemException(temp.toString())
                     } finally {
                         if (!successful) {
                             try {
-                                Syscall.remove(target)
+                                Syscall.remove(temp)
                             } catch (e: SyscallException) {
                                 e.printStackTrace()
                             }
                         }
                     }
                 }
+                renamePartOverTarget(temp, target, copyOptions.replaceExisting)
             } finally {
                 try {
                     Syscall.close(sourceFd)
@@ -249,16 +247,26 @@ internal object LinuxCopyMove {
         }
         if (targetStat != null) {
             if (sourceStat.st_dev == targetStat.st_dev && sourceStat.st_ino == targetStat.st_ino) {
+                if (sameInodeStillNeedsRename(source, target)) {
+                    try {
+                        Syscall.rename(source, target)
+                    } catch (e: SyscallException) {
+                        throw e.toFileSystemException(source.toString(), target.toString())
+                    }
+                }
                 copyOptions.progressListener?.invoke(sourceStat.st_size)
                 return
             }
             if (!copyOptions.replaceExisting) {
                 throw FileAlreadyExistsException(source.toString(), target.toString(), null)
             }
-            try {
-                Syscall.remove(target)
-            } catch (e: SyscallException) {
-                throw e.toFileSystemException(target.toString())
+            // A file is replaced by rename itself. Empty directories still have to go first.
+            if (OsConstants.S_ISDIR(targetStat.st_mode)) {
+                try {
+                    Syscall.remove(target)
+                } catch (e: SyscallException) {
+                    throw e.toFileSystemException(target.toString())
+                }
             }
         }
         var renameSuccessful = false
@@ -299,6 +307,70 @@ internal object LinuxCopyMove {
                 }
             }
             throw e.toFileSystemException(source.toString())
+        }
+    }
+
+    internal fun partFile(target: ByteString): ByteString {
+        val index = target.lastIndexOf(SLASH)
+        val directory = if (index >= 0) target.substring(0, index + 1) else ByteString.EMPTY
+        val name = if (index >= 0) target.substring(index + 1) else target
+        return directory + DOT + name + PART_SUFFIX
+    }
+
+    internal fun sameInodeStillNeedsRename(source: ByteString, target: ByteString): Boolean =
+        source != target
+
+    private fun removeIfExists(path: ByteString) {
+        try {
+            Syscall.remove(path)
+        } catch (e: SyscallException) {
+            if (e.errno != OsConstants.ENOENT) {
+                throw e.toFileSystemException(path.toString())
+            }
+        }
+    }
+
+    private fun renamePartOverTarget(
+        temp: ByteString,
+        target: ByteString,
+        replaceExisting: Boolean
+    ) {
+        try {
+            Syscall.rename(temp, target)
+            return
+        } catch (e: SyscallException) {
+            if (!replaceExisting) {
+                try {
+                    Syscall.remove(temp)
+                } catch (e2: SyscallException) {
+                    e.addSuppressed(e2.toFileSystemException(temp.toString()))
+                }
+                e.maybeThrowInvalidFileNameException(target.toString())
+                throw e.toFileSystemException(temp.toString(), target.toString())
+            }
+        }
+        try {
+            Syscall.remove(target)
+        } catch (e: SyscallException) {
+            if (e.errno != OsConstants.ENOENT) {
+                try {
+                    Syscall.remove(temp)
+                } catch (e2: SyscallException) {
+                    e.addSuppressed(e2.toFileSystemException(temp.toString()))
+                }
+                throw e.toFileSystemException(target.toString())
+            }
+        }
+        try {
+            Syscall.rename(temp, target)
+        } catch (e: SyscallException) {
+            try {
+                Syscall.remove(temp)
+            } catch (e2: SyscallException) {
+                e.addSuppressed(e2.toFileSystemException(temp.toString()))
+            }
+            e.maybeThrowInvalidFileNameException(target.toString())
+            throw e.toFileSystemException(temp.toString(), target.toString())
         }
     }
 }

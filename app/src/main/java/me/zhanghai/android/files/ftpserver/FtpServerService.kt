@@ -45,7 +45,7 @@ class FtpServerService : Service() {
 
     override fun onBind(intent: Intent): IBinder? = null
 
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int = START_STICKY
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int = START_NOT_STICKY
 
     override fun onDestroy() {
         super.onDestroy()

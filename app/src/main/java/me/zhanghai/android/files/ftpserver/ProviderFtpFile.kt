@@ -173,17 +173,17 @@ class ProviderFtpFile(
         }
     }
 
-    override fun listFiles(): List<ProviderFtpFile>? {
-        val directoryStream = try {
-            path.newDirectoryStream()
+    override fun listFiles(): List<ProviderFtpFile>? =
+        try {
+            path.newDirectoryStream().use { directoryStream ->
+                directoryStream.map {
+                    ProviderFtpFile(path.resolve(it), relativePath.resolve(it), user)
+                }.sorted()
+            }
         } catch (e: IOException) {
             e.printStackTrace()
-            return null
+            null
         }
-        return directoryStream.map {
-            ProviderFtpFile(path.resolve(it), relativePath.resolve(it), user)
-        }.sorted()
-    }
 
     @Throws(IOException::class)
     override fun createOutputStream(offset: Long): OutputStream {
