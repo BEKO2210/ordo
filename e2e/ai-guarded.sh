@@ -17,6 +17,8 @@ TARGET=$MODELS/qwen3.5-4b-q4_0.gguf
 STATE=no_backup/llm-state
 T=/sdcard/OrdoKiTest; Z=/sdcard/OrdoKiZiel; D=/sdcard/Download
 DESIGN=${DESIGN:-guarded}
+OLD_AUTO=$(a shell settings get system accelerometer_rotation | tr -d '\r')
+OLD_ROTATION=$(a shell settings get system user_rotation | tr -d '\r')
 
 is_emulator || { echo "SKIP: not an emulator (this test is for the emulator only)"; exit 0; }
 if a shell am start -W -n "$PKG/$DEBUG" --ez show_design false 2>&1 | grep -q "does not exist"; then
@@ -93,7 +95,7 @@ KEYBOARD=$(a shell settings get secure default_input_method | tr -d '\r')
 a shell ime set com.google.android.tts/com.google.android.apps.speech.tts.googletts.settings.asr.voiceime.VoiceInputMethodService >/dev/null 2>&1
 [ -n "$KEYBOARD" ] && a shell ime disable "$KEYBOARD" >/dev/null 2>&1   # else an input field brings it back
 a shell cmd locale set-app-locales "$PKG" --locales de-DE >/dev/null 2>&1
-trap 'a shell cmd locale set-app-locales "$PKG" --locales "" >/dev/null 2>&1; a shell am start -n "$PKG/$DEBUG" --es design "" >/dev/null 2>&1; [ -n "$KEYBOARD" ] && { a shell ime enable "$KEYBOARD"; a shell ime set "$KEYBOARD"; } >/dev/null 2>&1' EXIT
+trap 'a shell cmd locale set-app-locales "$PKG" --locales "" >/dev/null 2>&1; a shell am start -n "$PKG/$DEBUG" --es design "" >/dev/null 2>&1; a shell settings put system user_rotation "${OLD_ROTATION:-0}"; a shell settings put system accelerometer_rotation "${OLD_AUTO:-1}"; [ -n "$KEYBOARD" ] && { a shell ime enable "$KEYBOARD"; a shell ime set "$KEYBOARD"; } >/dev/null 2>&1' EXIT
 PREVIEW="Neue Befehle ausprobieren (Vorschau)|Try new commands (preview)"
 preview_switch() {   # opens Settings › AI assistant and taps the preview switch
     a shell am start -W -n "$PKG/me.zhanghai.android.files.settings.SettingsActivity" >/dev/null; sleep 2
@@ -241,9 +243,14 @@ logged "net counting stopped" && echo "  stopped mid-count" || echo "  the count
 
 # --- one confirmed move on the script's own files
 ask "Verschiebe die Telekom PDFs aus OrdoKiTest nach OrdoKiZiel"
-ui wait confirmButton 20 >/dev/null; ui tap confirmButton >/dev/null; sleep 4
+ui wait confirmButton 20 >/dev/null; ui tap confirmButton >/dev/null
+a shell settings put system accelerometer_rotation 0
+a shell settings put system user_rotation $([ "${OLD_ROTATION:-0}" = 1 ] && echo 0 || echo 1); sleep 4
+check "confirmed: rotating while it runs keeps the app alive" a shell "pidof $PKG >/dev/null"
 check "confirmed: the Telekom PDF moved" a shell "[ -f $Z/ordoai_rechnung_telekom.pdf ] && [ ! -f $T/ordoai_rechnung_telekom.pdf ]"
 check "confirmed: the other PDF stayed" a shell "[ -f $T/ordoai_vertrag.pdf ] && [ ! -f $Z/ordoai_vertrag.pdf ]"
+a shell settings put system user_rotation "${OLD_ROTATION:-0}"
+a shell settings put system accelerometer_rotation "${OLD_AUTO:-1}"; sleep 2
 
 # --- dark theme screenshots of a list, a question and a hint
 if [ -n "${SHOTS:-}" ]; then

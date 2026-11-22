@@ -41,7 +41,7 @@ class FileListActivity : AppActivity() {
         if (fragment.onKeyShortcut(keyCode, event)) {
             return true
         }
-        return super.onKeyUp(keyCode, event)
+        return super.onKeyShortcut(keyCode, event)
     }
 
     companion object {
