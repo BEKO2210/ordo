@@ -1,10 +1,7 @@
-Video:
-• HDR-Filme sehen auf normalen Displays natürlicher aus
-• Detail plus ist schneller und steht jetzt auf „Automatisch“
-Ton:
-• Neu: „Dialog freistellen plus“ trennt Stimmen auf dem Gerät per KI (optional)
-• Ton-Verzögerung wird pro Kopfhörer gemerkt
-• USB-DAC: Ausgabe wieder unverfälscht
-Außerdem:
-• Ordo bewerten, teilen und Feedback senden – direkt in den Einstellungen
-• Viele kleine Verbesserungen
+Stabilitäts-Update:
+• Absturz beim Antippen der Video-Benachrichtigung behoben
+• Sicherer mit Dateien: Gemischte Auswahl landet im Papierkorb, Rückgängig geht wieder
+• Tresor und Bildbetrachter gegen das Öffnen interner Dateien geschützt
+• FTP-Server startet mit Passwort und ohne anonymen Zugang
+• Netzwerkfreigaben bleiben im Leerlauf verbunden
+• Musik und Cast: zuverlässigere Wiedergabe und Schlaf-Timer
