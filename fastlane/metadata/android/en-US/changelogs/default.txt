@@ -1,10 +1,7 @@
-Video:
-• HDR movies look more natural on regular displays
-• Detail plus is faster and now set to "Automatic"
-Sound:
-• New: "Dialogue isolation plus" separates voices on the device with AI (optional)
-• Audio delay is remembered per headphone
-• USB DAC: output is unaltered again
-Also:
-• Rate, share and send feedback for Ordo right from Settings
-• Many small improvements
+Stability update:
+• Fixed a crash when tapping the video notification
+• Safer file handling: mixed selections go to the trash, undo works again
+• Vault and image viewer protected against opening internal files
+• FTP server now starts with a password and no anonymous access
+• Network shares stay connected while idle
+• Music and Cast: more reliable playback and sleep timer
