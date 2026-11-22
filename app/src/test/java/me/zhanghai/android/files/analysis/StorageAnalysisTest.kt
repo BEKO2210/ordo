@@ -165,8 +165,17 @@ class StorageAnalysisTest {
         assertTrue(StorageAnalysis.isStillEmpty(dir.path))
         File(dir, ".nomedia").writeBytes(ByteArray(0))
         assertFalse(StorageAnalysis.isStillEmpty(dir.path))
+        assertFalse(StorageAnalysis.deleteIfStillEmpty(dir.path))
+        assertTrue(dir.isDirectory)
         dir.deleteRecursively()
         assertFalse(StorageAnalysis.isStillEmpty(dir.path))
+    }
+
+    @Test
+    fun deleteIfStillEmpty_emptyFolderIsDeleted() {
+        val dir = Files.createTempDirectory("empty").toFile()
+        assertTrue(StorageAnalysis.deleteIfStillEmpty(dir.path))
+        assertFalse(dir.exists())
     }
 
     @Test

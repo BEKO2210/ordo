@@ -99,32 +99,38 @@ object CommandEngine {
             design.adapter?.let { CommandModel.rejectAdapter(context.applicationContext, it) }
             throw IOException("model load failed")
         }
-        Log.i(TAG, "model loaded with $threads threads in ${SystemClock.elapsedRealtime() - loadStarted} ms" +
-            (design.adapter?.let { ", adapter ${it.sha256}" } ?: ""))
-        loadedThreads = threads
-        loadedSystem = design.system
-        loadedAdapter = design.adapter?.sha256
-        // A saved prompt state skips reading the prompt again (the slow part of a cold start). It is keyed by
-        // model, prompt, grammar, context size and app version, so a change in any of them never loads it.
-        val state = stateFile(context.applicationContext, design)
-        val started = SystemClock.elapsedRealtime()
-        if (state.isFile && loaded.restoreState(state.path)) {
-            Log.i(TAG, "prompt state restored: ${state.length()} bytes in ${SystemClock.elapsedRealtime() - started} ms")
-        } else {
-            // A state this app wrote itself that does not load again (damaged, or llama.cpp refuses it) is not
-            // written again for this key: a marker file stops a rewrite on every cold start.
-            if (state.isFile) File(state.path + FAILED).createNewFile()
-            state.delete()
-            if (!loaded.prepare(CommandPlanner.prefix(design.system))) {
-                loaded.close()
-                throw IOException("prompt prefix failed")
+        try {
+            Log.i(TAG, "model loaded with $threads threads in ${SystemClock.elapsedRealtime() - loadStarted} ms" +
+                (design.adapter?.let { ", adapter ${it.sha256}" } ?: ""))
+            loadedThreads = threads
+            loadedSystem = design.system
+            loadedAdapter = design.adapter?.sha256
+            // A saved prompt state skips reading the prompt again (the slow part of a cold start). It is keyed by
+            // model, prompt, grammar, context size and app version, so a change in any of them never loads it.
+            val state = stateFile(context.applicationContext, design)
+            val started = SystemClock.elapsedRealtime()
+            if (state.isFile && loaded.restoreState(state.path)) {
+                Log.i(TAG,
+                    "prompt state restored: ${state.length()} bytes in ${SystemClock.elapsedRealtime() - started} ms")
+            } else {
+                // A state this app wrote itself that does not load again (damaged, or llama.cpp refuses it) is not
+                // written again for this key: a marker file stops a rewrite on every cold start.
+                if (state.isFile) File(state.path + FAILED).createNewFile()
+                state.delete()
+                if (!loaded.prepare(CommandPlanner.prefix(design.system))) {
+                    throw IOException("prompt prefix failed")
+                }
+                Log.i(TAG, "prompt read in ${SystemClock.elapsedRealtime() - started} ms")
+                saveState(loaded, state)
             }
-            Log.i(TAG, "prompt read in ${SystemClock.elapsedRealtime() - started} ms")
-            saveState(loaded, state)
+            engine = loaded
+            scheduleUnload()
+            return loaded
+        } catch (t: Throwable) {
+            if (engine === loaded) engine = null
+            loaded.close()
+            throw t
         }
-        engine = loaded
-        scheduleUnload()
-        return loaded
     }
 
     /** Private, never backed up (noBackupFilesDir); deleted together with the model. */
