@@ -13,6 +13,8 @@ import java.net.URI
 import java8.nio.file.Path
 import java8.nio.file.Paths
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
 import me.zhanghai.android.files.provider.common.getLastModifiedTime
 import me.zhanghai.android.files.provider.common.newDirectoryStream
@@ -67,7 +69,8 @@ private class PathLyricsFile(private val path: Path) : LyricsFile {
  *
  * Works on every source Ordo opens: local storage and SD cards, and folders Ordo can list (SAF trees, SMB, SFTP)
  * also get the `.lrc` lookup. A content:// song from another app has no folder, so only its embedded lyrics count.
- * Songs not on local storage are copied to a temporary file (up to [MAX_COPY_BYTES]) for the tag reader.
+ * Songs not on local storage are copied to a temporary file (up to [MAX_COPY_BYTES]) for the tag reader, except
+ * vault content, which is never written back out as plaintext.
  *
  * Results, also "none", are cached per song until the song or its `.lrc` changes, appears or disappears.
  * Never writes to any file.
@@ -88,14 +91,17 @@ object LyricsRepository {
     suspend fun load(song: MusicSong): Lyrics? = load(Paths.get(song.path))
 
     /** [uri] is what the player has as `MediaItem.mediaId`: a file://, content:// or other Ordo path URI. */
-    suspend fun load(uri: String): Lyrics? =
-        withContext(Dispatchers.IO) { runCatching { Paths.get(URI.create(uri)) }.getOrNull()?.let(::loadBlocking) }
+    suspend fun load(uri: String): Lyrics? = withContext(Dispatchers.IO) {
+        val context = currentCoroutineContext()
+        runCatching { Paths.get(URI.create(uri)) }.getOrNull()?.let { loadBlocking(PathLyricsFile(it), context::ensureActive) }
+    }
 
-    suspend fun load(path: Path): Lyrics? = withContext(Dispatchers.IO) { loadBlocking(path) }
+    suspend fun load(path: Path): Lyrics? = withContext(Dispatchers.IO) {
+        val context = currentCoroutineContext()
+        loadBlocking(PathLyricsFile(path), context::ensureActive)
+    }
 
-    private fun loadBlocking(path: Path): Lyrics? = loadBlocking(PathLyricsFile(path))
-
-    internal fun loadBlocking(file: LyricsFile): Lyrics? {
+    internal fun loadBlocking(file: LyricsFile, ensureActive: () -> Unit = {}): Lyrics? {
         val sidecar = runCatching { findSidecar(file) }.getOrNull()
         val stamp = runCatching {
             "${file.lastModified}/${file.size}|" +
@@ -106,7 +112,7 @@ object LyricsRepository {
         val sidecarText = sidecar?.takeIf { it.size <= MAX_BYTES }
             ?.let { lrc -> runCatching { lrc.newInputStream().use { it.readAtMost(MAX_BYTES.toLong()) } }.getOrNull() }
             ?.let(::decodeText)
-        val lyrics = pick(sidecarText) { runCatching { readEmbedded(file) }.getOrDefault(EmbeddedLyrics()) }
+        val lyrics = pick(sidecarText) { runCatching { readEmbedded(file, ensureActive) }.getOrDefault(EmbeddedLyrics()) }
         synchronized(cache) { cache[file.key] = Entry(stamp, lyrics) }
         return lyrics
     }
@@ -152,16 +158,17 @@ object LyricsRepository {
     // shortcut: no guessing of CJK legacy encodings (GBK, Shift-JIS), add them when users report them.
     internal fun decodeText(bytes: ByteArray): String = TextCharset.decode(bytes).text
 
-    private fun readEmbedded(file: LyricsFile): EmbeddedLyrics {
+    private fun readEmbedded(file: LyricsFile, ensureActive: () -> Unit): EmbeddedLyrics {
         // Also sets up jaudiotagger for Android (SongTagIo's init). jaudiotagger picks its reader by the extension.
         val extension = file.name.substringAfterLast('.', "")
         if (!SongTagIo.isEditableFormat(File("song.$extension"))) return EmbeddedLyrics()
         file.toLocalFile()?.let { return readEmbedded(it) }
+        if (isVaultUri(file.key)) return EmbeddedLyrics()
         if (file.size > MAX_COPY_BYTES) return EmbeddedLyrics()
         val copy = File.createTempFile("ordo-lyrics-", ".$extension")
         try {
             val complete = file.newInputStream().use { input ->
-                copy.outputStream().use { input.copyAtMost(it, MAX_COPY_BYTES) }
+                copy.outputStream().use { input.copyAtMost(it, MAX_COPY_BYTES, ensureActive) }
             }
             return if (complete) readEmbedded(copy) else EmbeddedLyrics()
         } finally {
@@ -170,10 +177,11 @@ object LyricsRepository {
     }
 
     /** Copies at most [limit] bytes; false when the stream has more, so the copy is incomplete. */
-    internal fun InputStream.copyAtMost(out: OutputStream, limit: Long): Boolean {
+    internal fun InputStream.copyAtMost(out: OutputStream, limit: Long, ensureActive: () -> Unit = {}): Boolean {
         val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
         var total = 0L
         while (true) {
+            ensureActive()
             val read = read(buffer)
             if (read < 0) return true
             total += read
@@ -185,6 +193,10 @@ object LyricsRepository {
     /** All bytes when there are at most [limit], else null. */
     internal fun InputStream.readAtMost(limit: Long): ByteArray? =
         ByteArrayOutputStream().let { if (copyAtMost(it, limit)) it.toByteArray() else null }
+
+    internal fun isVaultUri(value: String): Boolean = runCatching {
+        URI.create(value).let { it.scheme == "content" && it.authority?.endsWith(".vault") == true }
+    }.getOrDefault(false)
 
     private fun readEmbedded(file: File): EmbeddedLyrics {
         val audio = AudioFileIO.read(file)

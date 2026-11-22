@@ -234,7 +234,18 @@ edit_title() {
     ui wait Fixture 8 && ui tap Fixture || return 1
     a shell input keycombination 113 29; sleep 0.5   # Ctrl+A: the new title replaces the old one
     a shell input text "${new// /%s}"; sleep 1 # deliberate: the search waits for the end of typing (debounce) and then loads
-    a shell input keyevent KEYCODE_BACK      # hide the keyboard
+    a shell input keyevent KEYCODE_BACK; sleep 1      # hide the keyboard
+    local old_auto old_rotation next_rotation
+    old_auto=$(a shell settings get system accelerometer_rotation | tr -d '\r')
+    old_rotation=$(a shell settings get system user_rotation | tr -d '\r')
+    next_rotation=$([ "${old_rotation:-0}" = 0 ] && echo 1 || echo 0)
+    a shell settings put system accelerometer_rotation 0
+    a shell settings put system user_rotation "$next_rotation"; sleep 3
+    local kept=0
+    wait_on viewer.audio.MusicTagEditorActivity 5 && ui has "$new" && kept=1
+    a shell settings put system user_rotation "${old_rotation:-0}"
+    a shell settings put system accelerometer_rotation "${old_auto:-1}"; sleep 3
+    [ $kept = 1 ] && wait_on viewer.audio.MusicTagEditorActivity 5 && ui has "$new" || return 1
     ui tap actionSave || return 1                     # the toolbar's Save (shown in capitals) opens the preview
     ui wait "Diese Änderungen speichern?|Save these changes?" 5 || return 1
     ui tap button1 || return 1                        # the preview's Save

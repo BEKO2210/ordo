@@ -181,7 +181,9 @@ class TruePeakLimiter(private val armedBy: (() -> Boolean)? = null) : BaseAudioP
     }
 
     private fun quantize(value: Float): Short =
-        (value * PCM_SCALE).roundToInt().coerceIn(Short.MIN_VALUE.toInt(), Short.MAX_VALUE.toInt()).toShort()
+        if (value.isFinite()) {
+            (value * PCM_SCALE).roundToInt().coerceIn(Short.MIN_VALUE.toInt(), Short.MAX_VALUE.toInt()).toShort()
+        } else 0
 
     companion object {
         private const val PCM_SCALE = 32_768f

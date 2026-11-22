@@ -34,7 +34,7 @@ class CastFileServer(bindAddress: InetAddress, private val allowedClient: InetAd
     private val acceptStopped = CountDownLatch(1)
 
     val port: Int get() = serverSocket.localPort
-    private val host = bindAddress.hostAddress
+    private val host = hostForUrl(bindAddress.hostAddress)
 
     init {
         workers.execute(::acceptLoop)
@@ -174,6 +174,11 @@ class CastFileServer(bindAddress: InetAddress, private val allowedClient: InetAd
     companion object {
         private const val ACCEPT_STOP_TIMEOUT_MS = 2_000L
         internal val INVALID = LongRange.EMPTY
+
+        internal fun hostForUrl(hostAddress: String): String {
+            val withoutZone = hostAddress.substringBefore('%')
+            return if (':' in withoutZone) "[$withoutZone]" else withoutZone
+        }
 
         /**
          * A single `bytes=` range as an inclusive [LongRange] clipped to the file; null when there is no usable
