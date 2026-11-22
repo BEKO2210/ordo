@@ -2634,6 +2634,107 @@ class RestoreTrashJob(private val entries: List<TrashEntry>) : FileJob() {
             try {
                 val target = Paths.get(Trash.restoreTarget(entry.originalPath) { File(it).exists() })
                 target.parent?.createDirectories()
+                moveAtomically(Paths.get(entry.file.path), target)
+                entry.infoFile.delete()
+                return
+            } catch (e: InterruptedIOException) {
+                throw e
+            } catch (e: IOException) {
+                e.printStackTrace()
+                val result = showErrorDialog(
+                    getString(R.string.file_job_restore_trash_error_title),
+                    getString(
+                        R.string.file_job_delete_error_message_format, entry.name, e.toString()
+                    ),
+                    null,
+                    false,
+                    getString(R.string.retry),
+                    getString(R.string.skip),
+                    getString(android.R.string.cancel)
+                )
+                when (result.action) {
+                    FileJobErrorAction.POSITIVE -> continue
+                    FileJobErrorAction.NEGATIVE, FileJobErrorAction.CANCELED -> return
+                    FileJobErrorAction.NEUTRAL -> throw InterruptedIOException()
+                    else -> throw AssertionError(result.action)
+                }
+            }
+        }
+    }
+}
+
+class MoveToVaultJob(private val paths: List<Path>) : FileJob() {
+    @Throws(IOException::class)
+    override fun run() {
+        for ((index, path) in paths.withIndex()) {
+            postNotification(
+                getString(R.string.file_job_vault_move_notification_title), getFileName(path), null,
+                null, paths.size, index, false, true
+            )
+            moveToVault(path)
+            throwIfInterrupted()
+        }
+    }
+
+    @Throws(IOException::class)
+    private fun moveToVault(path: Path) {
+        while (true) {
+            try {
+                val entry = path.newInputStream().use { Vault.store.add(path.toString(), it) }
+                try {
+                    path.delete()
+                } catch (e: IOException) {
+                    // The original stays, so the copy must go or the file would exist twice.
+                    Vault.store.delete(entry)
+                    throw e
+                }
+                return
+            } catch (e: InterruptedIOException) {
+                throw e
+            } catch (e: IOException) {
+                e.printStackTrace()
+                val result = showErrorDialog(
+                    getString(R.string.file_job_vault_error_title),
+                    getString(
+                        R.string.file_job_vault_error_message_format, getFileName(path),
+                        e.toString()
+                    ),
+                    null,
+                    false,
+                    getString(R.string.retry),
+                    getString(R.string.skip),
+                    getString(android.R.string.cancel)
+                )
+                when (result.action) {
+                    FileJobErrorAction.POSITIVE -> continue
+                    FileJobErrorAction.NEGATIVE, FileJobErrorAction.CANCELED -> return
+                    FileJobErrorAction.NEUTRAL -> throw InterruptedIOException()
+                    else -> throw AssertionError(result.action)
+                }
+            }
+        }
+    }
+}
+
+class RestoreVaultJob(private val entries: List<VaultEntry>) : FileJob() {
+    @Throws(IOException::class)
+    override fun run() {
+        for ((index, entry) in entries.withIndex()) {
+            postNotification(
+                getString(R.string.file_job_vault_restore_notification_title), entry.name, null,
+                null, entries.size, index, false, true
+            )
+            restore(entry)
+            throwIfInterrupted()
+        }
+    }
+
+    @Throws(IOException::class)
+    private fun restore(entry: VaultEntry) {
+        while (true) {
+            try {
+                val target = Paths.get(Trash.restoreTarget(entry.originalPath) { File(it).exists() })
+                target.parent?.createDirectories()
                 // A kill during the copy must not leave a half file under the real name.
                 val part = target.resolveSibling(".${target.fileName}.ordo-part")
                 Vault.store.open(entry).use { input ->
