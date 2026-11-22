@@ -210,6 +210,9 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
         if (args.intent.action != null) null else ShowFileListLiveData.Request.from(args.intent)
     }
 
+    /** The show token is still on the intent, but its in-memory request died with the process. */
+    private var closingLostShow = false
+
     // A list that is not a folder (a category or an AI result): no breadcrumbs, opening a folder opens a new screen.
     private val isVirtualList: Boolean
         get() = homeCategory != null || showRequest != null
@@ -281,6 +284,19 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
+
+        if (shouldFinishLostShow(
+                savedInstanceState != null,
+                args.intent.action,
+                args.intent.getStringExtra(FileListActivity.EXTRA_SHOW_TOKEN),
+                showRequest != null
+            )
+        ) {
+            // Process death kept the token and dropped the request. The start folder is the wrong place.
+            closingLostShow = true
+            requireActivity().finish()
+            return
+        }
 
         if (savedInstanceState == null) {
             navigationFragment = NavigationFragment()
@@ -502,6 +518,7 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
     override fun onResume() {
         super.onResume()
 
+        if (closingLostShow) return
         if (!viewModel.isNotificationPermissionRequested) {
             ensureStorageAccess()
         }
@@ -522,6 +539,7 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        if (closingLostShow) return
         super.onCreateOptionsMenu(menu, inflater)
 
         menuBinding = MenuBinding.inflate(menu, inflater)
@@ -1588,6 +1606,10 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
                 .addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
                 .apply {
                     extraPath = path
+                    // Token only after the intent is explicit. The chooser and other image apps must not see it.
+                    if (!withChooser && mimeType.isImage) {
+                        setClass(requireContext(), ImageViewerActivity::class.java)
+                    }
                     maybeAddImageViewerActivityExtras(this, path, mimeType)
                     if (!withChooser) maybeAddAudioPlayerActivityExtras(this, path, mimeType)
                     if (!withChooser) maybeAddVideoPlayerActivityExtras(this, path, mimeType)
@@ -2008,7 +2030,7 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
         private const val ACTION_VIEW_DOWNLOADS =
             "me.zhanghai.android.files.intent.action.VIEW_DOWNLOADS"
 
-        private const val IMAGE_VIEWER_ACTIVITY_PATH_LIST_SIZE_MAX = 1000
+        internal const val IMAGE_VIEWER_ACTIVITY_PATH_LIST_SIZE_MAX = 200
     }
 
     private class RequestAllFilesAccessContract : ActivityResultContract<Unit, Boolean>() {
@@ -2120,3 +2142,14 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
         }
     }
 }
+
+/**
+ * A restored show list whose request is gone (the process died) must close.
+ * A fresh intent, a VIEW action, or a request that is still registered stays.
+ */
+internal fun shouldFinishLostShow(
+    restored: Boolean,
+    action: String?,
+    showToken: String?,
+    requestFound: Boolean
+): Boolean = restored && action == null && !showToken.isNullOrEmpty() && !requestFound

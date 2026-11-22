@@ -29,8 +29,8 @@ class TruePeakLimiterTest {
     private val rate = 48_000
 
     /** Runs interleaved stereo (−1..1) through a limiter in 1024-frame buffers and drains it. */
-    private fun limit(signal: DoubleArray, armed: Boolean = true): ShortArray {
-        val limiter = TruePeakLimiter().apply { this.armed = armed }
+    private fun limit(signal: DoubleArray, armed: Boolean = true, gainDb: Float = 0f): ShortArray {
+        val limiter = TruePeakLimiter().apply { this.armed = armed; this.gainDb = gainDb }
         limiter.configure(AudioProcessor.AudioFormat(rate, 2, C.ENCODING_PCM_16BIT))
         limiter.flush()
         val out = ArrayList<Short>()
@@ -140,6 +140,15 @@ class TruePeakLimiterTest {
         val signal = stereo(4_000) { sin(PI / 2 * it + PI / 4) / sin(PI / 4) * 0.999 }
         val input = ShortArray(signal.size) { (signal[it] * 32_767).toInt().toShort() }
         assertArrayEquals(input, limit(signal, armed = false))
+    }
+
+    @Test
+    fun corruptExtremeGainNeverProducesAnInvalidConversion() {
+        assertEquals(60f, ReplayGain.parseDb("800")!!, 0f)
+        assertEquals(-60f, ReplayGain.parseDb("-800 dB")!!, 0f)
+        val out = limit(stereo(1_000) { 0.5 }, gainDb = 800f)
+        assertEquals(2_000, out.size)
+        assertTrue(out.all { it in Short.MIN_VALUE..Short.MAX_VALUE })
     }
 
     @Test

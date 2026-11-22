@@ -29,7 +29,7 @@ wait_playing() { local i; for i in $(seq 1 16); do playing && return 0; sleep 0.
 part() { ui texts | grep -E -- "$1" >/dev/null; }
 a shell am start -W -a android.intent.action.VIEW -d "file://$DIR" -t inode/directory \
     -n "$PKG/me.zhanghai.android.files.filelist.FileListActivity" >/dev/null
-sleep 3; guard; ui wait 01-isolate.mp4 10 >/dev/null
+guard; ui wait 01-isolate.mp4 10 >/dev/null
 ui tap 01-isolate.mp4 >/dev/null; wait_on viewer.video.VideoPlayerActivity 8
 check "the 48 kHz clip plays" wait_playing
 video_menu "Klang|Sound"
@@ -42,15 +42,15 @@ if ! scroll_to "Dialog freistellen plus|Dialogue isolation plus" 4; then
     back; a shell am force-stop "$PKG"; finish; exit
 fi
 a shell run-as "$PKG" rm -f files/models/deepfilternet3_onnx.tar.gz
-ui tap "Dialog freistellen plus|Dialogue isolation plus" >/dev/null; sleep 1.5
-check "switching on asks before any download" ui has "Sprachmodell laden?|Load the speech model?"
+ui tap "Dialog freistellen plus|Dialogue isolation plus" >/dev/null
+check "switching on asks before any download" ui see "Sprachmodell laden?|Load the speech model?"
 ui tap "Abbrechen|Cancel" >/dev/null; sleep 1
 check "Cancel downloads nothing" eval '! a shell run-as "$PKG" ls files/models/deepfilternet3_onnx.tar.gz'
-ui tap "Dialog freistellen plus|Dialogue isolation plus" >/dev/null; sleep 1.5
+ui tap "Dialog freistellen plus|Dialogue isolation plus" >/dev/null
 ui tap "Laden|Load" >/dev/null
 for _ in $(seq 1 60); do a shell run-as "$PKG" ls files/models/deepfilternet3_onnx.tar.gz >/dev/null 2>&1 && break; sleep 2; done
 check "the model is there after Load" a shell run-as "$PKG" ls files/models/deepfilternet3_onnx.tar.gz
-sleep 6
+eventually 6 eval 'a logcat -d -s OrdoVideoSound | grep -q "DeepFilterNet3: loaded=true rtf="'
 rtf=$(a logcat -d -s OrdoVideoSound | grep -o 'DeepFilterNet3: loaded=true rtf=[0-9.E-]*' | tail -1 | sed 's/.*rtf=//')
 echo "INFO DeepFilterNet3 RTF on this device: ${rtf:-not logged}"
 if [ -n "$rtf" ] && python3 -c "import sys; sys.exit(0 if float('$rtf') <= 0.7 else 1)"; then
@@ -58,7 +58,7 @@ if [ -n "$rtf" ] && python3 -c "import sys; sys.exit(0 if float('$rtf') <= 0.7 e
     check "with Dialog isolation plus on it plays on" wait_playing
     scroll_to "Dialog-Verstärker|Clear dialogue" 3; ui tap "Dialog-Verstärker|Clear dialogue" >/dev/null; sleep 1.5
     check "together with Clear dialogue it plays on" wait_playing
-    ui tap "Dialog-Verstärker|Clear dialogue" >/dev/null; sleep 1
+    ui tap "Dialog-Verstärker|Clear dialogue" >/dev/null
     scroll_to "Dialog freistellen plus|Dialogue isolation plus" 3
     ui tap "Dialog freistellen plus|Dialogue isolation plus" >/dev/null; sleep 1.5
     check "switched off it plays on" wait_playing

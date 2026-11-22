@@ -4,8 +4,8 @@
 # without a downloaded model (setup page still has the handle).
 . "$(dirname "$0")/lib.sh" "$@"
 launch
-ui tap assistantButton >/dev/null; sleep 2; guard
-check "the command sheet shows its title" ui has titleText
+ui tap assistantButton >/dev/null
+check "the command sheet shows its title" ui see titleText; guard
 check "the drag handle is on the sheet" ui has dragHandle
 
 density=$(a shell wm density | tail -1 | sed 's/.*: //')

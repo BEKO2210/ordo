@@ -140,7 +140,10 @@ object Settings {
         ParcelValueSettingLiveData(
             R.string.pref_key_ftp_server_home_directory,
             @Suppress("DEPRECATION")
-            Paths.get(Environment.getExternalStorageDirectory().absolutePath)
+            Paths.get(
+                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+                    .absolutePath
+            )
         )
 
     val FTP_SERVER_WRITABLE: SettingLiveData<Boolean> =

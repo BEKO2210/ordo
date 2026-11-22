@@ -1,0 +1,24 @@
+{
+  "_note": "AI pictures used only as content inside real Ordo screens (album covers, demo photos). No brands, no real people, no text. Made with art.py (Higgsfield, model nano_banana_pro, 1k, 21.11.2026); the pictures are committed next to this file.",
+  "style": "no text, no letters, no logo, no watermark, no people",
+  "covers": {
+    "Midnight Drive": "album cover art, empty rain-wet city street at night seen through a car windshield, blurred magenta and deep blue neon lights, cinematic 35mm photograph, moody",
+    "Paper Moons": "album cover art, handmade paper-cut collage of crescent moons and small stars, warm yellow and coral red craft paper, soft shadows, minimal",
+    "Coastal Lines": "album cover art, aerial drone photograph of turquoise sea waves meeting pale sand in clean diagonal lines, minimal, teal and mint green",
+    "Neon Garden": "album cover art, lush tropical monstera leaves lit by purple and cyan neon light, dark background, glossy, studio photograph",
+    "Northern Light": "album cover art, green aurora borealis over a dark snowy mountain ridge, starry sky, long exposure photograph, calm",
+    "Slow Mornings": "album cover art, ceramic coffee cup on a sunny windowsill, warm orange morning light, soft film grain, analog photograph, cozy",
+    "Glass City": "album cover art, looking straight up at blue glass skyscrapers forming geometric shapes against the sky, architectural photograph, cool blue tones",
+    "Wild Fields": "album cover art, golden wheat field at sunset with a single oak tree on the horizon, warm yellow and green, analog photograph"
+  },
+  "photos": {
+    "tram": "travel photograph, vintage yellow tram on a steep cobblestone street in an old southern European town, pastel houses, sunny afternoon, empty street",
+    "tiles": "travel photograph, close-up of a wall of traditional blue and white ceramic tiles with floral patterns, sunlight and shadow",
+    "cliffs": "travel photograph, golden sandstone sea cliffs and turquoise Atlantic ocean at sunset, wide angle",
+    "pastry": "food photograph, custard tarts on a small plate next to an espresso on a marble cafe table, natural light, top view",
+    "rooftops": "travel photograph, panorama over red tiled rooftops of an old town down to a wide river, golden hour",
+    "beach": "travel photograph, empty sandy beach with turquoise waves and a wooden walkway, bright summer day",
+    "alley": "travel photograph, narrow old town alley with flower pots and colorful houses, warm evening light, empty",
+    "bridge": "travel photograph, long red suspension bridge over a river at dusk, pink sky, calm water"
+  }
+}

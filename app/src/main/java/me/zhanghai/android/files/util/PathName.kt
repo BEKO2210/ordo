@@ -75,4 +75,5 @@ fun String.asFileName(): FileName {
 fun String.asFileNameOrNull(): FileName? = if (isValidFileName) FileName(this) else null
 
 private val String.isValidFileName: Boolean
-    get() = isNotEmpty() && !contains('\u0000') && !contains(PathName.SEPARATOR)
+    get() = isNotEmpty() && this != "." && this != ".." && !contains('\u0000') &&
+        !contains(PathName.SEPARATOR)

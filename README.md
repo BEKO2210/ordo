@@ -15,7 +15,7 @@
 
 <p align="center">
 <!-- AUTO:badges -->
-  <a href="https://github.com/BEKO2210/ordo/releases/tag/v0.18.0"><img alt="release 0.18.0" src="https://img.shields.io/badge/release-0.18.0-2563EB"></a>
+  <a href="https://github.com/BEKO2210/ordo/releases/tag/v0.18.1"><img alt="release 0.18.1" src="https://img.shields.io/badge/release-0.18.1-2563EB"></a>
   <img alt="Android 7.0+" src="https://img.shields.io/badge/Android-7.0%2B-3DDC84">
   <a href="LICENSE"><img alt="License: GPL-3.0-or-later" src="https://img.shields.io/badge/license-GPL--3.0--or--later-blue"></a>
 <!-- /AUTO:badges -->
@@ -46,7 +46,7 @@
 ## Status
 
 <!-- AUTO:status -->
-Current version 0.18.0 · [release v0.18.0](https://github.com/BEKO2210/ordo/releases/tag/v0.18.0) · Android 7.0 and later (minSdk 24, targetSdk 36 = Android 16) · [GPL-3.0-or-later](LICENSE)
+Current version 0.18.1 · [release v0.18.1](https://github.com/BEKO2210/ordo/releases/tag/v0.18.1) · Android 7.0 and later (minSdk 24, targetSdk 36 = Android 16) · [GPL-3.0-or-later](LICENSE)
 <!-- /AUTO:status -->
 
 Ordo is in development. A closed test runs on Google Play; test builds are also published as
@@ -174,28 +174,36 @@ The pictures of the Play listing, from `fastlane/metadata/android/en-US/images/`
 
 <p align="center"><sub>Phone</sub></p>
 <p align="center">
-  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/01_home.jpg" width="24%" alt="Phone: home">
-  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/02_ai.jpg" width="24%" alt="Phone: ai">
-  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/03_analysis.jpg" width="24%" alt="Phone: analysis">
-  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/04_files.jpg" width="24%" alt="Phone: files">
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/01_suite.jpg" width="24%" alt="Phone: suite">
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/02_files.jpg" width="24%" alt="Phone: files">
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/03_music.jpg" width="24%" alt="Phone: music">
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/04_video.jpg" width="24%" alt="Phone: video">
 </p>
 <p align="center">
-  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/05_vault.jpg" width="24%" alt="Phone: vault">
-  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/06_backup.jpg" width="24%" alt="Phone: backup">
-  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/07_music.jpg" width="24%" alt="Phone: music">
-  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/08_settings.jpg" width="24%" alt="Phone: settings">
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/05_ai.jpg" width="24%" alt="Phone: ai">
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/06_vault.jpg" width="24%" alt="Phone: vault">
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/07_storage.jpg" width="24%" alt="Phone: storage">
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/08_sound.jpg" width="24%" alt="Phone: sound">
 </p>
 <p align="center"><sub>7-inch tablet</sub></p>
 <p align="center">
-  <img src="fastlane/metadata/android/en-US/images/sevenInchScreenshots/01_home.jpg" width="32%" alt="7-inch tablet: home">
-  <img src="fastlane/metadata/android/en-US/images/sevenInchScreenshots/02_analysis.jpg" width="32%" alt="7-inch tablet: analysis">
-  <img src="fastlane/metadata/android/en-US/images/sevenInchScreenshots/03_files.jpg" width="32%" alt="7-inch tablet: files">
+  <img src="fastlane/metadata/android/en-US/images/sevenInchScreenshots/01_suite.jpg" width="32%" alt="7-inch tablet: suite">
+  <img src="fastlane/metadata/android/en-US/images/sevenInchScreenshots/02_files.jpg" width="32%" alt="7-inch tablet: files">
+  <img src="fastlane/metadata/android/en-US/images/sevenInchScreenshots/03_music.jpg" width="32%" alt="7-inch tablet: music">
+</p>
+<p align="center">
+  <img src="fastlane/metadata/android/en-US/images/sevenInchScreenshots/04_video.jpg" width="32%" alt="7-inch tablet: video">
+  <img src="fastlane/metadata/android/en-US/images/sevenInchScreenshots/05_sound.jpg" width="32%" alt="7-inch tablet: sound">
 </p>
 <p align="center"><sub>10-inch tablet</sub></p>
 <p align="center">
-  <img src="fastlane/metadata/android/en-US/images/tenInchScreenshots/01_home.jpg" width="32%" alt="10-inch tablet: home">
-  <img src="fastlane/metadata/android/en-US/images/tenInchScreenshots/02_analysis.jpg" width="32%" alt="10-inch tablet: analysis">
-  <img src="fastlane/metadata/android/en-US/images/tenInchScreenshots/03_files.jpg" width="32%" alt="10-inch tablet: files">
+  <img src="fastlane/metadata/android/en-US/images/tenInchScreenshots/01_suite.jpg" width="32%" alt="10-inch tablet: suite">
+  <img src="fastlane/metadata/android/en-US/images/tenInchScreenshots/02_files.jpg" width="32%" alt="10-inch tablet: files">
+  <img src="fastlane/metadata/android/en-US/images/tenInchScreenshots/03_music.jpg" width="32%" alt="10-inch tablet: music">
+</p>
+<p align="center">
+  <img src="fastlane/metadata/android/en-US/images/tenInchScreenshots/04_video.jpg" width="32%" alt="10-inch tablet: video">
+  <img src="fastlane/metadata/android/en-US/images/tenInchScreenshots/05_sound.jpg" width="32%" alt="10-inch tablet: sound">
 </p>
 <!-- /AUTO:screenshots -->
 
@@ -204,63 +212,62 @@ The pictures of the Play listing, from `fastlane/metadata/android/en-US/images/`
 <!-- AUTO:features -->
 From the Play listing, `fastlane/metadata/android/en-US/full_description.txt`.
 
-**Find your files**
+**Files**
 
 - Home screen with recent files, categories and your storage at a glance
 - Search by name or by text inside files
-- List or grid, bookmarks and quick access to common folders
-
-**Free up space**
-
-- Storage analysis for internal storage, SD cards and USB drives
-- See your files by type, the folders that take the most space, large files, duplicates, files you have not used for a long time, old APKs, empty folders and thumbnail caches
-- Cleanup suggestions with a preview through the AI commands, so you decide what goes
+- Copy, move, rename and share, with speed and time remaining; rename many files at once
+- Create and extract ZIP, TAR and 7z archives; built-in viewers for images, PDF and text
+- Storage analysis for internal storage, SD cards and USB drives: large files, duplicates, old APKs, files you have not used for a long time
 - Trash: deleted files can be restored for 30 days
-- App manager: see installed apps, save their APK, uninstall
+- App manager: save an APK, uninstall
 
-**Work with files**
+**Ordo Music**
 
-- Copy, move, rename and share, with speed and time remaining
-- Rename many files at once using a pattern
-- Create and extract ZIP, TAR and 7z archives
-- Built-in viewers for images, PDF and text
+- Your library by songs, albums, artists, folders, playlists and favorites
+- A player that takes its colors from the cover, with a queue and lock screen controls
+- Synced lyrics from .lrc files or embedded in the song
+- Sound: 10-band equalizer you shape on the curve, presets, ReplayGain, room sound for headphones, reverb and a fading sleep timer
+- Headphone correction for 500 models and virtual surround
+- Hi-res output to a USB DAC (Android 14 and later)
+- Edit song info and cover art; play on Bluetooth, cast devices or a TV
 
-**Music and videos**
+**Ordo Video**
 
-- Music player with cover art, a queue and controls in the notification, on the lock screen and on headphone buttons
-- Sound: 10-band equalizer with presets, bass boost, loudness levelling, speed that keeps the pitch, sleep timer
-- Video player with continue watching, swipe gestures, repeat and video details
-- “Play on…”: send music to Bluetooth headphones, a speaker or a cast device
-- Optional own “Ordo Music” and “Ordo Video” icons on your home screen
+- Continue watching, series sorted into episodes, swipe gestures for brightness, volume and seeking
+- Software decoders for formats your phone cannot play itself, such as DivX, MPEG-2, VC-1 and 10-bit HEVC
+- HDR movies converted for regular screens
+- Detail plus: sharper upscaling of low-resolution videos, where your device is fast enough
+- Dialogue isolation: makes voices clearer with an on-device AI model (optional download, 8 MB)
+- Subtitles from files or the video, with delay, reading aid and an easy-to-read style
+- Picture-in-picture, sleep timer, A-B repeat, playback speed
+- Stream from your network shares or cast to a TV
+
+**Ask in your own words**
+
+Type or dictate “Move all MP3s from Download to Music”. Ordo shows the plan first and acts only when you confirm. One tap undoes it.
+
+- Move, copy, sort into subfolders or move to the trash, in English or German
+- The AI runs entirely on your phone. Your commands and file names never leave the device.
+- Deleting always means the trash. System folders are protected.
+- Setup downloads the language model once (about 2.6 GB, over Wi-Fi by default). After that it works offline.
+- Needs a 64-bit phone with a recent Arm chip (Armv8.2 dot product), at least 10 GB of RAM (phones sold with 12 GB) and about 3.1 GB of free space
 
 **Keep files safe**
 
 - Vault: files are encrypted with AES-256-GCM and opened with your screen lock
 - Backup: folders and the vault as a ZIP file to a USB drive or any storage your phone offers, with an optional password
-- Restore normal files from a backup without replacing the ones you already have
-
-**Ask in your own words**
-
-Type or dictate a sentence like “Move all MP3s from Download to Music”. Ordo shows the plan first and acts only when you confirm. One tap undoes it.
-
-- Move, copy, sort into subfolders or move to the trash
-- Works in English and German
-- The AI runs entirely on your phone. Your commands and file names never leave the device.
-- Deleting always means the trash. System folders are protected. If a folder is unclear, Ordo asks instead of guessing.
-- Setup downloads the language model once (about 2.6 GB, over Wi-Fi by default). After that it works offline.
-- Needs a 64-bit phone with a recent Arm chip (Armv8.2 dot product), at least 10 GB of RAM (phones sold with 12 GB) and about 3.1 GB of free space
-- AI commands are free, like the rest of Ordo
+- Restore without replacing the files you already have
 
 **For power users**
 
-- FTP, SFTP, SMB and WebDAV servers, plus a built-in FTP server
+- FTP, SFTP, SMB and WebDAV, plus a built-in FTP server
 - Root and Shizuku access, Linux permissions, symbolic links and SELinux context
 
 **Make it yours**
 
-- Five accent colors, or your wallpaper’s colors on Android 12 and later
-- Light, dark and true black
-- Motion full, subtle or off
+- Five accent colors or your wallpaper’s colors; light, dark and true black
+- Optional own “Ordo Music” and “Ordo Video” icons on your home screen
 <!-- /AUTO:features -->
 
 <details>
@@ -451,6 +458,8 @@ ready.
 - App data is excluded from cloud backup and device transfer, so server passwords never leave the phone.
 - SFTP host keys and self-signed FTPS certificates are pinned on first use; a changed key or certificate refuses
   the connection. CA certificates are checked with their host name.
+- The built-in FTP server starts with a username, a password and without write access. Its root is the Download
+  folder. Anonymous login and writing stay off until you switch them on. If no password is set, one is generated.
 - Extracting archives never writes outside the chosen folder, also not through links inside the archive.
 - Other apps can only ask Ordo to open files on shared storage, and only for reading.
 - Test builds use the release configuration (R8, not debuggable, screenshots blocked in the vault).

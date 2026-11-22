@@ -78,6 +78,31 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment(),
     private var highsRenderer: (() -> Unit)? = null
     private var bypassShown = false
     private lateinit var palette: Palette
+    private var presetScroller: HorizontalScrollView? = null
+    private var initialPreset: View? = null
+    private val settlePresets = Runnable {
+        val current = _binding ?: return@Runnable
+        val scroller = presetScroller ?: return@Runnable
+        val visible = (0 until current.presets.childCount).map { current.presets.getChildAt(it) }.filter { it.isVisible }
+        val target = visible.minByOrNull { kotlin.math.abs(it.left - scroller.scrollX) }?.left ?: return@Runnable
+        scroller.smoothScrollTo(target, 0)
+    }
+    private val initialPresetScroll = Runnable {
+        val current = _binding ?: return@Runnable
+        val tile = initialPreset ?: return@Runnable
+        val scroller = current.presets.parent as? HorizontalScrollView ?: return@Runnable
+        scroller.scrollTo(maxOf(0, tile.left - resources.getDimensionPixelSize(R.dimen.klang_space_lg)), 0)
+    }
+    private val sleepScroll = Runnable {
+        val current = _binding ?: return@Runnable
+        // Split: binding.root is detached, the sleep card scrolls in the right pane.
+        val scrollView = if (isSplit()) view?.findViewById<androidx.core.widget.NestedScrollView>(R.id.klangRightPane)
+        else current.root
+        val rect = android.graphics.Rect()
+        current.sleepCard.getDrawingRect(rect)
+        scrollView?.offsetDescendantRectToMyCoords(current.sleepCard, rect)
+        scrollView?.smoothScrollTo(0, rect.top)
+    }
 
     private class Palette(
         val primary: Int,
@@ -410,18 +435,14 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment(),
     /** After a swipe the preset row settles on a whole tile at its left edge. */
     private fun snapPresets() {
         val scroller = binding.presets.parent as? HorizontalScrollView ?: return
-        val settle = Runnable {
-            val tiles = (0 until binding.presets.childCount).map { binding.presets.getChildAt(it) }.filter { it.isVisible }
-            val target = tiles.minByOrNull { kotlin.math.abs(it.left - scroller.scrollX) }?.left ?: return@Runnable
-            scroller.smoothScrollTo(target, 0)
-        }
+        presetScroller = scroller
         scroller.setOnTouchListener { _, event ->
             if (event.actionMasked == android.view.MotionEvent.ACTION_UP ||
                 event.actionMasked == android.view.MotionEvent.ACTION_CANCEL
             ) {
-                scroller.removeCallbacks(settle)
+                scroller.removeCallbacks(settlePresets)
                 // After the fling has slowed down.
-                scroller.postDelayed(settle, SNAP_DELAY_MS)
+                scroller.postDelayed(settlePresets, SNAP_DELAY_MS)
             }
             false
         }
@@ -908,10 +929,8 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment(),
         }
         val initialTile = selectedTile
         if (firstRender && initialTile != null) {
-            initialTile.binding.root.post {
-                val scroller = binding.presets.parent as? HorizontalScrollView
-                scroller?.scrollTo(maxOf(0, initialTile.binding.root.left - resources.getDimensionPixelSize(R.dimen.klang_space_lg)), 0)
-            }
+            initialPreset = initialTile.binding.root
+            initialTile.binding.root.post(initialPresetScroll)
         }
         renderers.forEach { it() }
         renderEqualizerState()
@@ -921,6 +940,7 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment(),
     }
 
     private fun showStatus(status: AudioPlayerActivity.SoundStatus) {
+        if (_binding == null) return
         soundStatus = status
         renderEqualizerState()
         renderPreamp()
@@ -1073,17 +1093,17 @@ class AudioSoundSettingsSheet : BottomSheetDialogFragment(),
     private fun showSleepTimer() {
         (dialog as? com.google.android.material.bottomsheet.BottomSheetDialog)?.behavior?.state =
             com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_EXPANDED
-        val scrollView = binding.root
-        scrollView.post {
-            val rect = android.graphics.Rect()
-            binding.sleepCard.getDrawingRect(rect)
-            scrollView.offsetDescendantRectToMyCoords(binding.sleepCard, rect)
-            scrollView.smoothScrollTo(0, rect.top)
-        }
+        (view ?: binding.root).post(sleepScroll)
     }
 
     override fun onDestroyView() {
         handler.removeCallbacks(sleepTicker)
+        handler.removeCallbacksAndMessages(null)
+        presetScroller?.removeCallbacks(settlePresets)
+        initialPreset?.removeCallbacks(initialPresetScroll)
+        (view ?: binding.root).removeCallbacks(sleepScroll)
+        presetScroller = null
+        initialPreset = null
         tiles.forEach { it.spring?.cancel() }
         _binding = null
         super.onDestroyView()

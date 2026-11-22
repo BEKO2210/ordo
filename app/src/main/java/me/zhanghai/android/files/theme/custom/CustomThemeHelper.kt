@@ -14,6 +14,7 @@ import android.os.Bundle
 import androidx.annotation.StyleRes
 import androidx.appcompat.app.AppCompatActivity
 import me.zhanghai.android.files.R
+import me.zhanghai.android.files.app.AppActivity
 import me.zhanghai.android.files.compat.recreateCompat
 import me.zhanghai.android.files.compat.setThemeCompat
 import me.zhanghai.android.files.compat.themeResIdCompat
@@ -31,6 +32,7 @@ object CustomThemeHelper {
     fun initialize(application: Application) {
         application.registerActivityLifecycleCallbacks(object : SimpleActivityLifecycleCallbacks {
             override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
+                if (activity !is AppActivity) return
                 check(activityBaseThemes.containsKey(activity)) {
                     "Activity must extend AppActivity: $activity"
                 }

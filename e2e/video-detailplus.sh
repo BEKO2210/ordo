@@ -1,5 +1,6 @@
 #!/bin/bash
 # Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later
+# farm: needs=hdr
 # Ordo Video's "Detail plus" and "Measurements", WRITES: creates /storage/emulated/0/ordo-e2e-detailplus (with an Anime
 # subfolder) from clips made by ffmpeg on the host and removes it again; switches the debug log on and off; sets
 # "Upscaling" and puts it back to Standard.
@@ -35,25 +36,25 @@ log() { a logcat -d -s "$TAG:D" | tr -d '\r'; }
 open_file() {
     a shell am start -W -a android.intent.action.VIEW -d "file://$1" -t inode/directory \
         -n "$PKG/me.zhanghai.android.files.filelist.FileListActivity" >/dev/null
-    sleep 3; guard; ui wait "$2" 10 >/dev/null; ui tap "$2" >/dev/null
-    wait_on viewer.video.VideoPlayerActivity 8
+    guard; ui wait "$2" 10 >/dev/null; ui tap "$2" >/dev/null
+    wait_on viewer.video.VideoPlayerActivity 8; media_wait PLAY 6 # the menu helper pauses only what already plays
 }
 menu() { video_menu "$1"; }
 # ui has/wait compare whole texts (no regex): content checks grep the screen's texts instead.
 seen() { local end=$((SECONDS + ${2:-0})); until ui texts | grep -E -- "$1" >/dev/null; do [ $SECONDS -ge $end ] && return 1; sleep 0.5; done; }
 upscaling() {
-    a shell am start -W -n "$PKG/me.zhanghai.android.files.viewer.video.VideoLauncherActivity" >/dev/null; sleep 2; guard
-    ui tap actionSettings >/dev/null; sleep 2
+    a shell am start -W -n "$PKG/me.zhanghai.android.files.viewer.video.VideoLauncherActivity" >/dev/null; guard
+    ui tap actionSettings >/dev/null
     scroll_to "Hochskalieren|Upscaling" >/dev/null # mid-list: below the fold on the Tab (20.11.2026)
-    ui tap "Hochskalieren|Upscaling" >/dev/null; sleep 1.5
-    ui tap "$1" >/dev/null; sleep 1.5
+    ui tap "Hochskalieren|Upscaling" >/dev/null
+    ui tap "$1" >/dev/null; sleep 1.5 # deliberate: the choice is taken over before the next step leaves the screen
     back 1; back 1
 }
 
 # 1. The setting exists and offers Standard. Its value persists: a run stopped early left "Automatic" (Tab, 20.11.2026).
 upscaling "Standard (Lanczos)"
-a shell am start -W -n "$PKG/me.zhanghai.android.files.viewer.video.VideoLauncherActivity" >/dev/null; sleep 2; guard
-ui tap actionSettings >/dev/null; sleep 2
+a shell am start -W -n "$PKG/me.zhanghai.android.files.viewer.video.VideoLauncherActivity" >/dev/null; guard
+ui tap actionSettings >/dev/null
 scroll_to "Hochskalieren|Upscaling" >/dev/null
 # A short pull, so the summary under the title is on screen too (settings list, no gesture there).
 read -r W H < <(screen_size); a shell input swipe $((W / 2)) $((H * 6 / 10)) $((W / 2)) $((H * 4 / 10)) 400; sleep 1
@@ -64,8 +65,7 @@ back 1; back 1
 upscaling "Detail plus: Film|Detail plus: film"
 a logcat -c
 open_file "$DIR" 01-film.mp4
-sleep 6
-check "the film network is set as an effect" eval 'log | grep "effects: detail plus FILM"'
+check "the film network is set as an effect" eventually 8 eval 'log | grep "effects: detail plus FILM"'
 menu "Signalweg|Signal path"
 check "the signal path names Detail plus film" seen "Detail plus (Film|film) \(FSRCNNX x2\)" 5
 screenshot "$out/signal-detailplus.png"
@@ -78,7 +78,7 @@ check "unfolding starts measuring" seen "Misst\. Zum Beenden antippen\.|Measurin
 check "every pass is wrapped while measuring" eval 'log | grep "measuring true"'
 # Landscape tablets (A8, W90) show the unfolded rows and the CSV button only below the fold; a dump lists only what shows.
 ui has "Als CSV teilen|Share as CSV" || swipe_up
-sleep 20
+sleep 20 # deliberate: the measuring time; "kept for 20 s" below is about exactly this span
 check "the timer kind is shown" seen "GPU-Timer|GPU timer|CPU-Uhr|CPU clock"
 if seen "Detail plus: [0-9]"; then echo "INFO Detail plus kept for 20 s"; else echo "INFO Detail plus not timed (fell back?)"; fi
 # Dropped frames switch the whole enhancement off, Lanczos with it, and the row says why (Tab S9, 21.11.2026: 55
@@ -101,9 +101,8 @@ back 1; back 2
 upscaling "Automatisch|Automatic"
 a logcat -c
 open_file "$DIR/Anime" "[SubsPlease] Show - 01 (360p).mp4"
-sleep 6
 # The cartoon network, the film network or Lanczos when this device measured it too slow before (all name the reason).
-check "Automatic decides for an anime name and logs why" eval 'log | grep -E "auto: (CARTOON ANIME|FILM ANIME_FILM|lanczos TOO_SLOW)"'
+check "Automatic decides for an anime name and logs why" eventually 8 eval 'log | grep -E "auto: (CARTOON ANIME|FILM ANIME_FILM|lanczos TOO_SLOW)"'
 menu "Signalweg|Signal path"
 check "the signal path says why Automatic chose" seen "Automatisch: |Automatic: " 5
 screenshot "$out/signal-auto.png"

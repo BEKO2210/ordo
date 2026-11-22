@@ -14,6 +14,7 @@ ask() {
 }
 exists() { a shell "[ -f '$DIR/$1' ]"; }
 not() { ! "$@"; }
+not_on() { ! on "$@"; }
 not_has() { ! ui has "$1"; }
 # on_screen REGEX: some text on screen contains it (a snackbar's text is long, ui.py matches whole texts).
 on_screen() { a shell uiautomator dump /sdcard/ordo-e2e-ui.xml >/dev/null 2>&1; a shell cat /sdcard/ordo-e2e-ui.xml | grep -qE "$1"; }
@@ -38,9 +39,43 @@ check "the subtitle counts and says what was understood" on_screen "1 (Datei|fil
 check "the big video is listed" ui wait big_ordoe2e.mp4 10
 check "the small one is not" not_has small_ordoe2e.mp4
 shot ai-show-list
-ui longtap big_ordoe2e.mp4 >/dev/null 2>&1; sleep 1.5
-check "long press selects as usual" ui has selectionBar
-back; back
+ui longtap big_ordoe2e.mp4 >/dev/null 2>&1
+check "long press selects as usual" ui see selectionBar
+# CP-8: leave the list so its state is saved, kill the background process, then come back.
+# `am task focus` restores that task. Starting Home on top would cover a list that failed to close.
+# `back; back` from integrate would leave this list before the kill, so the process-death check could not run.
+# The next scenario starts with --activity-clear-task, which replaces that dismissal.
+a shell input keyevent KEYCODE_HOME
+sleep 1
+if ! a shell dumpsys activity activities | tr -d '\r' | grep -q 'filelist.FileListActivity'; then
+    echo "SKIP process death: the show list left the task before the kill"
+else
+    a shell am kill "$PKG"
+    sleep 1
+    if ! a shell dumpsys activity activities | tr -d '\r' | grep -q 'filelist.FileListActivity'; then
+        echo "SKIP process death: the task disappeared after am kill"
+    else
+        task=$(a shell dumpsys activity activities | tr -d '\r' | python3 -c '
+import sys, re
+for line in sys.stdin:
+    if "filelist.FileListActivity" not in line:
+        continue
+    match = re.search(r"\bt(\d+)\b", line)
+    if match:
+        print(match.group(1))
+        break
+')
+        if [ -n "$task" ] && a shell am task focus "$task" >/dev/null 2>&1; then
+            sleep 3
+        else
+            a shell am start -n "$PKG/me.zhanghai.android.files.home.HomeActivity" >/dev/null
+            sleep 3
+        fi
+        check "a killed show list closes instead of the start folder" not_on filelist.FileListActivity
+        resumed_ok() { on home.HomeActivity || on ai.DebugAiActivity; }
+        check "Ordo is back without that list" resumed_ok
+    fi
+fi
 
 # --- a question never becomes a delete: the rules turn it into show
 ask "kann ich die ordoe2e videos löschen?" '{"action":"delete","source":"ordo-e2e-ai","kinds":["video"],"name_contains":"ordoe2e"}'
@@ -54,8 +89,8 @@ check "the hint says Ordo cannot know it" ui wait "Das kann Ordo noch nicht wiss
 check "the hint offers unchanged files instead" ui has "Unveränderte Dateien zeigen|Show unchanged files"
 check "no confirm button" not_has confirmButton
 shot ai-show-hint
-ui tap messageLayout >/dev/null 2>&1; sleep 1
-check "a tap on the hint goes back to the command field" ui has commandEdit
+ui tap messageLayout >/dev/null 2>&1
+check "a tap on the hint goes back to the command field" ui see commandEdit
 back
 
 # --- storage questions and duplicates go to the existing analysis pages, without the model
