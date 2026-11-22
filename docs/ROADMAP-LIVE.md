@@ -2,11 +2,16 @@
 
 <!-- Erzeugt von utils/roadmap.sh. Nicht von Hand ändern: Ziele stehen im Skript, erledigt ist, was sein Prüfbefehl bestätigt. -->
 
-Stand: 21.11.2026, letzte Version: v0.17.0. Als Nächstes: **PDF-Leser: suchen, markieren, Nachtmodus**
+Stand: 22.11.2026, letzte Version: v0.18.1. Als Nächstes: **Version 1.0.0 im Play Store**
 
 Jedes Ziel ist eine Zelle mit einem Prüfbefehl ([autopoiesis](https://github.com/BEKO2210/autopoiesis)).
 Besteht der Befehl, ist das Ziel erledigt. Nach jeder veröffentlichten Version entstehen die Zellen
 für die nächste – vor 1.0.0 und danach.
+
+**v0.18.1** (22.11.2026) ist ein Stabilitäts-Update: #155, #156, #160, #161, #162, dazu die
+Geräte-Tests #154, #158, #159. Bis **1.0.0** gilt ein Feature-Freeze. Der Produktionszugang bei
+Google Play ist um den 01.12.2026 geplant. Danach kommt Ordo Bilder
+(„Bildbetrachter auf Spitzenniveau“).
 
 ## Offen
 
@@ -26,9 +31,9 @@ für die nächste – vor 1.0.0 und danach.
 - [ ] Dokumente bearbeiten: Entscheidung für Office-Formate
 - [ ] KI: Musik per Satz abspielen (Datei-Manager und Ordo Musik)
 - [ ] Offline-Chatbot, verbunden mit allen eingebauten Apps
-- [ ] Nach v0.17.0: nächste Version hat eine eigene Nummer
-- [ ] Nach v0.17.0: beide READMEs nennen die neue Version
-- [ ] Nach v0.17.0: neue Version veröffentlicht
+- [ ] Nach v0.18.1: nächste Version hat eine eigene Nummer
+- [ ] Nach v0.18.1: beide READMEs nennen die neue Version
+- [ ] Nach v0.18.1: neue Version veröffentlicht
 
 ## Erledigt
 
@@ -61,6 +66,12 @@ für die nächste – vor 1.0.0 und danach.
 - [x] Eingebaute Apps entkoppeln: jede als eigenes App-Symbol, einzeln schaltbar
 - [x] Icon-Farbe für Ordo und jede eingebaute App selbst wählen
 - [x] Ordo als Ort in Androids Dateiauswahl (DocumentsProvider)
+- [x] Nach v0.17.0: nächste Version hat eine eigene Nummer
+- [x] Nach v0.17.0: beide READMEs nennen die neue Version
+- [x] Nach v0.17.0: neue Version veröffentlicht
+- [x] Nach v0.18.0: nächste Version hat eine eigene Nummer
+- [x] Nach v0.18.0: beide READMEs nennen die neue Version
+- [x] Nach v0.18.0: neue Version veröffentlicht
 
 ## Graph
 
@@ -111,9 +122,9 @@ flowchart TD
   nc_ca8d13["Dokumente bearbeiten: Entscheidung für Office-Formate [active]"]
   nc_2215e6["KI: Musik per Satz abspielen (Datei-Manager und Ordo Musik) [active]"]
   nc_e1e884["Offline-Chatbot, verbunden mit allen eingebauten Apps [active]"]
-  nc_1102c5["Nach v0.17.0: nächste Version hat eine eigene Nummer [active]"]
-  nc_d37145["Nach v0.17.0: beide READMEs nennen die neue Version [active]"]
-  nc_493061["Nach v0.17.0: neue Version veröffentlicht [active]"]
+  nc_a18101["Nach v0.18.1: nächste Version hat eine eigene Nummer [active]"]
+  nc_a18102["Nach v0.18.1: beide READMEs nennen die neue Version [active]"]
+  nc_a18103["Nach v0.18.1: neue Version veröffentlicht [active]"]
   nc_17f4f5 --> nc_87038f
   nc_52e09b --> nc_87038f
   nc_95badd --> nc_87038f
@@ -148,6 +159,6 @@ flowchart TD
   nc_2215e6 --> nc_e1e884
   nc_25562e --> nc_e1e884
   nc_5efc6e --> nc_e1e884
-  nc_1102c5 --> nc_d37145
-  nc_d37145 --> nc_493061
+  nc_a18101 --> nc_a18102
+  nc_a18102 --> nc_a18103
 ```

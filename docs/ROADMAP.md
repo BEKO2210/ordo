@@ -2,6 +2,10 @@
 
 > Der laufende Stand steht in der [lebenden Roadmap](ROADMAP-LIVE.md): Ziele mit Prüfbefehl, erzeugt von
 > `utils/roadmap.sh`. Dieses Dokument bleibt als Plan und Vorgeschichte.
+>
+> Stand 22.11.2026: **v0.18.1** ist draußen (Stabilitäts-Update, PRs #155 #156 #160 #161 #162,
+> Geräte-Tests #154 #158 #159). Nächster Schritt ist **1.0.0**, Produktionszugang um den 01.12.2026,
+> Feature-Freeze bis dahin. Danach Ordo Bilder.
 
 Ziel: kostenloser Dateimanager im Play Store, alles von Samsung „Eigene Dateien" plus mehr. Open Source (GPL-3.0),
 keine Werbung, kein Tracking. Basis: MaterialFiles (Kotlin, Views/ViewBinding, LiveData, NIO2-Provider).
