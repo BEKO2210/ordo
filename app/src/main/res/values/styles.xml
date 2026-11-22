@@ -484,6 +484,10 @@
         <item name="android:maxLines">1</item>
         <item name="android:hyphenationFrequency">none</item>
         <item name="android:breakStrategy">simple</item>
+        <item name="autoSizeTextType">uniform</item>
+        <item name="autoSizeMinTextSize">12sp</item>
+        <item name="autoSizeMaxTextSize">14sp</item>
+        <item name="autoSizeStepGranularity">1sp</item>
     </style>
     <!-- Sleep timer: 55 dp cells that take two lines, so "End of track" / "Titelende" is never squeezed. -->
     <style name="Widget.Ordo.Klang.Segment.Tall">

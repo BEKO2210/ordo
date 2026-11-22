@@ -15,6 +15,7 @@ import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import android.content.res.ColorStateList
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.annotation.ColorInt
 import androidx.annotation.ColorRes
@@ -164,6 +165,7 @@ class StorageAdapter(
     override fun getItemCount() = items.size
     override fun onBindViewHolder(holder: ViewHolder, position: Int) = holder.bind(items[position])
     inner class ViewHolder(private val binding: HomeStorageItemBinding) : RecyclerView.ViewHolder(binding.root) {
+        private val icons = listOf(binding.openButton.icon, binding.analyzeButton.icon)
         fun bind(item: StorageSummary) {
             val context = binding.root.context
             // Storage belongs to no file type, so it wears the chosen accent like its bar.
@@ -202,6 +204,36 @@ class StorageAdapter(
             binding.analyzeButton.setOnClickListener { onAnalyze(item) }
             binding.root.setOnClickListener { onClick(item) }
             binding.openButton.setOnClickListener { onClick(item) }
+            binding.actionsRow.doOnLayout { fitActions() }
+        }
+
+        // The labels shrink to 12 sp first; if a word still does not fit, drop the icons, then stack the buttons.
+        private fun fitActions() {
+            val row = binding.actionsRow
+            val buttons = listOf(binding.openButton, binding.analyzeButton)
+            val gap = row.resources.getDimensionPixelSize(R.dimen.phi_8)
+            val half = (row.width - gap) / 2
+            val paint = android.text.TextPaint(buttons[0].paint).apply {
+                textSize = android.util.TypedValue.applyDimension(
+                    android.util.TypedValue.COMPLEX_UNIT_SP, 12f, row.resources.displayMetrics
+                )
+            }
+            fun fits(withIcon: Boolean) = buttons.all {
+                val icon = if (withIcon) it.iconSize + it.iconPadding else 0
+                paint.measureText(it.text.toString()) <= half - it.paddingStart - it.paddingEnd - icon
+            }
+            val stacked = !fits(false)
+            val showIcon = fits(true)
+            row.orientation = if (stacked) LinearLayout.VERTICAL else LinearLayout.HORIZONTAL
+            buttons.forEachIndexed { index, button ->
+                button.icon = if (showIcon || stacked) icons[index] else null
+                button.updateLayoutParams<LinearLayout.LayoutParams> {
+                    width = if (stacked) ViewGroup.LayoutParams.MATCH_PARENT else 0
+                    weight = if (stacked) 0f else 1f
+                    marginEnd = if (!stacked && index == 0) gap else 0
+                    topMargin = if (stacked && index == 1) gap else 0
+                }
+            }
         }
     }
 }
