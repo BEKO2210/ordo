@@ -37,7 +37,10 @@ import me.zhanghai.android.files.util.fadeOutUnsafe
 import me.zhanghai.android.files.util.isReady
 import me.zhanghai.android.files.util.showToast
 import me.zhanghai.android.files.util.viewModels
+import java.io.IOException
 import java.nio.charset.Charset
+
+private const val STATE_UNSAVED_DRAFT = "unsavedDraft"
 
 class TextEditorFragment : Fragment(), ConfirmReloadDialogFragment.Listener,
     ConfirmCloseDialogFragment.Listener {
@@ -109,10 +112,24 @@ class TextEditorFragment : Fragment(), ConfirmReloadDialogFragment.Listener,
         //  rid of the mPathLiveData in TextEditorViewModel.
         ThemedFastScroller.create(binding.scrollView)
         // Manually save and restore state in view model to avoid TransactionTooLargeException.
+        // Process death drops the view model, so an unsaved draft also lives in the cache.
         binding.textEdit.isSaveEnabled = false
         val textEditSavedState = viewModel.removeEditTextSavedState()
+        val draft = if (textEditSavedState == null &&
+            savedInstanceState?.getBoolean(STATE_UNSAVED_DRAFT) == true
+        ) {
+            TextEditorDraft.read(requireContext().cacheDir, TextEditorDraft.key(argsFile.toString()))
+        } else {
+            null
+        }
         if (textEditSavedState != null) {
             binding.textEdit.onRestoreInstanceState(textEditSavedState)
+        }
+        editorDraftToApply(textEditSavedState != null, draft)?.let { text ->
+            isSettingText = true
+            binding.textEdit.setText(text)
+            isSettingText = false
+            viewModel.isTextChanged.value = true
         }
         binding.textEdit.doAfterTextChanged {
             if (isSettingText) {
@@ -132,6 +149,19 @@ class TextEditorFragment : Fragment(), ConfirmReloadDialogFragment.Listener,
         super.onSaveInstanceState(outState)
 
         viewModel.setEditTextSavedState(binding.textEdit.onSaveInstanceState())
+        val cache = context?.cacheDir ?: return
+        if (!::argsFile.isInitialized) return
+        val key = TextEditorDraft.key(argsFile.toString())
+        if (viewModel.isTextChanged.value) {
+            try {
+                TextEditorDraft.write(cache, key, binding.textEdit.text.toString())
+                outState.putBoolean(STATE_UNSAVED_DRAFT, true)
+            } catch (e: IOException) {
+                // Rotation still has the view-model copy. A killed process then reloads the file.
+            }
+        } else {
+            TextEditorDraft.delete(cache, key)
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
@@ -254,6 +284,9 @@ class TextEditorFragment : Fragment(), ConfirmReloadDialogFragment.Listener,
 
     override fun reload() {
         viewModel.isTextChanged.value = false
+        if (::argsFile.isInitialized) {
+            context?.cacheDir?.let { TextEditorDraft.delete(it, TextEditorDraft.key(argsFile.toString())) }
+        }
         viewModel.reload()
     }
 
@@ -268,7 +301,15 @@ class TextEditorFragment : Fragment(), ConfirmReloadDialogFragment.Listener,
             is ActionState.Success -> {
                 showToast(R.string.text_editor_save_success)
                 viewModel.finishWritingFile()
-                viewModel.isTextChanged.value = false
+                // Keystrokes after the snapshot must stay dirty, or the saved bytes replace them.
+                if (savedTextIsCurrent(binding.textEdit.text.toString(), state.argument.second)) {
+                    viewModel.isTextChanged.value = false
+                    if (::argsFile.isInitialized) {
+                        context?.cacheDir?.let {
+                            TextEditorDraft.delete(it, TextEditorDraft.key(argsFile.toString()))
+                        }
+                    }
+                }
             }
             // The error will be toasted by service so we should never show it in UI.
             is ActionState.Error -> viewModel.finishWritingFile()

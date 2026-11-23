@@ -47,6 +47,10 @@ class NavigationFragment : Fragment(), NavigationItem.Listener {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
 
+        // A lost show list finishes in the parent before the listener is set. Children are
+        // dispatched only after that returns, so binding here would crash on the lateinit.
+        if (!::listener.isInitialized) return
+
         binding.recyclerView.setHasFixedSize(true)
         // TODO: Needed?
         //binding.recyclerView.setItemAnimator(new NoChangeAnimationItemAnimator())

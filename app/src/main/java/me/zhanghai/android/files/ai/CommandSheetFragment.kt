@@ -78,6 +78,7 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
 
     private val root: File = Environment.getExternalStorageDirectory()
     private var job: Job? = null
+    private var executeGeneration = 0
     private var text = ""
     private var ready: Outcome.Ready? = null
     private var files: List<File> = emptyList()
@@ -131,6 +132,11 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
             showInput()
         }
         binding.editButton.setOnClickListener { showInput() }
+        viewLifecycleOwner.lifecycleScope.launch {
+            CommandUndo.offers.collect { offer ->
+                if (offer != null) binding.root.post { if (_binding != null) showQueuedResult() }
+            }
+        }
         binding.confirmButton.setOnClickListener {
             it.performHapticFeedback(
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) HapticFeedbackConstants.CONFIRM
@@ -157,16 +163,39 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
             return
         }
         // Opened with a ready plan (e.g. an analysis suggestion): no model needed, straight to the preview.
-        val presetPlan = arguments?.getString(ARG_PLAN)?.let(CommandPlan::parse)
-        if (presetPlan != null && state == null) {
-            text = arguments?.getString(ARG_TEXT).orEmpty()
-            binding.commandEdit.setText(text)
-            binding.removeModelButton.isVisible = false
-            viewLifecycleOwner.lifecycleScope.launch { evaluate(presetPlan) }
-            return
+        // Arguments survive rotation and process death; a chip edit from this visit wins over them.
+        val argumentPlan = arguments?.getString(ARG_PLAN)?.let(CommandPlan::parse)
+        val presetPlan = if (argumentPlan != null) {
+            state?.getString(STATE_PLAN)?.let(CommandPlan::parse) ?: argumentPlan
+        } else {
+            null
         }
         val restoredText = state?.getString(STATE_TEXT)
         val restoredPending = state?.getBoolean(STATE_PENDING) == true
+        when (CommandUndo.restore(
+            undoPending = CommandUndo.offers.value != null,
+            commandRunning = CommandUndo.running,
+            presetPlan = presetPlan != null,
+            restoredPending = restoredPending,
+        )) {
+            CommandUndo.Restore.ShowPendingUndo, CommandUndo.Restore.WaitForRunningCommand -> {
+                if (!restoredText.isNullOrEmpty()) binding.commandEdit.setText(restoredText)
+                show(binding.loadingLayout)
+                binding.cancelButton.isVisible = false
+                binding.loadingText.setText(getString(R.string.ai_running))
+                return
+            }
+            CommandUndo.Restore.EvaluatePreset -> {
+                val plan = presetPlan ?: return
+                text = restoredText?.takeIf { it.isNotEmpty() }
+                    ?: arguments?.getString(ARG_TEXT).orEmpty()
+                binding.commandEdit.setText(text)
+                binding.removeModelButton.isVisible = false
+                viewLifecycleOwner.lifecycleScope.launch { evaluate(plan) }
+                return
+            }
+            CommandUndo.Restore.ResumePendingText, CommandUndo.Restore.Fresh -> Unit
+        }
         val context = requireContext().applicationContext
         viewLifecycleOwner.lifecycleScope.launch {
             val modelState = withContext(Dispatchers.IO) { CommandModel.state(context, design) }
@@ -190,6 +219,7 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
             outState.putString(STATE_TEXT, it.commandEdit.text.toString())
             outState.putBoolean(STATE_PENDING, ready != null || it.loadingLayout.isVisible)
         }
+        ready?.plan?.toJson()?.let { outState.putString(STATE_PLAN, it) }
     }
 
     private var blurListener: Consumer<Boolean>? = null
@@ -882,49 +912,88 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
         val chosenSeen = seen
         val kindNames = KINDS.associateWith { kindName(it) }
         val runner = runner(context, outcome)
+        val generation = ++executeGeneration
         job?.cancel()
         show(binding.loadingLayout)
         binding.cancelButton.isVisible = false
         binding.loadingText.setText(getString(R.string.ai_running))
+        CommandUndo.running = true
         job = UNDO_SCOPE.launch {
-            val journal = runner.run(plan, outcome.source, outcome.destination, chosen, kindNames, chosenSeen)
-            scan(context, journal)
-            val done = when (plan.action) {
-                "move" -> R.plurals.ai_done_move
-                "copy" -> R.plurals.ai_done_copy
-                "delete" -> R.plurals.ai_done_delete
-                else -> R.plurals.ai_done_organize
-            }
-            var message = context.quantity(done, journal.done, journal.done)
-            // Files changed since the preview are named on their own, not counted twice as "skipped".
-            val skipped = journal.skipped - journal.changed
-            if (skipped > 0) {
-                message += " · " + context.quantity(R.plurals.ai_skipped, skipped, skipped)
-            }
-            if (journal.changed > 0) {
-                message += " · " + context.quantity(R.plurals.ai_changed, journal.changed, journal.changed)
-            }
-            withContext(Dispatchers.Main) {
-                if (!isAdded) return@withContext
-                val anchor = requireActivity().findViewById<View>(android.R.id.content)
-                val snackbar = Snackbar.make(anchor, message, UNDO_MILLIS).setTextMaxLines(3)
-                if (journal.done > 0) {
-                    snackbar.setAction(R.string.ai_undo) {
-                        UNDO_SCOPE.launch {
-                            val undone = runner.undo(journal)
-                            scan(context, journal)
-                            withContext(Dispatchers.Main) {
-                                // The sheet is gone by now; the snackbar's own anchor is still on screen.
-                                Snackbar.make(anchor, context.quantity(R.plurals.ai_undone, undone, undone),
-                                    Snackbar.LENGTH_SHORT).show()
-                            }
-                        }
-                    }
+            try {
+                val journal = runner.run(plan, outcome.source, outcome.destination, chosen, kindNames, chosenSeen)
+                scan(context, journal)
+                val done = when (plan.action) {
+                    "move" -> R.plurals.ai_done_move
+                    "copy" -> R.plurals.ai_done_copy
+                    "delete" -> R.plurals.ai_done_delete
+                    else -> R.plurals.ai_done_organize
                 }
-                snackbar.show()
-                dismiss()
+                var message = context.resources.getQuantityString(done, journal.done, journal.done)
+                // Files changed since the preview are named on their own, not counted twice as "skipped".
+                val skipped = journal.skipped - journal.changed
+                if (skipped > 0) {
+                    message += " · " + context.resources.getQuantityString(R.plurals.ai_skipped, skipped, skipped)
+                }
+                if (journal.changed > 0) {
+                    message += " · " + context.resources.getQuantityString(
+                        R.plurals.ai_changed, journal.changed, journal.changed
+                    )
+                }
+                val offer = CommandUndo.Offer(
+                    message = message,
+                    canUndo = journal.done > 0,
+                    undo = { runner.undo(journal) },
+                    undoneText = { undone ->
+                        context.resources.getQuantityString(R.plurals.ai_undone, undone, undone)
+                    },
+                    scan = { scan(context, journal) },
+                )
+                withContext(Dispatchers.Main) { deliver(offer) }
+            } finally {
+                if (executeGeneration == generation) CommandUndo.running = false
             }
         }
+    }
+
+    /** Shows the result on this activity, or keeps it until the recreated sheet can. */
+    private fun deliver(offer: CommandUndo.Offer) {
+        val anchor = liveAnchor()
+        if (anchor == null) {
+            CommandUndo.offer(offer)
+            return
+        }
+        present(anchor, offer)
+    }
+
+    private fun showQueuedResult() {
+        val offer = CommandUndo.offers.value ?: return
+        val anchor = liveAnchor() ?: return
+        if (!CommandUndo.consume(offer)) return
+        present(anchor, offer)
+    }
+
+    private fun liveAnchor(): View? {
+        val host = activity?.takeIf { !it.isFinishing && !it.isDestroyed } ?: return null
+        return host.findViewById(android.R.id.content)
+    }
+
+    private fun present(anchor: View, offer: CommandUndo.Offer) {
+        val snackbar = Snackbar.make(anchor, offer.message, UNDO_MILLIS).setTextMaxLines(3)
+        if (offer.canUndo) {
+            snackbar.setAction(R.string.ai_undo) {
+                UNDO_SCOPE.launch {
+                    val undone = offer.undo()
+                    offer.scan()
+                    withContext(Dispatchers.Main) {
+                        // The sheet is gone by now; the snackbar's own anchor is still on screen.
+                        Snackbar.make(anchor, offer.undoneText(undone), Snackbar.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        }
+        snackbar.show()
+        // The command is done. After a rotation the state may already be saved, and the sheet must still close.
+        if (isAdded) dismissAllowingStateLoss()
     }
 
     private fun runner(context: Context, outcome: Outcome.Ready) = CommandRunner(
@@ -1259,6 +1328,7 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
         private const val UNDO_MILLIS = 8_000
         private const val STATE_TEXT = "text"
         private const val STATE_PENDING = "pending"
+        private const val STATE_PLAN = "plan"
         private val KINDS = CommandFiles.KINDS.keys + "other"
         // Undo outlives the sheet: it runs after the sheet is gone, from the snackbar.
         private val UNDO_SCOPE = kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.SupervisorJob() + Dispatchers.IO)
