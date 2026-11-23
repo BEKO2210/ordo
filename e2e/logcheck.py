@@ -8,6 +8,8 @@ import sys
 
 OURS = ("me.zhanghai.android.files", "com.beko2210.ordo")
 HEADER = re.compile(r"StrictMode: StrictMode policy violation")
+DUMPING = re.compile(r"LeakCanary: .*Dumping the heap")
+RESULT = re.compile(r"LeakCanary: .*\d+ APPLICATION LEAKS?")
 LEAKS = re.compile(r"LeakCanary: .*?(\d+) APPLICATION LEAKS?")
 
 
@@ -32,9 +34,24 @@ def findings(text):
             if leaks and int(leaks.group(1)) > 0:
                 found.append("LeakCanary: " + leaks.group(0).split("LeakCanary: ", 1)[-1].strip())
     flush()
+    if pending(text):
+        found.append("LeakCanary: heap analysis started but never finished")
     return found
 
 
+def pending(text):
+    """True when the last heap dump has no analysis result after it."""
+    state = False
+    for line in text.splitlines():
+        if DUMPING.search(line):
+            state = True
+        elif RESULT.search(line):
+            state = False
+    return state
+
+
 if __name__ == "__main__":
+    if "--pending" in sys.argv:
+        sys.exit(0 if pending(sys.stdin.read()) else 1)
     for finding in findings(sys.stdin.read()):
         print(finding)

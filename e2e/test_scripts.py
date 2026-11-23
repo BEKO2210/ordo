@@ -76,6 +76,22 @@ class LogCheck(unittest.TestCase):
     def test_two_violations_count_twice(self):
         self.assertEqual(2, len(logcheck.findings(STRICT + STRICT)))
 
+    def test_unfinished_heap_analysis_is_found(self):
+        dump = "11-23 12:00:00.000 100 100 D LeakCanary: Dumping the heap because 1 retained object\n"
+        self.assertEqual(1, len(logcheck.findings(dump)))
+        self.assertTrue(logcheck.pending(dump))
+        done = dump + "11-23 12:00:09.000 100 100 D LeakCanary: 0 APPLICATION LEAKS\n"
+        self.assertEqual([], logcheck.findings(done))
+        self.assertFalse(logcheck.pending(done))
+
+    def test_unreadable_logcat_fails_the_run(self):
+        lib = os.path.join(HERE, "lib.sh")
+        script = (f'HERE={HERE}; a() {{ echo "adb: device offline"; return 1; }}; '
+                  f'eval "$(sed -n \'/^debug_findings()/,/^}}/p\' {lib})"; debug_findings')
+        r = subprocess.run(["bash", "-c", script], capture_output=True, text=True)
+        self.assertEqual(1, r.returncode)
+        self.assertIn("could not be read", r.stdout)
+
     def test_leak_is_found_zero_leaks_are_not(self):
         leak = "11-23 12:00:00.000 100 100 D LeakCanary: 1 APPLICATION LEAKS\n"
         self.assertEqual(1, len(logcheck.findings(leak)))

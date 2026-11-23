@@ -206,15 +206,31 @@ trash_drop() {
 }
 
 # debug_findings: StrictMode violations in Ordo code and LeakCanary application leaks since the test started.
+# A logcat that cannot be read is a failure, never a pass: it prints a finding and returns 1.
 debug_findings() {
-    local log; log=$(a logcat -d -v threadtime ${LOG_START:+-T "$LOG_START"} -s StrictMode:W LeakCanary:D 2>/dev/null) || return 0
-    python3 "$HERE/logcheck.py" <<<"$log"
+    local log
+    if ! log=$(a logcat -d -v threadtime ${LOG_START:+-T "$LOG_START"} -s StrictMode:W LeakCanary:D 2>&1); then
+        echo "logcat could not be read: $log"; return 1
+    fi
+    python3 "$HERE/logcheck.py" <<<"$log" || { echo "logcheck.py failed"; return 1; }
+}
+
+# LeakCanary analyses the heap seconds after a leak is retained. Wait (LEAK_WAIT s, default 20) until no analysis
+# is pending; logcheck.py reports one that never finished.
+wait_leak_analysis() {
+    local end log; end=$(($(date +%s) + ${LEAK_WAIT:-20}))
+    while [ "$(date +%s)" -lt "$end" ]; do
+        log=$(a logcat -d -v threadtime ${LOG_START:+-T "$LOG_START"} -s LeakCanary:D 2>/dev/null) || return 0
+        python3 "$HERE/logcheck.py" --pending <<<"$log" || return 0
+        sleep 2
+    done
 }
 
 finish() {
     check "no crash" test "$(crashes)" = 0
-    local found; found=$(debug_findings)
-    if [ -z "$found" ]; then pass "no StrictMode violation or leak"; else fail "StrictMode violation or leak"; sed 's/^/    /' <<<"$found"; fi
+    wait_leak_analysis
+    local found rc=0; found=$(debug_findings) || rc=1
+    if [ "$rc" = 0 ] && [ -z "$found" ]; then pass "no StrictMode violation or leak"; else fail "StrictMode violation or leak"; sed 's/^/    /' <<<"$found"; fi
     [ "$FAILS" = 0 ] && exit 0
     exit 1
 }
