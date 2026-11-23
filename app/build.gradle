@@ -153,23 +153,18 @@ kover {
             verify {
                 // TODO: Add minBound values after measuring the complete debug report.
                 rule {
-                    name = 'ai package'
                     filters { includes { packages('me.zhanghai.android.files.ai') } }
                 }
                 rule {
-                    name = 'vault package'
                     filters { includes { packages('me.zhanghai.android.files.vault') } }
                 }
                 rule {
-                    name = 'backup package'
                     filters { includes { packages('me.zhanghai.android.files.backup') } }
                 }
                 rule {
-                    name = 'filejob package'
                     filters { includes { packages('me.zhanghai.android.files.filejob') } }
                 }
                 rule {
-                    name = 'provider.common package'
                     filters { includes { packages('me.zhanghai.android.files.provider.common') } }
                 }
             }
