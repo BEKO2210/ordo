@@ -313,6 +313,9 @@ class FileJobConflictDialogFragment : AppCompatDialogFragment() {
             val targetIsDirectory = targetFile.attributesNoFollowLinks.isDirectory
             return sourceIsDirectory && targetIsDirectory
         }
+
+        internal fun isReplaceable(sourceIsDirectory: Boolean, targetIsDirectory: Boolean): Boolean =
+            !sourceIsDirectory && !targetIsDirectory
     }
 
     @Parcelize

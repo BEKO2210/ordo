@@ -257,6 +257,8 @@ Type or dictate “Move all MP3s from Download to Music”. Ordo shows the plan 
 - Vault: files are encrypted with AES-256-GCM and opened with your screen lock
 - Backup: folders and the vault as a ZIP file to a USB drive or any storage your phone offers, with an optional password
 - Restore without replacing the files you already have
+- Copy and replace write to a hidden temporary file first; cancelling or a full disk leaves the original
+- A file cannot replace a folder of the same name
 
 **For power users**
 

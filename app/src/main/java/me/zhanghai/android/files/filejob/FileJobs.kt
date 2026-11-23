@@ -101,6 +101,7 @@ import me.zhanghai.android.files.provider.common.createDirectory
 import me.zhanghai.android.files.provider.common.createFile
 import me.zhanghai.android.files.provider.common.delete
 import me.zhanghai.android.files.provider.common.deleteIfExists
+import me.zhanghai.android.files.provider.common.ForeignCopyMove
 import me.zhanghai.android.files.provider.common.exists
 import me.zhanghai.android.files.provider.common.getFileStore
 import me.zhanghai.android.files.provider.common.getMode
@@ -731,6 +732,7 @@ private class ActionAllInfo(
     var replace: Boolean = false,
     var skipMerge: Boolean = false,
     var skipReplace: Boolean = false,
+    var skipTypeMismatch: Boolean = false,
     var skipCopyMoveError: Boolean = false,
     var skipDeleteError: Boolean = false,
     var skipRestoreSeLinuxContextError: Boolean = false,
@@ -750,7 +752,8 @@ class ArchiveFileJob(
     @Throws(IOException::class)
     override fun run() {
         val scanInfo = scan(sources, R.plurals.file_job_archive_scan_notification_title_format)
-        val channel = archiveFile.newByteChannel(
+        val part = ForeignCopyMove.uniquePartFile(archiveFile)
+        val channel = part.newByteChannel(
             StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE
         )
         var successful = false
@@ -765,11 +768,12 @@ class ArchiveFileJob(
                     }
                 }
             }
+            part.moveTo(archiveFile)
             successful = true
         } finally {
             if (!successful) {
                 try {
-                    archiveFile.deleteIfExists()
+                    part.deleteIfExists()
                 } catch (e: IOException) {
                     e.printStackTrace()
                 } catch (e: UnsupportedOperationException) {
@@ -1530,16 +1534,58 @@ private fun FileJob.copyOrMove(
             val sourceIsDirectory = sourceFile.attributesNoFollowLinks.isDirectory
             val targetIsDirectory = targetFile.attributesNoFollowLinks.isDirectory
             val isMerge = sourceIsDirectory && targetIsDirectory
+            val canReplace = FileJobConflictDialogFragment.isReplaceable(
+                sourceIsDirectory, targetIsDirectory
+            )
+            if (!isMerge && !canReplace) {
+                if (actionAllInfo.skipTypeMismatch) {
+                    transferInfo.skipFile(source)
+                    postCopyMoveNotification(transferInfo, source, type)
+                    return false
+                }
+                val result = showErrorDialog(
+                    getString(
+                        type.getResourceId(
+                            R.string.file_job_cannot_copy_over_itself_title,
+                            R.string.file_job_cannot_extract_over_itself_title,
+                            R.string.file_job_cannot_move_over_itself_title
+                        )
+                    ),
+                    getString(R.string.file_job_cannot_replace_type_message),
+                    null,
+                    true,
+                    getString(R.string.skip),
+                    getString(android.R.string.cancel),
+                    null
+                )
+                return when (result.action) {
+                    FileJobErrorAction.POSITIVE -> {
+                        if (result.isAll) {
+                            actionAllInfo.skipTypeMismatch = true
+                        }
+                        transferInfo.skipFile(source)
+                        postCopyMoveNotification(transferInfo, source, type)
+                        false
+                    }
+                    FileJobErrorAction.CANCELED -> {
+                        transferInfo.skipFile(source)
+                        postCopyMoveNotification(transferInfo, source, type)
+                        false
+                    }
+                    FileJobErrorAction.NEGATIVE -> throw InterruptedIOException()
+                    else -> throw AssertionError(result.action)
+                }
+            }
             if (isMerge && actionAllInfo.merge) {
                 transferInfo.addTransferredFile(target)
                 postCopyMoveNotification(transferInfo, source, type)
                 return true
-            } else if (!isMerge && actionAllInfo.replace) {
+            } else if (canReplace && actionAllInfo.replace) {
                 replaceExisting = true
                 retry = true
                 continue
             } else if ((isMerge && actionAllInfo.skipMerge)
-                || (!isMerge && actionAllInfo.skipReplace)) {
+                || (canReplace && actionAllInfo.skipReplace)) {
                 transferInfo.skipFile(source)
                 postCopyMoveNotification(transferInfo, source, type)
                 return false
@@ -2678,12 +2724,15 @@ class MoveToVaultJob(private val paths: List<Path>) : FileJob() {
         while (true) {
             try {
                 val entry = path.newInputStream().use { Vault.store.add(path.toString(), it) }
+                Vault.store.markSourcePendingDelete(entry)
                 try {
                     path.delete()
                 } catch (e: IOException) {
                     // The original stays, so the copy must go or the file would exist twice.
                     Vault.store.delete(entry)
                     throw e
+                } finally {
+                    Vault.store.clearSourcePendingDelete(entry)
                 }
                 return
             } catch (e: InterruptedIOException) {
@@ -2732,22 +2781,22 @@ class RestoreVaultJob(private val entries: List<VaultEntry>) : FileJob() {
             try {
                 val target = Paths.get(Trash.restoreTarget(entry.originalPath) { File(it).exists() })
                 target.parent?.createDirectories()
-                // A kill during the copy must not leave a half file under the real name.
-                val part = target.resolveSibling(".${target.fileName}.ordo-part")
+                // A kill during the copy must not leave a half file under the real name,
+                // and must not empty a user file that happens to share the old part name.
+                val parent = target.toFile().parentFile
+                    ?: throw IOException("Cannot restore $target without a parent")
+                val partFile = File.createTempFile(".ordo-vault-", ".part", parent)
+                val part = Paths.get(partFile.path)
                 Vault.store.open(entry).use { input ->
-                    val channel = part.newByteChannel(
-                        StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING,
-                        StandardOpenOption.WRITE
-                    )
                     try {
-                        channel.use {
-                            input.copyInterruptiblyTo(Channels.newOutputStream(it))
+                        partFile.outputStream().channel.use { channel ->
+                            input.copyInterruptiblyTo(Channels.newOutputStream(channel))
                             // The vault copy is deleted next, so the restored file must be on disk.
-                            (it as? FileChannel)?.force(true)
+                            channel.force(true)
                         }
                         part.moveTo(target)
                     } catch (e: IOException) {
-                        part.deleteIfExists()
+                        partFile.delete()
                         throw e
                     }
                 }
