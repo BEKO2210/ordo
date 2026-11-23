@@ -6,7 +6,7 @@ End-to-End-Tests fließen nicht in diese Messung ein.
 
 Die Kover-Instrumentierung schließt `org.apache.ftpserver.*` und `org.apache.mina.*` aus: Instrumentierte
 Versionen dieser Bibliotheksklassen verändern das Verhalten des echten, prozessinternen FTP-Testservers.
-Ordos eigenes Paket `me.zhanghai.android.files.ftpserver` bleibt instrumentiert und seine Untergrenze unverändert.
+Außerdem ausgenommen: `me.zhanghai.android.files.ftpserver.*`, `provider.root.*` und `provider.linux.*`. Instrumentiert ändert sich die Klassen-Initialisierung, und `ProviderFtpFileTest` erreicht dann Root-/Linux-Provider, die Android- bzw. nativen Code brauchen. FTP deckt der Gerätetest ab, deshalb gibt es für `ftpserver` keine Untergrenze.
 
 Messung vom 23.11.2026 mit OpenJDK 21 auf dem Linux-Entwicklungsrechner, Debug-Variante, Kover 0.9.11 und
 `./gradlew :app:koverXmlReportDebug`. Die Untergrenze liegt jeweils zwei Prozentpunkte unter dem gemessenen Wert.
@@ -17,7 +17,7 @@ Messung vom 23.11.2026 mit OpenJDK 21 auf dem Linux-Entwicklungsrechner, Debug-V
 | `filejob` | 3 % | 1 % |
 | `vault` | 22 % | 20 % |
 | `backup` | 12 % | 10 % |
-| `ftpserver` | 5 % | 3 % |
+| `ftpserver` | – (nicht instrumentiert) | – |
 | `provider.common` | 4 % | 2 % |
 
 ## Bekannte Lücken
