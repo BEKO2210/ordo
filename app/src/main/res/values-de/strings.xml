@@ -845,6 +845,7 @@
     <string name="restore_error_changed_archive">Die Sicherung hat sich nach der Prüfung verändert. Die Wiederherstellung wurde beendet und es werden keine weiteren Dateien geschrieben.</string>
     <string name="restore_error_empty">Diese Sicherung enthält keine Dateien zum Wiederherstellen.</string>
     <string name="restore_error_vault_only">Diese Sicherung enthält nur Tresordateien. Sie lassen sich nicht sicher wiederherstellen, weil Angaben für einen sicheren Wiederaufbau des Tresors fehlen.</string>
+    <string name="restore_error_cancelled">Die Wiederherstellung wurde abgebrochen. Fertige Dateien bleiben erhalten.</string>
 
     <!-- Ordo: trash -->
     <string name="navigation_trash">Papierkorb</string>

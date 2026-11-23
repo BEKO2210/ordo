@@ -73,6 +73,13 @@ sealed class BackupStatus {
 object BackupStatusLiveData : MutableLiveData<BackupStatus>(BackupStatus.Idle)
 
 /**
+ * Idle and a newer job both count as having moved on, so a check or backup that finishes after
+ * cancel must not publish its result.
+ */
+internal fun screenStillShowsJob(currentJobId: Int?, jobId: Int): Boolean =
+    currentJobId == jobId
+
+/**
  * Removes the file the picker made for a backup that was not written. The picker can also hand out a file that
  * already holds data, such as an older backup; that one is left alone.
  */
