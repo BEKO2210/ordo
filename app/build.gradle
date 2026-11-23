@@ -141,24 +141,8 @@ kover {
             }
             verify {
                 rule {
-                    filters { includes { packages('me.zhanghai.android.files.ai') } }
-                    minBound(20)
-                }
-                rule {
-                    filters { includes { packages('me.zhanghai.android.files.filejob') } }
-                    minBound(1)
-                }
-                rule {
-                    filters { includes { packages('me.zhanghai.android.files.vault') } }
-                    minBound(20)
-                }
-                rule {
-                    filters { includes { packages('me.zhanghai.android.files.backup') } }
-                    minBound(10)
-                }
-                rule {
                     filters { includes { packages('me.zhanghai.android.files.provider.common') } }
-                    minBound(2)
+                    minBound(11)
                 }
             }
         }

@@ -8,17 +8,23 @@ Die Kover-Instrumentierung schließt `org.apache.ftpserver.*` und `org.apache.mi
 Versionen dieser Bibliotheksklassen verändern das Verhalten des echten, prozessinternen FTP-Testservers.
 Außerdem ausgenommen: `me.zhanghai.android.files.ftpserver.*`, `provider.root.*` und `provider.linux.*`. Instrumentiert ändert sich die Klassen-Initialisierung, und `ProviderFtpFileTest` erreicht dann Root-/Linux-Provider, die Android- bzw. nativen Code brauchen. FTP deckt der Gerätetest ab, deshalb gibt es für `ftpserver` keine Untergrenze.
 
-Messung vom 23.11.2026 mit OpenJDK 21 auf dem Linux-Entwicklungsrechner, Debug-Variante, Kover 0.9.11 und
-`./gradlew :app:koverXmlReportDebug`. Die Untergrenze liegt jeweils zwei Prozentpunkte unter dem gemessenen Wert.
+Messung vom 23.11.2026 mit OpenJDK 21 auf pop-os, Debug-Variante, Kover 0.9.11 und
+`./gradlew :app:koverXmlReportDebug`. Paketfilter schließen Unterpakete ein. Die Untergrenze ist
+`max(0, floor(gemessene Zeilenabdeckung) - 2)`.
 
-| Paket | Zeilenabdeckung | Verify-Untergrenze |
+| Paketfilter | Zeilenabdeckung | Verify-Untergrenze |
 | --- | ---: | ---: |
-| `ai` | 22 % | 20 % |
-| `filejob` | 3 % | 1 % |
-| `vault` | 22 % | 20 % |
-| `backup` | 12 % | 10 % |
-| `ftpserver` | – (nicht instrumentiert) | – |
-| `provider.common` | 4 % | 2 % |
+| `ai` | – (keine Klassen im Bericht) | – (Regel entfernt) |
+| `filejob` | – (keine Klassen im Bericht) | – (Regel entfernt) |
+| `vault` | – (keine Klassen im Bericht) | – (Regel entfernt) |
+| `backup` | – (keine Klassen im Bericht) | – (Regel entfernt) |
+| `provider.common` | 268 / 1.992 = 13,453815 % | 11 % |
+
+Die Regeln für `ai`, `filejob`, `vault` und `backup` wurden entfernt, weil ihre Filter einschließlich aller
+Unterpakete im Bericht keine Klassen finden. Eine prozentuale Untergrenze für eine leere Klassenauswahl misst
+keine Testabdeckung und kann daher keine Regression erkennen. Sobald diese Pakete wieder Klassen im Bericht
+enthalten, kann auf Basis einer neuen Messung wieder eine Regel angelegt werden. `ftpserver` bleibt wie oben
+beschrieben von der Instrumentierung ausgeschlossen und besitzt deshalb ebenfalls keine Verify-Regel.
 
 ## Bekannte Lücken
 
