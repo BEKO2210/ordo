@@ -1,6 +1,8 @@
 #!/bin/bash
 # Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later
-# farm: orient=once
+# farm: orient=once timeout=3600
+# Sleep here is 30 s + 900 s + 900 s, and every poll also reads logcat. The farm's default of 900 s is one of
+# those waits, so the suite was killed during Guarded.
 # Read-only checks around the AI "show" list (PR #51 review):
 # - Another app cannot open a "show" list: FileListActivity is exported, so an explicit intent with the list's
 #   extras (and a made-up token) must open the normal file list, never Ordo's private folder. Holds in every build.

@@ -56,24 +56,64 @@ menu_tap() {
 open_menu
 check "the menu icon opens the side menu" menu_open
 menu_top
-mapfile -t entries < <({ titles; menu_scroll 70 40; titles; menu_scroll 70 40; titles; } | awk 'NF && !seen[$0]++')
+# Until the rows on screen stop changing: that is the end. Two swipes on a landscape phone never get there,
+# and the tools then look like whatever happened to be last.
+prev=""
+collected=""
+started=0
+for _ in $(seq 1 24); do
+    now=$(titles)
+    # The first read has nothing to compare with; an empty dump must not look like the end.
+    [ "$started" = 1 ] && [ "$now" = "$prev" ] && break
+    started=1
+    prev=$now
+    collected=$(printf '%s\n%s\n' "$collected" "$now" | awk 'NF && !seen[$0]++')
+    menu_scroll 65 50
+done
+entries=()
+mapfile -t entries < <(printf '%s\n' "$collected" | awk 'NF')
 back
 check "back closes the side menu" menu_closed
 check "back stays on the home screen" on home.HomeActivity
 
 # Ordo's own apps come first (21.11.), then storages and folders that differ per device; the nine tools at the end
-# are fixed.
+# are fixed. The screen comes from the title: a short list used to treat its last rows as these tools.
 apps=(viewer.audio.MusicLauncherActivity viewer.video.VideoLauncherActivity)
 tools=(apps.AppsActivity analysis.AnalysisActivity trash.TrashActivity vault.VaultActivity backup.BackupActivity
     ftpserver.FtpServerActivity settings.SettingsActivity about.AboutActivity legal.LegalActivity)
+tool_titles=("Apps" "Speicher analysieren|Analyze storage" "Papierkorb|Trash" "Tresor|Vault" "Sicherung|Backup"
+    "FTP-Server|FTP server" "Einstellungen|Settings" "Über|About" "Impressum & Datenschutz|Legal notice & privacy")
 count=${#entries[@]}
-check "the menu lists the apps, a storage and the nine tools" test "$count" -gt $((${#apps[@]} + ${#tools[@]}))
-check "Ordo Musik and Ordo Video come first" test "${entries[0]}|${entries[1]}" = "Ordo Musik|Ordo Video" -o \
-    "${entries[0]}|${entries[1]}" = "Ordo Music|Ordo Video"
+menu_complete() {
+    local spec alt found
+    local -a alts
+    [ "$count" -gt $((${#apps[@]} + ${#tools[@]})) ] || return 1
+    for spec in "${tool_titles[@]}"; do
+        found=1
+        IFS='|' read -ra alts <<<"$spec"
+        for alt in "${alts[@]}"; do
+            printf '%s\n' "${entries[@]}" | grep -qxF -- "$alt" && { found=0; break; }
+        done
+        [ "$found" = 0 ] || return 1
+    done
+}
+tool_screen() {
+    local alt i
+    local -a alts
+    for i in "${!tools[@]}"; do
+        IFS='|' read -ra alts <<<"${tool_titles[$i]}"
+        for alt in "${alts[@]}"; do
+            [ "$1" = "$alt" ] && { echo "${tools[$i]}"; return 0; }
+        done
+    done
+    return 1
+}
+check "the menu lists the apps, a storage and the nine tools" menu_complete
+check "Ordo Musik and Ordo Video come first" test "${entries[0]:-}|${entries[1]:-}" = "Ordo Musik|Ordo Video" -o \
+    "${entries[0]:-}|${entries[1]:-}" = "Ordo Music|Ordo Video"
 for i in "${!entries[@]}"; do
     entry=${entries[$i]}
-    tool=$((i - count + ${#tools[@]}))
-    if [ "$tool" -ge 0 ]; then screen=${tools[$tool]}
+    if screen=$(tool_screen "$entry"); then :
     elif [ "$i" -lt "${#apps[@]}" ]; then screen=${apps[$i]}
     elif [[ $entry == *… ]]; then screen=storage.AddStorageDialogActivity
     else screen=filelist.FileListActivity; fi

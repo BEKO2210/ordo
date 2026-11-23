@@ -61,6 +61,10 @@ open_choice() {
 selected_entry() {
     local entry
     for entry in "$@"; do
+        # Dialog open: only a choice row counts (the summary behind repeats the selected words). Otherwise the
+        # accent swatches, which are on the page.
+        if ui has choice_root; then scroll_choice "$entry" || continue
+        else ui has "$entry" || continue; fi
         if ui checked "$entry"; then
             echo "$entry"
             return 0
@@ -70,7 +74,8 @@ selected_entry() {
 }
 
 choose_and_wait() {
-    ui tap "$1" >/dev/null
+    if ! scroll_choice "$1"; then ui has choice_root && back; return 1; fi
+    ui tap "$1" choice_root >/dev/null 2>&1 || ui tap "$1" choice_label >/dev/null || { ui has choice_root && back; return 1; }
     ui waitgone choice_root 8 >/dev/null
 }
 
@@ -90,7 +95,7 @@ open_appearance
 
 open_choice "$NIGHT_TITLE"
 for option in "$NIGHT_SYSTEM" "$NIGHT_OFF" "$NIGHT_ON" "$NIGHT_TIME" "$NIGHT_BATTERY"; do
-    check "night mode offers $option" ui has "$option"
+    check "night mode offers $option" scroll_choice "$option"
 done
 night_before=$(selected_entry "$NIGHT_SYSTEM" "$NIGHT_OFF" "$NIGHT_ON" "$NIGHT_TIME" "$NIGHT_BATTERY") || {
     fail "night mode has a selected option"
@@ -107,7 +112,7 @@ back_to_overview
 open_appearance
 open_choice "$MOTION_TITLE"
 for option in "$MOTION_FULL" "$MOTION_SUBTLE" "$MOTION_OFF"; do
-    check "motion offers $option" ui has "$option"
+    check "motion offers $option" scroll_choice "$option"
 done
 motion_before=$(selected_entry "$MOTION_FULL" "$MOTION_SUBTLE" "$MOTION_OFF") || {
     fail "motion has a selected option"
@@ -123,8 +128,8 @@ back_to_overview
 
 open_appearance
 open_choice "$HEADER_TITLE"
-check "home header offers top" ui has "$HEADER_TOP"
-check "home header offers bottom" ui has "$HEADER_BOTTOM"
+check "home header offers top" scroll_choice "$HEADER_TOP"
+check "home header offers bottom" scroll_choice "$HEADER_BOTTOM"
 header_before=$(selected_entry "$HEADER_TOP" "$HEADER_BOTTOM") || {
     fail "home header has a selected option"
     header_before=$HEADER_TOP

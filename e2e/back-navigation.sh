@@ -25,8 +25,9 @@ bar = lum(Counter(px).most_common(1)[0][0])
 sys.exit(0 if max((max(lum(p), bar) + 0.05) / (min(lum(p), bar) + 0.05) for p in px) >= 3 else 1)
 PY
 }
-swipe_up
-if ui tap openButton >/dev/null 2>&1; then
+# Same as smoke: one swipe does not reach the storage card on a landscape phone.
+storage_card() { local i; for i in 1 2 3 4; do ui wait analyzeButton 3 >/dev/null 2>&1 && return 0; swipe_up; done; return 1; }
+if storage_card && ui tap openButton >/dev/null 2>&1; then
     sleep 3; guard
     check "storage opens in the file list" on filelist.FileListActivity
     # Found 21.11.2026 on the owner's Pixel: on phones the toolbar slid away with the list, and a list without menu,
@@ -57,8 +58,12 @@ if ui tap openButton >/dev/null 2>&1; then
 else
     fail "storage card not found"
 fi
-ui tap analyzeButton >/dev/null 2>&1
-check "analysis opens" wait_on analysis.AnalysisActivity 14; guard
-back 2
-check "back from the analysis returns to home" on home.HomeActivity
+if scroll_to analyzeButton && ui tap analyzeButton >/dev/null 2>&1 && wait_on analysis.AnalysisActivity 14; then
+    pass "analysis opens"
+    guard
+    back 2
+    check "back from the analysis returns to home" on home.HomeActivity
+else
+    fail "analysis opens"
+fi
 finish

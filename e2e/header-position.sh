@@ -18,25 +18,34 @@ sheet_closed() { ! ui has "headerOrb|setupLayout"; }
 menu_closed() { ! ui visible navigationFragment; }
 at_top() { local y; y=$(bar_top); [ -n "$y" ] && [ "$y" -lt $((H / 2)) ]; }
 appearance() {
-    guard; ui tap moreButton >/dev/null 2>&1
-    ui tap "Einstellungen|Settings" title >/dev/null; guard
-    ui tap "Aussehen|Appearance" >/dev/null; sleep 1.5; guard
+    guard; ui tap moreButton >/dev/null 2>&1 || return 1
+    ui tap "Einstellungen|Settings" title >/dev/null || return 1; guard
+    ui tap "Aussehen|Appearance" >/dev/null || return 1; sleep 1.5; guard
 }
-# position ENTRY: picks the entry in the settings and returns to the home screen.
+# position ENTRY: picks the entry in the settings and returns to the home screen. The row and, on a short
+# landscape phone, the dialog row start below the window. A missed tap is a failure of the caller, not a success.
 position() {
-    appearance
-    ui tap "$TITLE" >/dev/null
-    ui wait choice_root 6 >/dev/null
-    ui tap "$1" >/dev/null
-    ui waitgone choice_root 6 >/dev/null
+    local ok=0
+    if appearance && scroll_to "$TITLE" && ui tap "$TITLE" >/dev/null &&
+        ui wait choice_root 6 >/dev/null && scroll_choice "$1" &&
+        { ui tap "$1" choice_root >/dev/null 2>&1 || ui tap "$1" choice_label >/dev/null; } &&
+        ui waitgone choice_root 6 >/dev/null; then
+        ok=1
+    else
+        ui has choice_root && back
+    fi
     for _ in 1 2 3; do home && break; guard; back; done
+    [ "$ok" = 1 ] && home
 }
 
-appearance
+if ! { appearance && scroll_to "$TITLE"; }; then
+    fail "the home search bar setting is on the appearance page"
+    for _ in 1 2 3; do home && break; guard; back; done
+    finish
+fi
 ui has "$BOTTOM"; was_bottom=$?
 for _ in 1 2 3; do home && break; guard; back; done
-position "$BOTTOM"
-check "the search bar moves to the bottom without a restart" at_bottom
+check "the search bar moves to the bottom without a restart" eval 'position "$BOTTOM" && at_bottom'
 # Without the navigation bar inset the card would end its own 8 dp margin above the screen edge.
 read -r _ _ _ card_end < <(ui bounds searchCard)
 margin=$(( $(a shell wm density | tail -1 | sed 's/.*: //') * 8 / 160 ))
@@ -72,7 +81,6 @@ check "back closes the side menu" menu_closed
 if [ "$was_bottom" = 0 ]; then
     check "the setting is still bottom, as before the test" at_bottom
 else
-    position "$TOP"
-    check "back at the top, as before the test" at_top
+    check "back at the top, as before the test" eval 'position "$TOP" && at_top'
 fi
 finish

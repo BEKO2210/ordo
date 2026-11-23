@@ -155,6 +155,26 @@ still_muted() {
     fail "a swipe raised the media volume to $v (muted again)"
 }
 
+# The setup page is one NestedScrollView. On a landscape phone (~410 dp) the download button starts below the
+# window; the sheet has opened once setupLayout is there, and the button still has to be on screen.
+setup_button() {
+    local i x1 y1 x2 y2 H top bot x
+    ui has setupButton && return 0
+    for i in 1 2 3 4 5 6; do
+        read -r x1 y1 x2 y2 < <(ui bounds setupLayout | head -1) || return 1
+        [ -n "${y2:-}" ] || return 1
+        read -r _ H < <(screen_size)
+        top=$y1; [ "$top" -lt 0 ] && top=0
+        bot=$y2; [ "$bot" -gt "$H" ] && bot=$H
+        [ $((bot - top)) -ge 80 ] || return 1
+        x=$(((x1 + x2) / 2))
+        a shell input swipe "$x" $((top + (bot - top) * 3 / 4)) "$x" $((top + (bot - top) / 4)) 400
+        sleep 0.5; still_muted
+        ui has setupButton && return 0
+    done
+    return 1
+}
+
 # The wand opens the command sheet. Below the model's RAM floor (CommandModel.MIN_RAM, 10 GB, compared with the
 # device's own MemTotal) it opens the setup page that says the AI can't run here: SKIP. Above it, without a model, the setup
 # page offers the download: PASS (the sheet opened, as it should). Anything else is FAIL.
@@ -163,7 +183,7 @@ check_wand() {
     kb=$(a shell cat /proc/meminfo | awk '/^MemTotal/ { print $2 }')
     if ui has headerOrb; then pass "$name"
     # Enough RAM but no model yet: the sheet opens on its setup page and offers the download. That is right.
-    elif [ -n "$kb" ] && [ "$kb" -ge 9765625 ] && ui has setupLayout && ui has setupButton; then
+    elif [ -n "$kb" ] && [ "$kb" -ge 9765625 ] && ui has setupLayout && setup_button; then
         pass "$name (setup page with the download: no model on this device yet)"
     elif [ -n "$kb" ] && [ "$kb" -lt 9765625 ] && ui has "Auf diesem Gerät läuft die Ordo-KI nicht|This phone can’t run Ordo AI"; then
         echo "SKIP $name (not enough RAM for the model on this device)"
@@ -192,6 +212,36 @@ finish() {
 # scroll_to TARGET [SWIPES]: swipes up until TARGET is on screen (long settings pages and sheets; a landscape tablet
 # shows few rows per swipe). Fails when it never shows.
 scroll_to() { local i; for i in $(seq 1 "${2:-8}"); do ui has "$1" && return 0; swipe_up; done; ui has "$1"; }
+
+# A row of the open visual choice dialog, which is a NestedScrollView. On a landscape phone the last rows start
+# below the window. The summary of the preference behind the dialog repeats the selected words, so only a row of
+# the dialog counts. Swipes stay on the rows that are already on screen and turn around when the list no longer moves.
+choice_row() { ui has "$1" choice_root || ui has "$1" choice_label; }
+scroll_choice() {
+    local i dir=down rows top bot x seen now
+    choice_row "$1" && return 0
+    for i in 1 2 3 4 5 6 7 8 9 10 11 12; do
+        rows=$(ui bounds choice_root)
+        [ -n "$rows" ] || return 1
+        top=$(awk 'BEGIN { m = 999999 } { if ($2 + 0 < m) m = $2 + 0 } END { print m }' <<<"$rows")
+        bot=$(awk 'BEGIN { m = 0 } { if ($4 + 0 > m) m = $4 + 0 } END { print m }' <<<"$rows")
+        x=$(awk 'NR == 1 { print int(($1 + $3) / 2) }' <<<"$rows")
+        [ $((bot - top)) -ge 40 ] || return 1
+        seen=$(ui texts)
+        if [ "$dir" = down ]; then
+            a shell input swipe "$x" $((top + (bot - top) * 3 / 4)) "$x" $((top + (bot - top) / 4)) 400
+        else
+            a shell input swipe "$x" $((top + (bot - top) / 4)) "$x" $((top + (bot - top) * 3 / 4)) 400
+        fi
+        sleep 0.5; still_muted
+        choice_row "$1" && return 0
+        now=$(ui texts)
+        [ "$now" = "$seen" ] || continue
+        [ "$dir" = up ] && return 1
+        dir=up
+    done
+    return 1
+}
 
 # video_menu ENTRY: the player's ⋮ › ENTRY. While a film plays its controls hide after 4 s, and a screen read during
 # playback comes too late to see them (S21, 20.11.2026): paused they stay, so it pauses for the menu and plays on after.
