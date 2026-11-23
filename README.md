@@ -15,7 +15,7 @@
 
 <p align="center">
 <!-- AUTO:badges -->
-  <a href="https://github.com/BEKO2210/ordo/releases/tag/v0.18.1"><img alt="release 0.18.1" src="https://img.shields.io/badge/release-0.18.1-2563EB"></a>
+  <a href="https://github.com/BEKO2210/ordo/releases/tag/v0.18.2"><img alt="release 0.18.2" src="https://img.shields.io/badge/release-0.18.2-2563EB"></a>
   <img alt="Android 7.0+" src="https://img.shields.io/badge/Android-7.0%2B-3DDC84">
   <a href="LICENSE"><img alt="License: GPL-3.0-or-later" src="https://img.shields.io/badge/license-GPL--3.0--or--later-blue"></a>
 <!-- /AUTO:badges -->
@@ -45,7 +45,7 @@
 ## Status
 
 <!-- AUTO:status -->
-Current version 0.18.1 · [release v0.18.1](https://github.com/BEKO2210/ordo/releases/tag/v0.18.1) · Android 7.0 and later (minSdk 24, targetSdk 36 = Android 16) · [GPL-3.0-or-later](LICENSE)
+Current version 0.18.2 · [release v0.18.2](https://github.com/BEKO2210/ordo/releases/tag/v0.18.2) · Android 7.0 and later (minSdk 24, targetSdk 36 = Android 16) · [GPL-3.0-or-later](LICENSE)
 <!-- /AUTO:status -->
 
 Ordo is in development. A closed test runs on Google Play; test builds are also published as
