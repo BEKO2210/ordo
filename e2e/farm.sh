@@ -11,6 +11,8 @@
 #            command (pop-os: ~/ordo-geraet.sh, the default when it exists). Without one a device's name is its adb
 #            serial and the lock is a flock in ~/.cache/ordo-e2e/.
 # FARM_OUT   where logs, summary.txt and results.tsv go (default ~/.cache/ordo-e2e/farm/<start time>).
+# FARM_NIGHT=1 also queues the release suites and e2e/monkey.sh, and is the only way the farm sets
+#            E2E_SHADE, E2E_FTP_LIVE, E2E_VAULT_HAND and E2E_FILL_DISK. Without it those four are not queued.
 # A device is locked per suite: between two suites other jobs get it. `touch <FARM_OUT>/hold/<device>` lends a device
 # out for longer (its running suite finishes, no new one starts until the file is gone).
 # Per suite, in a comment line of the suite itself:   # farm: needs=shots,hdr timeout=1200 orient=once
@@ -140,16 +142,28 @@ if [ "${1:-}" = "--worker" ]; then
 fi
 
 # ---------------------------------------------------------------- the farm
-write=0; only=""; orients="portrait landscape"; devices=()
+only=""; orients="portrait landscape"; devices=()
 while [ $# -gt 0 ]; do
     case $1 in
-        --write) write=1 ;; --only) only=$2; shift ;; --orient) orients=$2; shift ;;
-        -h | --help) sed -n '2,18p' "$0"; exit 0 ;; *) devices+=("$1") ;;
+        --write) ;; --only) only=$2; shift ;; --orient) orients=$2; shift ;;
+        -h | --help) sed -n '2,20p' "$0"; exit 0 ;; *) devices+=("$1") ;;
     esac; shift
 done
 [ ${#devices[@]} -gt 0 ] || mapfile -t devices < <(awk '!/^#/ && NF { print $1 }' "$CONF")
-suites=$(sed -n 's/^tests="\([^"]*\)".*/\1/p' "$HERE/run.sh")
-[ $write = 1 ] && suites="$suites $(sed -n 's/.*tests="\$tests \([^"]*\)".*/\1/p' "$HERE/run.sh")"
+# Every suite named in run.sh, including the ones that write their own files: the farm's devices are the test
+# devices. --write is still accepted so the documented command keeps working; it does not change the list.
+suites=$(sed -n 's/^tests="\([^"]*\)".*/\1/p; s/.*tests="\$tests \([^"]*\)".*/\1/p' "$HERE/run.sh")
+# Shade, live FTP, the vault by hand and a full disk, plus monkey.sh: only with the night switch.
+release="video-notification ftp-server-defaults vault-secure-flag text-editor-atomic-save"
+if [ "${FARM_NIGHT:-}" = 1 ]; then
+    export E2E_SHADE=1 E2E_FTP_LIVE=1 E2E_VAULT_HAND=1 E2E_FILL_DISK=1
+    suites="$suites monkey"
+else
+    unset E2E_SHADE E2E_FTP_LIVE E2E_VAULT_HAND E2E_FILL_DISK
+    kept=""
+    for t in $suites; do case " $release " in *" $t "*) ;; *) kept="$kept $t" ;; esac; done
+    suites=$kept
+fi
 [ -n "$only" ] && suites=$only
 run=${FARM_OUT:-$CACHE/farm/$(date +%Y%m%d-%H%M%S)}
 mkdir -p "$CACHE" "$run"/{sleep,prefer,hold,queue,retry,running,alive,entered,out,logs,fail}; : > "$run/results.tsv"

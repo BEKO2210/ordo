@@ -1,5 +1,6 @@
 #!/bin/bash
 # Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later
+# farm: orient=once
 # Tresor image and PDF stay out of screenshots and Recents (blocker before 1.0.0), WRITES: creates
 # /storage/emulated/0/ordo-e2e-vault with a test PNG and a test PDF (made by Python on the host, a bright red page),
 # moves both into the Tresor through the file list's "Move to vault", opens each from the Tresor, then restores both

@@ -7,7 +7,8 @@ script, so the same bug cannot come back unnoticed.
 e2e/run.sh <adb serial>            # read-only tests
 e2e/run.sh --write <adb serial>    # plus tests that create and delete their own files
 e2e/preflight.sh <adb serial>      # a few seconds: can a run start at all?
-e2e/farm.sh --write                # every suite, portrait and landscape, on all test devices at once
+e2e/farm.sh --write                # every suite but the four release ones, portrait and landscape
+FARM_NIGHT=1 e2e/farm.sh --write    # those four as well, plus the 30-minute monkey
 ```
 
 `e2e/selftest.sh` (no device) tests the farm's own checks against planted defects: the a11y scanner (`a11y-scan.py`)
@@ -19,13 +20,16 @@ finishes, is a FAIL. CI runs `e2e/selftest.sh` in the `build` job.
 
 ## The farm
 
-`run.sh` walks through the suites on one device, one after the other. `farm.sh` shares the same list out over every
-test device that is connected, each suite once in portrait and once in landscape:
+`run.sh` walks through the suites on one device, one after the other. `farm.sh` shares that list out over every
+test device that is connected, each suite once in portrait and once in landscape. It always takes both lines of
+`run.sh` (the suites that write their own files too); `--write` is accepted and does not change the list. The four
+release suites are the exception: they are queued only with `FARM_NIGHT=1`.
 
 ```bash
 PKG=com.beko2210.ordo.dev E2E_GRANT=1 e2e/farm.sh --write            # all devices of farm-devices.conf
 PKG=com.beko2210.ordo.dev E2E_GRANT=1 e2e/farm.sh --write tab a8     # only these
 e2e/farm.sh --write --only "klang video-seek" --orient landscape tab # a few suites, one orientation
+FARM_NIGHT=1 e2e/farm.sh --write                                     # plus shade, live FTP, vault, full disk, monkey
 ```
 
 - **Devices** are named in `farm-devices.conf` with what they can do (`shots`, `hdr`, `slow`, …). Each one is taken
@@ -42,6 +46,13 @@ e2e/farm.sh --write --only "klang video-seek" --orient landscape tab # a few sui
   there, it is listed as `FLAKY` with the device it failed on; failed twice, it is a `FAIL`.
 - **A suite that stops with exit code 2** (another app in front, media volume not 0) takes its device out of the run:
   somebody is using it. The job goes back and another device takes it.
+- **Night** (`FARM_NIGHT=1`) is the only way the farm queues the release suites and sets their switches:
+  `video-notification` (`E2E_SHADE`), `ftp-server-defaults` (`E2E_FTP_LIVE`), `vault-secure-flag`
+  (`E2E_VAULT_HAND`), `text-editor-atomic-save` (`E2E_FILL_DISK`). The same switch adds `monkey.sh` (thirty minutes
+  of `adb monkey` against `PKG` with seed `MONKEY_SEED`, default 53, aborted on a crash or ANR in `logcat -b crash`
+  and `logcat -b anr`, then five process deaths: Home, `am kill` in the background, reopen, home still shows its
+  categories). Without the switch the farm unsets those four variables, so one left in the environment cannot turn a
+  release check on. `monkey.sh` skips on its own unless the switch is set. It runs in the first orientation only.
 - `summary.txt` in the run's folder (`FARM_OUT`, default `~/.cache/ordo-e2e/farm/<start time>/`) is rewritten every
   3 s; at the end the table suite × orientation × result × device × seconds × checks is printed. Exit code 0: all
   passed; 1: a suite failed twice or ran out of time; 3: a suite could not run on any device.
@@ -64,9 +75,11 @@ special add one comment line to it:
 ```
 
 `needs` are capabilities from `farm-devices.conf`: `shots` for a suite that compares screenshots or recordings by
-colour (the Tab A8 has a blue-light tint and is too slow for recordings), `hdr` for HDR and "Detail plus".
-`timeout` is in seconds. `orient=once` is for a suite that does not touch the layout (it runs in the first
-orientation only). **Adding a device:** one line in `farm-devices.conf`, and the lock command must know the name.
+colour (the Tab A8 has a blue-light tint and is too slow for recordings), `hdr` for HDR and "Detail plus",
+`tablet` or `phone` for a suite that only makes sense on one of them. `timeout` is in seconds. `orient=once` is for
+a suite that does not depend on the orientation the farm sets (it runs in the first orientation only), including one
+that already walks both orientations itself. **Adding a device:** one line in `farm-devices.conf`, and the lock
+command must know the name.
 
 `preflight.sh` is what the farm runs first on every device, and worth running by hand before a long run: test
 resources (`app/src/test/resources`, a copy of only `e2e/` fails here), every suite of `run.sh` present and
@@ -157,6 +170,7 @@ scroll position). A control that moves on a fixed screen (e.g. below a message o
 | `backup-self-include.sh` (`--write`) | a backup saved through the system picker into the very folder it backs up, twice (the second time over the first ZIP): "Backup finished", the ZIP still exists, passes a CRC test, holds the three files and no entry for itself; the ticks are put back | blocker before 1.0.0 |
 | `vault-secure-flag.sh` (`--write`, `E2E_VAULT_HAND=1`, release build) | a test PNG and PDF moved into the Tresor and opened from it: each viewer window has FLAG_SECURE like the Tresor screen (`dumpsys window windows`) and a screen capture (stand-in for the Recents preview) shows no picture; the owner unlocks by hand, both files are restored out of the Tresor; a debug build only says SKIP | blocker before 1.0.0 |
 | `text-editor-atomic-save.sh` (`--write`, emulator or `E2E_FILL_DISK=1`) | a 128-KiB text file edited in the text editor and saved while the storage is full: the file keeps its size and MD5, the editor keeps the typed word; the filler file goes at once | blocker before 1.0.0 |
+| `monkey.sh` (`FARM_NIGHT=1`) | thirty minutes of `adb monkey` on `PKG` with seed `MONKEY_SEED` (default 53), stopped on a crash or ANR (`logcat -b crash`, `logcat -b anr`); then five times Home, `am kill` in the background, reopen, and the home categories are back with no crash and no ANR. Not part of `run.sh`; the farm queues it only with the night switch | test plan level 8 |
 
 Every test starts through `launch` in `lib.sh`, which also copes with a fresh install: on an emulator it grants what
 adb may grant (notifications on Android 13+, all-files access as an app op on Android 11+), so no system dialog comes
@@ -181,3 +195,5 @@ Rules for every test:
 
 Needs: `adb`, `python3` (with Pillow), and `ffmpeg` for the suites that make their own media; `preflight.sh` checks all of it. `ADB` and `PKG` can be overridden through the
 environment.
+
+Open: the file-job property test follows as a device test (instrumentation/e2e), because `LinuxCopyMove` uses native syscalls that are not available on the JVM.

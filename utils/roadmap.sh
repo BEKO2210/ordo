@@ -195,6 +195,10 @@ cell "KI: Musik per Satz abspielen (Datei-Manager und Ordo Musik)" \
     "Sätze wie „Spiel alle Songs von gestern“, „Spiel meine Favoriten zufällig“, „Spiel das Album …“, „Spiel die Musik aus dem Ordner …“, „Schlaf-Timer 30 Minuten“ werden zu einem geprüften Plan (Filter auf Datum, Interpret, Album, Genre, Jahr, Ordner, Wiedergabeliste, Favoriten, Zuletzt/Meistgespielt, Dauer, Format) und spielen nach Vorschau ab. Einfache Sätze ohne Modell über Regeln (jedes Gerät), freie Sätze über das lokale Modell. Ehrlich nur, was die Metadaten hergeben; Fehlgriffe nie destruktiv." \
     "Ordo Musik: Auswahl, Wiedergabelisten und Favoriten"
 
+cell "Eigenschaftstests: Dateijobs und KI-Löschprüfung" \
+    "test -f $TESTS/filejob/FileJobSafetyPropertyTest.kt && test -f $TESTS/ai/CommandCheckPropertyTest.kt" \
+    "Zufällige Abbrüche, Konflikte und Namen beim Kopieren, Verschieben und in den Papierkorb verlieren keine Daten und überschreiben nichts ohne Freigabe; zufällige Löschsätze mit Verneinung (de/en) werden nie Ready."
+
 cell "Offline-Chatbot, verbunden mit allen eingebauten Apps" \
     "test -s docs/KI-CHAT.md && test -f $TESTS/ai/ChatToolRouterTest.kt" \
     "Ein Chat auf dem Gerät ohne Internet, der alle Teile von Ordo bedienen kann: öffnen, suchen, Musik oder Videos abspielen, PDF schreiben und bearbeiten, Dateien ordnen. Jede Aktion als geprüftes Werkzeug mit Vorschau und Bestätigung; Löschen und Überschreiben nie ohne ausdrückliches Ja. Kommt am Ende, wenn Video, PDF und Dokumente stehen." \
