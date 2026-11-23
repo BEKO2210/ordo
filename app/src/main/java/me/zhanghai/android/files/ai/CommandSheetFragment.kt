@@ -30,6 +30,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.graphics.ColorUtils
 import androidx.core.view.isVisible
 import androidx.core.widget.TextViewCompat
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.transition.TransitionManager
 import com.google.android.material.bottomsheet.BottomSheetBehavior
@@ -79,6 +80,8 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
     private val root: File = Environment.getExternalStorageDirectory()
     private var job: Job? = null
     private var executeGeneration = 0
+    private var holdingForCommand = false
+    private var syncingUndo = false
     private var text = ""
     private var ready: Outcome.Ready? = null
     private var files: List<File> = emptyList()
@@ -133,9 +136,7 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
         }
         binding.editButton.setOnClickListener { showInput() }
         viewLifecycleOwner.lifecycleScope.launch {
-            CommandUndo.offers.collect { offer ->
-                if (offer != null) binding.root.post { if (_binding != null) showQueuedResult() }
-            }
+            CommandUndo.revision.collect { syncUndo() }
         }
         binding.confirmButton.setOnClickListener {
             it.performHapticFeedback(
@@ -172,17 +173,17 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
         }
         val restoredText = state?.getString(STATE_TEXT)
         val restoredPending = state?.getBoolean(STATE_PENDING) == true
-        when (CommandUndo.restore(
-            undoPending = CommandUndo.offers.value != null,
-            commandRunning = CommandUndo.running,
-            presetPlan = presetPlan != null,
-            restoredPending = restoredPending,
-        )) {
+        when (CommandUndo.restore(undoNow(), undoHostId(), presetPlan != null, restoredPending)) {
             CommandUndo.Restore.ShowPendingUndo, CommandUndo.Restore.WaitForRunningCommand -> {
                 if (!restoredText.isNullOrEmpty()) binding.commandEdit.setText(restoredText)
-                show(binding.loadingLayout)
-                binding.cancelButton.isVisible = false
-                binding.loadingText.setText(getString(R.string.ai_running))
+                holdingForCommand = true
+                showWaiting()
+                return
+            }
+            // The snackbar is already on this activity. Opening the sheet again must not run the command twice.
+            CommandUndo.Restore.UndoOnThisScreen -> {
+                if (!restoredText.isNullOrEmpty()) binding.commandEdit.setText(restoredText)
+                showInput()
                 return
             }
             CommandUndo.Restore.EvaluatePreset -> {
@@ -242,6 +243,7 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
         } else {
             applyBlur(false)
         }
+        syncUndo()
     }
 
     override fun onStop() {
@@ -914,9 +916,8 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
         val runner = runner(context, outcome)
         val generation = ++executeGeneration
         job?.cancel()
-        show(binding.loadingLayout)
-        binding.cancelButton.isVisible = false
-        binding.loadingText.setText(getString(R.string.ai_running))
+        holdingForCommand = true
+        showWaiting()
         CommandUndo.running = true
         job = UNDO_SCOPE.launch {
             try {
@@ -955,21 +956,95 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
         }
     }
 
-    /** Shows the result on this activity, or keeps it until the recreated sheet can. */
+    /** Publishes the result for whichever host is actually on screen, then arms the undo window. */
     private fun deliver(offer: CommandUndo.Offer) {
-        val anchor = liveAnchor()
-        if (anchor == null) {
-            CommandUndo.offer(offer)
-            return
+        UNDO_SCOPE.launch {
+            delay(UNDO_MILLIS.toLong())
+            withContext(Dispatchers.Main) { CommandUndo.drop(offer) }
         }
-        present(anchor, offer)
+        CommandUndo.publish(offer, undoNow(), UNDO_MILLIS.toLong())
+        syncUndo()
     }
 
-    private fun showQueuedResult() {
-        val offer = CommandUndo.offers.value ?: return
-        val anchor = liveAnchor() ?: return
-        if (!CommandUndo.consume(offer)) return
-        present(anchor, offer)
+    private fun syncUndo() {
+        if (syncingUndo || _binding == null) return
+        if (!viewLifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) return
+        syncingUndo = true
+        try {
+            val now = undoNow()
+            val hostId = undoHostId()
+            val pending = CommandUndo.pending(now)
+            val action = undoUi(
+                host = currentUndoHost(),
+                offerWaiting = pending != null && CommandUndo.shownBy(now) != hostId,
+                shownHere = pending != null && CommandUndo.shownBy(now) == hostId,
+                commandRunning = CommandUndo.running,
+                holding = holdingForCommand,
+            )
+            when (action) {
+                UndoUi.ShowUndo -> {
+                    holdingForCommand = true
+                    if (!showQueuedResult()) {
+                        // The offer expired while we took it, or this window cannot hold a snackbar.
+                        if (CommandUndo.pending(undoNow()) == null && !CommandUndo.running) {
+                            holdingForCommand = false
+                            showInput()
+                        } else {
+                            showWaiting()
+                        }
+                    }
+                }
+                UndoUi.KeepWaiting -> {
+                    holdingForCommand = true
+                    showWaiting()
+                }
+                UndoUi.LeaveLoading -> {
+                    holdingForCommand = false
+                    showInput()
+                }
+                UndoUi.Untouched -> Unit
+            }
+        } finally {
+            syncingUndo = false
+        }
+    }
+
+    /** True when this host showed the snackbar. A departing host leaves the offer published. */
+    private fun showQueuedResult(): Boolean {
+        val hostId = undoHostId()
+        val offer = CommandUndo.claimForDisplay(currentUndoHost(), hostId, undoNow()) ?: return false
+        val anchor = liveAnchor()
+        if (anchor == null) {
+            CommandUndo.releaseDisplay(offer, hostId)
+            return false
+        }
+        if (!present(anchor, offer, hostId)) return false
+        holdingForCommand = false
+        return true
+    }
+
+    private fun showWaiting() {
+        show(binding.loadingLayout)
+        binding.cancelButton.isVisible = false
+        binding.loadingText.setText(getString(R.string.ai_running))
+    }
+
+    private fun undoNow(): Long = SystemClock.elapsedRealtime()
+
+    private fun undoHostId(): Int = System.identityHashCode(activity)
+
+    private fun currentUndoHost(): UndoHost {
+        val host = activity
+        val started = view != null &&
+            viewLifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)
+        return undoHost(
+            activityPresent = host != null,
+            finishing = host?.isFinishing == true,
+            destroyed = host?.isDestroyed == true,
+            changingConfigurations = host?.isChangingConfigurations == true,
+            viewReady = _binding != null && isAdded,
+            atLeastStarted = started,
+        )
     }
 
     private fun liveAnchor(): View? {
@@ -977,23 +1052,44 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
         return host.findViewById(android.R.id.content)
     }
 
-    private fun present(anchor: View, offer: CommandUndo.Offer) {
-        val snackbar = Snackbar.make(anchor, offer.message, UNDO_MILLIS).setTextMaxLines(3)
+    private fun present(anchor: View, offer: CommandUndo.Offer, hostId: Int): Boolean {
+        val remaining = CommandUndo.remainingMs(undoNow()).toInt()
+        if (remaining <= 0) {
+            CommandUndo.drop(offer)
+            return false
+        }
+        val snackbar = Snackbar.make(anchor, offer.message, remaining).setTextMaxLines(3)
         if (offer.canUndo) {
             snackbar.setAction(R.string.ai_undo) {
+                if (!CommandUndo.drop(offer)) return@setAction
                 UNDO_SCOPE.launch {
                     val undone = offer.undo()
                     offer.scan()
                     withContext(Dispatchers.Main) {
-                        // The sheet is gone by now; the snackbar's own anchor is still on screen.
-                        Snackbar.make(anchor, offer.undoneText(undone), Snackbar.LENGTH_SHORT).show()
+                        // Rotation may have dropped the window before undo finished.
+                        if (anchor.isAttachedToWindow) {
+                            Snackbar.make(anchor, offer.undoneText(undone), Snackbar.LENGTH_SHORT).show()
+                        }
                     }
                 }
             }
         }
+        snackbar.addCallback(object : Snackbar.Callback() {
+            override fun onDismissed(transientBottomBar: Snackbar, event: Int) {
+                when (event) {
+                    Snackbar.Callback.DISMISS_EVENT_TIMEOUT,
+                    Snackbar.Callback.DISMISS_EVENT_SWIPE,
+                    Snackbar.Callback.DISMISS_EVENT_ACTION -> CommandUndo.drop(offer)
+                    // The view went away (rotation) or another snackbar covered it. Keep the offer.
+                    Snackbar.Callback.DISMISS_EVENT_MANUAL,
+                    Snackbar.Callback.DISMISS_EVENT_CONSECUTIVE -> CommandUndo.releaseDisplay(offer, hostId)
+                }
+            }
+        })
         snackbar.show()
         // The command is done. After a rotation the state may already be saved, and the sheet must still close.
         if (isAdded) dismissAllowingStateLoss()
+        return true
     }
 
     private fun runner(context: Context, outcome: Outcome.Ready) = CommandRunner(

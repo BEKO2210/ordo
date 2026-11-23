@@ -5,7 +5,11 @@
 
 package me.zhanghai.android.files.viewer.text
 
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.io.File
+import java.io.IOException
 import java.security.MessageDigest
 
 /**
@@ -33,9 +37,19 @@ internal object TextEditorDraft {
 
     fun read(cacheDir: File, key: String): String? {
         val target = file(cacheDir, key)
-        if (!target.isFile) return null
-        return target.readText(Charsets.UTF_8)
+        return try {
+            if (!target.isFile) null else target.readText(Charsets.UTF_8)
+        } catch (e: IOException) {
+            null
+        }
     }
+
+    /** Cache reads stay off the main thread. [io] is the dispatcher the read runs on. */
+    suspend fun readSuspending(
+        cacheDir: File,
+        key: String,
+        io: CoroutineDispatcher = Dispatchers.IO,
+    ): String? = withContext(io) { read(cacheDir, key) }
 
     fun delete(cacheDir: File, key: String) {
         file(cacheDir, key).delete()
@@ -45,9 +59,12 @@ internal object TextEditorDraft {
     private fun file(cacheDir: File, key: String): File = File(cacheDir, PREFIX + key)
 }
 
-/** A draft is applied only when the view-model copy did not survive (process death, not rotation). */
-internal fun editorDraftToApply(viewStateKept: Boolean, draft: String?): String? =
-    if (viewStateKept) null else draft
+/**
+ * A draft is applied only when the view-model copy did not survive (process death, not rotation)
+ * and the user has not typed since the file was shown. The read is asynchronous, so keystrokes win.
+ */
+internal fun editorDraftToApply(viewStateKept: Boolean, typedSinceLoad: Boolean, draft: String?): String? =
+    if (viewStateKept || typedSinceLoad || draft == null) null else draft
 
 /** False when the user typed after the snapshot that was written, so the editor stays dirty. */
 internal fun savedTextIsCurrent(current: String, saved: String): Boolean = current == saved

@@ -438,7 +438,7 @@ then checks the plan itself before showing it:
   number of files and their size.
 - Every file is checked again right before it is touched; existing files are never overwritten. A file that was
   replaced since the preview (other size or time) is left alone, and the result says so.
-- Undo reverses exactly what the command did and leaves files alone that changed since.
+- Undo reverses exactly what the command did and leaves files alone that changed since. Turning the phone keeps that offer for its eight seconds; killing the app mid-command does not, because the journal dies with the process.
 
 **Setup.** The feature is off until you open it with the wand in the search bar. Ordo checks the phone, then
 downloads the model once (about 2.6 GB, Wi-Fi by default) from a pinned revision on Hugging Face and verifies its

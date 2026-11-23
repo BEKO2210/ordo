@@ -21,6 +21,7 @@ import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import java8.nio.file.Path
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
 import me.zhanghai.android.files.R
@@ -115,21 +116,25 @@ class TextEditorFragment : Fragment(), ConfirmReloadDialogFragment.Listener,
         // Process death drops the view model, so an unsaved draft also lives in the cache.
         binding.textEdit.isSaveEnabled = false
         val textEditSavedState = viewModel.removeEditTextSavedState()
-        val draft = if (textEditSavedState == null &&
-            savedInstanceState?.getBoolean(STATE_UNSAVED_DRAFT) == true
-        ) {
-            TextEditorDraft.read(requireContext().cacheDir, TextEditorDraft.key(argsFile.toString()))
-        } else {
-            null
-        }
         if (textEditSavedState != null) {
             binding.textEdit.onRestoreInstanceState(textEditSavedState)
-        }
-        editorDraftToApply(textEditSavedState != null, draft)?.let { text ->
-            isSettingText = true
-            binding.textEdit.setText(text)
-            isSettingText = false
-            viewModel.isTextChanged.value = true
+        } else if (savedInstanceState?.getBoolean(STATE_UNSAVED_DRAFT) == true) {
+            val cache = requireContext().cacheDir
+            val key = TextEditorDraft.key(argsFile.toString())
+            viewLifecycleOwner.lifecycleScope.launch {
+                val draft = TextEditorDraft.readSuspending(cache, key, Dispatchers.IO)
+                val text = editorDraftToApply(
+                    viewStateKept = false,
+                    typedSinceLoad = viewModel.isTextChanged.value,
+                    draft = draft,
+                ) ?: return@launch
+                if (binding.textEdit.text.toString() != text) {
+                    isSettingText = true
+                    binding.textEdit.setText(text)
+                    isSettingText = false
+                }
+                viewModel.isTextChanged.value = true
+            }
         }
         binding.textEdit.doAfterTextChanged {
             if (isSettingText) {
