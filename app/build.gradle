@@ -93,12 +93,6 @@ android {
     sourceSets {
         main.jniLibs.srcDirs += deepFilterLibs.get().asFile
     }
-    testOptions {
-        // Plain JVM tests use Android's mockable jar. Process.myUid() is consulted by the rootable
-        // file-system provider, so make it return the JVM default UID (0) instead of throwing.
-        // This keeps file-system tests on the local provider without requiring Robolectric.
-        unitTests.returnDefaultValues = true
-    }
     packagingOptions {
         jniLibs {
             useLegacyPackaging true
@@ -126,6 +120,14 @@ repositories {
 
 // JVM line coverage for the debug variant. Each bound is the measured package value minus two percentage points.
 kover {
+    currentProject {
+        instrumentation {
+            // Instrumenting Apache FtpServer/MINA changes the behavior of ProviderFtpFileTest's real
+            // in-process FTP stack. Keep Ordo's own FTP classes instrumented and covered.
+            excludedClasses.add('org.apache.ftpserver.*')
+            excludedClasses.add('org.apache.mina.*')
+        }
+    }
     reports {
         variant('debug') {
             html {
