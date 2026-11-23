@@ -11,6 +11,13 @@ e2e/farm.sh --write                # every suite but the four release ones, port
 FARM_NIGHT=1 e2e/farm.sh --write    # those four as well, plus the 30-minute monkey
 ```
 
+`e2e/selftest.sh` (no device) tests the farm's own checks against planted defects: the a11y scanner (`a11y-scan.py`)
+and `logcheck.py`. Every run's `finish()` reads logcat with `logcheck.py` and fails on a StrictMode violation in Ordo
+code or a LeakCanary application leak (debug builds only report them there). It first sends the app to the background (LeakCanary
+starts its delayed heap analysis then), waits up to `LEAK_GRACE` seconds (default 10) for it to begin and up to
+`LEAK_WAIT` seconds (default 60) for it to finish; a logcat that cannot be read, or an analysis that never
+finishes, is a FAIL. CI runs `e2e/selftest.sh` in the `build` job.
+
 ## The farm
 
 `run.sh` walks through the suites on one device, one after the other. `farm.sh` shares that list out over every

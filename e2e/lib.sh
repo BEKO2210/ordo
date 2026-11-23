@@ -7,6 +7,8 @@ export ADB=${ADB:-$(command -v adb || echo "$HOME/Android/Sdk/platform-tools/adb
 export PKG=${PKG:-com.beko2210.ordo} # ui.py reads it for its screenshot guard
 HERE=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 FAILS=0
+# Debug builds report StrictMode violations and LeakCanary leaks to logcat only; finish() reads what came after this point.
+LOG_START=$("$ADB" -s "$SERIAL" shell date +'%m-%d\ %H:%M:%S.000' < /dev/null 2>/dev/null | tr -d '\r')
 # With E2E_STATS=<file> every sleep of the test script is noted there (farm.sh adds them up: time spent only waiting).
 [ -z "${E2E_STATS:-}" ] || sleep() { echo "$1" >> "$E2E_STATS"; command sleep "$@"; }
 
@@ -203,8 +205,37 @@ trash_drop() {
         sed 's|\\(.*\\)\\.info\$|../files/\\1\\n&|' | tr '\\n' '\\0' | xargs -0 rm -rf"
 }
 
+# debug_findings: StrictMode violations in Ordo code and LeakCanary application leaks since the test started.
+# A logcat that cannot be read is a failure, never a pass: it prints a finding and returns 1.
+debug_findings() {
+    local log
+    if ! log=$(a logcat -d -v threadtime ${LOG_START:+-T "$LOG_START"} -s StrictMode:D LeakCanary:D 2>&1); then
+        echo "logcat could not be read: $log"; return 1
+    fi
+    python3 "$HERE/logcheck.py" <<<"$log" || { echo "logcheck.py failed"; return 1; }
+}
+
+# LeakCanary checks for retained objects 5 s after the app leaves the screen and only then starts its heap analysis.
+# Send the app to the background first, give the check LEAK_GRACE s (default 10) to begin, then wait (LEAK_WAIT s,
+# default 60) for a started analysis to finish. One that never finishes is a failure (logcheck.py reports it).
+wait_leak_analysis() {
+    local end log dumping=0; a shell input keyevent KEYCODE_HOME >/dev/null 2>&1
+    end=$(($(date +%s) + ${LEAK_GRACE:-10}))
+    while [ "$(date +%s)" -lt "$end" ]; do
+        log=$(a logcat -d -v threadtime ${LOG_START:+-T "$LOG_START"} -s LeakCanary:D 2>/dev/null) || return 0
+        if grep -q "Dumping the heap" <<<"$log"; then
+            python3 "$HERE/logcheck.py" --pending <<<"$log" || return 0
+            [ "$dumping" = 1 ] || { dumping=1; end=$(($(date +%s) + ${LEAK_WAIT:-60})); }
+        fi
+        sleep 2
+    done
+}
+
 finish() {
     check "no crash" test "$(crashes)" = 0
+    wait_leak_analysis
+    local found rc=0; found=$(debug_findings) || rc=1
+    if [ "$rc" = 0 ] && [ -z "$found" ]; then pass "no StrictMode violation or leak"; else fail "StrictMode violation or leak"; sed 's/^/    /' <<<"$found"; fi
     [ "$FAILS" = 0 ] && exit 0
     exit 1
 }

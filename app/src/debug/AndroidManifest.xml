@@ -20,5 +20,11 @@
             android:name="me.zhanghai.android.files.ui.MidwordWatchProvider"
             android:authorities="${applicationId}.midword_watch"
             android:exported="false" />
+
+        <!-- StrictMode (detectAll, penaltyLog) in debug builds only. -->
+        <provider
+            android:name="me.zhanghai.android.files.app.StrictModeProvider"
+            android:authorities="${applicationId}.strictmode"
+            android:exported="false" />
     </application>
 </manifest>
