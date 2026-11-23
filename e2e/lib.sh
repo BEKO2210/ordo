@@ -209,7 +209,7 @@ trash_drop() {
 # A logcat that cannot be read is a failure, never a pass: it prints a finding and returns 1.
 debug_findings() {
     local log
-    if ! log=$(a logcat -d -v threadtime ${LOG_START:+-T "$LOG_START"} -s StrictMode:W LeakCanary:D 2>&1); then
+    if ! log=$(a logcat -d -v threadtime ${LOG_START:+-T "$LOG_START"} -s StrictMode:D LeakCanary:D 2>&1); then
         echo "logcat could not be read: $log"; return 1
     fi
     python3 "$HERE/logcheck.py" <<<"$log" || { echo "logcheck.py failed"; return 1; }

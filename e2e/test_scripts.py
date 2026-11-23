@@ -84,6 +84,21 @@ class LogCheck(unittest.TestCase):
         self.assertEqual([], logcheck.findings(done))
         self.assertFalse(logcheck.pending(done))
 
+    def test_violation_at_every_priority_is_found(self):
+        for prio in "DIWE":
+            self.assertEqual(1, len(logcheck.findings(STRICT.replace(" W StrictMode", f" {prio} StrictMode"))), prio)
+
+    def test_filter_passes_debug_strictmode_and_run_fails(self):
+        # StrictMode's penaltyLog writes at D; a fake logcat honours only the tag filters it is given.
+        lib = os.path.join(HERE, "lib.sh")
+        line = STRICT.splitlines()[0].replace(" W StrictMode", " D StrictMode")
+        stack = STRICT.splitlines()[1].replace(" W StrictMode", " D StrictMode")
+        script = (f'HERE={HERE}; a() {{ case "$*" in *StrictMode:D*) printf "%s\\n%s\\n" "$LINE" "$STACK";; esac; }}; '
+                  f'eval "$(sed -n \'/^debug_findings()/,/^}}/p\' {lib})"; debug_findings')
+        r = subprocess.run(["bash", "-c", script], capture_output=True, text=True,
+                           env={**os.environ, "LINE": line, "STACK": stack})
+        self.assertIn("DiskReadViolation", r.stdout)
+
     def test_unreadable_logcat_fails_the_run(self):
         lib = os.path.join(HERE, "lib.sh")
         script = (f'HERE={HERE}; a() {{ echo "adb: device offline"; return 1; }}; '
