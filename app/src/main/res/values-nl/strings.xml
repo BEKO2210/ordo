@@ -593,6 +593,7 @@
     <string name="text_editor_close_message">Weet je zeker dat je de niet-opgeslagen wijzigingen wilt verwerpen?</string>
 
     <string name="ftp_server_title">FTP-server</string>
+    <string name="ftp_server_unencrypted_warning">De overdracht is niet versleuteld. Gebruik de server alleen in vertrouwde netwerken en zet hem na gebruik uit.</string>
     <string name="ftp_server_state_title">Status</string>
     <string name="ftp_server_state_summary_starting">Bezig met starten…</string>
     <string name="ftp_server_state_summary_running">Draait</string>

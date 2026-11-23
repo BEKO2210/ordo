@@ -647,6 +647,7 @@
     <string name="text_editor_close_message">Jste si jisti, že chcete zahodit neuložené změny v tomto dokumentu?</string>
 
     <string name="ftp_server_title">Server FTP</string>
+    <string name="ftp_server_unencrypted_warning">Přenos není šifrovaný. Server používejte jen v důvěryhodných sítích a po použití jej vypněte.</string>
     <string name="ftp_server_state_title">Stav</string>
     <string name="ftp_server_state_summary_starting">Spouštění…</string>
     <string name="ftp_server_state_summary_running">Běží</string>

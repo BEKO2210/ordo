@@ -14,6 +14,13 @@ import org.junit.Test
 
 class VideoResumeStoreTest {
     @Test
+    fun unknownDurationDoesNotForget() {
+        assertFalse(VideoResumeStore.isFinishedOrRestarted(0L, 0L))
+        assertTrue(VideoResumeStore.isFinishedOrRestarted(3_000L, 180_000L))
+        assertFalse(VideoResumeStore.isFinishedOrRestarted(60_000L, 180_000L))
+    }
+
+    @Test
     fun keyChangesWithSizeAndModificationTime() {
         val key = VideoResumeStore.key("file:///Movies/a.mp4", 1_000L, 5L)
         assertEquals(key, VideoResumeStore.key("file:///Movies/a.mp4", 1_000L, 5L))

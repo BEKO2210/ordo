@@ -52,6 +52,15 @@ class HomeLayoutTest {
         assertEquals(8, homeRecentColumns(840))
     }
 
+    @Test fun homeRecentGridRows_shortLandscapePhoneIsOneRow() {
+        // Galaxy S21 at 560 dpi, landscape: about 309 dp tall.
+        assertEquals(1, homeRecentGridRows(309))
+        assertEquals(1, homeRecentGridRows(479))
+        assertEquals(2, homeRecentGridRows(480))
+        assertEquals(2, homeRecentGridRows(686))
+        assertEquals(2, homeRecentGridRows(800))
+    }
+
     @Test fun homeQuickAccessColumns() {
         assertEquals(3, homeQuickAccessColumns(400))
         assertEquals(5, homeQuickAccessColumns(600))

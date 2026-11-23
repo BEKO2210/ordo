@@ -653,6 +653,7 @@
     <string name="text_editor_close_message">Czy na pewno chcesz porzucić niezapisane zmiany w tym dokumencie?</string>
 
     <string name="ftp_server_title">Serwer FTP</string>
+    <string name="ftp_server_unencrypted_warning">Transfer nie jest szyfrowany. Używaj serwera tylko w zaufanych sieciach i wyłącz go po użyciu.</string>
     <string name="ftp_server_state_title">Status</string>
     <string name="ftp_server_state_summary_starting">Uruchomianie…</string>
     <string name="ftp_server_state_summary_running">Uruchomiony</string>

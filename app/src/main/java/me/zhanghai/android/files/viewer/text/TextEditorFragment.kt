@@ -268,7 +268,10 @@ class TextEditorFragment : Fragment(), ConfirmReloadDialogFragment.Listener,
             is ActionState.Success -> {
                 showToast(R.string.text_editor_save_success)
                 viewModel.finishWritingFile()
-                viewModel.isTextChanged.value = false
+                // Keystrokes after the snapshot must stay dirty, or the saved bytes replace them.
+                if (savedTextIsCurrent(binding.textEdit.text.toString(), state.argument.second)) {
+                    viewModel.isTextChanged.value = false
+                }
             }
             // The error will be toasted by service so we should never show it in UI.
             is ActionState.Error -> viewModel.finishWritingFile()
@@ -305,3 +308,6 @@ class TextEditorFragment : Fragment(), ConfirmReloadDialogFragment.Listener,
         }
     }
 }
+
+/** False when the user typed after the snapshot that was written, so the editor stays dirty. */
+internal fun savedTextIsCurrent(current: String, saved: String): Boolean = current == saved

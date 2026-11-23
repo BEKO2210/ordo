@@ -69,6 +69,7 @@ import me.zhanghai.android.files.app.AppActivity
 import me.zhanghai.android.files.databinding.MusicLauncherActivityBinding
 import me.zhanghai.android.files.filelist.FileListActivity
 import me.zhanghai.android.files.databinding.MusicLibraryActionsBinding
+import me.zhanghai.android.files.ui.fitActionRow
 import me.zhanghai.android.files.databinding.MusicArtBinding
 import me.zhanghai.android.files.databinding.MusicLibraryAlbumBinding
 import me.zhanghai.android.files.databinding.MusicLibraryHeaderBinding
@@ -500,7 +501,7 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener, AppAccentA
         binding.content.detailPane.isVisible = twoPane
         if (twoPane && group != null) {
             bindHeader(binding.content.paneHeader, group)
-            bindActions(binding.content.paneActions, shuffleOnly = false)
+            bindActions(binding.content.paneActions, shuffleOnly = false, fit = false)
             stackPaneActions()
             binding.content.paneActions.root.isVisible = shownSongs.isNotEmpty()
         }
@@ -659,7 +660,7 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener, AppAccentA
         }
     }
 
-    private fun bindActions(actions: MusicLibraryActionsBinding, shuffleOnly: Boolean) {
+    private fun bindActions(actions: MusicLibraryActionsBinding, shuffleOnly: Boolean, fit: Boolean = true) {
         actions.play.isVisible = !shuffleOnly
         actions.shuffle.text = if (shuffleOnly) {
             getString(R.string.music_shuffle_all, shownSongs.size)
@@ -668,6 +669,12 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener, AppAccentA
         }
         actions.play.setOnClickListener { play(shownSongs, 0) }
         actions.shuffle.setOnClickListener { play(MusicLibrary.shuffled(shownSongs), 0) }
+        if (!fit) return
+        val icons = listOf(
+            androidx.appcompat.content.res.AppCompatResources.getDrawable(this, R.drawable.play_icon_24dp),
+            androidx.appcompat.content.res.AppCompatResources.getDrawable(this, R.drawable.shuffle_icon_24dp)
+        )
+        actions.root.doOnLayout { fitActionRow(actions.root, listOf(actions.play, actions.shuffle), icons) }
     }
 
     /** ⋮ of a song: play next and add to the queue while there is one, and the file in its folder. */

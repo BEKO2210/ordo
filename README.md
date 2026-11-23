@@ -15,7 +15,7 @@
 
 <p align="center">
 <!-- AUTO:badges -->
-  <a href="https://github.com/BEKO2210/ordo/releases/tag/v0.18.1"><img alt="release 0.18.1" src="https://img.shields.io/badge/release-0.18.1-2563EB"></a>
+  <a href="https://github.com/BEKO2210/ordo/releases/tag/v0.18.2"><img alt="release 0.18.2" src="https://img.shields.io/badge/release-0.18.2-2563EB"></a>
   <img alt="Android 7.0+" src="https://img.shields.io/badge/Android-7.0%2B-3DDC84">
   <a href="LICENSE"><img alt="License: GPL-3.0-or-later" src="https://img.shields.io/badge/license-GPL--3.0--or--later-blue"></a>
 <!-- /AUTO:badges -->
@@ -45,7 +45,7 @@
 ## Status
 
 <!-- AUTO:status -->
-Current version 0.18.1 · [release v0.18.1](https://github.com/BEKO2210/ordo/releases/tag/v0.18.1) · Android 7.0 and later (minSdk 24, targetSdk 36 = Android 16) · [GPL-3.0-or-later](LICENSE)
+Current version 0.18.2 · [release v0.18.2](https://github.com/BEKO2210/ordo/releases/tag/v0.18.2) · Android 7.0 and later (minSdk 24, targetSdk 36 = Android 16) · [GPL-3.0-or-later](LICENSE)
 <!-- /AUTO:status -->
 
 Ordo is in development. A closed test runs on Google Play; test builds are also published as
@@ -257,6 +257,7 @@ Type or dictate “Move all MP3s from Download to Music”. Ordo shows the plan 
 - Vault: files are encrypted with AES-256-GCM and opened with your screen lock
 - Backup: folders and the vault as a ZIP file to a USB drive or any storage your phone offers, with an optional password
 - Restore without replacing the files you already have
+- A file cannot replace a folder of the same name
 
 **For power users**
 
@@ -275,7 +276,7 @@ Type or dictate “Move all MP3s from Download to Music”. Ordo shows the plan 
 **Find your files**
 
 - Home screen with recent files, categories (images, videos, audio, documents, downloads, APKs, archives) and
-  storage at a glance
+  storage at a glance. On a short landscape phone, one row of recents so the categories stay on screen.
 - The home screen keeps itself up to date: new, changed or deleted files show up on their own, a burst of 50 new
   files reloads it once (measured on the emulator, 16.11.2026), during a long copy it waits 3 s after every
   reload, so the storage is not read without a break, and nothing runs while it is hidden. Pulling down
@@ -357,7 +358,7 @@ Type or dictate “Move all MP3s from Download to Music”. Ordo shows the plan 
 
 - Vault: files are encrypted with AES-256-GCM and opened with your screen lock
 - Backup: folders and the vault as a ZIP to a USB drive or any place your phone offers, such as Google Drive, with an
-  optional password (AES-256), plus safe restore of normal files without replacing existing files; folders you added can be removed from the list again; a file that fails halfway stops the backup instead of ending up cut short in it; app data in `Android/data` and `Android/obb` is left out, because Android does not let it be restored
+  optional password (AES-256), plus safe restore of normal files without replacing existing files; cancelling restore keeps files already written and shows the counts; folders you added can be removed from the list again; a file that fails halfway stops the backup instead of ending up cut short in it; app data in `Android/data` and `Android/obb` is left out, because Android does not let it be restored
 
 **Ask in your own words** – see [AI commands](#ai-commands)
 
@@ -367,7 +368,7 @@ Type or dictate “Move all MP3s from Download to Music”. Ordo shows the plan 
 
 **For power users**
 
-- FTP, SFTP, SMB and WebDAV servers, and a built-in FTP server
+- FTP, SFTP, SMB and WebDAV servers, and a built-in FTP server; a cancelled copy onto a network folder does not leave a truncated file under the real name
 - Root and Shizuku access, Linux permissions, symbolic links, SELinux context
 
 **Make it yours** – in Settings › Appearance
@@ -423,8 +424,12 @@ Typos, slang and German or English all work.
 **How it is kept safe.** The model only writes a small plan in a fixed JSON format (enforced by a grammar). Ordo
 then checks the plan itself before showing it:
 
-- Deleting always means the trash, and only when the sentence clearly asks for it – a negation (“don’t delete”,
-  “nicht löschen”) or a delete word inside a file name does not count.
+- Deleting always means the trash, and only when the sentence clearly asks for it – a negation
+  (“don’t delete”, “nicht löschen”, “nie”, “keineswegs”, “keines”, “keinerlei”, “bitte nicht” even after a comma,
+  “nix”, “nichts”, “weder … noch”, “neither … nor”, “nothing”, “none”, “no one”) or a delete word inside a file
+  name does not count. “Nicht nur …, auch …” still counts as a delete; “not just” without that continuation does
+  not. Any other sentence with a negation is asked back, including restrictions such as “not the originals”
+  or “keine Fotos”.
 - System folders, hidden folders, `Android/data` and the camera folder are off limits unless the user names the
   camera folder explicitly. Paths are compared after resolving `..` and links.
 - Unknown or ambiguous folders lead to a question, never to a guess.
@@ -459,6 +464,7 @@ ready.
   the connection. CA certificates are checked with their host name.
 - The built-in FTP server starts with a username, a password and without write access. Its root is the Download
   folder. Anonymous login and writing stay off until you switch them on. If no password is set, one is generated.
+  Transfers are unencrypted; the server screen says to use it only in trusted networks and to turn it off after use.
 - Extracting archives never writes outside the chosen folder, also not through links inside the archive.
 - Other apps can only ask Ordo to open files on shared storage, and only for reading.
 - Test builds use the release configuration (R8, not debuggable, screenshots blocked in the vault).
@@ -506,7 +512,7 @@ Run the unit tests with:
 ```
 
 <!-- AUTO:tests -->
-Device tests: 53 scripts in [`e2e/`](e2e/README.md), run with `e2e/run.sh`: 15 read-only (`first-run`, `smoke`, `settings-visual`, `category-search`, `back-navigation`, `bars-replay`, `home-header`, `header-position`, `home-pull`, `drawer`, `selection-more`, `tablet-landscape`, `analysis`, `ai-show-guard`, `documents-provider`) and 38 more with `--write` (`stress-delete`, `backup-restore`, `copy-unreadable`, `home-auto-refresh`, `audio-player`, `cast`, `klang`, `klang-landscape`, `klang-stress`, `music-formats`, `music-library`, `launcher-icons`, `icon-colors`, `ai-show`, `pick-file`, `no-midword-breaks`, `player-seek`, `player-stage2`, `video-player`, `video-network`, `video-sound`, `video-dialog-isolate`, `video-subtitles`, `video-background`, `video-library`, `video-seek`, `video-picture`, `video-picture-adjust`, `video-detailplus`, `video-menus`, `sheets-polish`, `copy-replace`, `ftp-server-fd`, `video-notification`, `ftp-server-defaults`, `backup-self-include`, `vault-secure-flag`, `text-editor-atomic-save`). Unit tests: 150 test classes in `app/src/test`.
+Device tests: 53 scripts in [`e2e/`](e2e/README.md), run with `e2e/run.sh`: 15 read-only (`first-run`, `smoke`, `settings-visual`, `category-search`, `back-navigation`, `bars-replay`, `home-header`, `header-position`, `home-pull`, `drawer`, `selection-more`, `tablet-landscape`, `analysis`, `ai-show-guard`, `documents-provider`) and 38 more with `--write` (`stress-delete`, `backup-restore`, `copy-unreadable`, `home-auto-refresh`, `audio-player`, `cast`, `klang`, `klang-landscape`, `klang-stress`, `music-formats`, `music-library`, `launcher-icons`, `icon-colors`, `ai-show`, `pick-file`, `no-midword-breaks`, `player-seek`, `player-stage2`, `video-player`, `video-network`, `video-sound`, `video-dialog-isolate`, `video-subtitles`, `video-background`, `video-library`, `video-seek`, `video-picture`, `video-picture-adjust`, `video-detailplus`, `video-menus`, `sheets-polish`, `copy-replace`, `ftp-server-fd`, `video-notification`, `ftp-server-defaults`, `backup-self-include`, `vault-secure-flag`, `text-editor-atomic-save`). Unit tests: 154 test classes in `app/src/test`.
 <!-- /AUTO:tests -->
 
 ## Roadmap

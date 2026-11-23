@@ -481,6 +481,7 @@
     <string name="text_editor_close_message">Haluatko varmasti hylätä tiedoston tallentamattomat muutokset?</string>
 
     <string name="ftp_server_title">FTP-palvelin</string>
+    <string name="ftp_server_unencrypted_warning">Siirto ei ole salattu. Käytä palvelinta vain luotetuissa verkoissa ja sammuta se käytön jälkeen.</string>
     <string name="ftp_server_state_title">Tila</string>
     <string name="ftp_server_state_summary_starting">Käynnistetään…</string>
     <string name="ftp_server_state_summary_running">Käynnissä</string>

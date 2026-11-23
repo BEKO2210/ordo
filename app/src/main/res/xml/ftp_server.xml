@@ -9,6 +9,11 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
+    <Preference
+        android:icon="@drawable/information_icon_white_24dp"
+        android:summary="@string/ftp_server_unencrypted_warning"
+        android:selectable="false" />
+
     <me.zhanghai.android.files.ftpserver.FtpServerStatePreference
         android:key="@string/pref_key_ftp_server_state"
         android:icon="@drawable/shared_directory_icon_white_24dp"

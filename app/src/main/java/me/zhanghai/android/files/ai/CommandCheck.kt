@@ -71,7 +71,7 @@ object CommandCheck {
         val words = intentWords(text, model, withoutFolders = true)
         // The plan schema has no field for duplicates, so the model answers with the whole folder; the app narrows it.
         val plan = model.copy(duplicates = duplicatesSaid(text, model))
-        if (plan.action == "delete" && !said(words, DELETE_WORDS)) {
+        if (plan.action == "delete" && !saidDelete(words)) {
             return Outcome.Refused(Reason.UNSURE_DELETE)
         }
         // The camera folder only counts as chosen when the user names it as the folder, not in a file name
@@ -198,23 +198,71 @@ object CommandCheck {
     }
 
     private val NEGATIONS = setOf(
-        "nicht", "nichts", "kein", "keine", "keinen", "keiner", "ohne", "außer", "ausser",
-        "not", "no", "don't", "dont", "never", "except", "without"
+        "nicht", "nichts", "nix", "kein", "keine", "keinen", "keiner", "keines", "keinerlei",
+        "keinesfalls", "keineswegs", "weder",
+        "nie", "niemals", "nimmer", "nirgends", "nein", "ohne", "außer", "ausser",
+        "not", "no", "don't", "dont", "never", "nowhere", "neither", "nor", "none", "nothing",
+        "no one", "except", "without",
+        "auf keinen fall", "bloß nicht", "bloss nicht", "bitte nicht"
     )
+    private val ADDITIVE = setOf("nur", "only", "just")
+    private val ADDITIVE_CONT = setOf("auch", "also")
+    private val CLAUSE_BREAK = Regex("[.!?;,\\u2013\\u2014\\u2015\\u2026]+")
+    private val TOKEN_BREAK = Regex("[^\\p{L}'/]+")
+    private val APOSTROPHES = Regex("[\\u2018\\u2019\\u02BC\\u00B4\\uFF07]")
 
     /**
-     * True when one of [stems] starts a word with no negation among the three words before or five after it,
-     * within the same clause ("nicht löschen", "lösche die Dateien nicht"; but "lösche X, nicht Y" is fine).
+     * A delete word counts only if the sentence has no negation. Parsing restrictions
+     * ("nicht die Originale") is too fine: any negation asks back. "nicht nur"/"not just"
+     * is not a negation only when an additive continuation follows ("auch"/"also").
+     */
+    private fun saidDelete(words: String): Boolean {
+        val folded = foldMarks(words)
+        val tokens = tokensOf(folded)
+        return !hasNegation(folded, tokens) && hasStem(folded, tokens, DELETE_WORDS)
+    }
+
+    /**
+     * True when one of [stems] starts a word in a clause that has no negation anywhere
+     * ("nicht die Kamera" does not name the camera; "nicht nur … auch …" is not a negation).
      */
     private fun said(words: String, stems: List<String>): Boolean =
-        words.split(',', ';', '.', '!', '?').any { clause ->
-            val tokens = clause.split(Regex("[^\\p{L}'/]+")).filter { it.isNotEmpty() }
-            tokens.indices.any { i ->
-                stems.any { stem -> tokens[i].startsWith(stem) || (stem.contains(' ') && clause.contains(stem)) } &&
-                    tokens.subList((i - 3).coerceAtLeast(0), (i + 6).coerceAtMost(tokens.size))
-                        .none { it in NEGATIONS }
-            }
+        foldMarks(words).split(CLAUSE_BREAK).any { clause ->
+            val tokens = tokensOf(clause)
+            !hasNegation(clause, tokens) && hasStem(clause, tokens, stems)
         }
+
+    private fun hasStem(clause: String, tokens: List<String>, stems: List<String>): Boolean =
+        tokens.any { token ->
+            stems.any { stem -> token.startsWith(stem) || (' ' in stem && stem in clause) }
+        }
+
+    private fun hasNegation(text: String, tokens: List<String>): Boolean {
+        val t = skipAdditive(tokens)
+        return t.any { it in NEGATIONS || it.startsWith("kein") } ||
+            NEGATIONS.any { ' ' in it && it in text }
+    }
+
+    private fun skipAdditive(tokens: List<String>): List<String> {
+        val out = ArrayList<String>(tokens.size)
+        var i = 0
+        while (i < tokens.size) {
+            if (i + 1 < tokens.size && tokens[i] in setOf("nicht", "not") && tokens[i + 1] in ADDITIVE &&
+                tokens.subList(i + 2, tokens.size).any { it in ADDITIVE_CONT }
+            ) {
+                i += 2
+                continue
+            }
+            out.add(tokens[i])
+            i++
+        }
+        return out
+    }
+
+    private fun foldMarks(text: String) = text.replace(APOSTROPHES, "'")
+
+    private fun tokensOf(clause: String): List<String> =
+        foldMarks(clause).split(TOKEN_BREAK).filter { it.isNotEmpty() }
 
     // Composed and decomposed umlauts ("é" as one or two characters) count as the same name.
     private fun sameName(a: String, b: String): Boolean =

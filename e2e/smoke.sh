@@ -11,10 +11,13 @@ check "home shows a storage card" storage_card
 a shell am start -n "$PKG/me.zhanghai.android.files.settings.SettingsActivity" >/dev/null; sleep 3; guard
 for section in "Aussehen|Appearance" "KI-Assistent|AI assistant" "Dateien & Ansicht|Files & view" \
     "Speicher & Ordner|Storage & folders" "Papierkorb|Trash"; do
-    if ui tap "$section" >/dev/null 2>&1; then
+    # A landscape phone shows only the first rows; the later sections are on the same page, further down.
+    if scroll_to "$section" && ui tap "$section" >/dev/null 2>&1; then
         sleep 1; guard
         check "settings: $section opens" on settings.SettingsActivity
         back
+        # Back keeps the overview where it was, so the first row can sit above the window.
+        for _ in 1 2 3 4 5 6; do ui has "Aussehen|Appearance" && break; swipe_down; done
         check "settings: back from $section shows the overview" ui has "Aussehen|Appearance"
     else
         fail "settings: $section not found"

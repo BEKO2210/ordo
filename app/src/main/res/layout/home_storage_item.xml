@@ -72,6 +72,7 @@
             android:importantForAccessibility="no" />
         <!-- Two clear actions: look inside the storage, or analyse it. Equal width, 48 dp touch height. -->
         <LinearLayout
+            android:id="@+id/actionsRow"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/phi_13"
@@ -84,6 +85,11 @@
                 android:layout_marginEnd="@dimen/phi_8"
                 android:layout_weight="1"
                 android:hyphenationFrequency="none"
+                android:maxLines="1"
+                app:autoSizeMaxTextSize="14sp"
+                app:autoSizeMinTextSize="12sp"
+                app:autoSizeStepGranularity="1sp"
+                app:autoSizeTextType="uniform"
                 android:minHeight="48dp"
                 android:text="@string/home_storage_open"
                 android:textAllCaps="false"
@@ -101,6 +107,11 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:hyphenationFrequency="none"
+                android:maxLines="1"
+                app:autoSizeMaxTextSize="14sp"
+                app:autoSizeMinTextSize="12sp"
+                app:autoSizeStepGranularity="1sp"
+                app:autoSizeTextType="uniform"
                 android:minHeight="48dp"
                 android:text="@string/home_storage_analyze"
                 android:textAllCaps="false"

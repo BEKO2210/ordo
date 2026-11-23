@@ -1,7 +1,8 @@
-Stabilitäts-Update:
-• Absturz beim Antippen der Video-Benachrichtigung behoben
-• Sicherer mit Dateien: Gemischte Auswahl landet im Papierkorb, Rückgängig geht wieder
-• Tresor und Bildbetrachter gegen das Öffnen interner Dateien geschützt
-• FTP-Server startet mit Passwort und ohne anonymen Zugang
-• Netzwerkfreigaben bleiben im Leerlauf verbunden
-• Musik und Cast: zuverlässigere Wiedergabe und Schlaf-Timer
+Zuverlässigkeits-Update:
+• Sicheres Kopieren und Wiederherstellen: keine verlorenen Dateien bei Konflikten
+• KI-Befehle: „nie“, „nicht“ und Ähnliches fragen vor dem Löschen immer nach
+• FTP-Server weist auf unverschlüsselte Übertragung hin
+• Knöpfe brechen bei großem Bildschirmzoom nicht mehr mitten im Wort um
+• Handy quer: Menüs und Listen passen und bleiben erreichbar
+• Video, Musik und Cast: zuverlässigeres Fortsetzen und Rückgängig
+• Netzwerkfreigaben: kein endloses Hängen mehr

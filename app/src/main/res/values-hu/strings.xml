@@ -593,6 +593,7 @@
     <string name="text_editor_close_message">Biztos, hogy elveti a dokumentum mentetlen módosításait?</string>
 
     <string name="ftp_server_title">FTP-kiszolgáló</string>
+    <string name="ftp_server_unencrypted_warning">Az átvitel nem titkosított. A szervert csak megbízható hálózatokon használd, és használat után kapcsold ki.</string>
     <string name="ftp_server_state_title">Állapot</string>
     <string name="ftp_server_state_summary_starting">Indítás…</string>
     <string name="ftp_server_state_summary_running">Fut</string>

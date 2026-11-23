@@ -36,7 +36,9 @@ class VideoResumeStore(context: Context) {
 
     fun write(key: String, positionMs: Long, durationMs: Long, nowMs: Long = System.currentTimeMillis()) {
         if (!isWorthKeeping(positionMs, durationMs)) {
-            if (preferences.contains(key)) preferences.edit { remove(key) }
+            if (isFinishedOrRestarted(positionMs, durationMs) && preferences.contains(key)) {
+                preferences.edit { remove(key) }
+            }
             return
         }
         val evicted = if (preferences.contains(key)) {
@@ -73,6 +75,10 @@ class VideoResumeStore(context: Context) {
         fun isWorthKeeping(positionMs: Long, durationMs: Long): Boolean =
             durationMs > 0 && positionMs >= MIN_POSITION_MS && positionMs <= durationMs * MAX_FRACTION &&
                 durationMs - positionMs >= MIN_LEFT_MS
+
+        /** A known duration decides; with an unknown one (still buffering) the saved place stays. */
+        internal fun isFinishedOrRestarted(positionMs: Long, durationMs: Long): Boolean =
+            durationMs > 0 && !isWorthKeeping(positionMs, durationMs)
 
         /** The oldest keys beyond [keep], by the time they were saved. */
         internal fun keysToEvict(savedAtByKey: Map<String, Long>, keep: Int): List<String> =

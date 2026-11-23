@@ -66,9 +66,12 @@ Jeder Schritt: Abstände auf die Reihe umstellen, auf Telefon (412 dp) und Table
 - Kategorie-, Schnellzugriff- und „Zuletzt“-Kacheln sind φ : 1 breit zu hoch (`PhiTileCardView`, `PhiImageView`); braucht
   der Inhalt mehr Höhe (große Schrift, schmales Telefon), wächst die Kachel mit, statt etwas abzuschneiden.
 - Speicherkarte: Beschriftung zu Prozentwert 61,8 : 38,2; „Öffnen“ und „Analysieren“ bleiben gleich breit.
+- Zwei-Tasten-Zeilen (Speicherkarte, „Abspielen“/„Zufällig“ in Ordo Musik): eine Zeile, Schrift 14 → 12 sp; passt ein Wort
+  dann noch nicht, entfallen die Symbole, danach stehen die Tasten untereinander. Nie ein Umbruch im Wort (`ActionRowFit`).
 - Rundungen: Karten 21 dp, Kacheln 13 dp, Suchleiste 21 dp (Höhe 48 dp bleibt). Keine Silbentrennung auf der Startseite.
 - Spaltenzahlen (3/9, 4/6/8, 3/5/8) bleiben; die Inhaltsbreite ist auf der Startseite **nicht** auf 610 dp begrenzt,
   weil die neun Kategorien ab 840 dp in einer Reihe stehen und sonst unter die Lesbarkeit schrumpfen.
+- „Zuletzt verwendet“ im Raster: zwei Zeilen, unter 480 dp Höhe (Handy quer) eine, damit Kategorien auf dem Schirm bleiben.
 - Titel in Kacheln bleiben bei 14 sp (Subtitle2), damit „Dokumente“ auf 360 dp nicht abgeschnitten wird.
 
 ### Einstellungen (umgestellt)
@@ -88,7 +91,8 @@ Jeder Schritt: Abstände auf die Reihe umstellen, auf Telefon (412 dp) und Table
 
 ### KI-Blatt (umgestellt)
 
-- Blattrand 21 dp, unten 34 dp; Karten 21/13 dp, Abstände 5/8/13/21 dp. Kugeln: Kopf 55, Denken 89, Einrichtung 144 dp.
+- Blattrand 21 dp, unten 34 dp; Karten 21/13 dp, Abstände 5/8/13/21 dp. Kugeln: Kopf 55, Denken 89, Einrichtung 144 dp
+  (unter 480 dp Höhe 55 dp, ohne die drei Prüfzeilen, damit der Download auf dem Schirm bleibt).
 - Symbole 34 dp (Innenrand 5 dp); Tasten und Prüfzeilen mindestens 55 dp hoch, Eingabefeld und Tasten mit Rundung 34 dp.
 - Info-Texte (Untertitel, Route, Nachricht, Dateiliste, Notiz) 12 sp in der zweiten Textfarbe; keine Silbentrennung
   (auch im TextSwitcher aus `CommandSheetFragment`).

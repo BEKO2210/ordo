@@ -15,7 +15,7 @@
 
 <p align="center">
 <!-- AUTO:badges -->
-  <a href="https://github.com/BEKO2210/ordo/releases/tag/v0.18.1"><img alt="Version 0.18.1" src="https://img.shields.io/badge/Version-0.18.1-2563EB"></a>
+  <a href="https://github.com/BEKO2210/ordo/releases/tag/v0.18.2"><img alt="Version 0.18.2" src="https://img.shields.io/badge/Version-0.18.2-2563EB"></a>
   <img alt="Android 7.0+" src="https://img.shields.io/badge/Android-7.0%2B-3DDC84">
   <a href="LICENSE"><img alt="Lizenz: GPL-3.0-or-later" src="https://img.shields.io/badge/Lizenz-GPL--3.0--or--later-blue"></a>
 <!-- /AUTO:badges -->
@@ -45,7 +45,7 @@
 ## Stand
 
 <!-- AUTO:status -->
-Aktuelle Version 0.18.1 · [Release v0.18.1](https://github.com/BEKO2210/ordo/releases/tag/v0.18.1) · ab Android 7.0 (minSdk 24, targetSdk 36 = Android 16) · [GPL-3.0-or-later](LICENSE)
+Aktuelle Version 0.18.2 · [Release v0.18.2](https://github.com/BEKO2210/ordo/releases/tag/v0.18.2) · ab Android 7.0 (minSdk 24, targetSdk 36 = Android 16) · [GPL-3.0-or-later](LICENSE)
 <!-- /AUTO:status -->
 
 Ordo ist in Entwicklung. Bei Google Play läuft ein geschlossener Test; Testversionen erscheinen auch als
@@ -257,6 +257,7 @@ Tippe oder diktiere „Verschiebe alle MP3s aus Download nach Musik“. Ordo zei
 - Tresor: Dateien werden mit AES-256-GCM verschlüsselt und mit deiner Bildschirmsperre geöffnet
 - Sicherung: Ordner und Tresor als ZIP-Datei auf einen USB-Stick oder an jeden Ort, den dein Handy anbietet – auf Wunsch mit Passwort
 - Wiederherstellen, ohne vorhandene Dateien zu ersetzen
+- Eine Datei ersetzt keinen Ordner gleichen Namens
 
 **Für Profis**
 
@@ -270,7 +271,7 @@ Tippe oder diktiere „Verschiebe alle MP3s aus Download nach Musik“. Ordo zei
 **Dateien finden**
 
 - Startseite mit zuletzt verwendeten Dateien, Kategorien (Bilder, Videos, Audio, Dokumente, Downloads, APKs,
-  Archive) und Speicher auf einen Blick
+  Archive) und Speicher auf einen Blick. Im kurzen Querformat eine Zeile „Zuletzt“, damit die Kategorien sichtbar bleiben.
 - Die Startseite hält sich selbst aktuell: neue, geänderte oder gelöschte Dateien erscheinen von allein, 50 neue
   Dateien auf einmal laden sie einmal neu (gemessen im Emulator, 16.11.2026), beim langen Kopieren wartet sie nach jedem
   Neuladen 3 s, damit der Speicher nicht pausenlos gelesen wird, und im Hintergrund läuft nichts.
@@ -356,7 +357,7 @@ Tippe oder diktiere „Verschiebe alle MP3s aus Download nach Musik“. Ordo zei
 
 - Tresor: Dateien werden mit AES-256-GCM verschlüsselt und mit deiner Bildschirmsperre geöffnet
 - Sicherung: Ordner und Tresor als ZIP auf einen USB-Stick oder an jeden Ort, den dein Handy anbietet, etwa Google
-  Drive – auf Wunsch mit Passwort (AES-256), dazu sichere Wiederherstellung normaler Dateien ohne vorhandene zu ersetzen; selbst hinzugefügte Ordner lassen sich wieder aus der Liste nehmen; eine Datei, die mittendrin nicht mehr lesbar ist, bricht die Sicherung ab, statt gekürzt darin zu landen; App-Daten in `Android/data` und `Android/obb` bleiben draußen, weil Android sie nicht wiederherstellen lässt
+  Drive – auf Wunsch mit Passwort (AES-256), dazu sichere Wiederherstellung normaler Dateien ohne vorhandene zu ersetzen; ein Abbruch der Wiederherstellung behält fertige Dateien und zeigt die Zähler; selbst hinzugefügte Ordner lassen sich wieder aus der Liste nehmen; eine Datei, die mittendrin nicht mehr lesbar ist, bricht die Sicherung ab, statt gekürzt darin zu landen; App-Daten in `Android/data` und `Android/obb` bleiben draußen, weil Android sie nicht wiederherstellen lässt
 
 **In deinen eigenen Worten** – siehe [KI-Befehle](#ki-befehle)
 
@@ -366,7 +367,7 @@ Tippe oder diktiere „Verschiebe alle MP3s aus Download nach Musik“. Ordo zei
 
 **Für Profis**
 
-- FTP-, SFTP-, SMB- und WebDAV-Server sowie ein eingebauter FTP-Server
+- FTP-, SFTP-, SMB- und WebDAV-Server sowie ein eingebauter FTP-Server; ein abgebrochenes Kopieren auf einen Netzordner hinterlässt keine gekürzte Datei unter dem echten Namen
 - Root- und Shizuku-Zugriff, Linux-Rechte, symbolische Links, SELinux-Kontext
 
 **Nach deinem Geschmack** – unter Einstellungen › Aussehen
@@ -423,8 +424,12 @@ Tippfehler, Umgangssprache, Deutsch oder Englisch – alles geht.
 **So bleibt es sicher.** Das Modell schreibt nur einen kleinen Plan in einem festen JSON-Format (durch eine
 Grammatik erzwungen). Ordo prüft diesen Plan selbst, bevor es ihn zeigt:
 
-- Löschen heißt immer Papierkorb, und nur, wenn der Satz es klar verlangt – eine Verneinung („nicht löschen“,
-  “don’t delete”) oder ein Lösch-Wort im Dateinamen zählt nicht.
+- Löschen heißt immer Papierkorb, und nur, wenn der Satz es klar verlangt – eine Verneinung
+  („nicht löschen“, „nie“, „keineswegs“, „keines“, „keinerlei“, „bitte nicht“ auch nach Komma, „nix“, „nichts“,
+  „weder … noch“, “don’t delete”, “neither … nor”, “nothing”, “none”, “no one”) oder ein Lösch-Wort im Dateinamen
+  zählt nicht. „Nicht nur …, auch …“ bleibt ein Löschen; „not just“ ohne diese Fortsetzung nicht. Jeder andere
+  Satz mit einer Verneinung wird nachgefragt, auch Einschränkungen wie „nicht die Originale“
+  oder „keine Fotos“.
 - Systemordner, versteckte Ordner, `Android/data` und der Kamera-Ordner sind tabu, außer du nennst den
   Kamera-Ordner ausdrücklich. Pfade werden nach Auflösen von `..` und Links verglichen.
 - Unbekannte oder mehrdeutige Ordner führen zu einer Rückfrage, nie zu einer Vermutung.
@@ -460,7 +465,8 @@ jederzeit wieder entfernen; unter Einstellungen › KI-Assistent siehst du, ob e
   die Verbindung ab. CA-Zertifikate werden samt Hostname geprüft.
 - Der eingebaute FTP-Server startet mit Benutzername, Passwort und ohne Schreibrecht. Die Wurzel ist der
   Download-Ordner. Anonymer Zugang und Schreiben bleiben aus, bis du sie einschaltest. Fehlt ein Passwort, wird
-  eines erzeugt.
+  eines erzeugt. Die Übertragung ist unverschlüsselt; der Bildschirm weist darauf hin, den Server nur in
+  vertrauenswürdigen Netzen zu nutzen und nach Gebrauch auszuschalten.
 - Beim Entpacken landet nichts außerhalb des gewählten Ordners, auch nicht über Links im Archiv.
 - Andere Apps können Ordo nur Dateien im geteilten Speicher öffnen lassen, und nur zum Lesen.
 - Testversionen nutzen die Release-Einstellungen (R8, nicht debugbar, Screenshots im Tresor gesperrt).
@@ -509,7 +515,7 @@ Unit-Tests:
 ```
 
 <!-- AUTO:tests -->
-Gerätetests: 53 Skripte in [`e2e/`](e2e/README.md), gestartet mit `e2e/run.sh`: 15 nur lesend (`first-run`, `smoke`, `settings-visual`, `category-search`, `back-navigation`, `bars-replay`, `home-header`, `header-position`, `home-pull`, `drawer`, `selection-more`, `tablet-landscape`, `analysis`, `ai-show-guard`, `documents-provider`) und 38 weitere mit `--write` (`stress-delete`, `backup-restore`, `copy-unreadable`, `home-auto-refresh`, `audio-player`, `cast`, `klang`, `klang-landscape`, `klang-stress`, `music-formats`, `music-library`, `launcher-icons`, `icon-colors`, `ai-show`, `pick-file`, `no-midword-breaks`, `player-seek`, `player-stage2`, `video-player`, `video-network`, `video-sound`, `video-dialog-isolate`, `video-subtitles`, `video-background`, `video-library`, `video-seek`, `video-picture`, `video-picture-adjust`, `video-detailplus`, `video-menus`, `sheets-polish`, `copy-replace`, `ftp-server-fd`, `video-notification`, `ftp-server-defaults`, `backup-self-include`, `vault-secure-flag`, `text-editor-atomic-save`). Unit-Tests: 150 Testklassen in `app/src/test`.
+Gerätetests: 53 Skripte in [`e2e/`](e2e/README.md), gestartet mit `e2e/run.sh`: 15 nur lesend (`first-run`, `smoke`, `settings-visual`, `category-search`, `back-navigation`, `bars-replay`, `home-header`, `header-position`, `home-pull`, `drawer`, `selection-more`, `tablet-landscape`, `analysis`, `ai-show-guard`, `documents-provider`) und 38 weitere mit `--write` (`stress-delete`, `backup-restore`, `copy-unreadable`, `home-auto-refresh`, `audio-player`, `cast`, `klang`, `klang-landscape`, `klang-stress`, `music-formats`, `music-library`, `launcher-icons`, `icon-colors`, `ai-show`, `pick-file`, `no-midword-breaks`, `player-seek`, `player-stage2`, `video-player`, `video-network`, `video-sound`, `video-dialog-isolate`, `video-subtitles`, `video-background`, `video-library`, `video-seek`, `video-picture`, `video-picture-adjust`, `video-detailplus`, `video-menus`, `sheets-polish`, `copy-replace`, `ftp-server-fd`, `video-notification`, `ftp-server-defaults`, `backup-self-include`, `vault-secure-flag`, `text-editor-atomic-save`). Unit-Tests: 154 Testklassen in `app/src/test`.
 <!-- /AUTO:tests -->
 
 ## Ausblick

@@ -180,6 +180,7 @@
     <string name="file_job_cannot_extract_over_itself_title">Extrahieren nicht möglich</string>
     <string name="file_job_cannot_move_over_itself_title">Verschieben nicht möglich</string>
     <string name="file_job_cannot_copy_move_over_itself_message">Die Quelldatei würde durch das Ziel überschrieben werden.</string>
+    <string name="file_job_cannot_replace_type_message">Eine Datei kann keinen Ordner ersetzen, und ein Ordner kann keine Datei ersetzen.</string>
     <string name="file_job_replace_title_format">Datei \"%1$s\" überschreiben?</string>
     <string name="file_job_replace_message_format">Eine andere Datei mit demselben Namen existiert bereits in \"%1$s\".\nDer Inhalt der Datei wird überschrieben.</string>
     <string name="file_job_replace_target_name">Ursprungsdatei</string>
@@ -602,6 +603,7 @@
     <string name="text_editor_close_message">Sollen alle ungespeicherten Änderungen verworfen werden?</string>
 
     <string name="ftp_server_title">FTP-Server</string>
+    <string name="ftp_server_unencrypted_warning">Die Übertragung ist unverschlüsselt. Nur in vertrauenswürdigen Netzen nutzen und den Server nach Gebrauch ausschalten.</string>
     <string name="ftp_server_state_title">Status</string>
     <string name="ftp_server_state_summary_starting">Startet…</string>
     <string name="ftp_server_state_summary_running">Läuft</string>
@@ -843,6 +845,7 @@
     <string name="restore_error_changed_archive">Die Sicherung hat sich nach der Prüfung verändert. Die Wiederherstellung wurde beendet und es werden keine weiteren Dateien geschrieben.</string>
     <string name="restore_error_empty">Diese Sicherung enthält keine Dateien zum Wiederherstellen.</string>
     <string name="restore_error_vault_only">Diese Sicherung enthält nur Tresordateien. Sie lassen sich nicht sicher wiederherstellen, weil Angaben für einen sicheren Wiederaufbau des Tresors fehlen.</string>
+    <string name="restore_error_cancelled">Die Wiederherstellung wurde abgebrochen. Fertige Dateien bleiben erhalten.</string>
 
     <!-- Ordo: trash -->
     <string name="navigation_trash">Papierkorb</string>

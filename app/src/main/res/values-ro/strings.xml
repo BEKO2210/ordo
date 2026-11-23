@@ -535,6 +535,7 @@
     <string name="text_editor_close_message">Ești sigur că dorești să renunți schimbările nesalvate la cest document?</string>
 
     <string name="ftp_server_title">Server FTP</string>
+    <string name="ftp_server_unencrypted_warning">Transferul nu este criptat. Folosiți serverul doar în rețele de încredere și opriți-l după utilizare.</string>
     <string name="ftp_server_state_title">Stare</string>
     <string name="ftp_server_state_summary_starting">Pornește…</string>
     <string name="ftp_server_state_summary_running">Funcționează</string>

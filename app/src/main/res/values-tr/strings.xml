@@ -473,6 +473,7 @@
     <string name="text_editor_close_message">Bu belgedeki kaydedilmemiş değişiklikleri atmak istediğinizden emin misiniz?</string>
 
     <string name="ftp_server_title">FTP sunucusu</string>
+    <string name="ftp_server_unencrypted_warning">Aktarım şifrelenmez. Sunucuyu yalnızca güvenilir ağlarda kullanın ve kullandıktan sonra kapatın.</string>
     <string name="ftp_server_state_title">Durum</string>
     <string name="ftp_server_state_summary_starting">Başlatılıyor…</string>
     <string name="ftp_server_state_summary_running">Çalışıyor</string>

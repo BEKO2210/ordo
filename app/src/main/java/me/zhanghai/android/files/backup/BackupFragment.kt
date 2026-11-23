@@ -101,6 +101,7 @@ class BackupFragment : Fragment() {
     /** The file the picker made, kept until the list is loaded: after a rotation the result comes first. */
     private var pendingTarget: Uri? = null
     private var cancelledRestoreJobId = -1
+    private var cancelledBackupJobId = -1
 
     private var usbVolume: StorageVolume? = null
     private var sdVolume: StorageVolume? = null
@@ -679,9 +680,14 @@ class BackupFragment : Fragment() {
                 binding.statusDetail.setText(R.string.backup_running_notice)
                 binding.cancelButton.isVisible = true
                 binding.cancelButton.setText(R.string.backup_cancel_action)
+                binding.cancelButton.isEnabled = status.jobId != cancelledBackupJobId
                 binding.cancelButton.setOnClickListener {
+                    // The job posts Idle or Failed once it has stopped writing. Posting Idle
+                    // early would let the next backup start while the cancelled one can still
+                    // report Done.
+                    cancelledBackupJobId = status.jobId
+                    it.isEnabled = false
                     FileJobService.cancelJob(status.jobId)
-                    BackupStatusLiveData.value = BackupStatus.Idle
                 }
             }
             is BackupStatus.Done -> {
@@ -746,9 +752,11 @@ class BackupFragment : Fragment() {
                 binding.statusMessage.setText(R.string.restore_checking_message)
                 binding.cancelButton.isVisible = true
                 binding.cancelButton.setText(R.string.restore_cancel_action)
+                binding.cancelButton.isEnabled = status.jobId != cancelledRestoreJobId
                 binding.cancelButton.setOnClickListener {
+                    cancelledRestoreJobId = status.jobId
+                    it.isEnabled = false
                     FileJobService.cancelJob(status.jobId)
-                    BackupStatusLiveData.value = BackupStatus.Idle
                 }
             }
             is BackupStatus.RestoreNeedsPassword -> {
@@ -806,7 +814,8 @@ class BackupFragment : Fragment() {
                 // Progress keeps coming until the cancelled job has stopped: the button stays off meanwhile.
                 binding.cancelButton.isEnabled = status.jobId != cancelledRestoreJobId
                 binding.cancelButton.setOnClickListener {
-                    // The job posts Idle itself once it has stopped writing; until then no second restore can start.
+                    // The job posts RestoreFailed with the counts once it has stopped writing;
+                    // until then no second restore can start.
                     cancelledRestoreJobId = status.jobId
                     it.isEnabled = false
                     FileJobService.cancelJob(status.jobId)

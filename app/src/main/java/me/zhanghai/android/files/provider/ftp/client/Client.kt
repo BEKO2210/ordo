@@ -84,6 +84,9 @@ object Client {
             // This has to be set before connect().
             controlEncoding = authority.encoding
             listHiddenFiles = true
+            setConnectTimeout(15_000)
+            setDefaultTimeout(60_000)
+            setDataTimeout(60_000)
             connect(authority.host, authority.port)
             try {
                 if (!FTPReply.isPositiveCompletion(replyCode)) {
@@ -137,7 +140,19 @@ object Client {
         } catch (e: IOException) {
             e.printStackTrace()
         }
-        client.disconnect()
+        try {
+            client.disconnect()
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
+    }
+
+    private fun closeQuietly(client: FTPClient) {
+        try {
+            closeClient(client)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
     private inline fun <R> useClient(authority: Authority, block: (FTPClient) -> R): R {
@@ -338,6 +353,7 @@ object Client {
     ) : DelegateInputStream(inputStream) {
         @Throws(IOException::class)
         override fun close() {
+            var keep = false
             try {
                 super.close()
                 if (!client.completePendingCommand()) {
@@ -345,9 +361,12 @@ object Client {
                     // decoding images) and it will result in an error reported here, but that's
                     // totally fine.
                     client.createNegativeReplyCodeException().printStackTrace()
+                } else {
+                    keep = true
                 }
             } finally {
-                releaseClient(authority, client)
+                if (keep) releaseClient(authority, client)
+                else closeQuietly(client)
             }
         }
     }
@@ -359,13 +378,16 @@ object Client {
     ) : DelegateOutputStream(outputStream) {
         @Throws(IOException::class)
         override fun close() {
+            var keep = false
             try {
                 super.close()
                 if (!client.completePendingCommand()) {
                     client.throwNegativeReplyCodeException()
                 }
+                keep = true
             } finally {
-                releaseClient(authority, client)
+                if (keep) releaseClient(authority, client)
+                else closeQuietly(client)
             }
         }
     }
