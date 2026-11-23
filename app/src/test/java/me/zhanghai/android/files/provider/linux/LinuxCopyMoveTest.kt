@@ -52,8 +52,46 @@ class LinuxCopyMoveTest {
             .substringBefore("} else if (OsConstants.S_ISDIR(sourceStat.st_mode))")
         assertTrue(copy.contains("openExclusivePart"))
         assertTrue(source.contains("O_EXCL"))
+        assertTrue(source.contains("renameNoReplace"))
+        assertTrue(source.contains("LinuxExclusivePublish"))
         assertFalse(source.contains("removeLeftoverPartFiles"))
         assertFalse(source.contains("hasRoomForPart"))
+    }
+
+    @Test
+    fun exclusivePublishDoesNotOverwriteAFileThatAppearedAtTheTarget() {
+        var target = "original"
+        var temp: String? = "copy"
+        try {
+            LinuxExclusivePublish.publish(
+                exclusiveRename = {
+                    throw java8.nio.file.FileAlreadyExistsException("temp", "target", null)
+                },
+                deleteTemp = { temp = null }
+            )
+            throw AssertionError("expected FileAlreadyExistsException")
+        } catch (e: java8.nio.file.FileAlreadyExistsException) {
+            assertEquals("original", target)
+            assertEquals(null, temp)
+        }
+        assertTrue(LinuxExclusivePublish.mustNotOverwrite(false, true))
+        assertFalse(LinuxExclusivePublish.mustNotOverwrite(true, true))
+        assertFalse(LinuxExclusivePublish.mustNotOverwrite(false, false))
+    }
+
+    @Test
+    fun exclusivePublishKeepsTheCopyWhenTheNameIsFree() {
+        var target: String? = null
+        var temp: String? = "copy"
+        LinuxExclusivePublish.publish(
+            exclusiveRename = {
+                target = temp
+                temp = null
+            },
+            deleteTemp = { temp = null }
+        )
+        assertEquals("copy", target)
+        assertEquals(null, temp)
     }
 
     @Test

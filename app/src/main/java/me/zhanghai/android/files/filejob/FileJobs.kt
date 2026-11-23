@@ -2721,8 +2721,9 @@ class MoveToVaultJob(private val paths: List<Path>) : FileJob() {
     private fun moveToVault(path: Path) {
         while (true) {
             try {
-                val entry = path.newInputStream().use { Vault.store.add(path.toString(), it) }
-                Vault.store.markSourcePendingDelete(entry)
+                val entry = path.newInputStream().use {
+                    Vault.store.add(path.toString(), it, deleteOriginalWhenComplete = true)
+                }
                 try {
                     path.delete()
                 } catch (e: IOException) {

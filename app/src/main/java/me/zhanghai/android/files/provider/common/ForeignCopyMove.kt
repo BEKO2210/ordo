@@ -241,16 +241,6 @@ internal object ForeignCopyMove {
     }
 
     private fun replaceWithPart(temp: Path, target: Path, replaceExisting: Boolean) {
-        if (!replaceExisting) {
-            try {
-                moveWithoutReplace(temp, target)
-            } catch (e: Exception) {
-                deleteQuietly(temp, e)
-                throw e
-            }
-            return
-        }
-        var backup = backupFile(target)
         val targetExisted = try {
             target.exists(LinkOption.NOFOLLOW_LINKS)
         } catch (e: IOException) {
@@ -258,47 +248,17 @@ internal object ForeignCopyMove {
         } catch (e: UnsupportedOperationException) {
             true
         }
-        if (targetExisted) {
-            var lastExists: FileAlreadyExistsException? = null
-            for (attempt in 0 until 8) {
-                backup = if (attempt == 0) backupFile(target) else uniqueBackupFile(target)
-                try {
-                    moveWithoutReplace(target, backup)
-                    lastExists = null
-                    break
-                } catch (e: FileAlreadyExistsException) {
-                    lastExists = e
-                } catch (e: Exception) {
-                    deleteQuietly(temp, e)
-                    throw e
+        PartReplace.replace(
+            temp, target, replaceExisting, targetExisted,
+            backups = sequence {
+                yield(backupFile(target))
+                while (true) {
+                    yield(uniqueBackupFile(target))
                 }
-            }
-            lastExists?.let {
-                deleteQuietly(temp, it)
-                throw it
-            }
-        }
-        try {
-            moveWithoutReplace(temp, target)
-        } catch (e: Exception) {
-            if (targetExisted) {
-                try {
-                    moveWithoutReplace(backup, target)
-                } catch (e2: Exception) {
-                    e.addSuppressed(e2)
-                    throw e
-                }
-            }
-            deleteQuietly(temp, e)
-            throw e
-        }
-        try {
-            backup.deleteIfExists()
-        } catch (e: IOException) {
-            e.printStackTrace()
-        } catch (e: UnsupportedOperationException) {
-            e.printStackTrace()
-        }
+            },
+            move = { source, destination -> moveWithoutReplace(source, destination) },
+            delete = { path -> deleteQuietly(path) }
+        )
     }
 
     private fun moveWithoutReplace(source: Path, target: Path) {

@@ -18,9 +18,14 @@
 #include <sys/sendfile.h>
 #include <sys/stat.h>
 #include <sys/statvfs.h>
+#include <sys/syscall.h>
 #include <sys/types.h>
 #include <sys/xattr.h>
 #include <unistd.h>
+
+#ifndef RENAME_NOREPLACE
+#define RENAME_NOREPLACE (1U << 0)
+#endif
 
 #include <jni.h>
 
@@ -1470,6 +1475,20 @@ Java_me_zhanghai_android_files_provider_linux_syscall_Syscall_rename(
     free(newPath);
     if (errno) {
         throwSyscallException(env, "rename");
+    }
+}
+
+JNIEXPORT void JNICALL
+Java_me_zhanghai_android_files_provider_linux_syscall_Syscall_renameNoReplace(
+        JNIEnv *env, jclass clazz, jobject javaOldPath, jobject javaNewPath) {
+    char *oldPath = mallocStringFromByteString(env, javaOldPath);
+    char *newPath = mallocStringFromByteString(env, javaNewPath);
+    TEMP_FAILURE_RETRY(syscall(__NR_renameat2, AT_FDCWD, oldPath, AT_FDCWD, newPath,
+                               RENAME_NOREPLACE));
+    free(oldPath);
+    free(newPath);
+    if (errno) {
+        throwSyscallException(env, "renameat2");
     }
 }
 

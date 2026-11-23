@@ -80,14 +80,61 @@ class ForeignCopyMoveTest {
             .readText()
             .substringAfter("private fun replaceWithPart")
             .substringBefore("private fun moveWithoutReplace")
+        assertTrue(replace.contains("PartReplace.replace"))
         assertTrue(replace.contains("backupFile(target)"))
         assertTrue(replace.contains("uniqueBackupFile(target)"))
-        assertTrue(replace.contains("moveWithoutReplace(target, backup)"))
-        assertTrue(replace.contains("moveWithoutReplace(backup, target)"))
         assertFalse(replace.contains("target.deleteIfExists()"))
         assertFalse(replace.contains("REPLACE_EXISTING"))
-        val onCollision = replace.substringBefore("moveWithoutReplace(temp, target)")
-        assertFalse(onCollision.contains("deleteIfExists()"))
+    }
+
+    @Test
+    fun replaceWithoutAnExistingTargetDoesNotDeleteAUserBackup() {
+        val files = mutableMapOf(
+            "temp" to "new",
+            ".foto.jpg.ordo-bak" to "user-bak"
+        )
+        PartReplace.replace(
+            temp = "temp",
+            target = "foto.jpg",
+            replaceExisting = true,
+            targetExists = false,
+            backups = sequenceOf(".foto.jpg.ordo-bak"),
+            move = { source, destination ->
+                if (files.containsKey(destination)) {
+                    throw java8.nio.file.FileAlreadyExistsException(source, destination, null)
+                }
+                files[destination] = files.remove(source)!!
+            },
+            delete = { files.remove(it) }
+        )
+        assertEquals("new", files["foto.jpg"])
+        assertEquals("user-bak", files[".foto.jpg.ordo-bak"])
+        assertFalse(files.containsKey("temp"))
+    }
+
+    @Test
+    fun replaceDeletesOnlyTheBackupItCreated() {
+        val files = mutableMapOf(
+            "temp" to "new",
+            "foto.jpg" to "old"
+        )
+        PartReplace.replace(
+            temp = "temp",
+            target = "foto.jpg",
+            replaceExisting = true,
+            targetExists = true,
+            backups = sequenceOf(".foto.jpg.ordo-bak"),
+            move = { source, destination ->
+                if (files.containsKey(destination)) {
+                    throw java8.nio.file.FileAlreadyExistsException(source, destination, null)
+                }
+                files[destination] = files.remove(source)!!
+            },
+            delete = { files.remove(it) }
+        )
+        assertEquals("new", files["foto.jpg"])
+        assertFalse(files.containsKey(".foto.jpg.ordo-bak"))
+        assertFalse(files.containsKey("temp"))
     }
 
     @Test

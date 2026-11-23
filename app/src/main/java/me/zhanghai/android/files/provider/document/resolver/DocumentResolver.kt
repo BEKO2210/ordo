@@ -337,7 +337,9 @@ object DocumentResolver {
         } ?: throw ResolverException(
             "DocumentsContract.moveDocument() with $sourceUri and $targetParentUri returned null"
         )
-        abortMoveIfInterrupted(movedTargetUri, targetParentUri, sourceParentUri)
+        abortMoveIfInterrupted(
+            movedTargetUri, targetParentUri, sourceParentUri, sourcePath.displayName
+        )
         val sourceDisplayName = sourcePath.displayName
         val targetDisplayName = targetPath.displayName
         if (sourceDisplayName == targetDisplayName) {
@@ -345,26 +347,52 @@ object DocumentResolver {
             return movedTargetUri
         }
         val renamedTargetUri = rename(movedTargetUri, targetDisplayName!!)
-        abortMoveIfInterrupted(renamedTargetUri, targetParentUri, sourceParentUri)
+        abortMoveIfInterrupted(
+            renamedTargetUri, targetParentUri, sourceParentUri, sourceDisplayName
+        )
         listener?.invokeWithSize(renamedTargetUri)
         return renamedTargetUri
     }
 
     @RequiresApi(Build.VERSION_CODES.N)
     @Throws(ResolverException::class)
-    private fun abortMoveIfInterrupted(movedUri: Uri, targetParentUri: Uri, sourceParentUri: Uri) {
+    private fun abortMoveIfInterrupted(
+        movedUri: Uri,
+        targetParentUri: Uri,
+        sourceParentUri: Uri,
+        originalName: String?
+    ) {
         if (!Thread.interrupted()) {
             return
         }
         try {
-            DocumentsContract.moveDocument(
-                contentResolver, movedUri, targetParentUri, sourceParentUri
-            )
-        } catch (e: Exception) {
-            e.printStackTrace()
+            InterruptedDocumentMove.abortAfterTransfer {
+                val restored = DocumentsContract.moveDocument(
+                    contentResolver, movedUri, targetParentUri, sourceParentUri
+                ) ?: throw IOException("DocumentsContract.moveDocument() returned null")
+                InterruptedDocumentMove.restoreName(
+                    originalName, queryDisplayName(restored)
+                ) { name ->
+                    DocumentsContract.renameDocument(contentResolver, restored, name)
+                        ?: throw IOException("DocumentsContract.renameDocument() returned null")
+                }
+            }
+        } catch (e: InterruptedIOException) {
+            throw ResolverException(e)
+        } catch (e: IOException) {
+            throw ResolverException(e)
         }
-        throw ResolverException(InterruptedIOException())
     }
+
+    private fun queryDisplayName(uri: Uri): String? =
+        try {
+            query(uri, arrayOf(DocumentsContract.Document.COLUMN_DISPLAY_NAME), null).use { cursor ->
+                cursor.moveToFirstOrThrow()
+                cursor.getString(DocumentsContract.Document.COLUMN_DISPLAY_NAME)
+            }
+        } catch (e: Exception) {
+            null
+        }
 
     private fun ((Long) -> Unit).invokeWithSize(uri: Uri) {
         val size = try {

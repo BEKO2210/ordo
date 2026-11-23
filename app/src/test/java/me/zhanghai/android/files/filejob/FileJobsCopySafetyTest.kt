@@ -33,7 +33,7 @@ class FileJobsCopySafetyTest {
     @Test
     fun moveToVaultMarksTheOriginalUntilDeleted() {
         val move = source.substringAfter("class MoveToVaultJob").substringBefore("class RestoreVaultJob")
-        assertTrue(move.contains("markSourcePendingDelete"))
+        assertTrue(move.contains("deleteOriginalWhenComplete = true"))
         assertTrue(move.contains("clearSourcePendingDelete"))
     }
 }

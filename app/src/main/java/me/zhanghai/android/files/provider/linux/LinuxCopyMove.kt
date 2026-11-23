@@ -369,42 +369,92 @@ internal object LinuxCopyMove {
         target: ByteString,
         replaceExisting: Boolean
     ) {
+        if (!replaceExisting) {
+            LinuxExclusivePublish.publish(
+                exclusiveRename = { renameExclusively(temp, target) },
+                deleteTemp = { removeQuietly(temp) }
+            )
+            return
+        }
         try {
             Syscall.rename(temp, target)
             return
         } catch (e: SyscallException) {
-            if (!replaceExisting) {
-                try {
-                    Syscall.remove(temp)
-                } catch (e2: SyscallException) {
-                    e.addSuppressed(e2.toFileSystemException(temp.toString()))
-                }
-                e.maybeThrowInvalidFileNameException(target.toString())
-                throw e.toFileSystemException(temp.toString(), target.toString())
-            }
+            // Ignored; remove the target and retry.
         }
         try {
             Syscall.remove(target)
         } catch (e: SyscallException) {
             if (e.errno != OsConstants.ENOENT) {
-                try {
-                    Syscall.remove(temp)
-                } catch (e2: SyscallException) {
-                    e.addSuppressed(e2.toFileSystemException(temp.toString()))
-                }
+                removeQuietly(temp, e)
                 throw e.toFileSystemException(target.toString())
             }
         }
         try {
             Syscall.rename(temp, target)
         } catch (e: SyscallException) {
-            try {
-                Syscall.remove(temp)
-            } catch (e2: SyscallException) {
-                e.addSuppressed(e2.toFileSystemException(temp.toString()))
-            }
+            removeQuietly(temp, e)
             e.maybeThrowInvalidFileNameException(target.toString())
             throw e.toFileSystemException(temp.toString(), target.toString())
+        }
+    }
+
+    private fun renameExclusively(temp: ByteString, target: ByteString) {
+        try {
+            Syscall.renameNoReplace(temp, target)
+            return
+        } catch (e: SyscallException) {
+            if (e.errno == OsConstants.EEXIST) {
+                throw e.toFileSystemException(temp.toString(), target.toString())
+            }
+            if (!isExclusiveRenameUnsupported(e.errno)) {
+                e.maybeThrowInvalidFileNameException(target.toString())
+                throw e.toFileSystemException(temp.toString(), target.toString())
+            }
+        }
+        try {
+            Syscall.link(temp, target)
+            removeQuietly(temp)
+            return
+        } catch (e: SyscallException) {
+            if (e.errno == OsConstants.EEXIST) {
+                throw e.toFileSystemException(temp.toString(), target.toString())
+            }
+        }
+        val exists = try {
+            Syscall.lstat(target)
+            true
+        } catch (e: SyscallException) {
+            if (e.errno != OsConstants.ENOENT) {
+                throw e.toFileSystemException(target.toString())
+            }
+            false
+        }
+        if (exists) {
+            throw FileAlreadyExistsException(temp.toString(), target.toString(), null)
+        }
+        try {
+            Syscall.rename(temp, target)
+        } catch (e: SyscallException) {
+            e.maybeThrowInvalidFileNameException(target.toString())
+            throw e.toFileSystemException(temp.toString(), target.toString())
+        }
+    }
+
+    private fun isExclusiveRenameUnsupported(errno: Int): Boolean =
+        errno == OsConstants.ENOSYS ||
+            errno == OsConstants.EINVAL ||
+            errno == OsConstants.EOPNOTSUPP
+
+    private fun removeQuietly(path: ByteString, cause: SyscallException? = null) {
+        try {
+            Syscall.remove(path)
+        } catch (e: SyscallException) {
+            if (cause != null) {
+                cause.addSuppressed(e.toFileSystemException(path.toString()))
+            } else {
+                e.printStackTrace()
+            }
         }
     }
 }

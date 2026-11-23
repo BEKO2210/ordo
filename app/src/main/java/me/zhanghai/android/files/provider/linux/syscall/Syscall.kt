@@ -217,6 +217,9 @@ object Syscall {
     external fun rename(oldPath: ByteString, newPath: ByteString)
 
     @Throws(SyscallException::class)
+    external fun renameNoReplace(oldPath: ByteString, newPath: ByteString)
+
+    @Throws(SyscallException::class)
     fun security_getenforce(): Boolean =
         try {
             SeLinux.security_getenforce()
