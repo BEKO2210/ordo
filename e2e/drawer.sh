@@ -14,11 +14,15 @@ open_menu() { ui tap menuButton >/dev/null 2>&1; sleep 1; }
 # behind it reaches the system, not the menu: on a landscape tablet the last visible entry sat right there.
 NAV=$(a shell dumpsys window | grep -m1 -oE "type=navigationBars frame=\[0,[0-9]+\]\[$W,$H\]" | sed -E 's/.*\[0,([0-9]+)\].*/\1/')
 NAV=${NAV:-$H}
-# tap_entry ENTRY: taps it only when it lies fully above the navigation bar.
+# Bottom edge of the status bar, else 0. A title whose top sits in it has its centre tapped into the system, not the
+# row: on a short landscape phone (S21, ~400 dp) "Ordo Video" was the first visible title and the tap never opened it.
+TOP=$(a shell dumpsys window | grep -m1 -oE "type=statusBars frame=\[0,0\]\[$W,[0-9]+\]" | sed -E 's/.*,([0-9]+)\]$/\1/')
+TOP=${TOP:-0}
+# tap_entry ENTRY: taps it only when it lies fully between the status bar and the navigation bar.
 tap_entry() {
     local x1 y1 x2 y2
     read -r x1 y1 x2 y2 < <(ui bounds "$1" titleText | head -1)
-    [ -n "${y2:-}" ] && [ "$y2" -le "$NAV" ] || return 1
+    [ -n "${y2:-}" ] && [ "$y1" -ge "$TOP" ] && [ "$y2" -le "$NAV" ] || return 1
     a shell input tap $(((x1 + x2) / 2)) $(((y1 + y2) / 2)); sleep 1.2
 }
 # The menu is a list: its last entries are only reachable by scrolling.
@@ -35,20 +39,20 @@ above() {
     done
     [ "$want" -ge 0 ] && [ "$first" -ge 0 ] && [ "$want" -lt "$first" ]
 }
-# Entries are opened in order, so look where the menu stands first and further down next; only then from the top.
+# Scroll toward the entry before each tap. Two swipes to the top are not enough on a ~400 dp landscape window after
+# the menu was left scrolled down (the listing pass); always scrolling down then skips Ordo Musik and Ordo Video.
 menu_tap() {
-    local round try
-    # The wanted entry lies above everything on screen: start from the top right away.
-    local seen
-    seen=$(titles)
-    grep -qxF -- "$1" <<<"$seen" || ! above "$1" "$seen" || menu_top
-    for round in 1 2; do
-        # Small steps: a long swipe can fling an entry past the visible area on tall phones.
-        for try in 1 2 3 4 5 6 7 8; do
-            tap_entry "$1" && return 0
+    local try x1 y1 x2 y2 seen
+    for try in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16; do
+        tap_entry "$1" && return 0
+        read -r x1 y1 x2 y2 < <(ui bounds "$1" titleText | head -1)
+        seen=$(titles)
+        if { [ -n "${y1:-}" ] && [ "$y1" -lt "$TOP" ]; } || above "$1" "$seen"; then
+            menu_scroll 30 80
+        else
+            # Small steps: a long swipe can fling an entry past the visible area on tall phones.
             menu_scroll 65 50
-        done
-        menu_top
+        fi
     done
     return 1
 }
