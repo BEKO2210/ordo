@@ -1,5 +1,6 @@
 #!/bin/bash
 # Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later
+# farm: orient=once
 # Video menus, WRITES: creates /storage/emulated/0/ordo-e2e-video-menus with a clip made by ffmpeg on the host (two
 # chapters, a subtitle track) and removes it again. In portrait and in landscape: ⋮ opens "More", and every entry
 # (Sound, Audio track, Subtitles, Adjust picture, Signal path, Video info, Chapters, Sleep timer) opens its sheet with
