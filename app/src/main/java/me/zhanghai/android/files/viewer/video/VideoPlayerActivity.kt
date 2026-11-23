@@ -425,7 +425,8 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
         if (::controls.isInitialized) controls.cancelGestures()
         // The film pauses with the screen, its place is kept; "Sound only" keeps it playing without the picture.
         player?.let {
-            trackedPosition = it.currentPosition
+            // While casting the phone's player stands at the cast start; the place that counts is the TV's.
+            trackedPosition = castSession?.takeIf { cast -> cast.isCasting }?.castPositionMs() ?: it.currentPosition
             saveResume()
             // Not for recreate() (VideoPicture leaving its pipeline for an FFmpeg-decoded film): onSaveInstanceState
             // runs after onStop and would keep the pause, the new screen stood still at 0:00 (Tab, 20.11.2026).

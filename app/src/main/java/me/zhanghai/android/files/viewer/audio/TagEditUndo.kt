@@ -7,9 +7,11 @@ package me.zhanghai.android.files.viewer.audio
 
 import android.content.Context
 import android.content.Intent
+import android.os.SystemClock
 import android.view.View
 import androidx.lifecycle.LifecycleCoroutineScope
 import com.google.android.material.snackbar.BaseTransientBottomBar
+import com.google.android.material.snackbar.BaseTransientBottomBar.BaseCallback.DISMISS_EVENT_MANUAL
 import com.google.android.material.snackbar.Snackbar
 import java.io.File
 import kotlinx.coroutines.Dispatchers
@@ -50,8 +52,33 @@ object TagEditUndo {
         val files = data?.getStringArrayListExtra(EXTRA_FILES)?.map(::File) ?: return
         val backups = data.getStringArrayListExtra(EXTRA_BACKUPS)?.map(::File) ?: return
         onChanged()
+        show(context, anchor, scope, files, backups, UNDO_MS, onChanged)
+    }
+
+    /** A screen recreated by a rotation within the 10 s shows the bar again for the time that is left. */
+    fun reoffer(context: Context, anchor: View, scope: LifecycleCoroutineScope, onChanged: () -> Unit) {
+        val pending = pending ?: return
+        val left = pending.deadlineMs - SystemClock.elapsedRealtime()
+        if (left <= 0) return
+        show(context, anchor, scope, pending.files, pending.backups, left.toInt(), onChanged)
+    }
+
+    private class Pending(val files: List<File>, val backups: List<File>, val deadlineMs: Long)
+
+    private var pending: Pending? = null
+
+    private fun show(
+        context: Context,
+        anchor: View,
+        scope: LifecycleCoroutineScope,
+        files: List<File>,
+        backups: List<File>,
+        durationMs: Int,
+        onChanged: () -> Unit
+    ) {
         var undone = false
-        Snackbar.make(anchor, R.string.music_tag_saved, UNDO_MS)
+        pending = Pending(files, backups, SystemClock.elapsedRealtime() + durationMs)
+        Snackbar.make(anchor, R.string.music_tag_saved, durationMs)
             .setAction(R.string.music_tag_undo) {
                 undone = true
                 scope.launch {
@@ -78,6 +105,9 @@ object TagEditUndo {
             }
             .addCallback(object : BaseTransientBottomBar.BaseCallback<Snackbar>() {
                 override fun onDismissed(transientBottomBar: Snackbar, event: Int) {
+                    // The screen going away (a rotation) is no decision: the backups stay for the new screen.
+                    if (event == DISMISS_EVENT_MANUAL) return
+                    pending = null
                     if (!undone) backups.forEach { it.delete() }
                 }
             })

@@ -246,6 +246,9 @@ class VideoCastSession(
 
     val isCasting: Boolean get() = phase == CastManager.Phase.CASTING
 
+    /** Where the TV is now, for saving the place; null before its first status. */
+    fun castPositionMs(): Long? = positionMs()
+
     /** Volume keys while casting set the TV's volume, in the music's 20 steps. */
     fun onVolumeKey(up: Boolean): Boolean {
         if (!isCasting) return false

@@ -49,4 +49,11 @@ class PlaybackResumeTest {
         assertTrue(mediaButtonQueueItemCanResume("file") { true })
         assertFalse(mediaButtonQueueItemCanResume("content") { true })
     }
+
+    @Test
+    fun resumingKeepsNetworkQueuesWithoutAStat() {
+        assertTrue(pathUriExists("smb://host/share/a.flac"))
+        assertTrue(pathUriExists("sftp://host/a.flac"))
+        assertFalse(pathUriExists("content://media/a.flac"))
+    }
 }

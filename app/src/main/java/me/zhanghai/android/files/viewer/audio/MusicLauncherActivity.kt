@@ -221,6 +221,9 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener, AppAccentA
         super.onCreate(savedInstanceState)
         binding = MusicLauncherActivityBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        if (savedInstanceState != null) {
+            binding.root.post { TagEditUndo.reoffer(this, binding.content.root, lifecycleScope) { load() } }
+        }
         toolbarInsetStart = binding.content.toolbar.contentInsetStart
         toolbarInsetEnd = binding.content.toolbar.contentInsetEnd
         toolbarInsetWithNavigation = binding.content.toolbar.contentInsetStartWithNavigation
