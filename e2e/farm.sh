@@ -153,11 +153,11 @@ done
 # Every suite named in run.sh, including the ones that write their own files: the farm's devices are the test
 # devices. --write is still accepted so the documented command keeps working; it does not change the list.
 suites=$(sed -n 's/^tests="\([^"]*\)".*/\1/p; s/.*tests="\$tests \([^"]*\)".*/\1/p' "$HERE/run.sh")
-# Shade, live FTP, the vault by hand and a full disk, plus monkey.sh: only with the night switch.
+# Shade, live FTP, the vault by hand and a full disk, plus monkey.sh and filejob-safety.sh: only with the night switch.
 release="video-notification ftp-server-defaults vault-secure-flag text-editor-atomic-save"
 if [ "${FARM_NIGHT:-}" = 1 ]; then
     export E2E_SHADE=1 E2E_FTP_LIVE=1 E2E_VAULT_HAND=1 E2E_FILL_DISK=1
-    suites="$suites monkey"
+    suites="$suites monkey filejob-safety"
 else
     unset E2E_SHADE E2E_FTP_LIVE E2E_VAULT_HAND E2E_FILL_DISK
     kept=""
