@@ -4,6 +4,10 @@ Kover misst die JVM-Zeilendeckung der lokalen Debug-Unit-Tests. Der Android-CI-W
 `:app:koverVerifyDebug` aus; unterschreitet ein Paket seine Untergrenze, schlägt der Job fehl. Geräte- und
 End-to-End-Tests fließen nicht in diese Messung ein.
 
+Die Kover-Instrumentierung schließt `org.apache.ftpserver.*` und `org.apache.mina.*` aus: Instrumentierte
+Versionen dieser Bibliotheksklassen verändern das Verhalten des echten, prozessinternen FTP-Testservers.
+Ordos eigenes Paket `me.zhanghai.android.files.ftpserver` bleibt instrumentiert und seine Untergrenze unverändert.
+
 Messung vom 23.11.2026 mit OpenJDK 21 auf dem Linux-Entwicklungsrechner, Debug-Variante, Kover 0.9.11 und
 `./gradlew :app:koverXmlReportDebug`. Die Untergrenze liegt jeweils zwei Prozentpunkte unter dem gemessenen Wert.
 

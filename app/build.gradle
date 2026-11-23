@@ -120,6 +120,14 @@ repositories {
 
 // JVM line coverage for the debug variant. Each bound is the measured package value minus two percentage points.
 kover {
+    currentProject {
+        instrumentation {
+            // Instrumenting Apache FtpServer/MINA changes the behavior of ProviderFtpFileTest's real
+            // in-process FTP stack. Keep Ordo's own FTP classes instrumented and covered.
+            excludedClasses.add('org.apache.ftpserver.*')
+            excludedClasses.add('org.apache.mina.*')
+        }
+    }
     reports {
         variant('debug') {
             html {
