@@ -8,6 +8,7 @@ package me.zhanghai.android.files.provider.common
 import java8.nio.file.AtomicMoveNotSupportedException
 import java8.nio.file.CopyOption
 import java8.nio.file.FileAlreadyExistsException
+import java8.nio.file.FileSystemException
 import java8.nio.file.LinkOption
 import java8.nio.file.NoSuchFileException
 import java8.nio.file.Path
@@ -17,6 +18,7 @@ import java8.nio.file.attribute.BasicFileAttributeView
 import java8.nio.file.attribute.BasicFileAttributes
 import java8.nio.file.attribute.FileTime
 import java.io.IOException
+import java.util.concurrent.ThreadLocalRandom
 
 internal object ForeignCopyMove {
     @Throws(IOException::class)
@@ -45,60 +47,35 @@ internal object ForeignCopyMove {
                 } else {
                     emptyArray()
                 }
-                removeLeftoverPartFiles(target)
-                // shortcut: no prompt on low-space overwrite, FileJob confirm when a dialog exists
-                val usePart = copyOptions.replaceExisting
-                    && target.exists(LinkOption.NOFOLLOW_LINKS)
-                    && hasRoomForPart(target, sourceAttributes.size())
-                val dest = if (usePart) partFile(target) else target
-                if (usePart) {
-                    try {
-                        dest.deleteIfExists()
-                    } catch (e: IOException) {
-                        e.printStackTrace()
-                    } catch (e: UnsupportedOperationException) {
-                        e.printStackTrace()
-                    }
-                }
-                val destOpenOptions = if (usePart || !copyOptions.replaceExisting) {
-                    arrayOf(StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE)
-                } else {
-                    arrayOf(
-                        StandardOpenOption.CREATE, StandardOpenOption.WRITE,
-                        StandardOpenOption.TRUNCATE_EXISTING
+                if (target.exists(LinkOption.NOFOLLOW_LINKS)) {
+                    val targetAttributes = target.readAttributes(
+                        BasicFileAttributes::class.java, LinkOption.NOFOLLOW_LINKS
                     )
-                }
-                source.newInputStream(*openOptions).use { inputStream ->
-                    val outputStream = dest.newOutputStream(*destOpenOptions)
-                    var successful = false
-                    try {
-                        inputStream.copyTo(
-                            outputStream, copyOptions.progressIntervalMillis,
-                            copyOptions.progressListener
+                    if (targetAttributes.isDirectory) {
+                        throw FileSystemException(
+                            source.toString(), target.toString(),
+                            "Cannot replace a directory with a file"
                         )
-                        successful = true
-                    } finally {
-                        try {
-                            outputStream.close()
-                        } finally {
-                            if (!successful && usePart) {
-                                try {
-                                    dest.deleteIfExists()
-                                } catch (e: IOException) {
-                                    e.printStackTrace()
-                                } catch (e: UnsupportedOperationException) {
-                                    e.printStackTrace()
-                                }
-                            }
-                        }
+                    }
+                    if (!copyOptions.replaceExisting) {
+                        throw FileAlreadyExistsException(
+                            source.toString(), target.toString(), null
+                        )
                     }
                 }
-                if (usePart) {
-                    replaceWithPart(dest, target, copyOptions.replaceExisting)
-                }
+                copyRegularFileToPart(source, target, openOptions, copyOptions)
             }
             sourceAttributes.isDirectory -> {
-                if (copyOptions.replaceExisting) {
+                if (copyOptions.replaceExisting && target.exists(LinkOption.NOFOLLOW_LINKS)) {
+                    val targetAttributes = target.readAttributes(
+                        BasicFileAttributes::class.java, LinkOption.NOFOLLOW_LINKS
+                    )
+                    if (!targetAttributes.isDirectory) {
+                        throw FileSystemException(
+                            source.toString(), target.toString(),
+                            "Cannot replace a directory with a file"
+                        )
+                    }
                     target.deleteIfExists()
                 }
                 target.createDirectory()
@@ -187,70 +164,80 @@ internal object ForeignCopyMove {
         }
     }
 
+    @Throws(IOException::class)
+    private fun copyRegularFileToPart(
+        source: Path,
+        target: Path,
+        openOptions: Array<LinkOption>,
+        copyOptions: CopyOptions
+    ) {
+        var lastExists: FileAlreadyExistsException? = null
+        repeat(8) { attempt ->
+            val dest = if (attempt == 0) partFile(target) else uniquePartFile(target)
+            var created = false
+            var copied = false
+            try {
+                source.newInputStream(*openOptions).use { inputStream ->
+                    val outputStream = dest.newOutputStream(
+                        StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE
+                    )
+                    created = true
+                    try {
+                        inputStream.copyTo(
+                            outputStream, copyOptions.progressIntervalMillis,
+                            copyOptions.progressListener
+                        )
+                        copied = true
+                    } finally {
+                        outputStream.close()
+                    }
+                }
+                replaceWithPart(dest, target, copyOptions.replaceExisting)
+                return
+            } catch (e: FileAlreadyExistsException) {
+                if (!created) {
+                    lastExists = e
+                    return@repeat
+                }
+                throw e
+            } finally {
+                if (created && !copied) {
+                    deleteQuietly(dest)
+                }
+            }
+        }
+        throw lastExists ?: IOException("Cannot create a temporary copy next to $target")
+    }
+
     private const val NAME_MAX = 255
 
-    internal fun partFile(target: Path): Path {
-        val name = target.fileName?.toString()
-            ?: throw IOException("Cannot copy to $target without a file name")
-        val longName = ".$name.ordo-part"
-        if (longName.toByteArray(Charsets.UTF_8).size <= NAME_MAX) {
-            return target.resolveSibling(longName)
-        }
-        return target.resolveSibling(".ordo-part-${Integer.toHexString(name.hashCode())}")
-    }
+    internal fun partFile(target: Path): Path = sidecarFile(target, "part", null)
+
+    internal fun uniquePartFile(target: Path): Path =
+        sidecarFile(target, "part", uniqueSidecarId())
 
     internal fun isPartFileName(name: String): Boolean =
         (name.startsWith(".") && name.endsWith(".ordo-part")
             && name.length > ".ordo-part".length + 1)
             || (name.startsWith(".ordo-part-") && name.length > ".ordo-part-".length)
 
-    internal fun backupFile(target: Path): Path {
+    internal fun backupFile(target: Path): Path = sidecarFile(target, "bak", null)
+
+    internal fun uniqueBackupFile(target: Path): Path =
+        sidecarFile(target, "bak", uniqueSidecarId())
+
+    private fun uniqueSidecarId(): String =
+        Integer.toHexString(ThreadLocalRandom.current().nextInt())
+
+    private fun sidecarFile(target: Path, kind: String, id: String?): Path {
         val name = target.fileName?.toString()
             ?: throw IOException("Cannot copy to $target without a file name")
-        val longName = ".$name.ordo-bak"
+        val suffix = if (id != null) ".ordo-$kind-$id" else ".ordo-$kind"
+        val longName = ".$name$suffix"
         if (longName.toByteArray(Charsets.UTF_8).size <= NAME_MAX) {
             return target.resolveSibling(longName)
         }
-        return target.resolveSibling(".ordo-bak-${Integer.toHexString(name.hashCode())}")
-    }
-
-    private fun hasRoomForPart(target: Path, sourceSize: Long): Boolean {
-        if (sourceSize <= 0L) {
-            return true
-        }
-        val directory = target.parent ?: return true
-        return try {
-            directory.getFileStore().usableSpace >= sourceSize
-        } catch (e: IOException) {
-            true
-        } catch (e: UnsupportedOperationException) {
-            true
-        }
-    }
-
-    private fun removeLeftoverPartFiles(target: Path) {
-        val directory = target.parent ?: return
-        try {
-            directory.newDirectoryStream().use { stream ->
-                for (path in stream) {
-                    val name = path.fileName?.toString() ?: continue
-                    if (!isPartFileName(name)) {
-                        continue
-                    }
-                    try {
-                        path.deleteIfExists()
-                    } catch (e: IOException) {
-                        e.printStackTrace()
-                    } catch (e: UnsupportedOperationException) {
-                        e.printStackTrace()
-                    }
-                }
-            }
-        } catch (e: IOException) {
-            e.printStackTrace()
-        } catch (e: UnsupportedOperationException) {
-            e.printStackTrace()
-        }
+        return target.resolveSibling(".ordo-$kind-${id ?: Integer.toHexString(name.hashCode())}")
     }
 
     private fun replaceWithPart(temp: Path, target: Path, replaceExisting: Boolean) {
@@ -263,7 +250,7 @@ internal object ForeignCopyMove {
             }
             return
         }
-        val backup = backupFile(target)
+        var backup = backupFile(target)
         val targetExisted = try {
             target.exists(LinkOption.NOFOLLOW_LINKS)
         } catch (e: IOException) {
@@ -272,20 +259,23 @@ internal object ForeignCopyMove {
             true
         }
         if (targetExisted) {
-            try {
-                moveWithoutReplace(target, backup)
-            } catch (e: FileAlreadyExistsException) {
+            var lastExists: FileAlreadyExistsException? = null
+            for (attempt in 0 until 8) {
+                backup = if (attempt == 0) backupFile(target) else uniqueBackupFile(target)
                 try {
-                    backup.deleteIfExists()
-                } catch (e2: IOException) {
-                    e.addSuppressed(e2)
-                } catch (e2: UnsupportedOperationException) {
-                    e.addSuppressed(e2)
+                    moveWithoutReplace(target, backup)
+                    lastExists = null
+                    break
+                } catch (e: FileAlreadyExistsException) {
+                    lastExists = e
+                } catch (e: Exception) {
+                    deleteQuietly(temp, e)
+                    throw e
                 }
-                moveWithoutReplace(target, backup)
-            } catch (e: Exception) {
-                deleteQuietly(temp, e)
-                throw e
+            }
+            lastExists?.let {
+                deleteQuietly(temp, it)
+                throw it
             }
         }
         try {
@@ -321,13 +311,13 @@ internal object ForeignCopyMove {
         }
     }
 
-    private fun deleteQuietly(path: Path, cause: Exception) {
+    private fun deleteQuietly(path: Path, cause: Exception? = null) {
         try {
             path.deleteIfExists()
         } catch (e: IOException) {
-            cause.addSuppressed(e)
+            cause?.addSuppressed(e) ?: e.printStackTrace()
         } catch (e: UnsupportedOperationException) {
-            cause.addSuppressed(e)
+            cause?.addSuppressed(e) ?: e.printStackTrace()
         }
     }
 }

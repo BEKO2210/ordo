@@ -45,13 +45,15 @@ class LinuxCopyMoveTest {
 
     @Test
     fun newFileCopyCreatesTheTargetExclusively() {
-        val copy = File("src/main/java/me/zhanghai/android/files/provider/linux/LinuxCopyMove.kt")
+        val source = File("src/main/java/me/zhanghai/android/files/provider/linux/LinuxCopyMove.kt")
             .readText()
+        val copy = source
             .substringAfter("if (OsConstants.S_ISREG(sourceStat.st_mode))")
             .substringBefore("} else if (OsConstants.S_ISDIR(sourceStat.st_mode))")
-        assertTrue(copy.contains("usePart = copyOptions.replaceExisting && targetStat != null"))
-        assertTrue(copy.contains("usePart || !copyOptions.replaceExisting"))
-        assertTrue(copy.contains("O_EXCL"))
+        assertTrue(copy.contains("openExclusivePart"))
+        assertTrue(source.contains("O_EXCL"))
+        assertFalse(source.contains("removeLeftoverPartFiles"))
+        assertFalse(source.contains("hasRoomForPart"))
     }
 
     @Test

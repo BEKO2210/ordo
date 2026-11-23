@@ -7,7 +7,9 @@ package me.zhanghai.android.files.provider.document
 
 import android.net.Uri
 import java8.nio.file.FileAlreadyExistsException
+import java8.nio.file.FileSystemException
 import java8.nio.file.StandardCopyOption
+import me.zhanghai.android.files.file.MimeType
 import me.zhanghai.android.files.provider.common.CopyOptions
 import me.zhanghai.android.files.provider.content.resolver.ResolverException
 import me.zhanghai.android.files.provider.document.resolver.DocumentResolver
@@ -34,6 +36,7 @@ internal object DocumentCopyMove {
             if (!copyOptions.replaceExisting) {
                 throw FileAlreadyExistsException(target.toString())
             }
+            refuseFileFolderReplace(source, target)
             try {
                 DocumentResolver.remove(target)
             } catch (e: ResolverException) {
@@ -66,6 +69,7 @@ internal object DocumentCopyMove {
             if (!copyOptions.replaceExisting) {
                 throw FileAlreadyExistsException(target.toString())
             }
+            refuseFileFolderReplace(source, target)
             try {
                 DocumentResolver.remove(target)
             } catch (e: ResolverException) {
@@ -80,6 +84,25 @@ internal object DocumentCopyMove {
         } catch (e: ResolverException) {
             (e.cause as? InterruptedIOException)?.let { throw it }
             throw e.toFileSystemException(source.toString(), target.toString())
+        }
+    }
+
+    private fun refuseFileFolderReplace(source: DocumentPath, target: DocumentPath) {
+        val sourceIsDirectory = try {
+            DocumentResolver.getMimeType(source) == MimeType.DIRECTORY.value
+        } catch (e: ResolverException) {
+            throw e.toFileSystemException(source.toString())
+        }
+        val targetIsDirectory = try {
+            DocumentResolver.getMimeType(target) == MimeType.DIRECTORY.value
+        } catch (e: ResolverException) {
+            throw e.toFileSystemException(target.toString())
+        }
+        if (sourceIsDirectory != targetIsDirectory) {
+            throw FileSystemException(
+                source.toString(), target.toString(),
+                "Cannot replace a directory with a file"
+            )
         }
     }
 

@@ -11,6 +11,7 @@ import java8.nio.file.spi.FileSystemProvider
 import me.zhanghai.android.files.provider.linux.LinuxFileSystemProvider
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertTrue
 import org.junit.BeforeClass
 import org.junit.Test
@@ -31,6 +32,16 @@ class ForeignCopyMoveTest {
             Paths.get("/storage/emulated/0/Download/.clip.mp4.ordo-part"),
             ForeignCopyMove.partFile(target)
         )
+    }
+
+    @Test
+    fun uniquePartFileDoesNotReuseTheDeterministicName() {
+        val target = Paths.get("/storage/emulated/0/Download/clip.mp4")
+        val unique = ForeignCopyMove.uniquePartFile(target)
+        assertEquals(target.parent, unique.parent)
+        assertNotEquals(ForeignCopyMove.partFile(target), unique)
+        val name = unique.fileName.toString()
+        assertTrue(name.startsWith(".clip.mp4.ordo-part-") || name.startsWith(".ordo-part-"))
     }
 
     @Test
@@ -58,6 +69,9 @@ class ForeignCopyMoveTest {
             Paths.get("/storage/emulated/0/Download/.clip.mp4.ordo-bak"),
             ForeignCopyMove.backupFile(target)
         )
+        val unique = ForeignCopyMove.uniqueBackupFile(target)
+        assertNotEquals(ForeignCopyMove.backupFile(target), unique)
+        assertTrue(unique.fileName.toString().startsWith(".clip.mp4.ordo-bak-"))
     }
 
     @Test
@@ -67,20 +81,23 @@ class ForeignCopyMoveTest {
             .substringAfter("private fun replaceWithPart")
             .substringBefore("private fun moveWithoutReplace")
         assertTrue(replace.contains("backupFile(target)"))
+        assertTrue(replace.contains("uniqueBackupFile(target)"))
         assertTrue(replace.contains("moveWithoutReplace(target, backup)"))
         assertTrue(replace.contains("moveWithoutReplace(backup, target)"))
         assertFalse(replace.contains("target.deleteIfExists()"))
         assertFalse(replace.contains("REPLACE_EXISTING"))
+        val onCollision = replace.substringBefore("moveWithoutReplace(temp, target)")
+        assertFalse(onCollision.contains("deleteIfExists()"))
     }
 
     @Test
-    fun newFileCopyCreatesTheTargetExclusively() {
-        val copy = File("src/main/java/me/zhanghai/android/files/provider/common/ForeignCopyMove.kt")
+    fun copyWritesThroughAnExclusivePartFile() {
+        val source = File("src/main/java/me/zhanghai/android/files/provider/common/ForeignCopyMove.kt")
             .readText()
-            .substringAfter("sourceAttributes.isRegularFile ->")
-            .substringBefore("sourceAttributes.isDirectory ->")
-        assertTrue(copy.contains("usePart = copyOptions.replaceExisting"))
-        assertTrue(copy.contains("usePart || !copyOptions.replaceExisting"))
-        assertTrue(copy.contains("CREATE_NEW"))
+        assertTrue(source.contains("copyRegularFileToPart"))
+        assertTrue(source.contains("CREATE_NEW"))
+        assertFalse(source.contains("removeLeftoverPartFiles"))
+        assertFalse(source.contains("hasRoomForPart"))
+        assertFalse(source.contains("TRUNCATE_EXISTING"))
     }
 }

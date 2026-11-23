@@ -132,6 +132,30 @@ class VaultStoreTest {
     }
 
     @Test
+    fun finishPendingSourceDeletes_removesTheOriginalFile() {
+        val store = newStore()
+        val entry = store.add("/a/b.bin", content.inputStream())
+        val original = folder.newFile("still-plain.bin").apply { writeBytes(content) }
+        val pending = File(folder.root, entry.id + VaultStore.PENDING_SUFFIX)
+        pending.writeText(original.path)
+        store.finishPendingSourceDeletes()
+        assertFalse(original.exists())
+        assertFalse(pending.exists())
+        assertEquals(entry.id, store.entries().single().id)
+    }
+
+    @Test
+    fun finishPendingSourceDeletes_leavesUserDirectoriesAlone() {
+        val store = newStore()
+        val entry = store.add("/a/b.bin", content.inputStream())
+        val original = folder.newFolder("not-a-file")
+        File(folder.root, entry.id + VaultStore.PENDING_SUFFIX).writeText(original.path)
+        store.finishPendingSourceDeletes()
+        assertTrue(original.isDirectory)
+        assertEquals(entry.id, store.entries().single().id)
+    }
+
+    @Test
     fun purgeLeftovers_keepsEntriesAndRunningAdds() {
         val store = newStore()
         val entry = store.add("/a/b.bin", content.inputStream())

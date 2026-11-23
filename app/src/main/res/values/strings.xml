@@ -181,6 +181,7 @@
     <string name="file_job_cannot_extract_over_itself_title">Cannot extract a file over itself</string>
     <string name="file_job_cannot_move_over_itself_title">Cannot move a file over itself</string>
     <string name="file_job_cannot_copy_move_over_itself_message">The source file would be overwritten by the destination.</string>
+    <string name="file_job_cannot_replace_type_message">A file cannot replace a folder, and a folder cannot replace a file.</string>
     <string name="file_job_replace_title_format">Replace file “%1$s”?</string>
     <string name="file_job_replace_message_format">Another file with the same name already exists in “%1$s”.\nReplacing it will overwrite its content.</string>
     <string name="file_job_replace_target_name">Original file</string>
