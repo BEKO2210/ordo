@@ -276,7 +276,7 @@ Type or dictate “Move all MP3s from Download to Music”. Ordo shows the plan 
 **Find your files**
 
 - Home screen with recent files, categories (images, videos, audio, documents, downloads, APKs, archives) and
-  storage at a glance
+  storage at a glance. On a short landscape phone, one row of recents so the categories stay on screen.
 - The home screen keeps itself up to date: new, changed or deleted files show up on their own, a burst of 50 new
   files reloads it once (measured on the emulator, 16.11.2026), during a long copy it waits 3 s after every
   reload, so the storage is not read without a break, and nothing runs while it is hidden. Pulling down

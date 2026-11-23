@@ -271,7 +271,7 @@ Tippe oder diktiere „Verschiebe alle MP3s aus Download nach Musik“. Ordo zei
 **Dateien finden**
 
 - Startseite mit zuletzt verwendeten Dateien, Kategorien (Bilder, Videos, Audio, Dokumente, Downloads, APKs,
-  Archive) und Speicher auf einen Blick
+  Archive) und Speicher auf einen Blick. Im kurzen Querformat eine Zeile „Zuletzt“, damit die Kategorien sichtbar bleiben.
 - Die Startseite hält sich selbst aktuell: neue, geänderte oder gelöschte Dateien erscheinen von allein, 50 neue
   Dateien auf einmal laden sie einmal neu (gemessen im Emulator, 16.11.2026), beim langen Kopieren wartet sie nach jedem
   Neuladen 3 s, damit der Speicher nicht pausenlos gelesen wird, und im Hintergrund läuft nichts.

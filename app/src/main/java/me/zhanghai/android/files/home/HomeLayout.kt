@@ -9,6 +9,8 @@ internal const val HOME_CATEGORY_TILE_COUNT = 9
 
 private const val TABLET_MIN_WIDTH_DP = 600
 private const val WIDE_MIN_WIDTH_DP = 840
+// A phone on its side at 560 dpi is about 309 dp tall; 480 keeps tablets and portrait on the two-row grid.
+private const val SHORT_WINDOW_HEIGHT_DP = 480
 
 // home_list_padding and home_card_margin, phi_13 and phi_8
 private const val LIST_PADDING_DP = 13
@@ -28,6 +30,9 @@ fun homeQuickAccessColumns(widthDp: Int): Int = when {
     widthDp < WIDE_MIN_WIDTH_DP -> 5
     else -> 8
 }
+
+/** Two rows of recents hide the categories on a short landscape phone; one row leaves them on screen. */
+fun homeRecentGridRows(heightDp: Int): Int = if (heightDp < SHORT_WINDOW_HEIGHT_DP) 1 else 2
 
 fun homeStorageColumns(widthDp: Int, storageCount: Int): Int =
     if (widthDp >= WIDE_MIN_WIDTH_DP && storageCount >= 2) 2 else 1
