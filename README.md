@@ -33,13 +33,14 @@
 </p>
 
 <!-- AUTO:new -->
-> **New in 0.18.1**
-> - Fixed a crash when tapping the video notification
-> - Safer file handling: mixed selections go to the trash, undo works again
-> - Vault and image viewer protected against opening internal files
-> - FTP server now starts with a password and no anonymous access
-> - Network shares stay connected while idle
-> - Music and Cast: more reliable playback and sleep timer
+> **New in 0.18.2**
+> - Safer copy, move and restore: no lost or overwritten files on conflicts
+> - AI commands: "never", "don't" and similar always ask before deleting
+> - FTP server warns that transfers are unencrypted
+> - Buttons no longer break words with large display zoom
+> - Phones in landscape: menus and lists fit and stay reachable
+> - Video, music and Cast: more reliable resume and undo
+> - Network shares: no more endless hangs
 <!-- /AUTO:new -->
 
 ## Status
@@ -257,7 +258,6 @@ Type or dictate “Move all MP3s from Download to Music”. Ordo shows the plan 
 - Vault: files are encrypted with AES-256-GCM and opened with your screen lock
 - Backup: folders and the vault as a ZIP file to a USB drive or any storage your phone offers, with an optional password
 - Restore without replacing the files you already have
-- A file cannot replace a folder of the same name
 
 **For power users**
 
@@ -512,7 +512,7 @@ Run the unit tests with:
 ```
 
 <!-- AUTO:tests -->
-Device tests: 53 scripts in [`e2e/`](e2e/README.md), run with `e2e/run.sh`: 15 read-only (`first-run`, `smoke`, `settings-visual`, `category-search`, `back-navigation`, `bars-replay`, `home-header`, `header-position`, `home-pull`, `drawer`, `selection-more`, `tablet-landscape`, `analysis`, `ai-show-guard`, `documents-provider`) and 38 more with `--write` (`stress-delete`, `backup-restore`, `copy-unreadable`, `home-auto-refresh`, `audio-player`, `cast`, `klang`, `klang-landscape`, `klang-stress`, `music-formats`, `music-library`, `launcher-icons`, `icon-colors`, `ai-show`, `pick-file`, `no-midword-breaks`, `player-seek`, `player-stage2`, `video-player`, `video-network`, `video-sound`, `video-dialog-isolate`, `video-subtitles`, `video-background`, `video-library`, `video-seek`, `video-picture`, `video-picture-adjust`, `video-detailplus`, `video-menus`, `sheets-polish`, `copy-replace`, `ftp-server-fd`, `video-notification`, `ftp-server-defaults`, `backup-self-include`, `vault-secure-flag`, `text-editor-atomic-save`). Unit tests: 154 test classes in `app/src/test`.
+Device tests: 53 scripts in [`e2e/`](e2e/README.md), run with `e2e/run.sh`: 15 read-only (`first-run`, `smoke`, `settings-visual`, `category-search`, `back-navigation`, `bars-replay`, `home-header`, `header-position`, `home-pull`, `drawer`, `selection-more`, `tablet-landscape`, `analysis`, `ai-show-guard`, `documents-provider`) and 38 more with `--write` (`stress-delete`, `backup-restore`, `copy-unreadable`, `home-auto-refresh`, `audio-player`, `cast`, `klang`, `klang-landscape`, `klang-stress`, `music-formats`, `music-library`, `launcher-icons`, `icon-colors`, `ai-show`, `pick-file`, `no-midword-breaks`, `player-seek`, `player-stage2`, `video-player`, `video-network`, `video-sound`, `video-dialog-isolate`, `video-subtitles`, `video-background`, `video-library`, `video-seek`, `video-picture`, `video-picture-adjust`, `video-detailplus`, `video-menus`, `sheets-polish`, `copy-replace`, `ftp-server-fd`, `video-notification`, `ftp-server-defaults`, `backup-self-include`, `vault-secure-flag`, `text-editor-atomic-save`). Unit tests: 158 test classes in `app/src/test`.
 <!-- /AUTO:tests -->
 
 ## Roadmap
