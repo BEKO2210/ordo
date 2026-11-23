@@ -174,3 +174,5 @@ Rules for every test:
 
 Needs: `adb`, `python3` (with Pillow), and `ffmpeg` for the suites that make their own media; `preflight.sh` checks all of it. `ADB` and `PKG` can be overridden through the
 environment.
+
+Open: the file-job property test follows as a device test (instrumentation/e2e), because `LinuxCopyMove` uses native syscalls that are not available on the JVM.
