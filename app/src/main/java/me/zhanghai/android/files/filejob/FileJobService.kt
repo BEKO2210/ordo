@@ -12,18 +12,14 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.IBinder
-import android.provider.DocumentsContract
 import androidx.annotation.MainThread
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import java8.nio.file.Path
-import java.util.concurrent.ConcurrentHashMap
 import me.zhanghai.android.files.R
 import me.zhanghai.android.files.app.NotificationIds
 import me.zhanghai.android.files.backup.BackupStatus
 import me.zhanghai.android.files.backup.BackupStatusLiveData
-import me.zhanghai.android.files.backup.CutBackup
-import me.zhanghai.android.files.provider.sftp.client.Client as SftpClient
 import me.zhanghai.android.files.file.MimeType
 import me.zhanghai.android.files.home.HomeActivity
 import me.zhanghai.android.files.provider.common.PosixFileModeBit
@@ -48,15 +44,12 @@ class FileJobService : Service() {
 
     private val runningJobs = mutableMapOf<FileJob, Future<*>>()
 
-    private val jobThreads = ConcurrentHashMap<Int, Thread>()
-
     override fun onCreate() {
         super.onCreate()
 
         wakeWifiLock = WakeWifiLock(FileJobService::class.java.simpleName)
         notificationManager = ForegroundNotificationManager(this)
         instance = this
-        deleteCutBackup()
 
         while (pendingJobs.isNotEmpty()) {
             startJob(pendingJobs.removeFirstCompat())
@@ -106,18 +99,10 @@ class FileJobService : Service() {
         // Synchronize on runningJobs to prevent a job from removing itself before being added.
         synchronized(runningJobs) {
             val future = executorService.submit {
-                val thread = Thread.currentThread()
-                SftpClient.bindJobThread(thread)
-                jobThreads[job.id] = thread
-                try {
-                    job.runOn(this)
-                } finally {
-                    jobThreads.remove(job.id, thread)
-                    SftpClient.disconnectThread(thread)
-                    synchronized(runningJobs) {
-                        runningJobs.remove(job)
-                        updateWakeWifiLockLocked()
-                    }
+                job.runOn(this)
+                synchronized(runningJobs) {
+                    runningJobs.remove(job)
+                    updateWakeWifiLockLocked()
                 }
             }
             runningJobs[job] = future
@@ -130,7 +115,6 @@ class FileJobService : Service() {
             runningJobs.removeFirst { it.key.id == id }?.value?.cancel(true)
             updateWakeWifiLockLocked()
         }
-        jobThreads[id]?.let { SftpClient.disconnectThread(it) }
     }
 
     override fun onDestroy() {
@@ -140,23 +124,10 @@ class FileJobService : Service() {
 
         synchronized(runningJobs) {
             while (runningJobs.isNotEmpty()) {
-                val job = runningJobs.keys.first()
-                runningJobs.remove(job)?.cancel(true)
-                jobThreads[job.id]?.let { SftpClient.disconnectThread(it) }
+                runningJobs.removeFirst().value.cancel(true)
             }
             updateWakeWifiLockLocked()
         }
-    }
-
-    private fun deleteCutBackup() {
-        val marked = CutBackup.peek(filesDir) ?: return
-        try {
-            DocumentsContract.deleteDocument(contentResolver, Uri.parse(marked))
-        } catch (e: Exception) {
-            e.printStackTrace()
-            return
-        }
-        CutBackup.clear(filesDir)
     }
 
     // Synchronize on runningJobs to avoid the potential race condition that the lock is

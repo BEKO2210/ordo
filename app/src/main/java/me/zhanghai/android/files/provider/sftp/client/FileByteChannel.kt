@@ -25,14 +25,13 @@ import java.util.concurrent.Future
 
 class FileByteChannel(
     private val file: RemoteFile,
-    isAppend: Boolean,
-    private val onTransportError: () -> Unit = {}
+    isAppend: Boolean
 ) : AbstractFileByteChannel(isAppend) {
     override fun onReadAsync(position: Long, size: Int, timeoutMillis: Long): Future<ByteBuffer> =
         try {
             RemoteFileAccessor.asyncRead(file, position, size)
         } catch (e: IOException) {
-            throw e.noteTransportError().maybeToSpecificException()
+            throw e.maybeToSpecificException()
         }
             .asFuture()
             .map(
@@ -54,9 +53,8 @@ class FileByteChannel(
                     val length = dataLength.coerceAtMost(size)
                     ByteBuffer.wrap(response.array(), response.rpos(), length)
                 }, { e ->
-                    val io = (e as? ExecutionException)?.cause as? IOException
-                    io?.noteTransportError()
-                    io?.maybeToSpecificException()?.let { ExecutionException(it) } ?: e
+                    ((e as? ExecutionException)?.cause as? IOException)?.maybeToSpecificException()
+                        ?.let { ExecutionException(it) } ?: e
                 }
             )
 
@@ -69,7 +67,7 @@ class FileByteChannel(
                 source.remaining()
             )
         } catch (e: IOException) {
-            throw e.noteTransportError().maybeToSpecificException()
+            throw e.maybeToSpecificException()
         }
         source.position(source.limit())
     }
@@ -79,7 +77,7 @@ class FileByteChannel(
         try {
             file.setLength(size)
         } catch (e: IOException) {
-            throw e.noteTransportError().maybeToSpecificException()
+            throw e.maybeToSpecificException()
         }
     }
 
@@ -88,15 +86,8 @@ class FileByteChannel(
         try{
             file.length()
         } catch (e: IOException) {
-            throw e.noteTransportError().maybeToSpecificException()
+            throw e.maybeToSpecificException()
         }
-
-    private fun IOException.noteTransportError(): IOException {
-        if (this !is SFTPException) {
-            onTransportError()
-        }
-        return this
-    }
 
     private fun IOException.maybeToSpecificException(): IOException =
         when {

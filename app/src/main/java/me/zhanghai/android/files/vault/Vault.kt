@@ -95,7 +95,6 @@ object Vault {
         // Without a vault there is nothing to purge, and no reason to create a key yet.
         if (File(application.noBackupFilesDir, "vault").isDirectory) {
             try {
-                store.finishPendingSourceDeletes()
                 store.purgeLeftovers()
             } catch (e: IOException) {
                 e.printStackTrace()

@@ -29,16 +29,6 @@ import org.apache.commons.net.ftp.FTPFile
 import org.apache.commons.net.ftp.FTPReply
 import org.apache.commons.net.ftp.FTPSClient
 
-internal const val FTP_POOL_IDLE_MILLIS = 60_000L
-internal const val FTP_POOL_MAX = 4
-
-/** A stale pooled control connection is logged out instead of reused. */
-internal fun ftpPooledClientStale(idleAt: Long, now: Long): Boolean =
-    now - idleAt >= FTP_POOL_IDLE_MILLIS
-
-/** The pool keeps at most [FTP_POOL_MAX] idle clients per server. */
-internal fun ftpPoolHasRoom(size: Int): Boolean = size < FTP_POOL_MAX
-
 object Client {
     private val TIMESTAMP_FORMATTER =
         DateTimeFormatter.ofPattern("yyyyMMddHHmmss", Locale.ROOT)
@@ -48,34 +38,16 @@ object Client {
     @Volatile
     lateinit var authenticator: Authenticator
 
-    private val clientPool = mutableMapOf<Authority, MutableList<Pooled>>()
+    private val clientPool = mutableMapOf<Authority, MutableList<FTPClient>>()
 
     private val directoryFilesCache = Collections.synchronizedMap(WeakHashMap<Path, FTPFile>())
-
-    init {
-        Thread({
-            while (true) {
-                try {
-                    Thread.sleep(30_000L)
-                    sweepPool()
-                } catch (e: InterruptedException) {
-                    return@Thread
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }
-            }
-        }, "ftp-client-pool").apply {
-            isDaemon = true
-            start()
-        }
-    }
 
     @Throws(IOException::class)
     private fun acquireClient(authority: Authority): FTPClient {
         while (true) {
             val client = acquireClientUnchecked(authority) ?: break
             if (!client.isConnected) {
-                closeQuietly(client)
+                client.disconnect()
                 continue
             }
             val isAlive = try {
@@ -93,27 +65,15 @@ object Client {
         return createClient(authority)
     }
 
-    private fun acquireClientUnchecked(authority: Authority): FTPClient? {
-        while (true) {
-            val pooled = synchronized(clientPool) {
-                val pooledClients = clientPool[authority] ?: return@synchronized null
+    private fun acquireClientUnchecked(authority: Authority): FTPClient? =
+        synchronized(clientPool) {
+            val pooledClients = clientPool[authority] ?: return null
+            pooledClients.removeLastOrNull().also {
                 if (pooledClients.isEmpty()) {
                     clientPool -= authority
-                    return@synchronized null
                 }
-                pooledClients.removeLast().also {
-                    if (pooledClients.isEmpty()) {
-                        clientPool -= authority
-                    }
-                }
-            } ?: return null
-            if (ftpPooledClientStale(pooled.idleAt, System.currentTimeMillis())) {
-                closeQuietly(pooled.client)
-                continue
             }
-            return pooled.client
         }
-    }
 
     @Throws(IOException::class)
     private fun createClient(authority: Authority): FTPClient {
@@ -161,45 +121,16 @@ object Client {
 
     private fun releaseClient(authority: Authority, client: FTPClient) {
         if (!client.isConnected) {
-            closeQuietly(client)
+            client.disconnect()
             return
         }
-        val leftover = synchronized(clientPool) {
-            val pooled = clientPool.getOrPut(authority) { mutableListOf() }
-            if (!ftpPoolHasRoom(pooled.size)) {
-                client
-            } else {
-                pooled += Pooled(client, System.currentTimeMillis())
-                null
-            }
+        // FIXME: Disconnect clients based on time.
+        if (false) {
+            closeClient(client)
+            return
         }
-        leftover?.let { closeClient(it) }
-    }
-
-    private fun sweepPool() {
-        val now = System.currentTimeMillis()
-        val stale = mutableListOf<FTPClient>()
         synchronized(clientPool) {
-            val empty = mutableListOf<Authority>()
-            for ((authority, pooled) in clientPool) {
-                val iterator = pooled.iterator()
-                while (iterator.hasNext()) {
-                    val entry = iterator.next()
-                    if (ftpPooledClientStale(entry.idleAt, now)) {
-                        iterator.remove()
-                        stale += entry.client
-                    }
-                }
-                if (pooled.isEmpty()) {
-                    empty += authority
-                }
-            }
-            for (authority in empty) {
-                clientPool -= authority
-            }
-        }
-        for (client in stale) {
-            closeQuietly(client)
+            clientPool.getOrPut(authority) { mutableListOf() } += client
         }
     }
 
@@ -223,8 +154,6 @@ object Client {
             e.printStackTrace()
         }
     }
-
-    private class Pooled(val client: FTPClient, val idleAt: Long)
 
     private inline fun <R> useClient(authority: Authority, block: (FTPClient) -> R): R {
         val client = acquireClient(authority)

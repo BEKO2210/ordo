@@ -105,28 +105,6 @@ class VaultStore(private val directory: File, private val aead: StreamingAead) {
     fun delete(entry: VaultEntry): Boolean =
         File(directory, entry.id).delete() && File(directory, entry.id + INFO_SUFFIX).delete()
 
-    fun markSourcePendingDelete(entry: VaultEntry) {
-        File(directory, entry.id + PENDING_SUFFIX).writeText(entry.originalPath)
-    }
-
-    fun clearSourcePendingDelete(entry: VaultEntry) {
-        File(directory, entry.id + PENDING_SUFFIX).delete()
-    }
-
-    /** Completes a move that died after the vault copy existed and before the original was deleted. */
-    fun finishPendingSourceDeletes() {
-        for (file in directory.listFiles().orEmpty()) {
-            if (!file.name.endsWith(PENDING_SUFFIX)) {
-                continue
-            }
-            val original = File(file.readText())
-            if (original.isFile) {
-                original.delete()
-            }
-            file.delete()
-        }
-    }
-
     // A crash while adding or deleting leaves a temp or info file that no entry points to.
     fun purgeLeftovers(now: Long = System.currentTimeMillis()) {
         for (file in directory.listFiles().orEmpty()) {
@@ -193,7 +171,6 @@ class VaultStore(private val directory: File, private val aead: StreamingAead) {
     companion object {
         const val INFO_SUFFIX = ".info"
         const val TEMP_SUFFIX = ".tmp"
-        const val PENDING_SUFFIX = ".pending-src"
         const val LEFTOVER_AGE_MILLIS = 24L * 60 * 60 * 1000
         private const val KEY_PATH = "path"
         private const val KEY_SIZE = "size"
