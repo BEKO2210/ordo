@@ -215,13 +215,18 @@ debug_findings() {
     python3 "$HERE/logcheck.py" <<<"$log" || { echo "logcheck.py failed"; return 1; }
 }
 
-# LeakCanary analyses the heap seconds after a leak is retained. Wait (LEAK_WAIT s, default 20) until no analysis
-# is pending; logcheck.py reports one that never finished.
+# LeakCanary checks for retained objects 5 s after the app leaves the screen and only then starts its heap analysis.
+# Send the app to the background first, give the check LEAK_GRACE s (default 10) to begin, then wait (LEAK_WAIT s,
+# default 60) for a started analysis to finish. One that never finishes is a failure (logcheck.py reports it).
 wait_leak_analysis() {
-    local end log; end=$(($(date +%s) + ${LEAK_WAIT:-20}))
+    local end log dumping=0; a shell input keyevent KEYCODE_HOME >/dev/null 2>&1
+    end=$(($(date +%s) + ${LEAK_GRACE:-10}))
     while [ "$(date +%s)" -lt "$end" ]; do
         log=$(a logcat -d -v threadtime ${LOG_START:+-T "$LOG_START"} -s LeakCanary:D 2>/dev/null) || return 0
-        python3 "$HERE/logcheck.py" --pending <<<"$log" || return 0
+        if grep -q "Dumping the heap" <<<"$log"; then
+            python3 "$HERE/logcheck.py" --pending <<<"$log" || return 0
+            [ "$dumping" = 1 ] || { dumping=1; end=$(($(date +%s) + ${LEAK_WAIT:-60})); }
+        fi
         sleep 2
     done
 }
