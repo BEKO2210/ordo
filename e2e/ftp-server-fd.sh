@@ -1,5 +1,6 @@
 #!/bin/bash
 # Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later
+# farm: orient=once timeout=1800
 # The built-in FTP server must close the directory stream of every LIST (CU-2). WRITES: starts the
 # FTP server, lists 2000 times, then stops it. Anonymous login is switched on for the run and off
 # again at the end.

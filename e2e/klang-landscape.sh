@@ -1,5 +1,6 @@
 #!/bin/bash
 # Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later
+# farm: orient=once
 # Sound sheet in landscape, WRITES: one stereo WAV in /storage/emulated/0/ordo-e2e-klang-land, removed afterwards;
 # turns the screen to landscape and back to what it was. Every card must be reachable: the last one is scrolled to.
 # On a window of 840 dp and wider the sheet has two panes (equalizer left, cards right).
