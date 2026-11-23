@@ -222,7 +222,7 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener, AppAccentA
         binding = MusicLauncherActivityBinding.inflate(layoutInflater)
         setContentView(binding.root)
         if (savedInstanceState != null) {
-            binding.root.post { TagEditUndo.reoffer(this, binding.content.root, lifecycleScope) { load() } }
+            binding.root.post { TagEditUndo.reoffer(this, binding.content.root, lifecycleScope, savedInstanceState) { load() } }
         }
         toolbarInsetStart = binding.content.toolbar.contentInsetStart
         toolbarInsetEnd = binding.content.toolbar.contentInsetEnd
@@ -328,6 +328,7 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener, AppAccentA
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
+        TagEditUndo.save(this, outState)
         outState.putInt(STATE_TAB, tab)
         outState.putString(STATE_DETAIL, detailKey)
         outState.putString(STATE_QUERY, query)

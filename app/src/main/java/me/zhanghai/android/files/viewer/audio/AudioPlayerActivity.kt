@@ -192,7 +192,7 @@ class AudioPlayerActivity : AppActivity(), AppAccentActivity {
         binding = AudioPlayerActivityBinding.inflate(layoutInflater)
         if (savedInstanceState != null) {
             binding.root.post {
-                TagEditUndo.reoffer(this, binding.root, lifecycleScope) {
+                TagEditUndo.reoffer(this, binding.root, lifecycleScope, savedInstanceState) {
                     lyricsKey = null
                     controller?.let(::updateLyrics)
                 }
@@ -359,6 +359,7 @@ class AudioPlayerActivity : AppActivity(), AppAccentActivity {
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
+        TagEditUndo.save(this, outState)
         outState.putBoolean(STATE_QUEUE_STARTED, queueStarted)
         outState.putBoolean(STATE_LYRICS_VISIBLE, lyricsView.isVisible || openLyricsPending)
     }

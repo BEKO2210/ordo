@@ -7,13 +7,14 @@ package me.zhanghai.android.files.viewer.audio
 
 import android.content.Context
 import android.content.Intent
-import android.os.SystemClock
+import android.os.Bundle
 import android.view.View
 import androidx.lifecycle.LifecycleCoroutineScope
 import com.google.android.material.snackbar.BaseTransientBottomBar
 import com.google.android.material.snackbar.BaseTransientBottomBar.BaseCallback.DISMISS_EVENT_MANUAL
 import com.google.android.material.snackbar.Snackbar
 import java.io.File
+import java.lang.ref.WeakReference
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -26,6 +27,9 @@ import me.zhanghai.android.files.R
 object TagEditUndo {
     private const val EXTRA_FILES = "me.zhanghai.android.files.viewer.audio.extra.TAG_FILES"
     private const val EXTRA_BACKUPS = "me.zhanghai.android.files.viewer.audio.extra.TAG_BACKUPS"
+    private const val STATE_FILES = "tag_undo_files"
+    private const val STATE_BACKUPS = "tag_undo_backups"
+    private const val STATE_DEADLINE = "tag_undo_deadline"
     private const val UNDO_MS = 10_000
     private const val STALE_MS = 24L * 60 * 60 * 1000
 
@@ -55,15 +59,41 @@ object TagEditUndo {
         show(context, anchor, scope, files, backups, UNDO_MS, onChanged)
     }
 
-    /** A screen recreated by a rotation within the 10 s shows the bar again for the time that is left. */
-    fun reoffer(context: Context, anchor: View, scope: LifecycleCoroutineScope, onChanged: () -> Unit) {
-        val pending = pending ?: return
-        val left = pending.deadlineMs - SystemClock.elapsedRealtime()
-        if (left <= 0) return
-        show(context, anchor, scope, pending.files, pending.backups, left.toInt(), onChanged)
+    /** The open undo of this screen goes into its saved state (a rotation, a killed process) with its deadline. */
+    fun save(context: Context, outState: Bundle) {
+        val pending = pending?.takeIf { it.owner.get() === context } ?: return
+        if (pending.deadlineMs <= System.currentTimeMillis()) return
+        outState.putStringArrayList(STATE_FILES, ArrayList(pending.files.map { it.path }))
+        outState.putStringArrayList(STATE_BACKUPS, ArrayList(pending.backups.map { it.path }))
+        outState.putLong(STATE_DEADLINE, pending.deadlineMs)
     }
 
-    private class Pending(val files: List<File>, val backups: List<File>, val deadlineMs: Long)
+    /** A screen recreated within the 10 s shows the bar again for the time that is left. */
+    fun reoffer(
+        context: Context,
+        anchor: View,
+        scope: LifecycleCoroutineScope,
+        saved: Bundle?,
+        onChanged: () -> Unit
+    ) {
+        val files = saved?.getStringArrayList(STATE_FILES)?.map(::File) ?: return
+        val backups = saved.getStringArrayList(STATE_BACKUPS)?.map(::File) ?: return
+        val left = remainingMs(saved.getLong(STATE_DEADLINE), System.currentTimeMillis())
+        if (left <= 0) {
+            backups.forEach { it.delete() }
+            return
+        }
+        show(context, anchor, scope, files, backups, left.toInt(), onChanged)
+    }
+
+    internal fun remainingMs(deadlineMs: Long, nowMs: Long): Long = deadlineMs - nowMs
+
+    private class Pending(
+        val owner: WeakReference<Context>,
+        val files: List<File>,
+        val backups: List<File>,
+        val deadlineMs: Long
+    )
 
     private var pending: Pending? = null
 
@@ -77,7 +107,7 @@ object TagEditUndo {
         onChanged: () -> Unit
     ) {
         var undone = false
-        pending = Pending(files, backups, SystemClock.elapsedRealtime() + durationMs)
+        pending = Pending(WeakReference(context), files, backups, System.currentTimeMillis() + durationMs)
         Snackbar.make(anchor, R.string.music_tag_saved, durationMs)
             .setAction(R.string.music_tag_undo) {
                 undone = true

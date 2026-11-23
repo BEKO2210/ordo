@@ -383,7 +383,8 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
             background?.sleepTimer?.restore(it[0].toInt(), it[1], it[2] == 1L)
         }
         startTracking(player.currentMediaItem)
-        player.currentMediaItem?.let { offerResume(it, showPill = savedInstanceState == null) }
+        val showPill = savedInstanceState == null || savedInstanceState.getBoolean(STATE_RESUME_PILL)
+        player.currentMediaItem?.let { offerResume(it, showPill) }
         updateUi(player)
     }
 
@@ -392,7 +393,12 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
         val player = player ?: return
         outState.putString(STATE_MEDIA_ID, player.currentMediaItem?.mediaId)
         outState.putInt(STATE_INDEX, player.currentMediaItemIndex)
-        outState.putLong(STATE_POSITION, player.currentPosition)
+        outState.putLong(
+            STATE_POSITION,
+            castSession?.takeIf { it.isCasting }?.castPositionMs() ?: player.currentPosition
+        )
+        // A still open "Resume at" offer is no decision: the recreated screen offers it again.
+        outState.putBoolean(STATE_RESUME_PILL, binding.resumePill.isVisible)
         outState.putBoolean(STATE_PLAY_WHEN_READY, player.playWhenReady)
         // During "hold for 2×" the speed to keep is the one before it.
         outState.putFloat(
@@ -1393,6 +1399,7 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
         private const val STATE_MEDIA_ID = "mediaId"
         private const val STATE_INDEX = "index"
         private const val STATE_POSITION = "position"
+        private const val STATE_RESUME_PILL = "resume_pill"
         private const val STATE_PLAY_WHEN_READY = "playWhenReady"
         private const val STATE_SPEED = "speed"
         private const val STATE_SLEEP = "sleepTimer"

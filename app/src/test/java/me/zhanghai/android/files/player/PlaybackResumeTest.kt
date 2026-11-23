@@ -56,4 +56,17 @@ class PlaybackResumeTest {
         assertTrue(pathUriExists("sftp://host/a.flac"))
         assertFalse(pathUriExists("content://media/a.flac"))
     }
+
+    @Test
+    fun aShuffledCastIndexIsFoundByMediaIdNotByPosition() {
+        val paths = listOf("a", "b", "c")
+        assertEquals(2, persistedIndexFor("c", paths, hint = 0))
+        assertNull(persistedIndexFor("x", paths, hint = 0))
+        assertNull(persistedIndexFor(null, paths, hint = 0))
+    }
+
+    @Test
+    fun aDuplicateKeepsThePhonesIndex() {
+        assertEquals(2, persistedIndexFor("a", listOf("a", "b", "a"), hint = 2))
+    }
 }

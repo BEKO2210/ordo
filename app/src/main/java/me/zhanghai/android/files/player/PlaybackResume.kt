@@ -38,3 +38,13 @@ internal fun restorableState(
  * network file counts as present (a failed or slow stat while offline must not empty the saved queue).
  */
 internal fun pathUriExists(pathUri: String): Boolean = mediaButtonQueueItemExists(pathUri)
+
+/**
+ * Index of the playing item in the persisted queue. The CastPlayer's own index follows its shuffled order, so the item
+ * is found by its media ID; [hint] (the phone player's persisted index) settles duplicates. Null when it is not there.
+ */
+internal fun persistedIndexFor(mediaId: String?, paths: List<String>, hint: Int?): Int? {
+    if (mediaId == null) return null
+    if (hint != null && paths.getOrNull(hint) == mediaId) return hint
+    return paths.indexOf(mediaId).takeIf { it >= 0 }
+}

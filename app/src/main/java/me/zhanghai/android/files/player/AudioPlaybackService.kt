@@ -599,8 +599,10 @@ class AudioPlaybackService : MediaSessionService() {
         } else {
             player
         }
-        val index = persistedIndices.getOrNull(active.currentMediaItemIndex) ?: return
-        if (index < 0) return
+        val index = persistedIndexFor(
+            active.currentMediaItem?.mediaId, lastQueue.orEmpty(),
+            persistedIndices.getOrNull(player.currentMediaItemIndex)
+        ) ?: return
         stateStore.writePosition(index, active.currentPosition.coerceAtLeast(0L))
     }
 
