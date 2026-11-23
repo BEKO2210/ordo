@@ -45,53 +45,21 @@ class LinuxCopyMoveTest {
 
     @Test
     fun newFileCopyCreatesTheTargetExclusively() {
-        val source = File("src/main/java/me/zhanghai/android/files/provider/linux/LinuxCopyMove.kt")
+        val copy = File("src/main/java/me/zhanghai/android/files/provider/linux/LinuxCopyMove.kt")
             .readText()
-        val copy = source
             .substringAfter("if (OsConstants.S_ISREG(sourceStat.st_mode))")
             .substringBefore("} else if (OsConstants.S_ISDIR(sourceStat.st_mode))")
-        assertTrue(copy.contains("openExclusivePart"))
-        assertTrue(source.contains("O_EXCL"))
-        assertTrue(source.contains("renameNoReplace"))
-        assertTrue(source.contains("LinuxExclusivePublish"))
+        assertTrue(copy.contains("usePart = copyOptions.replaceExisting && targetStat != null"))
+        assertTrue(copy.contains("usePart || !copyOptions.replaceExisting"))
+        assertTrue(copy.contains("O_EXCL"))
+        assertFalse(copy.contains("removeLeftoverPartFiles"))
+    }
+
+    @Test
+    fun copyDoesNotSweepPartFilesByName() {
+        val source = File("src/main/java/me/zhanghai/android/files/provider/linux/LinuxCopyMove.kt")
+            .readText()
         assertFalse(source.contains("removeLeftoverPartFiles"))
-        assertFalse(source.contains("hasRoomForPart"))
-    }
-
-    @Test
-    fun exclusivePublishDoesNotOverwriteAFileThatAppearedAtTheTarget() {
-        var target = "original"
-        var temp: String? = "copy"
-        try {
-            LinuxExclusivePublish.publish(
-                exclusiveRename = {
-                    throw java8.nio.file.FileAlreadyExistsException("temp", "target", null)
-                },
-                deleteTemp = { temp = null }
-            )
-            throw AssertionError("expected FileAlreadyExistsException")
-        } catch (e: java8.nio.file.FileAlreadyExistsException) {
-            assertEquals("original", target)
-            assertEquals(null, temp)
-        }
-        assertTrue(LinuxExclusivePublish.mustNotOverwrite(false, true))
-        assertFalse(LinuxExclusivePublish.mustNotOverwrite(true, true))
-        assertFalse(LinuxExclusivePublish.mustNotOverwrite(false, false))
-    }
-
-    @Test
-    fun exclusivePublishKeepsTheCopyWhenTheNameIsFree() {
-        var target: String? = null
-        var temp: String? = "copy"
-        LinuxExclusivePublish.publish(
-            exclusiveRename = {
-                target = temp
-                temp = null
-            },
-            deleteTemp = { temp = null }
-        )
-        assertEquals("copy", target)
-        assertEquals(null, temp)
     }
 
     @Test

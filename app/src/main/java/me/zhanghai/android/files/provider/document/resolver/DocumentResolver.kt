@@ -32,7 +32,6 @@ import me.zhanghai.android.files.util.AbstractLocalCursor
 import java.io.FileNotFoundException
 import java.io.IOException
 import java.io.InputStream
-import java.io.InterruptedIOException
 import java.io.OutputStream
 import java.util.Collections
 import java.util.WeakHashMap
@@ -114,7 +113,6 @@ object DocumentResolver {
         } ?: throw ResolverException(
             "DocumentsContract.copyDocument() with $sourceUri and $targetParentUri returned null"
         )
-        abortCopyIfInterrupted(copiedTargetUri, targetParentUri)
         val sourceDisplayName = sourcePath.displayName
         val targetDisplayName = targetPath.displayName
         if (sourceDisplayName == targetDisplayName) {
@@ -131,22 +129,8 @@ object DocumentResolver {
             }
             throw e
         }
-        abortCopyIfInterrupted(renamedTargetUri, targetParentUri)
         listener?.invokeWithSize(renamedTargetUri)
         return renamedTargetUri
-    }
-
-    @Throws(ResolverException::class)
-    private fun abortCopyIfInterrupted(copiedUri: Uri, targetParentUri: Uri) {
-        if (!Thread.interrupted()) {
-            return
-        }
-        try {
-            remove(copiedUri, targetParentUri)
-        } catch (e: ResolverException) {
-            e.printStackTrace()
-        }
-        throw ResolverException(InterruptedIOException())
     }
 
     @Throws(ResolverException::class)
@@ -337,9 +321,6 @@ object DocumentResolver {
         } ?: throw ResolverException(
             "DocumentsContract.moveDocument() with $sourceUri and $targetParentUri returned null"
         )
-        abortMoveIfInterrupted(
-            movedTargetUri, targetParentUri, sourceParentUri, sourcePath.displayName
-        )
         val sourceDisplayName = sourcePath.displayName
         val targetDisplayName = targetPath.displayName
         if (sourceDisplayName == targetDisplayName) {
@@ -347,52 +328,9 @@ object DocumentResolver {
             return movedTargetUri
         }
         val renamedTargetUri = rename(movedTargetUri, targetDisplayName!!)
-        abortMoveIfInterrupted(
-            renamedTargetUri, targetParentUri, sourceParentUri, sourceDisplayName
-        )
         listener?.invokeWithSize(renamedTargetUri)
         return renamedTargetUri
     }
-
-    @RequiresApi(Build.VERSION_CODES.N)
-    @Throws(ResolverException::class)
-    private fun abortMoveIfInterrupted(
-        movedUri: Uri,
-        targetParentUri: Uri,
-        sourceParentUri: Uri,
-        originalName: String?
-    ) {
-        if (!Thread.interrupted()) {
-            return
-        }
-        try {
-            InterruptedDocumentMove.abortAfterTransfer {
-                val restored = DocumentsContract.moveDocument(
-                    contentResolver, movedUri, targetParentUri, sourceParentUri
-                ) ?: throw IOException("DocumentsContract.moveDocument() returned null")
-                InterruptedDocumentMove.restoreName(
-                    originalName, queryDisplayName(restored)
-                ) { name ->
-                    DocumentsContract.renameDocument(contentResolver, restored, name)
-                        ?: throw IOException("DocumentsContract.renameDocument() returned null")
-                }
-            }
-        } catch (e: InterruptedIOException) {
-            throw ResolverException(e)
-        } catch (e: IOException) {
-            throw ResolverException(e)
-        }
-    }
-
-    private fun queryDisplayName(uri: Uri): String? =
-        try {
-            query(uri, arrayOf(DocumentsContract.Document.COLUMN_DISPLAY_NAME), null).use { cursor ->
-                cursor.moveToFirstOrThrow()
-                cursor.getString(DocumentsContract.Document.COLUMN_DISPLAY_NAME)
-            }
-        } catch (e: Exception) {
-            null
-        }
 
     private fun ((Long) -> Unit).invokeWithSize(uri: Uri) {
         val size = try {

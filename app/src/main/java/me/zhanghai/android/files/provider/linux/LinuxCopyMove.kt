@@ -16,10 +16,8 @@ import me.zhanghai.android.files.provider.linux.syscall.Constants
 import me.zhanghai.android.files.provider.linux.syscall.StructTimespec
 import me.zhanghai.android.files.provider.linux.syscall.Syscall
 import me.zhanghai.android.files.provider.linux.syscall.SyscallException
-import java.io.FileDescriptor
 import java.io.IOException
 import java.io.InterruptedIOException
-import java.util.concurrent.ThreadLocalRandom
 
 internal object LinuxCopyMove {
     private const val SEND_FILE_COUNT = 8 * 1024
@@ -30,8 +28,8 @@ internal object LinuxCopyMove {
 
     private val PART_SUFFIX = ".ordo-part".toByteString()
     private val PART_PREFIX = ".ordo-part-".toByteString()
-    private val HYPHEN = "-".toByteString()
     private val DOT = ".".toByteString()
+    private val SLASH_STRING = "/".toByteString()
     private val SLASH = '/'.code.toByte()
 
     @Throws(IOException::class)
@@ -58,12 +56,6 @@ internal object LinuxCopyMove {
                 copyOptions.progressListener?.invoke(sourceStat.st_size)
                 return
             }
-            if (OsConstants.S_ISDIR(sourceStat.st_mode) != OsConstants.S_ISDIR(targetStat.st_mode)) {
-                throw FileSystemException(
-                    source.toString(), target.toString(),
-                    "Cannot replace a directory with a file"
-                )
-            }
             if (!copyOptions.replaceExisting) {
                 throw FileAlreadyExistsException(source.toString(), target.toString(), null)
             }
@@ -75,8 +67,24 @@ internal object LinuxCopyMove {
             } catch (e: SyscallException) {
                 throw e.toFileSystemException(source.toString())
             }
+            // shortcut: no prompt on low-space overwrite, FileJob confirm when a dialog exists
+            val usePart = copyOptions.replaceExisting && targetStat != null
+                && hasRoomForPart(target, sourceStat.st_size)
+            val dest = if (usePart) partFile(target) else target
             try {
-                val (dest, destFd) = openExclusivePart(target, sourceStat.st_mode)
+                if (usePart) {
+                    removeIfExists(dest)
+                }
+                var destFlags = OsConstants.O_WRONLY or OsConstants.O_TRUNC or OsConstants.O_CREAT
+                if (usePart || !copyOptions.replaceExisting) {
+                    destFlags = destFlags or OsConstants.O_EXCL
+                }
+                val destFd = try {
+                    Syscall.open(dest, destFlags, sourceStat.st_mode)
+                } catch (e: SyscallException) {
+                    e.maybeThrowInvalidFileNameException(dest.toString())
+                    throw e.toFileSystemException(dest.toString())
+                }
                 var successful = false
                 try {
                     val progressIntervalMillis = copyOptions.progressIntervalMillis
@@ -110,7 +118,7 @@ internal object LinuxCopyMove {
                     } catch (e: SyscallException) {
                         throw e.toFileSystemException(dest.toString())
                     } finally {
-                        if (!successful) {
+                        if (!successful && usePart) {
                             try {
                                 Syscall.remove(dest)
                             } catch (e: SyscallException) {
@@ -119,7 +127,9 @@ internal object LinuxCopyMove {
                         }
                     }
                 }
-                renamePartOverTarget(dest, target, copyOptions.replaceExisting)
+                if (usePart) {
+                    renamePartOverTarget(dest, target, copyOptions.replaceExisting)
+                }
             } finally {
                 try {
                     Syscall.close(sourceFd)
@@ -310,24 +320,15 @@ internal object LinuxCopyMove {
         }
     }
 
-    internal fun partFile(target: ByteString): ByteString = partFile(target, null)
-
-    internal fun uniquePartFile(target: ByteString): ByteString =
-        partFile(target, Integer.toHexString(ThreadLocalRandom.current().nextInt()).toByteString())
-
-    private fun partFile(target: ByteString, id: ByteString?): ByteString {
+    internal fun partFile(target: ByteString): ByteString {
         val index = target.lastIndexOf(SLASH)
         val directory = if (index >= 0) target.substring(0, index + 1) else ByteString.EMPTY
         val name = if (index >= 0) target.substring(index + 1) else target
-        val longName = if (id != null) {
-            DOT + name + PART_SUFFIX + HYPHEN + id
-        } else {
-            DOT + name + PART_SUFFIX
-        }
+        val longName = DOT + name + PART_SUFFIX
         if (longName.length <= NAME_MAX) {
             return directory + longName
         }
-        return directory + PART_PREFIX + (id ?: Integer.toHexString(name.hashCode()).toByteString())
+        return directory + PART_PREFIX + Integer.toHexString(name.hashCode()).toByteString()
     }
 
     internal fun isPartFileName(name: ByteString): Boolean {
@@ -341,27 +342,35 @@ internal object LinuxCopyMove {
     internal fun sameInodeStillNeedsRename(source: ByteString, target: ByteString): Boolean =
         source != target
 
-    @Throws(IOException::class)
-    private fun openExclusivePart(target: ByteString, mode: Int): Pair<ByteString, FileDescriptor> {
-        var last: SyscallException? = null
-        for (attempt in 0 until 8) {
-            val dest = if (attempt == 0) partFile(target) else uniquePartFile(target)
-            try {
-                val fd = Syscall.open(
-                    dest, OsConstants.O_WRONLY or OsConstants.O_CREAT or OsConstants.O_EXCL, mode
-                )
-                return dest to fd
-            } catch (e: SyscallException) {
-                if (e.errno == OsConstants.EEXIST) {
-                    last = e
-                    continue
-                }
-                e.maybeThrowInvalidFileNameException(dest.toString())
-                throw e.toFileSystemException(dest.toString())
+    private fun hasRoomForPart(target: ByteString, sourceSize: Long): Boolean {
+        if (sourceSize <= 0L) {
+            return true
+        }
+        return try {
+            val vfs = Syscall.statvfs(parentOf(target))
+            vfs.f_bavail * vfs.f_bsize >= sourceSize
+        } catch (e: SyscallException) {
+            true
+        }
+    }
+
+    private fun parentOf(path: ByteString): ByteString {
+        val index = path.lastIndexOf(SLASH)
+        return when {
+            index > 0 -> path.substring(0, index)
+            index == 0 -> SLASH_STRING
+            else -> DOT
+        }
+    }
+
+    private fun removeIfExists(path: ByteString) {
+        try {
+            Syscall.remove(path)
+        } catch (e: SyscallException) {
+            if (e.errno != OsConstants.ENOENT) {
+                throw e.toFileSystemException(path.toString())
             }
         }
-        throw last?.toFileSystemException(target.toString())
-            ?: IOException("Cannot create a temporary copy next to $target")
     }
 
     private fun renamePartOverTarget(
@@ -369,92 +378,42 @@ internal object LinuxCopyMove {
         target: ByteString,
         replaceExisting: Boolean
     ) {
-        if (!replaceExisting) {
-            LinuxExclusivePublish.publish(
-                exclusiveRename = { renameExclusively(temp, target) },
-                deleteTemp = { removeQuietly(temp) }
-            )
-            return
-        }
         try {
             Syscall.rename(temp, target)
             return
         } catch (e: SyscallException) {
-            // Ignored; remove the target and retry.
-        }
-        try {
-            Syscall.remove(target)
-        } catch (e: SyscallException) {
-            if (e.errno != OsConstants.ENOENT) {
-                removeQuietly(temp, e)
-                throw e.toFileSystemException(target.toString())
-            }
-        }
-        try {
-            Syscall.rename(temp, target)
-        } catch (e: SyscallException) {
-            removeQuietly(temp, e)
-            e.maybeThrowInvalidFileNameException(target.toString())
-            throw e.toFileSystemException(temp.toString(), target.toString())
-        }
-    }
-
-    private fun renameExclusively(temp: ByteString, target: ByteString) {
-        try {
-            Syscall.renameNoReplace(temp, target)
-            return
-        } catch (e: SyscallException) {
-            if (e.errno == OsConstants.EEXIST) {
-                throw e.toFileSystemException(temp.toString(), target.toString())
-            }
-            if (!isExclusiveRenameUnsupported(e.errno)) {
+            if (!replaceExisting) {
+                try {
+                    Syscall.remove(temp)
+                } catch (e2: SyscallException) {
+                    e.addSuppressed(e2.toFileSystemException(temp.toString()))
+                }
                 e.maybeThrowInvalidFileNameException(target.toString())
                 throw e.toFileSystemException(temp.toString(), target.toString())
             }
         }
         try {
-            Syscall.link(temp, target)
-            removeQuietly(temp)
-            return
-        } catch (e: SyscallException) {
-            if (e.errno == OsConstants.EEXIST) {
-                throw e.toFileSystemException(temp.toString(), target.toString())
-            }
-        }
-        val exists = try {
-            Syscall.lstat(target)
-            true
+            Syscall.remove(target)
         } catch (e: SyscallException) {
             if (e.errno != OsConstants.ENOENT) {
+                try {
+                    Syscall.remove(temp)
+                } catch (e2: SyscallException) {
+                    e.addSuppressed(e2.toFileSystemException(temp.toString()))
+                }
                 throw e.toFileSystemException(target.toString())
             }
-            false
-        }
-        if (exists) {
-            throw FileAlreadyExistsException(temp.toString(), target.toString(), null)
         }
         try {
             Syscall.rename(temp, target)
         } catch (e: SyscallException) {
+            try {
+                Syscall.remove(temp)
+            } catch (e2: SyscallException) {
+                e.addSuppressed(e2.toFileSystemException(temp.toString()))
+            }
             e.maybeThrowInvalidFileNameException(target.toString())
             throw e.toFileSystemException(temp.toString(), target.toString())
-        }
-    }
-
-    private fun isExclusiveRenameUnsupported(errno: Int): Boolean =
-        errno == OsConstants.ENOSYS ||
-            errno == OsConstants.EINVAL ||
-            errno == OsConstants.EOPNOTSUPP
-
-    private fun removeQuietly(path: ByteString, cause: SyscallException? = null) {
-        try {
-            Syscall.remove(path)
-        } catch (e: SyscallException) {
-            if (cause != null) {
-                cause.addSuppressed(e.toFileSystemException(path.toString()))
-            } else {
-                e.printStackTrace()
-            }
         }
     }
 }

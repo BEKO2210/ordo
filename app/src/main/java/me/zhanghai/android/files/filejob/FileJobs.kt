@@ -99,7 +99,6 @@ import me.zhanghai.android.files.provider.common.createDirectory
 import me.zhanghai.android.files.provider.common.createFile
 import me.zhanghai.android.files.provider.common.delete
 import me.zhanghai.android.files.provider.common.deleteIfExists
-import me.zhanghai.android.files.provider.common.ForeignCopyMove
 import me.zhanghai.android.files.provider.common.exists
 import me.zhanghai.android.files.provider.common.getFileStore
 import me.zhanghai.android.files.provider.common.getMode
@@ -750,8 +749,7 @@ class ArchiveFileJob(
     @Throws(IOException::class)
     override fun run() {
         val scanInfo = scan(sources, R.plurals.file_job_archive_scan_notification_title_format)
-        val part = ForeignCopyMove.uniquePartFile(archiveFile)
-        val channel = part.newByteChannel(
+        val channel = archiveFile.newByteChannel(
             StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE
         )
         var successful = false
@@ -766,12 +764,11 @@ class ArchiveFileJob(
                     }
                 }
             }
-            part.moveTo(archiveFile)
             successful = true
         } finally {
             if (!successful) {
                 try {
-                    part.deleteIfExists()
+                    archiveFile.deleteIfExists()
                 } catch (e: IOException) {
                     e.printStackTrace()
                 } catch (e: UnsupportedOperationException) {
@@ -2721,17 +2718,13 @@ class MoveToVaultJob(private val paths: List<Path>) : FileJob() {
     private fun moveToVault(path: Path) {
         while (true) {
             try {
-                val entry = path.newInputStream().use {
-                    Vault.store.add(path.toString(), it, deleteOriginalWhenComplete = true)
-                }
+                val entry = path.newInputStream().use { Vault.store.add(path.toString(), it) }
                 try {
                     path.delete()
                 } catch (e: IOException) {
                     // The original stays, so the copy must go or the file would exist twice.
                     Vault.store.delete(entry)
                     throw e
-                } finally {
-                    Vault.store.clearSourcePendingDelete(entry)
                 }
                 return
             } catch (e: InterruptedIOException) {
@@ -2780,22 +2773,22 @@ class RestoreVaultJob(private val entries: List<VaultEntry>) : FileJob() {
             try {
                 val target = Paths.get(Trash.restoreTarget(entry.originalPath) { File(it).exists() })
                 target.parent?.createDirectories()
-                // A kill during the copy must not leave a half file under the real name,
-                // and must not empty a user file that happens to share the old part name.
-                val parent = target.toFile().parentFile
-                    ?: throw IOException("Cannot restore $target without a parent")
-                val partFile = File.createTempFile(".ordo-vault-", ".part", parent)
-                val part = Paths.get(partFile.path)
+                // A kill during the copy must not leave a half file under the real name.
+                val part = target.resolveSibling(".${target.fileName}.ordo-part")
                 Vault.store.open(entry).use { input ->
+                    val channel = part.newByteChannel(
+                        StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING,
+                        StandardOpenOption.WRITE
+                    )
                     try {
-                        partFile.outputStream().channel.use { channel ->
-                            input.copyInterruptiblyTo(Channels.newOutputStream(channel))
+                        channel.use {
+                            input.copyInterruptiblyTo(Channels.newOutputStream(it))
                             // The vault copy is deleted next, so the restored file must be on disk.
-                            channel.force(true)
+                            (it as? FileChannel)?.force(true)
                         }
                         part.moveTo(target)
                     } catch (e: IOException) {
-                        partFile.delete()
+                        part.deleteIfExists()
                         throw e
                     }
                 }

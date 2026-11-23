@@ -34,8 +34,7 @@ class VaultStore(private val directory: File, private val aead: StreamingAead) {
     fun add(
         originalPath: String,
         input: InputStream,
-        now: Long = System.currentTimeMillis(),
-        deleteOriginalWhenComplete: Boolean = false
+        now: Long = System.currentTimeMillis()
     ): VaultEntry {
         if (!directory.isDirectory && !directory.mkdirs()) {
             throw IOException("Cannot create vault in $directory")
@@ -43,7 +42,6 @@ class VaultStore(private val directory: File, private val aead: StreamingAead) {
         val id = "$now-${UUID.randomUUID().toString().take(8)}"
         val tempFile = File(directory, id + TEMP_SUFFIX)
         val infoFile = File(directory, id + INFO_SUFFIX)
-        val pendingFile = File(directory, id + PENDING_SUFFIX)
         var isAdded = false
         try {
             val size = encrypt(tempFile, id).use { input.copyInterruptiblyTo(it) }
@@ -54,15 +52,11 @@ class VaultStore(private val directory: File, private val aead: StreamingAead) {
                 throw IOException("Cannot finish vault entry $id")
             }
             isAdded = true
-            if (deleteOriginalWhenComplete) {
-                markSourcePendingDelete(entry, File(originalPath))
-            }
             return entry
         } finally {
             if (!isAdded) {
                 tempFile.delete()
                 infoFile.delete()
-                pendingFile.delete()
             }
         }
     }
@@ -110,45 +104,6 @@ class VaultStore(private val directory: File, private val aead: StreamingAead) {
 
     fun delete(entry: VaultEntry): Boolean =
         File(directory, entry.id).delete() && File(directory, entry.id + INFO_SUFFIX).delete()
-
-    fun markSourcePendingDelete(entry: VaultEntry, original: File = File(entry.originalPath)) {
-        File(directory, entry.id + PENDING_SUFFIX).writeText(formatPendingSource(original))
-    }
-
-    fun clearSourcePendingDelete(entry: VaultEntry) {
-        File(directory, entry.id + PENDING_SUFFIX).delete()
-    }
-
-    /** Completes a move that died after the vault copy existed and before the original was deleted. */
-    fun finishPendingSourceDeletes() {
-        for (file in directory.listFiles().orEmpty()) {
-            if (!file.name.endsWith(PENDING_SUFFIX)) {
-                continue
-            }
-            val id = file.name.removeSuffix(PENDING_SUFFIX)
-            if (!File(directory, id).isFile) {
-                file.delete()
-                continue
-            }
-            val pending = parsePendingSource(file.readText())
-            if (pending == null) {
-                file.delete()
-                continue
-            }
-            val original = File(pending.path)
-            if (!original.isFile) {
-                file.delete()
-                continue
-            }
-            if (!matchesPendingSource(original, pending)) {
-                file.delete()
-                continue
-            }
-            if (original.delete()) {
-                file.delete()
-            }
-        }
-    }
 
     // A crash while adding or deleting leaves a temp or info file that no entry points to.
     fun purgeLeftovers(now: Long = System.currentTimeMillis()) {
@@ -216,37 +171,12 @@ class VaultStore(private val directory: File, private val aead: StreamingAead) {
     companion object {
         const val INFO_SUFFIX = ".info"
         const val TEMP_SUFFIX = ".tmp"
-        const val PENDING_SUFFIX = ".pending-src"
         const val LEFTOVER_AGE_MILLIS = 24L * 60 * 60 * 1000
         private const val KEY_PATH = "path"
         private const val KEY_SIZE = "size"
         private const val KEY_ADDED_AT = "addedAt"
-
-        internal fun formatPendingSource(original: File): String =
-            original.path + "\n" + original.length() + "\n" + original.lastModified()
-
-        internal fun parsePendingSource(text: String): PendingSourceDelete? {
-            val lines = text.split('\n')
-            if (lines.size < 3) {
-                return null
-            }
-            val length = lines[1].toLongOrNull() ?: return null
-            val lastModified = lines[2].toLongOrNull() ?: return null
-            return PendingSourceDelete(lines[0], length, lastModified)
-        }
-
-        internal fun matchesPendingSource(original: File, pending: PendingSourceDelete): Boolean =
-            original.isFile &&
-                original.length() == pending.length &&
-                original.lastModified() == pending.lastModified
     }
 }
-
-internal data class PendingSourceDelete(
-    val path: String,
-    val length: Long,
-    val lastModified: Long
-)
 
 /** Like copyTo(), but a cancelled file job stops in the middle of a large file. */
 @Throws(IOException::class)
