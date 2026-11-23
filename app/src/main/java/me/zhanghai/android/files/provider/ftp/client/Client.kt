@@ -29,6 +29,16 @@ import org.apache.commons.net.ftp.FTPFile
 import org.apache.commons.net.ftp.FTPReply
 import org.apache.commons.net.ftp.FTPSClient
 
+internal const val FTP_POOL_IDLE_MILLIS = 60_000L
+internal const val FTP_POOL_MAX = 4
+
+/** A stale pooled control connection is logged out instead of reused. */
+internal fun ftpPooledClientStale(idleAt: Long, now: Long): Boolean =
+    now - idleAt >= FTP_POOL_IDLE_MILLIS
+
+/** The pool keeps at most [FTP_POOL_MAX] idle clients per server. */
+internal fun ftpPoolHasRoom(size: Int): Boolean = size < FTP_POOL_MAX
+
 object Client {
     private val TIMESTAMP_FORMATTER =
         DateTimeFormatter.ofPattern("yyyyMMddHHmmss", Locale.ROOT)
@@ -38,16 +48,34 @@ object Client {
     @Volatile
     lateinit var authenticator: Authenticator
 
-    private val clientPool = mutableMapOf<Authority, MutableList<FTPClient>>()
+    private val clientPool = mutableMapOf<Authority, MutableList<Pooled>>()
 
     private val directoryFilesCache = Collections.synchronizedMap(WeakHashMap<Path, FTPFile>())
+
+    init {
+        Thread({
+            while (true) {
+                try {
+                    Thread.sleep(30_000L)
+                    sweepPool()
+                } catch (e: InterruptedException) {
+                    return@Thread
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+        }, "ftp-client-pool").apply {
+            isDaemon = true
+            start()
+        }
+    }
 
     @Throws(IOException::class)
     private fun acquireClient(authority: Authority): FTPClient {
         while (true) {
             val client = acquireClientUnchecked(authority) ?: break
             if (!client.isConnected) {
-                client.disconnect()
+                closeQuietly(client)
                 continue
             }
             val isAlive = try {
@@ -65,15 +93,27 @@ object Client {
         return createClient(authority)
     }
 
-    private fun acquireClientUnchecked(authority: Authority): FTPClient? =
-        synchronized(clientPool) {
-            val pooledClients = clientPool[authority] ?: return null
-            pooledClients.removeLastOrNull().also {
+    private fun acquireClientUnchecked(authority: Authority): FTPClient? {
+        while (true) {
+            val pooled = synchronized(clientPool) {
+                val pooledClients = clientPool[authority] ?: return@synchronized null
                 if (pooledClients.isEmpty()) {
                     clientPool -= authority
+                    return@synchronized null
                 }
+                pooledClients.removeLast().also {
+                    if (pooledClients.isEmpty()) {
+                        clientPool -= authority
+                    }
+                }
+            } ?: return null
+            if (ftpPooledClientStale(pooled.idleAt, System.currentTimeMillis())) {
+                closeQuietly(pooled.client)
+                continue
             }
+            return pooled.client
         }
+    }
 
     @Throws(IOException::class)
     private fun createClient(authority: Authority): FTPClient {
@@ -84,6 +124,9 @@ object Client {
             // This has to be set before connect().
             controlEncoding = authority.encoding
             listHiddenFiles = true
+            setConnectTimeout(15_000)
+            setDefaultTimeout(60_000)
+            setDataTimeout(60_000)
             connect(authority.host, authority.port)
             try {
                 if (!FTPReply.isPositiveCompletion(replyCode)) {
@@ -118,16 +161,45 @@ object Client {
 
     private fun releaseClient(authority: Authority, client: FTPClient) {
         if (!client.isConnected) {
-            client.disconnect()
+            closeQuietly(client)
             return
         }
-        // FIXME: Disconnect clients based on time.
-        if (false) {
-            closeClient(client)
-            return
+        val leftover = synchronized(clientPool) {
+            val pooled = clientPool.getOrPut(authority) { mutableListOf() }
+            if (!ftpPoolHasRoom(pooled.size)) {
+                client
+            } else {
+                pooled += Pooled(client, System.currentTimeMillis())
+                null
+            }
         }
+        leftover?.let { closeClient(it) }
+    }
+
+    private fun sweepPool() {
+        val now = System.currentTimeMillis()
+        val stale = mutableListOf<FTPClient>()
         synchronized(clientPool) {
-            clientPool.getOrPut(authority) { mutableListOf() } += client
+            val empty = mutableListOf<Authority>()
+            for ((authority, pooled) in clientPool) {
+                val iterator = pooled.iterator()
+                while (iterator.hasNext()) {
+                    val entry = iterator.next()
+                    if (ftpPooledClientStale(entry.idleAt, now)) {
+                        iterator.remove()
+                        stale += entry.client
+                    }
+                }
+                if (pooled.isEmpty()) {
+                    empty += authority
+                }
+            }
+            for (authority in empty) {
+                clientPool -= authority
+            }
+        }
+        for (client in stale) {
+            closeQuietly(client)
         }
     }
 
@@ -137,8 +209,22 @@ object Client {
         } catch (e: IOException) {
             e.printStackTrace()
         }
-        client.disconnect()
+        try {
+            client.disconnect()
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
     }
+
+    private fun closeQuietly(client: FTPClient) {
+        try {
+            closeClient(client)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    private class Pooled(val client: FTPClient, val idleAt: Long)
 
     private inline fun <R> useClient(authority: Authority, block: (FTPClient) -> R): R {
         val client = acquireClient(authority)
@@ -338,6 +424,7 @@ object Client {
     ) : DelegateInputStream(inputStream) {
         @Throws(IOException::class)
         override fun close() {
+            var keep = false
             try {
                 super.close()
                 if (!client.completePendingCommand()) {
@@ -345,9 +432,12 @@ object Client {
                     // decoding images) and it will result in an error reported here, but that's
                     // totally fine.
                     client.createNegativeReplyCodeException().printStackTrace()
+                } else {
+                    keep = true
                 }
             } finally {
-                releaseClient(authority, client)
+                if (keep) releaseClient(authority, client)
+                else closeQuietly(client)
             }
         }
     }
@@ -359,13 +449,16 @@ object Client {
     ) : DelegateOutputStream(outputStream) {
         @Throws(IOException::class)
         override fun close() {
+            var keep = false
             try {
                 super.close()
                 if (!client.completePendingCommand()) {
                     client.throwNegativeReplyCodeException()
                 }
+                keep = true
             } finally {
-                releaseClient(authority, client)
+                if (keep) releaseClient(authority, client)
+                else closeQuietly(client)
             }
         }
     }

@@ -54,6 +54,8 @@ import me.zhanghai.android.files.backup.BackupSourceException
 import me.zhanghai.android.files.backup.BackupSourceStream
 import me.zhanghai.android.files.backup.BackupStatus
 import me.zhanghai.android.files.backup.BackupStatusLiveData
+import me.zhanghai.android.files.backup.CutBackup
+import me.zhanghai.android.files.backup.screenStillShowsJob
 import me.zhanghai.android.files.backup.RestoreDestination
 import me.zhanghai.android.files.backup.RestoreDestinationState
 import me.zhanghai.android.files.backup.backupEntryName
@@ -2790,7 +2792,7 @@ class RestorePreviewJob(
             )
             val result = inspectArchive()
             throwIfInterrupted()
-            BackupStatusLiveData.postValue(
+            postIfStillChecking(
                 if (result.needsPassword) {
                     BackupStatus.RestoreNeedsPassword(source)
                 } else {
@@ -2807,9 +2809,9 @@ class RestorePreviewJob(
             e.printStackTrace()
             val passwordError = e.isArchivePasswordError()
             if (password == null && passwordError) {
-                BackupStatusLiveData.postValue(BackupStatus.RestoreNeedsPassword(source))
+                postIfStillChecking(BackupStatus.RestoreNeedsPassword(source))
             } else {
-                BackupStatusLiveData.postValue(
+                postIfStillChecking(
                     BackupStatus.RestoreFailed(
                         source,
                         passwordError,
@@ -2878,9 +2880,16 @@ class RestorePreviewJob(
         }
     }
 
+    private fun postIfStillChecking(status: BackupStatus) {
+        val currentJobId = (BackupStatusLiveData.value as? BackupStatus.RestoreChecking)?.jobId
+        if (screenStillShowsJob(currentJobId, id)) {
+            BackupStatusLiveData.postValue(status)
+        }
+    }
+
     private fun postIdleIfCurrent() {
         val currentJobId = (BackupStatusLiveData.value as? BackupStatus.RestoreChecking)?.jobId
-        if (currentJobId == null || currentJobId == id) {
+        if (currentJobId == null || screenStillShowsJob(currentJobId, id)) {
             BackupStatusLiveData.postValue(BackupStatus.Idle)
         }
     }
@@ -2943,14 +2952,17 @@ class RestoreBackupJob(
                 throw ChangedRestoreArchiveException()
             }
             throwIfInterrupted()
-            BackupStatusLiveData.postValue(
-                BackupStatus.RestoreDone(restored, skipped, failed, vaultFileCount)
-            )
-            showToast(R.string.restore_done_title)
+            val runningJobId = (BackupStatusLiveData.value as? BackupStatus.RestoreRunning)?.jobId
+            if (screenStillShowsJob(runningJobId, id)) {
+                BackupStatusLiveData.postValue(
+                    BackupStatus.RestoreDone(restored, skipped, failed, vaultFileCount)
+                )
+                showToast(R.string.restore_done_title)
+            }
         } catch (e: Exception) {
             if (e.isInterruptedFileJob()) {
                 if (service.isTimedOut) {
-                    BackupStatusLiveData.postValue(
+                    postRestoreIfCurrent(
                         BackupStatus.RestoreFailed(
                             source, false, getString(R.string.file_job_timeout_message), restored,
                             skipped, failed, vaultFileCount
@@ -2958,15 +2970,16 @@ class RestoreBackupJob(
                     )
                     return
                 }
-                val currentJobId =
-                    (BackupStatusLiveData.value as? BackupStatus.RestoreRunning)?.jobId
-                if (currentJobId == null || currentJobId == id) {
-                    BackupStatusLiveData.postValue(BackupStatus.Idle)
-                }
+                postRestoreIfCurrent(
+                    BackupStatus.RestoreFailed(
+                        source, false, getString(R.string.restore_error_cancelled), restored,
+                        skipped, failed, vaultFileCount
+                    )
+                )
                 return
             }
             e.printStackTrace()
-            BackupStatusLiveData.postValue(
+            postRestoreIfCurrent(
                 BackupStatus.RestoreFailed(
                     source,
                     e.isArchivePasswordError(),
@@ -3081,6 +3094,13 @@ class RestoreBackupJob(
             getString(R.string.restore_notification_title), fileName, null, null, 100, progress,
             false, true
         )
+    }
+
+    private fun postRestoreIfCurrent(status: BackupStatus) {
+        val currentJobId = (BackupStatusLiveData.value as? BackupStatus.RestoreRunning)?.jobId
+        if (currentJobId == null || screenStillShowsJob(currentJobId, id)) {
+            BackupStatusLiveData.postValue(status)
+        }
     }
 }
 
@@ -3272,8 +3292,9 @@ class BackupJob(
             postProgress(-1, null)
             val sources = collectSources()
             if (sources.isEmpty()) {
+                throwIfInterrupted()
                 deleteTarget()
-                BackupStatusLiveData.postValue(BackupStatus.Failed(null, false))
+                postIfCurrent(BackupStatus.Failed(null, false))
                 return
             }
             val totalSize = sources.sumOf { it.size }.coerceAtLeast(1)
@@ -3296,7 +3317,8 @@ class BackupJob(
             // An unknown size must not count as empty: the old backup would be cut.
             if (existingDataSize != 0L) {
                 existingPfd?.close()
-                BackupStatusLiveData.postValue(
+                throwIfInterrupted()
+                postIfCurrent(
                     BackupStatus.Failed(null, false, getString(R.string.backup_failed_name_taken))
                 )
                 return
@@ -3314,8 +3336,9 @@ class BackupJob(
                 val stat = Os.fstatvfs(fileDescriptor)
                 val freeSize = stat.f_bavail * stat.f_frsize + existingSize
                 if (stat.f_blocks > 0 && freeSize < totalSize) {
+                    throwIfInterrupted()
                     deleteTarget()
-                    BackupStatusLiveData.postValue(
+                    postIfCurrent(
                         BackupStatus.Failed(
                             null, false,
                             getString(
@@ -3335,6 +3358,7 @@ class BackupJob(
                     }
                     isTargetCut = true
                 }
+                CutBackup.mark(service.filesDir, target.toString())
                 ArchiveWriter(channel, Archive.FORMAT_ZIP, Archive.FILTER_NONE, password).use {
                     writer ->
                     // Comes first, so the restore knows how vault files are named before it reads one.
@@ -3386,16 +3410,18 @@ class BackupJob(
                     }
                 }
             }
-            BackupStatusLiveData.postValue(
-                BackupStatus.Done(fileCount, writtenSize, skipped.toList())
-            )
-            showToast(R.string.backup_done_toast)
+            throwIfInterrupted()
+            CutBackup.clear(service.filesDir)
+            throwIfInterrupted()
+            if (postIfCurrent(BackupStatus.Done(fileCount, writtenSize, skipped.toList()))) {
+                showToast(R.string.backup_done_toast)
+            }
         } catch (e: Exception) {
             // A blocked write that gets cancelled fails with the interrupt flag still set.
             val isCancelled = e is InterruptedIOException || Thread.interrupted()
             deleteTarget()
             if (isCancelled && service.isTimedOut) {
-                BackupStatusLiveData.postValue(
+                postIfCurrent(
                     BackupStatus.Failed(null, false, getString(R.string.file_job_timeout_message))
                 )
                 return
@@ -3403,13 +3429,13 @@ class BackupJob(
             if (isCancelled) {
                 // Also replaces a progress update of this job that is still on its way.
                 val runningJobId = (BackupStatusLiveData.value as? BackupStatus.Running)?.jobId
-                if (runningJobId == null || runningJobId == id) {
+                if (runningJobId == null || screenStillShowsJob(runningJobId, id)) {
                     BackupStatusLiveData.postValue(BackupStatus.Idle)
                 }
                 return
             }
             e.printStackTrace()
-            BackupStatusLiveData.postValue(
+            postIfCurrent(
                 BackupStatus.Failed(
                     e.toString(), writtenSize >= FAT32_FILE_SIZE_HINT,
                     (e as? BackupSourceException)?.let {
@@ -3493,6 +3519,15 @@ class BackupJob(
         )
     }
 
+    private fun postIfCurrent(status: BackupStatus): Boolean {
+        val runningJobId = (BackupStatusLiveData.value as? BackupStatus.Running)?.jobId
+        if (!screenStillShowsJob(runningJobId, id)) {
+            return false
+        }
+        BackupStatusLiveData.postValue(status)
+        return true
+    }
+
     private fun documentSize(): Long =
         try {
             service.contentResolver.query(
@@ -3513,6 +3548,7 @@ class BackupJob(
         }
         try {
             DocumentsContract.deleteDocument(service.contentResolver, target)
+            CutBackup.clear(service.filesDir)
         } catch (e: Exception) {
             e.printStackTrace()
         }

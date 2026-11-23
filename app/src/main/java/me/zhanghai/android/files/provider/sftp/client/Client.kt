@@ -22,6 +22,7 @@ import net.schmizz.sshj.userauth.UserAuthException
 import java.io.IOException
 import java.util.Collections
 import java.util.WeakHashMap
+import java.util.concurrent.ConcurrentHashMap
 import java8.nio.file.Path as Java8Path
 
 object Client {
@@ -31,6 +32,8 @@ object Client {
     lateinit var authenticator: Authenticator
 
     private val clients = mutableMapOf<Authority, OpenedClient>()
+
+    private val threadClients = ConcurrentHashMap<Thread, OpenedClient>()
 
     private val directoryFileAttributesCache =
         Collections.synchronizedMap(WeakHashMap<Path, FileAttributes>())
@@ -87,9 +90,17 @@ object Client {
         flags: Set<OpenMode>,
         attributes: FileAttributes
     ): SeekableByteChannel {
-        val file = open(path, flags, attributes)
+        val client = getClient(path.authority)
+        val file = try {
+            client.open(path.remotePath, flags, attributes)
+        } catch (e: IOException) {
+            throw ClientException(e)
+        }
         return NotifyEntryModifiedSeekableByteChannel(
-            FileByteChannel(file, flags.contains(OpenMode.APPEND)), path as Java8Path
+            FileByteChannel(file, flags.contains(OpenMode.APPEND)) {
+                noteTransportError(client)
+            },
+            path as Java8Path
         )
     }
 
@@ -230,6 +241,7 @@ object Client {
             val opened = clients[authority]
             if (opened != null) {
                 if (opened.sftp.sftpEngine.subsystem.isOpen) {
+                    threadClients[Thread.currentThread()] = opened
                     return opened.sftp
                 } else {
                     closeOpened(opened)
@@ -264,8 +276,34 @@ object Client {
                 sshClient.closeSafe()
                 throw ClientException(e)
             }
-            clients[authority] = OpenedClient(sshClient, sftp)
+            val created = OpenedClient(sshClient, sftp)
+            clients[authority] = created
+            threadClients[Thread.currentThread()] = created
             return sftp
+        }
+    }
+
+    fun disconnectThread(thread: Thread) {
+        synchronized(clients) {
+            val opened = threadClients.remove(thread) ?: return
+            val authority = clients.entries.find { it.value === opened }?.key
+            if (authority != null) {
+                clients -= authority
+            }
+            closeOpened(opened)
+        }
+    }
+
+    fun releaseThread(thread: Thread) {
+        threadClients.remove(thread)
+    }
+
+    internal fun noteTransportError(sftp: SFTPClient) {
+        synchronized(clients) {
+            val authority = clients.entries.find { it.value.sftp === sftp }?.key ?: return
+            val opened = clients.remove(authority) ?: return
+            threadClients.entries.removeIf { it.value === opened }
+            closeOpened(opened)
         }
     }
 

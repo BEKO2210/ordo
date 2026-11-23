@@ -19,4 +19,17 @@ class ClientTimeoutTest {
         assertTrue(open.contains("connectTimeout = CONNECT_TIMEOUT_MILLIS"))
         assertTrue(open.contains("timeout = 0"))
     }
+
+    @Test
+    fun cancelDisconnectsTheThreadSessionAndDropsADeadTransport() {
+        val client = File("src/main/java/me/zhanghai/android/files/provider/sftp/client/Client.kt")
+            .readText()
+        assertTrue(client.contains("fun disconnectThread"))
+        assertTrue(client.contains("fun releaseThread"))
+        assertTrue(client.contains("fun noteTransportError"))
+        val channel = File("src/main/java/me/zhanghai/android/files/provider/sftp/client/FileByteChannel.kt")
+            .readText()
+        assertTrue(channel.contains("onTransportError"))
+        assertTrue(channel.contains("this !is SFTPException"))
+    }
 }

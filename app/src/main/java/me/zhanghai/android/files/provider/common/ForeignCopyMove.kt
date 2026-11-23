@@ -46,10 +46,10 @@ internal object ForeignCopyMove {
                     emptyArray()
                 }
                 removeLeftoverPartFiles(target)
-                // shortcut: no prompt on low-space overwrite, FileJob confirm when a dialog exists
-                val usePart = copyOptions.replaceExisting
-                    && target.exists(LinkOption.NOFOLLOW_LINKS)
-                    && hasRoomForPart(target, sourceAttributes.size())
+                val targetExists = target.exists(LinkOption.NOFOLLOW_LINKS)
+                // A new file is finished by rename, so cancelling does not leave a short file
+                // under the real name. Overwrite without room for a second copy still truncates.
+                val usePart = !targetExists || hasRoomForPart(target, sourceAttributes.size())
                 val dest = if (usePart) partFile(target) else target
                 if (usePart) {
                     try {

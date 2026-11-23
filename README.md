@@ -33,14 +33,13 @@
 </p>
 
 <!-- AUTO:new -->
-> **New in 0.18.0**
-> - HDR movies look more natural on regular displays
-> - Detail plus is faster and now set to "Automatic"
-> - New: "Dialogue isolation plus" separates voices on the device with AI (optional)
-> - Audio delay is remembered per headphone
-> - USB DAC: output is unaltered again
-> - Rate, share and send feedback for Ordo right from Settings
-> - Many small improvements
+> **New in 0.18.1**
+> - Fixed a crash when tapping the video notification
+> - Safer file handling: mixed selections go to the trash, undo works again
+> - Vault and image viewer protected against opening internal files
+> - FTP server now starts with a password and no anonymous access
+> - Network shares stay connected while idle
+> - Music and Cast: more reliable playback and sleep timer
 <!-- /AUTO:new -->
 
 ## Status
@@ -358,7 +357,7 @@ Type or dictate “Move all MP3s from Download to Music”. Ordo shows the plan 
 
 - Vault: files are encrypted with AES-256-GCM and opened with your screen lock
 - Backup: folders and the vault as a ZIP to a USB drive or any place your phone offers, such as Google Drive, with an
-  optional password (AES-256), plus safe restore of normal files without replacing existing files; folders you added can be removed from the list again; a file that fails halfway stops the backup instead of ending up cut short in it; app data in `Android/data` and `Android/obb` is left out, because Android does not let it be restored
+  optional password (AES-256), plus safe restore of normal files without replacing existing files; cancelling restore keeps files already written and shows the counts; a backup cut short by a crash is deleted the next time Ordo starts; folders you added can be removed from the list again; a file that fails halfway stops the backup instead of ending up cut short in it; app data in `Android/data` and `Android/obb` is left out, because Android does not let it be restored
 
 **Ask in your own words** – see [AI commands](#ai-commands)
 
@@ -368,7 +367,7 @@ Type or dictate “Move all MP3s from Download to Music”. Ordo shows the plan 
 
 **For power users**
 
-- FTP, SFTP, SMB and WebDAV servers, and a built-in FTP server
+- FTP, SFTP, SMB and WebDAV servers, and a built-in FTP server; a cancelled copy onto a network folder does not leave a truncated file under the real name
 - Root and Shizuku access, Linux permissions, symbolic links, SELinux context
 
 **Make it yours** – in Settings › Appearance
@@ -512,7 +511,7 @@ Run the unit tests with:
 ```
 
 <!-- AUTO:tests -->
-Device tests: 45 scripts in [`e2e/`](e2e/README.md), run with `e2e/run.sh`: 15 read-only (`first-run`, `smoke`, `settings-visual`, `category-search`, `back-navigation`, `bars-replay`, `home-header`, `header-position`, `home-pull`, `drawer`, `selection-more`, `tablet-landscape`, `analysis`, `ai-show-guard`, `documents-provider`) and 30 more with `--write` (`stress-delete`, `backup-restore`, `home-auto-refresh`, `audio-player`, `cast`, `klang`, `klang-landscape`, `klang-stress`, `music-formats`, `music-library`, `launcher-icons`, `icon-colors`, `ai-show`, `pick-file`, `no-midword-breaks`, `player-seek`, `player-stage2`, `video-player`, `video-network`, `video-sound`, `video-dialog-isolate`, `video-subtitles`, `video-background`, `video-library`, `video-seek`, `video-picture`, `video-picture-adjust`, `video-detailplus`, `video-menus`, `sheets-polish`). Unit tests: 141 test classes in `app/src/test`.
+Device tests: 53 scripts in [`e2e/`](e2e/README.md), run with `e2e/run.sh`: 15 read-only (`first-run`, `smoke`, `settings-visual`, `category-search`, `back-navigation`, `bars-replay`, `home-header`, `header-position`, `home-pull`, `drawer`, `selection-more`, `tablet-landscape`, `analysis`, `ai-show-guard`, `documents-provider`) and 38 more with `--write` (`stress-delete`, `backup-restore`, `copy-unreadable`, `home-auto-refresh`, `audio-player`, `cast`, `klang`, `klang-landscape`, `klang-stress`, `music-formats`, `music-library`, `launcher-icons`, `icon-colors`, `ai-show`, `pick-file`, `no-midword-breaks`, `player-seek`, `player-stage2`, `video-player`, `video-network`, `video-sound`, `video-dialog-isolate`, `video-subtitles`, `video-background`, `video-library`, `video-seek`, `video-picture`, `video-picture-adjust`, `video-detailplus`, `video-menus`, `sheets-polish`, `copy-replace`, `ftp-server-fd`, `video-notification`, `ftp-server-defaults`, `backup-self-include`, `vault-secure-flag`, `text-editor-atomic-save`). Unit tests: 154 test classes in `app/src/test`.
 <!-- /AUTO:tests -->
 
 ## Roadmap

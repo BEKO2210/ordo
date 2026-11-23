@@ -977,6 +977,7 @@
     <string name="restore_error_changed_archive">The backup changed after Ordo checked it. Restore stopped and no more files were written.</string>
     <string name="restore_error_empty">This backup contains no files to restore.</string>
     <string name="restore_error_vault_only">This backup contains only vault files. They cannot be restored safely because the backup does not contain enough information to rebuild the vault.</string>
+    <string name="restore_error_cancelled">Restore was cancelled. Files already written stay in place.</string>
 
     <!-- Ordo: trash -->
     <string name="navigation_trash">Trash</string>

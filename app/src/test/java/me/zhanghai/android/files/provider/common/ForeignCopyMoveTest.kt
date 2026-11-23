@@ -74,13 +74,14 @@ class ForeignCopyMoveTest {
     }
 
     @Test
-    fun newFileCopyCreatesTheTargetExclusively() {
+    fun newFileCopyWritesThroughAPartFile() {
         val copy = File("src/main/java/me/zhanghai/android/files/provider/common/ForeignCopyMove.kt")
             .readText()
             .substringAfter("sourceAttributes.isRegularFile ->")
             .substringBefore("sourceAttributes.isDirectory ->")
-        assertTrue(copy.contains("usePart = copyOptions.replaceExisting"))
+        assertTrue(copy.contains("!targetExists || hasRoomForPart"))
         assertTrue(copy.contains("usePart || !copyOptions.replaceExisting"))
         assertTrue(copy.contains("CREATE_NEW"))
+        assertFalse(copy.contains("usePart = copyOptions.replaceExisting"))
     }
 }
