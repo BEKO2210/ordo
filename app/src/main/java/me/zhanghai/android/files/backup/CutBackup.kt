@@ -26,6 +26,8 @@ internal object CutBackup {
     }
 
     fun peek(directory: File): String? {
+        // A leftover .tmp is an unfinished mark: treating it as real would delete a
+        // backup whose URI we never finished writing.
         val text = File(directory, NAME).takeIf { it.isFile }?.readText()?.trim().orEmpty()
         return text.ifEmpty { null }
     }

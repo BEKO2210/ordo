@@ -20,9 +20,10 @@ import net.schmizz.sshj.sftp.SFTPException
 import net.schmizz.sshj.transport.TransportException
 import net.schmizz.sshj.userauth.UserAuthException
 import java.io.IOException
+import java.io.InterruptedIOException
 import java.util.Collections
 import java.util.WeakHashMap
-import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.Executors
 import java8.nio.file.Path as Java8Path
 
 object Client {
@@ -31,9 +32,11 @@ object Client {
     @Volatile
     lateinit var authenticator: Authenticator
 
-    private val clients = mutableMapOf<Authority, OpenedClient>()
+    private val sessions = SftpSessionTable<Authority, OpenedClient>()
 
-    private val threadClients = ConcurrentHashMap<Thread, OpenedClient>()
+    private val closer = Executors.newCachedThreadPool { runnable ->
+        Thread(runnable, "sftp-disconnect").apply { isDaemon = true }
+    }
 
     private val directoryFileAttributesCache =
         Collections.synchronizedMap(WeakHashMap<Path, FileAttributes>())
@@ -237,73 +240,99 @@ object Client {
 
     @Throws(ClientException::class)
     private fun getClient(authority: Authority): SFTPClient {
-        synchronized(clients) {
-            val opened = clients[authority]
-            if (opened != null) {
-                if (opened.sftp.sftpEngine.subsystem.isOpen) {
-                    threadClients[Thread.currentThread()] = opened
-                    return opened.sftp
-                } else {
-                    closeOpened(opened)
-                    clients -= authority
+        val thread = Thread.currentThread()
+        if (!sessions.isJobBound(thread) && sessions.wasCancelled(thread)) {
+            throw ClientException(InterruptedIOException())
+        }
+        val existing = if (sessions.isJobBound(thread)) {
+            sessions.lookupJob(thread, authority)
+        } else {
+            sessions.lookupShared(authority)
+        }
+        if (existing != null) {
+            if (existing.sftp.sftpEngine.subsystem.isOpen) {
+                return existing.sftp
+            }
+            sessions.dropMatching { it === existing }
+            closeLater(listOf(existing))
+        }
+        val created = openSftp(authority)
+        if (sessions.isJobBound(thread)) {
+            when (val stored = sessions.storeJob(thread, authority, created)) {
+                SftpJobStore.Unbound -> {
+                    closeLater(listOf(created))
+                    throw ClientException(InterruptedIOException())
+                }
+                is SftpJobStore.Stored -> {
+                    stored.previous?.let { closeLater(listOf(it)) }
+                    return created.sftp
                 }
             }
-            val authentication = authenticator.getAuthentication(authority)
-                ?: throw ClientException("No authentication found for $authority")
-            val sshClient = SSHClient().apply {
-                addHostKeyVerifier(TofuHostKeyVerifier)
-                connectTimeout = CONNECT_TIMEOUT_MILLIS
-                timeout = 0
-            }
-            try {
-                sshClient.connect(authority.host, authority.port)
-            } catch (e: IOException) {
-                sshClient.closeSafe()
-                throw ClientException(e)
-            }
-            try {
-                sshClient.auth(authority.username, authentication.toAuthMethod())
-            } catch (e: UserAuthException) {
-                sshClient.closeSafe()
-                throw ClientException(e)
-            } catch (e: TransportException) {
-                sshClient.closeSafe()
-                throw ClientException(e)
-            }
-            val sftp = try {
-                sshClient.newSFTPClient()
-            } catch (e: IOException) {
-                sshClient.closeSafe()
-                throw ClientException(e)
-            }
-            val created = OpenedClient(sshClient, sftp)
-            clients[authority] = created
-            threadClients[Thread.currentThread()] = created
-            return sftp
         }
+        if (sessions.wasCancelled(thread)) {
+            closeLater(listOf(created))
+            throw ClientException(InterruptedIOException())
+        }
+        val shared = sessions.putSharedIfAbsent(authority, created)
+        if (shared !== created) {
+            closeLater(listOf(created))
+        }
+        return shared.sftp
+    }
+
+    @Throws(ClientException::class)
+    private fun openSftp(authority: Authority): OpenedClient {
+        val authentication = authenticator.getAuthentication(authority)
+            ?: throw ClientException("No authentication found for $authority")
+        val sshClient = SSHClient().apply {
+            addHostKeyVerifier(TofuHostKeyVerifier)
+            connectTimeout = CONNECT_TIMEOUT_MILLIS
+            timeout = 0
+        }
+        try {
+            sshClient.connect(authority.host, authority.port)
+        } catch (e: IOException) {
+            sshClient.closeSafe()
+            throw ClientException(e)
+        }
+        try {
+            sshClient.auth(authority.username, authentication.toAuthMethod())
+        } catch (e: UserAuthException) {
+            sshClient.closeSafe()
+            throw ClientException(e)
+        } catch (e: TransportException) {
+            sshClient.closeSafe()
+            throw ClientException(e)
+        }
+        val sftp = try {
+            sshClient.newSFTPClient()
+        } catch (e: IOException) {
+            sshClient.closeSafe()
+            throw ClientException(e)
+        }
+        return OpenedClient(sshClient, sftp)
+    }
+
+    fun bindJobThread(thread: Thread) {
+        sessions.bindJob(thread)
     }
 
     fun disconnectThread(thread: Thread) {
-        synchronized(clients) {
-            val opened = threadClients.remove(thread) ?: return
-            val authority = clients.entries.find { it.value === opened }?.key
-            if (authority != null) {
-                clients -= authority
-            }
-            closeOpened(opened)
-        }
-    }
-
-    fun releaseThread(thread: Thread) {
-        threadClients.remove(thread)
+        closeLater(sessions.takeJob(thread))
     }
 
     internal fun noteTransportError(sftp: SFTPClient) {
-        synchronized(clients) {
-            val authority = clients.entries.find { it.value.sftp === sftp }?.key ?: return
-            val opened = clients.remove(authority) ?: return
-            threadClients.entries.removeIf { it.value === opened }
-            closeOpened(opened)
+        closeLater(sessions.dropMatching { it.sftp === sftp })
+    }
+
+    private fun closeLater(opened: List<OpenedClient>) {
+        if (opened.isEmpty()) {
+            return
+        }
+        sftpCloseOnBackground(closer) {
+            for (client in opened) {
+                closeOpened(client)
+            }
         }
     }
 

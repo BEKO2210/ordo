@@ -53,6 +53,7 @@ class LinuxCopyMoveTest {
         assertTrue(copy.contains("openExclusivePart"))
         assertTrue(source.contains("O_EXCL"))
         assertFalse(source.contains("removeLeftoverPartFiles"))
+        assertFalse(source.contains("newDirectoryStream"))
         assertFalse(source.contains("hasRoomForPart"))
     }
 

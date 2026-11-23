@@ -107,12 +107,13 @@ class FileJobService : Service() {
         synchronized(runningJobs) {
             val future = executorService.submit {
                 val thread = Thread.currentThread()
+                SftpClient.bindJobThread(thread)
                 jobThreads[job.id] = thread
                 try {
                     job.runOn(this)
                 } finally {
                     jobThreads.remove(job.id, thread)
-                    SftpClient.releaseThread(thread)
+                    SftpClient.disconnectThread(thread)
                     synchronized(runningJobs) {
                         runningJobs.remove(job)
                         updateWakeWifiLockLocked()

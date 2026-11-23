@@ -3372,10 +3372,21 @@ class BackupJob(
                 )
                 return
             }
+            val openedNew = existingPfd == null
+            if (openedNew) {
+                CutBackup.mark(service.filesDir, target.toString())
+            }
             val mode = if (existingPfd != null) "rw" else "wt"
-            val pfd = existingPfd ?: service.contentResolver.openFileDescriptor(target, "wt")
-                ?: throw IOException("Cannot open $target")
-            isTargetCut = existingPfd == null
+            val pfd = try {
+                existingPfd ?: service.contentResolver.openFileDescriptor(target, "wt")
+                    ?: throw IOException("Cannot open $target")
+            } catch (e: Exception) {
+                if (openedNew) {
+                    CutBackup.clear(service.filesDir)
+                }
+                throw e
+            }
+            isTargetCut = openedNew
             val fileDescriptor = pfd.fileDescriptor
             val channel = FileChannel::class.open(pfd, mode)
             channel.use {
@@ -3400,6 +3411,7 @@ class BackupJob(
                     return
                 }
                 if (!isTargetCut) {
+                    CutBackup.mark(service.filesDir, target.toString())
                     try {
                         Os.ftruncate(fileDescriptor, 0)
                     } catch (e: ErrnoException) {
@@ -3407,7 +3419,6 @@ class BackupJob(
                     }
                     isTargetCut = true
                 }
-                CutBackup.mark(service.filesDir, target.toString())
                 ArchiveWriter(channel, Archive.FORMAT_ZIP, Archive.FILTER_NONE, password).use {
                     writer ->
                     // Comes first, so the restore knows how vault files are named before it reads one.

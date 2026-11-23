@@ -7,6 +7,7 @@ package me.zhanghai.android.files.backup
 
 import java.io.File
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Test
 
@@ -18,6 +19,7 @@ class CutBackupTest {
             assertNull(CutBackup.peek(directory))
             CutBackup.mark(directory, "content://backup/1")
             assertEquals("content://backup/1", CutBackup.peek(directory))
+            assertFalse(File(directory, "backup-cut-uri.tmp").exists())
             CutBackup.mark(directory, "content://backup/2")
             assertEquals("content://backup/2", CutBackup.peek(directory))
             CutBackup.clear(directory)

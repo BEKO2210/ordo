@@ -97,7 +97,19 @@ class ForeignCopyMoveTest {
         assertTrue(source.contains("copyRegularFileToPart"))
         assertTrue(source.contains("CREATE_NEW"))
         assertFalse(source.contains("removeLeftoverPartFiles"))
+        assertFalse(source.contains("newDirectoryStream"))
         assertFalse(source.contains("hasRoomForPart"))
         assertFalse(source.contains("TRUNCATE_EXISTING"))
+    }
+
+    @Test
+    fun uniquePartFilesDoNotReuseANameAnotherCopyWouldDelete() {
+        val target = Paths.get("/nas/share/clip.mp4")
+        val names = (1..32).map { ForeignCopyMove.uniquePartFile(target).toString() }.toSet()
+        assertEquals(32, names.size)
+        assertFalse(names.contains(ForeignCopyMove.partFile(target).toString()))
+        val other = ForeignCopyMove.partFile(Paths.get("/nas/share/other.mp4")).toString()
+        assertFalse(names.contains(other))
+        assertNotEquals(ForeignCopyMove.partFile(target).toString(), other)
     }
 }

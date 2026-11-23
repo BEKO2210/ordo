@@ -54,6 +54,17 @@ class BackupJobGuardTest {
         assertTrue(clearAt >= 0 && postedAt > clearAt)
         assertTrue(jobs.contains("private fun postIfCurrent"))
         assertTrue(jobs.contains("CutBackup.mark"))
+        val backupRun = jobs.substringAfter("class BackupJob")
+            .substringBefore("private fun collectSources")
+        val firstMark = backupRun.indexOf("CutBackup.mark")
+        val lastMark = backupRun.lastIndexOf("CutBackup.mark")
+        val openWt = backupRun.indexOf("openFileDescriptor(target, \"wt\")")
+        val truncate = backupRun.indexOf("Os.ftruncate")
+        assertTrue(firstMark in 0 until openWt)
+        assertTrue(lastMark in 0 until truncate)
+        val truncateBlock = backupRun.substring(backupRun.indexOf("if (!isTargetCut)"))
+            .substringBefore("ArchiveWriter")
+        assertTrue(truncateBlock.indexOf("CutBackup.mark") < truncateBlock.indexOf("Os.ftruncate"))
     }
 
     @Test
@@ -63,6 +74,15 @@ class BackupJobGuardTest {
         val onCreate = service.substringAfter("override fun onCreate()")
             .substringBefore("override fun onBind")
         assertTrue(onCreate.contains("deleteCutBackup()"))
-        assertTrue(service.contains("SftpClient.disconnectThread"))
+        val startJob = service.substringAfter("private fun startJob")
+            .substringBefore("private fun cancelJob")
+        assertTrue(startJob.contains("SftpClient.bindJobThread"))
+        assertTrue(startJob.indexOf("SftpClient.bindJobThread") < startJob.indexOf("jobThreads[job.id]"))
+        assertTrue(startJob.contains("SftpClient.disconnectThread"))
+        assertFalse(service.contains("releaseThread"))
+        val cancelJob = service.substringAfter("private fun cancelJob")
+            .substringBefore("override fun onDestroy")
+        assertTrue(cancelJob.contains("SftpClient.disconnectThread"))
+        assertFalse(cancelJob.contains("ssh.disconnect"))
     }
 }
