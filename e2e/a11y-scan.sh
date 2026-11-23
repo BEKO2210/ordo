@@ -16,7 +16,7 @@ scan() {
     rm -f "$out"; mkdir -p "$(dirname "$out")"
     a shell "rm -f /data/local/tmp/ordo-a11y.xml; uiautomator dump /data/local/tmp/ordo-a11y.xml >/dev/null"
     a pull /data/local/tmp/ordo-a11y.xml "$out" >/dev/null 2>&1 || { fail "a11y: $1: no screen dump"; return; }
-    findings=$(python3 "$HERE/a11y-scan.py" "$out" "$density")
+    findings=$(python3 "$HERE/a11y-scan.py" "$out" "$density") || { fail "a11y: $1: scanner failed"; return; }
     if [ -z "$findings" ]; then pass "a11y: $1"; else fail "a11y: $1"; sed 's/^/    /' <<<"$findings"; fi
 }
 

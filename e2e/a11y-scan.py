@@ -14,9 +14,9 @@ def labelled(node):
     return any(n.get("text") or n.get("content-desc") for n in node.iter())
 
 
-def main():
-    root = ET.parse(sys.argv[1]).getroot()
-    density = int(sys.argv[2])
+def findings(path, density):
+    root = ET.parse(path).getroot()
+    found = []
     for node in root.iter("node"):
         if node.get("clickable") != "true" or node.get("enabled") == "false":
             continue
@@ -29,9 +29,12 @@ def main():
         name = node.get("resource-id") or node.get("class")
         where = BOUNDS % (left, top, right, bottom)
         if not labelled(node):
-            print(f"unlabelled {name} {where}")
+            found.append(f"unlabelled {name} {where}")
         if width < MIN_DP or height < MIN_DP:
-            print(f"small {name} {width:.0f}x{height:.0f}dp {where}")
+            found.append(f"small {name} {width:.0f}x{height:.0f}dp {where}")
+    return found
 
 
-main()
+if __name__ == "__main__":
+    for line in findings(sys.argv[1], int(sys.argv[2])):
+        print(line)

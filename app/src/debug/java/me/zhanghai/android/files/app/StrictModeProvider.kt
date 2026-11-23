@@ -11,13 +11,16 @@ import android.net.Uri
 import android.os.StrictMode
 
 /**
- * Debug builds only: StrictMode with detectAll and penaltyLog (violations go to logcat, nothing crashes). A
+ * Debug builds only: StrictMode with detectAll and penaltyLog on top of the platform's own policy, so
+ * penaltyDeathOnNetwork (network on the main thread) stays. Violations go to logcat; e2e/lib.sh fails a run that finds one. A
  * ContentProvider starts it because providers are created with the process, before any activity.
  */
 class StrictModeProvider : ContentProvider() {
     override fun onCreate(): Boolean {
-        StrictMode.setThreadPolicy(StrictMode.ThreadPolicy.Builder().detectAll().penaltyLog().build())
-        StrictMode.setVmPolicy(StrictMode.VmPolicy.Builder().detectAll().penaltyLog().build())
+        StrictMode.setThreadPolicy(
+            StrictMode.ThreadPolicy.Builder(StrictMode.getThreadPolicy()).detectAll().penaltyLog().build()
+        )
+        StrictMode.setVmPolicy(StrictMode.VmPolicy.Builder(StrictMode.getVmPolicy()).detectAll().penaltyLog().build())
         return true
     }
 

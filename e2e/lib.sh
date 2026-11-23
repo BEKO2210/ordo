@@ -7,6 +7,8 @@ export ADB=${ADB:-$(command -v adb || echo "$HOME/Android/Sdk/platform-tools/adb
 export PKG=${PKG:-com.beko2210.ordo} # ui.py reads it for its screenshot guard
 HERE=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 FAILS=0
+# Debug builds report StrictMode violations and LeakCanary leaks to logcat only; finish() reads what came after this point.
+LOG_START=$("$ADB" -s "$SERIAL" shell date +'%m-%d\ %H:%M:%S.000' < /dev/null 2>/dev/null | tr -d '\r')
 # With E2E_STATS=<file> every sleep of the test script is noted there (farm.sh adds them up: time spent only waiting).
 [ -z "${E2E_STATS:-}" ] || sleep() { echo "$1" >> "$E2E_STATS"; command sleep "$@"; }
 
@@ -203,8 +205,16 @@ trash_drop() {
         sed 's|\\(.*\\)\\.info\$|../files/\\1\\n&|' | tr '\\n' '\\0' | xargs -0 rm -rf"
 }
 
+# debug_findings: StrictMode violations in Ordo code and LeakCanary application leaks since the test started.
+debug_findings() {
+    local log; log=$(a logcat -d -v threadtime ${LOG_START:+-T "$LOG_START"} -s StrictMode:W LeakCanary:D 2>/dev/null) || return 0
+    python3 "$HERE/logcheck.py" <<<"$log"
+}
+
 finish() {
     check "no crash" test "$(crashes)" = 0
+    local found; found=$(debug_findings)
+    if [ -z "$found" ]; then pass "no StrictMode violation or leak"; else fail "StrictMode violation or leak"; sed 's/^/    /' <<<"$found"; fi
     [ "$FAILS" = 0 ] && exit 0
     exit 1
 }
