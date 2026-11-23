@@ -5,6 +5,7 @@
 
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-parcelize'
+apply plugin: 'org.jetbrains.kotlinx.kover'
 
 apply from: '../signing.gradle'
 
@@ -116,6 +117,21 @@ repositories {
         url 'https://jitpack.io'
     }
 }
+
+// JVM coverage for the debug variant. Package-specific regression bounds are added from the measured baseline.
+kover {
+    reports {
+        variant('debug') {
+            html {
+                htmlDir = layout.buildDirectory.dir('reports/kover/debug/html')
+            }
+            xml {
+                xmlFile = layout.buildDirectory.file('reports/kover/debug/report.xml')
+            }
+        }
+    }
+}
+
 dependencies {
     // We need
     // https://github.com/bitfireAT/dav4jvm/commit/c1bc14348831bcdb00f3a6eec4859b81c7dc3728 , but we
