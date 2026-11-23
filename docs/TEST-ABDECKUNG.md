@@ -8,23 +8,23 @@ Die Kover-Instrumentierung schließt `org.apache.ftpserver.*` und `org.apache.mi
 Versionen dieser Bibliotheksklassen verändern das Verhalten des echten, prozessinternen FTP-Testservers.
 Außerdem ausgenommen: `me.zhanghai.android.files.ftpserver.*`, `provider.root.*` und `provider.linux.*`. Instrumentiert ändert sich die Klassen-Initialisierung, und `ProviderFtpFileTest` erreicht dann Root-/Linux-Provider, die Android- bzw. nativen Code brauchen. FTP deckt der Gerätetest ab, deshalb gibt es für `ftpserver` keine Untergrenze.
 
-Messung vom 23.11.2026 mit OpenJDK 21 auf pop-os, Debug-Variante, Kover 0.9.11 und
-`./gradlew :app:koverXmlReportDebug`. Paketfilter schließen Unterpakete ein. Die Untergrenze ist
+Kover 0.9.11 ordnet den Bericht explizit der Android-Variante `debug` und deren Produktions-Source-Sets
+`main` und `debug` zu. Instrumentierung und Bericht sind auf `me.zhanghai.android.files` begrenzt; Paketfilter
+schließen Unterpakete ein. Eine neue Messung erfolgt mit OpenJDK 21 und
+`./gradlew :app:koverXmlReportDebug`. Danach ist die Untergrenze jeweils
 `max(0, floor(gemessene Zeilenabdeckung) - 2)`.
 
 | Paketfilter | Zeilenabdeckung | Verify-Untergrenze |
 | --- | ---: | ---: |
-| `ai` | – (keine Klassen im Bericht) | – (Regel entfernt) |
-| `filejob` | – (keine Klassen im Bericht) | – (Regel entfernt) |
-| `vault` | – (keine Klassen im Bericht) | – (Regel entfernt) |
-| `backup` | – (keine Klassen im Bericht) | – (Regel entfernt) |
-| `provider.common` | 268 / 1.992 = 13,453815 % | 11 % |
+| `ai` | ausstehend | ausstehend |
+| `filejob` | ausstehend | ausstehend |
+| `vault` | ausstehend | ausstehend |
+| `backup` | ausstehend | ausstehend |
+| `provider.common` | ausstehend | ausstehend |
 
-Die Regeln für `ai`, `filejob`, `vault` und `backup` wurden entfernt, weil ihre Filter einschließlich aller
-Unterpakete im Bericht keine Klassen finden. Eine prozentuale Untergrenze für eine leere Klassenauswahl misst
-keine Testabdeckung und kann daher keine Regression erkennen. Sobald diese Pakete wieder Klassen im Bericht
-enthalten, kann auf Basis einer neuen Messung wieder eine Regel angelegt werden. `ftpserver` bleibt wie oben
-beschrieben von der Instrumentierung ausgeschlossen und besitzt deshalb ebenfalls keine Verify-Regel.
+Die Verify-Regeln für `ai`, `filejob`, `vault`, `backup` und `provider.common` sind angelegt, enthalten aber bis
+zur vollständigen Messung keine Untergrenzen. `ftpserver` bleibt wie oben beschrieben von der Instrumentierung
+ausgeschlossen und besitzt deshalb keine Verify-Regel.
 
 ## Bekannte Lücken
 

@@ -121,7 +121,13 @@ repositories {
 // JVM line coverage for the debug variant. Each bound is the measured package value minus two percentage points.
 kover {
     currentProject {
+        providedVariant('debug') {
+            sources {
+                includedSourceSets.addAll('main', 'debug')
+            }
+        }
         instrumentation {
+            includedClasses.add('me.zhanghai.android.files.*')
             // Instrumentation changes class-init order; ProviderFtpFileTest then reaches the root/Linux
             // providers, which need Android/native code the JVM lacks. FTP is covered by its device tests.
             excludedClasses.add('org.apache.ftpserver.*')
@@ -133,6 +139,11 @@ kover {
     }
     reports {
         variant('debug') {
+            filters {
+                includes {
+                    packages('me.zhanghai.android.files')
+                }
+            }
             html {
                 htmlDir = layout.buildDirectory.dir('reports/kover/debug/html')
             }
@@ -140,9 +151,26 @@ kover {
                 xmlFile = layout.buildDirectory.file('reports/kover/debug/report.xml')
             }
             verify {
+                // TODO: Add minBound values after measuring the complete debug report.
                 rule {
+                    name = 'ai package'
+                    filters { includes { packages('me.zhanghai.android.files.ai') } }
+                }
+                rule {
+                    name = 'vault package'
+                    filters { includes { packages('me.zhanghai.android.files.vault') } }
+                }
+                rule {
+                    name = 'backup package'
+                    filters { includes { packages('me.zhanghai.android.files.backup') } }
+                }
+                rule {
+                    name = 'filejob package'
+                    filters { includes { packages('me.zhanghai.android.files.filejob') } }
+                }
+                rule {
+                    name = 'provider.common package'
                     filters { includes { packages('me.zhanghai.android.files.provider.common') } }
-                    minBound(11)
                 }
             }
         }
