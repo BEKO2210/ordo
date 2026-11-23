@@ -119,16 +119,9 @@ class AudioPlaybackService : MediaSessionService() {
     private val savePosition = object : Runnable {
         override fun run() {
             persistPosition()
-            if (::player.isInitialized && (player.isPlaying || CastManager.phase == CastManager.Phase.CASTING)) {
+            if (::player.isInitialized && player.isPlaying) {
                 handler.postDelayed(this, POSITION_SAVE_INTERVAL_MS)
             }
-        }
-    }
-    // While casting the local player stands still at the cast start: the TV's place is saved on a timer.
-    private val castPhaseListener: () -> Unit = {
-        if (CastManager.phase == CastManager.Phase.CASTING) {
-            handler.removeCallbacks(savePosition)
-            handler.postDelayed(savePosition, POSITION_SAVE_INTERVAL_MS)
         }
     }
     private val sleepTimer = object : Runnable {
@@ -375,7 +368,6 @@ class AudioPlaybackService : MediaSessionService() {
             )
             .build()
         CastManager.attach(this, mediaSession)
-        CastManager.addListener(castPhaseListener)
     }
 
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession =
@@ -388,7 +380,6 @@ class AudioPlaybackService : MediaSessionService() {
 
     override fun onDestroy() {
         // Ends casting first, so the session holds the local player again when it is released.
-        CastManager.removeListener(castPhaseListener)
         CastManager.detach()
         if (::hiRes.isInitialized) hiRes.onChanged = null
         handler.removeCallbacksAndMessages(null)
@@ -593,17 +584,9 @@ class AudioPlaybackService : MediaSessionService() {
 
     private fun persistPosition() {
         if (!::player.isInitialized || player.mediaItemCount == 0) return
-        // The session's player is the CastPlayer while casting: the TV's place, not the phone's.
-        val active = if (CastManager.phase == CastManager.Phase.CASTING && ::mediaSession.isInitialized) {
-            mediaSession.player
-        } else {
-            player
-        }
-        val index = persistedIndexFor(
-            active.currentMediaItem?.mediaId, lastQueue.orEmpty(),
-            persistedIndices.getOrNull(player.currentMediaItemIndex)
-        ) ?: return
-        stateStore.writePosition(index, active.currentPosition.coerceAtLeast(0L))
+        val index = persistedIndices.getOrNull(player.currentMediaItemIndex) ?: return
+        if (index < 0) return
+        stateStore.writePosition(index, player.currentPosition.coerceAtLeast(0L))
     }
 
     /** Drops queue entries whose file is gone and moves the start to the next one that is left. */

@@ -190,14 +190,6 @@ class AudioPlayerActivity : AppActivity(), AppAccentActivity {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = AudioPlayerActivityBinding.inflate(layoutInflater)
-        if (savedInstanceState != null) {
-            binding.root.post {
-                TagEditUndo.reoffer(this, binding.root, lifecycleScope, savedInstanceState) {
-                    lyricsKey = null
-                    controller?.let(::updateLyrics)
-                }
-            }
-        }
         // The atmosphere lies behind every layout variant of the player without touching their XML.
         atmosphere = PlayerAtmosphereView(this)
         lyricsView = PlayerLyricsView(
@@ -359,7 +351,6 @@ class AudioPlayerActivity : AppActivity(), AppAccentActivity {
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        TagEditUndo.save(this, outState)
         outState.putBoolean(STATE_QUEUE_STARTED, queueStarted)
         outState.putBoolean(STATE_LYRICS_VISIBLE, lyricsView.isVisible || openLyricsPending)
     }

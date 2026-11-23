@@ -5,6 +5,11 @@
 
 package me.zhanghai.android.files.player
 
+import android.content.ContentResolver
+import java.net.URI
+import java8.nio.file.Files
+import java8.nio.file.Paths
+
 /**
  * The saved queue without the files that are gone. The start moves to the next file that is left (at position 0),
  * or stays where it was, with its position, when that file survived. Null when nothing is left.
@@ -33,18 +38,11 @@ internal fun restorableState(
     )
 }
 
-/**
- * Only Ordo's own paths are restored, never a `content://` item of an external launch. Local files are checked; a
- * network file counts as present (a failed or slow stat while offline must not empty the saved queue).
- */
-internal fun pathUriExists(pathUri: String): Boolean = mediaButtonQueueItemExists(pathUri)
-
-/**
- * Index of the playing item in the persisted queue. The CastPlayer's own index follows its shuffled order, so the item
- * is found by its media ID; [hint] (the phone player's persisted index) settles duplicates. Null when it is not there.
- */
-internal fun persistedIndexFor(mediaId: String?, paths: List<String>, hint: Int?): Int? {
-    if (mediaId == null) return null
-    if (hint != null && paths.getOrNull(hint) == mediaId) return hint
-    return paths.indexOf(mediaId).takeIf { it >= 0 }
-}
+/** Only Ordo's own paths are restored, never a `content://` item of an external launch. */
+internal fun pathUriExists(pathUri: String): Boolean =
+    try {
+        val uri = URI.create(pathUri)
+        uri.scheme != ContentResolver.SCHEME_CONTENT && Files.exists(Paths.get(uri))
+    } catch (_: Exception) {
+        false
+    }
