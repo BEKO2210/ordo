@@ -1,6 +1,6 @@
 #!/bin/bash
 # Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later
-# farm: needs=shots
+# farm: needs=shots orient=once
 # Screens and checks of the 0.17 polish (#121), WRITES /storage/emulated/0/ordo-e2e-polish (removed again): Ordo Video's settings
 # and the Upscaling sheet, the Klang sheet's last cards (headphones, USB DAC), Musik's queue, the stepper bounds of
 # "Adjust picture". In portrait and landscape; photos only while Ordo is in front (E2E_SHOTS=<dir>). Volume stays 0.
