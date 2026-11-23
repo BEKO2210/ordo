@@ -130,32 +130,26 @@ kover {
             }
             verify {
                 rule {
-                    name = 'ai package'
                     filters { includes { packages('me.zhanghai.android.files.ai') } }
                     minBound(20)
                 }
                 rule {
-                    name = 'filejob package'
                     filters { includes { packages('me.zhanghai.android.files.filejob') } }
                     minBound(1)
                 }
                 rule {
-                    name = 'vault package'
                     filters { includes { packages('me.zhanghai.android.files.vault') } }
                     minBound(20)
                 }
                 rule {
-                    name = 'backup package'
                     filters { includes { packages('me.zhanghai.android.files.backup') } }
                     minBound(10)
                 }
                 rule {
-                    name = 'ftpserver package'
                     filters { includes { packages('me.zhanghai.android.files.ftpserver') } }
                     minBound(3)
                 }
                 rule {
-                    name = 'provider.common package'
                     filters { includes { packages('me.zhanghai.android.files.provider.common') } }
                     minBound(2)
                 }
