@@ -90,8 +90,6 @@ Einbau in der App (`llm/`, `app/.../ai/`):
   nachfragen, auch „nicht die Originale“ oder „keine Fotos“), nur in den Papierkorb; geschützt sind
   System-, versteckte und Kamera-Ordner (kanonischer Pfad, ohne Groß-/Kleinschreibung); unbekannter Ordner =
   Rückfrage; Rückgängig fasst nur Dateien an, die der Befehl angelegt hat.
-- Rückgängig bleibt acht Sekunden erhalten, auch wenn das Blatt durch Drehen neu entsteht: das Ergebnis liegt
-  zentral, bis ein gestartetes Blatt es zeigt. Prozess-Tod mitten im Lauf löscht das Journal mit.
 - Duplikate (15.11.2026): Das 4B plante bei „Lösche die doppelten Dateien im Download“ den **ganzen** Ordner
   (258 statt 16 Dateien, `ordo-memory-lab`, pop-os), weil das Plan-Schema kein Feld dafür hat. Jetzt erkennt
   `CommandCheck` Duplikat-Wörter (doppel, Duplikat, duplicate, dupe, mehrfach) im Satz und `CommandFiles` nimmt nur

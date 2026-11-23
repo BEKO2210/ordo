@@ -439,7 +439,7 @@ Grammatik erzwungen). Ordo prüft diesen Plan selbst, bevor es ihn zeigt:
 - Jede Datei wird direkt vor der Aktion noch einmal geprüft; vorhandene Dateien werden nie überschrieben. Eine
   Datei, die seit der Vorschau ersetzt wurde (andere Größe oder Zeit), bleibt unberührt, und das Ergebnis sagt es.
 - Rückgängig macht genau das rückgängig, was der Befehl getan hat, und lässt Dateien in Ruhe, die sich seitdem
-  geändert haben. Drehen behält das Angebot acht Sekunden; wird die App mitten im Befehl beendet, ist das Journal weg.
+  geändert haben.
 
 **Einrichtung.** Die Funktion ist aus, bis du sie über den Zauberstab in der Suchleiste öffnest. Ordo prüft das
 Handy und lädt das Modell einmalig herunter (rund 2,6 GB, standardmäßig nur über WLAN) – von einer festen
