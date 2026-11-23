@@ -118,7 +118,7 @@ repositories {
     }
 }
 
-// JVM coverage for the debug variant. Package-specific regression bounds are added from the measured baseline.
+// JVM line coverage for the debug variant. Each bound is the measured package value minus two percentage points.
 kover {
     reports {
         variant('debug') {
@@ -127,6 +127,38 @@ kover {
             }
             xml {
                 xmlFile = layout.buildDirectory.file('reports/kover/debug/report.xml')
+            }
+            verify {
+                rule {
+                    name = 'ai package'
+                    filters { includes { packages('me.zhanghai.android.files.ai') } }
+                    minBound(20)
+                }
+                rule {
+                    name = 'filejob package'
+                    filters { includes { packages('me.zhanghai.android.files.filejob') } }
+                    minBound(1)
+                }
+                rule {
+                    name = 'vault package'
+                    filters { includes { packages('me.zhanghai.android.files.vault') } }
+                    minBound(20)
+                }
+                rule {
+                    name = 'backup package'
+                    filters { includes { packages('me.zhanghai.android.files.backup') } }
+                    minBound(10)
+                }
+                rule {
+                    name = 'ftpserver package'
+                    filters { includes { packages('me.zhanghai.android.files.ftpserver') } }
+                    minBound(3)
+                }
+                rule {
+                    name = 'provider.common package'
+                    filters { includes { packages('me.zhanghai.android.files.provider.common') } }
+                    minBound(2)
+                }
             }
         }
     }

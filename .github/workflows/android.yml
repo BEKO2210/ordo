@@ -146,7 +146,7 @@ jobs:
       - name: Unit tests
         # --rerun: several tests read files Gradle does not know as inputs (README, docs/, res/), so a result from
         # the build cache could be one for other files. Compiling still comes from the cache.
-        run: ./gradlew --build-cache testDebugUnitTest --rerun $SKIP_NATIVE
+        run: ./gradlew --build-cache testDebugUnitTest :app:koverVerifyDebug --rerun $SKIP_NATIVE
 
   lint:
     needs: changes
