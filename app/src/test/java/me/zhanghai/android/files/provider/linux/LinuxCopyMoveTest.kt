@@ -52,6 +52,14 @@ class LinuxCopyMoveTest {
         assertTrue(copy.contains("usePart = copyOptions.replaceExisting && targetStat != null"))
         assertTrue(copy.contains("usePart || !copyOptions.replaceExisting"))
         assertTrue(copy.contains("O_EXCL"))
+        assertFalse(copy.contains("removeLeftoverPartFiles"))
+    }
+
+    @Test
+    fun copyDoesNotSweepPartFilesByName() {
+        val source = File("src/main/java/me/zhanghai/android/files/provider/linux/LinuxCopyMove.kt")
+            .readText()
+        assertFalse(source.contains("removeLeftoverPartFiles"))
     }
 
     @Test

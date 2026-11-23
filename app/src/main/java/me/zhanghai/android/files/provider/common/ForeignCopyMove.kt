@@ -45,7 +45,6 @@ internal object ForeignCopyMove {
                 } else {
                     emptyArray()
                 }
-                removeLeftoverPartFiles(target)
                 // shortcut: no prompt on low-space overwrite, FileJob confirm when a dialog exists
                 val usePart = copyOptions.replaceExisting
                     && target.exists(LinkOption.NOFOLLOW_LINKS)
@@ -225,31 +224,6 @@ internal object ForeignCopyMove {
             true
         } catch (e: UnsupportedOperationException) {
             true
-        }
-    }
-
-    private fun removeLeftoverPartFiles(target: Path) {
-        val directory = target.parent ?: return
-        try {
-            directory.newDirectoryStream().use { stream ->
-                for (path in stream) {
-                    val name = path.fileName?.toString() ?: continue
-                    if (!isPartFileName(name)) {
-                        continue
-                    }
-                    try {
-                        path.deleteIfExists()
-                    } catch (e: IOException) {
-                        e.printStackTrace()
-                    } catch (e: UnsupportedOperationException) {
-                        e.printStackTrace()
-                    }
-                }
-            }
-        } catch (e: IOException) {
-            e.printStackTrace()
-        } catch (e: UnsupportedOperationException) {
-            e.printStackTrace()
         }
     }
 

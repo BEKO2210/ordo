@@ -729,6 +729,7 @@ private class ActionAllInfo(
     var replace: Boolean = false,
     var skipMerge: Boolean = false,
     var skipReplace: Boolean = false,
+    var skipTypeMismatch: Boolean = false,
     var skipCopyMoveError: Boolean = false,
     var skipDeleteError: Boolean = false,
     var skipRestoreSeLinuxContextError: Boolean = false,
@@ -1528,16 +1529,24 @@ private fun FileJob.copyOrMove(
             val sourceIsDirectory = sourceFile.attributesNoFollowLinks.isDirectory
             val targetIsDirectory = targetFile.attributesNoFollowLinks.isDirectory
             val isMerge = sourceIsDirectory && targetIsDirectory
+            val canReplace = FileJobConflictDialogFragment.isReplaceable(
+                sourceIsDirectory, targetIsDirectory
+            )
+            if (!isMerge && !canReplace && actionAllInfo.skipTypeMismatch) {
+                transferInfo.skipFile(source)
+                postCopyMoveNotification(transferInfo, source, type)
+                return false
+            }
             if (isMerge && actionAllInfo.merge) {
                 transferInfo.addTransferredFile(target)
                 postCopyMoveNotification(transferInfo, source, type)
                 return true
-            } else if (!isMerge && actionAllInfo.replace) {
+            } else if (canReplace && actionAllInfo.replace) {
                 replaceExisting = true
                 retry = true
                 continue
             } else if ((isMerge && actionAllInfo.skipMerge)
-                || (!isMerge && actionAllInfo.skipReplace)) {
+                || (canReplace && actionAllInfo.skipReplace)) {
                 transferInfo.skipFile(source)
                 postCopyMoveNotification(transferInfo, source, type)
                 return false
@@ -1548,7 +1557,7 @@ private fun FileJob.copyOrMove(
                     if (result.isAll) {
                         if (isMerge) {
                             actionAllInfo.merge = true
-                        } else {
+                        } else if (canReplace) {
                             actionAllInfo.replace = true
                         }
                     }
@@ -1556,10 +1565,14 @@ private fun FileJob.copyOrMove(
                         transferInfo.addTransferredFile(target)
                         postCopyMoveNotification(transferInfo, source, type)
                         true
-                    } else {
+                    } else if (canReplace) {
                         replaceExisting = true
                         retry = true
                         continue
+                    } else {
+                        transferInfo.skipFile(source)
+                        postCopyMoveNotification(transferInfo, source, type)
+                        false
                     }
                 }
                 FileJobConflictAction.RENAME -> {
@@ -1569,10 +1582,10 @@ private fun FileJob.copyOrMove(
                 }
                 FileJobConflictAction.SKIP -> {
                     if (result.isAll) {
-                        if (isMerge) {
-                            actionAllInfo.skipMerge = true
-                        } else {
-                            actionAllInfo.skipReplace = true
+                        when {
+                            isMerge -> actionAllInfo.skipMerge = true
+                            canReplace -> actionAllInfo.skipReplace = true
+                            else -> actionAllInfo.skipTypeMismatch = true
                         }
                     }
                     transferInfo.skipFile(source)

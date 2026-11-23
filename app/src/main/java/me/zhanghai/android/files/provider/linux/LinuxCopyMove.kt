@@ -67,7 +67,6 @@ internal object LinuxCopyMove {
             } catch (e: SyscallException) {
                 throw e.toFileSystemException(source.toString())
             }
-            removeLeftoverPartFiles(target)
             // shortcut: no prompt on low-space overwrite, FileJob confirm when a dialog exists
             val usePart = copyOptions.replaceExisting && targetStat != null
                 && hasRoomForPart(target, sourceStat.st_size)
@@ -355,40 +354,6 @@ internal object LinuxCopyMove {
         }
     }
 
-    private fun removeLeftoverPartFiles(target: ByteString) {
-        val directory = parentOf(target)
-        val dir = try {
-            Syscall.opendir(directory)
-        } catch (e: SyscallException) {
-            return
-        }
-        try {
-            while (true) {
-                val ent = try {
-                    Syscall.readdir(dir)
-                } catch (e: SyscallException) {
-                    break
-                } ?: break
-                if (!isPartFileName(ent.d_name)) {
-                    continue
-                }
-                try {
-                    Syscall.remove(resolveChild(directory, ent.d_name))
-                } catch (e: SyscallException) {
-                    if (e.errno != OsConstants.ENOENT) {
-                        e.printStackTrace()
-                    }
-                }
-            }
-        } finally {
-            try {
-                Syscall.closedir(dir)
-            } catch (e: SyscallException) {
-                e.printStackTrace()
-            }
-        }
-    }
-
     private fun parentOf(path: ByteString): ByteString {
         val index = path.lastIndexOf(SLASH)
         return when {
@@ -397,13 +362,6 @@ internal object LinuxCopyMove {
             else -> DOT
         }
     }
-
-    private fun resolveChild(directory: ByteString, name: ByteString): ByteString =
-        when {
-            directory == SLASH_STRING -> directory + name
-            directory == DOT -> name
-            else -> directory + SLASH_STRING + name
-        }
 
     private fun removeIfExists(path: ByteString) {
         try {

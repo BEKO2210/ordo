@@ -258,6 +258,7 @@ Tippe oder diktiere „Verschiebe alle MP3s aus Download nach Musik“. Ordo zei
 - Tresor: Dateien werden mit AES-256-GCM verschlüsselt und mit deiner Bildschirmsperre geöffnet
 - Sicherung: Ordner und Tresor als ZIP-Datei auf einen USB-Stick oder an jeden Ort, den dein Handy anbietet – auf Wunsch mit Passwort
 - Wiederherstellen, ohne vorhandene Dateien zu ersetzen
+- Eine Datei ersetzt keinen Ordner gleichen Namens
 
 **Für Profis**
 

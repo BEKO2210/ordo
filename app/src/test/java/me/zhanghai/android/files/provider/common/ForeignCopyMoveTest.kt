@@ -83,4 +83,11 @@ class ForeignCopyMoveTest {
         assertTrue(copy.contains("usePart || !copyOptions.replaceExisting"))
         assertTrue(copy.contains("CREATE_NEW"))
     }
+
+    @Test
+    fun copyDoesNotSweepPartFilesByName() {
+        val source = File("src/main/java/me/zhanghai/android/files/provider/common/ForeignCopyMove.kt")
+            .readText()
+        assertFalse(source.contains("removeLeftoverPartFiles"))
+    }
 }
