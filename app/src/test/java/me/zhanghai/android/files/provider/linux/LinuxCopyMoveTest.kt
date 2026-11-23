@@ -58,6 +58,22 @@ class LinuxCopyMoveTest {
     }
 
     @Test
+    fun newFileCopyDoesNotRenameOverAParallelTarget() {
+        val copy = File("src/main/java/me/zhanghai/android/files/provider/linux/LinuxCopyMove.kt")
+            .readText()
+            .substringAfter("if (OsConstants.S_ISREG(sourceStat.st_mode))")
+            .substringBefore("} else if (OsConstants.S_ISDIR(sourceStat.st_mode))")
+        assertTrue(copy.contains("target to Syscall.open"))
+        assertTrue(
+            copy.contains("OsConstants.O_WRONLY or OsConstants.O_CREAT or OsConstants.O_EXCL")
+        )
+        assertFalse(copy.contains("renamePartOverTarget(dest, target, copyOptions.replaceExisting)"))
+        val publish = copy.substringAfter("successful = true")
+        assertTrue(publish.contains("if (copyOptions.replaceExisting)"))
+        assertTrue(publish.contains("renamePartOverTarget(dest, target, true)"))
+    }
+
+    @Test
     fun sameInodeStillRenamesWhenOnlyTheSpellingDiffers() {
         val lower = "/sdcard/foto.jpg".toByteString()
         val mixed = "/sdcard/Foto.jpg".toByteString()

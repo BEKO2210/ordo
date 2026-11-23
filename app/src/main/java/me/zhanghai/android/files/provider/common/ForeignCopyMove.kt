@@ -173,7 +173,11 @@ internal object ForeignCopyMove {
     ) {
         var lastExists: FileAlreadyExistsException? = null
         repeat(8) { attempt ->
-            val dest = if (attempt == 0) partFile(target) else uniquePartFile(target)
+            val dest = when {
+                !copyOptions.replaceExisting -> target
+                attempt == 0 -> partFile(target)
+                else -> uniquePartFile(target)
+            }
             var created = false
             var copied = false
             try {
@@ -192,10 +196,15 @@ internal object ForeignCopyMove {
                         outputStream.close()
                     }
                 }
-                replaceWithPart(dest, target, copyOptions.replaceExisting)
+                if (copyOptions.replaceExisting) {
+                    replaceWithPart(dest, target, true)
+                }
                 return
             } catch (e: FileAlreadyExistsException) {
                 if (!created) {
+                    if (!copyOptions.replaceExisting) {
+                        throw e
+                    }
                     lastExists = e
                     return@repeat
                 }

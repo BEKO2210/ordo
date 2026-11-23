@@ -76,7 +76,20 @@ internal object LinuxCopyMove {
                 throw e.toFileSystemException(source.toString())
             }
             try {
-                val (dest, destFd) = openExclusivePart(target, sourceStat.st_mode)
+                val (dest, destFd) = if (copyOptions.replaceExisting) {
+                    openExclusivePart(target, sourceStat.st_mode)
+                } else {
+                    try {
+                        target to Syscall.open(
+                            target,
+                            OsConstants.O_WRONLY or OsConstants.O_CREAT or OsConstants.O_EXCL,
+                            sourceStat.st_mode
+                        )
+                    } catch (e: SyscallException) {
+                        e.maybeThrowInvalidFileNameException(target.toString())
+                        throw e.toFileSystemException(target.toString())
+                    }
+                }
                 var successful = false
                 try {
                     val progressIntervalMillis = copyOptions.progressIntervalMillis
@@ -119,7 +132,9 @@ internal object LinuxCopyMove {
                         }
                     }
                 }
-                renamePartOverTarget(dest, target, copyOptions.replaceExisting)
+                if (copyOptions.replaceExisting) {
+                    renamePartOverTarget(dest, target, true)
+                }
             } finally {
                 try {
                     Syscall.close(sourceFd)

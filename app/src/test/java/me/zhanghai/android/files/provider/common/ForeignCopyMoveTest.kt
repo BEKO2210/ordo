@@ -103,6 +103,19 @@ class ForeignCopyMoveTest {
     }
 
     @Test
+    fun newFileCopyDoesNotMoveOverAParallelTarget() {
+        val copy = File("src/main/java/me/zhanghai/android/files/provider/common/ForeignCopyMove.kt")
+            .readText()
+            .substringAfter("private fun copyRegularFileToPart")
+            .substringBefore("private const val NAME_MAX")
+        assertTrue(copy.contains("!copyOptions.replaceExisting -> target"))
+        assertTrue(copy.contains("CREATE_NEW"))
+        assertFalse(copy.contains("replaceWithPart(dest, target, copyOptions.replaceExisting)"))
+        assertTrue(copy.contains("if (copyOptions.replaceExisting)"))
+        assertTrue(copy.contains("replaceWithPart(dest, target, true)"))
+    }
+
+    @Test
     fun uniquePartFilesDoNotReuseANameAnotherCopyWouldDelete() {
         val target = Paths.get("/nas/share/clip.mp4")
         val names = (1..32).map { ForeignCopyMove.uniquePartFile(target).toString() }.toSet()
