@@ -1533,44 +1533,10 @@ private fun FileJob.copyOrMove(
             val canReplace = FileJobConflictDialogFragment.isReplaceable(
                 sourceIsDirectory, targetIsDirectory
             )
-            if (!isMerge && !canReplace) {
-                if (actionAllInfo.skipTypeMismatch) {
-                    transferInfo.skipFile(source)
-                    postCopyMoveNotification(transferInfo, source, type)
-                    return false
-                }
-                val result = showErrorDialog(
-                    getString(
-                        type.getResourceId(
-                            R.string.file_job_cannot_copy_over_itself_title,
-                            R.string.file_job_cannot_extract_over_itself_title,
-                            R.string.file_job_cannot_move_over_itself_title
-                        )
-                    ),
-                    getString(R.string.file_job_cannot_replace_type_message),
-                    null,
-                    true,
-                    getString(R.string.skip),
-                    getString(android.R.string.cancel),
-                    null
-                )
-                return when (result.action) {
-                    FileJobErrorAction.POSITIVE -> {
-                        if (result.isAll) {
-                            actionAllInfo.skipTypeMismatch = true
-                        }
-                        transferInfo.skipFile(source)
-                        postCopyMoveNotification(transferInfo, source, type)
-                        false
-                    }
-                    FileJobErrorAction.CANCELED -> {
-                        transferInfo.skipFile(source)
-                        postCopyMoveNotification(transferInfo, source, type)
-                        false
-                    }
-                    FileJobErrorAction.NEGATIVE -> throw InterruptedIOException()
-                    else -> throw AssertionError(result.action)
-                }
+            if (!isMerge && !canReplace && actionAllInfo.skipTypeMismatch) {
+                transferInfo.skipFile(source)
+                postCopyMoveNotification(transferInfo, source, type)
+                return false
             }
             if (isMerge && actionAllInfo.merge) {
                 transferInfo.addTransferredFile(target)
@@ -1592,7 +1558,7 @@ private fun FileJob.copyOrMove(
                     if (result.isAll) {
                         if (isMerge) {
                             actionAllInfo.merge = true
-                        } else {
+                        } else if (canReplace) {
                             actionAllInfo.replace = true
                         }
                     }
@@ -1600,10 +1566,14 @@ private fun FileJob.copyOrMove(
                         transferInfo.addTransferredFile(target)
                         postCopyMoveNotification(transferInfo, source, type)
                         true
-                    } else {
+                    } else if (canReplace) {
                         replaceExisting = true
                         retry = true
                         continue
+                    } else {
+                        transferInfo.skipFile(source)
+                        postCopyMoveNotification(transferInfo, source, type)
+                        false
                     }
                 }
                 FileJobConflictAction.RENAME -> {
@@ -1613,10 +1583,10 @@ private fun FileJob.copyOrMove(
                 }
                 FileJobConflictAction.SKIP -> {
                     if (result.isAll) {
-                        if (isMerge) {
-                            actionAllInfo.skipMerge = true
-                        } else {
-                            actionAllInfo.skipReplace = true
+                        when {
+                            isMerge -> actionAllInfo.skipMerge = true
+                            canReplace -> actionAllInfo.skipReplace = true
+                            else -> actionAllInfo.skipTypeMismatch = true
                         }
                     }
                     transferInfo.skipFile(source)

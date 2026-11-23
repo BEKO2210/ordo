@@ -74,7 +74,16 @@ class FileJobConflictDialogFragment : AppCompatDialogFragment() {
         val title = getTitle(sourceFile, targetFile, requireContext())
         val message = getMessage(sourceFile, targetFile, args.type, requireContext())
         val isMerge = isMerge(sourceFile, targetFile)
-        val positiveButtonRes = if (isMerge) R.string.merge else R.string.replace
+        val offersMergeOrReplace = FileJobConflictAction.MERGE_OR_REPLACE in
+            availableActions(
+                sourceFile.attributesNoFollowLinks.isDirectory,
+                targetFile.attributesNoFollowLinks.isDirectory
+            )
+        val positiveButtonRes = when {
+            isMerge -> R.string.merge
+            offersMergeOrReplace -> R.string.replace
+            else -> R.string.rename
+        }
         return MaterialAlertDialogBuilder(requireContext(), theme)
             .setTitle(title)
             .setMessage(message)
@@ -128,6 +137,9 @@ class FileJobConflictDialogFragment : AppCompatDialogFragment() {
                     val positiveButton = requireDialog()
                         .requireViewByIdCompat<Button>(android.R.id.button1)
                     positiveButton.setText(if (hasNewName) R.string.rename else positiveButtonRes)
+                    if (!offersMergeOrReplace) {
+                        positiveButton.isEnabled = hasNewName
+                    }
                 }
                 binding.nameLayout.setEndIconOnClickListener {
                     binding.nameEdit.setTextWithSelection(targetFileName)
@@ -143,6 +155,12 @@ class FileJobConflictDialogFragment : AppCompatDialogFragment() {
             .apply {
                 setCanceledOnTouchOutside(false)
                 window!!.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
+                if (!offersMergeOrReplace) {
+                    setOnShowListener { dialog ->
+                        (dialog as AlertDialog).getButton(AlertDialog.BUTTON_POSITIVE).isEnabled =
+                            false
+                    }
+                }
             }
     }
 
@@ -282,10 +300,13 @@ class FileJobConflictDialogFragment : AppCompatDialogFragment() {
 
     companion object {
         fun getTitle(sourceFile: FileItem, targetFile: FileItem, context: Context): String {
-            val titleRes = if (isMerge(sourceFile, targetFile)) {
-                R.string.file_job_merge_title_format
-            } else {
-                R.string.file_job_replace_title_format
+            val titleRes = when {
+                isMerge(sourceFile, targetFile) -> R.string.file_job_merge_title_format
+                isReplaceable(
+                    sourceFile.attributesNoFollowLinks.isDirectory,
+                    targetFile.attributesNoFollowLinks.isDirectory
+                ) -> R.string.file_job_replace_title_format
+                else -> R.string.file_job_conflict_show_name
             }
             return context.getString(titleRes, targetFile.path.fileName)
         }
@@ -296,14 +317,17 @@ class FileJobConflictDialogFragment : AppCompatDialogFragment() {
             type: CopyMoveType,
             context: Context
         ): String {
-            val messageRes = if (isMerge(sourceFile, targetFile)) {
-                type.getResourceId(
+            val messageRes = when {
+                isMerge(sourceFile, targetFile) -> type.getResourceId(
                     R.string.file_job_merge_copy_message_format,
                     R.string.file_job_merge_extract_message_format,
                     R.string.file_job_merge_move_message_format
                 )
-            } else {
-                R.string.file_job_replace_message_format
+                isReplaceable(
+                    sourceFile.attributesNoFollowLinks.isDirectory,
+                    targetFile.attributesNoFollowLinks.isDirectory
+                ) -> R.string.file_job_replace_message_format
+                else -> R.string.file_job_cannot_replace_type_message
             }
             return context.getString(messageRes, targetFile.path.parent.fileName)
         }
@@ -316,6 +340,21 @@ class FileJobConflictDialogFragment : AppCompatDialogFragment() {
 
         internal fun isReplaceable(sourceIsDirectory: Boolean, targetIsDirectory: Boolean): Boolean =
             !sourceIsDirectory && !targetIsDirectory
+
+        internal fun availableActions(
+            sourceIsDirectory: Boolean,
+            targetIsDirectory: Boolean
+        ): Set<FileJobConflictAction> {
+            val actions = mutableSetOf(
+                FileJobConflictAction.RENAME,
+                FileJobConflictAction.SKIP,
+                FileJobConflictAction.CANCEL
+            )
+            if (sourceIsDirectory == targetIsDirectory) {
+                actions += FileJobConflictAction.MERGE_OR_REPLACE
+            }
+            return actions
+        }
     }
 
     @Parcelize

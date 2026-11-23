@@ -29,4 +29,34 @@ class FileJobConflictTypeTest {
     fun folderOverFileCannotBeReplaced() {
         assertFalse(FileJobConflictDialogFragment.isReplaceable(true, false))
     }
+
+    @Test
+    fun fileOverFolderConflictOffersRenameNotReplace() {
+        val actions = FileJobConflictDialogFragment.availableActions(false, true)
+        assertTrue(actions.contains(FileJobConflictAction.RENAME))
+        assertTrue(actions.contains(FileJobConflictAction.SKIP))
+        assertTrue(actions.contains(FileJobConflictAction.CANCEL))
+        assertFalse(actions.contains(FileJobConflictAction.MERGE_OR_REPLACE))
+    }
+
+    @Test
+    fun folderOverFileConflictOffersRenameNotReplace() {
+        val actions = FileJobConflictDialogFragment.availableActions(true, false)
+        assertTrue(actions.contains(FileJobConflictAction.RENAME))
+        assertFalse(actions.contains(FileJobConflictAction.MERGE_OR_REPLACE))
+    }
+
+    @Test
+    fun fileOverFileConflictOffersReplaceAndRename() {
+        val actions = FileJobConflictDialogFragment.availableActions(false, false)
+        assertTrue(actions.contains(FileJobConflictAction.RENAME))
+        assertTrue(actions.contains(FileJobConflictAction.MERGE_OR_REPLACE))
+    }
+
+    @Test
+    fun folderOverFolderConflictOffersMergeAndRename() {
+        val actions = FileJobConflictDialogFragment.availableActions(true, true)
+        assertTrue(actions.contains(FileJobConflictAction.RENAME))
+        assertTrue(actions.contains(FileJobConflictAction.MERGE_OR_REPLACE))
+    }
 }
