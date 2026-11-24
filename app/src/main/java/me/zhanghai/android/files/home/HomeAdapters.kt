@@ -16,7 +16,6 @@ import androidx.recyclerview.widget.RecyclerView
 import android.content.res.ColorStateList
 import android.widget.ImageView
 import android.widget.LinearLayout
-import android.widget.TextView
 import androidx.annotation.ColorInt
 import androidx.annotation.ColorRes
 import androidx.annotation.DrawableRes
@@ -33,7 +32,6 @@ import me.zhanghai.android.files.databinding.HomeRecentItemBinding
 import me.zhanghai.android.files.databinding.HomeStorageItemBinding
 import me.zhanghai.android.files.databinding.HomeQuickAccessItemBinding
 import me.zhanghai.android.files.file.asFileSize
-import me.zhanghai.android.files.ui.WordBreaks
 import me.zhanghai.android.files.ui.fitActionRow
 import me.zhanghai.android.files.util.getColorByAttr
 import me.zhanghai.android.files.util.getQuantityString
@@ -102,18 +100,8 @@ class RecentFileAdapter(private val onClick: (RecentFile) -> Unit) :
                     listener(onSuccess = { _, _ -> scaleType = ImageView.ScaleType.CENTER_CROP })
                 }
             }
-            // Two lines with the middle cut instead of one cut line: the tile is narrow, the extension matters.
-            binding.nameText.text = WordBreaks.breakableName(item.name)
-            binding.nameText.doOnLayout { view ->
-                val text = view as TextView
-                val width = text.width - text.paddingLeft - text.paddingRight
-                val charWidth = text.paint.measureText("n").coerceAtLeast(1f)
-                val label = recentFileLabel(item.name, (2 * width / charWidth * 0.9f).toInt())
-                text.maxLines = 2
-                text.ellipsize = android.text.TextUtils.TruncateAt.END
-                text.text = WordBreaks.breakableName(label)
-                WordBreaks.keepWordsWhole(text)
-            }
+            // One line, cut at the end: the tile is narrow and a name never wraps inside a word.
+            binding.nameText.text = item.name
             binding.root.setOnClickListener { onClick(item) }
         }
     }
