@@ -42,13 +42,13 @@ cleanup() {
 }
 trap cleanup EXIT
 
-# Seeded names and contents, packed on the host (names look like ordoe2e-3f9a1c.dat; the same seed gives the same
-# names). manifest: "<md5> <folder>/<name>" for everything that must survive.
-python3 - "$TMP" "$SEED" "$N_TRASH" <<'PY'
+# Seeded names and contents, packed on the host (names look like ordoe2e-3f9a1c-<time>-<pid>.dat: unique per run, so no foreign
+# trash entry shares a name; the same seed gives the same contents). manifest: "<md5> <folder>/<name>" for everything that must survive.
+python3 - "$TMP" "$SEED" "$N_TRASH" "${RUN_ID#*-}" <<'PY'
 import hashlib, io, random, sys, tarfile
 tmp, seed = sys.argv[1], int(sys.argv[2])
 rnd = random.Random(seed)
-def name(): return "ordoe2e-%06x.dat" % rnd.getrandbits(24)
+def name(): return "ordoe2e-%06x-%s.dat" % (rnd.getrandbits(24), sys.argv[4])
 def blob(): return rnd.randbytes(rnd.randint(2048, 9000))
 groups = {"copysrc": [], "copydst": [], "trash": []}
 files = {}
@@ -210,7 +210,7 @@ done
 a shell am start -n "$PKG/me.zhanghai.android.files.trash.TrashActivity" >/dev/null 2>&1; sleep 2; guard
 rest=$(head -1 <<<"$TRASH_NAMES")
 if ui has "${rest#*/}"; then
-    # one own entry at a time: the trash is global, "select all" would restore other apps' entries too
+    # one own entry at a time, picked by its run-unique name: the trash is global, "select all" would restore other apps' entries too
     for n in $TRASH_NAMES; do
         ui longtap "${n#*/}" >/dev/null; sleep 1
         ui tap "Wiederherstellen|Restore" >/dev/null; sleep 1; guard
