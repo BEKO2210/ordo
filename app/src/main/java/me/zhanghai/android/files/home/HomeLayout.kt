@@ -52,13 +52,15 @@ fun homeHeaderGlassAmount(atBottom: Boolean, scrollY: Int, scrollRange: Int, edg
     ((if (atBottom) scrollRange - scrollY else scrollY) / edgePx).coerceIn(0f, 1f)
 
 /**
- * A recent file's name for a narrow tile with two lines of about [maxChars] characters in all: a longer name loses
- * its middle, never its extension ("Rechnung_Mä…ember.pdf"), so the type stays readable.
+ * Top and bottom padding of the home page's scroll area: the search bar covers [barHeight] at the top or the
+ * bottom, so the last tile ends above it whichever side it is on.
  */
-fun recentFileLabel(name: String, maxChars: Int): String {
-    if (name.length <= maxChars || maxChars < 5) return name
-    val dot = name.lastIndexOf('.').takeIf { it > 0 && name.length - it <= 6 } ?: name.length
-    val tail = name.length - dot + (maxChars - (name.length - dot) - 1) / 2
-    val head = maxChars - 1 - tail
-    return name.take(head) + "…" + name.takeLast(tail)
-}
+fun homeScrollPadding(
+    atBottom: Boolean,
+    insetTop: Int,
+    insetBottom: Int,
+    barHeight: Int,
+    basePaddingBottom: Int
+): Pair<Int, Int> =
+    if (atBottom) insetTop to basePaddingBottom + insetBottom + barHeight
+    else insetTop + barHeight to basePaddingBottom + insetBottom

@@ -44,8 +44,8 @@ direkt darunter, höchstens zwei Zeilen, nie unter einem Bedienelement. Silbentr
   von 48 dp (0 dp mit Gewicht ausgenommen).
 - Nie nur Text: Aktionstasten tragen ein Material-Symbol (Rounded, `utils/material-symbols.py`), z. B. „Ansehen“ (Auge),
   „Löschen“ (Papierkorb), „Zugriff erlauben“ (offenes Schloss), „Zurücksetzen“ (Pfeil im Kreis).
-- Zuletzt verwendete Dateien: Name auf zwei Zeilen; ist er länger, fällt die Mitte weg, nie die Endung
-  („Rechnung_…final.pdf“, `recentFileLabel`).
+- Zuletzt verwendete Dateien: Name einzeilig; ist er länger, endet er mit „…“, nie mitten im Wort
+  umbrochen.
 
 ## Umstellung, Bildschirm für Bildschirm
 
