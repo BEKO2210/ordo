@@ -50,15 +50,31 @@ object RateOrdo {
         }.apply()
     }
 
-    /** True exactly once, when the hint is due; marks it as shown so it never comes back. */
-    fun takeIfDue(context: Context): Boolean {
-        val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-        val due = isDue(
-            System.currentTimeMillis(), prefs.getLong(KEY_FIRST, 0), prefs.getInt(KEY_SUCCESSES, 0),
-            prefs.getBoolean(KEY_SHOWN, false)
-        )
-        if (due) prefs.edit().putBoolean(KEY_SHOWN, true).apply()
-        return due
+    /** Whether the hint is due now; marks nothing, so a hint that could not be shown stays due. */
+    fun isDueNow(context: Context): Boolean = isDueNow(PrefsStore(context))
+
+    /** Called once the hint is on screen: it never comes back. */
+    fun markShown(context: Context) = markShown(PrefsStore(context))
+
+    internal fun isDueNow(store: Store): Boolean = isDue(
+        System.currentTimeMillis(), store.getLong(KEY_FIRST), store.getInt(KEY_SUCCESSES), store.getBoolean(KEY_SHOWN)
+    )
+
+    internal fun markShown(store: Store) = store.putBoolean(KEY_SHOWN, true)
+
+    internal interface Store {
+        fun getLong(key: String): Long
+        fun getInt(key: String): Int
+        fun getBoolean(key: String): Boolean
+        fun putBoolean(key: String, value: Boolean)
+    }
+
+    private class PrefsStore(context: Context) : Store {
+        private val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        override fun getLong(key: String) = prefs.getLong(key, 0)
+        override fun getInt(key: String) = prefs.getInt(key, 0)
+        override fun getBoolean(key: String) = prefs.getBoolean(key, false)
+        override fun putBoolean(key: String, value: Boolean) = prefs.edit().putBoolean(key, value).apply()
     }
 
     /** The store app if one is installed, otherwise the store page in the browser. */

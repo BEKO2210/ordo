@@ -26,7 +26,11 @@ abstract class NavigationItem {
 
     abstract fun getTitle(context: Context): String
 
+    /** Runs on the main thread, so it must not touch the disk; an item whose subtitle does has to cache it. */
     open fun getSubtitle(context: Context): String? = null
+
+    /** The current subtitle, read off the main thread; the adapter shows [getSubtitle] first and then this. */
+    open fun loadSubtitle(context: Context): String? = getSubtitle(context)
 
     open fun isChecked(listener: Listener): Boolean = false
 

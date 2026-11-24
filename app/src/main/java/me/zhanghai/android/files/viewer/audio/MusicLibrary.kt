@@ -28,7 +28,8 @@ data class MusicSong(
     /** 0 when unknown. */
     val year: Int = 0,
     val dateAddedMs: Long = 0,
-    val dateModifiedMs: Long = 0
+    val dateModifiedMs: Long = 0,
+    val sizeBytes: Long = 0
 ) {
     val folder: String
         get() = path.substringBeforeLast('/', "")

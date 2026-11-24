@@ -1340,7 +1340,7 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener, AppAccentA
             title = metadata.title?.takeIf { it.isNotBlank() } ?: song?.title ?: metadata.displayTitle
                 ?: getString(R.string.audio_player_unknown_title)
             artist = metadata.artist?.takeIf { it.isNotBlank() } ?: song?.artist
-            art = metadata.artworkData ?: song?.let { me.zhanghai.android.files.coil.SongCover(it.path, it.artUri) }
+            art = metadata.artworkData ?: song?.let { me.zhanghai.android.files.coil.SongCover(it.path, it.artUri, it.dateModifiedMs, it.sizeBytes) }
             album = song?.album ?: metadata.albumTitle?.toString()
             showPlay = Util.shouldShowPlayButton(player)
         } else if (savedState != null && player != null) {
@@ -1348,7 +1348,7 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener, AppAccentA
             val song = songAt(pathUri)
             title = song?.title ?: pathUri.substringAfterLast('/')
             artist = song?.artist
-            art = song?.let { me.zhanghai.android.files.coil.SongCover(it.path, it.artUri) }
+            art = song?.let { me.zhanghai.android.files.coil.SongCover(it.path, it.artUri, it.dateModifiedMs, it.sizeBytes) }
             album = song?.album
             showPlay = true
         } else {
@@ -1554,7 +1554,7 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener, AppAccentA
                         art.root.radius = resources.getDimension(R.dimen.phi_radius_s)
                         art.collage.isVisible = false
                         art.cover.loadCover(
-                            me.zhanghai.android.files.coil.SongCover(song.path, song.artUri),
+                            me.zhanghai.android.files.coil.SongCover(song.path, song.artUri, song.dateModifiedMs, song.sizeBytes),
                             placeholder(song.album, R.drawable.audio_icon_white_24dp)
                         )
                         art.bars.isVisible = current

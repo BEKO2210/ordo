@@ -124,4 +124,31 @@ class LoudnessAnalysisTest {
         val cached = analysis.cached(file) as LoudnessAnalysis.Cached.Measured
         assertEquals(info.gainDb, cached.info.gainDb, 0f)
     }
+
+    @Test
+    fun cachedOrMeasureMeasuresOnceThenUsesTheCache() {
+        var opened = 0
+        val analysis = LoudnessAnalysis(cache, {
+            opened++
+            FakeSource(stereo, 5.0)
+        })
+        val file = File("/music/again.flac")
+        val first = analysis.cachedOrMeasure(file)!!
+        val second = analysis.cachedOrMeasure(file)!!
+        assertEquals(first.gainDb, second.gainDb, 0f)
+        assertEquals(1, opened)
+    }
+
+    @Test
+    fun cachedOrMeasureSkipsAFailedFile() {
+        var opened = 0
+        val analysis = LoudnessAnalysis(cache, {
+            opened++
+            null
+        })
+        val file = File("/music/bad.mp3")
+        assertNull(analysis.cachedOrMeasure(file))
+        assertNull(analysis.cachedOrMeasure(file))
+        assertEquals(1, opened)
+    }
 }

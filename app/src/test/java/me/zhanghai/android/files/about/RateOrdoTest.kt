@@ -37,4 +37,27 @@ class RateOrdoTest {
     fun notWithoutAFirstUse() {
         assertFalse(RateOrdo.isDue(first, 0, 20, shown = false))
     }
+
+    private class FakeStore(var shown: Boolean = false) : RateOrdo.Store {
+        override fun getLong(key: String) = 1L
+        override fun getInt(key: String) = 99
+        override fun getBoolean(key: String) = shown
+        override fun putBoolean(key: String, value: Boolean) {
+            shown = value
+        }
+    }
+
+    @Test
+    fun checkingDoesNotMarkTheHintAsShown() {
+        val store = FakeStore()
+        assertTrue(RateOrdo.isDueNow(store))
+        assertTrue(RateOrdo.isDueNow(store))
+    }
+
+    @Test
+    fun markedAsShownItIsNotDueAgain() {
+        val store = FakeStore()
+        RateOrdo.markShown(store)
+        assertFalse(RateOrdo.isDueNow(store))
+    }
 }

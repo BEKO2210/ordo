@@ -65,6 +65,10 @@ import java8.nio.file.Path
 import java8.nio.file.Paths
 import java.net.URI
 import kotlin.math.roundToInt
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.parcelize.Parcelize
 import me.zhanghai.android.files.R
 import me.zhanghai.android.files.about.RateOrdo
@@ -528,14 +532,28 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
         maybeShowRateHint()
     }
 
+    private var rateHintChecking = false
+
     // Once ever, and never on top of a dialog or sheet (players are their own activities, so this is not resumed).
     private fun maybeShowRateHint() {
         val dialogOpen = (parentFragmentManager.fragments + childFragmentManager.fragments)
             .any { it is androidx.fragment.app.DialogFragment && it.isAdded }
-        if (dialogOpen || !RateOrdo.takeIfDue(requireContext())) return
-        Snackbar.make(binding.contentLayout, R.string.rate_hint_text, Snackbar.LENGTH_LONG)
-            .setAction(R.string.rate_hint_action) { RateOrdo.openStore(requireContext()) }
-            .show()
+        if (dialogOpen) return
+        val appContext = requireContext().applicationContext
+        if (rateHintChecking) return
+        rateHintChecking = true
+        // The preferences are read off the main thread. The hint counts as shown only once it is on screen.
+        viewLifecycleOwner.lifecycleScope.launch {
+            try {
+                if (!withContext(Dispatchers.IO) { RateOrdo.isDueNow(appContext) }) return@launch
+                Snackbar.make(binding.contentLayout, R.string.rate_hint_text, Snackbar.LENGTH_LONG)
+                    .setAction(R.string.rate_hint_action) { RateOrdo.openStore(requireContext()) }
+                    .show()
+                withContext(Dispatchers.IO + kotlinx.coroutines.NonCancellable) { RateOrdo.markShown(appContext) }
+            } finally {
+                rateHintChecking = false
+            }
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
