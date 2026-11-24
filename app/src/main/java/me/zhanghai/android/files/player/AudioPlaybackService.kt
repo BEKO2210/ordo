@@ -485,18 +485,10 @@ class AudioPlaybackService : MediaSessionService() {
         if (!soundSettings.normalizationEnabled || replayGain != null || path == null) return
         if (measuring == path) return
         val file = java.io.File(path)
-        when (val cached = loudness.cached(file)) {
-            is LoudnessAnalysis.Cached.Measured -> {
-                replayGain = cached.info
-                applyEffects()
-                return
-            }
-            LoudnessAnalysis.Cached.Failed -> return
-            null -> Unit
-        }
         measuring = path
+        // The cache lookup stats the file, so it runs here too, off the main thread.
         measurement = loudnessExecutor.submit(Runnable {
-            val result = loudness.measure(file)
+            val result = loudness.cachedOrMeasure(file)
             handler.post {
                 if (measuring != path) return@post
                 measuring = null

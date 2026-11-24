@@ -29,15 +29,16 @@ import okio.Buffer
  * all songs of an album (and every untagged song of a folder, whose album is the folder's name) one album cover,
  * so a folder showed the same picture on every row (Galaxy Tab S9 Ultra, 18.11.2026).
  */
-data class SongCover(val path: String, val albumArtUri: String?, val modifiedMs: Long = 0)
+data class SongCover(val path: String, val albumArtUri: String?, val modifiedMs: Long = 0, val sizeBytes: Long = 0)
 
 class SongCoverKeyer : Keyer<SongCover> {
-    // A changed file (the tag editor) gets a new key, so its new cover shows at once. The change time is the one
-    // MediaStore already gave the song: the keyer runs on the main thread and must not touch the disk.
+    // A changed file (the tag editor) gets a new key, so its new cover shows at once. Change time and size are the
+    // ones MediaStore already gave the song (it counts seconds, the size tells two edits in one second apart): the
+    // keyer runs on the main thread and must not touch the disk.
     override fun key(data: SongCover, options: Options): String = key(data)
 
     companion object {
-        fun key(data: SongCover): String = "song:${data.path}:${data.modifiedMs}"
+        fun key(data: SongCover): String = "song:${data.path}:${data.modifiedMs}:${data.sizeBytes}"
     }
 }
 

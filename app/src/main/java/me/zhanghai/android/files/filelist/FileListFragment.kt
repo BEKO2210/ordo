@@ -532,18 +532,27 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
         maybeShowRateHint()
     }
 
+    private var rateHintChecking = false
+
     // Once ever, and never on top of a dialog or sheet (players are their own activities, so this is not resumed).
     private fun maybeShowRateHint() {
         val dialogOpen = (parentFragmentManager.fragments + childFragmentManager.fragments)
             .any { it is androidx.fragment.app.DialogFragment && it.isAdded }
         if (dialogOpen) return
         val appContext = requireContext().applicationContext
-        // The preferences are read off the main thread.
+        if (rateHintChecking) return
+        rateHintChecking = true
+        // The preferences are read off the main thread. The hint counts as shown only once it is on screen.
         viewLifecycleOwner.lifecycleScope.launch {
-            if (!withContext(Dispatchers.IO) { RateOrdo.takeIfDue(appContext) }) return@launch
-            Snackbar.make(binding.contentLayout, R.string.rate_hint_text, Snackbar.LENGTH_LONG)
-                .setAction(R.string.rate_hint_action) { RateOrdo.openStore(requireContext()) }
-                .show()
+            try {
+                if (!withContext(Dispatchers.IO) { RateOrdo.isDueNow(appContext) }) return@launch
+                Snackbar.make(binding.contentLayout, R.string.rate_hint_text, Snackbar.LENGTH_LONG)
+                    .setAction(R.string.rate_hint_action) { RateOrdo.openStore(requireContext()) }
+                    .show()
+                withContext(Dispatchers.IO + kotlinx.coroutines.NonCancellable) { RateOrdo.markShown(appContext) }
+            } finally {
+                rateHintChecking = false
+            }
         }
     }
 

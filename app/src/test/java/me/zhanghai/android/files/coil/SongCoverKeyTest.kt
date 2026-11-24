@@ -13,7 +13,7 @@ class SongCoverKeyTest {
     @Test
     fun keyNeedsNoFile() {
         val key = SongCoverKeyer.key(SongCover("/no/such/file.mp3", null, 42))
-        assertEquals("song:/no/such/file.mp3:42", key)
+        assertEquals("song:/no/such/file.mp3:42:0", key)
     }
 
     @Test
@@ -21,6 +21,14 @@ class SongCoverKeyTest {
         assertNotEquals(
             SongCoverKeyer.key(SongCover("/a.mp3", null, 1)),
             SongCoverKeyer.key(SongCover("/a.mp3", null, 2))
+        )
+    }
+
+    @Test
+    fun editWithinTheSameSecondGetsNewKeyBySize() {
+        assertNotEquals(
+            SongCoverKeyer.key(SongCover("/a.mp3", null, 5_000, 1_000)),
+            SongCoverKeyer.key(SongCover("/a.mp3", null, 5_000, 1_200))
         )
     }
 }
