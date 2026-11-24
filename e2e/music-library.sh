@@ -79,10 +79,20 @@ a push "$tmp/cover-red.mp3" "$tmp/cover-blue.mp3" "$COVERS/" >/dev/null
 for f in cover-red.mp3 cover-blue.mp3; do
     a shell am broadcast -a android.intent.action.MEDIA_SCANNER_SCAN_FILE -d "file://$COVERS/$f" >/dev/null 2>&1
 done
-# The tag editor's test songs: the unit tests' 1 s stereo MP3 and FLAC, both titled "Fixture".
+# The tag editor's test songs: keep their streams but give the two fixtures distinct seven-byte titles. Replacing
+# equal-length metadata leaves both ID3 and Vorbis-comment block sizes intact and makes the selected format explicit.
 a shell "rm -rf $EDIT; mkdir -p $EDIT"
-a push "$HERE/../app/src/test/resources/tags/song.mp3" "$EDIT/edit-me.mp3" >/dev/null
-a push "$HERE/../app/src/test/resources/tags/song.flac" "$EDIT/edit-me.flac" >/dev/null
+python3 - "$HERE/../app/src/test/resources/tags" "$tmp" <<'PY'
+import pathlib, sys
+source, target = map(pathlib.Path, sys.argv[1:])
+for name, title in (("song.mp3", b"Mp3Test"), ("song.flac", b"FlacTag")):
+    data = (source / name).read_bytes()
+    if data.count(b"Fixture") != 1 or len(title) != len(b"Fixture"):
+        raise SystemExit(f"unexpected tag fixture: {name}")
+    (target / ("edit-me" + pathlib.Path(name).suffix)).write_bytes(data.replace(b"Fixture", title))
+PY
+a push "$tmp/edit-me.mp3" "$EDIT/edit-me.mp3" >/dev/null
+a push "$tmp/edit-me.flac" "$EDIT/edit-me.flac" >/dev/null
 a shell am broadcast -a android.intent.action.MEDIA_SCANNER_SCAN_FILE -d "file://$EDIT/edit-me.mp3" >/dev/null 2>&1
 a shell am broadcast -a android.intent.action.MEDIA_SCANNER_SCAN_FILE -d "file://$EDIT/edit-me.flac" >/dev/null 2>&1
 # adb push leaves new files pending in MediaStore (no tags, not counted as music) until a scan: ask for one per file.
@@ -102,7 +112,7 @@ check "MediaStore indexed the four test songs" indexed
 wake; grant; a logcat -b crash -c
 a shell am force-stop "$PKG"
 a shell am start -W -n "$PKG/$LIBRARY" >/dev/null
-check "Ordo Musik opens its library, not the player" wait_on viewer.audio.MusicLauncherActivity 5; guard
+check_or_abort "Ordo Musik opens its library, not the player" wait_on viewer.audio.MusicLauncherActivity 5; guard
 # Ordo Musik is its own app: a task of its own affinity, a separate card in Recents next to the file manager.
 music_task() { a shell dumpsys activity recents | grep -Eq "A=[0-9]+:me\.zhanghai\.android\.files\.music([ }]|$)"; }
 check "Recents shows Ordo Musik as a task of its own" music_task
@@ -147,8 +157,8 @@ check "songs are sorted by title" above "Ordoe2e Alpha" "Ordoe2e Beta"
 session_state() { a shell dumpsys media_session | grep -A25 "package=$PKG" | grep -q "state=$1"; }
 playing() { local i; for i in $(seq 10); do session_state PLAYING && return 0; sleep 1; done; return 1; }
 check "tapping a song opens the player" ui tap "Ordoe2e Alpha" title
-check "the player is in front" wait_on viewer.audio.AudioPlayerActivity 8
-check "the song plays" playing
+check_or_abort "the player is in front" wait_on viewer.audio.AudioPlayerActivity 8
+check_or_abort "the song plays" playing
 back 2
 check "back returns to the library" on viewer.audio.MusicLauncherActivity
 mini() { local i; for i in 1 2 3 4 5; do ui visible miniPlayer && return 0; sleep 1; done; return 1; }
@@ -174,8 +184,8 @@ same_song_keeps_position() {
 check "tapping the playing song keeps its position" same_song_keeps_position
 cat "$tmp/position.txt" 2>/dev/null
 # Every song row has its ⋮; while a queue exists it offers play next and add to queue besides showing the file.
-check "a song row has its options button" ui tap "Weitere Optionen für Ordoe2e Beta|More options for Ordoe2e Beta"
-check "options offer play next" ui wait "Als Nächstes spielen|Play next" 5
+check_or_abort "a song row opens its options" eval 'ui tap "Weitere Optionen für Ordoe2e Beta|More options for Ordoe2e Beta" && ui wait "Als Nächstes spielen|Play next" 5'
+pass "options offer play next"
 check "options offer add to queue" ui has "Zur Warteschlange|Add to queue"
 check "options offer showing the file" ui has "Datei anzeigen|Show file"
 back 1
@@ -192,12 +202,11 @@ check "the side menu is open or opens" open_menu
 check "the side menu names Ordo Musik" ui wait "Ordo Musik|Ordo Music" 5
 check "the side menu offers the library" ui has "Bibliothek|Library"
 check "the side menu offers sound and the sleep timer" ui has "Einschlaf-Timer|Sleep timer"
-check "recently played opens" ui tap "Zuletzt gespielt|Recently played"
-check "the played song is in the history" ui wait "Ordoe2e Alpha" 5
-check "the menu goes back to the library" eval 'open_menu && ui tap "Bibliothek|Library"'
-check "the library tabs are back" ui wait "Alben|Albums" 5
-check "Sound opens from the side menu" eval 'open_menu && ui tap "Klang|Sound"'
-check "the Sound sheet opens over the player" ui wait "Equalizer" 8
+check_or_abort "recently played opens with the played song" eval 'ui tap "Zuletzt gespielt|Recently played" && ui wait "Ordoe2e Alpha" 5'
+check_or_abort "the menu goes back to the library" eval 'open_menu && ui tap "Bibliothek|Library" && ui wait "Alben|Albums" 5'
+pass "the library tabs are back"
+check_or_abort "Sound opens from the side menu" eval 'open_menu && ui tap "Klang|Sound" && ui wait "Equalizer" 8'
+pass "the Sound sheet opens over the player"
 back 1.5; back 2
 check "back from the player returns to the library" on viewer.audio.MusicLauncherActivity
 
@@ -207,31 +216,31 @@ check "a long press selects a song" eval 'search Ordoe2e && ui longtap "Ordoe2e 
 # On failure the log shows what the toolbar showed instead.
 ui has "1 ausgewählt|1 selected" || { echo "DIAG selection:"; ui texts | head -20 | sed 's/^/  /'; }
 check "a tap adds a second song" eval 'ui tap "Ordoe2e Beta" title && ui wait "2 ausgewählt|2 selected" 5'
-check "the selection goes into a new playlist" eval 'ui tap actionSelectionPlaylist && ui wait "Neue Wiedergabeliste|New playlist" 5 \
+check_or_abort "the selection goes into a new playlist" eval 'ui tap actionSelectionPlaylist && ui wait "Neue Wiedergabeliste|New playlist" 5 \
     && ui tap "Neue Wiedergabeliste|New playlist" && sleep 1 && a shell input text "Ordoe2e%sList" && ui tap button1'
 in_playlist() { a shell cat "\"$PLAYLISTS/Ordoe2e List.m3u8\"" | grep -q "OrdoE2E-Rock/rock-1.mp3"; }
 check "the playlist is an M3U8 file in Music/Playlists" eval 'sleep 2; in_playlist'
 close_search
 ui has "$MENU" || ui has "Bibliothek|Library" titleText || { echo "DIAG before the side menu:"; ui texts | head -20 | sed 's/^/  /'; }
-check "the side menu lists the playlist" eval 'open_menu && ui tap "Wiedergabelisten|Playlists" titleText && ui wait "Ordoe2e List" 5'
-check "the playlist opens with its songs" eval 'ui tap "Ordoe2e List" && ui wait "Ordoe2e Alpha" 5 && ui has "Ordoe2e Beta"'
+check_or_abort "the side menu lists the playlist" eval 'open_menu && ui tap "Wiedergabelisten|Playlists" titleText && ui wait "Ordoe2e List" 5'
+check_or_abort "the playlist opens with its songs" eval 'ui tap "Ordoe2e List" && ui wait "Ordoe2e Alpha" 5 && ui has "Ordoe2e Beta"'
 back 1.5; back 1.5
 check "a song becomes a favourite from its menu" eval 'search Ordoe2e && ui tap "Weitere Optionen für Ordoe2e Gamma|More options for Ordoe2e Gamma" \
     && ui wait "Zu Favoriten|Add to favorites" 5 && ui tap "Zu Favoriten|Add to favorites"'
 close_search
-check "the favourites show it" eval 'open_menu && ui tap "Favoriten|Favorites" titleText && ui wait "Ordoe2e Gamma" 5'
+check_or_abort "the favourites show it" eval 'open_menu && ui tap "Favoriten|Favorites" titleText && ui wait "Ordoe2e Gamma" 5'
 # Favourites and playlists are tabs of the library: the tab row stays, the selected tab scrolled into view (phones).
 check "the favourites keep the tab row, their tab in view" ui has "Favoriten|Favorites"
 check "the menu returns to the library" eval 'open_menu && ui tap "Bibliothek|Library" && ui wait "Alben|Albums" 5'
 
 # The tag editor: a new title for the MP3 and the FLAC; the library shows it and the song still plays.
 edit_title() {
-    local new=$1
-    search Fixture || return 1
-    ui tap "Weitere Optionen für Fixture|More options for Fixture" || return 1
+    local old=$1 new=$2
+    search "$old" || return 1
+    ui tap "Weitere Optionen für $old|More options for $old" || return 1
     ui wait "Infos bearbeiten|Edit info" 5 && ui tap "Infos bearbeiten|Edit info" || return 1
     wait_on viewer.audio.MusicTagEditorActivity 8 || return 1
-    ui wait Fixture 8 && ui tap Fixture || return 1
+    ui wait "$old" 8 && ui tap "$old" || return 1
     a shell input keycombination 113 29; sleep 0.5   # Ctrl+A: the new title replaces the old one
     a shell input text "${new// /%s}"; sleep 1 # deliberate: the search waits for the end of typing (debounce) and then loads
     a shell input keyevent KEYCODE_BACK; sleep 1      # hide the keyboard
@@ -252,17 +261,17 @@ edit_title() {
     wait_on viewer.audio.MusicLauncherActivity 10
 }
 listed() { local i; for i in 1 2 3 4 5 6; do close_search >/dev/null 2>&1; search "$1" && ui has "$1" && return 0; sleep 2; done; return 1; }
-check "the MP3 gets a new title in the editor" edit_title "Ordoe2e Edited Mp"
+check_or_abort "the MP3 gets a new title in the editor" edit_title Mp3Test "Ordoe2e Edited Mp"
 check "Undo is offered after saving" ui wait "Rückgängig|Undo" 5
 check "the library shows the edited MP3" listed "Ordoe2e Edited Mp"
-check "the edited MP3 opens the player" ui tap "Ordoe2e Edited Mp" title
-check "the edited MP3 plays" playing
+check_or_abort "the edited MP3 opens the player" eval 'ui tap "Ordoe2e Edited Mp" title && wait_on viewer.audio.AudioPlayerActivity 8'
+check_or_abort "the edited MP3 plays" playing
 back 2
 close_search
-check "the FLAC gets a new title in the editor" edit_title "Ordoe2e Edited Flac"
+check_or_abort "the FLAC gets a new title in the editor" edit_title FlacTag "Ordoe2e Edited Flac"
 check "the library shows the edited FLAC" listed "Ordoe2e Edited Flac"
-check "the edited FLAC opens the player" ui tap "Ordoe2e Edited Flac" title
-check "the edited FLAC plays" playing
+check_or_abort "the edited FLAC opens the player" eval 'ui tap "Ordoe2e Edited Flac" title && wait_on viewer.audio.AudioPlayerActivity 8'
+check_or_abort "the edited FLAC plays" playing
 back 2
 close_search
 
@@ -294,14 +303,14 @@ own_covers() {
     back 1.5; close_search
     [ "$rr" -gt "$rb" ] && [ "$bb" -gt "$br" ]
 }
-check "a folder page shows each song's own cover" own_covers
+check_or_abort "a folder page shows each song's own cover" own_covers
 cat "$tmp/covers.txt" 2>/dev/null
 check "the Folders tab opens" eval 'show_tab "Ordner|Folders" && ui tap "Ordner|Folders"'
 search OrdoE2E
 check "the first folder is listed" ui wait OrdoE2E-Rock 5
 check "the second folder is listed" ui has OrdoE2E-Jazz
-check "a folder opens its songs" ui tap OrdoE2E-Jazz
-check "the folder lists its songs" ui wait "Ordoe2e Gamma" 5
+check_or_abort "a folder opens its songs" eval 'ui tap OrdoE2E-Jazz && ui wait "Ordoe2e Gamma" 5'
+pass "the folder lists its songs"
 check "the folder lists its WAV" ui has "Ordoe2e Delta"
 check "the folder offers play and shuffle" ui has "Abspielen|Play"
 back 1.5
@@ -310,8 +319,8 @@ check "the tabs are back" show_tab "Alben|Albums"
 check "the Albums tab opens" ui tap "Alben|Albums"
 search Ordoe2e
 check "the album is listed" ui wait "$ROCKS" 5
-check "an album opens its songs" ui tap "$ROCKS"
-check "the album's first track is shown" ui wait "Ordoe2e Alpha" 5
+check_or_abort "an album opens its songs" eval 'ui tap "$ROCKS" && ui wait "Ordoe2e Alpha" 5'
+pass "the album's first track is shown"
 check "tracks keep the album's order" above "Ordoe2e Alpha" "Ordoe2e Beta"
 # Only song rows carry the id "title" (the mini player and the menu's "now playing" have their own): they count.
 gamma_rows() { ui texts | grep -c '^Ordoe2e Gamma|title|'; }

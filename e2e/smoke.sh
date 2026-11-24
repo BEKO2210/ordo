@@ -3,10 +3,10 @@
 # Start, home screen, every settings section, back paths. Read-only.
 . "$(dirname "$0")/lib.sh" "$@"
 launch
-check "home shows categories" ui has "Audio"
+check "home shows categories" scroll_to "Audio"
 # On a cold start with a big storage the card can take ~5 s on a tablet: wait for it instead of racing it.
 # With a large display size (Galaxy S21 Ultra at 600 dpi) it sits below the fold: scroll on to it.
-storage_card() { local i; for i in 1 2 3 4; do ui wait analyzeButton 3 && return 0; swipe_up; done; return 1; }
+storage_card() { scroll_to analyzeButton 6; }
 check "home shows a storage card" storage_card
 a shell am start -n "$PKG/me.zhanghai.android.files.settings.SettingsActivity" >/dev/null; sleep 3; guard
 for section in "Aussehen|Appearance" "KI-Assistent|AI assistant" "Dateien & Ansicht|Files & view" \

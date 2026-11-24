@@ -27,7 +27,10 @@ for _ in $(seq 1 30); do
 done
 check "MediaStore knows all $COUNT files" test "$indexed" -ge "$COUNT"
 launch 7
-ui tap "Audio" >/dev/null; guard
+if ! scroll_to "Audio" || ! ui tap "Audio" >/dev/null || ! wait_on filelist.FileListActivity 8; then
+    fail "the Audio category opens"; finish
+fi
+guard
 ui tap action_search >/dev/null; sleep 2 # deliberate: the search field takes the focus; the text is typed blind
 a shell input text zzordoe2e; ui wait zzordoe2e-1.mp3 10 >/dev/null; guard
 ui longtap "zzordoe2e-1.mp3" >/dev/null

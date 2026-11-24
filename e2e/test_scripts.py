@@ -13,6 +13,7 @@ import importlib
 
 a11y = importlib.import_module("a11y-scan")
 import logcheck
+import ui_dump
 
 PKG = "com.beko2210.ordo"
 
@@ -114,6 +115,39 @@ class LogCheck(unittest.TestCase):
 
     def test_empty_log_is_quiet(self):
         self.assertEqual([], logcheck.findings(""))
+
+
+class UiDump(unittest.TestCase):
+    def test_scrollable_bounds_uses_nested_container_around_anchor(self):
+        xml = ('<hierarchy><node scrollable="true" bounds="[0,0][1000,700]">'
+               '<node scrollable="true" bounds="[300,100][900,650]">'
+               '<node resource-id="com.beko2210.ordo:id/choice_root" text="One" bounds="[320,120][880,180]"/>'
+               '</node></node></hierarchy>')
+        self.assertEqual((300, 100, 900, 650), ui_dump.scrollable_bounds(xml, "choice_root"))
+
+    def test_scrollable_bounds_ignores_horizontal_strip(self):
+        xml = ('<hierarchy><node scrollable="true" bounds="[0,0][1000,60]"/>'
+               '<node scrollable="true" bounds="[0,80][1000,700]"/></hierarchy>')
+        self.assertEqual((0, 80, 1000, 700), ui_dump.scrollable_bounds(xml))
+
+    def test_scrollable_bounds_requires_anchor_in_container(self):
+        xml = ('<hierarchy><node scrollable="true" bounds="[0,0][1000,700]">'
+               '<node text="Other" bounds="[0,0][20,20]"/></node></hierarchy>')
+        self.assertIsNone(ui_dump.scrollable_bounds(xml, "choice_root"))
+
+
+class CrashFilter(unittest.TestCase):
+    def test_only_ordo_crash_is_reported(self):
+        lib = os.path.join(HERE, "lib.sh")
+        foreign = "E AndroidRuntime: FATAL EXCEPTION: main\nE AndroidRuntime: Process: com.other, PID: 1\nforeign\n"
+        ordo = f"E AndroidRuntime: FATAL EXCEPTION: main\nE AndroidRuntime: Process: {PKG}, PID: 2\nordo stack\n"
+        script = (f'PKG={PKG}; a() {{ printf "%s" "$LOG"; }}; '
+                  f'eval "$(sed -n \'/^crash_report()/,/^}}/p\' {lib})"; crash_report')
+        result = subprocess.run(["bash", "-c", script], capture_output=True, text=True,
+                                env={**os.environ, "LOG": foreign + ordo})
+        self.assertEqual(0, result.returncode)
+        self.assertNotIn("foreign", result.stdout)
+        self.assertIn("ordo stack", result.stdout)
 
 
 if __name__ == "__main__":
