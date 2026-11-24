@@ -6,7 +6,6 @@
 DIR=/storage/emulated/0/ordo-e2e-pick
 wake; grant
 a shell "rm -rf $DIR; mkdir -p $DIR"
-trap 'a shell "rm -rf $DIR"' EXIT
 python3 - "$DIR" <<'PY' | a shell "cat > $DIR/upload-test.wav"
 import struct, sys, io, wave
 buf = io.BytesIO()
@@ -18,6 +17,12 @@ PY
 # Revoked for the check below and given back at the end, whatever kind of device: a suite that came after this one
 # met the notification question on a real device (21.11.2026).
 had=$(a shell dumpsys package "$PKG" | grep -m1 -o "POST_NOTIFICATIONS: granted=true")
+clean_up() {
+    a shell "rm -rf $DIR"
+    [ -z "$had" ] || a shell pm grant "$PKG" android.permission.POST_NOTIFICATIONS >/dev/null 2>&1
+    grant
+}
+trap clean_up EXIT
 a shell pm revoke "$PKG" android.permission.POST_NOTIFICATIONS >/dev/null 2>&1
 a shell am force-stop "$PKG"
 a shell am start -W -a android.intent.action.GET_CONTENT -c android.intent.category.OPENABLE -t "audio/*" \
@@ -26,12 +31,17 @@ sleep 3
 focus() { a shell dumpsys window | grep -m1 mCurrentFocus; }
 no_prompt() { ! focus | grep -q GrantPermissions; }
 ordo_closed() { ! focus | grep -q "$PKG/"; }
-check "Ordo opens in pick mode" ui has "Datei wählen|Select a file"
-check "no notification prompt while picking" no_prompt
-ui tap ordo-e2e-pick >/dev/null 2>&1
-check "the test file is offered" ui see upload-test.wav
-ui tap upload-test.wav >/dev/null; sleep 2
-check "picking the file closes Ordo" ordo_closed
-[ -z "$had" ] || a shell pm grant "$PKG" android.permission.POST_NOTIFICATIONS >/dev/null 2>&1
-grant
+if ! wait_on filelist.FileListActivity 6 || ! ui has "Datei wählen|Select a file"; then
+    fail "Ordo opens in pick mode"; finish
+fi
+pass "Ordo opens in pick mode"
+check_or_abort "no notification prompt while picking" no_prompt
+if ! scroll_to ordo-e2e-pick || ! ui tap ordo-e2e-pick >/dev/null 2>&1 || ! scroll_to upload-test.wav; then
+    fail "the test file is offered"; finish
+fi
+pass "the test file is offered"
+if ! ui tap upload-test.wav >/dev/null || ! eventually 5 ordo_closed; then
+    fail "picking the file closes Ordo"; finish
+fi
+pass "picking the file closes Ordo"
 finish

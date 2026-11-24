@@ -18,7 +18,15 @@ a() { case " $* " in *" input "*|*" am "*|*" monkey "*) rm -f "$DUMP" ;; esac; "
 # ui.py never taps while another app is in front (exit code 3): the test then stops as with guard().
 ui() { python3 "$HERE/ui.py" "$SERIAL" "$@" < /dev/null; local c=$?; [ $c = 3 ] && guard >&2; return $c; }
 top() { a shell "dumpsys activity activities 2>/dev/null | grep -m1 topResumedActivity" | grep -o 'com[^ }]*'; }
-crashes() { a logcat -b crash -d | grep -c FATAL; }
+crash_report() {
+    a logcat -b crash -d | awk -v marker="Process: $PKG," '
+        function flush() { if (index(block, marker)) printf "%s", block; block = "" }
+        /FATAL EXCEPTION/ { flush() }
+        { if (block != "" || /FATAL EXCEPTION/) block = block $0 "\n" }
+        END { flush() }
+    '
+}
+crashes() { crash_report | grep -Fc "Process: $PKG,"; }
 # focus_window: the focused window (an activity, or a dialog, menu or sheet in a window of its own).
 focus_window() { a shell "dumpsys window 2>/dev/null | grep -m1 mCurrentFocus" 2>/dev/null; }
 # back [S]: Back, then up to S seconds (default 1.5) for what it closes. It returns early only once the focused window
@@ -57,6 +65,12 @@ fail() {
 }
 # check NAME COMMAND...: PASS when the command succeeds.
 check() { local name=$1; shift; if "$@" >/dev/null 2>&1; then pass "$name"; else fail "$name"; fi; }
+# A failed navigation makes every later UI assertion describe the wrong screen. Record that first failure and end the
+# suite immediately; use this for taps that must open an activity, dialog or sheet.
+check_or_abort() {
+    local name=$1; shift
+    if "$@" >/dev/null 2>&1; then pass "$name"; else fail "$name"; echo "ABORT: $name"; finish; fi
+}
 
 # Stops the test the moment another app is in front: nothing outside Ordo is ever tapped.
 # A permission question in front names what is missing and the command the owner can run himself.
@@ -232,7 +246,20 @@ wait_leak_analysis() {
 }
 
 finish() {
-    check "no crash" test "$(crashes)" = 0
+    local crash crash_count crash_file
+    crash=$(crash_report); crash_count=$(grep -Fc "Process: $PKG," <<<"$crash")
+    if [ "$crash_count" = 0 ]; then
+        pass "no crash"
+    else
+        fail "no crash ($crash_count Ordo crash(es))"
+        sed 's/^/    /' <<<"$crash"
+        if [ -n "${E2E_FAILDUMP:-}" ]; then
+            mkdir -p "$E2E_FAILDUMP"
+            crash_file="$E2E_FAILDUMP/$(basename "$0" .sh)-crash.txt"
+            printf '%s\n' "$crash" > "$crash_file"
+            echo "INFO Ordo crash stack: $crash_file"
+        fi
+    fi
     wait_leak_analysis
     local found rc=0; found=$(debug_findings) || rc=1
     if [ "$rc" = 0 ] && [ -z "$found" ]; then pass "no StrictMode violation or leak"; else fail "StrictMode violation or leak"; sed 's/^/    /' <<<"$found"; fi
@@ -240,31 +267,48 @@ finish() {
     exit 1
 }
 
-# scroll_to TARGET [SWIPES]: swipes up until TARGET is on screen (long settings pages and sheets; a landscape tablet
-# shows few rows per swipe). Fails when it never shows.
-scroll_to() { local i; for i in $(seq 1 "${2:-8}"); do ui has "$1" && return 0; swipe_up; done; ui has "$1"; }
+# Swipe only inside the accessibility hierarchy's real scrollable container. This keeps a low landscape sheet from
+# leaking a gesture into the player behind it, and also works when a pane is not centred on a tablet.
+scroll_in() {
+    local dir=$1 anchor=${2:-} x1 y1 x2 y2 x top bot
+    if [ -n "$anchor" ]; then
+        read -r x1 y1 x2 y2 < <(ui scrollbounds "$anchor")
+    else
+        read -r x1 y1 x2 y2 < <(ui scrollbounds)
+    fi
+    [ -n "${y2:-}" ] || return 1
+    read -r _ H < <(screen_size)
+    top=$y1; [ "$top" -lt 0 ] && top=0
+    bot=$y2; [ "$bot" -gt "$H" ] && bot=$H
+    [ $((bot - top)) -ge 80 ] || return 1
+    x=$(((x1 + x2) / 2))
+    if [ "$dir" = up ]; then
+        a shell input swipe "$x" $((top + (bot - top) * 3 / 4)) "$x" $((top + (bot - top) / 4)) 400
+    else
+        a shell input swipe "$x" $((top + (bot - top) / 4)) "$x" $((top + (bot - top) * 3 / 4)) 400
+    fi
+    sleep 0.5; still_muted
+}
+
+# scroll_to TARGET [SWIPES]: find TARGET in the current scrollable page, list or sheet. Fails when the screen has no
+# vertical scroller or the target never appears.
+scroll_to() {
+    local i
+    ui has "$1" && return 0
+    for i in $(seq 1 "${2:-8}"); do scroll_in up || return 1; ui has "$1" && return 0; done
+    return 1
+}
 
 # A row of the open visual choice dialog, which is a NestedScrollView. On a landscape phone the last rows start
 # below the window. The summary of the preference behind the dialog repeats the selected words, so only a row of
 # the dialog counts. Swipes stay on the rows that are already on screen and turn around when the list no longer moves.
 choice_row() { ui has "$1" choice_root || ui has "$1" choice_label; }
 scroll_choice() {
-    local i dir=down rows top bot x seen now
+    local i dir=down seen now
     choice_row "$1" && return 0
     for i in 1 2 3 4 5 6 7 8 9 10 11 12; do
-        rows=$(ui bounds choice_root)
-        [ -n "$rows" ] || return 1
-        top=$(awk 'BEGIN { m = 999999 } { if ($2 + 0 < m) m = $2 + 0 } END { print m }' <<<"$rows")
-        bot=$(awk 'BEGIN { m = 0 } { if ($4 + 0 > m) m = $4 + 0 } END { print m }' <<<"$rows")
-        x=$(awk 'NR == 1 { print int(($1 + $3) / 2) }' <<<"$rows")
-        [ $((bot - top)) -ge 40 ] || return 1
         seen=$(ui texts)
-        if [ "$dir" = down ]; then
-            a shell input swipe "$x" $((top + (bot - top) * 3 / 4)) "$x" $((top + (bot - top) / 4)) 400
-        else
-            a shell input swipe "$x" $((top + (bot - top) / 4)) "$x" $((top + (bot - top) * 3 / 4)) 400
-        fi
-        sleep 0.5; still_muted
+        scroll_in "$([ "$dir" = down ] && echo up || echo down)" choice_root || return 1
         choice_row "$1" && return 0
         now=$(ui texts)
         [ "$now" = "$seen" ] || continue

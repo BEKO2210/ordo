@@ -9,6 +9,16 @@
 a shell dumpsys package "$PKG" | grep -q "flags=\[.*DEBUGGABLE" || { echo "SKIP: needs a debug build"; exit 0; }
 DIR=/sdcard/Download/ordo-e2e-refresh
 count() { a logcat -d -s HomeViewModel:D | grep -c "reload$"; }
+wait_first_reload() {
+    local end=$((SECONDS + ${1:-10})) n
+    while [ "$SECONDS" -lt "$end" ]; do
+        n=$(count)
+        [ "$n" -ge 1 ] && { echo "$n"; return 0; }
+        sleep 0.25
+    done
+    echo "$(count)"
+    return 1
+}
 launch 10
 sleep 5; a logcat -c; sleep 10 # deliberate: 10 s in which nothing may reload
 check "no reload while nothing changes" test "$(count)" = 0
@@ -44,7 +54,16 @@ fi
 a shell input keyevent HOME; sleep 2; a logcat -c
 a shell "for i in \$(seq 50); do echo y > $DIR/g\$i.txt; done"; sleep 6 # deliberate: 6 s in which nothing may reload
 check "no reload while the home screen is in the background" test "$(count)" = 0
-a shell am start -a android.intent.action.MAIN -c android.intent.category.LAUNCHER -f 0x10200000 -n "$PKG/me.zhanghai.android.files.home.HomeActivity" >/dev/null 2>&1; sleep 5; guard
-check "coming back reloads once" test "$(count)" = 1
+a shell am start -a android.intent.action.MAIN -c android.intent.category.LAUNCHER -f 0x10200000 -n "$PKG/me.zhanghai.android.files.home.HomeActivity" >/dev/null 2>&1
+if first=$(wait_first_reload 10); then
+    # AutoReload's maximum debounce/pause window is 3 s; a second reload after that would be a duplicate.
+    sleep 3.5
+    n=$(count); echo "  coming back: first reload observed, $n reload(s) after the debounce window"
+    check "coming back reloads once" test "$first" = 1 -a "$n" = 1
+else
+    echo "  coming back: no first reload within 10 s (count $first)"
+    fail "coming back reloads once"
+fi
+guard
 a shell rm -r "$DIR"
 finish

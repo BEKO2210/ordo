@@ -64,7 +64,21 @@ not_on() { ! on "$@"; }
 open_folder() {
     a shell am start -W -a android.intent.action.VIEW -d "file://$DIR" -t inode/directory \
         -n "$PKG/me.zhanghai.android.files.filelist.FileListActivity" >/dev/null
-    guard; ui wait "$1" 10 >/dev/null
+    if ! wait_on filelist.FileListActivity 8 || ! scroll_to "$1" 12; then
+        fail "the file list offers $1"; finish
+    fi
+    guard
+}
+tap_video() {
+    local file=$1
+    if ! scroll_to "$file" 12 || ! ui tap "$file" >/dev/null || ! wait_on viewer.video.VideoPlayerActivity 8; then
+        fail "$file opens Ordo's player"; finish
+    fi
+    guard
+}
+open_video() {
+    open_folder "$1"
+    tap_video "$1"
 }
 dp() { echo $(($1 * $(a shell wm density | tail -1 | sed 's/.*: //' | tr -d '\r') / 160)); }
 # touch_target ID DP: the control's box is at least DP x DP.
@@ -76,13 +90,11 @@ touch_target() {
 within() { [ "$1" -ge "$2" ] && [ "$1" -le "$3" ]; }
 
 # 1. A tap in the file list opens Ordo's player, and it plays.
-open_folder 01-clip.mp4
-ui tap 01-clip.mp4 >/dev/null
-check "a video opens Ordo's player" wait_on viewer.video.VideoPlayerActivity 8
-guard
-check "the video plays (media_session state=PLAYING)" wait_playing
+open_video 01-clip.mp4
+pass "a video opens Ordo's player"
+check_or_abort "the video plays (media_session state=PLAYING)" wait_playing
 pause
-check "paused, the controls stay up" ui has playPause
+check_or_abort "paused, the controls stay up" ui has playPause
 check "play/pause keeps its 48 dp touch target" touch_target playPause 48
 check "the lock keeps its 48 dp touch target" touch_target lock 48
 check "speed keeps its 48 dp touch target" touch_target speed 48
@@ -131,9 +143,9 @@ back 2
 check "back closes the player" not_on viewer.video.VideoPlayerActivity
 # Paused at once: the pill stays while paused, and a playing screen is slow to read on a budget tablet (the W90 run
 # found the pill only after it had gone, 5 s into playback).
-ui tap 01-clip.mp4 >/dev/null; wait_on viewer.video.VideoPlayerActivity 8
+tap_video 01-clip.mp4
 media_key PAUSE 1
-check "opened again, it offers to resume" ui wait resumePill 6
+check_or_abort "opened again, it offers to resume" ui wait resumePill 6
 check "the pill says where" eval "ui texts | grep -qE 'Weiter bei|Resume at'"
 ui tap resumePill >/dev/null; sleep 1.5; pause; p8=$(pos)
 check "a tap on the pill goes there ($p7 -> $p8 ms)" within "${p8:-0}" $((${p7:-0} - 1500)) $((${p7:-0} + 3000))
@@ -145,18 +157,17 @@ for n in 01 02; do
 done
 back 2; sleep 3
 a shell am start -W -n "$PKG/me.zhanghai.android.files.viewer.video.VideoLauncherActivity" >/dev/null
-check "Ordo Video opens its library" wait_on viewer.video.VideoLauncherActivity 5; guard
-check "the library offers Continue watching" ui wait "Weiterschauen|Continue watching" 8
-check "the library lists the clip" ui has 01-clip
-ui tap 01-clip >/dev/null; wait_on viewer.video.VideoPlayerActivity 8; media_wait PLAY 2; pause; p8b=$(pos)
+check_or_abort "Ordo Video opens its library" wait_on viewer.video.VideoLauncherActivity 5; guard
+check_or_abort "the library offers Continue watching" ui wait "Weiterschauen|Continue watching" 8
+check_or_abort "the library lists the clip" scroll_to 01-clip 8
+tap_video 01-clip; media_wait PLAY 2; pause; p8b=$(pos)
 # It plays 2 s before the pause, plus the start and a slow screen read (landscape Tab: +4.3 s, 20.11.2026).
 check "from Continue watching it starts at its place ($p8b ms)" within "${p8b:-0}" $((${p7:-0} - 1500)) $((${p7:-0} + 6000))
 check "and offers no pill" eval '! ui has resumePill'
 back 2
 check "back returns to the library" on viewer.video.VideoLauncherActivity
 back 2
-open_folder 01-clip.mp4
-ui tap 01-clip.mp4 >/dev/null; wait_on viewer.video.VideoPlayerActivity 8; sleep 1
+open_video 01-clip.mp4; sleep 1
 media_key PAUSE 1
 ui tap resumePill >/dev/null 2>&1; sleep 1.5
 
@@ -166,10 +177,10 @@ ui tap resumePill >/dev/null 2>&1; sleep 1.5
 # from a missed end screen.
 a shell input keyevent KEYCODE_MEDIA_PLAY
 check "the play key plays on" wait_playing
-check "at the end the player stops with Watch again" ui wait endReplay 26 # the rest of the clip, then the end screen
-check "and offers the next video" ui has endNext
+check_or_abort "at the end the player stops with Watch again" ui wait endReplay 26 # the rest of the clip, then the end screen
+check_or_abort "and offers the next video" ui has endNext
 ui tap endNext >/dev/null; sleep 2; pause
-check "Next video opens the next one of the folder" ui has 02-clip
+check_or_abort "Next video opens the next one of the folder" ui has 02-clip
 
 # Swipes on the picture (plan P4 goals 2 and 1): one swipe from the left edge is the system's back, the first time;
 # a vertical swipe in the right half changes the media volume (restored afterwards).
@@ -208,9 +219,8 @@ else
 fi
 
 # 7. Files the player cannot play explain themselves and offer another app.
-open_folder 03-empty.mp4
-ui tap 03-empty.mp4 >/dev/null; wait_on viewer.video.VideoPlayerActivity 8
-check "a 0-byte video shows the message with Open with another app" ui wait errorOpenWith 8
+open_video 03-empty.mp4
+check_or_abort "a 0-byte video shows the message with Open with another app" ui wait errorOpenWith 8
 system_focus() {
     local i; for i in 1 2 3 4 5 6; do
         a shell dumpsys window | grep -m1 mCurrentFocus | grep -qv "$PKG" && return 0; sleep 0.5
@@ -218,21 +228,19 @@ system_focus() {
     return 1
 }
 ui tap errorOpenWith >/dev/null
-check "Open with another app hands over to the system chooser" system_focus
+check_or_abort "Open with another app hands over to the system chooser" system_focus
 a shell input keyevent KEYCODE_BACK; sleep 1; back 2
 # The device's decoder first, FFmpeg when it can't (or fails to start, W90 with HEVC 10-bit): these play everywhere.
 not_on_error() { ! ui has errorOpenWith; }
 for f in 04-xvid.avi 05-hevc10.mkv 06-mpeg2.ts 07-divx3.avi; do
     [ -s "$tmp/$f" ] || { echo "SKIP $f (not made on this host)"; continue; }
-    open_folder "$f"
-    ui tap "$f" >/dev/null; wait_on viewer.video.VideoPlayerActivity 8
-    check "$f plays (device decoder or FFmpeg)" wait_playing
+    open_video "$f"
+    check_or_abort "$f plays (device decoder or FFmpeg)" wait_playing
     check "$f shows no error" not_on_error
     back 2
 done
-open_folder 08-wmv.wmv
-ui tap 08-wmv.wmv >/dev/null; wait_on viewer.video.VideoPlayerActivity 8
-check "WMV (ASF, no extractor) explains itself with Open with another app" ui wait errorOpenWith 8
+open_video 08-wmv.wmv
+check_or_abort "WMV (ASF, no extractor) explains itself with Open with another app" ui wait errorOpenWith 8
 back 2
 
 # 6. External callers: file:// is refused, content:// with a read grant plays.
@@ -275,13 +283,16 @@ play_colour() {
 }
 set_video_colour() {
     a shell am start -W -n "$PKG/me.zhanghai.android.files.viewer.video.VideoLauncherActivity" >/dev/null; guard
-    ui tap actionSettings >/dev/null
-    ui tap "$1" >/dev/null; sleep 1.5 # deliberate: the choice is taken over before the next step leaves the screen
+    if ! ui tap actionSettings >/dev/null || ! wait_on settings.SettingsActivity 6 || ! scroll_to "$1" 8 ||
+        ! ui tap "$1" >/dev/null; then
+        fail "Ordo Video's colour setting opens and accepts $1"; finish
+    fi
+    sleep 1.5 # deliberate: the choice is taken over before the next step leaves the screen
     back 1; back 1
 }
 open_paused() {
-    open_folder 02-clip.mp4
-    ui tap 02-clip.mp4 >/dev/null; wait_on viewer.video.VideoPlayerActivity 8; pause
+    open_video 02-clip.mp4
+    pause
 }
 set_video_colour "Wie Ordo|Same as Ordo"
 open_paused; c_ordo=$(play_colour); back 2
@@ -294,20 +305,23 @@ check "Ordo Video's own colour tints the play button ($c_ordo -> $c_amber)" \
 # Ordo Video's settings page has its groups; the player's ⋮ › Video info names resolution and codec in plain words
 # (each row is one node "label: value" for TalkBack).
 a shell am start -W -n "$PKG/me.zhanghai.android.files.viewer.video.VideoLauncherActivity" >/dev/null; guard
-ui tap actionSettings >/dev/null
-check "Ordo Video's settings offer the end of a video" ui wait "Am Ende|At the end" 5
+if ! ui tap actionSettings >/dev/null || ! wait_on settings.SettingsActivity 6 || ! scroll_to "Am Ende|At the end" 8; then
+    fail "Ordo Video's settings offer the end of a video"; finish
+fi
+pass "Ordo Video's settings offer the end of a video"
 back 1; back 1
 open_paused
-ui tap "Weitere Optionen|More options" >/dev/null
-scroll_to "Videoinfos|Video info" 3 >/dev/null; ui tap "Videoinfos|Video info" >/dev/null; sleep 2
-check "Video info shows resolution and frame rate" \
-    ui wait "Auflösung: 1920 × 1080 · 30 fps|Resolution: 1920 × 1080 · 30 fps" 5
+if ! ui tap "Weitere Optionen|More options" >/dev/null || ! scroll_to "Videoinfos|Video info" 6 ||
+    ! ui tap "Videoinfos|Video info" >/dev/null ||
+    ! ui wait "Auflösung: 1920 × 1080 · 30 fps|Resolution: 1920 × 1080 · 30 fps" 5; then
+    fail "Video info shows resolution and frame rate"; finish
+fi
+pass "Video info shows resolution and frame rate"
 check "Video info names the codec in words" ui has "Video-Codec: H.264|Video codec: H.264"
 back 1; back 2
 
 # 9. Rotating (phone: the rotate button) keeps the position and playback.
-open_folder 02-clip.mp4
-ui tap 02-clip.mp4 >/dev/null; wait_on viewer.video.VideoPlayerActivity 8; pause
+open_video 02-clip.mp4; pause
 if ui has rotate; then
     read -r l t r b < <(ui bounds rotate | head -1)
     media_key PLAY 1; p9=$(pos)
