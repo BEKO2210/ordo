@@ -33,9 +33,11 @@ class VaultGrantsTest {
         val grants = VaultGrants()
         val first = grants.grant(a)
         grants.revokeAll()
-        val second = grants.grant(a)
+        // Tokens are UUIDs (hex digits and dashes), so an id with other characters can never occur by chance.
+        val entry = VaultEntry("id_xyz", a.originalPath, a.size, a.addedAt)
+        val second = grants.grant(entry)
         assertNotEquals(first, second)
         assertNull(grants.entry(first))
-        assertFalse(second.contains(a.id) || second.contains("a.jpg"))
+        assertFalse(second.contains(entry.id) || second.contains("a.jpg"))
     }
 }
