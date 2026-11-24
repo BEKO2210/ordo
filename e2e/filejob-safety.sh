@@ -117,10 +117,10 @@ paste_answering() {
 }
 
 # stop_midrun CONDITION: polls on the device until CONDITION (a shell test that is only true while the job is
-# running) holds, then force-stops the app at once. Returns 1 if it never held, i.e. the job was not seen running.
+# running) holds, then force-stops the app in that same device call. Returns 1 if it never held, i.e. the job was not seen running.
 stop_midrun() {
     local seen
-    seen=$(a shell "i=0; while [ \$i -lt 600 ]; do if $1; then echo SEEN; break; fi; i=\$((i+1)); sleep 0.02; done" | tr -d '\r')
+    seen=$(a shell "i=0; while [ \$i -lt 600 ]; do if $1; then am force-stop $PKG; echo SEEN; break; fi; i=\$((i+1)); sleep 0.02; done" | tr -d '\r')
     a shell am force-stop "$PKG"; sleep 1
     [ "$seen" = SEEN ]
 }
@@ -210,8 +210,12 @@ done
 a shell am start -n "$PKG/me.zhanghai.android.files.trash.TrashActivity" >/dev/null 2>&1; sleep 2; guard
 rest=$(head -1 <<<"$TRASH_NAMES")
 if ui has "${rest#*/}"; then
-    select_all "${rest#*/}"
-    ui tap "Wiederherstellen|Restore" >/dev/null; sleep 2; guard
+    # one own entry at a time: the trash is global, "select all" would restore other apps' entries too
+    for n in $TRASH_NAMES; do
+        ui longtap "${n#*/}" >/dev/null; sleep 1
+        ui tap "Wiederherstellen|Restore" >/dev/null; sleep 1; guard
+    done
+    sleep 2
     for n in $TRASH_NAMES; do
         check "restored ${n#*/} is back at its place" eventually 20 test "$(sum "$DIR/$n")" = "$(man "$n")"
         check "restored ${n#*/} left the trash" eval '! in_trash "$n" "$(man "$n")"'
