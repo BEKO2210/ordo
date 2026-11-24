@@ -2,22 +2,36 @@
 # Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later
 # farm: orient=once timeout=900
 # File jobs lose nothing (night). Only with FARM_NIGHT=1 or E2E_FILEJOB=1, otherwise SKIP. WRITES: creates
-# /sdcard/ordo-e2e-filejob with files of seeded names (FILEJOB_SEED, default 71) and contents, copies, moves and
+# /sdcard/.ordo-e2e-filejob-<seed>-<time>-<pid> with files of seeded names (FILEJOB_SEED, default 71) and contents, copies, moves and
 # trashes them through Ordo's UI, name clashes included, and force-stops the app in the middle of a copy-replace, a
 # move and a delete. Then adb checks by MD5: no file lost, no clashing file replaced without a "Replace", no half
 # file under a real name, everything in the trash comes back. The folder and exactly its own trash entries are
-# removed at the end, also on Ctrl-C. Nothing else on the device is touched.
+# removed at the end, also on Ctrl-C. Nothing else on the device is touched: the folder name is unique per run
+# (.ordo-e2e-filejob-<seed>-<time>-<pid>), the run aborts if it exists, holds a marker file with the run id, is deleted only
+# if the marker matches, and only trash entries with a file name this run created are removed.
 . "$(dirname "$0")/lib.sh" "$@"
 [ "${FARM_NIGHT:-}" = 1 ] || [ "${E2E_FILEJOB:-}" = 1 ] || { echo "SKIP filejob-safety (night only: FARM_NIGHT=1 or E2E_FILEJOB=1)"; exit 0; }
 
 SEED=${FILEJOB_SEED:-71}
-REL=ordo-e2e-filejob
+RUN_ID="$SEED-$(date +%Y%m%d%H%M%S)-$$"
+REL=.ordo-e2e-filejob-$RUN_ID
 DIR=/sdcard/$REL
+MARKER=$DIR/.ordo-e2e-run
+CREATED=0
 BIG_MB=48 # still running when the app is stopped 0.4 s after the tap
 TMP=$(mktemp -d)
+# Removes only trash entries of this run's folder whose file name this run created ($TMP/names).
+trash_drop_own() {
+    [ -s "$TMP/names" ] || return 0
+    a shell "cd /storage/emulated/0/.OrdoTrash/info 2>/dev/null || exit 0; for i in \$(grep -lE '$(trash_pattern "$REL")' *.info); do
+        p=\$(grep -h '^path=' \$i); n=\${p##*/}
+        case ' $(tr '\n' ' ' < "$TMP/names") ' in *\" \$n \"*) rm -rf ../files/\${i%.info} \$i;; esac; done" >/dev/null 2>&1
+}
 cleanup() {
-    a shell "rm -rf $DIR" >/dev/null 2>&1
-    trash_drop "$REL" >/dev/null 2>&1
+    if [ "$CREATED" = 1 ] && [ "$(a shell "cat $MARKER 2>/dev/null" | tr -d '\r')" = "$RUN_ID" ]; then
+        a shell "rm -rf $DIR" >/dev/null 2>&1
+        trash_drop_own
+    fi
     rm -rf "$TMP"
 }
 trap cleanup EXIT
@@ -43,7 +57,14 @@ with tarfile.open(tmp + "/files.tar", "w") as out:
 with open(tmp + "/manifest", "w") as m:
     for path, data in files.items(): m.write(hashlib.md5(data).hexdigest() + " " + path + "\n")
 PY
-a shell "rm -rf $DIR; mkdir -p $DIR/bigcopy/src $DIR/bigcopy/dst $DIR/mvsrc $DIR/mvdst"
+awk '{n=split($2, a, "/"); print a[n]}' "$TMP/manifest" > "$TMP/names"
+printf '%s\n' ordoe2e-big.bin ordoe2e-mv.bin >> "$TMP/names"
+if [ -n "$(a shell "ls -d $DIR 2>/dev/null" | tr -d '\r')" ]; then
+    echo "ABORT filejob-safety: $DIR already exists, nothing touched"; exit 1
+fi
+a shell "mkdir -p /sdcard && mkdir $DIR" || { echo "ABORT filejob-safety: cannot create $DIR"; exit 1; }
+CREATED=1
+a shell "echo $RUN_ID > $MARKER; mkdir -p $DIR/bigcopy/src $DIR/bigcopy/dst $DIR/mvsrc $DIR/mvdst"
 a push "$TMP/files.tar" /data/local/tmp/ordo-e2e-filejob.tar >/dev/null
 a shell "tar -xf /data/local/tmp/ordo-e2e-filejob.tar -C $DIR; rm -f /data/local/tmp/ordo-e2e-filejob.tar"
 a shell "dd if=/dev/urandom of=$DIR/bigcopy/src/ordoe2e-big.bin bs=1M count=$BIG_MB 2>/dev/null"
@@ -58,7 +79,7 @@ CLASH=$(head -2 <<<"$SRC_NAMES")
 TRASH_NAMES=$(awk '{print $2}' "$TMP/manifest" | grep '^trash/')
 BIG_SUM=$(sum $DIR/bigcopy/src/ordoe2e-big.bin); BIG_OLD=$(sum $DIR/bigcopy/dst/ordoe2e-big.bin)
 MV_SUM=$(sum $DIR/mvsrc/ordoe2e-mv.bin)
-check "the test files are in place" test "$(a shell "find $DIR -type f | wc -l" | tr -d '\r')" = $(($(wc -l < "$TMP/manifest") + 3))
+check "the test files are in place" test "$(a shell "find $DIR -type f | wc -l" | tr -d '\r')" = $(($(wc -l < "$TMP/manifest") + 4)) # plus the marker
 while read -r md5 path; do
     [ "$(sum "$DIR/$path")" = "$md5" ] || { fail "$path was written wrong"; break; }
 done < "$TMP/manifest"
