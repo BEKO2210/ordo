@@ -11,7 +11,7 @@ import org.junit.Test
 class MusicSongTimesTest {
     private val song = MusicSong(
         path = "/a.mp3", title = "a", artist = null, album = null, albumId = 1, durationMs = 1,
-        track = 0, mimeType = "audio/mpeg", dateModifiedMs = 5_000
+        track = 0, mimeType = "audio/mpeg", dateModifiedMs = 5_000, artUri = null
     )
 
     @Test
