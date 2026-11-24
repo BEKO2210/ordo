@@ -21,6 +21,7 @@ RUN_ID="$SEED-$(date +%Y%m%d%H%M%S)-$$"
 REL=.ordo-e2e-filejob-$RUN_ID
 DIR=$PREFIX$RUN_ID
 MARKER=$DIR/.ordo-e2e-run
+DEVTAR=/data/local/tmp/.ordo-e2e-filejob-$RUN_ID.tar # run-unique: never a foreign file
 CREATED=0
 BIG_MB=128 # the job must still be running when the app is stopped; the stop waits for proof of that
 N_TRASH=40
@@ -35,7 +36,7 @@ trash_drop_own() {
 cleanup() {
     if [ "$CREATED" = 1 ] && [[ "$DIR" == "$PREFIX"* ]] && [[ "$RUN_ID" =~ ^[0-9]+-[0-9]{14}-[0-9]+$ ]] \
         && [ "$(a shell "cat $MARKER 2>/dev/null" | tr -d '\r')" = "$RUN_ID" ]; then
-        a shell "rm -rf $DIR" >/dev/null 2>&1
+        a shell "rm -rf $DIR; rm -f $DEVTAR" >/dev/null 2>&1
         trash_drop_own
     fi
     rm -rf "$TMP"
@@ -68,11 +69,14 @@ printf '%s\n' ordoe2e-big.bin ordoe2e-mv.bin >> "$TMP/names"
 if [ -n "$(a shell "ls -d $DIR 2>/dev/null" | tr -d '\r')" ]; then
     echo "ABORT filejob-safety: $DIR already exists, nothing touched"; exit 1
 fi
+if [ -n "$(a shell "ls -d $DEVTAR 2>/dev/null" | tr -d '\r')" ]; then
+    echo "ABORT filejob-safety: $DEVTAR already exists, nothing touched"; exit 1
+fi
 a shell "mkdir -p /sdcard && mkdir $DIR" || { echo "ABORT filejob-safety: cannot create $DIR"; exit 1; }
 CREATED=1
 a shell "echo $RUN_ID > $MARKER; mkdir -p $DIR/bigcopy/src $DIR/bigcopy/dst $DIR/mvsrc $DIR/mvdst"
-a push "$TMP/files.tar" /data/local/tmp/ordo-e2e-filejob.tar >/dev/null
-a shell "tar -xf /data/local/tmp/ordo-e2e-filejob.tar -C $DIR; rm -f /data/local/tmp/ordo-e2e-filejob.tar"
+a push "$TMP/files.tar" "$DEVTAR" >/dev/null
+a shell "tar -xf $DEVTAR -C $DIR"; a shell "rm -f $DEVTAR"
 a shell "dd if=/dev/urandom of=$DIR/bigcopy/src/ordoe2e-big.bin bs=1M count=$BIG_MB 2>/dev/null"
 a shell "dd if=/dev/urandom of=$DIR/bigcopy/dst/ordoe2e-big.bin bs=1M count=1 2>/dev/null"
 a shell "dd if=/dev/urandom of=$DIR/mvsrc/ordoe2e-mv.bin bs=1M count=$BIG_MB 2>/dev/null"
@@ -160,7 +164,6 @@ check "the copy was running when the app was stopped (part file seen)" \
 got=$(sum $DIR/bigcopy/dst/ordoe2e-big.bin)
 check "after the stop the target is whole: the old or the new file" test "$got" = "$BIG_OLD" -o "$got" = "$BIG_SUM"
 check "the copy's source is untouched" test "$(sum $DIR/bigcopy/src/ordoe2e-big.bin)" = "$BIG_SUM"
-a shell "rm -f $DIR/bigcopy/dst/.ordoe2e-big.bin.ordo-part $DIR/bigcopy/dst/*.ordo-part"
 
 # 3. Move, app stopped in the middle: the content is in the source or the target, whole.
 launch
@@ -224,5 +227,5 @@ else
     fail "the trash screen does not list ${rest#*/}"
 fi
 back; back
-check "no left-over part files" test "$(a shell "find $DIR -name '*.ordo-part' | wc -l" | tr -d '\r')" = 0
+check "no left-over part files" test "$(a shell "find $DIR -name '*.ordo-part*' | wc -l" | tr -d '\r')" = 0
 finish
