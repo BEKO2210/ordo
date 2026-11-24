@@ -79,8 +79,15 @@ fun queryMusic(context: Context): List<MusicSong> {
             e.printStackTrace()
             emptyList()
         }
-    }.filter { File(it.path).exists() }
+    }.mapNotNull { song ->
+        val file = File(song.path)
+        if (file.exists()) song.withFileTimes(file.lastModified()) else null
+    }
 }
+
+// The file's own time has milliseconds; MediaStore's counts seconds, so two edits within one second stay apart.
+internal fun MusicSong.withFileTimes(fileModifiedMs: Long): MusicSong =
+    if (fileModifiedMs > 0) copy(dateModifiedMs = fileModifiedMs) else this
 
 // MediaStore writes "<unknown>" where a tag is missing.
 private fun String?.known(): String? = this?.takeIf { it.isNotBlank() && it != MediaStore.UNKNOWN_STRING }

@@ -32,9 +32,9 @@ import okio.Buffer
 data class SongCover(val path: String, val albumArtUri: String?, val modifiedMs: Long = 0, val sizeBytes: Long = 0)
 
 class SongCoverKeyer : Keyer<SongCover> {
-    // A changed file (the tag editor) gets a new key, so its new cover shows at once. Change time and size are the
-    // ones MediaStore already gave the song (it counts seconds, the size tells two edits in one second apart): the
-    // keyer runs on the main thread and must not touch the disk.
+    // A changed file (the tag editor) gets a new key, so its new cover shows at once. The change time (in milliseconds,
+    // read from the file when the library loads) and the size come with the song: the keyer runs on the main thread
+    // and must not touch the disk.
     override fun key(data: SongCover, options: Options): String = key(data)
 
     companion object {
