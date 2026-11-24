@@ -65,7 +65,8 @@ class AudioPlaybackService : MediaSessionService() {
     private lateinit var player: ExoPlayer
     private lateinit var mediaSession: MediaSession
     private lateinit var stateStore: PlaybackStateStore
-    private lateinit var playHistory: PlayHistoryStore
+    // Opened on first use, which is on the I/O executor.
+    private val playHistory: PlayHistoryStore by lazy { PlayHistoryStore(applicationContext) }
     // The song last counted in the play history; a pause and resume of the same song is not a new play.
     private var lastCountedMediaId: String? = null
     private lateinit var soundEffects: SoundEffectController
@@ -90,7 +91,7 @@ class AudioPlaybackService : MediaSessionService() {
     private var persistedIndices = IntArray(0)
     private var soundSettings = AudioSettings()
     private var replayGain: ReplayGainInfo? = null
-    private lateinit var loudness: LoudnessAnalysis
+    private val loudness: LoudnessAnalysis by lazy { LoudnessAnalysis(applicationContext) }
     // The item whose loudness is being measured, so a late result for an earlier song is dropped.
     private var measuring: String? = null
     private var measurement: java.util.concurrent.Future<*>? = null
@@ -259,9 +260,9 @@ class AudioPlaybackService : MediaSessionService() {
 
     override fun onCreate() {
         super.onCreate()
-        stateStore = PlaybackStateStore(this)
-        loudness = LoudnessAnalysis(this)
-        playHistory = PlayHistoryStore(this)
+        // The application context already resolved its preferences folder; the service's own would check it on the
+        // main thread again.
+        stateStore = PlaybackStateStore(applicationContext)
         soundSettings = AudioSettingsStore.read()
         // A platform effect is only ever switched in silence, or inside a short dip while music plays.
         soundEffects = SoundEffectController(handler) { action ->

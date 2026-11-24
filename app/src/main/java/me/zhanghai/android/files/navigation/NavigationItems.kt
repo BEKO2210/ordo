@@ -146,8 +146,10 @@ private class PathStorageItem(
 
     override fun getTitle(context: Context): String = storage.getName(context)
 
-    override fun getSubtitle(context: Context): String? =
-        storage.linuxPath?.let { getStorageSubtitle(it, context) }
+    override fun getSubtitle(context: Context): String? = storage.linuxPath?.let { storageSubtitles[it] }
+
+    override fun loadSubtitle(context: Context): String? =
+        storage.linuxPath?.let { loadStorageSubtitle(it, context) }
 
     override fun onLongClick(listener: Listener): Boolean {
         listener.launchIntent(storage.createEditIntent())
@@ -202,10 +204,20 @@ private class StorageVolumeItem(
 
     override fun getTitle(context: Context): String = storageVolume.getDescriptionCompat(context)
 
-    override fun getSubtitle(context: Context): String? =
-        getStorageSubtitle(storageVolume.pathCompat, context)
+    override fun getSubtitle(context: Context): String? = storageSubtitles[storageVolume.pathCompat]
+
+    override fun loadSubtitle(context: Context): String? = loadStorageSubtitle(storageVolume.pathCompat, context)
 
     override fun getName(context: Context): String = getTitle(context)
+}
+
+// The last free-space text per path, so a row is bound at once and the file system is asked in the background.
+private val storageSubtitles = java.util.concurrent.ConcurrentHashMap<String, String>()
+
+private fun loadStorageSubtitle(linuxPath: String, context: Context): String? {
+    val subtitle = getStorageSubtitle(linuxPath, context)
+    if (subtitle != null) storageSubtitles[linuxPath] = subtitle else storageSubtitles.remove(linuxPath)
+    return subtitle
 }
 
 private fun getStorageSubtitle(linuxPath: String, context: Context): String? {

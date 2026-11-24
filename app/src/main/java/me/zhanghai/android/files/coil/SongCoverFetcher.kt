@@ -20,7 +20,6 @@ import coil.fetch.Fetcher
 import coil.fetch.SourceResult
 import coil.key.Keyer
 import coil.request.Options
-import java.io.File
 import java.io.FileNotFoundException
 import me.zhanghai.android.files.compat.use
 import okio.Buffer
@@ -30,11 +29,16 @@ import okio.Buffer
  * all songs of an album (and every untagged song of a folder, whose album is the folder's name) one album cover,
  * so a folder showed the same picture on every row (Galaxy Tab S9 Ultra, 18.11.2026).
  */
-data class SongCover(val path: String, val albumArtUri: String?)
+data class SongCover(val path: String, val albumArtUri: String?, val modifiedMs: Long = 0)
 
 class SongCoverKeyer : Keyer<SongCover> {
-    // A changed file (the tag editor) gets a new key, so its new cover shows at once.
-    override fun key(data: SongCover, options: Options): String = "song:${data.path}:${File(data.path).lastModified()}"
+    // A changed file (the tag editor) gets a new key, so its new cover shows at once. The change time is the one
+    // MediaStore already gave the song: the keyer runs on the main thread and must not touch the disk.
+    override fun key(data: SongCover, options: Options): String = key(data)
+
+    companion object {
+        fun key(data: SongCover): String = "song:${data.path}:${data.modifiedMs}"
+    }
 }
 
 class SongCoverFetcher(

@@ -65,6 +65,10 @@ import java8.nio.file.Path
 import java8.nio.file.Paths
 import java.net.URI
 import kotlin.math.roundToInt
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.parcelize.Parcelize
 import me.zhanghai.android.files.R
 import me.zhanghai.android.files.about.RateOrdo
@@ -532,10 +536,15 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
     private fun maybeShowRateHint() {
         val dialogOpen = (parentFragmentManager.fragments + childFragmentManager.fragments)
             .any { it is androidx.fragment.app.DialogFragment && it.isAdded }
-        if (dialogOpen || !RateOrdo.takeIfDue(requireContext())) return
-        Snackbar.make(binding.contentLayout, R.string.rate_hint_text, Snackbar.LENGTH_LONG)
-            .setAction(R.string.rate_hint_action) { RateOrdo.openStore(requireContext()) }
-            .show()
+        if (dialogOpen) return
+        val appContext = requireContext().applicationContext
+        // The preferences are read off the main thread.
+        viewLifecycleOwner.lifecycleScope.launch {
+            if (!withContext(Dispatchers.IO) { RateOrdo.takeIfDue(appContext) }) return@launch
+            Snackbar.make(binding.contentLayout, R.string.rate_hint_text, Snackbar.LENGTH_LONG)
+                .setAction(R.string.rate_hint_action) { RateOrdo.openStore(requireContext()) }
+                .show()
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
