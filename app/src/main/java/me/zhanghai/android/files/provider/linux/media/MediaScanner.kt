@@ -40,11 +40,12 @@ object MediaScanner {
 
     /**
      * Asks MediaStore to read [paths] again (a missing one drops its row); [onScanned] runs on a background thread.
-     * What MediaScannerConnection.scanFile does on Android 10+, but on Ordo's own thread: there, an exception from
+     * What MediaScannerConnection.scanFile does on Android 11+, but on Ordo's own thread: there, an exception from
      * releasing the media provider ("stableCount < 0", Galaxy A15, Android 16) killed the app; here it is caught.
      */
     fun scanPaths(paths: List<String>, onScanned: ((String, Uri?) -> Unit)? = null) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+        // Android 10's provider wants the file as a URI in the extras; the path argument came with Android 11.
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
             MediaScannerConnection.scanFile(application, paths.toTypedArray(), null) { path, uri ->
                 onScanned?.invoke(path, uri)
             }
