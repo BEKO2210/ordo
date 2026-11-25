@@ -33,9 +33,6 @@ fi
 guard
 ui tap action_search >/dev/null; sleep 2 # deliberate: the search field takes the focus; the text is typed blind
 a shell input text zzordoe2e; ui wait zzordoe2e-1.mp3 10 >/dev/null; guard
-# On a landscape phone the keyboard leaves no room for the empty list's text (A15, 25.11.2026): the first back only
-# hides it, so back only while it is shown.
-a shell dumpsys input_method | grep -q "mInputShown=true" && back
 ui longtap "zzordoe2e-1.mp3" >/dev/null
 ui tap selectionMoreButton >/dev/null; ui tap "Alles auswählen|Select all" >/dev/null; sleep 3
 selected=$(ui texts | grep -m1 -E 'ausgewählt|selected' | cut -d'|' -f1 | tr -dc 0-9)

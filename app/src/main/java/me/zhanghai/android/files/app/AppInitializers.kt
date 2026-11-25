@@ -5,6 +5,7 @@
 
 package me.zhanghai.android.files.app
 
+import android.content.Context
 import android.os.AsyncTask
 import android.os.Build
 import android.os.Handler
@@ -16,8 +17,6 @@ import me.zhanghai.android.files.coil.initializeCoil
 import me.zhanghai.android.files.filejob.fileJobNotificationTemplate
 import me.zhanghai.android.files.ftpserver.ftpServerServiceNotificationTemplate
 import me.zhanghai.android.files.hiddenapi.HiddenApi
-import me.zhanghai.android.files.home.OnboardingActivity
-import me.zhanghai.android.files.player.PlaybackStateStore
 import me.zhanghai.android.files.provider.FileSystemProviders
 import me.zhanghai.android.files.settings.Settings
 import me.zhanghai.android.files.storage.FtpServerAuthenticator
@@ -27,6 +26,7 @@ import me.zhanghai.android.files.storage.StorageVolumeListLiveData
 import me.zhanghai.android.files.storage.WebDavServerAuthenticator
 import me.zhanghai.android.files.theme.custom.CustomThemeHelper
 import me.zhanghai.android.files.theme.night.NightModeHelper
+import java.io.File
 import java.util.Properties
 import me.zhanghai.android.files.trash.Trash
 import me.zhanghai.android.files.vault.Vault
@@ -53,12 +53,15 @@ val appInitializers = listOf(
     ::reconcileLauncherIcon
 )
 
-// Files read first on the main thread (HomeActivity.onCreate's onboarding flag, AudioPlaybackService.onCreate's
-// queue): loading them here keeps those disk reads off the main thread.
+// Activities and services read their preferences files first in onCreate (onboarding flag, playback queue, the video
+// player's stores): loading them here keeps those disk reads off the main thread. They are read through the
+// application context, whose file lookup this caches.
+// shortcut: loads every preferences file (each a few KB on 25.11.2026); skips one above 64 KB should a cache grow.
 private fun preloadStartPreferences() {
     Thread({
-        OnboardingActivity.isDone(application)
-        PlaybackStateStore(application).readModes()
+        File(application.applicationInfo.dataDir, "shared_prefs").listFiles()
+            ?.filter { it.name.endsWith(".xml") && it.length() < 64 * 1024 }
+            ?.forEach { application.getSharedPreferences(it.name.removeSuffix(".xml"), Context.MODE_PRIVATE).all }
     }, "PreloadPreferences").start()
 }
 
