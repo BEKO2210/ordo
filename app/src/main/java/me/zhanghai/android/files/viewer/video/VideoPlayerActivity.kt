@@ -205,6 +205,7 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
                     Player.EVENT_PLAY_WHEN_READY_CHANGED,
                     Player.EVENT_IS_PLAYING_CHANGED,
                     Player.EVENT_MEDIA_ITEM_TRANSITION,
+                    Player.EVENT_MEDIA_METADATA_CHANGED,
                     Player.EVENT_AVAILABLE_COMMANDS_CHANGED
                 )) {
                 updateUi(player)
@@ -370,6 +371,17 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
             }
         }
         player.setMediaItems(queue.items, queue.startIndex, queue.positionMs)
+        // content:// names are a query to the app that owns them: off the main thread, the playing one first, each
+        // into its item as soon as known (title bar, notification, queue); stops with the screen.
+        val contentIds = queue.items.map { it.mediaId }.filter { isContentId(it) && !VaultVideos.isVault(it) }
+        if (contentIds.isNotEmpty()) {
+            val firstId = queue.items.getOrNull(queue.startIndex)?.mediaId
+            lifecycleScope.launch {
+                loadTitles(contentIds, contentIds.indexOf(firstId), { contentTitle(it) }) { id, title ->
+                    this@VideoPlayerActivity.player?.let { setDisplayTitle(it, id, title) }
+                }
+            }
+        }
         player.playWhenReady = savedInstanceState?.getBoolean(STATE_PLAY_WHEN_READY) ?: true
         // The picture decides first whether the player starts with its OpenGL pipeline (a quick probe of the file).
         picture?.prepare(player) ?: player.prepare()
@@ -571,17 +583,35 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
                 savedMediaId != null ->
                     LaunchQueue(listOf(queueItem(savedMediaId)), 0, savedPosition)
                 else -> intent.data?.takeIf(::isAllowedExternalUri)
-                    ?.let { LaunchQueue(listOf(AudioPlaybackService.mediaItem(it.toString())), 0, 0L) }
+                    ?.let { LaunchQueue(listOf(queueItem(it.toString())), 0, 0L) }
             }
         } catch (e: Exception) {
             e.printStackTrace()
             null
         }
 
-    /** A Tresor video gets an opaque item titled "Vault video" (its name never reaches the MediaSession). */
+    /**
+     * A Tresor video gets an opaque item titled "Vault video" (its name never reaches the MediaSession). A content://
+     * item starts with its URI's last segment: its name is a query to the app that owns it, made after onCreate.
+     */
     private fun queueItem(mediaId: String): MediaItem =
         if (VaultVideos.isVault(mediaId)) VaultVideos.mediaItem(mediaId, getString(R.string.video_library_vault_title))
+        else if (isContentId(mediaId)) AudioPlaybackService.mediaItem(mediaId, Uri.parse(mediaId).lastPathSegment.orEmpty())
         else AudioPlaybackService.mediaItem(mediaId)
+
+    private fun isContentId(mediaId: String): Boolean = mediaId.startsWith("${ContentResolver.SCHEME_CONTENT}:")
+
+    /** Every item of [mediaId] gets [title]; same URI, so ExoPlayer keeps playing it (no new preparation). */
+    private fun setDisplayTitle(player: Player, mediaId: String, title: String) {
+        for (index in 0 until player.mediaItemCount) {
+            val item = player.getMediaItemAt(index)
+            if (item.mediaId != mediaId || item.mediaMetadata.displayTitle?.toString() == title) continue
+            player.replaceMediaItem(
+                index, item.buildUpon().setMediaMetadata(item.mediaMetadata.buildUpon().setDisplayTitle(title).build())
+                    .build()
+            )
+        }
+    }
 
     // The same rule as AudioPlayerActivity: a caller never gets to point Ordo at a file through Ordo's own access.
     private fun isAllowedExternalUri(uri: Uri): Boolean {
@@ -1432,5 +1462,27 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
             // Only seeks within the file the token names; a forged extra alone opens nothing.
             if (resume) intent.putExtra(EXTRA_RESUME, true)
         }
+    }
+}
+
+/** The name the owning app gives a content:// item (a query to it: never on the main thread). */
+private fun contentTitle(mediaId: String): String? =
+    AudioPlaybackService.mediaItem(mediaId).mediaMetadata.displayTitle?.toString()
+
+/**
+ * Looks [ids] up one by one on the IO threads, from [first] on and then the ones before it, and hands each known name
+ * to [publish] at once. Cancelling (the screen is gone) stops before the next lookup.
+ * shortcut: a lookup already running finishes (a provider query cannot be interrupted), then nothing follows.
+ */
+internal suspend fun loadTitles(
+    ids: List<String>,
+    first: Int,
+    lookup: (String) -> String?,
+    publish: (String, String) -> Unit
+) {
+    val start = first.coerceIn(0, ids.size)
+    for (id in (ids.drop(start) + ids.take(start)).distinct()) {
+        val title = withContext(Dispatchers.IO) { lookup(id) }
+        if (!title.isNullOrEmpty()) publish(id, title)
     }
 }

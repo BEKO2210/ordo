@@ -782,8 +782,9 @@ class AudioPlaybackService : MediaSessionService() {
             )
             .build()
 
-        fun mediaItem(pathUri: String): MediaItem {
-            val title = try {
+        /** [knownTitle] skips looking the name up (a query for a content:// item: not on the main thread). */
+        fun mediaItem(pathUri: String, knownTitle: String? = null): MediaItem {
+            val title = knownTitle ?: try {
                 Paths.get(URI.create(pathUri)).fileName?.toString()
             } catch (_: Exception) {
                 Uri.parse(pathUri).lastPathSegment
