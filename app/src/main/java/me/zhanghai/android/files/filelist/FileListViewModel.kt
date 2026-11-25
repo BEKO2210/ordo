@@ -44,8 +44,10 @@ class FileListViewModel(
     fun navigateUp(): Boolean = trailLiveData.navigateUp()
 
     val currentPathLiveData = trailLiveData.map { it.currentPath }
+    // Read from the trail, not currentPathLiveData: observers of the breadcrumb (the back stop) run before the
+    // mapped value is updated, and a stale path there turned back in a subfolder into leaving the list.
     val currentPath: Path
-        get() = currentPathLiveData.valueCompat
+        get() = trailLiveData.valueCompat.currentPath
 
     private val _searchStateLiveData = MutableLiveData(SearchState(false, ""))
     val searchStateLiveData: LiveData<SearchState> = _searchStateLiveData
