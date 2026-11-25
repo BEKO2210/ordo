@@ -87,16 +87,14 @@ internal class LinuxPath : ByteStringListPath<LinuxPath>, RootablePath {
         return watcher.register(this, events, *modifiers)
     }
 
-    // Ordo: judged by where the path leads, so /sdcard (a symlink to the primary volume) needs no root and no "..",
-    // or symlink inside a volume, counts as that volume. A path that cannot be resolved needs root.
-    override fun isRootRequired(isAttributeAccess: Boolean, noFollowLinks: Boolean): Boolean {
-        val file = resolvedForRootCheck(toFile(), noFollowLinks) ?: return true
-        return isRootRequired(file, isAttributeAccess)
-    }
+    // Ordo: judged by where the path leads (see needsRoot), so /sdcard (a symlink to the primary volume) needs no root,
+    // and no "..", or symlink a user can write into a volume, makes root reach for something else.
+    override fun isRootRequired(isAttributeAccess: Boolean, noFollowLinks: Boolean): Boolean =
+        needsRoot(toFile(), noFollowLinks, { isRootRequired(it, isAttributeAccess) })
 
     private fun isRootRequired(file: File, isAttributeAccess: Boolean): Boolean {
         // Ordo: the app always reaches its own data, e.g. files opened from the vault.
-        if (file.startsWith(application.dataDir)) {
+        if (file.startsWith(application.dataDir) || file.startsWith(canonicalDataDir)) {
             return false
         }
         return StorageVolumeListLiveData.valueCompat.none {
@@ -198,37 +196,49 @@ internal class LinuxPath : ByteStringListPath<LinuxPath>, RootablePath {
 val Path.isLinuxPath: Boolean
     get() = this is LinuxPath
 
+// The check sees resolved paths, and /data/user/0 is a symlink to /data/data on many devices.
+private val canonicalDataDir: File by lazy { application.dataDir.canonicalFile }
+
 /**
- * What an operation on [file] touches, for the root check. On the link itself (lstat, unlink, rename, readlink;
- * [noFollowLinks]): the entry, i.e. the canonical parent plus the name. On the target (stat, open, read, write): the
- * canonical target; a name not there yet (to be created) is its entry. Null, so root, when it cannot be resolved,
- * e.g. a symlink whose target is gone or cannot be reached.
+ * Whether an operation on [file] needs root, walking it component by component. Root is only taken when nothing else
+ * gets there, never because of a symlink in a place the app can write to: another app could plant it there so root
+ * follows it (a confused deputy). Such a link is left to the kernel without root.
+ * - A symlink in a directory reachable without root: no root.
+ * - A symlink elsewhere (e.g. /sdcard in /) leads to its canonical target; one that cannot be resolved (target gone,
+ *   not readable) needs root.
+ * - "." and ".." count where they lead. [noFollowLinks] (lstat, unlink, rename, readlink) does not follow the last one.
+ * - The end decides by [rootOnly]. Anything that cannot be told needs root.
  */
-internal fun resolvedForRootCheck(
+internal fun needsRoot(
     file: File,
     noFollowLinks: Boolean,
-    entryExists: (File) -> Boolean = ::lstatExists
-): File? =
+    rootOnly: (File) -> Boolean,
+    isSymlink: (File) -> Boolean = ::lstatIsSymlink
+): Boolean =
     try {
-        val parent = file.parentFile
-        val name = file.name
-        when {
-            parent == null || name == "." || name == ".." -> file.canonicalFile
-            noFollowLinks -> File(parent.canonicalFile, name)
-            file.exists() -> file.canonicalFile
-            entryExists(file) -> null
-            else -> File(parent.canonicalFile, name)
+        val names = file.absolutePath.split('/').filter { it.isNotEmpty() }
+        var current = File("/")
+        for ((index, name) in names.withIndex()) {
+            val next = File(current, name)
+            current = when {
+                name == "." || name == ".." -> next.canonicalFile
+                index == names.lastIndex && noFollowLinks -> next
+                !isSymlink(next) -> next
+                !rootOnly(current) -> return false
+                !next.exists() -> return true
+                else -> next.canonicalFile
+            }
         }
+        rootOnly(current)
     } catch (e: IOException) {
-        null
+        true
     }
 
-/** Whether the entry itself is there (lstat, not following a symlink); throws when that cannot be told. */
+/** Whether [file] itself is a symlink (lstat); false when it is not there; throws when that cannot be told. */
 @Throws(IOException::class)
-private fun lstatExists(file: File): Boolean =
+private fun lstatIsSymlink(file: File): Boolean =
     try {
-        Os.lstat(file.path)
-        true
+        OsConstants.S_ISLNK(Os.lstat(file.path).st_mode)
     } catch (e: ErrnoException) {
         if (e.errno == OsConstants.ENOENT) false else throw IOException(e)
     }

@@ -53,6 +53,7 @@ fun <T, R> callRootable(
     path2: Path,
     isAttributeAccess: Boolean,
     noFollowLinks: Boolean,
+    noFollowLinks2: Boolean,
     localObject: T,
     rootObject: T,
     block: T.() -> R
@@ -64,7 +65,7 @@ fun <T, R> callRootable(
             localObject.block()
         RootStrategy.AUTOMATIC ->
             if (path1.isRootRequired(isAttributeAccess, noFollowLinks)
-                || path2.isRootRequired(isAttributeAccess, noFollowLinks)) {
+                || path2.isRootRequired(isAttributeAccess, noFollowLinks2)) {
                 rootObject.block()
             } else {
                 localObject.block()

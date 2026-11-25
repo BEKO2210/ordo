@@ -6,18 +6,16 @@
 package me.zhanghai.android.files.provider.linux
 
 import org.junit.After
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNull
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.File
 import java.io.IOException
 import java.nio.file.Files
-import java.nio.file.LinkOption
 
 /**
- * The root check judges what an operation touches, never the path's spelling: on the link itself (lstat, unlink,
- * rename, readlink) its entry in the canonical parent, on the target (stat, open) the canonical target, and nothing
- * (so root) when that cannot be resolved.
+ * The root check judges where a path leads, never its spelling, and takes root only when nothing else gets there:
+ * never because of a symlink in a place the app can write to (root would follow it: a confused deputy).
  */
 class RootCheckPathTest {
     private val base = Files.createTempDirectory("rootcheck").toFile().canonicalFile
@@ -25,9 +23,9 @@ class RootCheckPathTest {
     private val music = File(volume, "Music").apply { mkdirs() }
     private val secret = File(base, "data/secret").apply { mkdirs() }
 
-    // lstat on the JVM; LinuxPath uses Os.lstat.
-    private fun resolve(file: File, noFollowLinks: Boolean): File? =
-        resolvedForRootCheck(file, noFollowLinks) { Files.exists(it.toPath(), LinkOption.NOFOLLOW_LINKS) }
+    // Only the volume is reachable without root; lstat on the JVM (LinuxPath uses Os.lstat).
+    private fun root(file: File, noFollowLinks: Boolean): Boolean =
+        needsRoot(file, noFollowLinks, { !it.startsWith(volume) }) { Files.isSymbolicLink(it.toPath()) }
 
     private fun link(at: File, to: File): File = at.also { Files.createSymbolicLink(it.toPath(), to.toPath()) }
 
@@ -37,60 +35,73 @@ class RootCheckPathTest {
     }
 
     @Test
-    fun dotDotOutOfTheVolumeLeadsOutOfIt() {
-        val sneaky = File(volume, "../../../data/secret")
-        assertEquals(secret, resolve(sneaky, false))
-        assertEquals(secret, resolve(sneaky, true))
-        assertEquals(base.resolve("storage"), resolve(File(volume, "../.."), true))
+    fun dotDotOutOfTheVolumeNeedsRoot() {
+        assertTrue(root(File(volume, "../../../data/secret"), false))
+        assertTrue(root(File(volume, "../../../data/secret"), true))
+        assertTrue(root(File(volume, "../.."), true))
+        assertFalse(root(File(volume, "Music/../Music"), false))
     }
 
     @Test
-    fun linkInsideToOutside() {
+    fun linkInsideToOutsideNeverTakesRoot() {
+        // Anyone who can write to the volume could plant it: the kernel judges, root does not follow it.
         val link = link(File(volume, "link"), secret)
-        assertEquals(secret, resolve(link, false))
-        assertEquals(link, resolve(link, true))
+        assertFalse(root(link, false))
+        assertFalse(root(link, true))
+        assertFalse(root(File(link, "x"), false))
     }
 
     @Test
     fun linkOutsideToInside() {
         val link = link(File(secret, "link"), music)
-        assertEquals(music, resolve(link, false))
+        assertFalse(root(link, false))
         // Deleting or renaming it touches the root-only directory, not the volume.
-        assertEquals(link, resolve(link, true))
+        assertTrue(root(link, true))
     }
 
     @Test
-    fun linkToADirectoryLeadsInto() {
-        val dir = link(File(volume, "dir"), secret)
-        assertEquals(File(secret, "x"), resolve(File(dir, "x"), false))
-        assertEquals(File(secret, "x"), resolve(File(dir, "x"), true))
+    fun linkToADirectory() {
+        // Planted in the volume: root never reaches through it.
+        val inside = link(File(volume, "dir"), secret)
+        assertFalse(root(File(inside, "x"), false))
+        assertFalse(root(File(inside, "x"), true))
+        val outside = link(File(secret, "dir"), music)
+        assertFalse(root(File(outside, "song.mp3"), false))
+        assertFalse(root(File(outside, "song.mp3"), true))
     }
 
     @Test
-    fun linkWithItsTargetGoneNeedsRootUnlessTheLinkItselfIsMeant() {
-        val link = link(File(volume, "gone"), File(secret, "deleted"))
-        assertNull(resolve(link, false))
-        assertEquals(link, resolve(link, true))
+    fun linkWithItsTargetGone() {
+        // In the volume: no root, ever (root would create or open what it points to: O_CREAT follows the link).
+        val planted = link(File(volume, "gone"), File(secret, "deleted"))
+        assertFalse(root(planted, false))
+        assertFalse(root(planted, true))
+        // Outside: root, it cannot be told where it leads.
+        val outside = link(File(secret, "gone"), File(music, "deleted"))
+        assertTrue(root(outside, false))
+        assertTrue(root(outside, true))
     }
 
     @Test
     fun newNameCountsAsItsEntry() {
-        assertEquals(File(music, "new.mp3"), resolve(File(music, "new.mp3"), false))
+        assertFalse(root(File(music, "new.mp3"), false))
+        assertTrue(root(File(secret, "new"), false))
     }
 
     @Test
-    fun unknownEntryNeedsRoot() {
-        val unknown = File(volume, "unknown")
-        assertNull(resolvedForRootCheck(unknown, false) { throw IOException("EACCES") })
+    fun unknownEntryOutsideNeedsRoot() {
+        assertTrue(needsRoot(File(secret, "unknown"), false, { !it.startsWith(volume) }) { throw IOException() })
+        // The planted-link rule only holds where lstat answers; elsewhere it is root, as for a path outside.
+        assertTrue(needsRoot(File(music, "x"), false, { !it.startsWith(volume) }) { throw IOException() })
     }
 
     @Test
     fun sdcardAliasCountsAsTheVolume() {
         val sdcard = link(File(base, "sdcard"), volume)
-        assertEquals(volume, resolve(sdcard, false))
-        assertEquals(music, resolve(File(sdcard, "Music"), false))
-        assertEquals(music, resolve(File(sdcard, "Music"), true))
-        // lstat of /sdcard itself reads the link in /, which is not the volume.
-        assertEquals(sdcard, resolve(sdcard, true))
+        assertFalse(root(sdcard, false))
+        assertFalse(root(File(sdcard, "Music"), false))
+        assertFalse(root(File(sdcard, "Music"), true))
+        // lstat or delete of /sdcard itself acts on the link in /, which is not the volume.
+        assertTrue(root(sdcard, true))
     }
 }

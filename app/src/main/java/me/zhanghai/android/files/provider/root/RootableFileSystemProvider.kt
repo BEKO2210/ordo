@@ -85,7 +85,7 @@ abstract class RootableFileSystemProvider(
     @Throws(IOException::class)
     override fun createLink(link: Path, existing: Path) {
         // link() makes a new name for the entry itself: neither name is followed.
-        callRootable(link, existing, noFollowLinks = true) { createLink(link, existing) }
+        callRootable(link, existing, noFollowLinks = true, noFollowLinks2 = true) { createLink(link, existing) }
     }
 
     @Throws(IOException::class)
@@ -98,7 +98,8 @@ abstract class RootableFileSystemProvider(
 
     @Throws(IOException::class)
     override fun copy(source: Path, target: Path, vararg options: CopyOption) {
-        callRootable(source, target, noFollowLinks = LinkOption.NOFOLLOW_LINKS in options) {
+        // The target entry is replaced, never followed.
+        callRootable(source, target, LinkOption.NOFOLLOW_LINKS in options, true) {
             copy(source, target, *options)
         }
     }
@@ -106,12 +107,12 @@ abstract class RootableFileSystemProvider(
     @Throws(IOException::class)
     override fun move(source: Path, target: Path, vararg options: CopyOption) {
         // rename() moves the entry itself: neither name is followed.
-        callRootable(source, target, noFollowLinks = true) { move(source, target, *options) }
+        callRootable(source, target, noFollowLinks = true, noFollowLinks2 = true) { move(source, target, *options) }
     }
 
     @Throws(IOException::class)
     override fun isSameFile(path: Path, path2: Path): Boolean =
-        callRootable(path, path2, true) { isSameFile(path, path2) }
+        callRootable(path, path2, true, true, isAttributeAccess = true) { isSameFile(path, path2) }
 
     @Throws(IOException::class)
     override fun isHidden(path: Path): Boolean = callRootable(path, true) { isHidden(path) }
@@ -209,8 +210,11 @@ abstract class RootableFileSystemProvider(
     private fun <R> callRootable(
         path1: Path,
         path2: Path,
-        isAttributeAccess: Boolean = false,
         noFollowLinks: Boolean = false,
+        noFollowLinks2: Boolean = false,
+        isAttributeAccess: Boolean = false,
         block: FileSystemProvider.() -> R
-    ): R = callRootable(path1, path2, isAttributeAccess, noFollowLinks, localProvider, rootProvider, block)
+    ): R = callRootable(
+        path1, path2, isAttributeAccess, noFollowLinks, noFollowLinks2, localProvider, rootProvider, block
+    )
 }
