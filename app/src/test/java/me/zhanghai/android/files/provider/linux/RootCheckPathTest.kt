@@ -24,9 +24,13 @@ class RootCheckPathTest {
     private val music = File(volume, "Music").apply { mkdirs() }
     private val secret = File(base, "data/secret").apply { mkdirs() }
 
-    // Only the volume is reachable without root; lstat on the JVM (LinuxPath uses Os.lstat).
+    // Only the volume is reachable without root.
     private fun check(file: File, noFollowLinks: Boolean): RootCheck =
-        rootCheck(file, noFollowLinks, { !it.startsWith(volume) }) { Files.isSymbolicLink(it.toPath()) }
+        rootCheck(file, noFollowLinks, { !it.startsWith(volume) }, ::readlink)
+
+    // lstat + readlink on the JVM; LinuxPath uses Os.
+    private fun readlink(file: File): String? =
+        if (Files.isSymbolicLink(file.toPath())) Files.readSymbolicLink(file.toPath()).toString() else null
 
     private fun root(file: File, noFollowLinks: Boolean): Boolean = check(file, noFollowLinks) == RootCheck.ROOT
 
@@ -69,6 +73,28 @@ class RootCheckPathTest {
     }
 
     @Test
+    fun aProtectedLinkIntoAPlantedOneIsCaughtHopByHop() {
+        // /secret/hop -> /volume/planted -> /secret: the planted link in the middle of the chain counts.
+        val planted = link(File(volume, "planted"), secret)
+        val hop = link(File(secret, "hop"), planted)
+        assertEquals(RootCheck.SHARED_SYMLINK, check(hop, false))
+        assertEquals(RootCheck.SHARED_SYMLINK, check(File(hop, "x"), false))
+        // Relative targets the same way.
+        val relative = File(secret, "rel").also {
+            Files.createSymbolicLink(it.toPath(), java.nio.file.Paths.get("../../storage/emulated/0/planted"))
+        }
+        assertEquals(RootCheck.SHARED_SYMLINK, check(relative, false))
+    }
+
+    @Test
+    fun aLinkLoopNeedsRoot() {
+        val a = File(secret, "a")
+        link(File(secret, "b"), a)
+        link(a, File(secret, "b"))
+        assertTrue(root(a, false))
+    }
+
+    @Test
     fun linkOutsideToInside() {
         val link = link(File(secret, "link"), music)
         assertFalse(root(link, false))
@@ -93,10 +119,12 @@ class RootCheckPathTest {
         val planted = link(File(volume, "gone"), File(secret, "deleted"))
         assertFalse(root(planted, false))
         assertFalse(root(planted, true))
-        // Outside: root, it cannot be told where it leads.
-        val outside = link(File(secret, "gone"), File(music, "deleted"))
-        assertTrue(root(outside, false))
-        assertTrue(root(outside, true))
+        // Outside: judged by where its target would be, hop by hop.
+        val intoVolume = link(File(secret, "gone"), File(music, "deleted"))
+        assertFalse(root(intoVolume, false))
+        assertTrue(root(intoVolume, true))
+        val stayingOutside = link(File(secret, "gone2"), File(secret, "deleted"))
+        assertTrue(root(stayingOutside, false))
     }
 
     @Test

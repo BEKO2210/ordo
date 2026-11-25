@@ -26,30 +26,30 @@ class TwoPathRootTest {
 
     @Test
     fun bothReachableNeedNoRoot() {
-        assertFalse(isRootRequired(FakePath(false, true), FakePath(false, true), false, false, false))
+        assertFalse(usesRoot(RootStrategy.AUTOMATIC, FakePath(false, true), FakePath(false, true), false, false, false))
     }
 
     @Test
     fun plainSourceIntoRootTargetTakesRoot() {
-        assertTrue(isRootRequired(FakePath(false), FakePath(true), false, false, true))
-        assertTrue(isRootRequired(FakePath(true), FakePath(false), false, true, true))
-        assertTrue(isRootRequired(FakePath(true), FakePath(true), false, false, false))
+        assertTrue(usesRoot(RootStrategy.AUTOMATIC, FakePath(false), FakePath(true), false, false, true))
+        assertTrue(usesRoot(RootStrategy.AUTOMATIC, FakePath(true), FakePath(false), false, true, true))
+        assertTrue(usesRoot(RootStrategy.AUTOMATIC, FakePath(true), FakePath(true), false, false, false))
     }
 
     @Test(expected = AccessDeniedException::class)
     fun plantedSourceIntoRootTargetIsRefused() {
-        isRootRequired(FakePath(false, true), FakePath(true), false, false, true)
+        usesRoot(RootStrategy.AUTOMATIC, FakePath(false, true), FakePath(true), false, false, true)
     }
 
     @Test(expected = AccessDeniedException::class)
     fun plantedTargetForARootSourceIsRefused() {
-        isRootRequired(FakePath(true), FakePath(false, true), false, false, false)
+        usesRoot(RootStrategy.AUTOMATIC, FakePath(true), FakePath(false, true), false, false, false)
     }
 
     @Test
     fun theRefusalSaysWhy() {
         try {
-            isRootRequired(FakePath(false, true), FakePath(true), false, false, true)
+            usesRoot(RootStrategy.AUTOMATIC, FakePath(false, true), FakePath(true), false, false, true)
         } catch (e: AccessDeniedException) {
             assertEquals("/sdcard/planted", e.file)
             assertTrue(e.reason!!.contains("symbolic link"))
@@ -59,8 +59,27 @@ class TwoPathRootTest {
     }
 
     @Test
+    fun alwaysRootNeverFollowsAPlantedLink() {
+        assertTrue(usesRoot(RootStrategy.ALWAYS, FakePath(false), false, false))
+        assertFalse(usesRoot(RootStrategy.ALWAYS, FakePath(false, true), false, false))
+        assertTrue(usesRoot(RootStrategy.ALWAYS, FakePath(false, true, onlyWhenFollowed = true), false, true))
+        assertTrue(usesRoot(RootStrategy.ALWAYS, FakePath(false), FakePath(true), false, false, false))
+        try {
+            usesRoot(RootStrategy.ALWAYS, FakePath(true), FakePath(false, true), false, false, false)
+            throw AssertionError("not refused")
+        } catch (e: AccessDeniedException) {
+        }
+    }
+
+    @Test
+    fun neverRootIsNeverRoot() {
+        assertFalse(usesRoot(RootStrategy.NEVER, FakePath(true), false, false))
+        assertFalse(usesRoot(RootStrategy.NEVER, FakePath(true), FakePath(true, true), false, false, false))
+    }
+
+    @Test
     fun aLinkMovedAsItselfIsNotFollowed() {
         // move renames the link itself: its target is never touched, so root may move it.
-        assertTrue(isRootRequired(FakePath(false, true, onlyWhenFollowed = true), FakePath(true), false, true, true))
+        assertTrue(usesRoot(RootStrategy.AUTOMATIC, FakePath(false, true, onlyWhenFollowed = true), FakePath(true), false, true, true))
     }
 }

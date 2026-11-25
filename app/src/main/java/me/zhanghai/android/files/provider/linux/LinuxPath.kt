@@ -203,34 +203,47 @@ val Path.isLinuxPath: Boolean
 private val canonicalDataDir: File by lazy { application.dataDir.canonicalFile }
 
 /**
- * Whether an operation on [file] needs root ([RootCheck.ROOT]), walking it component by component. Root is only taken when nothing else
- * gets there, never because of a symlink in a place the app can write to: another app could plant it there so root
- * follows it (a confused deputy). Such a link is left to the kernel without root.
- * - A symlink in a directory reachable without root: no root ([RootCheck.SHARED_SYMLINK]).
- * - A symlink elsewhere (e.g. /sdcard in /) leads to its canonical target; one that cannot be resolved (target gone,
- *   not readable) needs root.
- * - "." and ".." count where they lead. [noFollowLinks] (lstat, unlink, rename, readlink) does not follow the last one.
- * - The end decides by [rootOnly]. Anything that cannot be told needs root.
+ * Whether an operation on [file] needs root ([RootCheck.ROOT]), walking it component by component and every symlink
+ * hop by hop (readlink), so each target is judged again. Root is only taken when nothing else gets there, never
+ * because of a symlink in a place the app can write to: another app could plant it there so root follows it (a
+ * confused deputy). Such a link is left to the kernel without root.
+ * - A symlink in a directory reachable without root, also one reached through another link: no root
+ *   ([RootCheck.SHARED_SYMLINK]).
+ * - A symlink elsewhere (e.g. /sdcard in /) continues with its target's components.
+ * - "." and ".." count where they lead. [noFollowLinks] (lstat, unlink, rename, readlink) does not follow the path's
+ *   own last component.
+ * - The end decides by [rootOnly]. Anything that cannot be told (lstat or readlink fails, more than 40 hops) needs
+ *   root.
  */
 internal fun rootCheck(
     file: File,
     noFollowLinks: Boolean,
     rootOnly: (File) -> Boolean,
-    isSymlink: (File) -> Boolean = ::lstatIsSymlink
+    readlink: (File) -> String? = ::lstatReadlink
 ): RootCheck =
     try {
-        val names = file.absolutePath.split('/').filter { it.isNotEmpty() }
+        // Pairs of a name and whether it is the path's own last component.
+        val names = ArrayDeque(file.absolutePath.split('/').filter { it.isNotEmpty() }.map { it to false })
+        if (names.isNotEmpty()) names[names.lastIndex] = names.last().first to true
         var current = File("/")
-        for ((index, name) in names.withIndex()) {
-            val next = File(current, name)
-            current = when {
-                name == "." || name == ".." -> next.canonicalFile
-                index == names.lastIndex && noFollowLinks -> next
-                !isSymlink(next) -> next
-                !rootOnly(current) -> return RootCheck.SHARED_SYMLINK
-                !next.exists() -> return RootCheck.ROOT
-                else -> next.canonicalFile
+        var hops = 0
+        while (names.isNotEmpty()) {
+            val (name, isLast) = names.removeFirst()
+            if (name == ".") continue
+            if (name == "..") {
+                current = current.parentFile ?: current
+                continue
             }
+            val next = File(current, name)
+            val target = if (isLast && noFollowLinks) null else readlink(next)
+            if (target == null) {
+                current = next
+                continue
+            }
+            if (!rootOnly(current)) return RootCheck.SHARED_SYMLINK
+            if (++hops > 40) return RootCheck.ROOT
+            if (target.startsWith('/')) current = File("/")
+            target.split('/').filter { it.isNotEmpty() }.asReversed().forEach { names.addFirst(it to false) }
         }
         if (rootOnly(current)) RootCheck.ROOT else RootCheck.LOCAL
     } catch (e: IOException) {
@@ -240,11 +253,11 @@ internal fun rootCheck(
 /** [SHARED_SYMLINK]: through a symlink anyone could have planted; no root for it, the kernel judges. */
 internal enum class RootCheck { LOCAL, ROOT, SHARED_SYMLINK }
 
-/** Whether [file] itself is a symlink (lstat); false when it is not there; throws when that cannot be told. */
+/** The target of [file] if it is a symlink (lstat), null if it is not one or not there; throws when unknown. */
 @Throws(IOException::class)
-private fun lstatIsSymlink(file: File): Boolean =
+private fun lstatReadlink(file: File): String? =
     try {
-        OsConstants.S_ISLNK(Os.lstat(file.path).st_mode)
+        if (OsConstants.S_ISLNK(Os.lstat(file.path).st_mode)) Os.readlink(file.path) else null
     } catch (e: ErrnoException) {
-        if (e.errno == OsConstants.ENOENT) false else throw IOException(e)
+        if (e.errno == OsConstants.ENOENT) null else throw IOException(e)
     }
