@@ -141,6 +141,9 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
     private lateinit var controls: VideoControls
     private var seekPro: VideoSeekPro? = null
     private lateinit var resumeStore: VideoResumeStore
+    // Another app's content:// video (one item) and its name, once looked up.
+    private var externalUri: Uri? = null
+    private var externalTitle: String? = null
     private var subtitles: VideoSubtitles? = null
     private val watchedStore by lazy { VideoWatchedStore(this) }
     // Playing Tresor videos: the screen closes when left, like the Tresor locks (no grant outlives it unseen).
@@ -370,6 +373,14 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
             }
         }
         player.setMediaItems(queue.items, queue.startIndex, queue.positionMs)
+        externalUri?.let { uri ->
+            lifecycleScope.launch {
+                externalTitle = withContext(Dispatchers.IO) {
+                    AudioPlaybackService.mediaItem(uri.toString()).mediaMetadata.displayTitle?.toString()
+                }
+                this@VideoPlayerActivity.player?.let(::updateUi)
+            }
+        }
         player.playWhenReady = savedInstanceState?.getBoolean(STATE_PLAY_WHEN_READY) ?: true
         // The picture decides first whether the player starts with its OpenGL pipeline (a quick probe of the file).
         picture?.prepare(player) ?: player.prepare()
@@ -570,8 +581,11 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
                 // Written by this activity itself, so it is trusted like the token was.
                 savedMediaId != null ->
                     LaunchQueue(listOf(queueItem(savedMediaId)), 0, savedPosition)
-                else -> intent.data?.takeIf(::isAllowedExternalUri)
-                    ?.let { LaunchQueue(listOf(AudioPlaybackService.mediaItem(it.toString())), 0, 0L) }
+                // Its name is a query to the other app: looked up after onCreate, off the main thread.
+                else -> intent.data?.takeIf(::isAllowedExternalUri)?.let {
+                    externalUri = it
+                    LaunchQueue(listOf(AudioPlaybackService.mediaItem(it.toString(), it.lastPathSegment.orEmpty())), 0, 0L)
+                }
             }
         } catch (e: Exception) {
             e.printStackTrace()
@@ -1010,7 +1024,7 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
         binding.seekBar.isEnabled = player.isCommandAvailable(Player.COMMAND_SEEK_IN_CURRENT_MEDIA_ITEM)
             && player.duration != C.TIME_UNSET
         // The file name without its extension, as Ordo Video's library shows it.
-        val title = player.currentMediaItem?.mediaMetadata?.displayTitle?.toString()
+        val title = (externalTitle ?: player.currentMediaItem?.mediaMetadata?.displayTitle?.toString())
             ?.let { name -> name.substringBeforeLast('.').ifEmpty { name } }
         binding.toolbar.title = title
         binding.playerView.contentDescription = title
@@ -1365,7 +1379,7 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
     private fun showFileInfo() {
         val player = player ?: return
         val path = currentPath()
-        val name = player.currentMediaItem?.mediaMetadata?.displayTitle?.toString()
+        val name = externalTitle ?: player.currentMediaItem?.mediaMetadata?.displayTitle?.toString()
         val info = VideoInfo.fromTracks(
             binding.toolbar.title?.toString().orEmpty(), name, currentDuration(), player.currentTracks,
             getString(R.string.video_info_not_playable)
