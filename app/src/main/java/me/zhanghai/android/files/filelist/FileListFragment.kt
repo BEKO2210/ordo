@@ -14,6 +14,8 @@ import android.net.Uri
 import android.os.Build
 import android.annotation.SuppressLint
 import android.os.Bundle
+import android.window.OnBackInvokedCallback
+import android.window.OnBackInvokedDispatcher
 import android.os.Environment
 import android.os.Handler
 import android.os.Looper
@@ -566,8 +568,36 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
         setUpSearchView()
     }
 
+    // Back while the search field has the keyboard only hides the keyboard, the search stays (with predictive back
+    // the toolbar's own callback otherwise closed both at once: A15, Android 16).
+    private val hideSearchKeyboard: Any? =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            OnBackInvokedCallback {
+                (menuBinding.searchItem.actionView as? SearchView)?.clearFocus()
+            }
+        } else {
+            null
+        }
+
+    private fun setHideSearchKeyboardOnBack(enabled: Boolean) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
+        val callback = hideSearchKeyboard as OnBackInvokedCallback
+        val dispatcher = activity?.onBackInvokedDispatcher ?: return
+        if (enabled) {
+            dispatcher.registerOnBackInvokedCallback(OnBackInvokedDispatcher.PRIORITY_OVERLAY, callback)
+        } else {
+            dispatcher.unregisterOnBackInvokedCallback(callback)
+        }
+    }
+
+    override fun onDestroyView() {
+        setHideSearchKeyboardOnBack(false)
+        super.onDestroyView()
+    }
+
     private fun setUpSearchView() {
         val searchView = menuBinding.searchItem.actionView as FixQueryChangeSearchView
+        searchView.setOnQueryTextFocusChangeListener { _, hasFocus -> setHideSearchKeyboardOnBack(hasFocus) }
         // MenuItem.OnActionExpandListener.onMenuItemActionExpand() is called before SearchView
         // resets the query.
         searchView.setOnSearchClickListener {
