@@ -19,6 +19,9 @@ import androidx.core.os.BundleCompat
 import java8.nio.channels.FileChannel
 import me.zhanghai.android.files.app.application
 import me.zhanghai.android.files.app.contentResolver
+import me.zhanghai.android.files.app.storageManager
+import me.zhanghai.android.files.compat.directoryCompat
+import me.zhanghai.android.files.compat.storageVolumesCompat
 import me.zhanghai.android.files.hiddenapi.RestrictedHiddenApi
 import me.zhanghai.android.files.provider.common.DelegateFileChannel
 import me.zhanghai.android.files.provider.root.isRunningAsRoot
@@ -52,15 +55,51 @@ object MediaScanner {
             return
         }
         scanExecutor.execute {
+            val volumeRoots = try {
+                storageManager.storageVolumesCompat.mapNotNull { it.directoryCompat?.path }
+            } catch (e: Exception) {
+                Log.w(TAG, "Listing storage volumes failed", e)
+                emptyList()
+            }
             for (path in paths) {
+                // The provider is privileged; MediaScannerConnection used to vet the path, now we have to.
+                val scanPath = scannablePath(path, volumeRoots)
+                if (scanPath == null) {
+                    Log.w(TAG, "Not scanning $path: outside mounted storage volumes")
+                    onScanned?.invoke(path, null)
+                    continue
+                }
                 val uri = try {
-                    contentResolver.call(MediaStore.AUTHORITY, SCAN_FILE_CALL, path, null)
+                    contentResolver.call(MediaStore.AUTHORITY, SCAN_FILE_CALL, scanPath, null)
                         ?.let { BundleCompat.getParcelable(it, Intent.EXTRA_STREAM, Uri::class.java) }
                 } catch (e: Exception) {
                     Log.w(TAG, "Scanning $path failed", e)
                     null
                 }
                 onScanned?.invoke(path, uri)
+            }
+        }
+    }
+
+    /**
+     * The canonical form of [path] if it lies inside one of [volumeRoots] (mounted storage volume directories),
+     * else null: `..`, symlinks out of the volume, app-internal data, /data, /proc and other roots are refused.
+     */
+    internal fun scannablePath(path: String, volumeRoots: List<String>): String? {
+        val canonicalPath = try {
+            File(path).canonicalPath
+        } catch (e: IOException) {
+            return null
+        }
+        return canonicalPath.takeIf { candidate ->
+            volumeRoots.any { root ->
+                val canonicalRoot = try {
+                    File(root).canonicalPath
+                } catch (e: IOException) {
+                    return@any false
+                }
+                candidate == canonicalRoot ||
+                    candidate.startsWith(canonicalRoot + File.separator)
             }
         }
     }
