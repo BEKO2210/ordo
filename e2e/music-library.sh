@@ -17,7 +17,7 @@ PLAYLISTS=$ROOT/Music/Playlists
 # the owner's lists stay as they were.
 FAVORITES_BEFORE=$(a shell "[ -f $PLAYLISTS/Favorites.m3u8 ] && echo yes" | tr -d '\r')
 clean_up() {
-    a shell "rm -rf $ROCK $JAZZ $EDIT $COVERS; rm -f \"$PLAYLISTS/Ordoe2e List.m3u8\""
+    a shell "rm -rf $ROCK $JAZZ $EDIT $COVERS; rm -f \"$PLAYLISTS/Ordoe2e List.m3u8\" \"$PLAYLISTS/Ordoe2eList.m3u8\""
     if [ "$FAVORITES_BEFORE" = yes ]; then
         a shell "sed -i /OrdoE2E-/d $PLAYLISTS/Favorites.m3u8"
     else
@@ -245,15 +245,17 @@ check "back from the player returns to the library" on viewer.audio.MusicLaunche
 check "a long press selects a song" eval 'search Ordoe2e && ui longtap "Ordoe2e Alpha" title && ui wait "1 ausgewählt|1 selected" 5'
 # On failure the log shows what the toolbar showed instead.
 ui has "1 ausgewählt|1 selected" || { echo "DIAG selection:"; ui texts | head -20 | sed 's/^/  /'; }
-check "a tap adds a second song" eval 'ui tap "Ordoe2e Beta" title && ui wait "2 ausgewählt|2 selected" 5'
+# Scrolled into sight first: on the W90 the selection showed the whole library, Beta below the window (a15g-5).
+check "a tap adds a second song" eval 'row_shown "Ordoe2e Beta" title && ui tap "Ordoe2e Beta" title && ui wait "2 ausgewählt|2 selected" 5'
+# One word: a keyboard with autocorrect turned "Ordoe2e List" into "Ordoe2e Liste " at the space (W90 landscape).
 check_or_abort "the selection goes into a new playlist" eval 'ui tap actionSelectionPlaylist && ui wait "Neue Wiedergabeliste|New playlist" 5 \
-    && ui tap "Neue Wiedergabeliste|New playlist" && sleep 1 && a shell input text "Ordoe2e%sList" && ui tap button1'
-in_playlist() { a shell cat "\"$PLAYLISTS/Ordoe2e List.m3u8\"" | grep -q "OrdoE2E-Rock/rock-1.mp3"; }
+    && ui tap "Neue Wiedergabeliste|New playlist" && sleep 1 && a shell input text Ordoe2eList && ui tap button1'
+in_playlist() { a shell cat "\"$PLAYLISTS/Ordoe2eList.m3u8\"" | grep -q "OrdoE2E-Rock/rock-1.mp3"; }
 check "the playlist is an M3U8 file in Music/Playlists" eval 'sleep 2; in_playlist'
 close_search
 ui has "$MENU" || ui has "Bibliothek|Library" titleText || { echo "DIAG before the side menu:"; ui texts | head -20 | sed 's/^/  /'; }
-check_or_abort "the side menu lists the playlist" eval 'open_menu && nav_row "Wiedergabelisten|Playlists" && ui tap "Wiedergabelisten|Playlists" titleText && ui wait "Ordoe2e List" 5'
-check_or_abort "the playlist opens with its songs" eval 'ui tap "Ordoe2e List" && ui wait "Ordoe2e Alpha" 5 && ui has "Ordoe2e Beta"'
+check_or_abort "the side menu lists the playlist" eval 'open_menu && nav_row "Wiedergabelisten|Playlists" && ui tap "Wiedergabelisten|Playlists" titleText && ui wait Ordoe2eList 5'
+check_or_abort "the playlist opens with its songs" eval 'ui tap Ordoe2eList && ui wait "Ordoe2e Alpha" 5 && ui has "Ordoe2e Beta"'
 back 1.5; back 1.5
 check "a song becomes a favourite from its menu" eval 'search Ordoe2e && ui tap "Weitere Optionen für Ordoe2e Gamma|More options for Ordoe2e Gamma" \
     && ui wait "Zu Favoriten|Add to favorites" 5 && ui tap "Zu Favoriten|Add to favorites"'

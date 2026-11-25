@@ -106,7 +106,12 @@ presets_to_start
 check "the Flat preset tile restores the curve" paused_ui tap "Flat|Neutral"
 paused_ui has equalizerEnabled || sound_at_top
 check "the equalizer switches off again" equalizer off
-band_row() { [ "${fine_open:-0}" = 1 ] || fine_tune_opened || return 1; scrolled_to "31 Hz"; }
+# In the pane of the fine-tune card: a landscape tablet shows the sheet in two panes, and a swipe in the middle of the
+# screen moved the other one (W90, a15g-5).
+band_row() {
+    [ "${fine_open:-0}" = 1 ] || fine_tune_opened || return 1
+    scroll_to "31 Hz" 6 fineTuneToggle || scrolled_to "31 Hz"
+}
 check "a band row shows its gain" band_row
 check "the playback section reaches skip silence and mono" scrolled_to "Skip silence|Stille überspringen"
 check "the sleep timer offers end of track" scrolled_to "End of track|Titelende"

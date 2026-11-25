@@ -37,8 +37,8 @@ check "the destination folder opens" ui has "$NAME"
 # By its id: a phone shows the label in capitals ("HIERHER KOPIEREN", A15).
 check "paste is offered" ui has action_paste
 ui tap action_paste >/dev/null; sleep 1.5
-# The word stands inside the title ("Datei „…“ überschreiben?"), so it is looked for in it; then its positive button.
-check "the replace dialog appears" eval 'ui wait button1 5 >/dev/null && ui texts | grep -Eq "überschreiben|Replace"'
+# The conflict dialog: its target row and its Replace button (the title can scroll out of a low window, W90).
+check "the replace dialog appears" eval 'ui wait targetNameText 5 >/dev/null && ui has "Ersetzen|Replace" button1'
 ui tap button1 >/dev/null
 sleep 0.4
 # GB-7: cancel the job. GB-8: if it is still running, kill the process so the half-written

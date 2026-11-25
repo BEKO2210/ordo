@@ -79,7 +79,9 @@ sleep 2; back; back
 # The player closes onto the album page, which has "up" instead of the menu: back to the library first.
 drawer() {
     local i; for i in 1 2 3; do
-        ui tap "Navigationsmenü öffnen|Open navigation drawer" >/dev/null && return 0
+        # Waited for: on a budget tablet the library was still coming back when the tap was tried (W90, a15g-5).
+        ui wait "Navigationsmenü öffnen|Open navigation drawer" 4 >/dev/null &&
+            ui tap "Navigationsmenü öffnen|Open navigation drawer" >/dev/null && return 0
         ui has "Nach oben|Navigate up" || return 1; back 1
     done
     return 1
