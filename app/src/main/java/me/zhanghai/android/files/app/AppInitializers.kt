@@ -10,10 +10,12 @@ import android.os.AsyncTask
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.webkit.MimeTypeMap
 import android.webkit.WebView
 import jcifs.context.SingletonContext
 import me.zhanghai.android.files.BuildConfig
 import me.zhanghai.android.files.coil.initializeCoil
+import me.zhanghai.android.files.compat.PreferenceManagerCompat
 import me.zhanghai.android.files.filejob.fileJobNotificationTemplate
 import me.zhanghai.android.files.ftpserver.ftpServerServiceNotificationTemplate
 import me.zhanghai.android.files.hiddenapi.HiddenApi
@@ -59,9 +61,14 @@ val appInitializers = listOf(
 // shortcut: loads every preferences file (each a few KB on 25.11.2026); skips one above 64 KB should a cache grow.
 private fun preloadStartPreferences() {
     Thread({
-        File(application.applicationInfo.dataDir, "shared_prefs").listFiles()
-            ?.filter { it.name.endsWith(".xml") && it.length() < 64 * 1024 }
-            ?.forEach { application.getSharedPreferences(it.name.removeSuffix(".xml"), Context.MODE_PRIVATE).all }
+        val names = File(application.applicationInfo.dataDir, "shared_prefs").listFiles()
+            ?.filter { it.name.endsWith(".xml") && it.length() < 64 * 1024 }?.map { it.name.removeSuffix(".xml") }
+            .orEmpty() +
+            // PathSettings' file, read by every file list, exists only once a folder got its own view.
+            "${PreferenceManagerCompat.getDefaultSharedPreferencesName(application)}_path"
+        names.distinct().forEach { application.getSharedPreferences(it, Context.MODE_PRIVATE).all }
+        // The platform's MIME table is read from disk on its first use, often a file list on the main thread.
+        MimeTypeMap.getSingleton().getMimeTypeFromExtension("txt")
     }, "PreloadPreferences").start()
 }
 
