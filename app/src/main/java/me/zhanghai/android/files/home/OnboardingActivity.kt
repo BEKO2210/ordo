@@ -255,8 +255,9 @@ class OnboardingActivity : AppActivity() {
         private const val KEY_DONE = "done"
         private const val STATE_PAGE = "page"
 
+        // The application context: its file lookup is cached by the preload in AppInitializers, an activity's is not.
         fun isDone(context: Context): Boolean =
-            context.getSharedPreferences(PREFS, MODE_PRIVATE).getBoolean(KEY_DONE, false)
+            context.applicationContext.getSharedPreferences(PREFS, MODE_PRIVATE).getBoolean(KEY_DONE, false)
 
         fun hasStorageAccess(context: Context): Boolean =
             if (Environment::class.supportsExternalStorageManager()) {

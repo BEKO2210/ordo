@@ -19,7 +19,7 @@ import me.zhanghai.android.files.viewer.video.vault.VaultVideos
  * "Clear Continue watching" forgets them too.
  */
 class PictureAdjustStore(context: Context) {
-    private val preferences = context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
+    private val preferences = context.applicationContext.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
 
     fun read(mediaId: String): PictureAdjustments? =
         if (remembers(mediaId)) {
