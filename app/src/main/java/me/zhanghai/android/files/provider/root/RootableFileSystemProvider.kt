@@ -79,7 +79,8 @@ abstract class RootableFileSystemProvider(
 
     @Throws(IOException::class)
     override fun createSymbolicLink(link: Path, target: Path, vararg attributes: FileAttribute<*>) {
-        callRootable(link, target) { createSymbolicLink(link, target, *attributes) }
+        // Only where the link is made counts: its target is a string, never touched.
+        callRootable(link, noFollowLinks = true) { createSymbolicLink(link, target, *attributes) }
     }
 
     @Throws(IOException::class)

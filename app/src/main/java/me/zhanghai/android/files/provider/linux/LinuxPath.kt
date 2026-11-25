@@ -87,10 +87,13 @@ internal class LinuxPath : ByteStringListPath<LinuxPath>, RootablePath {
         return watcher.register(this, events, *modifiers)
     }
 
-    // Ordo: judged by where the path leads (see needsRoot), so /sdcard (a symlink to the primary volume) needs no root,
+    // Ordo: judged by where the path leads (see rootCheck), so /sdcard (a symlink to the primary volume) needs no root,
     // and no "..", or symlink a user can write into a volume, makes root reach for something else.
     override fun isRootRequired(isAttributeAccess: Boolean, noFollowLinks: Boolean): Boolean =
-        needsRoot(toFile(), noFollowLinks, { isRootRequired(it, isAttributeAccess) })
+        rootCheck(toFile(), noFollowLinks, { isRootRequired(it, isAttributeAccess) }) == RootCheck.ROOT
+
+    override fun followsSharedSymlink(noFollowLinks: Boolean): Boolean =
+        rootCheck(toFile(), noFollowLinks, { isRootRequired(it, false) }) == RootCheck.SHARED_SYMLINK
 
     private fun isRootRequired(file: File, isAttributeAccess: Boolean): Boolean {
         // Ordo: the app always reaches its own data, e.g. files opened from the vault.
@@ -200,21 +203,21 @@ val Path.isLinuxPath: Boolean
 private val canonicalDataDir: File by lazy { application.dataDir.canonicalFile }
 
 /**
- * Whether an operation on [file] needs root, walking it component by component. Root is only taken when nothing else
+ * Whether an operation on [file] needs root ([RootCheck.ROOT]), walking it component by component. Root is only taken when nothing else
  * gets there, never because of a symlink in a place the app can write to: another app could plant it there so root
  * follows it (a confused deputy). Such a link is left to the kernel without root.
- * - A symlink in a directory reachable without root: no root.
+ * - A symlink in a directory reachable without root: no root ([RootCheck.SHARED_SYMLINK]).
  * - A symlink elsewhere (e.g. /sdcard in /) leads to its canonical target; one that cannot be resolved (target gone,
  *   not readable) needs root.
  * - "." and ".." count where they lead. [noFollowLinks] (lstat, unlink, rename, readlink) does not follow the last one.
  * - The end decides by [rootOnly]. Anything that cannot be told needs root.
  */
-internal fun needsRoot(
+internal fun rootCheck(
     file: File,
     noFollowLinks: Boolean,
     rootOnly: (File) -> Boolean,
     isSymlink: (File) -> Boolean = ::lstatIsSymlink
-): Boolean =
+): RootCheck =
     try {
         val names = file.absolutePath.split('/').filter { it.isNotEmpty() }
         var current = File("/")
@@ -224,15 +227,18 @@ internal fun needsRoot(
                 name == "." || name == ".." -> next.canonicalFile
                 index == names.lastIndex && noFollowLinks -> next
                 !isSymlink(next) -> next
-                !rootOnly(current) -> return false
-                !next.exists() -> return true
+                !rootOnly(current) -> return RootCheck.SHARED_SYMLINK
+                !next.exists() -> return RootCheck.ROOT
                 else -> next.canonicalFile
             }
         }
-        rootOnly(current)
+        if (rootOnly(current)) RootCheck.ROOT else RootCheck.LOCAL
     } catch (e: IOException) {
-        true
+        RootCheck.ROOT
     }
+
+/** [SHARED_SYMLINK]: through a symlink anyone could have planted; no root for it, the kernel judges. */
+internal enum class RootCheck { LOCAL, ROOT, SHARED_SYMLINK }
 
 /** Whether [file] itself is a symlink (lstat); false when it is not there; throws when that cannot be told. */
 @Throws(IOException::class)

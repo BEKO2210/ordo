@@ -6,6 +6,7 @@
 package me.zhanghai.android.files.provider.linux
 
 import org.junit.After
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -24,8 +25,10 @@ class RootCheckPathTest {
     private val secret = File(base, "data/secret").apply { mkdirs() }
 
     // Only the volume is reachable without root; lstat on the JVM (LinuxPath uses Os.lstat).
-    private fun root(file: File, noFollowLinks: Boolean): Boolean =
-        needsRoot(file, noFollowLinks, { !it.startsWith(volume) }) { Files.isSymbolicLink(it.toPath()) }
+    private fun check(file: File, noFollowLinks: Boolean): RootCheck =
+        rootCheck(file, noFollowLinks, { !it.startsWith(volume) }) { Files.isSymbolicLink(it.toPath()) }
+
+    private fun root(file: File, noFollowLinks: Boolean): Boolean = check(file, noFollowLinks) == RootCheck.ROOT
 
     private fun link(at: File, to: File): File = at.also { Files.createSymbolicLink(it.toPath(), to.toPath()) }
 
@@ -49,6 +52,20 @@ class RootCheckPathTest {
         assertFalse(root(link, false))
         assertFalse(root(link, true))
         assertFalse(root(File(link, "x"), false))
+    }
+
+    @Test
+    fun plantedLinksAreTold() {
+        val link = link(File(volume, "link"), secret)
+        val dir = link(File(volume, "dir"), secret)
+        assertEquals(RootCheck.SHARED_SYMLINK, check(link, false))
+        assertEquals(RootCheck.SHARED_SYMLINK, check(File(dir, "x"), false))
+        // Not followed (rename, unlink, a copy of the link itself): only the entry counts.
+        assertEquals(RootCheck.LOCAL, check(link, true))
+        assertEquals(RootCheck.LOCAL, check(File(music, "song.mp3"), false))
+        // /sdcard is in /, which no app can write to: not a planted link.
+        val sdcard = link(File(base, "sdcard"), volume)
+        assertEquals(RootCheck.LOCAL, check(File(sdcard, "Music"), false))
     }
 
     @Test
@@ -90,9 +107,9 @@ class RootCheckPathTest {
 
     @Test
     fun unknownEntryOutsideNeedsRoot() {
-        assertTrue(needsRoot(File(secret, "unknown"), false, { !it.startsWith(volume) }) { throw IOException() })
+        assertTrue(rootCheck(File(secret, "unknown"), false, { !it.startsWith(volume) }) { throw IOException() } == RootCheck.ROOT)
         // The planted-link rule only holds where lstat answers; elsewhere it is root, as for a path outside.
-        assertTrue(needsRoot(File(music, "x"), false, { !it.startsWith(volume) }) { throw IOException() })
+        assertTrue(rootCheck(File(music, "x"), false, { !it.startsWith(volume) }) { throw IOException() } == RootCheck.ROOT)
     }
 
     @Test

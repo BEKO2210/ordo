@@ -88,6 +88,15 @@ internal class ArchivePath : ByteStringListPath<ArchivePath>, RootablePath {
         }
     }
 
+    override fun followsSharedSymlink(noFollowLinks: Boolean): Boolean {
+        val archiveFile = fileSystem.archiveFile
+        return if (archiveFile is RootablePath) {
+            archiveFile.followsSharedSymlink(false)
+        } else {
+            false
+        }
+    }
+
     private constructor(source: Parcel) : super(source) {
         fileSystem = source.readParcelable()!!
     }
