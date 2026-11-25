@@ -5,13 +5,17 @@
 
 package me.zhanghai.android.files.provider.linux.media
 
+import android.content.Intent
 import android.media.MediaScannerConnection
 import android.mtp.MtpConstants
 import android.os.Build
 import android.os.Handler
 import android.os.HandlerThread
+import android.net.Uri
 import android.provider.MediaStore
+import android.util.Log
 import androidx.annotation.RequiresApi
+import androidx.core.os.BundleCompat
 import java8.nio.channels.FileChannel
 import me.zhanghai.android.files.app.application
 import me.zhanghai.android.files.app.contentResolver
@@ -21,17 +25,50 @@ import me.zhanghai.android.files.provider.root.isRunningAsRoot
 import me.zhanghai.android.files.util.lazyReflectedMethod
 import java.io.File
 import java.io.IOException
+import java.util.concurrent.Executors
 
 /*
  * @see com.android.internal.content.FileSystemProvider
  * @see com.android.providers.media.scan.ModernMediaScanner.java
  */
 object MediaScanner {
+    private const val TAG = "MediaScanner"
+    // MediaStore.SCAN_FILE_CALL (hidden): the call MediaScannerConnection makes for each path.
+    private const val SCAN_FILE_CALL = "scan_file"
+
+    private val scanExecutor = Executors.newSingleThreadExecutor { Thread(it, "MediaScan") }
+
+    /**
+     * Asks MediaStore to read [paths] again (a missing one drops its row); [onScanned] runs on a background thread.
+     * What MediaScannerConnection.scanFile does on Android 10+, but on Ordo's own thread: there, an exception from
+     * releasing the media provider ("stableCount < 0", Galaxy A15, Android 16) killed the app; here it is caught.
+     */
+    fun scanPaths(paths: List<String>, onScanned: ((String, Uri?) -> Unit)? = null) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+            MediaScannerConnection.scanFile(application, paths.toTypedArray(), null) { path, uri ->
+                onScanned?.invoke(path, uri)
+            }
+            return
+        }
+        scanExecutor.execute {
+            for (path in paths) {
+                val uri = try {
+                    contentResolver.call(MediaStore.AUTHORITY, SCAN_FILE_CALL, path, null)
+                        ?.let { BundleCompat.getParcelable(it, Intent.EXTRA_STREAM, Uri::class.java) }
+                } catch (e: Exception) {
+                    Log.w(TAG, "Scanning $path failed", e)
+                    null
+                }
+                onScanned?.invoke(path, uri)
+            }
+        }
+    }
+
     fun scan(file: File, isDeleted: Boolean = false) {
         if (isRunningAsRoot) {
             return
         }
-        MediaScannerConnection.scanFile(application, arrayOf(file.path), null) { _, _ ->
+        scanPaths(listOf(file.path)) { _, _ ->
             if (Build.VERSION.SDK_INT == Build.VERSION_CODES.Q && isDeleted) {
                 // ModernMediaScanner has a bug on Android 10 that may prevent it from removing
                 // certain files after their deletion. This has been fixed on Android 11 by
