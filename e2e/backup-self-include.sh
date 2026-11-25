@@ -14,7 +14,7 @@ NAME=ordo-e2e-selfbackup
 tmp=$(mktemp -d)
 # A run that stops inside the system picker (an abort) must not leave it in front: the farm's next suite stopped on
 # it (a15g-5). close_picker backs out of it; it is part of the exit trap.
-close_picker() { local _; for _ in 1 2 3 4; do in_picker || return 0; a shell input keyevent KEYCODE_BACK; sleep 1; done; }
+close_picker() { local _; for _ in 1 2 3 4 5 6 7 8; do in_picker || return 0; a shell input keyevent KEYCODE_BACK; sleep 1; done; }
 trap 'close_picker; a shell "rm -rf $DIR"; rm -rf "$tmp"' EXIT
 # pui: ui for the system picker, which this test opened itself (ui.py taps only into Ordo without E2E_TAP_ANY=1).
 pui() { E2E_TAP_ANY=1 ui "$@"; }
@@ -121,6 +121,8 @@ backup_once() {
     in_picker && { pui tap button1 >/dev/null; sleep 2; } # "Save", with the file name Ordo gave
     in_picker && { ui has button1 && pui tap button1 >/dev/null; sleep 2; } # "Replace" when it asks only now
     local _; for _ in $(seq 1 30); do ui has "Sicherung fertig|Backup finished|Sicherung nicht abgeschlossen|Backup not finished" statusTitle && break; sleep 1; done
+    # Still in the picker after Save: a failed check and out of it, not an abort (that stops the farm's device, a15g-7).
+    if in_picker; then fail "$1: the system picker hands the file to Ordo"; close_picker; sleep 2; fi
     guard
     check "$1: the backup is done" ui has "Sicherung fertig|Backup finished" statusTitle
     local zip; zip=$(zips | head -1)
