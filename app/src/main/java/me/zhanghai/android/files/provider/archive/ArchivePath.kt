@@ -78,10 +78,11 @@ internal class ArchivePath : ByteStringListPath<ArchivePath>, RootablePath {
         throw UnsupportedOperationException()
     }
 
-    override fun isRootRequired(isAttributeAccess: Boolean): Boolean {
+    override fun isRootRequired(isAttributeAccess: Boolean, noFollowLinks: Boolean): Boolean {
         val archiveFile = fileSystem.archiveFile
         return if (archiveFile is RootablePath) {
-            archiveFile.isRootRequired(isAttributeAccess)
+            // The archive file itself is opened, whatever is done inside it.
+            archiveFile.isRootRequired(isAttributeAccess, false)
         } else {
             false
         }

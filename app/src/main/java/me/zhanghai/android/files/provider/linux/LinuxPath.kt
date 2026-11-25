@@ -10,6 +10,9 @@ import android.os.Build
 import android.os.Parcel
 import android.os.Parcelable
 import android.os.Process
+import android.system.ErrnoException
+import android.system.Os
+import android.system.OsConstants
 import java.io.File
 import java.io.IOException
 import java8.nio.file.LinkOption
@@ -86,8 +89,8 @@ internal class LinuxPath : ByteStringListPath<LinuxPath>, RootablePath {
 
     // Ordo: judged by where the path leads, so /sdcard (a symlink to the primary volume) needs no root and no "..",
     // or symlink inside a volume, counts as that volume. A path that cannot be resolved needs root.
-    override fun isRootRequired(isAttributeAccess: Boolean): Boolean {
-        val file = resolvedForRootCheck(toFile(), isAttributeAccess) ?: return true
+    override fun isRootRequired(isAttributeAccess: Boolean, noFollowLinks: Boolean): Boolean {
+        val file = resolvedForRootCheck(toFile(), noFollowLinks) ?: return true
         return isRootRequired(file, isAttributeAccess)
     }
 
@@ -196,17 +199,36 @@ val Path.isLinuxPath: Boolean
     get() = this is LinuxPath
 
 /**
- * Where [file] leads, for the root check: its canonical path; for an attribute access (lstat, which reads the link
- * itself) the canonical parent plus the name. Null when it cannot be resolved.
+ * What an operation on [file] touches, for the root check. On the link itself (lstat, unlink, rename, readlink;
+ * [noFollowLinks]): the entry, i.e. the canonical parent plus the name. On the target (stat, open, read, write): the
+ * canonical target; a name not there yet (to be created) is its entry. Null, so root, when it cannot be resolved,
+ * e.g. a symlink whose target is gone or cannot be reached.
  */
-internal fun resolvedForRootCheck(file: File, isAttributeAccess: Boolean): File? =
+internal fun resolvedForRootCheck(
+    file: File,
+    noFollowLinks: Boolean,
+    entryExists: (File) -> Boolean = ::lstatExists
+): File? =
     try {
         val parent = file.parentFile
-        if (isAttributeAccess && parent != null && file.name != ".." && file.name != ".") {
-            File(parent.canonicalFile, file.name)
-        } else {
-            file.canonicalFile
+        val name = file.name
+        when {
+            parent == null || name == "." || name == ".." -> file.canonicalFile
+            noFollowLinks -> File(parent.canonicalFile, name)
+            file.exists() -> file.canonicalFile
+            entryExists(file) -> null
+            else -> File(parent.canonicalFile, name)
         }
     } catch (e: IOException) {
         null
+    }
+
+/** Whether the entry itself is there (lstat, not following a symlink); throws when that cannot be told. */
+@Throws(IOException::class)
+private fun lstatExists(file: File): Boolean =
+    try {
+        Os.lstat(file.path)
+        true
+    } catch (e: ErrnoException) {
+        if (e.errno == OsConstants.ENOENT) false else throw IOException(e)
     }

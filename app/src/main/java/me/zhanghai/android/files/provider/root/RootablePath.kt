@@ -11,7 +11,8 @@ import me.zhanghai.android.files.util.valueCompat
 import java.io.IOException
 
 interface RootablePath {
-    fun isRootRequired(isAttributeAccess: Boolean): Boolean
+    /** [noFollowLinks]: the operation acts on a symlink itself (lstat, unlink, rename, readlink), not its target. */
+    fun isRootRequired(isAttributeAccess: Boolean, noFollowLinks: Boolean): Boolean
 }
 
 private val rootStrategy: RootStrategy
@@ -23,12 +24,21 @@ fun <T, R> callRootable(
     isAttributeAccess: Boolean,
     localObject: T,
     rootObject: T, block: T.() -> R
+): R = callRootable(path, isAttributeAccess, false, localObject, rootObject, block)
+
+@Throws(IOException::class)
+fun <T, R> callRootable(
+    path: Path,
+    isAttributeAccess: Boolean,
+    noFollowLinks: Boolean,
+    localObject: T,
+    rootObject: T, block: T.() -> R
 ): R {
     path as? RootablePath ?: throw IllegalArgumentException("$path is not a RootablePath")
     return when (rootStrategy) {
         RootStrategy.NEVER -> localObject.block()
         RootStrategy.AUTOMATIC ->
-            if (path.isRootRequired(isAttributeAccess)) {
+            if (path.isRootRequired(isAttributeAccess, noFollowLinks)) {
                 rootObject.block()
             } else {
                 localObject.block()
@@ -42,6 +52,7 @@ fun <T, R> callRootable(
     path1: Path,
     path2: Path,
     isAttributeAccess: Boolean,
+    noFollowLinks: Boolean,
     localObject: T,
     rootObject: T,
     block: T.() -> R
@@ -52,8 +63,8 @@ fun <T, R> callRootable(
         RootStrategy.NEVER ->
             localObject.block()
         RootStrategy.AUTOMATIC ->
-            if (path1.isRootRequired(isAttributeAccess)
-                || path2.isRootRequired(isAttributeAccess)) {
+            if (path1.isRootRequired(isAttributeAccess, noFollowLinks)
+                || path2.isRootRequired(isAttributeAccess, noFollowLinks)) {
                 rootObject.block()
             } else {
                 localObject.block()
