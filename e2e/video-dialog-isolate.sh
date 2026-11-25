@@ -33,10 +33,15 @@ guard; ui wait 01-isolate.mp4 10 >/dev/null
 ui tap 01-isolate.mp4 >/dev/null; wait_on viewer.video.VideoPlayerActivity 8
 check "the 48 kHz clip plays" wait_playing
 video_menu "Klang|Sound"
+# The sheet scrolls by a quick screen-wide swipe (swipe_up), not scroll_to: in the curve each band is a scrollable
+# (SeekBar) node, the deepest one wins in scroll_to, and its slow short swipe drags that band instead (31 Hz +12 dB, A15).
+sheet_to() { local i; for i in $(seq 1 "${2:-6}"); do ui has "$1" && return 0; swipe_up; done; ui has "$1"; }
 abi=$(a shell getprop ro.product.cpu.abi | tr -d '\r')
-if ! scroll_to "Dialog freistellen plus|Dialogue isolation plus" 4; then
+if ! sheet_to "Dialog freistellen plus|Dialogue isolation plus"; then
     case "$abi" in
-        arm64-v8a|x86_64) fail "the card is shown on $abi (unless this device was measured too slow before)" ;;
+        arm64-v8a|x86_64) fail "the card is shown on $abi (unless this device was measured too slow before)"
+            # Which one it was: DialogModel hides the card only above a stored RTF of 0.7.
+            echo "INFO stored RTF: $(a shell run-as "$PKG" cat shared_prefs/video_dialog_model.xml 2>/dev/null | grep -o 'value="[^"]*"' || echo none)" ;;
         *) pass "no card on $abi (no library for it)" ;;
     esac
     back; a shell am force-stop "$PKG"; finish; exit
@@ -50,7 +55,8 @@ ui tap "Dialog freistellen plus|Dialogue isolation plus" >/dev/null
 ui tap "Laden|Load" >/dev/null
 for _ in $(seq 1 60); do a shell run-as "$PKG" ls files/models/deepfilternet3_onnx.tar.gz >/dev/null 2>&1 && break; sleep 2; done
 check "the model is there after Load" a shell run-as "$PKG" ls files/models/deepfilternet3_onnx.tar.gz
-eventually 6 eval 'a logcat -d -s OrdoVideoSound | grep -q "DeepFilterNet3: loaded=true rtf="'
+# Checking, loading and measuring the model took longer than 6 s on a budget tablet (W90, a15g-5: nothing logged yet).
+check "the model is loaded and measured" eventually 60 eval 'a logcat -d -s OrdoVideoSound | grep -q "DeepFilterNet3: loaded=true rtf="'
 rtf=$(a logcat -d -s OrdoVideoSound | grep -o 'DeepFilterNet3: loaded=true rtf=[0-9.E-]*' | tail -1 | sed 's/.*rtf=//')
 echo "INFO DeepFilterNet3 RTF on this device: ${rtf:-not logged}"
 if [ -n "$rtf" ] && python3 -c "import sys; sys.exit(0 if float('$rtf') <= 0.7 else 1)"; then

@@ -11,7 +11,6 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.media.AudioManager
-import android.media.MediaScannerConnection
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -63,6 +62,7 @@ import kotlin.math.roundToInt
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import me.zhanghai.android.files.provider.linux.media.MediaScanner
 import me.zhanghai.android.files.viewer.video.vault.VaultVideos
 import me.zhanghai.android.files.R
 import me.zhanghai.android.files.databinding.VideoPlayerActivityBinding
@@ -602,7 +602,7 @@ internal class VideoSeekPro(
             return null
         }
         return kotlinx.coroutines.suspendCancellableCoroutine { continuation ->
-            MediaScannerConnection.scanFile(context, arrayOf(file.path), arrayOf("image/jpeg")) { _, uri ->
+            MediaScanner.scanPaths(listOf(file.path)) { _, uri ->
                 if (continuation.isActive) continuation.resumeWith(Result.success(uri))
             }
         }

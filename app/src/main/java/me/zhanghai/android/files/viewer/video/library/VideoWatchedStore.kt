@@ -14,7 +14,7 @@ import androidx.core.content.edit
  */
 // shortcut: no cap on the number of marks (a few bytes each); add one like VideoResumeStore's if it ever grows large.
 class VideoWatchedStore(context: Context) {
-    private val preferences = context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
+    private val preferences = context.applicationContext.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
 
     fun all(): Map<String, Long> = preferences.all.mapNotNull { (key, value) -> (value as? Long)?.let { key to it } }
         .toMap()

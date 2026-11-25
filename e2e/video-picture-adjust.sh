@@ -33,10 +33,8 @@ open_video() {
     guard; ui wait "$1" 10 >/dev/null
     ui tap "$1" >/dev/null; wait_on viewer.video.VideoPlayerActivity 8; media_wait PLAY 3; pause
 }
-sheet() {
-    ui tap "Weitere Optionen|More options" >/dev/null
-    ui tap "Bild anpassen|Adjust picture" >/dev/null; sleep 1.5
-}
+# video_menu: on a landscape phone the "More" sheet scrolls before "Adjust picture" shows (A15, qa8).
+sheet() { video_menu "Bild anpassen|Adjust picture"; }
 
 # 1. The sheet: five rows in steps, deinterlacing, reset.
 a logcat -c
@@ -46,10 +44,11 @@ sheet
 check "the sheet opens" ui wait "Helligkeit|Brightness" 5
 for row in "Kontrast|Contrast" "Sättigung|Saturation" "Farbtemperatur|Colour temperature" "Schärfe|Sharpness" \
     "Zeilensprung entfernen|Remove interlacing" "Automatisch|Automatic"; do
-    check "the sheet has $row" ui has "$row"
+    scroll_to "$row" 3; check "the sheet has $row" ui has "$row" # lower rows start below a landscape window
 done
-check "a 1080p progressive clip is not called interlaced" ui has \
-    "Dieses Video hat Vollbilder: Automatisch lässt es, wie es ist.|This video has full frames: automatic leaves it."
+full="Dieses Video hat Vollbilder: Automatisch lässt es, wie es ist.|This video has full frames: automatic leaves it."
+scroll_to "$full" 3; check "a 1080p progressive clip is not called interlaced" ui has "$full"
+back 1; sheet # opens again at the top, where the brightness steps are
 
 # 2. Two steps up: +2, and the pass runs on a video that is not smaller than the screen.
 ui tap "Helligkeit erhöhen|Brightness up" >/dev/null
@@ -66,16 +65,19 @@ back 2
 open_video 01-full.mp4
 sheet
 check "the step is remembered for the video" ui has "+2"
+# On a landscape phone Reset lies below the window; the brightness row is scrolled back into sight before it is read.
+scroll_to "Zurücksetzen|Reset" 4 >/dev/null
 ui tap "Zurücksetzen|Reset" >/dev/null
-check "reset goes back to 0" eval '! ui has "+2"'
+brightness_shown() { local i; for i in 1 2 3 4; do ui has "Helligkeit|Brightness" && return 0; scroll_in down || return 1; done; ui has "Helligkeit|Brightness"; }
+check "reset goes back to 0" eval 'brightness_shown && ! ui has "+2"'
 back 1; back 2
 
 # 4. An interlaced clip is detected and deinterlaced by itself.
 a logcat -c
 open_video 02-interlaced.mp4
 sheet
-check "the interlaced clip is detected" ui has \
-    "Dieses Video hat Zeilensprung: Automatisch entfernt ihn.|This video is interlaced: automatic removes it."
+inter="Dieses Video hat Zeilensprung: Automatisch entfernt ihn.|This video is interlaced: automatic removes it."
+scroll_to "$inter" 4; check "the interlaced clip is detected" ui has "$inter"
 check "and runs the pass" eval 'log | grep -E -- "-> (ENGAGE|APPLY)"'
 back 1
 screenshot "$out/interlaced.png"

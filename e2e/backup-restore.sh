@@ -11,6 +11,8 @@ PW=e2eRichtig7
 # The status button moves with the length of the message above it: never tap it from the remembered spot.
 st() { E2E_FAST=0 ui tap statusButton >/dev/null; }
 picker() { case "$(top)" in com.google.android.documentsui/*|com.android.documentsui/*) ;; *) guard ;; esac; }
+# A run that stops inside the system picker must not leave it in front for the farm's next suite (a15g-5).
+trap 'for _ in 1 2 3 4; do [[ $(top) == *documentsui/* ]] || break; a shell input keyevent KEYCODE_BACK; sleep 1; done' EXIT
 # wait_picker: up to 5 s for the system picker to be in front, then the check above.
 wait_picker() {
     local end=$((SECONDS + 5))

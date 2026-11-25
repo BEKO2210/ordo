@@ -136,7 +136,7 @@ class VideoPicture(
     // Networks whose offscreen timing failed on this screen: Automatic skips them (and tries the next level).
     private val probeFailed = HashSet<DetailPlus.Model>()
     private var detailSourceSize = 0 to 0
-    private val detailPreferences = PreferenceManager.getDefaultSharedPreferences(activity)
+    private val detailPreferences = PreferenceManager.getDefaultSharedPreferences(activity.applicationContext)
     private val detailBudget = DetailPlus.Budget(
         DetailPlus.Model.values().mapNotNull { model ->
             val value = detailPreferences.getFloat(budgetKey(model), Float.NaN)

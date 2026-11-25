@@ -45,7 +45,9 @@ for _ in $(seq 1 90); do
     [ -n "$heap" ] && [ "$heap" -gt "$max" ] && max=$heap
     left=$(a shell "ls $DIR 2>/dev/null | wc -l" | tr -d '\r')
     [ -z "$gone" ] && [ "$left" = 0 ] && gone=$(($(date +%s) - start))
-    if [ -n "$gone" ] && ui has "Keine Dateien|No files"; then empty=$(($(date +%s) - start)); break; fi
+    # The empty view itself as well: on a landscape phone the search keyboard covers its text (A15, 25.11.2026), and
+    # a back press to hide the keyboard closes the search in Ordo.
+    if [ -n "$gone" ] && { ui has "Keine Dateien|No files" || ui visible emptyView; }; then empty=$(($(date +%s) - start)); break; fi
     sleep 1
 done
 echo "files gone after ${gone:-?} s, list empty after ${empty:-?} s, peak Java heap $((max / 1024)) MB"

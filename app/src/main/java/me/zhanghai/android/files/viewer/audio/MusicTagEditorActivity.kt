@@ -5,6 +5,7 @@
 
 package me.zhanghai.android.files.viewer.audio
 
+import me.zhanghai.android.files.provider.linux.media.MediaScanner
 import me.zhanghai.android.files.theme.custom.AppAccentActivity
 import me.zhanghai.android.files.settings.SettingLiveData
 import me.zhanghai.android.files.settings.Settings
@@ -12,7 +13,6 @@ import android.app.Activity
 import android.app.Application
 import android.content.Context
 import android.content.Intent
-import android.media.MediaScannerConnection
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -533,9 +533,7 @@ class MusicTagEditorActivity : AppActivity(), AppAccentActivity {
             withTimeoutOrNull(5_000L) {
                 suspendCancellableCoroutine { continuation ->
                     var left = files.size
-                    MediaScannerConnection.scanFile(
-                        context.applicationContext, files.map { it.path }.toTypedArray(), null
-                    ) { _, _ ->
+                    MediaScanner.scanPaths(files.map { it.path }) { _, _ ->
                         synchronized(continuation) {
                             left--
                             if (left == 0 && continuation.isActive) continuation.resume(Unit)
