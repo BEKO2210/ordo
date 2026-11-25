@@ -46,25 +46,33 @@ abstract class RootableFileSystemProvider(
 
     @Throws(IOException::class)
     override fun newInputStream(path: Path, vararg options: OpenOption): InputStream =
-        callRootable(path) { newInputStream(path, *options) }
+        callRootable(path, noFollowLinks = LinkOption.NOFOLLOW_LINKS in options) {
+            newInputStream(path, *options)
+        }
 
     @Throws(IOException::class)
     override fun newOutputStream(path: Path, vararg options: OpenOption): OutputStream =
-        callRootable(path) { newOutputStream(path, *options) }
+        callRootable(path, noFollowLinks = LinkOption.NOFOLLOW_LINKS in options) {
+            newOutputStream(path, *options)
+        }
 
     @Throws(IOException::class)
     override fun newFileChannel(
         path: Path,
         options: Set<OpenOption>,
         vararg attributes: FileAttribute<*>
-    ): FileChannel = callRootable(path) { newFileChannel(path, options, *attributes) }
+    ): FileChannel = callRootable(path, noFollowLinks = LinkOption.NOFOLLOW_LINKS in options) {
+        newFileChannel(path, options, *attributes)
+    }
 
     @Throws(IOException::class)
     override fun newByteChannel(
         path: Path,
         options: Set<OpenOption>,
         vararg attributes: FileAttribute<*>
-    ): SeekableByteChannel = callRootable(path) { newByteChannel(path, options, *attributes) }
+    ): SeekableByteChannel = callRootable(path, noFollowLinks = LinkOption.NOFOLLOW_LINKS in options) {
+        newByteChannel(path, options, *attributes)
+    }
 
     @Throws(IOException::class)
     override fun newDirectoryStream(
