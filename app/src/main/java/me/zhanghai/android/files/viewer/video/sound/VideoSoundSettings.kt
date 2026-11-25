@@ -55,7 +55,7 @@ internal object VideoSoundStore {
     private const val KEY = "settings"
 
     fun read(context: Context): VideoSoundSettings =
-        VideoSoundCodec.decode(context.getSharedPreferences(NAME, Context.MODE_PRIVATE).getString(KEY, null))
+        VideoSoundCodec.decode(context.applicationContext.getSharedPreferences(NAME, Context.MODE_PRIVATE).getString(KEY, null))
 
     fun write(context: Context, value: VideoSoundSettings) {
         context.getSharedPreferences(NAME, Context.MODE_PRIVATE).edit()
@@ -68,7 +68,7 @@ internal object VideoSoundStore {
  * first; 0 ms removes the entry.
  */
 internal class VideoDelayStore(context: Context) {
-    private val preferences = context.getSharedPreferences(NAME, Context.MODE_PRIVATE)
+    private val preferences = context.applicationContext.getSharedPreferences(NAME, Context.MODE_PRIVATE)
 
     fun read(key: String): Int? = decode(preferences.getString(key, null))?.first
 

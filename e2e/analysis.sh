@@ -30,9 +30,22 @@ settle() {
 # first_of NAME...: the first of these texts that is on screen.
 first_of() { for name in "$@"; do ui has "$name" && { echo "$name"; return 0; }; done; return 1; }
 
+# in_reach ID: scrolled on until the view's middle is above the lowest tenth of the screen. On a landscape tablet with
+# button navigation the button was in the dump but behind the navigation bar, and the tap missed (W90, a15g-5).
+in_reach() {
+    local i _ t _ b H
+    read -r _ H < <(screen_size)
+    for i in 1 2 3; do
+        read -r _ t _ b < <(ui bounds "$1" | head -1)
+        [ -n "$b" ] && [ $(((t + b) / 2)) -lt $((H * 9 / 10)) ] && return 0
+        scroll_in up scrollView || return 1
+    done
+    return 1
+}
 launch
 # One swipe leaves a landscape phone on home. Later rows share names with home, so stop when the screen never changed.
-if scroll_to analyzeButton && ui tap analyzeButton >/dev/null 2>&1 && wait_on analysis.AnalysisActivity 4; then
+if scroll_to analyzeButton 8 scrollView && in_reach analyzeButton && ui tap analyzeButton >/dev/null 2>&1 &&
+    wait_on analysis.AnalysisActivity 4; then
     pass "analysis opens"
 else
     fail "analysis opens"

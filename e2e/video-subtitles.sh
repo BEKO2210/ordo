@@ -47,7 +47,10 @@ check "the sheet lists the English file" ui has "Englisch · film.en.srt|English
 check "the sheet offers Load subtitles…" ui has "Untertitel laden…|Load subtitles…"
 # On a German device it came on by itself; on any device a tap chooses it (the label is read when the sheet opens).
 ui tap "Deutsch · film.de.srt|German · film.de.srt" >/dev/null; sleep 1; back 1; sheet
+# On a landscape phone the charsets start below the window; the sheet opens again at the top for the file rows.
+scroll_to "Automatisch (windows-1252)|Automatic (windows-1252)" 4
 check "the German file is read as Windows-1252" ui has "Automatisch (windows-1252)|Automatic (windows-1252)"
+back 1; sheet
 # 1b. A manual charset belongs to its own file and never garbles UTF-8: Windows-1252 pressed on the UTF-8 file
 # bounces back to "Automatic (UTF-8)", and the picture is kept for a look at "für".
 ui tap "Englisch · film.en.srt|English · film.en.srt" >/dev/null
@@ -68,6 +71,7 @@ delay() {
     ui texts | awk -F'|' '$2 == "" && $3 == "" && $1 ~ /^(\+|−)?[0-9]+([.,][0-9])? s$/ {
         v = $1; neg = (index(v, "−") == 1); gsub(/[^0-9.,]/, "", v); sub(/,/, ".", v); printf "%d\n", (neg ? -v : v) * 1000; exit }'
 }
+scroll_to "$later" 4 # below the file rows on a landscape phone
 d0=$(delay)
 ui tap "$later" >/dev/null; ui tap "$later" >/dev/null; sleep 0.5
 d2=$(delay)
@@ -75,10 +79,18 @@ check "two taps on +1 s add 2 s to the delay (${d0:-?} -> ${d2:-?} ms)" test -n 
 back 1; back 2
 open_video film.mp4
 sheet
+scroll_to "$later" 4
 check "the delay is remembered for the film" test "$(delay)" = "$d2"
 ui tap "$earlier" >/dev/null; ui tap "$earlier" >/dev/null
-# The size chips lie below the charsets: on a phone the sheet scrolls.
-scroll_to "Größer|Larger" 4
+# The style switches come first (SubtitleSheet: preview, Like the system, Styles of the file, then size, font, edge):
+# scroll_to only moves down the sheet, so they are read before the size.
+scroll_to "Wie System|Like the system" 8
+check "the style can follow Android's caption settings" ui has "Wie System|Like the system"
+scroll_to "Stil der Datei|Styles of the file" 3
+check "ASS files may keep their own styles" ui has "Stil der Datei|Styles of the file"
+# The size chips lie below the charsets and the preview: on a phone the sheet scrolls (landscape: one swipe moves
+# about half a window, the preview alone is taller than that).
+scroll_to "Größer|Larger" 8
 check "the size has its − and + steps" ui has "Größer|Larger"
 # One step larger shows 110 % and is kept; one step smaller puts it back.
 was=$(ui texts | awk -F'|' '$1 ~ /^[0-9]+[^0-9]*%$/ { print $1; exit }')
@@ -88,9 +100,6 @@ check "a step changes the size (${was:-?} -> ${now:-?})" test -n "$was" -a "$was
 ui tap "Kleiner|Smaller" >/dev/null
 scroll_to "Kontur|Outline" 3
 check "the edge offers outline, shadow and box" ui has "Kasten|Box"
-scroll_to "Wie System|Like the system" 3
-check "the style can follow Android's caption settings" ui has "Wie System|Like the system"
-check "ASS files may keep their own styles" ui has "Stil der Datei|Styles of the file"
 back 1; back 2
 
 # 3. A track inside the MKV.
@@ -99,6 +108,7 @@ sheet
 check "the MKV's track shows with its language and kind" ui has "Englisch · SRT|English · SRT"
 ui tap "Englisch · SRT|English · SRT" >/dev/null
 # A text track inside the film now has the delay steps too (Ordo draws its cues, EmbeddedCueQueue).
+scroll_to "$later" 4 # below the track rows on a landscape phone
 ui tap "+1 s" >/dev/null
 check "a text track inside the film takes the delay" ui see "+1 s"
 check "and has no picture-track note" eval '! ui has "Verschieben nur für Text-Untertitel.|Shifting works for text subtitles only."'
@@ -108,7 +118,8 @@ back 1; back 2
 # 4. Settings: the "Subtitles" group.
 a shell am start -W -n "$PKG/me.zhanghai.android.files.viewer.video.VideoLauncherActivity" >/dev/null; guard
 ui tap actionSettings >/dev/null
-scroll_to "Untertitel automatisch an|Subtitles automatically"
+# Far down the list: in landscape 8 swipes only reached the gestures (A15, qa8).
+scroll_to "Untertitel automatisch an|Subtitles automatically" 20
 check "Ordo Video's settings have \"Subtitles automatically\"" ui has "Untertitel automatisch an|Subtitles automatically"
 check "Ordo Video's settings have the preferred subtitle language" \
     ui has "Bevorzugte Untertitel-Sprache|Preferred subtitle language"

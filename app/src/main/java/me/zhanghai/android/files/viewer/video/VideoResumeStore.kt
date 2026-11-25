@@ -15,7 +15,7 @@ import androidx.core.content.edit
  * items of another app.
  */
 class VideoResumeStore(context: Context) {
-    private val preferences = context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
+    private val preferences = context.applicationContext.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
 
     fun read(key: String): Long? = decode(preferences.getString(key, null))?.first
 

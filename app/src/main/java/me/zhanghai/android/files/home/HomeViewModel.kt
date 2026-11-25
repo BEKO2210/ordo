@@ -35,6 +35,9 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
 
     init { reload() }
 
+    /** Stopped since the last resume, not just rotated: coming back reloads (HomeFragment.onResume). */
+    var hidden = false
+
     private val mediaObserver = object : ContentObserver(Handler(Looper.getMainLooper())) {
         override fun onChange(selfChange: Boolean) = auto.signal()
 

@@ -15,7 +15,7 @@ import me.zhanghai.android.files.viewer.video.VideoResumeStore
  * subtitles, which holds for every film.
  */
 class SubtitleStore(context: Context) {
-    private val preferences = context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
+    private val preferences = context.applicationContext.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
 
     /**
      * [charset] holds only for the file whose content key is [charsetFile] ([SubtitleFiles.contentKey]): a choice

@@ -29,8 +29,8 @@ class AppEntry(
     val packageName: String
         get() = info.packageName
 
-    val size: Long
-        get() = apkFiles.sumOf { it.length() }
+    // Read once where the entry is made (on the IO dispatcher), not by every bind on the main thread.
+    val size: Long = apkFiles.sumOf { it.length() }
 
     val isSystem: Boolean
         get() = info.flags and ApplicationInfo.FLAG_SYSTEM != 0

@@ -5,14 +5,17 @@
 
 package me.zhanghai.android.files.app
 
+import android.content.Context
 import android.os.AsyncTask
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.webkit.MimeTypeMap
 import android.webkit.WebView
 import jcifs.context.SingletonContext
 import me.zhanghai.android.files.BuildConfig
 import me.zhanghai.android.files.coil.initializeCoil
+import me.zhanghai.android.files.compat.PreferenceManagerCompat
 import me.zhanghai.android.files.filejob.fileJobNotificationTemplate
 import me.zhanghai.android.files.ftpserver.ftpServerServiceNotificationTemplate
 import me.zhanghai.android.files.hiddenapi.HiddenApi
@@ -25,6 +28,7 @@ import me.zhanghai.android.files.storage.StorageVolumeListLiveData
 import me.zhanghai.android.files.storage.WebDavServerAuthenticator
 import me.zhanghai.android.files.theme.custom.CustomThemeHelper
 import me.zhanghai.android.files.theme.night.NightModeHelper
+import java.io.File
 import java.util.Properties
 import me.zhanghai.android.files.trash.Trash
 import me.zhanghai.android.files.vault.Vault
@@ -36,6 +40,7 @@ import me.zhanghai.android.files.provider.smb.client.Client as SmbClient
 import me.zhanghai.android.files.provider.webdav.client.Client as WebDavClient
 
 val appInitializers = listOf(
+    ::preloadStartPreferences,
     ::disableHiddenApiChecks,
     ::initializeWebViewDebugging,
     ::initializeCoil,
@@ -49,6 +54,23 @@ val appInitializers = listOf(
     ::cleanUpVault,
     ::reconcileLauncherIcon
 )
+
+// Activities and services read their preferences files first in onCreate (onboarding flag, playback queue, the video
+// player's stores): loading them here keeps those disk reads off the main thread. They are read through the
+// application context, whose file lookup this caches.
+// shortcut: loads every preferences file (each a few KB on 25.11.2026); skips one above 64 KB should a cache grow.
+private fun preloadStartPreferences() {
+    Thread({
+        val names = File(application.applicationInfo.dataDir, "shared_prefs").listFiles()
+            ?.filter { it.name.endsWith(".xml") && it.length() < 64 * 1024 }?.map { it.name.removeSuffix(".xml") }
+            .orEmpty() +
+            // PathSettings' file, read by every file list, exists only once a folder got its own view.
+            "${PreferenceManagerCompat.getDefaultSharedPreferencesName(application)}_path"
+        names.distinct().forEach { application.getSharedPreferences(it, Context.MODE_PRIVATE).all }
+        // The platform's MIME table is read from disk on its first use, often a file list on the main thread.
+        MimeTypeMap.getSingleton().getMimeTypeFromExtension("txt")
+    }, "PreloadPreferences").start()
+}
 
 private fun disableHiddenApiChecks() {
     HiddenApi.disableHiddenApiChecks()

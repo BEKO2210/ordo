@@ -318,6 +318,7 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
         val activity = requireActivity() as AppCompatActivity
         activity.title = showRequest?.title ?: getString(homeCategory?.titleRes ?: R.string.file_list_title)
         activity.setSupportActionBar(binding.toolbar)
+        binding.toolbar.isBackInvokedCallbackEnabled = false // searchBackCallback
         overlayActionMode = OverlayToolbarActionMode(binding.overlayToolbar, binding.toolbar)
         bottomActionMode = PersistentBarLayoutToolbarActionMode(
             binding.persistentBarLayout, binding.bottomBarLayout, binding.bottomToolbar
@@ -423,6 +424,7 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
                     }
                 }
         )
+        addOnBackPressedCallback(searchBackCallback)
         addOnBackPressedCallback(overlayActionMode.onBackPressedCallback)
         addOnBackPressedCallback(SpeedDialViewOnBackPressedCallback(binding.speedDialView))
         binding.drawerLayout?.let {
@@ -566,6 +568,14 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
         setUpSearchView()
     }
 
+    // Back closes the search here, not in the toolbar: the toolbar's own callback (PRIORITY_OVERLAY) outranked the
+    // keyboard's, so a back press meant to hide the keyboard closed the search too (A15, Android 16).
+    private val searchBackCallback = object : OnBackPressedCallback(false) {
+        override fun handleOnBackPressed() {
+            collapseSearchView()
+        }
+    }
+
     private fun setUpSearchView() {
         val searchView = menuBinding.searchItem.actionView as FixQueryChangeSearchView
         // MenuItem.OnActionExpandListener.onMenuItemActionExpand() is called before SearchView
@@ -577,9 +587,13 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
         }
         // SearchView.OnCloseListener.onClose() is not always called.
         menuBinding.searchItem.setOnActionExpandListener(object : MenuItem.OnActionExpandListener {
-            override fun onMenuItemActionExpand(item: MenuItem): Boolean = true
+            override fun onMenuItemActionExpand(item: MenuItem): Boolean {
+                searchBackCallback.isEnabled = true
+                return true
+            }
 
             override fun onMenuItemActionCollapse(item: MenuItem): Boolean {
+                searchBackCallback.isEnabled = false
                 viewModel.isSearchViewExpanded = false
                 viewModel.stopSearching()
                 return true

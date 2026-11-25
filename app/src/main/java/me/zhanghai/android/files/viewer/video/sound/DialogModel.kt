@@ -6,6 +6,7 @@
 package me.zhanghai.android.files.viewer.video.sound
 
 import android.content.Context
+import android.net.TrafficStats
 import java.io.File
 import java.net.HttpURLConnection
 import java.net.URL
@@ -27,6 +28,7 @@ internal object DialogModel {
     private const val FILE_NAME = "deepfilternet3_onnx.tar.gz"
     private const val PREFS = "video_dialog_model"
     private const val KEY_RTF = "rtf"
+    private const val TRAFFIC_TAG = 0x0DF3
 
     /**
      * Above this real-time factor (compute time per hop / hop length) the option is not offered: the research
@@ -76,7 +78,13 @@ internal object DialogModel {
         state = State.Downloading(0)
         val app = context.applicationContext
         executor.execute {
-            state = if (fetch(app)) State.Ready else State.Failed
+            // Tagged, so Android's per-app network statistics (and StrictMode's untagged-socket check) know it.
+            TrafficStats.setThreadStatsTag(TRAFFIC_TAG)
+            try {
+                state = if (fetch(app)) State.Ready else State.Failed
+            } finally {
+                TrafficStats.clearThreadStatsTag()
+            }
             onDone()
         }
     }
