@@ -65,6 +65,10 @@ import java8.nio.file.Path
 import java8.nio.file.Paths
 import java.net.URI
 import kotlin.math.roundToInt
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.parcelize.Parcelize
 import me.zhanghai.android.files.R
 import me.zhanghai.android.files.about.RateOrdo
@@ -314,6 +318,7 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
         val activity = requireActivity() as AppCompatActivity
         activity.title = showRequest?.title ?: getString(homeCategory?.titleRes ?: R.string.file_list_title)
         activity.setSupportActionBar(binding.toolbar)
+        binding.toolbar.isBackInvokedCallbackEnabled = false // searchBackCallback
         overlayActionMode = OverlayToolbarActionMode(binding.overlayToolbar, binding.toolbar)
         bottomActionMode = PersistentBarLayoutToolbarActionMode(
             binding.persistentBarLayout, binding.bottomBarLayout, binding.bottomToolbar
@@ -413,11 +418,13 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
                         if (backStopPath == null && argsPath != null && args.intent.action == Intent.ACTION_VIEW) {
                             backStopPath = viewModel.currentPath
                         }
-                        callback.isEnabled =
-                            viewModel.canNavigateUpBreadcrumb && viewModel.currentPath != backStopPath
+                        callback.isEnabled = shouldBackNavigateUp(
+                            viewModel.canNavigateUpBreadcrumb, viewModel.currentPath, backStopPath
+                        )
                     }
                 }
         )
+        addOnBackPressedCallback(searchBackCallback)
         addOnBackPressedCallback(overlayActionMode.onBackPressedCallback)
         addOnBackPressedCallback(SpeedDialViewOnBackPressedCallback(binding.speedDialView))
         binding.drawerLayout?.let {
@@ -528,14 +535,28 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
         maybeShowRateHint()
     }
 
+    private var rateHintChecking = false
+
     // Once ever, and never on top of a dialog or sheet (players are their own activities, so this is not resumed).
     private fun maybeShowRateHint() {
         val dialogOpen = (parentFragmentManager.fragments + childFragmentManager.fragments)
             .any { it is androidx.fragment.app.DialogFragment && it.isAdded }
-        if (dialogOpen || !RateOrdo.takeIfDue(requireContext())) return
-        Snackbar.make(binding.contentLayout, R.string.rate_hint_text, Snackbar.LENGTH_LONG)
-            .setAction(R.string.rate_hint_action) { RateOrdo.openStore(requireContext()) }
-            .show()
+        if (dialogOpen) return
+        val appContext = requireContext().applicationContext
+        if (rateHintChecking) return
+        rateHintChecking = true
+        // The preferences are read off the main thread. The hint counts as shown only once it is on screen.
+        viewLifecycleOwner.lifecycleScope.launch {
+            try {
+                if (!withContext(Dispatchers.IO) { RateOrdo.isDueNow(appContext) }) return@launch
+                Snackbar.make(binding.contentLayout, R.string.rate_hint_text, Snackbar.LENGTH_LONG)
+                    .setAction(R.string.rate_hint_action) { RateOrdo.openStore(requireContext()) }
+                    .show()
+                withContext(Dispatchers.IO + kotlinx.coroutines.NonCancellable) { RateOrdo.markShown(appContext) }
+            } finally {
+                rateHintChecking = false
+            }
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
@@ -545,6 +566,14 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
         menuBinding = MenuBinding.inflate(menu, inflater)
         menuBinding.viewSortItem.subMenu!!.setGroupDividerEnabledCompat(true)
         setUpSearchView()
+    }
+
+    // Back closes the search here, not in the toolbar: the toolbar's own callback (PRIORITY_OVERLAY) outranked the
+    // keyboard's, so a back press meant to hide the keyboard closed the search too (A15, Android 16).
+    private val searchBackCallback = object : OnBackPressedCallback(false) {
+        override fun handleOnBackPressed() {
+            collapseSearchView()
+        }
     }
 
     private fun setUpSearchView() {
@@ -558,9 +587,13 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
         }
         // SearchView.OnCloseListener.onClose() is not always called.
         menuBinding.searchItem.setOnActionExpandListener(object : MenuItem.OnActionExpandListener {
-            override fun onMenuItemActionExpand(item: MenuItem): Boolean = true
+            override fun onMenuItemActionExpand(item: MenuItem): Boolean {
+                searchBackCallback.isEnabled = true
+                return true
+            }
 
             override fun onMenuItemActionCollapse(item: MenuItem): Boolean {
+                searchBackCallback.isEnabled = false
                 viewModel.isSearchViewExpanded = false
                 viewModel.stopSearching()
                 return true

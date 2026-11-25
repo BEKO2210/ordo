@@ -1,5 +1,6 @@
 #!/bin/bash
 # Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later
+# farm: orient=once
 # Video menus, WRITES: creates /storage/emulated/0/ordo-e2e-video-menus with a clip made by ffmpeg on the host (two
 # chapters, a subtitle track) and removes it again. In portrait and in landscape: ⋮ opens "More", and every entry
 # (Sound, Audio track, Subtitles, Adjust picture, Signal path, Video info, Chapters, Sleep timer) opens its sheet with
@@ -42,10 +43,12 @@ open_clip() {
     media_key PAUSE 1.5
 }
 controls() { on viewer.video.VideoPlayerActivity || open_clip; ui has "Weitere Optionen|More options" || { read -r W H < <(screen_size); a shell input tap $((W / 2)) $((H / 2)); sleep 1; }; }
+# shows TEXT: on the sheet, scrolled to when it lies below a landscape window (Video info's rows, A15 qa8).
+shows() { ui wait "$1" 5 >/dev/null || scroll_to "$1" 4; }
 # entry ENTRY EXPECTED NAME: ⋮ › ENTRY shows EXPECTED; the screen is NAME; Back closes the sheet.
 entry() {
     controls; video_menu "$1"
-    check "$2 opens from ⋮ › ${1%%|*} ($orient)" ui wait "$3" 5
+    check "$2 opens from ⋮ › ${1%%|*} ($orient)" shows "$3"
     shot "$4-$orient"; back 1
 }
 

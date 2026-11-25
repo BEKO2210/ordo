@@ -10,7 +10,6 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.map
 import java8.nio.file.Path
 import me.zhanghai.android.files.file.FileItem
 import me.zhanghai.android.files.home.CategoryFileListLiveData
@@ -43,9 +42,9 @@ class FileListViewModel(
 
     fun navigateUp(): Boolean = trailLiveData.navigateUp()
 
-    val currentPathLiveData = trailLiveData.map { it.currentPath }
+    val currentPathLiveData = trailLiveData.currentPathLiveData
     val currentPath: Path
-        get() = currentPathLiveData.valueCompat
+        get() = trailLiveData.currentPath
 
     private val _searchStateLiveData = MutableLiveData(SearchState(false, ""))
     val searchStateLiveData: LiveData<SearchState> = _searchStateLiveData

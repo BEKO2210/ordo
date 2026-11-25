@@ -26,7 +26,7 @@ rotate() { a shell settings put system accelerometer_rotation 0; a shell setting
 shot() { screenshot "$OUT/$P$1.png" >/dev/null && echo "shot $P$1"; }
 
 case $MODE in
-    phone) a shell wm size 1080x2280; a shell wm density 420 ;;
+    phone) a shell wm size 1080x${PHONE_H:-2280}; a shell wm density ${PHONE_DPI:-420} ;;
     seven) a shell wm density "$(( $(a shell wm size | tail -1 | sed 's/.*: //; s/x.*//') * 160 / 600 ))" ;;
 esac
 a shell cmd uimode night yes >/dev/null
@@ -58,6 +58,8 @@ fi
 wait_on viewer.audio.AudioPlayerActivity 8; sleep 3
 a shell input keyevent KEYCODE_MEDIA_PAUSE; sleep 2; shot music
 ui tap actionSound >/dev/null; sleep 3; ui tap equalizerEnabled >/dev/null; sleep 1; ui tap "Bass" >/dev/null; sleep 2; shot sound
+ui tap "Genau einstellen|Fine-tune" >/dev/null; sleep 2; shot sound-eq # the bands themselves, for the store
+ui tap "Genau einstellen|Fine-tune" >/dev/null; sleep 1
 ui tap "Neutral|Flat" >/dev/null; sleep 1; ui tap equalizerEnabled >/dev/null; sleep 1; back 2 # the device's sound as before
 ui tap lyricsChip >/dev/null; sleep 3; shot lyrics; back 2
 fi

@@ -13,6 +13,7 @@
     ui.py SERIAL wait TARGET [S]   wait up to S seconds (default 10) for a node
     ui.py SERIAL waitgone TARGET [S] wait up to S seconds (default 10) for a node to disappear
     ui.py SERIAL bounds TARGET [ID] print "x1 y1 x2 y2" for every matching node
+    ui.py SERIAL scrollbounds [ANCHOR] print the actual scrollable container, optionally around a visible anchor
     ui.py SERIAL texts             print "text|resource-id|content-desc" per node
     ui.py SERIAL shot FILE         screenshot as PNG (only while Ordo is in front and unlocked)
 
@@ -26,6 +27,8 @@ import re
 import subprocess
 import sys
 import time
+
+from ui_dump import scrollable_bounds
 
 ADB = [os.environ.get("ADB", "adb"), "-s", sys.argv[1]]
 NODE = re.compile(r'<node [^>]*?text="([^"]*)" resource-id="([^"]*)"[^>]*?content-desc="([^"]*)"'
@@ -284,6 +287,15 @@ elif command == "bounds":
             continue
         if text in wanted or desc in wanted or rid.split("/")[-1] in wanted:
             print(x1, y1, x2, y2)
+elif command == "scrollbounds":
+    # An anchor such as choice_root selects its scrollable ancestor instead of the page behind a dialog/sheet.
+    nodes(fresh=True)
+    with open(DUMP) as f:
+        bounds = scrollable_bounds(f.read(), sys.argv[3] if len(sys.argv) > 3 else None)
+    if bounds:
+        print(*bounds)
+    else:
+        sys.exit(1)
 elif command == "texts":
     print("\n".join(f"{t}|{rid.split('/')[-1]}|{d}" for t, rid, d, *_ in nodes() if t or d))
 elif command == "shot":

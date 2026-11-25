@@ -52,10 +52,15 @@ margin=$(( $(a shell wm density | tail -1 | sed 's/.*: //') * 8 / 160 ))
 check "it floats above the navigation bar" test $((H - ${card_end:-$H})) -gt $((margin + 2))
 
 # The last section ends above the bar, so the last tiles stay reachable.
-for _ in 1 2 3 4; do swipe_up; done
+# Swipes until the page stops moving: four left a landscape phone short of the end (A15, 25.11.2026).
+swipes=0 was=""
+while [ "$swipes" -lt 12 ]; do
+    swipe_up; swipes=$((swipes + 1))
+    now=$(ui bounds "quickAccessList|storageList"); [ "$now" = "$was" ] && break; was=$now
+done
 last=$(ui bounds "quickAccessList|storageList" | awk '$4 > m { m = $4 } END { print m + 0 }')
 check "scrolled to the end, the last tiles end above the bar" test "$last" -le "$(bar_top)"
-for _ in 1 2 3 4; do swipe_down; done
+for _ in $(seq 1 "$swipes"); do swipe_down; done
 
 ui tap searchCard >/dev/null
 check "the search opens from the bottom bar" wait_on filelist.FileListActivity 5; guard

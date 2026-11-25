@@ -1,5 +1,6 @@
 #!/bin/bash
 # Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later
+# farm: orient=once timeout=1800
 # A failed save never damages the file (blocker before 1.0.0), WRITES: creates /storage/emulated/0/ordo-e2e-save with a
 # 128-KiB text file and, for a few seconds, fills the device's storage up to the last few KB with one file under
 # /data/local/tmp (removed right after the save, on any exit too), then removes everything.

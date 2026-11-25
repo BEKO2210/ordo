@@ -41,11 +41,26 @@ a shell am start -n "$PKG/me.zhanghai.android.files.settings.SettingsActivity" >
 ui tap "Aussehen|Appearance" >/dev/null && sleep 2 && back
 back
 a shell am start -W -n "$PKG/$LIBRARY" >/dev/null; sleep 3; guard
+# On a phone the six tabs scroll sideways: a tab off screen is swiped into view (towards the end, then back), as in
+# music-library.sh. Swipes stay inside the strip's middle half: a swipe from the screen's edge is the back gesture.
+show_tab() {
+    local i x1 y1 x2 y2 dir l r y
+    ui has "$1" && return 0
+    for dir in end start end start; do
+        read -r x1 y1 x2 y2 < <(ui bounds tabs | head -1); [ -n "$y2" ] || return 1
+        l=$((x1 + (x2 - x1) / 4)); r=$((x2 - (x2 - x1) / 4)); y=$(((y1 + y2) / 2))
+        for i in 1 2; do
+            if [ $dir = end ]; then a shell input swipe $r $y $l $y 300; else a shell input swipe $l $y $r $y 300; fi
+            ui wait "$1" 1.5 >/dev/null 2>&1 && return 0
+        done
+    done
+    return 1
+}
 for t in "Titel|Songs" "Alben|Albums" "Interpreten|Artists" "Wiedergabelisten|Playlists" "Favoriten|Favorites" \
-    "Ordner|Folders"; do ui tap "$t" >/dev/null; done
+    "Ordner|Folders"; do show_tab "$t" && ui tap "$t" >/dev/null; done
 check "a folder page opens" eval 'ui tap OrdoE2E-Midword title || { swipe_up; ui tap OrdoE2E-Midword title; }'
 sleep 2; back
-ui tap "Alben|Albums" >/dev/null
+show_tab "Alben|Albums" && ui tap "Alben|Albums" >/dev/null
 check "an album page opens" eval 'ui tap "Ordoe2e Midword Album" || { swipe_up; ui tap "Ordoe2e Midword Album"; }'
 sleep 2
 open_song() {
@@ -61,8 +76,19 @@ back
 check "the queue sheet opens" ui tap queueChip
 sleep 2; back; back
 # Ordo Musik's own settings (side menu): appearance with the colour choices.
-ui tap "Navigationsmenü öffnen|Open navigation drawer" > /dev/null
-check "Ordo Musik's settings open" eval 'ui tap "Einstellungen|Settings" && ui wait "Farben aus dem Cover|Colours from the cover" 5'
+# The player closes onto the album page, which has "up" instead of the menu: back to the library first.
+drawer() {
+    local i; for i in 1 2 3; do
+        # Waited for: on a budget tablet the library was still coming back when the tap was tried (W90, a15g-5).
+        ui wait "Navigationsmenü öffnen|Open navigation drawer" 4 >/dev/null &&
+            ui tap "Navigationsmenü öffnen|Open navigation drawer" >/dev/null && return 0
+        ui has "Nach oben|Navigate up" && back 1   # else still on its way back: wait once more
+    done
+    return 1
+}
+drawer
+# On a landscape phone Settings lies below the menu's window: swiped into sight within the menu's list (titleText rows).
+check "Ordo Musik's settings open" eval 'scroll_to "Einstellungen|Settings" 4 titleText && ui tap "Einstellungen|Settings" && ui wait "Farben aus dem Cover|Colours from the cover" 5'
 sleep 1; back; sleep 1
 # The video player: controls, the locked screen's "hold to unlock", the speed sheet and the player's sheets.
 if command -v ffmpeg >/dev/null; then
@@ -95,7 +121,8 @@ if command -v ffmpeg >/dev/null; then
     menu() {
         read -r W H < <(screen_size)
         ui has "Weitere Optionen|More options" || { a shell input tap $((W / 2)) $((H / 2)); sleep 1; }
-        ui tap "Weitere Optionen|More options" >/dev/null && sleep 1 && ui tap "$1" >/dev/null
+        # The "More" sheet scrolls on a phone (in landscape most entries lie below the screen).
+        ui tap "Weitere Optionen|More options" >/dev/null && sleep 1 && scroll_to "$1" 4 >/dev/null && ui tap "$1" >/dev/null
     }
     check "the subtitles sheet opens" eval 'ui tap "Untertitel|Subtitles" >/dev/null || menu "Untertitel|Subtitles"'
     sleep 1.5; back 1

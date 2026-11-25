@@ -5,8 +5,7 @@
 
 package me.zhanghai.android.files.home
 
-import android.media.MediaScannerConnection
-import me.zhanghai.android.files.app.application
+import me.zhanghai.android.files.provider.linux.media.MediaScanner
 
 /**
  * Asks MediaStore to drop rows of files that no longer exist, each path once per app run. MediaStore then reports
@@ -21,7 +20,7 @@ object StaleMedia {
         val fresh = remember(paths, ids)
         if (fresh.isEmpty()) return
         // One call for all paths: scanning a missing path removes its row.
-        MediaScannerConnection.scanFile(application, fresh.toTypedArray(), null, null)
+        MediaScanner.scanPaths(fresh)
     }
 
     /** Records the rows and returns the paths not asked for before. */

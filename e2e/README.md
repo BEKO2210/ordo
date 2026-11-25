@@ -7,18 +7,29 @@ script, so the same bug cannot come back unnoticed.
 e2e/run.sh <adb serial>            # read-only tests
 e2e/run.sh --write <adb serial>    # plus tests that create and delete their own files
 e2e/preflight.sh <adb serial>      # a few seconds: can a run start at all?
-e2e/farm.sh --write                # every suite, portrait and landscape, on all test devices at once
+e2e/farm.sh --write                # every suite but the four release ones, portrait and landscape
+FARM_NIGHT=1 e2e/farm.sh --write    # those four as well, plus the 30-minute monkey
 ```
+
+`e2e/selftest.sh` (no device) tests the farm's own checks against planted defects: the a11y scanner (`a11y-scan.py`)
+and `logcheck.py`. Every run's `finish()` reads logcat with `logcheck.py` and fails on a StrictMode violation in Ordo
+code or a LeakCanary application leak (debug builds only report them there). It first sends the app to the background (LeakCanary
+starts its delayed heap analysis then), waits up to `LEAK_GRACE` seconds (default 10) for it to begin and up to
+`LEAK_WAIT` seconds (default 60) for it to finish; a logcat that cannot be read, or an analysis that never
+finishes, is a FAIL. CI runs `e2e/selftest.sh` in the `build` job.
 
 ## The farm
 
-`run.sh` walks through the suites on one device, one after the other. `farm.sh` shares the same list out over every
-test device that is connected, each suite once in portrait and once in landscape:
+`run.sh` walks through the suites on one device, one after the other. `farm.sh` shares that list out over every
+test device that is connected, each suite once in portrait and once in landscape. It always takes both lines of
+`run.sh` (the suites that write their own files too); `--write` is accepted and does not change the list. The four
+release suites are the exception: they are queued only with `FARM_NIGHT=1`.
 
 ```bash
 PKG=com.beko2210.ordo.dev E2E_GRANT=1 e2e/farm.sh --write            # all devices of farm-devices.conf
 PKG=com.beko2210.ordo.dev E2E_GRANT=1 e2e/farm.sh --write tab a8     # only these
 e2e/farm.sh --write --only "klang video-seek" --orient landscape tab # a few suites, one orientation
+FARM_NIGHT=1 e2e/farm.sh --write                                     # plus shade, live FTP, vault, full disk, monkey
 ```
 
 - **Devices** are named in `farm-devices.conf` with what they can do (`shots`, `hdr`, `slow`, …). Each one is taken
@@ -33,11 +44,25 @@ e2e/farm.sh --write --only "klang video-seek" --orient landscape tab # a few sui
   `slow` device) runs inside the device lock, so waiting for a device never eats it.
 - **A failed suite is run once more on another device** (on the same one only if no other device can run it). Passed
   there, it is listed as `FLAKY` with the device it failed on; failed twice, it is a `FAIL`.
+- UI targets below the fold are reached through the `scrollable="true"` container that owns the list, settings page
+  or sheet; tests do not send blind full-screen swipes. A tap that must open another activity, dialog or sheet is
+  checked immediately, and the suite stops at that first navigation failure instead of reporting follow-up failures
+  from the wrong screen.
 - **A suite that stops with exit code 2** (another app in front, media volume not 0) takes its device out of the run:
   somebody is using it. The job goes back and another device takes it.
+- **Night** (`FARM_NIGHT=1`) is the only way the farm queues the release suites and sets their switches:
+  `video-notification` (`E2E_SHADE`), `ftp-server-defaults` (`E2E_FTP_LIVE`), `vault-secure-flag`
+  (`E2E_VAULT_HAND`), `text-editor-atomic-save` (`E2E_FILL_DISK`). The same switch adds `monkey.sh` (thirty minutes
+  of `adb monkey` against `PKG` with seed `MONKEY_SEED`, default 53, aborted on a crash or ANR in `logcat -b crash`
+  and `logcat -b anr`, then five process deaths: Home, `am kill` in the background, reopen, home still shows its
+  categories). Without the switch the farm unsets those four variables, so one left in the environment cannot turn a
+  release check on. `monkey.sh` skips on its own unless the switch is set. It runs in the first orientation only.
 - `summary.txt` in the run's folder (`FARM_OUT`, default `~/.cache/ordo-e2e/farm/<start time>/`) is rewritten every
   3 s; at the end the table suite × orientation × result × device × seconds × checks is printed. Exit code 0: all
   passed; 1: a suite failed twice or ran out of time; 3: a suite could not run on any device.
+- Crash checks count only crash-buffer entries whose `Process:` is Ordo's package. When `E2E_FAILDUMP` is set, the
+  matching stack is kept beside the suite's other failure artifacts; a crash from another process is not attributed
+  to Ordo.
 - What the farm changes on a device it puts back after every suite, also on Ctrl-C: rotation, a size or density override a suite left,
   and at night (22–7) do-not-disturb, which it switches on for the run. It never sets `E2E_ALLOW_VOLUME`.
 
@@ -57,9 +82,11 @@ special add one comment line to it:
 ```
 
 `needs` are capabilities from `farm-devices.conf`: `shots` for a suite that compares screenshots or recordings by
-colour (the Tab A8 has a blue-light tint and is too slow for recordings), `hdr` for HDR and "Detail plus".
-`timeout` is in seconds. `orient=once` is for a suite that does not touch the layout (it runs in the first
-orientation only). **Adding a device:** one line in `farm-devices.conf`, and the lock command must know the name.
+colour (the Tab A8 has a blue-light tint and is too slow for recordings), `hdr` for HDR and "Detail plus",
+`tablet` or `phone` for a suite that only makes sense on one of them. `timeout` is in seconds. `orient=once` is for
+a suite that does not depend on the orientation the farm sets (it runs in the first orientation only), including one
+that already walks both orientations itself. **Adding a device:** one line in `farm-devices.conf`, and the lock
+command must know the name.
 
 `preflight.sh` is what the farm runs first on every device, and worth running by hand before a long run: test
 resources (`app/src/test/resources`, a copy of only `e2e/` fails here), every suite of `run.sh` present and
@@ -115,7 +142,7 @@ scroll position). A control that moves on a fixed screen (e.g. below a message o
 | `home-header.sh` | the home screen's top bar: search, assistant and every entry under "more" work, back returns home | 0.5.0 |
 | `header-position.sh` | the search bar set to the bottom moves without a restart, floats above the navigation bar, the page's end scrolls clear of it, search, wand, more and side menu still work; the setting is put back as it was | after 0.7.1 |
 | `home-pull.sh` | pulling down on the home screen only refreshes when meant: 90 dp or scrolling back up into the top does nothing, 170 dp from the top refreshes once | 0.9.0 |
-| `home-auto-refresh.sh` (`--write`) | 50 new files reload the home screen once or twice, the storage bar moves in place instead of emptying and growing in again (screen recording), nothing reloads while it is hidden, coming back reloads once | 0.9.0, bar after 0.9.0 |
+| `home-auto-refresh.sh` (`--write`) | 50 new files reload the home screen once or twice, the storage bar moves in place instead of emptying and growing in again (screen recording), nothing reloads while it is hidden; after coming back the test waits for the first reload, then verifies that the 3 s debounce window produces no duplicate | 0.9.0, bar after 0.9.0 |
 | `drawer.sh` | Ordo Musik and Ordo Video are the first entries of the side menu and open their libraries; every entry of the side menu opens its screen and back returns home with the menu closed; a menu dragged all the way open closes on back instead of leaving the app | 0.5.0, drag fixed in 0.5.0 |
 | `selection-more.sh` | with files selected, "More" in the bottom bar opens its menu right above the bar on the button's side, not at the top of the screen | 0.9.0 |
 | `tablet-landscape.sh` | as a landscape tablet, selecting a file no longer crashes, it shows the bar beside the side pane, "More" opens above it. Only an emulator is resized (2560x1600 at 320 dpi; its previous overrides come back exactly, also on Ctrl-C); a real device is never resized or rotated: it runs only when it already is a tablet in landscape, otherwise SKIP | fixed 0.9.0 |
@@ -126,7 +153,7 @@ scroll position). A control that moves on a fixed screen (e.g. below a message o
 | `klang-stress.sh` (`--write`) | a 60-s stereo FLAC (48 kHz, `STRESS_RATE` for others) with every Klang effect on: CPU share of the app over 20 s (INFO), then while it plays the equalizer switch and every effect switch in reach are tapped 20 times in a row and the preset tiles switched 20 times; it still plays, pauses and plays again, the CPU share comes back, no crash. Sound settings through `run-as`, restored | after 0.14.2 |
 | `klang-landscape.sh` (`--write`) | the Sound sheet in landscape: the last card ("Resume when headphones connect") is reachable by scrolling; from 840 dp on the equalizer curve stays in sight beside the cards (two panes); rotation is restored | after 0.13.3 |
 | `cast.sh` (`--write`, needs `CAST_TV=<name>`, else SKIP) | the player's cast button opens the cast sheet with "This phone" and the named Chromecast/Google TV; picking it shows "Playing on <name>", the media session plays remotely, media Pause and Next control the TV (second title), "Stop casting" brings the queue back to the phone with the second title, paused; no crash | after 0.14.0 |
-| `music-library.sh` (`--write`) | (also: a folder page shows each untagged song's own embedded cover, compared by colour on screen; tapping the song that is already playing keeps its position) Ordo Musik opens its library (never the player on its own) in a task of its own (`dumpsys activity recents`) with the tabs Songs, Albums, Artists and Folders; tagged 16-bit stereo MP3s and an untagged WAV in two folders are listed by title in title order with "Shuffle all" first; search filters the list; tapping a song opens the player and it plays (`dumpsys media_session`); back shows the library with the mini player naming the song, whose button pauses; a song's ⋮ offers play next, add to queue and show file; the side menu (Ordo's) opens, Recently played lists the song just played, the menu returns to the library and opens Sound over the player; Folders lists both folders and opens one with Play/Shuffle; Albums opens an album in track order; back leaves the music app instead of landing in the file manager. Every list is narrowed by search first, so other music on the device does not matter | after 0.13.3 |
+| `music-library.sh` (`--write`) | (also: a folder page shows each untagged song's own embedded cover, compared by colour on screen; tapping the song that is already playing keeps its position) Ordo Musik opens its library (never the player on its own) in a task of its own (`dumpsys activity recents`) with the tabs Songs, Albums, Artists and Folders; tagged 16-bit stereo MP3s and an untagged WAV in two folders are listed by title in title order with "Shuffle all" first; search filters the list; tapping a song opens the player and it plays (`dumpsys media_session`); back shows the library with the mini player naming the song, whose button pauses; a song's ⋮ offers play next, add to queue and show file; the side menu (Ordo's) opens, Recently played lists the song just played, the menu returns to the library and opens Sound over the player; Folders lists both folders and opens one with Play/Shuffle; Albums opens an album in track order; separate `Mp3Test` and `FlacTag` fixtures prove that editing each format changes the intended file; back leaves the music app instead of landing in the file manager. Every list is narrowed by search first, so other music on the device does not matter | after 0.13.3 |
 | `launcher-icons.sh` | Settings › Built-in apps: the "Ordo Musik" switch enables and disables the launcher alias (checked with `cmd package query-activities`), so does "Ordo Video" for its own alias, which opens the video library, the other three apps are listed under "Coming soon" with "Coming as soon as the app is ready", the switch shows the real component state and a change made from outside, the alias opens the music library with its tabs; the aliases are put back as they were, also on Ctrl-C | after 0.11.1 |
 | `icon-colors.sh` | Settings › Built-in apps › Icon colours: a swatch in Ordo's row makes exactly that colour's alias Ordo's launcher entry (`cmd package query-activities`), Ordo keeps running, the choice shows again after reopening; Ordo Musik's colour is remembered while its icon is off and used when it is switched on; a row partly off screen is scrolled into view before its swatch is tapped; both are put back as they were, also on Ctrl-C | after 0.13.3 |
 | `documents-provider.sh` | Android's own file picker (ACTION_OPEN_DOCUMENT, as from a browser upload) lists "Ordo" among its places and shows the bookmarks there; only looks and leaves with Back. SKIP without all-files access or without an existing bookmark folder | after 0.13.3 |
@@ -147,9 +174,11 @@ scroll position). A control that moves on a fixed screen (e.g. below a message o
 | `ftp-server-fd.sh` (`--write`) | the built-in FTP server: 2000 LIST commands, the process fd count stays stable | 1.0.0 |
 | `video-notification.sh` (`--write`) | with "Sound only", the media notification's target (`VideoSessionActivity`) opened over the playing player and again after Home: no crash, Ordo still runs, the player is back in front (or in its picture-in-picture window) and still plays. Reached by `am start` (adb root) or, with `E2E_SHADE=1`, by tapping Ordo Video's notification in the shade; else SKIP | blocker before 1.0.0 |
 | `ftp-server-defaults.sh` (`--write`, debug build) | with Ordo's FTP settings taken out of its preferences (put back at the end): anonymous login off, the login has a password (no user such as `admin` with an empty password), no anonymous write access, the root folder not the whole internal storage; on an emulator or with `E2E_FTP_LIVE=1` also live through `adb forward` and ftplib: an anonymous login and an empty-password login for `admin` and the configured user are refused, and for any login that gets in, MKD and CWD into `Android/` are refused | blocker before 1.0.0 |
-| `backup-self-include.sh` (`--write`) | a backup saved through the system picker into the very folder it backs up, twice (the second time over the first ZIP): "Backup finished", the ZIP still exists, passes a CRC test, holds the three files and no entry for itself; the ticks are put back | blocker before 1.0.0 |
+| `backup-self-include.sh` (`--write`) | a backup saved through the system picker into the very folder it backs up: "Backup finished", the ZIP still exists, passes a CRC test, holds the three files and no entry for itself. A second backup chosen over that ZIP is refused (GB-10): Ordo asks for a new name and the older ZIP stays byte for byte as it was, still valid and without itself. The ticks are put back; a picker left open is closed (a failed check, never an abort) | blocker before 1.0.0; own ZIP left out since #195 |
 | `vault-secure-flag.sh` (`--write`, `E2E_VAULT_HAND=1`, release build) | a test PNG and PDF moved into the Tresor and opened from it: each viewer window has FLAG_SECURE like the Tresor screen (`dumpsys window windows`) and a screen capture (stand-in for the Recents preview) shows no picture; the owner unlocks by hand, both files are restored out of the Tresor; a debug build only says SKIP | blocker before 1.0.0 |
 | `text-editor-atomic-save.sh` (`--write`, emulator or `E2E_FILL_DISK=1`) | a 128-KiB text file edited in the text editor and saved while the storage is full: the file keeps its size and MD5, the editor keeps the typed word; the filler file goes at once | blocker before 1.0.0 |
+| `back-from-quick-access.sh` (`--write`) | the Pictures tile on the home screen, a test folder and its subfolder: back walks up one level at a time, and only back on Pictures (where the tile opened) returns home; only the test folder is created and removed | fixed in 0.18.1 |
+| `monkey.sh` (`FARM_NIGHT=1`) | thirty minutes of `adb monkey` on `PKG` with seed `MONKEY_SEED` (default 53), stopped on a crash or ANR (`logcat -b crash`, `logcat -b anr`); then five times Home, `am kill` in the background, reopen, and the home categories are back with no crash and no ANR. Not part of `run.sh`; the farm queues it only with the night switch | test plan level 8 |
 
 Every test starts through `launch` in `lib.sh`, which also copes with a fresh install: on an emulator it grants what
 adb may grant (notifications on Android 13+, all-files access as an app op on Android 11+), so no system dialog comes
@@ -174,3 +203,5 @@ Rules for every test:
 
 Needs: `adb`, `python3` (with Pillow), and `ffmpeg` for the suites that make their own media; `preflight.sh` checks all of it. `ADB` and `PKG` can be overridden through the
 environment.
+
+Open: the file-job property test follows as a device test (instrumentation/e2e), because `LinuxCopyMove` uses native syscalls that are not available on the JVM.

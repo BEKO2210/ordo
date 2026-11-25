@@ -15,6 +15,7 @@ VIDEO_ALIAS=me.zhanghai.android.files.launcher.VideoAlias
 VIDEO="Ordo Video"
 SECTION="Eingebaute Apps|Built-in apps"
 MUSIC="Ordo Musik|Ordo Music"
+MUSIC_SUMMARY="Eigenes Symbol in deiner App-Liste, direkt zu deiner Musiksammlung|Its own icon in your app list, straight to your music library"
 SOON="Kommt, sobald die App fertig ist|Coming as soon as the app is ready"
 ON_MESSAGE="„Ordo Musik“ ist eingeschaltet. Dein Startbildschirm braucht manchmal einen Moment, bis das Symbol erscheint.|“Ordo Music” is on. Your launcher can need a moment before the icon shows up."
 OFF_MESSAGE="„Ordo Musik“ ist ausgeschaltet. Das Symbol verschwindet, sobald dein Startbildschirm sich aktualisiert hat.|“Ordo Music” is off. The icon disappears as soon as your launcher has refreshed."
@@ -39,7 +40,10 @@ if video_on; then initial_video=on; else initial_video=off; fi
 # The Ordo Video switch, set to a state through the page (the shell may not change components on newer Android).
 set_video() {
     "video_$1" && return 0
-    open_page; swipe_up; ui tap "$VIDEO" title >/dev/null
+    open_page
+    # Its switch row: on screen at once on a portrait phone, where a blind swipe carried it above the window (A15).
+    for _ in 1 2 3 4; do ui has "$VIDEO" title && break; swipe_up; done
+    ui tap "$VIDEO" title >/dev/null
     local end=$((SECONDS + 8)); until "video_$1"; do [ $SECONDS -ge "$end" ] && break; sleep 0.5; done
     back; sleep 1; "video_$1"
 }
@@ -58,13 +62,15 @@ open_page
 check "the page lists Ordo Musik" ui has "$MUSIC"
 check "the Ordo Musik switch starts off" not ui checked "$MUSIC"
 # The apps still to come sit at the end of the page, under "Coming soon".
-swipe_up; swipe_up; swipe_up
+# A landscape phone needs more than three swipes to get there (A15, 25.11.2026): scrolled to, not swiped blind.
 for app in "Bilder|Images" "PDF" "Notizen|Notes"; do
-    check "$app is listed" ui has "$app"
+    check "$app is listed" scroll_to "$app"
 done
 check "the apps still to come are grouped" ui has "Bald verfügbar|Coming soon"
 check "a not yet ready app says when it comes" ui has "$SOON"
-swipe_down; swipe_down; swipe_down
+# Back to the switch row, known by its summary: the icon colours further down have a row titled "Ordo Musik" too,
+# and the tap went to that one (A15, 25.11.2026). With both on screen the switch row comes first.
+for _ in 1 2 3 4 5 6 7 8; do ui has "$MUSIC_SUMMARY" summary && break; swipe_down; done
 
 # The message first: it stays 6 s, and a screen read on a real phone takes over 2 s.
 check "tapping the switch works" ui tap "$MUSIC" title
@@ -110,6 +116,7 @@ sleep 3; guard
 # Samsung names the alias as the front screen, the emulator its target: both are the music start screen.
 music_screen() { on viewer.audio.MusicLauncherActivity || on launcher.MusicAlias; }
 check "the music icon opens its own screen" music_screen
-check "the music library shows its tabs" ui has "Ordner|Folders"
+# The first tab: the last one (Folders) starts beyond a portrait phone's right edge (A15, 25.11.2026).
+check "the music library shows its tabs" eval 'ui has tabs && ui has "Titel|Songs"'
 a shell am force-stop "$PKG"
 finish

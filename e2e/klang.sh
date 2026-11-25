@@ -33,7 +33,8 @@ check "the stereo title opens in Ordo's player" on viewer.audio.AudioPlayerActiv
 check "Sound opens from the player toolbar" paused_ui tap actionSound
 sleep 1.5 # the sheet slides up
 
-scrolled_to() { local i; for i in 1 2 3 4 5 6 7 8 9 10 11; do paused_ui has "$1" && return 0; swipe_up; done; return 1; }
+# 25 swipes: a landscape phone moves the sheet only half as far per swipe as a portrait one (A15: mono lies past 11).
+scrolled_to() { local i; for i in $(seq 1 25); do paused_ui has "$1" && return 0; swipe_up; done; return 1; }
 # set_switch TITLE on|off: the effect's switch carries the title as its description.
 set_switch() {
     local i; for i in 1 2 3; do
@@ -68,6 +69,7 @@ card_shown() {
     paused_ui has "$1" && return 0
     back 1; paused_ui tap actionSound >/dev/null; sleep 1.5; return 1
 }
+room_chosen() { scrolled_to "Concert hall|Konzertsaal" && paused_ui tap "Concert hall|Konzertsaal"; }
 EFFECTS=("Bass boost|Bassverstärkung" "Room sound for headphones|Raumklang für Kopfhörer" "Stereo width|Stereobreite"
     "Reverb|Hall" "Analogue warmth|Analoge Wärme" "Clarity|Klarheit" "Fill in missing highs|Höhen ergänzen")
 for effect in "${EFFECTS[@]}"; do
@@ -77,8 +79,9 @@ for effect in "${EFFECTS[@]}"; do
     pass "the $name card is reachable"
     check "$name switches on" set_switch "$effect" on
     check "the $name picture reports its value" picture_on "$effect"
+    # The rooms sit in the reverb card: chosen while it is on screen, later cards push it out of sight.
+    [ "$name" = Reverb ] && check "a reverb room can be chosen" room_chosen
 done
-check "a reverb room can be chosen" paused_ui tap "Concert hall|Konzertsaal"
 # "Full sound when quiet" has one place: the Headphones sheet, linked from one row here.
 QUIET="Full sound when quiet|Leise hören mit vollem Klang"
 check "the headphones row is reachable" scrolled_to "Headphones|Kopfhörer"

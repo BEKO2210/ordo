@@ -1,5 +1,6 @@
 #!/bin/bash
 # Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later
+# farm: needs=tablet
 # Regression (after 0.8.1): on a tablet in landscape Ordo crashed as soon as a file was selected, because the
 # selection bar sat in the side-pane layout. Opens internal storage as a landscape tablet, selects its first entry and opens "More".
 # On an emulator it sets 2560x1600 at 320 dpi and restores the exact previous overrides (also on Ctrl-C); a real

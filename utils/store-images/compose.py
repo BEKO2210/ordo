@@ -144,8 +144,10 @@ def trio(im, top, shots, k):
 def stack(im, top, shots, k):
     """Wide shots one above the other, whole, centred in the space below the headline."""
     W, H = im.size
-    devs = [device(s, round(W * 0.94), k["radius"] * 2 // 3, k["bezel"]) for s in shots]
     gap = 70
+    # Tall parts (a whole equalizer) shrink until the stack fits below the headline instead of running off.
+    fit = (H - top - round(H * 0.06) - gap * (len(shots) - 1) - 2 * k["bezel"] * len(shots)) / sum(s.height / s.width for s in shots)
+    devs = [device(s, round(min(W * 0.94, fit)), k["radius"] * 2 // 3, k["bezel"]) for s in shots]
     y = top + (H - top - sum(d.height - 2 * p for d, p in devs) - gap * (len(devs) - 1)) // 2
     for dev, pad in devs:
         put(im, dev, pad, (W - dev.width + 2 * pad) // 2, y)

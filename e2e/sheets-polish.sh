@@ -1,6 +1,6 @@
 #!/bin/bash
 # Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later
-# farm: needs=shots
+# farm: needs=shots orient=once
 # Screens and checks of the 0.17 polish (#121), WRITES /storage/emulated/0/ordo-e2e-polish (removed again): Ordo Video's settings
 # and the Upscaling sheet, the Klang sheet's last cards (headphones, USB DAC), Musik's queue, the stepper bounds of
 # "Adjust picture". In portrait and landscape; photos only while Ordo is in front (E2E_SHOTS=<dir>). Volume stays 0.
@@ -34,6 +34,17 @@ open_dir() {
     a shell am start -W -a android.intent.action.VIEW -d "file://$DIR" -t inode/directory \
         -n "$PKG/me.zhanghai.android.files.filelist.FileListActivity" >/dev/null; sleep 3; guard
 }
+# On a portrait phone the last tab (Folders) lies off the tab strip: swipe the strip towards its end (inside its
+# middle half, a swipe from the screen's edge is the back gesture), as show_tab in music-library.sh.
+folders_tab() {
+    local i x1 y1 x2 y2
+    for i in 1 2 3 4; do
+        ui tap "Ordner|Folders" && return 0
+        read -r x1 y1 x2 y2 < <(ui bounds tabs | head -1); [ -n "$y2" ] || return 1
+        a shell input swipe $((x2 - (x2 - x1) / 4)) $(((y1 + y2) / 2)) $((x1 + (x2 - x1) / 4)) $(((y1 + y2) / 2)) 300
+    done
+    return 1
+}
 shot() { screenshot "$OUT/$1-$orient.png" && echo "SHOT $1-$orient"; }
 for orient in portrait landscape; do
     a shell settings put system accelerometer_rotation 0
@@ -66,7 +77,7 @@ for orient in portrait landscape; do
     a shell am force-stop "$PKG"
     a shell am start -W -n "$PKG/me.zhanghai.android.files.viewer.audio.MusicLauncherActivity" >/dev/null
     wait_on viewer.audio.MusicLauncherActivity 10 || guard
-    ui tap "Ordner|Folders" >/dev/null; sleep 2; shot 09-musik-ordner # deliberate: the screenshot waits for the end of the slide-in animation
+    folders_tab >/dev/null; sleep 2; shot 09-musik-ordner # deliberate: the screenshot waits for the end of the slide-in animation
     check "Musik names the storage root ($orient)" ui has "Interner Speicher|Internal storage"
 
     # Adjust picture: stepper bounds.

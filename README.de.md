@@ -15,7 +15,7 @@
 
 <p align="center">
 <!-- AUTO:badges -->
-  <a href="https://github.com/BEKO2210/ordo/releases/tag/v0.18.2"><img alt="Version 0.18.2" src="https://img.shields.io/badge/Version-0.18.2-2563EB"></a>
+  <a href="https://github.com/BEKO2210/ordo/releases/tag/v0.18.3"><img alt="Version 0.18.3" src="https://img.shields.io/badge/Version-0.18.3-2563EB"></a>
   <img alt="Android 7.0+" src="https://img.shields.io/badge/Android-7.0%2B-3DDC84">
   <a href="LICENSE"><img alt="Lizenz: GPL-3.0-or-later" src="https://img.shields.io/badge/Lizenz-GPL--3.0--or--later-blue"></a>
 <!-- /AUTO:badges -->
@@ -33,20 +33,19 @@
 </p>
 
 <!-- AUTO:new -->
-> **Neu in 0.18.2**
-> - Sicheres Kopieren und Wiederherstellen: keine verlorenen Dateien bei Konflikten
-> - KI-Befehle: „nie“, „nicht“ und Ähnliches fragen vor dem Löschen immer nach
-> - FTP-Server weist auf unverschlüsselte Übertragung hin
-> - Knöpfe brechen bei großem Bildschirmzoom nicht mehr mitten im Wort um
-> - Handy quer: Menüs und Listen passen und bleiben erreichbar
-> - Video, Musik und Cast: zuverlässigeres Fortsetzen und Rückgängig
-> - Netzwerkfreigaben: kein endloses Hängen mehr
+> **Neu in 0.18.1**
+> - Absturz beim Antippen der Video-Benachrichtigung behoben
+> - Sicherer mit Dateien: Gemischte Auswahl landet im Papierkorb, Rückgängig geht wieder
+> - Tresor und Bildbetrachter gegen das Öffnen interner Dateien geschützt
+> - FTP-Server startet mit Passwort und ohne anonymen Zugang
+> - Netzwerkfreigaben bleiben im Leerlauf verbunden
+> - Musik und Cast: zuverlässigere Wiedergabe und Schlaf-Timer
 <!-- /AUTO:new -->
 
 ## Stand
 
 <!-- AUTO:status -->
-Aktuelle Version 0.18.2 · [Release v0.18.2](https://github.com/BEKO2210/ordo/releases/tag/v0.18.2) · ab Android 7.0 (minSdk 24, targetSdk 36 = Android 16) · [GPL-3.0-or-later](LICENSE)
+Aktuelle Version 0.18.3 · [Release v0.18.3](https://github.com/BEKO2210/ordo/releases/tag/v0.18.3) · ab Android 7.0 (minSdk 24, targetSdk 36 = Android 16) · [GPL-3.0-or-later](LICENSE)
 <!-- /AUTO:status -->
 
 Ordo ist in Entwicklung. Bei Google Play läuft ein geschlossener Test; Testversionen erscheinen auch als
@@ -258,6 +257,7 @@ Tippe oder diktiere „Verschiebe alle MP3s aus Download nach Musik“. Ordo zei
 - Tresor: Dateien werden mit AES-256-GCM verschlüsselt und mit deiner Bildschirmsperre geöffnet
 - Sicherung: Ordner und Tresor als ZIP-Datei auf einen USB-Stick oder an jeden Ort, den dein Handy anbietet – auf Wunsch mit Passwort
 - Wiederherstellen, ohne vorhandene Dateien zu ersetzen
+- Eine Datei ersetzt keinen Ordner gleichen Namens
 
 **Für Profis**
 
@@ -283,7 +283,7 @@ Tippe oder diktiere „Verschiebe alle MP3s aus Download nach Musik“. Ordo zei
 - In der Dateiliste bleibt die Leiste mit Seitenmenü, Suche, Sortierung und Optionen stehen, während die Liste scrollt
 - Suche nach Namen oder nach Text in Dateien, auf Wunsch mit regulären Ausdrücken
 - Liste oder Raster in drei Größen, für alle Ordner oder nur einen
-- Schnellzugriff auf Lesezeichen und häufige Ordner als Kacheln
+- Schnellzugriff auf Lesezeichen und häufige Ordner als Kacheln; Zurück in einem von dort geöffneten Ordner geht bis zu diesem Ordner hoch und dann zurück dorthin, wo du herkamst
 
 **Aufräumen**
 
@@ -357,7 +357,7 @@ Tippe oder diktiere „Verschiebe alle MP3s aus Download nach Musik“. Ordo zei
 
 - Tresor: Dateien werden mit AES-256-GCM verschlüsselt und mit deiner Bildschirmsperre geöffnet
 - Sicherung: Ordner und Tresor als ZIP auf einen USB-Stick oder an jeden Ort, den dein Handy anbietet, etwa Google
-  Drive – auf Wunsch mit Passwort (AES-256), dazu sichere Wiederherstellung normaler Dateien ohne vorhandene zu ersetzen; ein Abbruch der Wiederherstellung behält fertige Dateien und zeigt die Zähler; selbst hinzugefügte Ordner lassen sich wieder aus der Liste nehmen; eine Datei, die mittendrin nicht mehr lesbar ist, bricht die Sicherung ab, statt gekürzt darin zu landen; App-Daten in `Android/data` und `Android/obb` bleiben draußen, weil Android sie nicht wiederherstellen lässt
+  Drive – auf Wunsch mit Passwort (AES-256), dazu sichere Wiederherstellung normaler Dateien ohne vorhandene zu ersetzen; ein Abbruch der Wiederherstellung behält fertige Dateien und zeigt die Zähler; selbst hinzugefügte Ordner lassen sich wieder aus der Liste nehmen; eine Datei, die mittendrin nicht mehr lesbar ist, bricht die Sicherung ab, statt gekürzt darin zu landen; App-Daten in `Android/data` und `Android/obb` bleiben draußen, weil Android sie nicht wiederherstellen lässt; eine Sicherung, die in einen mitgesicherten Ordner gespeichert wird, lässt ihre eigene ZIP aus; eine Datei, die schon Daten enthält (etwa eine ältere Sicherung, erneut gewählt), wird nie überschrieben: Ordo bittet um einen neuen Namen, die ältere Sicherung bleibt unverändert
 
 **In deinen eigenen Worten** – siehe [KI-Befehle](#ki-befehle)
 
@@ -515,7 +515,7 @@ Unit-Tests:
 ```
 
 <!-- AUTO:tests -->
-Gerätetests: 53 Skripte in [`e2e/`](e2e/README.md), gestartet mit `e2e/run.sh`: 15 nur lesend (`first-run`, `smoke`, `settings-visual`, `category-search`, `back-navigation`, `bars-replay`, `home-header`, `header-position`, `home-pull`, `drawer`, `selection-more`, `tablet-landscape`, `analysis`, `ai-show-guard`, `documents-provider`) und 38 weitere mit `--write` (`stress-delete`, `backup-restore`, `copy-unreadable`, `home-auto-refresh`, `audio-player`, `cast`, `klang`, `klang-landscape`, `klang-stress`, `music-formats`, `music-library`, `launcher-icons`, `icon-colors`, `ai-show`, `pick-file`, `no-midword-breaks`, `player-seek`, `player-stage2`, `video-player`, `video-network`, `video-sound`, `video-dialog-isolate`, `video-subtitles`, `video-background`, `video-library`, `video-seek`, `video-picture`, `video-picture-adjust`, `video-detailplus`, `video-menus`, `sheets-polish`, `copy-replace`, `ftp-server-fd`, `video-notification`, `ftp-server-defaults`, `backup-self-include`, `vault-secure-flag`, `text-editor-atomic-save`). Unit-Tests: 158 Testklassen in `app/src/test`.
+Gerätetests: 55 Skripte in [`e2e/`](e2e/README.md), gestartet mit `e2e/run.sh`: 16 nur lesend (`first-run`, `smoke`, `settings-visual`, `category-search`, `back-navigation`, `bars-replay`, `home-header`, `header-position`, `home-pull`, `drawer`, `selection-more`, `tablet-landscape`, `analysis`, `ai-show-guard`, `documents-provider`, `a11y-scan`) und 39 weitere mit `--write` (`stress-delete`, `backup-restore`, `copy-unreadable`, `home-auto-refresh`, `audio-player`, `cast`, `klang`, `klang-landscape`, `klang-stress`, `music-formats`, `music-library`, `launcher-icons`, `icon-colors`, `ai-show`, `pick-file`, `no-midword-breaks`, `player-seek`, `player-stage2`, `video-player`, `video-network`, `video-sound`, `video-dialog-isolate`, `video-subtitles`, `video-background`, `video-library`, `video-seek`, `video-picture`, `video-picture-adjust`, `video-detailplus`, `video-menus`, `sheets-polish`, `copy-replace`, `ftp-server-fd`, `video-notification`, `ftp-server-defaults`, `backup-self-include`, `vault-secure-flag`, `text-editor-atomic-save`, `back-from-quick-access`). Unit-Tests: 163 Testklassen in `app/src/test`.
 <!-- /AUTO:tests -->
 
 ## Ausblick

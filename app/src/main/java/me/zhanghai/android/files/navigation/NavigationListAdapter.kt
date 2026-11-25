@@ -231,12 +231,32 @@ class NavigationListAdapter(
                 binding.iconImage.setImageDrawable(item.getIcon(binding.iconImage.context))
                 binding.titleText.text = item.getTitle(binding.titleText.context)
                 binding.subtitleText.text = item.getSubtitle(binding.subtitleText.context)
+                loadSubtitle(item, binding.subtitleText)
             }
             ViewType.DIVIDER -> {}
         }
     }
 
+    // Free space comes from the file system, which the main thread must not ask.
+    private fun loadSubtitle(item: NavigationItem, view: android.widget.TextView) {
+        view.setTag(R.id.subtitleText, item)
+        val context = view.context.applicationContext
+        subtitleExecutor.execute {
+            val subtitle = try {
+                item.loadSubtitle(context)
+            } catch (e: Exception) {
+                return@execute
+            }
+            view.post {
+                if (view.getTag(R.id.subtitleText) === item && view.text?.toString() != subtitle.orEmpty()) {
+                    view.text = subtitle
+                }
+            }
+        }
+    }
+
     companion object {
+        private val subtitleExecutor = java.util.concurrent.Executors.newSingleThreadExecutor()
         private val PAYLOAD_CHECKED_CHANGED = Any()
     }
 

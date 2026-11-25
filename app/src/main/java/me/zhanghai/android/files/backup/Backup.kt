@@ -175,3 +175,29 @@ class BackupSourceStream(
         inputStream.close()
     }
 }
+
+private const val EXTERNAL_STORAGE_AUTHORITY = "com.android.externalstorage.documents"
+// The paths behind the shared storage that a file descriptor can show (FUSE, its lower file system, SD cards).
+private val EMULATED_PATH = Regex("""^/(?:data/media|mnt/(?:user|pass_through|installer|androidwritable)/\d+/emulated)/(\d+)/(.*)$""")
+private val MEDIA_RW_PATH = Regex("""^/mnt/media_rw/([^/]+)/(.*)$""")
+
+/**
+ * The file paths (as the backup's folder walk spells them, under /storage) that the backup's own target document
+ * can be: from the document id of Android's storage provider ("primary:Backups/x.zip") and from the path of an open
+ * file descriptor of it. A backup saved into a folder it backs up must leave itself out.
+ */
+fun backupTargetPaths(authority: String?, documentId: String?, fdPath: String?, storageRoot: String): Set<String> {
+    val paths = mutableSetOf<String>()
+    if (authority == EXTERNAL_STORAGE_AUTHORITY && documentId != null && ':' in documentId) {
+        val root = documentId.substringBefore(':')
+        val relative = documentId.substringAfter(':').trim('/')
+        val base = if (root == "primary") storageRoot else "/storage/$root"
+        if (relative.isNotEmpty()) paths += "${base.trimEnd('/')}/$relative"
+    }
+    if (fdPath != null && fdPath.startsWith("/")) { // not "pipe:[…]" of a cloud provider
+        paths += EMULATED_PATH.matchEntire(fdPath)?.let { "/storage/emulated/${it.groupValues[1]}/${it.groupValues[2]}" }
+            ?: MEDIA_RW_PATH.matchEntire(fdPath)?.let { "/storage/${it.groupValues[1]}/${it.groupValues[2]}" }
+            ?: fdPath
+    }
+    return paths
+}

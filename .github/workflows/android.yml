@@ -181,6 +181,7 @@ jobs:
         run: |
           git ls-files -z '*.sh' | xargs -0 -n1 bash -n
           git ls-files -z '*.py' | xargs -0 python3 -m py_compile
+          e2e/selftest.sh
       - name: All jobs passed
         env:
           RESULTS: ${{ join(needs.*.result, ' ') }}

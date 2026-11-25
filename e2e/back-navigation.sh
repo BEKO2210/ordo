@@ -26,7 +26,7 @@ sys.exit(0 if max((max(lum(p), bar) + 0.05) / (min(lum(p), bar) + 0.05) for p in
 PY
 }
 # Same as smoke: one swipe does not reach the storage card on a landscape phone.
-storage_card() { local i; for i in 1 2 3 4; do ui wait analyzeButton 3 >/dev/null 2>&1 && return 0; swipe_up; done; return 1; }
+storage_card() { scroll_to analyzeButton 6 scrollView; }
 if storage_card && ui tap openButton >/dev/null 2>&1; then
     sleep 3; guard
     check "storage opens in the file list" on filelist.FileListActivity
@@ -58,7 +58,7 @@ if storage_card && ui tap openButton >/dev/null 2>&1; then
 else
     fail "storage card not found"
 fi
-if scroll_to analyzeButton && ui tap analyzeButton >/dev/null 2>&1 && wait_on analysis.AnalysisActivity 14; then
+if scroll_to analyzeButton 8 scrollView && ui tap analyzeButton >/dev/null 2>&1 && wait_on analysis.AnalysisActivity 14; then
     pass "analysis opens"
     guard
     back 2

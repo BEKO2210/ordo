@@ -229,7 +229,6 @@ class HomeFragment : Fragment(), ShowRequestAllFilesAccessRationaleDialogFragmen
     }
 
     private var replayBars = false
-    private var resumedBefore = false
     private var stoppedBefore = false
     private var reloadedOnStart = false
 
@@ -275,27 +274,29 @@ class HomeFragment : Fragment(), ShowRequestAllFilesAccessRationaleDialogFragmen
         binding.scrollView.getChildAt(0).addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> updateGlass() }
         val scrollPaddingBottom = binding.scrollView.paddingBottom
         val refreshDistance = binding.swipeRefreshLayout.progressViewEndOffset
-        ViewCompat.setOnApplyWindowInsetsListener(binding.content) { root, windowInsets ->
+        lastInsets = null
+        applyInsets = { windowInsets ->
             val insets = windowInsets.getInsets(
                 WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
             )
-            root.updatePadding(left = insets.left, right = insets.right)
+            binding.content.updatePadding(left = insets.left, right = insets.right)
             val searchLayoutParams = binding.searchCard.layoutParams as ViewGroup.MarginLayoutParams
             val barHeight = searchLayoutParams.height + searchLayoutParams.topMargin + searchLayoutParams.bottomMargin
-            val top: Int
             if (headerAtBottom) {
                 // Above the navigation bar, and above the keyboard should one ever open on this screen.
                 val ime = windowInsets.getInsets(WindowInsetsCompat.Type.ime()).bottom
                 binding.toolbarBlur.updatePadding(top = 0, bottom = maxOf(insets.bottom, ime))
                 binding.statusScrim.updateLayoutParams { height = insets.top }
-                top = insets.top
-                binding.scrollView.updatePadding(top = top, bottom = scrollPaddingBottom + insets.bottom + barHeight)
             } else {
                 binding.toolbarBlur.updatePadding(top = insets.top, bottom = 0)
-                top = insets.top + barHeight
-                binding.scrollView.updatePadding(top = top, bottom = scrollPaddingBottom + insets.bottom)
             }
+            val (top, bottom) = homeScrollPadding(headerAtBottom, insets.top, insets.bottom, barHeight, scrollPaddingBottom)
+            binding.scrollView.updatePadding(top = top, bottom = bottom)
             binding.swipeRefreshLayout.setProgressViewOffset(true, top, top + refreshDistance)
+        }
+        ViewCompat.setOnApplyWindowInsetsListener(binding.content) { _, windowInsets ->
+            lastInsets = windowInsets
+            applyInsets(windowInsets)
             windowInsets
         }
         Settings.HOME_HEADER_POSITION.observe(viewLifecycleOwner) {
@@ -305,6 +306,8 @@ class HomeFragment : Fragment(), ShowRequestAllFilesAccessRationaleDialogFragmen
 
     private var headerAtBottom = false
     private var updateGlass: () -> Unit = {}
+    private var applyInsets: (WindowInsetsCompat) -> Unit = {}
+    private var lastInsets: WindowInsetsCompat? = null
 
     // Applied right away when the setting changes, also on the way back from the settings: no restart.
     private fun applyHeaderPosition(atBottom: Boolean, barColor: Int) {
@@ -332,6 +335,8 @@ class HomeFragment : Fragment(), ShowRequestAllFilesAccessRationaleDialogFragmen
         }
         binding.toolbarBlur.requestLayout()
         binding.toolbarEdge.requestLayout()
+        // Padding follows the new side at once, not only with the next inset dispatch.
+        lastInsets?.let(applyInsets)
         ViewCompat.requestApplyInsets(binding.content)
         binding.scrollView.post { if (_binding != null) updateGlass() }
     }
@@ -448,6 +453,8 @@ class HomeFragment : Fragment(), ShowRequestAllFilesAccessRationaleDialogFragmen
         viewModel.watchChanges(false)
         stoppedBefore = true
         reloadedOnStart = false
+        // In the view model: a landscape phone sent home turns portrait, so the screen is rebuilt while away.
+        if (!requireActivity().isChangingConfigurations) viewModel.hidden = true
     }
 
     override fun onResume() {
@@ -460,12 +467,12 @@ class HomeFragment : Fragment(), ShowRequestAllFilesAccessRationaleDialogFragmen
         // The first resume needs no reload: the view model loads when it is created, and twice in parallel would
         // fight over MediaStore and FUSE. A permission just granted reloads in onStorageAccessResult().
         // A pane that already reloaded in onStart (split screen, Android 7 to 9) and now gets the focus has it.
-        if (resumedBefore && hasStorageAccess() && !reloadedOnStart) {
+        if (viewModel.hidden && hasStorageAccess() && !reloadedOnStart) {
             holdStorageBars()
             replayBars = true
             viewModel.reload()
         }
-        resumedBefore = true
+        viewModel.hidden = false
         reloadedOnStart = false
     }
 

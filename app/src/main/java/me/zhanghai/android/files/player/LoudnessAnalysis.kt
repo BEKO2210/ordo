@@ -70,6 +70,13 @@ class LoudnessAnalysis internal constructor(
 
     fun cached(file: File): Cached? = cache.get(key(file))?.let(::parse)
 
+    /** The remembered result, else a fresh measurement; null for a failed or silent file. Slow: not on main. */
+    fun cachedOrMeasure(file: File): ReplayGainInfo? = when (val cached = cached(file)) {
+        is Cached.Measured -> cached.info
+        Cached.Failed -> null
+        null -> measure(file)
+    }
+
     /**
      * Decodes and measures [file]; null when it cannot be decoded or holds nothing loud enough. Slow: not on main.
      * With [remember] false nothing is written (Ordo Video's "Don't remember places").

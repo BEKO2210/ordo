@@ -6,20 +6,12 @@
 package me.zhanghai.android.files.home
 
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class HomeLayoutTest {
-    @Test
-    fun aLongRecentNameLosesItsMiddleNotItsExtension() {
-        assertEquals("Foto.jpg", recentFileLabel("Foto.jpg", 20))
-        val label = recentFileLabel("Rechnung_Maerz_2026_Stromanbieter_final.pdf", 20)
-        assertEquals(20, label.length)
-        assertTrue(label, label.startsWith("Rechnung"))
-        assertTrue(label, label.endsWith(".pdf"))
-        assertTrue(label, "…" in label)
-        // Without a short extension the end is kept the same way.
-        assertTrue(recentFileLabel("ein_sehr_langer_ordnername_ohne_punkt", 12).endsWith("punkt"))
+    @Test fun homeScrollPadding_barAtBottomReservesItsHeightBelow() {
+        assertEquals(24 to 16 + 48 + 100, homeScrollPadding(true, 24, 48, 100, 16))
+        assertEquals(24 + 100 to 16 + 48, homeScrollPadding(false, 24, 48, 100, 16))
     }
 
     @Test fun homeCategoryColumns_phoneIsThree() {

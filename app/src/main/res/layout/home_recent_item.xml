@@ -28,8 +28,8 @@
             android:layout_height="wrap_content"
             android:ellipsize="end"
             android:hyphenationFrequency="none"
-            android:lines="2"
-            android:maxLines="2"
+            android:maxLines="1"
+            android:singleLine="true"
             android:paddingHorizontal="@dimen/phi_8"
             android:paddingVertical="@dimen/phi_5"
             android:textAppearance="?textAppearanceCaption" />

@@ -33,7 +33,8 @@ fun queryMusic(context: Context): List<MusicSong> {
         MediaStore.Audio.Media.MIME_TYPE,
         MediaStore.Audio.Media.YEAR,
         MediaStore.Audio.Media.DATE_ADDED,
-        MediaStore.Audio.Media.DATE_MODIFIED
+        MediaStore.Audio.Media.DATE_MODIFIED,
+        MediaStore.Audio.Media.SIZE
     ) + if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) arrayOf(MediaStore.Audio.Media.GENRE) else emptyArray()
     return volumes.flatMap { volume ->
         // Coil loads an album's cover from its MediaStore album URI (API 29+) or the old albumart URI.
@@ -63,11 +64,12 @@ fun queryMusic(context: Context): List<MusicSong> {
                                 track = cursor.getInt(6),
                                 mimeType = cursor.getString(7).orEmpty(),
                                 artUri = ContentUris.withAppendedId(artBase, albumId).toString(),
-                                genre = if (projection.size > 11) cursor.getString(11).known() else null,
+                                genre = if (projection.size > 12) cursor.getString(12).known() else null,
                                 year = cursor.getInt(8),
                                 // MediaStore counts both in seconds.
                                 dateAddedMs = cursor.getLong(9) * 1000,
-                                dateModifiedMs = cursor.getLong(10) * 1000
+                                dateModifiedMs = cursor.getLong(10) * 1000,
+                                sizeBytes = cursor.getLong(11)
                             )
                         )
                     }
@@ -77,8 +79,15 @@ fun queryMusic(context: Context): List<MusicSong> {
             e.printStackTrace()
             emptyList()
         }
-    }.filter { File(it.path).exists() }
+    }.mapNotNull { song ->
+        val file = File(song.path)
+        if (file.exists()) song.withFileTimes(file.lastModified()) else null
+    }
 }
+
+// The file's own time has milliseconds; MediaStore's counts seconds, so two edits within one second stay apart.
+internal fun MusicSong.withFileTimes(fileModifiedMs: Long): MusicSong =
+    if (fileModifiedMs > 0) copy(dateModifiedMs = fileModifiedMs) else this
 
 // MediaStore writes "<unknown>" where a tag is missing.
 private fun String?.known(): String? = this?.takeIf { it.isNotBlank() && it != MediaStore.UNKNOWN_STRING }

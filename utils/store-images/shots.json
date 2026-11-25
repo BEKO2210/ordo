@@ -24,7 +24,7 @@
          "headline": {"en": "Private files, *locked away*", "de": "Privates *sicher verschlossen*"}},
         {"id": "storage", "raw": ["storage"], "bars": [63, 126], "accent": "#608CFA",
          "headline": {"en": "See what fills *your storage*", "de": "Sieh, was deinen *Speicher füllt*"}},
-        {"id": "sound", "raw": [["sound", [0, 0.05, 1, 0.435]], ["sound", [0, 0.535, 1, 0.77]]], "layout": "stack", "accent": "#3CC4E6",
+        {"id": "sound", "raw": [["sound-eq", [0, 0.0, 1, 0.345]], ["sound-eq", [0, 0.428, 1, 0.882]]], "layout": "stack", "accent": "#3CC4E6",
          "headline": {"en": "Shape *your sound*", "de": "Forme *deinen Klang*"}}
       ]
     },

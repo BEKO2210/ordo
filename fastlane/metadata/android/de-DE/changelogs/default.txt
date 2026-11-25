@@ -1,8 +1,7 @@
-Zuverlässigkeits-Update:
-• Sicheres Kopieren und Wiederherstellen: keine verlorenen Dateien bei Konflikten
-• KI-Befehle: „nie“, „nicht“ und Ähnliches fragen vor dem Löschen immer nach
-• FTP-Server weist auf unverschlüsselte Übertragung hin
-• Knöpfe brechen bei großem Bildschirmzoom nicht mehr mitten im Wort um
-• Handy quer: Menüs und Listen passen und bleiben erreichbar
-• Video, Musik und Cast: zuverlässigeres Fortsetzen und Rückgängig
-• Netzwerkfreigaben: kein endloses Hängen mehr
+Flüssiger und sicherer:
+• Schnellerer Start, weniger Ruckeln in Listen und im Player
+• Zurück aus einem Schnellzugriff-Ordner geht eine Ebene hoch
+• Suche: Zurück blendet zuerst die Tastatur aus
+• Sicherungen enthalten sich nicht mehr selbst
+• Absturz beim Scannen von Musik und Videos behoben
+• Handy quer: Menüs passen und bleiben erreichbar

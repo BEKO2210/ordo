@@ -27,7 +27,10 @@ for _ in $(seq 1 30); do
 done
 check "MediaStore knows all $COUNT files" test "$indexed" -ge "$COUNT"
 launch 7
-ui tap "Audio" >/dev/null; guard
+if ! scroll_to "Audio" || ! ui tap "Audio" >/dev/null || ! wait_on filelist.FileListActivity 8; then
+    fail "the Audio category opens"; finish
+fi
+guard
 ui tap action_search >/dev/null; sleep 2 # deliberate: the search field takes the focus; the text is typed blind
 a shell input text zzordoe2e; ui wait zzordoe2e-1.mp3 10 >/dev/null; guard
 ui longtap "zzordoe2e-1.mp3" >/dev/null
@@ -42,7 +45,9 @@ for _ in $(seq 1 90); do
     [ -n "$heap" ] && [ "$heap" -gt "$max" ] && max=$heap
     left=$(a shell "ls $DIR 2>/dev/null | wc -l" | tr -d '\r')
     [ -z "$gone" ] && [ "$left" = 0 ] && gone=$(($(date +%s) - start))
-    if [ -n "$gone" ] && ui has "Keine Dateien|No files"; then empty=$(($(date +%s) - start)); break; fi
+    # The empty view itself as well: on a landscape phone the search keyboard covers its text (A15, 25.11.2026), and
+    # a back press to hide the keyboard closes the search in Ordo.
+    if [ -n "$gone" ] && { ui has "Keine Dateien|No files" || ui visible emptyView; }; then empty=$(($(date +%s) - start)); break; fi
     sleep 1
 done
 echo "files gone after ${gone:-?} s, list empty after ${empty:-?} s, peak Java heap $((max / 1024)) MB"

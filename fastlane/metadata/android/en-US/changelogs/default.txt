@@ -1,8 +1,7 @@
-Reliability update:
-• Safer copy, move and restore: no lost or overwritten files on conflicts
-• AI commands: "never", "don't" and similar always ask before deleting
-• FTP server warns that transfers are unencrypted
-• Buttons no longer break words with large display zoom
-• Phones in landscape: menus and lists fit and stay reachable
-• Video, music and Cast: more reliable resume and undo
-• Network shares: no more endless hangs
+Smoother and safer:
+• Faster start, less stutter in lists and the player
+• Back from a quick-access folder goes up one level
+• Search: back first hides the keyboard
+• Backups no longer contain themselves
+• Fixed a crash when scanning music and videos
+• Phones in landscape: menus fit and stay reachable
