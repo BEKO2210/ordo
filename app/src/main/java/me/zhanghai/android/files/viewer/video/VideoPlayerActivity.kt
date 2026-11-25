@@ -141,8 +141,6 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
     private lateinit var controls: VideoControls
     private var seekPro: VideoSeekPro? = null
     private lateinit var resumeStore: VideoResumeStore
-    // The names of content:// items, looked up off the main thread (a query to the app that owns them).
-    private val contentTitles = HashMap<String, String>()
     private var subtitles: VideoSubtitles? = null
     private val watchedStore by lazy { VideoWatchedStore(this) }
     // Playing Tresor videos: the screen closes when left, like the Tresor locks (no grant outlives it unseen).
@@ -372,15 +370,6 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
             }
         }
         player.setMediaItems(queue.items, queue.startIndex, queue.positionMs)
-        queue.items.map { it.mediaId }.filter { isContentId(it) && !VaultVideos.isVault(it) }.takeIf { it.isNotEmpty() }?.let { ids ->
-            lifecycleScope.launch {
-                val titles = withContext(Dispatchers.IO) {
-                    ids.associateWith { AudioPlaybackService.mediaItem(it).mediaMetadata.displayTitle?.toString() }
-                }
-                titles.forEach { (id, title) -> if (!title.isNullOrEmpty()) contentTitles[id] = title }
-                this@VideoPlayerActivity.player?.let(::updateUi)
-            }
-        }
         player.playWhenReady = savedInstanceState?.getBoolean(STATE_PLAY_WHEN_READY) ?: true
         // The picture decides first whether the player starts with its OpenGL pipeline (a quick probe of the file).
         picture?.prepare(player) ?: player.prepare()
@@ -582,25 +571,17 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
                 savedMediaId != null ->
                     LaunchQueue(listOf(queueItem(savedMediaId)), 0, savedPosition)
                 else -> intent.data?.takeIf(::isAllowedExternalUri)
-                    ?.let { LaunchQueue(listOf(queueItem(it.toString())), 0, 0L) }
+                    ?.let { LaunchQueue(listOf(AudioPlaybackService.mediaItem(it.toString())), 0, 0L) }
             }
         } catch (e: Exception) {
             e.printStackTrace()
             null
         }
 
-    /**
-     * A Tresor video gets an opaque item titled "Vault video" (its name never reaches the MediaSession). A content://
-     * item starts with its URI's last segment: its name is a query to the app that owns it, made after onCreate.
-     */
+    /** A Tresor video gets an opaque item titled "Vault video" (its name never reaches the MediaSession). */
     private fun queueItem(mediaId: String): MediaItem =
         if (VaultVideos.isVault(mediaId)) VaultVideos.mediaItem(mediaId, getString(R.string.video_library_vault_title))
-        else if (isContentId(mediaId)) AudioPlaybackService.mediaItem(mediaId, Uri.parse(mediaId).lastPathSegment.orEmpty())
         else AudioPlaybackService.mediaItem(mediaId)
-
-    private fun isContentId(mediaId: String): Boolean = mediaId.startsWith("${ContentResolver.SCHEME_CONTENT}:")
-
-    private fun currentContentTitle(player: Player): String? = player.currentMediaItem?.mediaId?.let(contentTitles::get)
 
     // The same rule as AudioPlayerActivity: a caller never gets to point Ordo at a file through Ordo's own access.
     private fun isAllowedExternalUri(uri: Uri): Boolean {
@@ -1029,7 +1010,7 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
         binding.seekBar.isEnabled = player.isCommandAvailable(Player.COMMAND_SEEK_IN_CURRENT_MEDIA_ITEM)
             && player.duration != C.TIME_UNSET
         // The file name without its extension, as Ordo Video's library shows it.
-        val title = (currentContentTitle(player) ?: player.currentMediaItem?.mediaMetadata?.displayTitle?.toString())
+        val title = player.currentMediaItem?.mediaMetadata?.displayTitle?.toString()
             ?.let { name -> name.substringBeforeLast('.').ifEmpty { name } }
         binding.toolbar.title = title
         binding.playerView.contentDescription = title
@@ -1384,7 +1365,7 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
     private fun showFileInfo() {
         val player = player ?: return
         val path = currentPath()
-        val name = currentContentTitle(player) ?: player.currentMediaItem?.mediaMetadata?.displayTitle?.toString()
+        val name = player.currentMediaItem?.mediaMetadata?.displayTitle?.toString()
         val info = VideoInfo.fromTracks(
             binding.toolbar.title?.toString().orEmpty(), name, currentDuration(), player.currentTracks,
             getString(R.string.video_info_not_playable)

@@ -84,14 +84,8 @@ internal class LinuxPath : ByteStringListPath<LinuxPath>, RootablePath {
         return watcher.register(this, events, *modifiers)
     }
 
-    // Ordo: judged by where the path leads, so /sdcard (a symlink to the primary volume) needs no root and no "..",
-    // or symlink inside a volume, counts as that volume. A path that cannot be resolved needs root.
     override fun isRootRequired(isAttributeAccess: Boolean): Boolean {
-        val file = resolvedForRootCheck(toFile(), isAttributeAccess) ?: return true
-        return isRootRequired(file, isAttributeAccess)
-    }
-
-    private fun isRootRequired(file: File, isAttributeAccess: Boolean): Boolean {
+        val file = toFile()
         // Ordo: the app always reaches its own data, e.g. files opened from the vault.
         if (file.startsWith(application.dataDir)) {
             return false
@@ -194,19 +188,3 @@ internal class LinuxPath : ByteStringListPath<LinuxPath>, RootablePath {
 
 val Path.isLinuxPath: Boolean
     get() = this is LinuxPath
-
-/**
- * Where [file] leads, for the root check: its canonical path; for an attribute access (lstat, which reads the link
- * itself) the canonical parent plus the name. Null when it cannot be resolved.
- */
-internal fun resolvedForRootCheck(file: File, isAttributeAccess: Boolean): File? =
-    try {
-        val parent = file.parentFile
-        if (isAttributeAccess && parent != null && file.name != ".." && file.name != ".") {
-            File(parent.canonicalFile, file.name)
-        } else {
-            file.canonicalFile
-        }
-    } catch (e: IOException) {
-        null
-    }
