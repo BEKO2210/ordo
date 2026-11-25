@@ -175,6 +175,14 @@ Das Modell (Qwen3.5-4B, 2 583 221 408 Bytes) ist eine Datendatei, festgelegt auf
 (`ai/CommandModel.kt`). Ordo lädt keinen ausführbaren Code nach. Root und Shizuku sind optional. Sie wirken nur, wenn der Nutzer sie auf dem
 Gerät eingerichtet und Ordo dort freigegeben hat (Einstellung „Root“, Standard „automatisch“).
 
+Wann Root greift, entscheidet `LinuxPath.rootCheck` am Ziel eines Pfads, Komponente für Komponente und jeden Symlink
+Schritt für Schritt (`readlink`). So öffnet sich `/sdcard` ohne Root. Ein Symlink in einem Ordner, den Ordo ohne Root
+erreicht (andere Apps können dort Links anlegen), führt nie zu Root, auch nicht bei „immer“: Ordo greift dann ohne Root
+zu, und Kopieren oder Verschieben zwischen so einem Pfad und einem Root-Ort bricht mit „symbolic link in a shared
+folder“ ab. Bekannte Grenze: Zwischen dieser Prüfung und dem Zugriff kann eine andere App den Link noch austauschen
+(TOCTOU). Das ließe sich nur im Root-Dienst selbst schließen (Öffnen mit `O_NOFOLLOW` je Komponente) und ist nicht
+gebaut.
+
 ## I. Store-Texte
 
 Titel, Kurz- und Langbeschreibung liegen in `fastlane/metadata/android/en-US` und `de-DE` („Ordo – File Manager with

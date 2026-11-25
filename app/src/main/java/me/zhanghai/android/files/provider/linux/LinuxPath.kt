@@ -10,6 +10,9 @@ import android.os.Build
 import android.os.Parcel
 import android.os.Parcelable
 import android.os.Process
+import android.system.ErrnoException
+import android.system.Os
+import android.system.OsConstants
 import java.io.File
 import java.io.IOException
 import java8.nio.file.LinkOption
@@ -84,10 +87,17 @@ internal class LinuxPath : ByteStringListPath<LinuxPath>, RootablePath {
         return watcher.register(this, events, *modifiers)
     }
 
-    override fun isRootRequired(isAttributeAccess: Boolean): Boolean {
-        val file = toFile()
+    // Ordo: judged by where the path leads (see rootCheck), so /sdcard (a symlink to the primary volume) needs no root,
+    // and no "..", or symlink a user can write into a volume, makes root reach for something else.
+    override fun isRootRequired(isAttributeAccess: Boolean, noFollowLinks: Boolean): Boolean =
+        rootCheck(toFile(), noFollowLinks, { isRootRequired(it, isAttributeAccess) }) == RootCheck.ROOT
+
+    override fun followsSharedSymlink(noFollowLinks: Boolean): Boolean =
+        rootCheck(toFile(), noFollowLinks, { isRootRequired(it, false) }) == RootCheck.SHARED_SYMLINK
+
+    private fun isRootRequired(file: File, isAttributeAccess: Boolean): Boolean {
         // Ordo: the app always reaches its own data, e.g. files opened from the vault.
-        if (file.startsWith(application.dataDir)) {
+        if (file.startsWith(application.dataDir) || file.startsWith(canonicalDataDir)) {
             return false
         }
         return StorageVolumeListLiveData.valueCompat.none {
@@ -188,3 +198,66 @@ internal class LinuxPath : ByteStringListPath<LinuxPath>, RootablePath {
 
 val Path.isLinuxPath: Boolean
     get() = this is LinuxPath
+
+// The check sees resolved paths, and /data/user/0 is a symlink to /data/data on many devices.
+private val canonicalDataDir: File by lazy { application.dataDir.canonicalFile }
+
+/**
+ * Whether an operation on [file] needs root ([RootCheck.ROOT]), walking it component by component and every symlink
+ * hop by hop (readlink), so each target is judged again. Root is only taken when nothing else gets there, never
+ * because of a symlink in a place the app can write to: another app could plant it there so root follows it (a
+ * confused deputy). Such a link is left to the kernel without root.
+ * - A symlink in a directory reachable without root, also one reached through another link: no root
+ *   ([RootCheck.SHARED_SYMLINK]).
+ * - A symlink elsewhere (e.g. /sdcard in /) continues with its target's components.
+ * - "." and ".." count where they lead. [noFollowLinks] (lstat, unlink, rename, readlink) does not follow the path's
+ *   own last component.
+ * - The end decides by [rootOnly]. Anything that cannot be told (lstat or readlink fails, more than 40 hops) needs
+ *   root.
+ */
+internal fun rootCheck(
+    file: File,
+    noFollowLinks: Boolean,
+    rootOnly: (File) -> Boolean,
+    readlink: (File) -> String? = ::lstatReadlink
+): RootCheck =
+    try {
+        // Pairs of a name and whether it is the path's own last component.
+        val names = ArrayDeque(file.absolutePath.split('/').filter { it.isNotEmpty() }.map { it to false })
+        if (names.isNotEmpty()) names[names.lastIndex] = names.last().first to true
+        var current = File("/")
+        var hops = 0
+        while (names.isNotEmpty()) {
+            val (name, isLast) = names.removeFirst()
+            if (name == ".") continue
+            if (name == "..") {
+                current = current.parentFile ?: current
+                continue
+            }
+            val next = File(current, name)
+            val target = if (isLast && noFollowLinks) null else readlink(next)
+            if (target == null) {
+                current = next
+                continue
+            }
+            if (!rootOnly(current)) return RootCheck.SHARED_SYMLINK
+            if (++hops > 40) return RootCheck.ROOT
+            if (target.startsWith('/')) current = File("/")
+            target.split('/').filter { it.isNotEmpty() }.asReversed().forEach { names.addFirst(it to false) }
+        }
+        if (rootOnly(current)) RootCheck.ROOT else RootCheck.LOCAL
+    } catch (e: IOException) {
+        RootCheck.ROOT
+    }
+
+/** [SHARED_SYMLINK]: through a symlink anyone could have planted; no root for it, the kernel judges. */
+internal enum class RootCheck { LOCAL, ROOT, SHARED_SYMLINK }
+
+/** The target of [file] if it is a symlink (lstat), null if it is not one or not there; throws when unknown. */
+@Throws(IOException::class)
+private fun lstatReadlink(file: File): String? =
+    try {
+        if (OsConstants.S_ISLNK(Os.lstat(file.path).st_mode)) Os.readlink(file.path) else null
+    } catch (e: ErrnoException) {
+        if (e.errno == OsConstants.ENOENT) null else throw IOException(e)
+    }
