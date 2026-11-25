@@ -2,7 +2,8 @@
 # Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later
 # Backup into the folder it backs up (blocker before 1.0.0), WRITES: creates /storage/emulated/0/ordo-e2e-selfbackup
 # with three files and saves the backup ZIP into that same folder, twice (the second time over the first ZIP, as
-# someone who backs up into the same place every week), then removes the folder. The system file picker is driven
+# someone who backs up into the same place every week: Ordo then asks for a new name and keeps the older backup, GB-10),
+# then removes the folder. The system file picker is driven
 # (into the test folder and its Save button, as in backup-restore.sh); the ticks of the backup list are put back.
 # Each time: the backup ends with "Backup finished", the ZIP still exists, is not empty, passes a full CRC test
 # (Python's zipfile on the host), holds the three files, and holds no entry for itself. Regression: the target lies
@@ -84,12 +85,21 @@ backup_once() {
     in_picker && { ui has button1 && ui tap button1 >/dev/null; sleep 2; } # "Replace" when it asks only now
     local _; for _ in $(seq 1 30); do ui has "Sicherung fertig|Backup finished|Sicherung nicht abgeschlossen|Backup not finished" statusTitle && break; sleep 1; done
     guard
-    check "$1: the backup is done" ui has "Sicherung fertig|Backup finished" statusTitle
+    if [ "$2" = 1 ]; then
+        # GB-10 (stabil-p3): Ordo writes nothing into a document that already holds data; it asks for a new name and
+        # the older backup stays as it was.
+        check "$1: Ordo asks for a new name instead of overwriting" \
+            eval 'ui texts | grep -qE "schon eine Sicherung oder eine andere Datei|already a backup or another file"'
+        check "$1: the older backup is unchanged" test "$(a shell "md5sum '$OLD_ZIP'" | awk '{print $1}')" = "$OLD_SUM"
+    else
+        check "$1: the backup is done" ui has "Sicherung fertig|Backup finished" statusTitle
+    fi
     local zip; zip=$(zips | head -1)
     echo "INFO $1: ZIPs in the folder: $(zips | tr '\n' ' ')"
     check "$1: the ZIP still exists and is not empty" a shell "test -s '${zip:-/nonexistent}'"
     check "$1: the ZIP is valid, complete and does not contain itself" zip_ok "${zip:-/nonexistent}"
     check "$1: exactly one ZIP in the folder" test "$(zips | wc -l)" = 1
+    OLD_ZIP=$zip; OLD_SUM=$(a shell "md5sum '${zip:-/nonexistent}'" | awk '{print $1}')
     st; sleep 2 # "Done" closes the screen
     on backup.BackupActivity || open_backup
 }
