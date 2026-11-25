@@ -86,6 +86,19 @@ internal class LinuxPath : ByteStringListPath<LinuxPath>, RootablePath {
 
     override fun isRootRequired(isAttributeAccess: Boolean): Boolean {
         val file = toFile()
+        if (!isRootRequired(file, isAttributeAccess)) {
+            return false
+        }
+        // Ordo: /sdcard (a symlink to the primary volume) needs no root; where a path leads decides.
+        val canonicalFile = try {
+            file.canonicalFile
+        } catch (e: IOException) {
+            return true
+        }
+        return canonicalFile == file || isRootRequired(canonicalFile, isAttributeAccess)
+    }
+
+    private fun isRootRequired(file: File, isAttributeAccess: Boolean): Boolean {
         // Ordo: the app always reaches its own data, e.g. files opened from the vault.
         if (file.startsWith(application.dataDir)) {
             return false
