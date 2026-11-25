@@ -82,7 +82,7 @@ drawer() {
         # Waited for: on a budget tablet the library was still coming back when the tap was tried (W90, a15g-5).
         ui wait "Navigationsmenü öffnen|Open navigation drawer" 4 >/dev/null &&
             ui tap "Navigationsmenü öffnen|Open navigation drawer" >/dev/null && return 0
-        ui has "Nach oben|Navigate up" || return 1; back 1
+        ui has "Nach oben|Navigate up" && back 1   # else still on its way back: wait once more
     done
     return 1
 }

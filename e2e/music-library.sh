@@ -247,9 +247,13 @@ check "a long press selects a song" eval 'search Ordoe2e && ui longtap "Ordoe2e 
 ui has "1 ausgewählt|1 selected" || { echo "DIAG selection:"; ui texts | head -20 | sed 's/^/  /'; }
 # Scrolled into sight first: on the W90 the selection showed the whole library, Beta below the window (a15g-5).
 check "a tap adds a second song" eval 'row_shown "Ordoe2e Beta" title && ui tap "Ordoe2e Beta" title && ui wait "2 ausgewählt|2 selected" 5'
-# One word: a keyboard with autocorrect turned "Ordoe2e List" into "Ordoe2e Liste " at the space (W90 landscape).
+# The keyboard is hidden before Save: on a landscape tablet it covered the dialog's buttons, and the tap on Save
+# picked the keyboard's suggestion "Liste" instead (W90, a15g-6). Escape hides it (as in backup-restore.sh); a back
+# press could close the dialog too.
+kb_hidden() { a shell input keyevent 111; sleep 0.8; }
 check_or_abort "the selection goes into a new playlist" eval 'ui tap actionSelectionPlaylist && ui wait "Neue Wiedergabeliste|New playlist" 5 \
-    && ui tap "Neue Wiedergabeliste|New playlist" && sleep 1 && a shell input text Ordoe2eList && ui tap button1'
+    && ui tap "Neue Wiedergabeliste|New playlist" && sleep 1 && a shell input text Ordoe2eList && kb_hidden \
+    && ui has "Neue Wiedergabeliste|New playlist" alertTitle && ui tap button1'
 in_playlist() { a shell cat "\"$PLAYLISTS/Ordoe2eList.m3u8\"" | grep -q "OrdoE2E-Rock/rock-1.mp3"; }
 check "the playlist is an M3U8 file in Music/Playlists" eval 'sleep 2; in_playlist'
 close_search
@@ -298,7 +302,8 @@ edit_title() {
     ui tap button1 || return 1                        # the preview's Save
     wait_on viewer.audio.MusicLauncherActivity 10
 }
-listed() { local i; for i in 1 2 3 4 5 6; do close_search >/dev/null 2>&1; search "$1" && ui has "$1" && return 0; sleep 2; done; return 1; }
+# As a song row (id title): the search field itself holds the same text and made this pass on an empty result (a15g-6a).
+listed() { local i; for i in 1 2 3 4 5 6; do close_search >/dev/null 2>&1; search "$1" && ui has "$1" title && return 0; sleep 2; done; return 1; }
 check_or_abort "the MP3 gets a new title in the editor" edit_title Mp3Test "Ordoe2e Edited Mp"
 check "Undo is offered after saving" ui wait "Rückgängig|Undo" 5
 check "the library shows the edited MP3" listed "Ordoe2e Edited Mp"

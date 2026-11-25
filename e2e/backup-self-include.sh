@@ -126,7 +126,9 @@ backup_once() {
     local zip; zip=$(zips | head -1)
     echo "INFO $1: ZIPs in the folder: $(zips | tr '\n' ' ')"
     check "$1: the ZIP still exists and is not empty" a shell "test -s '${zip:-/nonexistent}'"
-    check "$1: the ZIP is valid, complete and does not contain itself" zip_ok "${zip:-/nonexistent}"
+    # zip_ok's own lines (entries, what is missing) go to the log: check would swallow them.
+    local zip_out zip_rc=0; zip_out=$(zip_ok "${zip:-/nonexistent}" 2>&1) || zip_rc=1; sed 's/^/  /' <<<"$zip_out"
+    check "$1: the ZIP is valid, complete and does not contain itself" test "$zip_rc" = 0
     check "$1: exactly one ZIP in the folder" test "$(zips | wc -l)" = 1
     st; sleep 2 # "Done" closes the screen
     on backup.BackupActivity || open_backup
