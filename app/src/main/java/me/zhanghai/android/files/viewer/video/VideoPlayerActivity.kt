@@ -141,8 +141,6 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
     private lateinit var controls: VideoControls
     private var seekPro: VideoSeekPro? = null
     private lateinit var resumeStore: VideoResumeStore
-    // The names of content:// items, looked up off the main thread (a query to the app that owns them).
-    private val contentTitles = HashMap<String, String>()
     private var subtitles: VideoSubtitles? = null
     private val watchedStore by lazy { VideoWatchedStore(this) }
     // Playing Tresor videos: the screen closes when left, like the Tresor locks (no grant outlives it unseen).
@@ -207,6 +205,7 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
                     Player.EVENT_PLAY_WHEN_READY_CHANGED,
                     Player.EVENT_IS_PLAYING_CHANGED,
                     Player.EVENT_MEDIA_ITEM_TRANSITION,
+                    Player.EVENT_MEDIA_METADATA_CHANGED,
                     Player.EVENT_AVAILABLE_COMMANDS_CHANGED
                 )) {
                 updateUi(player)
@@ -372,13 +371,15 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
             }
         }
         player.setMediaItems(queue.items, queue.startIndex, queue.positionMs)
-        queue.items.map { it.mediaId }.filter { isContentId(it) && !VaultVideos.isVault(it) }.takeIf { it.isNotEmpty() }?.let { ids ->
+        // content:// names are a query to the app that owns them: off the main thread, the playing one first, each
+        // into its item as soon as known (title bar, notification, queue); stops with the screen.
+        val contentIds = queue.items.map { it.mediaId }.filter { isContentId(it) && !VaultVideos.isVault(it) }
+        if (contentIds.isNotEmpty()) {
+            val firstId = queue.items.getOrNull(queue.startIndex)?.mediaId
             lifecycleScope.launch {
-                val titles = withContext(Dispatchers.IO) {
-                    ids.associateWith { AudioPlaybackService.mediaItem(it).mediaMetadata.displayTitle?.toString() }
+                loadTitles(contentIds, contentIds.indexOf(firstId), { contentTitle(it) }) { id, title ->
+                    this@VideoPlayerActivity.player?.let { setDisplayTitle(it, id, title) }
                 }
-                titles.forEach { (id, title) -> if (!title.isNullOrEmpty()) contentTitles[id] = title }
-                this@VideoPlayerActivity.player?.let(::updateUi)
             }
         }
         player.playWhenReady = savedInstanceState?.getBoolean(STATE_PLAY_WHEN_READY) ?: true
@@ -600,7 +601,17 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
 
     private fun isContentId(mediaId: String): Boolean = mediaId.startsWith("${ContentResolver.SCHEME_CONTENT}:")
 
-    private fun currentContentTitle(player: Player): String? = player.currentMediaItem?.mediaId?.let(contentTitles::get)
+    /** Every item of [mediaId] gets [title]; same URI, so ExoPlayer keeps playing it (no new preparation). */
+    private fun setDisplayTitle(player: Player, mediaId: String, title: String) {
+        for (index in 0 until player.mediaItemCount) {
+            val item = player.getMediaItemAt(index)
+            if (item.mediaId != mediaId || item.mediaMetadata.displayTitle?.toString() == title) continue
+            player.replaceMediaItem(
+                index, item.buildUpon().setMediaMetadata(item.mediaMetadata.buildUpon().setDisplayTitle(title).build())
+                    .build()
+            )
+        }
+    }
 
     // The same rule as AudioPlayerActivity: a caller never gets to point Ordo at a file through Ordo's own access.
     private fun isAllowedExternalUri(uri: Uri): Boolean {
@@ -1029,7 +1040,7 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
         binding.seekBar.isEnabled = player.isCommandAvailable(Player.COMMAND_SEEK_IN_CURRENT_MEDIA_ITEM)
             && player.duration != C.TIME_UNSET
         // The file name without its extension, as Ordo Video's library shows it.
-        val title = (currentContentTitle(player) ?: player.currentMediaItem?.mediaMetadata?.displayTitle?.toString())
+        val title = player.currentMediaItem?.mediaMetadata?.displayTitle?.toString()
             ?.let { name -> name.substringBeforeLast('.').ifEmpty { name } }
         binding.toolbar.title = title
         binding.playerView.contentDescription = title
@@ -1384,7 +1395,7 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
     private fun showFileInfo() {
         val player = player ?: return
         val path = currentPath()
-        val name = currentContentTitle(player) ?: player.currentMediaItem?.mediaMetadata?.displayTitle?.toString()
+        val name = player.currentMediaItem?.mediaMetadata?.displayTitle?.toString()
         val info = VideoInfo.fromTracks(
             binding.toolbar.title?.toString().orEmpty(), name, currentDuration(), player.currentTracks,
             getString(R.string.video_info_not_playable)
@@ -1451,5 +1462,27 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
             // Only seeks within the file the token names; a forged extra alone opens nothing.
             if (resume) intent.putExtra(EXTRA_RESUME, true)
         }
+    }
+}
+
+/** The name the owning app gives a content:// item (a query to it: never on the main thread). */
+private fun contentTitle(mediaId: String): String? =
+    AudioPlaybackService.mediaItem(mediaId).mediaMetadata.displayTitle?.toString()
+
+/**
+ * Looks [ids] up one by one on the IO threads, from [first] on and then the ones before it, and hands each known name
+ * to [publish] at once. Cancelling (the screen is gone) stops before the next lookup.
+ * shortcut: a lookup already running finishes (a provider query cannot be interrupted), then nothing follows.
+ */
+internal suspend fun loadTitles(
+    ids: List<String>,
+    first: Int,
+    lookup: (String) -> String?,
+    publish: (String, String) -> Unit
+) {
+    val start = first.coerceIn(0, ids.size)
+    for (id in (ids.drop(start) + ids.take(start)).distinct()) {
+        val title = withContext(Dispatchers.IO) { lookup(id) }
+        if (!title.isNullOrEmpty()) publish(id, title)
     }
 }

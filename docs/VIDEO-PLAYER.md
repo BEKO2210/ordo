@@ -14,7 +14,10 @@ das Video aus dem Instanzzustand. Verknüpfungen (`OpenFileActivity`) öffnen ei
 Videos in Archiven gehen wie bisher über `FileJobService.open` an andere Apps; „Öffnen mit“ bietet weiter alle Apps an.
 
 Die Activity ist für `video/*` exportiert. Von anderen Apps spielt sie nur eine `content://`-URI mit Lese-Grant, nie
-eine von Ordos eigenen Providern; `file://` und Pfad-Extras werden abgelehnt (Hinweis und Schließen).
+eine von Ordos eigenen Providern; `file://` und Pfad-Extras werden abgelehnt (Hinweis und Schließen). Ein `content://`-Video startet
+mit dem letzten Teil der URI als Titel; den echten Dateinamen fragt Ordo danach im Hintergrund bei der fremden App ab
+(nie auf dem Haupt-Thread, das laufende Video zuerst, Schluss mit dem Bildschirm) und setzt ihn ins `MediaItem`, also in
+Titelzeile, Video-Infos, Benachrichtigung und Warteschlange.
 
 ## Wiedergabe
 
