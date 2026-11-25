@@ -85,7 +85,8 @@ drawer() {
     return 1
 }
 drawer
-check "Ordo Musik's settings open" eval 'ui tap "Einstellungen|Settings" && ui wait "Farben aus dem Cover|Colours from the cover" 5'
+# On a landscape phone Settings lies below the menu's window: swiped into sight within the menu's list (titleText rows).
+check "Ordo Musik's settings open" eval 'scroll_to "Einstellungen|Settings" 4 titleText && ui tap "Einstellungen|Settings" && ui wait "Farben aus dem Cover|Colours from the cover" 5'
 sleep 1; back; sleep 1
 # The video player: controls, the locked screen's "hold to unlock", the speed sheet and the player's sheets.
 if command -v ffmpeg >/dev/null; then

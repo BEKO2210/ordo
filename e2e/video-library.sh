@@ -113,6 +113,8 @@ end_mode "Anhalten|Stop at the end"
 library
 scroll_to "Der lange Film" 4 # its title, below the window on a phone (A15, qa8)
 ui longtap "Der lange Film" >/dev/null
+# Trash shows in the toolbar only if there is room (ifRoom): on an upright phone it is in the overflow menu.
+ui has "In den Papierkorb|Move to trash|Löschen|Delete" || { ui tap "Weitere Optionen|More options" >/dev/null; sleep 1; }
 ui tap "In den Papierkorb|Move to trash|Löschen|Delete" >/dev/null; sleep 1 # deliberate: the question slides in
 trash_asked() { local i; for i in 1 2 3; do ui texts | grep -qE "in den Papierkorb verschieben|to the trash|löschen\?|Delete 1" && return 0; sleep 1; done; return 1; }
 check "trash asks first" trash_asked

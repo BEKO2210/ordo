@@ -43,7 +43,10 @@ open_clip() {
 # ⋮ › entry, also while the film plays (video_menu in lib.sh).
 menu() { video_menu "$1"; }
 # The sheet is longer than a phone screen: scrolled until the switch shows.
-switch_on() { scroll_to "$1" 3; ui tap "$1" >/dev/null; sleep 1.5; }
+# The sheet scrolls by a quick screen-wide swipe (swipe_up), not scroll_to: in the curve each band is a scrollable
+# (SeekBar) node, the deepest one wins in scroll_to, and its slow short swipe drags that band instead (31 Hz +12 dB, A15).
+sheet_to() { local i; for i in $(seq 1 "${2:-6}"); do ui has "$1" && return 0; swipe_up; done; ui has "$1"; }
+switch_on() { sheet_to "$1"; ui tap "$1" >/dev/null; sleep 1.5; }
 # part REGEX: a text, id or description on screen contains it (notes and track lines are longer than their key words).
 part() { ui texts | grep -E -- "$1" >/dev/null; }
 
@@ -53,12 +56,12 @@ check "the surround clip plays" wait_playing
 menu "Klang|Sound"
 check "the sound sheet opens with its own settings" part "^(Nur für Videos|Only for videos)"
 # A device with its own spatializer (Tab S9) gets the 5.1 unchanged and says so; any other is mixed by Ordo.
-scroll_to surroundNote 3 # below the curve and the presets on a landscape phone (A15, qa8)
+sheet_to surroundNote # below the curve and the presets on a landscape phone (A15, qa8)
 check "a 5.1 track says how it is played (Ordo mix or the system's surround)" \
     part "(5.1-Ton wird|5.1 sound is mixed|5.1-Ton geht unverändert|5.1 sound goes to Android).*\|surroundNote\|"
 switch_on "Dialog-Verstärker|Clear dialogue"
 check "with Clear dialogue on it plays on" wait_playing
-scroll_to dialogStrong 3; ui tap dialogStrong >/dev/null; sleep 1.5  # "Strong" alone is also the bass boost's
+sheet_to dialogStrong; ui tap dialogStrong >/dev/null; sleep 1.5  # "Strong" alone is also the bass boost's
 check "with Clear dialogue strong it plays on" wait_playing
 switch_on "Nachtmodus|Night mode"
 check "with Night mode on it plays on" wait_playing
@@ -76,6 +79,8 @@ check "channels are named" eval 'part "· 5\.1\|" && part "· Stereo\|"'
 ui tap "Englisch|English" >/dev/null; sleep 2
 check "the English track plays" wait_playing
 menu "Tonspur|Audio track"
+# On a landscape phone the sync row lies below the two tracks: scrolled into sight first.
+scroll_to "Ton später|Sound later" 3 >/dev/null
 ui tap "Ton später|Sound later" >/dev/null
 ui tap "Ton später|Sound later" >/dev/null
 check "two steps later say 100 ms" ui see "Ton 100 ms später|Sound 100 ms later"
@@ -89,7 +94,8 @@ back
 a shell am force-stop "$PKG"
 open_clip 02-ac3.mkv; sleep 2
 menu "Tonspur|Audio track"
-check "the output's delay is back after a restart" ui has "Ton 50 ms später|Sound 50 ms later"
+check "the output's delay is back after a restart" scroll_to "Ton 50 ms später|Sound 50 ms later" 3
+scroll_to "Zurücksetzen|Reset" 3 >/dev/null
 ui tap "Zurücksetzen|Reset" >/dev/null; sleep 1 # deliberate: the row is redrawn before it is read
 check "Reset puts it back in sync" part "^(Synchron|In sync)"
 back; back 2

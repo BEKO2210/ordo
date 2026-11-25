@@ -34,10 +34,12 @@ ui tap "Kopieren|Copy" >/dev/null; sleep 1
 back; sleep 1; guard
 ui tap ordoe2e-dst >/dev/null; sleep 2; guard
 check "the destination folder opens" ui has "$NAME"
-check "paste is offered" ui has "Hierher kopieren|Copy here"
-ui tap "Hierher kopieren|Copy here" >/dev/null; sleep 1.5
-check "the replace dialog appears" ui has "überschreiben|Replace"
-ui tap "Ersetzen|Replace" >/dev/null
+# By its id: a phone shows the label in capitals ("HIERHER KOPIEREN", A15).
+check "paste is offered" ui has action_paste
+ui tap action_paste >/dev/null; sleep 1.5
+# The word stands inside the title ("Datei „…“ überschreiben?"), so it is looked for in it; then its positive button.
+check "the replace dialog appears" eval 'ui wait button1 5 >/dev/null && ui texts | grep -Eq "überschreiben|Replace"'
+ui tap button1 >/dev/null
 sleep 0.4
 # GB-7: cancel the job. GB-8: if it is still running, kill the process so the half-written
 # part file cannot become the destination.

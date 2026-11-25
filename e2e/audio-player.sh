@@ -67,7 +67,8 @@ sleep 1 # the sheet is still sliding up: a tap now would land where the switch i
 scrolled_to() { local i; for i in 1 2 3 4 5 6 7 8 9 10 11; do paused_ui has "$1" && return 0; swipe_up; done; return 1; }
 # On a landscape phone the curve alone fills the sheet and the header (switch, status) scrolls away with it: the
 # sheet opens again at its top to reach them.
-sound_at_top() { back 1; paused_ui tap actionSound >/dev/null; sleep 1.5; }
+# A reopened sheet starts with Fine-tune collapsed again (fine_open remembers whether its band rows are shown).
+sound_at_top() { back 1; paused_ui tap actionSound >/dev/null; sleep 1.5; fine_open=0; }
 check "the curve explains its 150 ms hold" scrolled_to "Hold a handle for 150 ms, then drag.|Einen Griff 150 ms halten, dann ziehen."
 check "the fine-tune controls start collapsed" scrolled_to "Fine-tune|Genau einstellen"
 paused_ui has equalizerEnabled || sound_at_top
@@ -98,14 +99,15 @@ check "the Bass preset tile can be selected" paused_ui tap "Bass"
 settled() { local i; for i in 1 2 3 4 5 6; do paused_ui has "$@" && return 0; sleep 0.5; done; return 1; }
 paused_ui has effectStatus || sound_at_top
 check "the status names the selected preset" settled Bass effectStatus
-fine_tune_opened() { scrolled_to fineTuneToggle && paused_ui tap fineTuneToggle; }
+fine_tune_opened() { scrolled_to fineTuneToggle && paused_ui tap fineTuneToggle && fine_open=1; }
 check "Fine-tune opens its band rows" fine_tune_opened
 # Everything at the top first: on a phone the band rows push the rest below the screen.
 presets_to_start
 check "the Flat preset tile restores the curve" paused_ui tap "Flat|Neutral"
 paused_ui has equalizerEnabled || sound_at_top
 check "the equalizer switches off again" equalizer off
-check "a band row shows its gain" scrolled_to "31 Hz"
+band_row() { [ "${fine_open:-0}" = 1 ] || fine_tune_opened || return 1; scrolled_to "31 Hz"; }
+check "a band row shows its gain" band_row
 check "the playback section reaches skip silence and mono" scrolled_to "Skip silence|Stille überspringen"
 check "the sleep timer offers end of track" scrolled_to "End of track|Titelende"
 back 1

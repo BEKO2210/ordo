@@ -15,6 +15,7 @@ VIDEO_ALIAS=me.zhanghai.android.files.launcher.VideoAlias
 VIDEO="Ordo Video"
 SECTION="Eingebaute Apps|Built-in apps"
 MUSIC="Ordo Musik|Ordo Music"
+MUSIC_SUMMARY="Eigenes Symbol in deiner App-Liste, direkt zu deiner Musiksammlung|Its own icon in your app list, straight to your music library"
 SOON="Kommt, sobald die App fertig ist|Coming as soon as the app is ready"
 ON_MESSAGE="„Ordo Musik“ ist eingeschaltet. Dein Startbildschirm braucht manchmal einen Moment, bis das Symbol erscheint.|“Ordo Music” is on. Your launcher can need a moment before the icon shows up."
 OFF_MESSAGE="„Ordo Musik“ ist ausgeschaltet. Das Symbol verschwindet, sobald dein Startbildschirm sich aktualisiert hat.|“Ordo Music” is off. The icon disappears as soon as your launcher has refreshed."
@@ -67,7 +68,9 @@ for app in "Bilder|Images" "PDF" "Notizen|Notes"; do
 done
 check "the apps still to come are grouped" ui has "Bald verfügbar|Coming soon"
 check "a not yet ready app says when it comes" ui has "$SOON"
-for _ in 1 2 3 4 5 6 7 8; do ui has "$MUSIC" title && break; swipe_down; done
+# Back to the switch row, known by its summary: the icon colours further down have a row titled "Ordo Musik" too,
+# and the tap went to that one (A15, 25.11.2026). With both on screen the switch row comes first.
+for _ in 1 2 3 4 5 6 7 8; do ui has "$MUSIC_SUMMARY" summary && break; swipe_down; done
 
 # The message first: it stays 6 s, and a screen read on a real phone takes over 2 s.
 check "tapping the switch works" ui tap "$MUSIC" title

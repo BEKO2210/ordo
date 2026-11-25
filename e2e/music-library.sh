@@ -139,7 +139,7 @@ show_tab "Titel|Songs" >/dev/null
 check "shuffle all is the first row" eval 'ui texts | grep -Eq "^(Alle zufällig|Shuffle all) \([0-9]+\)\|"'
 # A device has other music too: every list is narrowed by search to the test songs, which no other name contains.
 # Enter submits the search: the soft keyboard closes and no longer hides the lower rows (phones).
-search() { ui tap actionSearch >/dev/null && sleep 1 && a shell input text "$1" && a shell input keyevent KEYCODE_ENTER && sleep 2; }
+search() { ui tap actionSearch >/dev/null && sleep 1 && a shell input text "${1// /%s}" && a shell input keyevent KEYCODE_ENTER && sleep 2; }
 # The first back may only hide the keyboard; back is pressed once more only while the search field is still there.
 # Back only while the search field is there: one more back would leave the app.
 close_search() {
@@ -208,7 +208,8 @@ cat "$tmp/position.txt" 2>/dev/null
 check_or_abort "a song row opens its options" eval 'row_shown "Weitere Optionen für Ordoe2e Beta|More options for Ordoe2e Beta" && ui tap "Weitere Optionen für Ordoe2e Beta|More options for Ordoe2e Beta" && ui wait "Als Nächstes spielen|Play next" 5'
 pass "options offer play next"
 check "options offer add to queue" ui has "Zur Warteschlange|Add to queue"
-check "options offer showing the file" ui has "Datei anzeigen|Show file"
+# On a landscape phone the popup shows four rows: the last one is scrolled into sight within the popup's list.
+check "options offer showing the file" scroll_to "Datei anzeigen|Show file" 3 "Zur Warteschlange|Add to queue"
 back 1
 check "closing search keeps the library open" close_search
 check "the library is still in front" on viewer.audio.MusicLauncherActivity
@@ -222,11 +223,19 @@ open_menu() { ui has "Bibliothek|Library" titleText && return 0; ui tap "$MENU" 
 check "the side menu is open or opens" open_menu
 check "the side menu names Ordo Musik" ui wait "Ordo Musik|Ordo Music" 5
 check "the side menu offers the library" ui has "Bibliothek|Library"
-check "the side menu offers sound and the sleep timer" ui has "Einschlaf-Timer|Sleep timer"
-check_or_abort "recently played opens with the played song" eval 'ui tap "Zuletzt gespielt|Recently played" && ui wait "Ordoe2e Alpha" 5'
+# On a landscape phone the menu's list is taller than its window: an entry is swiped into sight within that list
+# (its rows are titleText), towards its end, then back to its top.
+nav_row() {
+    local dir i
+    ui has "$1" titleText && return 0
+    for dir in up down; do for i in 1 2 3 4; do scroll_in $dir titleText || break; ui has "$1" titleText && return 0; done; done
+    return 1
+}
+check "the side menu offers sound and the sleep timer" nav_row "Einschlaf-Timer|Sleep timer"
+check_or_abort "recently played opens with the played song" eval 'nav_row "Zuletzt gespielt|Recently played" && ui tap "Zuletzt gespielt|Recently played" && ui wait "Ordoe2e Alpha" 5'
 check_or_abort "the menu goes back to the library" eval 'open_menu && ui tap "Bibliothek|Library" && ui wait "Alben|Albums" 5'
 pass "the library tabs are back"
-check_or_abort "Sound opens from the side menu" eval 'open_menu && ui tap "Klang|Sound" && ui wait "Equalizer" 8'
+check_or_abort "Sound opens from the side menu" eval 'open_menu && nav_row "Klang|Sound" && ui tap "Klang|Sound" titleText && ui wait "Equalizer" 8'
 pass "the Sound sheet opens over the player"
 back 1.5; back 2
 check "back from the player returns to the library" on viewer.audio.MusicLauncherActivity
@@ -243,13 +252,13 @@ in_playlist() { a shell cat "\"$PLAYLISTS/Ordoe2e List.m3u8\"" | grep -q "OrdoE2
 check "the playlist is an M3U8 file in Music/Playlists" eval 'sleep 2; in_playlist'
 close_search
 ui has "$MENU" || ui has "Bibliothek|Library" titleText || { echo "DIAG before the side menu:"; ui texts | head -20 | sed 's/^/  /'; }
-check_or_abort "the side menu lists the playlist" eval 'open_menu && ui tap "Wiedergabelisten|Playlists" titleText && ui wait "Ordoe2e List" 5'
+check_or_abort "the side menu lists the playlist" eval 'open_menu && nav_row "Wiedergabelisten|Playlists" && ui tap "Wiedergabelisten|Playlists" titleText && ui wait "Ordoe2e List" 5'
 check_or_abort "the playlist opens with its songs" eval 'ui tap "Ordoe2e List" && ui wait "Ordoe2e Alpha" 5 && ui has "Ordoe2e Beta"'
 back 1.5; back 1.5
 check "a song becomes a favourite from its menu" eval 'search Ordoe2e && ui tap "Weitere Optionen für Ordoe2e Gamma|More options for Ordoe2e Gamma" \
     && ui wait "Zu Favoriten|Add to favorites" 5 && ui tap "Zu Favoriten|Add to favorites"'
 close_search
-check_or_abort "the favourites show it" eval 'open_menu && ui tap "Favoriten|Favorites" titleText && ui wait "Ordoe2e Gamma" 5'
+check_or_abort "the favourites show it" eval 'open_menu && nav_row "Favoriten|Favorites" && ui tap "Favoriten|Favorites" titleText && ui wait "Ordoe2e Gamma" 5'
 # Favourites and playlists are tabs of the library: the tab row stays, the selected tab scrolled into view (phones).
 check "the favourites keep the tab row, their tab in view" ui has "Favoriten|Favorites"
 check "the menu returns to the library" eval 'open_menu && ui tap "Bibliothek|Library" && ui wait "Alben|Albums" 5'

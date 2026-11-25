@@ -28,9 +28,11 @@ def scrollable_bounds(xml, anchor=None):
         for child in node:
             contains_anchor = visit(child, depth + 1) or contains_anchor
         match = BOUNDS.fullmatch(node.attrib.get("bounds", ""))
-        # A HorizontalScrollView (a chip row such as the sound sheet's presets) never moves vertically.
+        # A HorizontalScrollView (a chip row such as the sound sheet's presets) never moves vertically, and a slider
+        # (also the equalizer curve's virtual band handles) is dragged by a swipe instead of scrolling the sheet.
+        cls = node.attrib.get("class", "")
         if (node.attrib.get("scrollable") == "true" and match and (not anchor or contains_anchor)
-                and not node.attrib.get("class", "").endswith("HorizontalScrollView")):
+                and not cls.endswith("HorizontalScrollView") and not cls.endswith("SeekBar")):
             bounds = tuple(map(int, match.groups()))
             width, height = bounds[2] - bounds[0], bounds[3] - bounds[1]
             # Excludes horizontal tab strips and zero-sized accessibility placeholders.

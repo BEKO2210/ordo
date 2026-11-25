@@ -153,6 +153,12 @@ class UiDump(unittest.TestCase):
                'bounds="[0,1500][1000,1626]"/></node></hierarchy>')
         self.assertEqual((0, 0, 1000, 2000), ui_dump.scrollable_bounds(xml))
 
+    def test_scrollable_bounds_skips_slider(self):
+        xml = ('<hierarchy><node class="androidx.core.widget.NestedScrollView" scrollable="true" '
+               'bounds="[0,0][1000,2000]"><node class="android.widget.SeekBar" scrollable="true" '
+               'bounds="[100,500][226,626]"/></node></hierarchy>')
+        self.assertEqual((0, 0, 1000, 2000), ui_dump.scrollable_bounds(xml))
+
     def test_scrollable_bounds_requires_anchor_in_container(self):
         xml = ('<hierarchy><node scrollable="true" bounds="[0,0][1000,700]">'
                '<node text="Other" bounds="[0,0][20,20]"/></node></hierarchy>')

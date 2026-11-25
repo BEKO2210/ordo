@@ -33,8 +33,11 @@ guard; ui wait 01-isolate.mp4 10 >/dev/null
 ui tap 01-isolate.mp4 >/dev/null; wait_on viewer.video.VideoPlayerActivity 8
 check "the 48 kHz clip plays" wait_playing
 video_menu "Klang|Sound"
+# The sheet scrolls by a quick screen-wide swipe (swipe_up), not scroll_to: in the curve each band is a scrollable
+# (SeekBar) node, the deepest one wins in scroll_to, and its slow short swipe drags that band instead (31 Hz +12 dB, A15).
+sheet_to() { local i; for i in $(seq 1 "${2:-6}"); do ui has "$1" && return 0; swipe_up; done; ui has "$1"; }
 abi=$(a shell getprop ro.product.cpu.abi | tr -d '\r')
-if ! scroll_to "Dialog freistellen plus|Dialogue isolation plus" 4; then
+if ! sheet_to "Dialog freistellen plus|Dialogue isolation plus"; then
     case "$abi" in
         arm64-v8a|x86_64) fail "the card is shown on $abi (unless this device was measured too slow before)"
             # Which one it was: DialogModel hides the card only above a stored RTF of 0.7.

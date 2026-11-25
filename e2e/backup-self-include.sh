@@ -40,26 +40,59 @@ PY
 }
 # into_folder: steers the system picker into the test folder (it may open anywhere: Recent, Downloads, the last one).
 into_folder() {
-    local model; model=$(a shell getprop ro.product.model | tr -d '\r')
+    local model device; model=$(a shell getprop ro.product.model | tr -d '\r')
+    device=$(a shell settings get global device_name | tr -d '\r')
     ui has "$NAME" && { ui tap "$NAME" >/dev/null; sleep 2; return 0; }
-    # The roots drawer: internal storage carries the device's model name (or "Internal storage").
-    ui tap "Stammverzeichnisse anzeigen|Show roots|Navigationsleiste öffnen|Open navigation drawer" >/dev/null 2>&1; sleep 1.5
-    ui tap "$model|Interner Speicher|Internal storage|Interner gemeinsamer Speicher|Internal shared storage" >/dev/null 2>&1 || return 1
+    # The roots drawer: internal storage carries the device's model or device name ("Galaxy A15") or "Internal storage".
+    # Samsung's picker names the drawer button "Root-Verzeichnis anzeigen" (A15, 25.11.2026).
+    ui tap "Stammverzeichnisse anzeigen|Show roots|Root-Verzeichnis anzeigen|Navigationsleiste öffnen|Open navigation drawer" >/dev/null 2>&1; sleep 1.5
+    ui tap "${device:-$model}|$model|Interner Speicher|Internal storage|Interner gemeinsamer Speicher|Internal shared storage" >/dev/null 2>&1 || return 1
     sleep 2
     scroll_to "$NAME" 6 >/dev/null || return 1
     ui tap "$NAME" >/dev/null; sleep 2
 }
+
+# The form scrolls behind the start bar: a row behind it is on the screen read but a tap there starts the backup, and
+# a swipe starting on the bar moves nothing (A15 landscape, 25.11.2026). So swipes and taps stay above the bar.
+bar_top() { ui bounds startBar | awk '{ print $2; exit }'; }
+# above_bar TARGET [INSIDE]: TARGET is on screen with its middle above the start bar.
+above_bar() {
+    local y bar; y=$(ui bounds "$1" ${2:+"$2"} | awk '{ print int(($2 + $4) / 2); exit }'); bar=$(bar_top)
+    [ -n "$y" ] && [ "$y" -lt "${bar:-99999}" ]
+}
+form_swipe() {
+    local x1 y1 x2 y2 bot x
+    read -r x1 y1 x2 y2 < <(ui scrollbounds formView); [ -n "${y2:-}" ] || return 1
+    bot=$(bar_top); [ -n "$bot" ] && [ "$bot" -lt "$y2" ] || bot=$y2
+    x=$(((x1 + x2) / 2))
+    if [ "$1" = up ]; then a shell input swipe "$x" $((y1 + (bot - y1) * 3 / 4)) "$x" $((y1 + (bot - y1) / 4)) 400
+    else a shell input swipe "$x" $((y1 + (bot - y1) / 4)) "$x" $((y1 + (bot - y1) * 3 / 4)) 400; fi
+    sleep 0.5
+}
+# form_to TARGET [INSIDE]: scrolls the form down until TARGET stands above the bar.
+form_to() { local _; above_bar "$@" && return 0; for _ in 1 2 3 4 5 6 7 8; do form_swipe up || return 1; above_bar "$@" && return 0; done; return 1; }
+form_top() { local _; for _ in 1 2 3 4 5 6 7 8; do above_bar restoreRow && return 0; form_swipe down || return 1; done; }
+ADD="Ordner hinzufügen|Add folder"
 
 open_backup() { scroll_to backupCard 4 scrollView >/dev/null; ui tap backupCard >/dev/null; sleep 2.5; guard; }
 
 launch
 open_backup
 check "the backup screen opens" on backup.BackupActivity
-# Only the test folder: remember what was ticked and give it back at the end.
-mapfile -t ticked < <(ui texts | awk -F'|' '$2 == "titleText" { print $1 }' | while read -r t; do
-    [ "$t" != "$NAME" ] && ui checked "$t" && echo "$t"; done)
-for t in "${ticked[@]}"; do ui tap "$t" titleText >/dev/null; sleep 0.3; done
-scroll_to "$NAME" 4 >/dev/null
+# Only the test folder: remember what was ticked and give it back at the end. The whole list is read: on a landscape
+# phone none of its rows is on the first screen. The last row ("Add folder") has no tick: never read as one.
+declare -A seen; ticked=()
+for _ in 1 2 3 4 5 6 7 8 9 10; do
+    while read -r t; do
+        [ -n "$t" ] && [ -z "${seen[$t]:-}" ] || continue; seen[$t]=1
+        [ "$t" != "$NAME" ] && ! [[ "|$ADD|" == *"|$t|"* ]] && ui checked "$t" && ticked+=("$t")
+    done < <(ui texts | awk -F'|' '$2 == "titleText" { print $1 }')
+    above_bar "$ADD" titleText && break
+    form_swipe up || break
+done
+form_top
+for t in "${ticked[@]}"; do form_to "$t" titleText && ui tap "$t" titleText >/dev/null; sleep 0.3; done
+form_to "$NAME" titleText
 ui checked "$NAME" || ui tap "$NAME" titleText >/dev/null
 check "only the test folder is ticked" ui checked "$NAME"
 
@@ -67,12 +100,12 @@ check "only the test folder is ticked" ui checked "$NAME"
 backup_once() {
     guard
     # "Google Drive or another place": the system picker without a starting drive. Not kept between screens.
-    scroll_to otherRow 4 >/dev/null; ui tap otherRow >/dev/null; sleep 0.5
-    scroll_to startButton 3 >/dev/null
+    form_top; form_to otherRow; ui tap otherRow >/dev/null; sleep 0.5
     ui tap startButton >/dev/null; sleep 3; picker
     if ! in_picker || ! into_folder; then
         echo "SKIP $1: the system picker could not be steered into $NAME (by hand: save the backup into that folder)"
-        in_picker && back 1; sleep 2; guard; return 1
+        # Back until Ordo is in front again: in the picker, back first leaves the folder it opened in (A15).
+        local _; for _ in 1 2 3 4; do in_picker || break; back 1; done; sleep 2; guard; return 1
     fi
     if [ "$2" = 1 ]; then
         local old; old=$(zips | head -1)
@@ -99,11 +132,11 @@ fi
 
 # The ticks as they were; the test folder goes, so its entry leaves the list by itself.
 on backup.BackupActivity || open_backup
-scroll_to "$NAME" 4 >/dev/null
+form_top; form_to "$NAME" titleText
 ui checked "$NAME" && ui tap "$NAME" titleText >/dev/null; sleep 0.3
-swipe_down; swipe_down
-for t in "${ticked[@]}"; do scroll_to "$t" 4 >/dev/null; ui tap "$t" titleText >/dev/null; sleep 0.3; done
-all_ticked() { local t; for t in "${ticked[@]}"; do ui checked "$t" || return 1; done; }
+form_top
+for t in "${ticked[@]}"; do form_to "$t" titleText && ui tap "$t" titleText >/dev/null; sleep 0.3; done
+all_ticked() { local t; form_top; for t in "${ticked[@]}"; do form_to "$t" titleText; ui checked "$t" || return 1; done; }
 check "the ticks are back as they were" all_ticked
 back 2
 finish

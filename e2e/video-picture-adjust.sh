@@ -65,8 +65,11 @@ back 2
 open_video 01-full.mp4
 sheet
 check "the step is remembered for the video" ui has "+2"
+# On a landscape phone Reset lies below the window; the brightness row is scrolled back into sight before it is read.
+scroll_to "Zurücksetzen|Reset" 4 >/dev/null
 ui tap "Zurücksetzen|Reset" >/dev/null
-check "reset goes back to 0" eval '! ui has "+2"'
+brightness_shown() { local i; for i in 1 2 3 4; do ui has "Helligkeit|Brightness" && return 0; scroll_in down || return 1; done; ui has "Helligkeit|Brightness"; }
+check "reset goes back to 0" eval 'brightness_shown && ! ui has "+2"'
 back 1; back 2
 
 # 4. An interlaced clip is detected and deinterlaced by itself.
