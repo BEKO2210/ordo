@@ -36,7 +36,9 @@ video_menu "Klang|Sound"
 abi=$(a shell getprop ro.product.cpu.abi | tr -d '\r')
 if ! scroll_to "Dialog freistellen plus|Dialogue isolation plus" 4; then
     case "$abi" in
-        arm64-v8a|x86_64) fail "the card is shown on $abi (unless this device was measured too slow before)" ;;
+        arm64-v8a|x86_64) fail "the card is shown on $abi (unless this device was measured too slow before)"
+            # Which one it was: DialogModel hides the card only above a stored RTF of 0.7.
+            echo "INFO stored RTF: $(a shell run-as "$PKG" cat shared_prefs/video_dialog_model.xml 2>/dev/null | grep -o 'value="[^"]*"' || echo none)" ;;
         *) pass "no card on $abi (no library for it)" ;;
     esac
     back; a shell am force-stop "$PKG"; finish; exit

@@ -32,7 +32,7 @@ first_of() { for name in "$@"; do ui has "$name" && { echo "$name"; return 0; };
 
 launch
 # One swipe leaves a landscape phone on home. Later rows share names with home, so stop when the screen never changed.
-if scroll_to analyzeButton && ui tap analyzeButton >/dev/null 2>&1 && wait_on analysis.AnalysisActivity 4; then
+if scroll_to analyzeButton 8 scrollView && ui tap analyzeButton >/dev/null 2>&1 && wait_on analysis.AnalysisActivity 4; then
     pass "analysis opens"
 else
     fail "analysis opens"

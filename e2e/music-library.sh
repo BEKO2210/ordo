@@ -148,11 +148,32 @@ close_search() {
 }
 above() { local a b; a=$(ui bounds "$1" | head -1 | cut -d" " -f2); b=$(ui bounds "$2" | head -1 | cut -d" " -f2); [ "$a" -lt "$b" ]; }
 check "search opens from the toolbar" search Ordoe2e
+# On a landscape phone only two or three song rows fit: a row is scrolled into sight in the song list (towards its
+# end, then back), never with a swipe over the tabs.
+row_shown() {
+    local dir i
+    ui has "$@" && return 0
+    for dir in up down; do for i in 1 2 3 4 5 6; do scroll_in $dir title || break; ui has "$@" && return 0; done; done
+    return 1
+}
+# A before B from the list's top down: the titles are read page by page while the list scrolls, in screen order.
+listed_before() {
+    local i
+    row_shown "$1" title || return 1
+    : > "$tmp/titles"
+    for i in 1 2 3 4 5 6; do
+        ui texts | grep '|title|$' | cut -d'|' -f1 >> "$tmp/titles"
+        grep -qxF "$2" "$tmp/titles" && break
+        scroll_in up title || break
+    done
+    awk -v a="$1" -v b="$2" '$0 == a && !x { x = NR } $0 == b && !y { y = NR } END { exit !(x && y && x < y) }' "$tmp/titles"
+}
 check "Songs lists the tagged titles" ui wait "Ordoe2e Alpha" 10
-check "the second title is listed" ui has "Ordoe2e Beta"
-check "the third title is listed" ui has "Ordoe2e Gamma"
-check "an untagged WAV is listed by its file name" ui has "Ordoe2e Delta"
-check "songs are sorted by title" above "Ordoe2e Alpha" "Ordoe2e Beta"
+check "the second title is listed" row_shown "Ordoe2e Beta" title
+check "the third title is listed" row_shown "Ordoe2e Gamma" title
+check "an untagged WAV is listed by its file name" row_shown "Ordoe2e Delta" title
+check "songs are sorted by title" listed_before "Ordoe2e Alpha" "Ordoe2e Beta"
+row_shown "Ordoe2e Alpha" title >/dev/null
 
 session_state() { a shell dumpsys media_session | grep -A25 "package=$PKG" | grep -q "state=$1"; }
 playing() { local i; for i in $(seq 10); do session_state PLAYING && return 0; sleep 1; done; return 1; }
@@ -175,7 +196,7 @@ position() {
 same_song_keeps_position() {
     local before after
     before=$(position); [ "${before:-0}" -gt 1000 ] || return 1
-    ui tap "Ordoe2e Alpha" title || return 1
+    row_shown "Ordoe2e Alpha" title && ui tap "Ordoe2e Alpha" title || return 1
     wait_on viewer.audio.AudioPlayerActivity 8 || return 1
     sleep 2; after=$(position); back 2
     echo "position before $before ms, after $after ms" > "$tmp/position.txt"
@@ -184,7 +205,7 @@ same_song_keeps_position() {
 check "tapping the playing song keeps its position" same_song_keeps_position
 cat "$tmp/position.txt" 2>/dev/null
 # Every song row has its ⋮; while a queue exists it offers play next and add to queue besides showing the file.
-check_or_abort "a song row opens its options" eval 'ui tap "Weitere Optionen für Ordoe2e Beta|More options for Ordoe2e Beta" && ui wait "Als Nächstes spielen|Play next" 5'
+check_or_abort "a song row opens its options" eval 'row_shown "Weitere Optionen für Ordoe2e Beta|More options for Ordoe2e Beta" && ui tap "Weitere Optionen für Ordoe2e Beta|More options for Ordoe2e Beta" && ui wait "Als Nächstes spielen|Play next" 5'
 pass "options offer play next"
 check "options offer add to queue" ui has "Zur Warteschlange|Add to queue"
 check "options offer showing the file" ui has "Datei anzeigen|Show file"
@@ -234,6 +255,11 @@ check "the favourites keep the tab row, their tab in view" ui has "Favoriten|Fav
 check "the menu returns to the library" eval 'open_menu && ui tap "Bibliothek|Library" && ui wait "Alben|Albums" 5'
 
 # The tag editor: a new title for the MP3 and the FLAC; the library shows it and the song still plays.
+# A field of the editor's page, scrolled to downwards, then upwards (the page may keep its scroll across a rotation).
+field_shown() {
+    scroll_to "$1" 4 && return 0
+    local i; for i in 1 2 3 4; do scroll_in down || return 1; ui has "$1" && return 0; done; return 1
+}
 edit_title() {
     local old=$1 new=$2
     search "$old" || return 1
@@ -251,10 +277,11 @@ edit_title() {
     a shell settings put system accelerometer_rotation 0
     a shell settings put system user_rotation "$next_rotation"; sleep 3
     local kept=0
-    wait_on viewer.audio.MusicTagEditorActivity 5 && ui has "$new" && kept=1
+    # A landscape phone shows the cover and file above the fields: the title field may lie below the screen.
+    wait_on viewer.audio.MusicTagEditorActivity 5 && field_shown "$new" && kept=1
     a shell settings put system user_rotation "${old_rotation:-0}"
     a shell settings put system accelerometer_rotation "${old_auto:-1}"; sleep 3
-    [ $kept = 1 ] && wait_on viewer.audio.MusicTagEditorActivity 5 && ui has "$new" || return 1
+    [ $kept = 1 ] && wait_on viewer.audio.MusicTagEditorActivity 5 && field_shown "$new" || return 1
     ui tap actionSave || return 1                     # the toolbar's Save (shown in capitals) opens the preview
     ui wait "Diese Änderungen speichern?|Save these changes?" 5 || return 1
     ui tap button1 || return 1                        # the preview's Save

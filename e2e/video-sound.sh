@@ -53,6 +53,7 @@ check "the surround clip plays" wait_playing
 menu "Klang|Sound"
 check "the sound sheet opens with its own settings" part "^(Nur für Videos|Only for videos)"
 # A device with its own spatializer (Tab S9) gets the 5.1 unchanged and says so; any other is mixed by Ordo.
+scroll_to surroundNote 3 # below the curve and the presets on a landscape phone (A15, qa8)
 check "a 5.1 track says how it is played (Ordo mix or the system's surround)" \
     part "(5.1-Ton wird|5.1 sound is mixed|5.1-Ton geht unverändert|5.1 sound goes to Android).*\|surroundNote\|"
 switch_on "Dialog-Verstärker|Clear dialogue"

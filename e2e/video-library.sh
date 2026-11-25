@@ -34,17 +34,33 @@ wake; grant; a logcat -b crash -c
 a shell am force-stop "$PKG"
 a shell "run-as $PKG rm -f shared_prefs/video_watched.xml" 2>/dev/null
 library() { a shell am start -W -n "$PKG/me.zhanghai.android.files.viewer.video.VideoLauncherActivity" >/dev/null; sleep 2.5; guard; }
+# On a landscape phone one shelf fills the window (A15, qa8): scroll_to goes down, scroll_back up to TARGET.
+scroll_back() {
+    local i
+    ui has "$1" && return 0
+    for i in $(seq 1 "${2:-8}"); do scroll_in down || return 1; ui has "$1" && return 0; done
+    return 1
+}
+# grep_to REGEX [SWIPES]: like scroll_to, for a part of a text or description.
+grep_to() {
+    local i
+    ui texts | grep -qE -- "$1" && return 0
+    for i in $(seq 1 "${2:-4}"); do scroll_in up || return 1; ui texts | grep -qE -- "$1" && return 0; done
+    return 1
+}
 library
 check "the library shows a Series shelf" ui wait "Serien|Series" 8
-check "and a Movies shelf with the 41-min video" eval "ui texts | grep -q 'Der lange Film'"
 ui tap Dark >/dev/null
 check "the series page lists its season" ui wait "Staffel 1|Season 1" 5
 check "episodes in order with their number" eval "ui texts | grep -oE '(Folge|Episode) [123]' | awk '!seen[\$0]++' | head -3 | tr '\n' ' ' | grep -qE '1 .*2 .*3'"
 back
+# After the series page: the Movies shelf can lie below the window, and scrolling to it hid the Dark card.
+check "and a Movies shelf with the 41-min video" grep_to 'Der lange Film' 4
 
 ui tap actionSearch >/dev/null; sleep 1
 a shell input text dark; sleep 1.5 # deliberate: the search waits for the end of typing (debounce) and then loads
-check "search finds the series' episodes" ui wait "Dark.S01E02" 5
+# The hit's description, not only its title: on a landscape phone the titles start below the window (A15, qa8).
+check "search finds the series' episodes" eventually 5 eval "ui texts | grep -q 'Dark\.S01E02'"
 a shell input text zzzq; sleep 1.5 # deliberate: the search waits for the end of typing (debounce) and then loads
 check "an empty search says so" ui wait "Keine Videos passen zu deiner Suche.|No videos match your search." 5
 # The first back may only close the keyboard; the second only while the search field is still open.
@@ -68,12 +84,13 @@ check "a long press selects" ui wait "1 ausgewählt|1 selected" 4
 ui tap "Weitere Optionen|More options" >/dev/null
 ui tap "Als gesehen markieren|Mark as watched" >/dev/null
 check "the selection ends" eval "! ui has 'ausgewählt|selected'"
-check "with S01E01 watched, Continue watching offers the next episode" ui wait "Als Nächstes · S1 F2|Up next · S1 E2" 6
+# While the grid is still on screen; Continue watching lies above it, back at the top (scroll_back).
 ui tap "Weitere Optionen|More options" >/dev/null
 ui tap "Nur ungesehene|Unwatched only" >/dev/null
 check "Unwatched only hides the watched episode from the grid" eval "! ui texts | grep -q 'Dark.S01E01'"
 ui tap "Weitere Optionen|More options" >/dev/null
 ui tap "Nur ungesehene|Unwatched only" >/dev/null; sleep 1.5
+check "with S01E01 watched, Continue watching offers the next episode" scroll_back "Als Nächstes · S1 F2|Up next · S1 E2" 8
 
 # "Automatisch weiter": the season is the queue, so S01E02 runs on into S01E03. The mode is one setting for all
 # videos (the repeat button cycles it too, from wherever an earlier run left it): set through Ordo Video's
@@ -85,6 +102,7 @@ end_mode() {
     back 1.5
 }
 end_mode "Automatisch weiter|Play next automatically"
+scroll_back "Als Nächstes · S1 F2|Up next · S1 E2" 8
 ui tap "Als Nächstes · S1 F2|Up next · S1 E2" >/dev/null; wait_on viewer.video.VideoPlayerActivity 8
 check "auto-advance stays in the season (S01E03 plays)" ui wait "Dark.S01E03" 22 # the rest of the episode, then the next
 media_key PAUSE 1.5
@@ -93,6 +111,7 @@ library
 end_mode "Anhalten|Stop at the end"
 
 library
+scroll_to "Der lange Film" 4 # its title, below the window on a phone (A15, qa8)
 ui longtap "Der lange Film" >/dev/null
 ui tap "In den Papierkorb|Move to trash|Löschen|Delete" >/dev/null; sleep 1 # deliberate: the question slides in
 trash_asked() { local i; for i in 1 2 3; do ui texts | grep -qE "in den Papierkorb verschieben|to the trash|löschen\?|Delete 1" && return 0; sleep 1; done; return 1; }

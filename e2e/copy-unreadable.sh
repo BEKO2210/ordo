@@ -10,7 +10,7 @@ sdk=$(a shell getprop ro.build.version.sdk | tr -d '\r')
 a shell "rm -rf $DIR $TO; mkdir -p $DIR/src $TO && echo eins > $DIR/src/a.txt"
 launch
 # Home → internal storage root, where Android and the test folder stand side by side.
-if ! scroll_to "Interner Speicher|Internal storage" || ! ui tap "Interner Speicher|Internal storage" >/dev/null ||
+if ! scroll_to "Interner Speicher|Internal storage" 8 scrollView || ! ui tap "Interner Speicher|Internal storage" >/dev/null ||
     ! wait_on filelist.FileListActivity 6 || ! scroll_to Android; then
     fail "the internal storage root opens"; finish
 fi
@@ -24,7 +24,9 @@ if ! ui tap selectionCopyButton >/dev/null || ! scroll_to ordo-e2e-unreadable-to
     ! ui tap ordo-e2e-unreadable-to >/dev/null || ! ui wait action_paste 5; then
     fail "the copy target opens"; finish
 fi
-if ! ui tap action_paste >/dev/null || ! ui wait "kann nicht gelesen werden|can’t be read" 10; then
+# The phrase stands inside the message ("„data“ kann nicht gelesen werden.\n<error>"), so it is looked for in it.
+if ! ui tap action_paste >/dev/null || ! ui wait message 10 >/dev/null ||
+    ! ui texts | grep -Eq "kann nicht gelesen werden|can’t be read"; then
     fail "an unreadable folder raises the error dialog"; finish
 fi
 pass "an unreadable folder raises the error dialog"

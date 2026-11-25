@@ -1,9 +1,9 @@
 #!/bin/bash
 # Copyright (c) 2026 Ordo contributors; SPDX-License-Identifier: GPL-3.0-or-later
 # Copy-replace must not destroy the old target when the job is aborted or the process is killed
-# (GB-7, GB-8). WRITES: creates /sdcard/ordo-e2e-copy-replace and removes it at the end.
+# (GB-7, GB-8). WRITES: creates /storage/emulated/0/ordo-e2e-copy-replace and removes it at the end.
 . "$(dirname "$0")/lib.sh" "$@"
-DIR=/sdcard/ordo-e2e-copy-replace
+DIR=/storage/emulated/0/ordo-e2e-copy-replace
 SRC=$DIR/ordoe2e-src
 DST=$DIR/ordoe2e-dst
 NAME=ordoe2e-big.bin

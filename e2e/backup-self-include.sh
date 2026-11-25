@@ -50,7 +50,7 @@ into_folder() {
     ui tap "$NAME" >/dev/null; sleep 2
 }
 
-open_backup() { scroll_to backupCard 4 >/dev/null; ui tap backupCard >/dev/null; sleep 2.5; guard; }
+open_backup() { scroll_to backupCard 4 scrollView >/dev/null; ui tap backupCard >/dev/null; sleep 2.5; guard; }
 
 launch
 open_backup
