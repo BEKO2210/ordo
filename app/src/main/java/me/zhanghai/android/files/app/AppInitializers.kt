@@ -17,6 +17,7 @@ import me.zhanghai.android.files.filejob.fileJobNotificationTemplate
 import me.zhanghai.android.files.ftpserver.ftpServerServiceNotificationTemplate
 import me.zhanghai.android.files.hiddenapi.HiddenApi
 import me.zhanghai.android.files.home.OnboardingActivity
+import me.zhanghai.android.files.player.PlaybackStateStore
 import me.zhanghai.android.files.provider.FileSystemProviders
 import me.zhanghai.android.files.settings.Settings
 import me.zhanghai.android.files.storage.FtpServerAuthenticator
@@ -52,9 +53,13 @@ val appInitializers = listOf(
     ::reconcileLauncherIcon
 )
 
-// HomeActivity.onCreate reads the onboarding flag: loading that file here keeps the disk read off the main thread.
+// Files read first on the main thread (HomeActivity.onCreate's onboarding flag, AudioPlaybackService.onCreate's
+// queue): loading them here keeps those disk reads off the main thread.
 private fun preloadStartPreferences() {
-    Thread({ OnboardingActivity.isDone(application) }, "PreloadPreferences").start()
+    Thread({
+        OnboardingActivity.isDone(application)
+        PlaybackStateStore(application).readModes()
+    }, "PreloadPreferences").start()
 }
 
 private fun disableHiddenApiChecks() {

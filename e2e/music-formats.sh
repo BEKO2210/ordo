@@ -123,7 +123,9 @@ position_now() {
     if grep -q 'state=PLAYING' <<<"$line"; then echo $((p + now - u)); else echo "$p"; fi
 }
 moves_on() { # position when paused at the seek
-    wait_playing && sleep 1.5 && playing && [ "$(position_now)" -ge $(($1 + 500)) ] && return 0 # 1.5 s later, at least 0.5 s on (a VBR seek lands roughly)
+    # 1.5 s later, at least 0.5 s on (a VBR seek lands roughly). A slow phone may reach the end of the 3 s left
+    # first (A15: STOPPED at 12005 ms after a seek to 9000 ms): that played on from there too.
+    wait_playing && sleep 1.5 && { playing || [ "$(session_state)" = STOPPED ]; } && [ "$(position_now)" -ge $(($1 + 500)) ] && return 0
     echo "INFO   state $(session_state), position $(position_now) ms after a seek to $1 ms" >&3; return 1
 }
 open_folder() {
