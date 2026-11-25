@@ -66,6 +66,7 @@ import me.zhanghai.android.files.backup.isRestorableBackupEntry
 import me.zhanghai.android.files.backup.resolveRestoreFile
 import me.zhanghai.android.files.backup.restoreEntryPath
 import me.zhanghai.android.files.backup.uniqueEntryName
+import me.zhanghai.android.files.backup.backupTargetPaths
 import me.zhanghai.android.files.backup.withoutNestedFolders
 import me.zhanghai.android.files.compat.mainExecutorCompat
 import me.zhanghai.android.files.file.FileItem
@@ -3460,6 +3461,20 @@ class BackupJob(
         val storageRoot = Environment.getExternalStorageDirectory().path
         val usedNames = mutableSetOf<String>()
         val sources = mutableListOf<BackupSource>()
+        // The target may lie in a folder that is backed up (A15: the ZIP held an entry for itself).
+        val targetPaths = targetPaths(storageRoot)
+        val targetNames = targetPaths.map { it.substringAfterLast('/') }.toSet()
+        fun isTarget(file: Path): Boolean {
+            val path = file.toString()
+            if (path in targetPaths) return true
+            // Spelled another way (a symlink such as /sdcard on the way): only same-named files are resolved.
+            if (path.substringAfterLast('/') !in targetNames) return false
+            return try {
+                File(path).canonicalPath in targetPaths
+            } catch (e: IOException) {
+                false
+            }
+        }
         for (folder in withoutNestedFolders(folders.map { it.toString() })) {
             Files.walkFileTree(Paths.get(folder), object : SimpleFileVisitor<Path>() {
                 override fun preVisitDirectory(
@@ -3478,7 +3493,7 @@ class BackupJob(
                     attributes: BasicFileAttributes
                 ): FileVisitResult {
                     throwIfInterrupted()
-                    if (attributes.isRegularFile) {
+                    if (attributes.isRegularFile && !isTarget(file)) {
                         val entryName = backupEntryName(file.toString(), storageRoot)
                         // One entry the restore refuses would make the whole backup unrestorable.
                         if (!isRestorableBackupEntry(entryName)) {
@@ -3518,6 +3533,28 @@ class BackupJob(
             }
         }
         return sources
+    }
+
+    /** Where the target document lies, canonical too (backupTargetPaths), or nothing for a cloud provider. */
+    private fun targetPaths(storageRoot: String): Set<String> {
+        val documentId = try {
+            DocumentsContract.getDocumentId(target)
+        } catch (e: Exception) {
+            null
+        }
+        val fdPath = try {
+            service.contentResolver.openFileDescriptor(target, "r")?.use { Os.readlink("/proc/self/fd/${it.fd}") }
+        } catch (e: Exception) {
+            null
+        }
+        val paths = backupTargetPaths(target.authority, documentId, fdPath, storageRoot)
+        return paths + paths.mapNotNull {
+            try {
+                File(it).canonicalPath
+            } catch (e: IOException) {
+                null
+            }
+        }
     }
 
     private fun postProgress(progress: Int, fileName: String?) {
