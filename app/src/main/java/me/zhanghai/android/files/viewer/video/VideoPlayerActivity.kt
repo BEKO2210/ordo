@@ -194,7 +194,7 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
     private var speedBeforeHold = 0f
     private var audioNoticeFor: String? = null
     private var repeatMode = VideoRepeatMode.STOP
-    private val videoSettings by lazy { getSharedPreferences(SETTINGS_NAME, MODE_PRIVATE) }
+    private val videoSettings by lazy { applicationContext.getSharedPreferences(SETTINGS_NAME, MODE_PRIVATE) }
     private val jumpSeconds: Int
         get() = VideoPrefs.jumpSeconds(Settings.VIDEO_JUMP.valueCompat)
     private val jumpMs: Long

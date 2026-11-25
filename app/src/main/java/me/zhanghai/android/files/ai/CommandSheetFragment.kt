@@ -973,7 +973,7 @@ class CommandSheetFragment : BottomSheetDialogFragment() {
         val paths = journal.placed.flatMap { listOf(it.from.path, it.to.path) } +
             journal.trashed.map { it.original.path }
         if (paths.isNotEmpty()) {
-            android.media.MediaScannerConnection.scanFile(context, paths.toTypedArray(), null, null)
+            me.zhanghai.android.files.provider.linux.media.MediaScanner.scanPaths(paths)
         }
     }
 

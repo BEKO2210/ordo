@@ -5,6 +5,7 @@
 
 package me.zhanghai.android.files.app
 
+import android.content.SharedPreferences
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
@@ -29,6 +30,11 @@ abstract class AppActivity : AppCompatActivity() {
 
         super.onCreate(savedInstanceState)
     }
+
+    // The same files and instances as the application's: its file lookups are cached (and preloaded at start, see
+    // AppInitializers), an activity's own context checks the preferences folder on disk in every new activity.
+    override fun getSharedPreferences(name: String?, mode: Int): SharedPreferences =
+        applicationContext.getSharedPreferences(name, mode)
 
     override fun onSupportNavigateUp(): Boolean {
         if (!super.onSupportNavigateUp()) {
