@@ -288,7 +288,7 @@ Type or dictate “Move all MP3s from Download to Music”. Ordo shows the plan 
 - In the file list the bar with side menu, search, sorting and options stays in place while the list scrolls
 - Search by name or by text inside files, with regular expressions if you need them
 - List or grid in three sizes, for all folders or just one
-- Quick access to bookmarks and common folders as tiles
+- Quick access to bookmarks and common folders as tiles; back inside a folder opened from there walks up to that folder, then returns to where you came from
 
 **Tidy up**
 

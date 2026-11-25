@@ -283,7 +283,7 @@ Tippe oder diktiere „Verschiebe alle MP3s aus Download nach Musik“. Ordo zei
 - In der Dateiliste bleibt die Leiste mit Seitenmenü, Suche, Sortierung und Optionen stehen, während die Liste scrollt
 - Suche nach Namen oder nach Text in Dateien, auf Wunsch mit regulären Ausdrücken
 - Liste oder Raster in drei Größen, für alle Ordner oder nur einen
-- Schnellzugriff auf Lesezeichen und häufige Ordner als Kacheln
+- Schnellzugriff auf Lesezeichen und häufige Ordner als Kacheln; Zurück in einem von dort geöffneten Ordner geht bis zu diesem Ordner hoch und dann zurück dorthin, wo du herkamst
 
 **Aufräumen**
 

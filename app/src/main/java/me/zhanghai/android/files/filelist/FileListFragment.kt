@@ -417,8 +417,9 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
                         if (backStopPath == null && argsPath != null && args.intent.action == Intent.ACTION_VIEW) {
                             backStopPath = viewModel.currentPath
                         }
-                        callback.isEnabled =
-                            viewModel.canNavigateUpBreadcrumb && viewModel.currentPath != backStopPath
+                        callback.isEnabled = shouldBackNavigateUp(
+                            viewModel.canNavigateUpBreadcrumb, viewModel.currentPath, backStopPath
+                        )
                     }
                 }
         )
