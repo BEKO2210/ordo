@@ -17,7 +17,7 @@ PLAYLISTS=$ROOT/Music/Playlists
 # the owner's lists stay as they were.
 FAVORITES_BEFORE=$(a shell "[ -f $PLAYLISTS/Favorites.m3u8 ] && echo yes" | tr -d '\r')
 clean_up() {
-    a shell "rm -rf $ROCK $JAZZ $EDIT $COVERS; rm -f \"$PLAYLISTS/Ordoe2e List.m3u8\""
+    a shell "rm -rf $ROCK $JAZZ $EDIT $COVERS; rm -f \"$PLAYLISTS/Ordoe2e List.m3u8\" \"$PLAYLISTS/Ordoe2eList.m3u8\""
     if [ "$FAVORITES_BEFORE" = yes ]; then
         a shell "sed -i /OrdoE2E-/d $PLAYLISTS/Favorites.m3u8"
     else
@@ -139,7 +139,7 @@ show_tab "Titel|Songs" >/dev/null
 check "shuffle all is the first row" eval 'ui texts | grep -Eq "^(Alle zufällig|Shuffle all) \([0-9]+\)\|"'
 # A device has other music too: every list is narrowed by search to the test songs, which no other name contains.
 # Enter submits the search: the soft keyboard closes and no longer hides the lower rows (phones).
-search() { ui tap actionSearch >/dev/null && sleep 1 && a shell input text "$1" && a shell input keyevent KEYCODE_ENTER && sleep 2; }
+search() { ui tap actionSearch >/dev/null && sleep 1 && a shell input text "${1// /%s}" && a shell input keyevent KEYCODE_ENTER && sleep 2; }
 # The first back may only hide the keyboard; back is pressed once more only while the search field is still there.
 # Back only while the search field is there: one more back would leave the app.
 close_search() {
@@ -148,11 +148,32 @@ close_search() {
 }
 above() { local a b; a=$(ui bounds "$1" | head -1 | cut -d" " -f2); b=$(ui bounds "$2" | head -1 | cut -d" " -f2); [ "$a" -lt "$b" ]; }
 check "search opens from the toolbar" search Ordoe2e
+# On a landscape phone only two or three song rows fit: a row is scrolled into sight in the song list (towards its
+# end, then back), never with a swipe over the tabs.
+row_shown() {
+    local dir i
+    ui has "$@" && return 0
+    for dir in up down; do for i in 1 2 3 4 5 6; do scroll_in $dir title || break; ui has "$@" && return 0; done; done
+    return 1
+}
+# A before B from the list's top down: the titles are read page by page while the list scrolls, in screen order.
+listed_before() {
+    local i
+    row_shown "$1" title || return 1
+    : > "$tmp/titles"
+    for i in 1 2 3 4 5 6; do
+        ui texts | grep '|title|$' | cut -d'|' -f1 >> "$tmp/titles"
+        grep -qxF "$2" "$tmp/titles" && break
+        scroll_in up title || break
+    done
+    awk -v a="$1" -v b="$2" '$0 == a && !x { x = NR } $0 == b && !y { y = NR } END { exit !(x && y && x < y) }' "$tmp/titles"
+}
 check "Songs lists the tagged titles" ui wait "Ordoe2e Alpha" 10
-check "the second title is listed" ui has "Ordoe2e Beta"
-check "the third title is listed" ui has "Ordoe2e Gamma"
-check "an untagged WAV is listed by its file name" ui has "Ordoe2e Delta"
-check "songs are sorted by title" above "Ordoe2e Alpha" "Ordoe2e Beta"
+check "the second title is listed" row_shown "Ordoe2e Beta" title
+check "the third title is listed" row_shown "Ordoe2e Gamma" title
+check "an untagged WAV is listed by its file name" row_shown "Ordoe2e Delta" title
+check "songs are sorted by title" listed_before "Ordoe2e Alpha" "Ordoe2e Beta"
+row_shown "Ordoe2e Alpha" title >/dev/null
 
 session_state() { a shell dumpsys media_session | grep -A25 "package=$PKG" | grep -q "state=$1"; }
 playing() { local i; for i in $(seq 10); do session_state PLAYING && return 0; sleep 1; done; return 1; }
@@ -175,7 +196,7 @@ position() {
 same_song_keeps_position() {
     local before after
     before=$(position); [ "${before:-0}" -gt 1000 ] || return 1
-    ui tap "Ordoe2e Alpha" title || return 1
+    row_shown "Ordoe2e Alpha" title && ui tap "Ordoe2e Alpha" title || return 1
     wait_on viewer.audio.AudioPlayerActivity 8 || return 1
     sleep 2; after=$(position); back 2
     echo "position before $before ms, after $after ms" > "$tmp/position.txt"
@@ -184,10 +205,11 @@ same_song_keeps_position() {
 check "tapping the playing song keeps its position" same_song_keeps_position
 cat "$tmp/position.txt" 2>/dev/null
 # Every song row has its ⋮; while a queue exists it offers play next and add to queue besides showing the file.
-check_or_abort "a song row opens its options" eval 'ui tap "Weitere Optionen für Ordoe2e Beta|More options for Ordoe2e Beta" && ui wait "Als Nächstes spielen|Play next" 5'
+check_or_abort "a song row opens its options" eval 'row_shown "Weitere Optionen für Ordoe2e Beta|More options for Ordoe2e Beta" && ui tap "Weitere Optionen für Ordoe2e Beta|More options for Ordoe2e Beta" && ui wait "Als Nächstes spielen|Play next" 5'
 pass "options offer play next"
 check "options offer add to queue" ui has "Zur Warteschlange|Add to queue"
-check "options offer showing the file" ui has "Datei anzeigen|Show file"
+# On a landscape phone the popup shows four rows: the last one is scrolled into sight within the popup's list.
+check "options offer showing the file" scroll_to "Datei anzeigen|Show file" 3 "Zur Warteschlange|Add to queue"
 back 1
 check "closing search keeps the library open" close_search
 check "the library is still in front" on viewer.audio.MusicLauncherActivity
@@ -201,11 +223,19 @@ open_menu() { ui has "Bibliothek|Library" titleText && return 0; ui tap "$MENU" 
 check "the side menu is open or opens" open_menu
 check "the side menu names Ordo Musik" ui wait "Ordo Musik|Ordo Music" 5
 check "the side menu offers the library" ui has "Bibliothek|Library"
-check "the side menu offers sound and the sleep timer" ui has "Einschlaf-Timer|Sleep timer"
-check_or_abort "recently played opens with the played song" eval 'ui tap "Zuletzt gespielt|Recently played" && ui wait "Ordoe2e Alpha" 5'
+# On a landscape phone the menu's list is taller than its window: an entry is swiped into sight within that list
+# (its rows are titleText), towards its end, then back to its top.
+nav_row() {
+    local dir i
+    ui has "$1" titleText && return 0
+    for dir in up down; do for i in 1 2 3 4; do scroll_in $dir titleText || break; ui has "$1" titleText && return 0; done; done
+    return 1
+}
+check "the side menu offers sound and the sleep timer" nav_row "Einschlaf-Timer|Sleep timer"
+check_or_abort "recently played opens with the played song" eval 'nav_row "Zuletzt gespielt|Recently played" && ui tap "Zuletzt gespielt|Recently played" && ui wait "Ordoe2e Alpha" 5'
 check_or_abort "the menu goes back to the library" eval 'open_menu && ui tap "Bibliothek|Library" && ui wait "Alben|Albums" 5'
 pass "the library tabs are back"
-check_or_abort "Sound opens from the side menu" eval 'open_menu && ui tap "Klang|Sound" && ui wait "Equalizer" 8'
+check_or_abort "Sound opens from the side menu" eval 'open_menu && nav_row "Klang|Sound" && ui tap "Klang|Sound" titleText && ui wait "Equalizer" 8'
 pass "the Sound sheet opens over the player"
 back 1.5; back 2
 check "back from the player returns to the library" on viewer.audio.MusicLauncherActivity
@@ -215,25 +245,38 @@ check "back from the player returns to the library" on viewer.audio.MusicLaunche
 check "a long press selects a song" eval 'search Ordoe2e && ui longtap "Ordoe2e Alpha" title && ui wait "1 ausgewählt|1 selected" 5'
 # On failure the log shows what the toolbar showed instead.
 ui has "1 ausgewählt|1 selected" || { echo "DIAG selection:"; ui texts | head -20 | sed 's/^/  /'; }
-check "a tap adds a second song" eval 'ui tap "Ordoe2e Beta" title && ui wait "2 ausgewählt|2 selected" 5'
+# Scrolled into sight first: on the W90 the selection showed the whole library, Beta below the window (a15g-5).
+check "a tap adds a second song" eval 'row_shown "Ordoe2e Beta" title && ui tap "Ordoe2e Beta" title && ui wait "2 ausgewählt|2 selected" 5'
+# The keyboard is hidden before Save: on a landscape tablet it covered the dialog's buttons, and the tap on Save
+# picked the keyboard's suggestion "Liste" instead (W90, a15g-6). Escape hides it (as in backup-restore.sh); a back
+# press could close the dialog too.
+kb_hidden() { a shell input keyevent 111; sleep 0.8; }
 check_or_abort "the selection goes into a new playlist" eval 'ui tap actionSelectionPlaylist && ui wait "Neue Wiedergabeliste|New playlist" 5 \
-    && ui tap "Neue Wiedergabeliste|New playlist" && sleep 1 && a shell input text "Ordoe2e%sList" && ui tap button1'
-in_playlist() { a shell cat "\"$PLAYLISTS/Ordoe2e List.m3u8\"" | grep -q "OrdoE2E-Rock/rock-1.mp3"; }
+    && ui tap "Neue Wiedergabeliste|New playlist" && sleep 1 && a shell input text Ordoe2eList && kb_hidden \
+    && ui has "Neue Wiedergabeliste|New playlist" alertTitle && ui tap button1'
+in_playlist() { a shell cat "\"$PLAYLISTS/Ordoe2eList.m3u8\"" | grep -q "OrdoE2E-Rock/rock-1.mp3"; }
 check "the playlist is an M3U8 file in Music/Playlists" eval 'sleep 2; in_playlist'
 close_search
 ui has "$MENU" || ui has "Bibliothek|Library" titleText || { echo "DIAG before the side menu:"; ui texts | head -20 | sed 's/^/  /'; }
-check_or_abort "the side menu lists the playlist" eval 'open_menu && ui tap "Wiedergabelisten|Playlists" titleText && ui wait "Ordoe2e List" 5'
-check_or_abort "the playlist opens with its songs" eval 'ui tap "Ordoe2e List" && ui wait "Ordoe2e Alpha" 5 && ui has "Ordoe2e Beta"'
+check_or_abort "the side menu lists the playlist" eval 'open_menu && nav_row "Wiedergabelisten|Playlists" && ui tap "Wiedergabelisten|Playlists" titleText && ui wait Ordoe2eList 5'
+check_or_abort "the playlist opens with its songs" eval 'ui tap Ordoe2eList && ui wait "Ordoe2e Alpha" 5 && ui has "Ordoe2e Beta"'
 back 1.5; back 1.5
-check "a song becomes a favourite from its menu" eval 'search Ordoe2e && ui tap "Weitere Optionen für Ordoe2e Gamma|More options for Ordoe2e Gamma" \
+# Gamma's row scrolled into sight: on a landscape tablet the results start below the menu (W90, a15g-7).
+check "a song becomes a favourite from its menu" eval 'search Ordoe2e && row_shown "Weitere Optionen für Ordoe2e Gamma|More options for Ordoe2e Gamma" \
+    && ui tap "Weitere Optionen für Ordoe2e Gamma|More options for Ordoe2e Gamma" \
     && ui wait "Zu Favoriten|Add to favorites" 5 && ui tap "Zu Favoriten|Add to favorites"'
 close_search
-check_or_abort "the favourites show it" eval 'open_menu && ui tap "Favoriten|Favorites" titleText && ui wait "Ordoe2e Gamma" 5'
+check_or_abort "the favourites show it" eval 'open_menu && nav_row "Favoriten|Favorites" && ui tap "Favoriten|Favorites" titleText && ui wait "Ordoe2e Gamma" 5'
 # Favourites and playlists are tabs of the library: the tab row stays, the selected tab scrolled into view (phones).
 check "the favourites keep the tab row, their tab in view" ui has "Favoriten|Favorites"
 check "the menu returns to the library" eval 'open_menu && ui tap "Bibliothek|Library" && ui wait "Alben|Albums" 5'
 
 # The tag editor: a new title for the MP3 and the FLAC; the library shows it and the song still plays.
+# A field of the editor's page, scrolled to downwards, then upwards (the page may keep its scroll across a rotation).
+field_shown() {
+    scroll_to "$1" 4 && return 0
+    local i; for i in 1 2 3 4; do scroll_in down || return 1; ui has "$1" && return 0; done; return 1
+}
 edit_title() {
     local old=$1 new=$2
     search "$old" || return 1
@@ -251,16 +294,18 @@ edit_title() {
     a shell settings put system accelerometer_rotation 0
     a shell settings put system user_rotation "$next_rotation"; sleep 3
     local kept=0
-    wait_on viewer.audio.MusicTagEditorActivity 5 && ui has "$new" && kept=1
+    # A landscape phone shows the cover and file above the fields: the title field may lie below the screen.
+    wait_on viewer.audio.MusicTagEditorActivity 5 && field_shown "$new" && kept=1
     a shell settings put system user_rotation "${old_rotation:-0}"
     a shell settings put system accelerometer_rotation "${old_auto:-1}"; sleep 3
-    [ $kept = 1 ] && wait_on viewer.audio.MusicTagEditorActivity 5 && ui has "$new" || return 1
+    [ $kept = 1 ] && wait_on viewer.audio.MusicTagEditorActivity 5 && field_shown "$new" || return 1
     ui tap actionSave || return 1                     # the toolbar's Save (shown in capitals) opens the preview
     ui wait "Diese Änderungen speichern?|Save these changes?" 5 || return 1
     ui tap button1 || return 1                        # the preview's Save
     wait_on viewer.audio.MusicLauncherActivity 10
 }
-listed() { local i; for i in 1 2 3 4 5 6; do close_search >/dev/null 2>&1; search "$1" && ui has "$1" && return 0; sleep 2; done; return 1; }
+# As a song row (id title): the search field itself holds the same text and made this pass on an empty result (a15g-6a).
+listed() { local i; for i in 1 2 3 4 5 6; do close_search >/dev/null 2>&1; search "$1" && ui has "$1" title && return 0; sleep 2; done; return 1; }
 check_or_abort "the MP3 gets a new title in the editor" edit_title Mp3Test "Ordoe2e Edited Mp"
 check "Undo is offered after saving" ui wait "Rückgängig|Undo" 5
 check "the library shows the edited MP3" listed "Ordoe2e Edited Mp"

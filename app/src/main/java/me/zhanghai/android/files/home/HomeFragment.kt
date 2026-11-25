@@ -229,7 +229,6 @@ class HomeFragment : Fragment(), ShowRequestAllFilesAccessRationaleDialogFragmen
     }
 
     private var replayBars = false
-    private var resumedBefore = false
     private var stoppedBefore = false
     private var reloadedOnStart = false
 
@@ -454,6 +453,8 @@ class HomeFragment : Fragment(), ShowRequestAllFilesAccessRationaleDialogFragmen
         viewModel.watchChanges(false)
         stoppedBefore = true
         reloadedOnStart = false
+        // In the view model: a landscape phone sent home turns portrait, so the screen is rebuilt while away.
+        if (!requireActivity().isChangingConfigurations) viewModel.hidden = true
     }
 
     override fun onResume() {
@@ -466,12 +467,12 @@ class HomeFragment : Fragment(), ShowRequestAllFilesAccessRationaleDialogFragmen
         // The first resume needs no reload: the view model loads when it is created, and twice in parallel would
         // fight over MediaStore and FUSE. A permission just granted reloads in onStorageAccessResult().
         // A pane that already reloaded in onStart (split screen, Android 7 to 9) and now gets the focus has it.
-        if (resumedBefore && hasStorageAccess() && !reloadedOnStart) {
+        if (viewModel.hidden && hasStorageAccess() && !reloadedOnStart) {
             holdStorageBars()
             replayBars = true
             viewModel.reload()
         }
-        resumedBefore = true
+        viewModel.hidden = false
         reloadedOnStart = false
     }
 

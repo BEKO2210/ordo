@@ -16,7 +16,7 @@ import org.json.JSONObject
  * seconds) never re-encode the queue. Only Ordo's own paths are kept, never `content://` items of an external launch.
  */
 class PlaybackStateStore(context: Context) {
-    private val preferences = context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
+    private val preferences = context.applicationContext.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
 
     fun read(): State? {
         val paths = decodeQueue(preferences.getString(KEY_QUEUE, null)) ?: return null

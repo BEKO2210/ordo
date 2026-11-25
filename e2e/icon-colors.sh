@@ -92,8 +92,10 @@ trap restore EXIT
 launch
 check "Ordo has exactly one launcher entry before the test" [ "$(entries Home | wc -l)" = 1 ]
 open_page
+# Looked for on the way down: two swipes carry the section title above a phone's window (A15, 25.11.2026). The
+# swatches are found from any scroll position (swatch nudges the page).
+check "the page has the icon colours" scroll_to "$COLOURS"
 to_colours
-check "the page has the icon colours" ui has "$COLOURS"
 check "the colour of Ordo shows the system's state" ordo_checked "${initial_home#Home}"
 
 check "tapping ${NEW,,} in Ordo's row works" tap_colour "$ORDO" "$NEW"

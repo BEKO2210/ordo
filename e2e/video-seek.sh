@@ -55,7 +55,8 @@ touch_target() {
     read -r l t r b < <(ui bounds "$1" | head -1) || return 1
     [ $((r - l)) -ge "$min" ] && [ $((b - t)) -ge "$min" ]
 }
-menu() { ui tap "Weitere Optionen|More options" >/dev/null; sleep 1; ui wait "$1" 3 >/dev/null || scroll_to "$1" 3 >/dev/null; ui tap "$1" >/dev/null; sleep 1.5; }
+# Up to 6 swipes: on a landscape phone "Save frame", the last entry, was still below "Video info" after 3 (A15, qa8).
+menu() { ui tap "Weitere Optionen|More options" >/dev/null; sleep 1; ui wait "$1" 3 >/dev/null || scroll_to "$1" 6 >/dev/null; ui tap "$1" >/dev/null; sleep 1.5; }
 
 a shell am start -W -a android.intent.action.VIEW -d "file://$DIR" -t inode/directory \
     -n "$PKG/me.zhanghai.android.files.filelist.FileListActivity" >/dev/null

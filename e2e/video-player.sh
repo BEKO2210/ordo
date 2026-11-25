@@ -313,10 +313,12 @@ back 1; back 1
 open_paused
 if ! ui tap "Weitere Optionen|More options" >/dev/null || ! scroll_to "Videoinfos|Video info" 6 ||
     ! ui tap "Videoinfos|Video info" >/dev/null ||
-    ! ui wait "Auflösung: 1920 × 1080 · 30 fps|Resolution: 1920 × 1080 · 30 fps" 5; then
+    ! ui wait sheetTitle 5 >/dev/null || # the picture rows lie below the file rows on a phone (A15, qa8)
+    ! scroll_to "Auflösung: 1920 × 1080 · 30 fps|Resolution: 1920 × 1080 · 30 fps" 4; then
     fail "Video info shows resolution and frame rate"; finish
 fi
 pass "Video info shows resolution and frame rate"
+scroll_to "Video-Codec: H.264|Video codec: H.264" 2
 check "Video info names the codec in words" ui has "Video-Codec: H.264|Video codec: H.264"
 back 1; back 2
 
