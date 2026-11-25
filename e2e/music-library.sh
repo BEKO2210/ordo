@@ -261,7 +261,9 @@ ui has "$MENU" || ui has "Bibliothek|Library" titleText || { echo "DIAG before t
 check_or_abort "the side menu lists the playlist" eval 'open_menu && nav_row "Wiedergabelisten|Playlists" && ui tap "Wiedergabelisten|Playlists" titleText && ui wait Ordoe2eList 5'
 check_or_abort "the playlist opens with its songs" eval 'ui tap Ordoe2eList && ui wait "Ordoe2e Alpha" 5 && ui has "Ordoe2e Beta"'
 back 1.5; back 1.5
-check "a song becomes a favourite from its menu" eval 'search Ordoe2e && ui tap "Weitere Optionen für Ordoe2e Gamma|More options for Ordoe2e Gamma" \
+# Gamma's row scrolled into sight: on a landscape tablet the results start below the menu (W90, a15g-7).
+check "a song becomes a favourite from its menu" eval 'search Ordoe2e && row_shown "Weitere Optionen für Ordoe2e Gamma|More options for Ordoe2e Gamma" \
+    && ui tap "Weitere Optionen für Ordoe2e Gamma|More options for Ordoe2e Gamma" \
     && ui wait "Zu Favoriten|Add to favorites" 5 && ui tap "Zu Favoriten|Add to favorites"'
 close_search
 check_or_abort "the favourites show it" eval 'open_menu && nav_row "Favoriten|Favorites" && ui tap "Favoriten|Favorites" titleText && ui wait "Ordoe2e Gamma" 5'
