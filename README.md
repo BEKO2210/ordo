@@ -358,7 +358,7 @@ Type or dictate “Move all MP3s from Download to Music”. Ordo shows the plan 
 
 - Vault: files are encrypted with AES-256-GCM and opened with your screen lock
 - Backup: folders and the vault as a ZIP to a USB drive or any place your phone offers, such as Google Drive, with an
-  optional password (AES-256), plus safe restore of normal files without replacing existing files; cancelling restore keeps files already written and shows the counts; folders you added can be removed from the list again; a file that fails halfway stops the backup instead of ending up cut short in it; app data in `Android/data` and `Android/obb` is left out, because Android does not let it be restored
+  optional password (AES-256), plus safe restore of normal files without replacing existing files; cancelling restore keeps files already written and shows the counts; folders you added can be removed from the list again; a file that fails halfway stops the backup instead of ending up cut short in it; app data in `Android/data` and `Android/obb` is left out, because Android does not let it be restored; a backup saved into a folder it backs up leaves its own ZIP out; a file that already holds data (an older backup chosen again) is never overwritten: Ordo asks for a new name and the older backup stays as it was
 
 **Ask in your own words** – see [AI commands](#ai-commands)
 

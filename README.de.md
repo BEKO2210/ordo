@@ -357,7 +357,7 @@ Tippe oder diktiere „Verschiebe alle MP3s aus Download nach Musik“. Ordo zei
 
 - Tresor: Dateien werden mit AES-256-GCM verschlüsselt und mit deiner Bildschirmsperre geöffnet
 - Sicherung: Ordner und Tresor als ZIP auf einen USB-Stick oder an jeden Ort, den dein Handy anbietet, etwa Google
-  Drive – auf Wunsch mit Passwort (AES-256), dazu sichere Wiederherstellung normaler Dateien ohne vorhandene zu ersetzen; ein Abbruch der Wiederherstellung behält fertige Dateien und zeigt die Zähler; selbst hinzugefügte Ordner lassen sich wieder aus der Liste nehmen; eine Datei, die mittendrin nicht mehr lesbar ist, bricht die Sicherung ab, statt gekürzt darin zu landen; App-Daten in `Android/data` und `Android/obb` bleiben draußen, weil Android sie nicht wiederherstellen lässt
+  Drive – auf Wunsch mit Passwort (AES-256), dazu sichere Wiederherstellung normaler Dateien ohne vorhandene zu ersetzen; ein Abbruch der Wiederherstellung behält fertige Dateien und zeigt die Zähler; selbst hinzugefügte Ordner lassen sich wieder aus der Liste nehmen; eine Datei, die mittendrin nicht mehr lesbar ist, bricht die Sicherung ab, statt gekürzt darin zu landen; App-Daten in `Android/data` und `Android/obb` bleiben draußen, weil Android sie nicht wiederherstellen lässt; eine Sicherung, die in einen mitgesicherten Ordner gespeichert wird, lässt ihre eigene ZIP aus; eine Datei, die schon Daten enthält (etwa eine ältere Sicherung, erneut gewählt), wird nie überschrieben: Ordo bittet um einen neuen Namen, die ältere Sicherung bleibt unverändert
 
 **In deinen eigenen Worten** – siehe [KI-Befehle](#ki-befehle)
 
