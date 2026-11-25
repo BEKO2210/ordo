@@ -62,7 +62,7 @@ class A11yScan(unittest.TestCase):
         self.assertNotEqual(0, r.returncode)
 
 
-STRICT = ("11-23 12:00:00.000  100  100 W StrictMode: StrictMode policy violation; ~duration=5 ms: "
+STRICT = ("11-23 12:00:00.000  100  100 W StrictMode: StrictMode policy violation; ~duration=150 ms: "
           "android.os.strictmode.DiskReadViolation\n"
           "11-23 12:00:00.000  100  100 W StrictMode: \tat me.zhanghai.android.files.Foo.bar(Foo.kt:1)\n")
 
@@ -115,6 +115,23 @@ class LogCheck(unittest.TestCase):
 
     def test_empty_log_is_quiet(self):
         self.assertEqual([], logcheck.findings(""))
+
+    def test_short_disk_read_or_write_is_info_only(self):
+        for kind in ("DiskRead", "DiskWrite"):
+            short = STRICT.replace("~duration=150 ms", "~duration=99 ms").replace("DiskRead", kind)
+            self.assertEqual([], logcheck.findings(short), kind)
+            self.assertEqual(1, sum(f.startswith("INFO ") for f in logcheck.report(short)), kind)
+
+    def test_disk_read_from_100_ms_fails(self):
+        self.assertEqual(1, len(logcheck.findings(STRICT.replace("~duration=150 ms", "~duration=100 ms"))))
+
+    def test_other_violation_fails_however_short(self):
+        other = STRICT.replace("~duration=150 ms", "~duration=1 ms").replace("DiskRead", "UnbufferedIo")
+        self.assertEqual(1, len(logcheck.findings(other)))
+        self.assertEqual(1, len(logcheck.findings(other.replace("; ~duration=1 ms:", ":"))))
+
+    def test_finding_names_the_first_ordo_frame(self):
+        self.assertIn("Foo.bar(Foo.kt:1)", logcheck.findings(STRICT)[0])
 
 
 class UiDump(unittest.TestCase):

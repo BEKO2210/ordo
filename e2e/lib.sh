@@ -219,7 +219,8 @@ trash_drop() {
         sed 's|\\(.*\\)\\.info\$|../files/\\1\\n&|' | tr '\\n' '\\0' | xargs -0 rm -rf"
 }
 
-# debug_findings: StrictMode violations in Ordo code and LeakCanary application leaks since the test started.
+# debug_findings: StrictMode violations in Ordo code and LeakCanary application leaks since the test started
+# (short disk reads come as "INFO ..." lines, see logcheck.py).
 # A logcat that cannot be read is a failure, never a pass: it prints a finding and returns 1.
 debug_findings() {
     local log
@@ -262,6 +263,7 @@ finish() {
     fi
     wait_leak_analysis
     local found rc=0; found=$(debug_findings) || rc=1
+    grep '^INFO ' <<<"$found"; found=$(grep -v '^INFO ' <<<"$found")   # short disk reads: logged, not failed
     if [ "$rc" = 0 ] && [ -z "$found" ]; then pass "no StrictMode violation or leak"; else fail "StrictMode violation or leak"; sed 's/^/    /' <<<"$found"; fi
     [ "$FAILS" = 0 ] && exit 0
     exit 1
