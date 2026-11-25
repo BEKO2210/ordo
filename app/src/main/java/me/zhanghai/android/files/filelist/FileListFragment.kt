@@ -14,8 +14,6 @@ import android.net.Uri
 import android.os.Build
 import android.annotation.SuppressLint
 import android.os.Bundle
-import android.window.OnBackInvokedCallback
-import android.window.OnBackInvokedDispatcher
 import android.os.Environment
 import android.os.Handler
 import android.os.Looper
@@ -320,6 +318,7 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
         val activity = requireActivity() as AppCompatActivity
         activity.title = showRequest?.title ?: getString(homeCategory?.titleRes ?: R.string.file_list_title)
         activity.setSupportActionBar(binding.toolbar)
+        binding.toolbar.isBackInvokedCallbackEnabled = false // searchBackCallback
         overlayActionMode = OverlayToolbarActionMode(binding.overlayToolbar, binding.toolbar)
         bottomActionMode = PersistentBarLayoutToolbarActionMode(
             binding.persistentBarLayout, binding.bottomBarLayout, binding.bottomToolbar
@@ -425,6 +424,7 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
                     }
                 }
         )
+        addOnBackPressedCallback(searchBackCallback)
         addOnBackPressedCallback(overlayActionMode.onBackPressedCallback)
         addOnBackPressedCallback(SpeedDialViewOnBackPressedCallback(binding.speedDialView))
         binding.drawerLayout?.let {
@@ -568,36 +568,16 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
         setUpSearchView()
     }
 
-    // Back while the search field has the keyboard only hides the keyboard, the search stays (with predictive back
-    // the toolbar's own callback otherwise closed both at once: A15, Android 16).
-    private val hideSearchKeyboard: Any? =
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            OnBackInvokedCallback {
-                (menuBinding.searchItem.actionView as? SearchView)?.clearFocus()
-            }
-        } else {
-            null
+    // Back closes the search here, not in the toolbar: the toolbar's own callback (PRIORITY_OVERLAY) outranked the
+    // keyboard's, so a back press meant to hide the keyboard closed the search too (A15, Android 16).
+    private val searchBackCallback = object : OnBackPressedCallback(false) {
+        override fun handleOnBackPressed() {
+            collapseSearchView()
         }
-
-    private fun setHideSearchKeyboardOnBack(enabled: Boolean) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
-        val callback = hideSearchKeyboard as OnBackInvokedCallback
-        val dispatcher = activity?.onBackInvokedDispatcher ?: return
-        if (enabled) {
-            dispatcher.registerOnBackInvokedCallback(OnBackInvokedDispatcher.PRIORITY_OVERLAY, callback)
-        } else {
-            dispatcher.unregisterOnBackInvokedCallback(callback)
-        }
-    }
-
-    override fun onDestroyView() {
-        setHideSearchKeyboardOnBack(false)
-        super.onDestroyView()
     }
 
     private fun setUpSearchView() {
         val searchView = menuBinding.searchItem.actionView as FixQueryChangeSearchView
-        searchView.setOnQueryTextFocusChangeListener { _, hasFocus -> setHideSearchKeyboardOnBack(hasFocus) }
         // MenuItem.OnActionExpandListener.onMenuItemActionExpand() is called before SearchView
         // resets the query.
         searchView.setOnSearchClickListener {
@@ -607,9 +587,13 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
         }
         // SearchView.OnCloseListener.onClose() is not always called.
         menuBinding.searchItem.setOnActionExpandListener(object : MenuItem.OnActionExpandListener {
-            override fun onMenuItemActionExpand(item: MenuItem): Boolean = true
+            override fun onMenuItemActionExpand(item: MenuItem): Boolean {
+                searchBackCallback.isEnabled = true
+                return true
+            }
 
             override fun onMenuItemActionCollapse(item: MenuItem): Boolean {
+                searchBackCallback.isEnabled = false
                 viewModel.isSearchViewExpanded = false
                 viewModel.stopSearching()
                 return true
