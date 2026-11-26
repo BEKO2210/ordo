@@ -18,3 +18,7 @@ fun <State : ParcelableState> Bundle.getState(stateClass: KClass<State>): State 
     getParcelableSafe(stateClass.java.name)!!
 
 inline fun <reified State : ParcelableState> Bundle.getState() = getState(State::class)
+
+/** For a state that onSaveInstanceState only writes sometimes; null when it was not written. */
+inline fun <reified State : ParcelableState> Bundle.getStateOrNull(): State? =
+    getParcelableSafe(State::class.java.name)

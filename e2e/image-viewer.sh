@@ -41,6 +41,20 @@ guard
 check "a foreign path extra is ignored" ui wait a.png 8
 check "the private path is not shown" not_has secret.jpg
 
+# Monkey find (W90, 26.11.2026): the viewer restored after process death read a state it had not saved and crashed.
+a shell input keyevent KEYCODE_HOME
+sleep 2
+a shell am kill "$PKG"
+sleep 1
+# REORDER_TO_FRONT brings back the killed record, so it is rebuilt from its saved state.
+a shell am start -W -a android.intent.action.VIEW -d "file://$DIR/a.png" -t image/png -f 0x10020000 \
+    -n "$PKG/$VIEWER" >/dev/null
+sleep 2
+check "the viewer comes back after process death" wait_on viewer.image.ImageViewerActivity 8
+check "no crash on that restore" eval '[ "$(crashes)" = 0 ]'
+guard
+check "the picture is shown again" ui wait a.png 8
+
 ui tap "Weitere Optionen|More options" >/dev/null
 sleep 1
 ui tap "Löschen|Delete" >/dev/null

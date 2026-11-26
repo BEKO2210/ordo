@@ -201,4 +201,16 @@ class ImageViewerGuardsTest {
         assertFalse(shouldKeepImageViewerState(listOf("a", "b"), listOf("a", "b")))
         assertTrue(shouldKeepImageViewerState(listOf("a", "b"), listOf("b")))
     }
+
+    @Test
+    fun restoreAfterProcessDeathWorksWithoutSavedState() {
+        val opened = listOf("a", "b")
+        // Unchanged list: nothing is saved (monkey crash, W90 26.11.2026), the restore takes the intent's list.
+        val saved = opened.takeIf { shouldKeepImageViewerState(opened, opened) }
+        assertEquals(opened, restoredImageViewerPaths(saved, opened))
+        // After a delete the saved list wins.
+        val afterDelete = listOf("b")
+        val savedAfterDelete = afterDelete.takeIf { shouldKeepImageViewerState(opened, afterDelete) }
+        assertEquals(afterDelete, restoredImageViewerPaths(savedAfterDelete, opened))
+    }
 }
