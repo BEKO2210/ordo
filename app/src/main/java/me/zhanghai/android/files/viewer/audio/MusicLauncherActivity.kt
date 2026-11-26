@@ -435,15 +435,18 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener, AppAccentA
         // The newest load wins: an older one finishing later must not put stale songs back.
         loadJob?.cancel()
         loadJob = lifecycleScope.launch {
+            // Read off the main thread, taken over only by the load that is not cancelled.
+            val loadedHistory = withContext(Dispatchers.IO) { PlayHistoryStore(context).read() }
+            val loadedPlaylists = withContext(Dispatchers.IO) { readPlaylists() }
             val (loaded, savedState) = withContext(Dispatchers.IO) {
-                history = PlayHistoryStore(context).read()
-                playlistData = readPlaylists()
                 MusicLibrary(
                     queryMusic(context), showHiddenFiles, Collator.getInstance(),
                     getString(R.string.home_storage_internal), getString(R.string.backup_target_sd)
                 ) to
                     PlaybackStateStore(context).read()?.let { restorableState(it, ::pathUriExists) }
             }
+            history = loadedHistory
+            playlistData = loadedPlaylists
             library = loaded
             songsByPath = loaded.songs.associateBy { it.path }
             hasLyrics.clear()
