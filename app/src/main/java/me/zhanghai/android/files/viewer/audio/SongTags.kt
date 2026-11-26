@@ -116,9 +116,9 @@ object SongTagIo {
             file.copyTo(backup)
             try {
                 replace(file, temp)
-            } catch (e: IOException) {
-                // Only once the original is back in place: otherwise the backup is the safe copy and stays.
-                if (file.exists()) backup.delete()
+            } catch (e: ReplaceException) {
+                // Only when the original is back in place: otherwise the backup is the safe copy and stays.
+                if (e.originalInPlace) backup.delete()
                 throw e
             }
             return backup
@@ -145,13 +145,17 @@ object SongTagIo {
      */
     private fun replace(file: File, temp: File) {
         val old = File(file.parentFile, ".ordo-old-${UUID.randomUUID()}.${file.extension}")
-        if (!file.renameTo(old)) throw IOException("Could not replace $file")
+        if (!file.renameTo(old)) throw ReplaceException("Could not replace $file", originalInPlace = true)
         if (!temp.renameTo(file)) {
-            if (!old.renameTo(file)) throw IOException("Could not replace $file; the original is kept as $old")
-            throw IOException("Could not replace $file")
+            if (!old.renameTo(file)) {
+                throw ReplaceException("Could not replace $file; the original is kept as $old", originalInPlace = false)
+            }
+            throw ReplaceException("Could not replace $file", originalInPlace = true)
         }
         old.delete()
     }
+
+    private class ReplaceException(message: String, val originalInPlace: Boolean) : IOException(message)
 
     private fun verify(written: SongTags, changes: TagChanges) {
         for ((field, value) in changes.fields) {
