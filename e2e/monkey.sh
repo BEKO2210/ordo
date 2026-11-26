@@ -11,7 +11,7 @@
 SEED=${MONKEY_SEED:-53}
 MINUTES=20
 LOOP_MINUTES=10 # 20 + 10 stays well under the farm timeout of 2400 s
-EVENTS=20000 # throttle 200 ms keeps this count past the clock; the clock ends the run
+EVENTS=1000000 # failed injections (e.g. keyboard flips) use no time, so 20000 ran out after ~14 min on the W90; the clock ends the run
 KILLS=5
 HOME_ACT=me.zhanghai.android.files.home.HomeActivity
 tmp=$(mktemp -d)
