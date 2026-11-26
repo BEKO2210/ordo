@@ -114,9 +114,12 @@ object SongTagIo {
             backupDir.mkdirs()
             val backup = File(backupDir, "${UUID.randomUUID()}.${file.extension}")
             file.copyTo(backup)
-            if (!temp.renameTo(file)) {
-                backup.delete()
-                throw IOException("Could not replace $file")
+            try {
+                replace(file, temp)
+            } catch (e: ReplaceException) {
+                // Only when the original is back in place: otherwise the backup is the safe copy and stays.
+                if (e.originalInPlace) backup.delete()
+                throw e
             }
             return backup
         } finally {
@@ -129,11 +132,34 @@ object SongTagIo {
         val temp = File(file.parentFile, ".ordo-edit-${UUID.randomUUID()}.${file.extension}")
         try {
             backup.copyTo(temp)
-            if (!temp.renameTo(file)) throw IOException("Could not restore $file")
+            replace(file, temp)
         } finally {
             temp.delete()
         }
     }
+
+    /**
+     * Puts [temp] in [file]'s place. The original is renamed aside first, never overwritten by a rename: on Android's
+     * media storage a rename over an existing song left MediaStore's row (title, date) as it was, and no later scan
+     * read the new tags (Galaxy A15, Android 16, rc1d). Moved aside, the new file gets its own row and the scan fills it.
+     */
+    private fun replace(file: File, temp: File) {
+        val old = File(file.parentFile, ".ordo-old-${UUID.randomUUID()}.${file.extension}")
+        if (!file.renameTo(old)) throw ReplaceException("Could not replace $file", originalInPlace = true)
+        if (!temp.renameTo(file)) {
+            // Back to its path: by rename, else by copy; only if both fail it stays next to it (.ordo-old-*), and the
+            // message names it.
+            val back = old.renameTo(file) ||
+                runCatching { old.copyTo(file, overwrite = true) }.onSuccess { old.delete() }.isSuccess
+            if (!back) {
+                throw ReplaceException("Could not replace $file; the original is kept as $old", originalInPlace = false)
+            }
+            throw ReplaceException("Could not replace $file", originalInPlace = true)
+        }
+        old.delete()
+    }
+
+    private class ReplaceException(message: String, val originalInPlace: Boolean) : IOException(message)
 
     private fun verify(written: SongTags, changes: TagChanges) {
         for ((field, value) in changes.fields) {

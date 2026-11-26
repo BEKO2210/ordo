@@ -108,9 +108,16 @@ paused_ui has equalizerEnabled || sound_at_top
 check "the equalizer switches off again" equalizer off
 # In the pane of the fine-tune card: a landscape tablet shows the sheet in two panes, and a swipe in the middle of the
 # screen moved the other one (W90, a15g-5).
+# Switched off, the fine-tune card is disabled and does not open: a sheet reopened since (landscape phone, A15 rc1b)
+# switches the equalizer on for the look and off again from the sheet's top, then goes back down to the fine-tune
+# card, where the playback checks go on as before. (Left on, the playback rows were not found, A15 rc1f.)
 band_row() {
-    [ "${fine_open:-0}" = 1 ] || fine_tune_opened || return 1
-    scroll_to "31 Hz" 6 fineTuneToggle || scrolled_to "31 Hz"
+    local ok
+    [ "${fine_open:-0}" = 1 ] && { scroll_to "31 Hz" 6 fineTuneToggle || scrolled_to "31 Hz"; return; }
+    equalizer on && fine_tune_opened || return 1
+    scroll_to "31 Hz" 6 fineTuneToggle || scrolled_to "31 Hz"; ok=$?
+    sound_at_top; equalizer off && scrolled_to fineTuneToggle || return 1
+    return $ok
 }
 check "a band row shows its gain" band_row
 check "the playback section reaches skip silence and mono" scrolled_to "Skip silence|Stille überspringen"

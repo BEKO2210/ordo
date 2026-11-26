@@ -16,6 +16,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewTreeObserver
 import android.view.inspector.WindowInspector
 import android.widget.TextView
 import androidx.fragment.app.DialogFragment
@@ -32,6 +33,8 @@ import java.util.WeakHashMap
  */
 class MidwordWatchProvider : ContentProvider() {
     private val watched = WeakHashMap<View, Unit>()
+    // Removed when the activity is destroyed: its window's tree observer outlives it briefly and kept the activity.
+    private val focusListeners = WeakHashMap<Activity, ViewTreeObserver.OnWindowFocusChangeListener>()
     private val reported = HashSet<String>()
     private val rect = Rect()
 
@@ -56,12 +59,14 @@ class MidwordWatchProvider : ContentProvider() {
                 // A plain BottomSheetDialog (the video player's subtitle, info, chapter and sleep sheets) is no
                 // DialogFragment: it is found as a new window once it takes the focus from the activity.
                 if (first && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    decor.viewTreeObserver.addOnWindowFocusChangeListener { focused ->
+                    val listener = ViewTreeObserver.OnWindowFocusChangeListener { focused ->
                         if (!focused) decor.post {
                             WindowInspector.getGlobalWindowViews().filter { it !== decor }
                                 .forEach { watch(it, "${activity.javaClass.simpleName}/dialog") }
                         }
                     }
+                    decor.viewTreeObserver.addOnWindowFocusChangeListener(listener)
+                    focusListeners[activity] = listener
                 }
             }
 
@@ -69,7 +74,11 @@ class MidwordWatchProvider : ContentProvider() {
             override fun onActivityPaused(activity: Activity) {}
             override fun onActivityStopped(activity: Activity) {}
             override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {}
-            override fun onActivityDestroyed(activity: Activity) {}
+            override fun onActivityDestroyed(activity: Activity) {
+                focusListeners.remove(activity)?.let {
+                    activity.window.decorView.viewTreeObserver.removeOnWindowFocusChangeListener(it)
+                }
+            }
         })
         return true
     }

@@ -135,7 +135,11 @@ class PathDataSource(isNetwork: Boolean = false) : BaseDataSource(isNetwork) {
     }
 
     /** Selects Media3's own content reader only for content URIs; every Ordo path uses this class. */
-    class Factory(private val context: Context) : DataSource.Factory {
+    class Factory(context: Context) : DataSource.Factory {
+        // The application: a media session keeps the last timeline (and with it this factory) for minutes after the
+        // player's activity is gone (heap dump rc1d: MediaSessionLegacyStub -> ... -> Factory.context -> activity).
+        private val context = context.applicationContext
+
         override fun createDataSource(): DataSource = RoutingDataSource(context)
     }
 
