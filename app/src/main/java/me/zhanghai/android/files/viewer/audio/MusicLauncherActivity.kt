@@ -449,9 +449,13 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener, AppAccentA
             playlistData = loadedPlaylists
             library = loaded
             songsByPath = loaded.songs.associateBy { it.path }
+            // A song deleted meanwhile (the library follows MediaStore) leaves the selection.
+            val hadSelection = selection.isNotEmpty()
+            selection.retainAll(songsByPath.keys)
             hasLyrics.clear()
             saved = savedState
             render()
+            if (hadSelection && selection.isEmpty()) binding.root.post { restoreSearch() }
             updateMiniPlayer()
         }
     }
