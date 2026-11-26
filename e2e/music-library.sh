@@ -311,6 +311,14 @@ listed() { local i; for i in 1 2 3 4 5 6; do close_search >/dev/null 2>&1; searc
 check_or_abort "the MP3 gets a new title in the editor" edit_title Mp3Test "Ordoe2e Edited Mp"
 check "Undo is offered after saving" ui wait "Rückgängig|Undo" 5
 check "the library shows the edited MP3" listed "Ordoe2e Edited Mp"
+# On failure the log shows what MediaStore holds for the edited song (title, is_music) and what the list showed.
+ui has "Ordoe2e Edited Mp" title || {
+    echo "DIAG edited MP3:"
+    a shell content query --uri content://media/external/audio/media --projection _data:title:is_music:date_modified \
+        --where "\"_data LIKE '%/OrdoE2E-Edit/%'\"" | sed 's/^/  /'
+    a shell ls -la "$EDIT" | sed 's/^/  /'
+    ui texts | head -20 | sed 's/^/  /'
+}
 check_or_abort "the edited MP3 opens the player" eval 'ui tap "Ordoe2e Edited Mp" title && wait_on viewer.audio.AudioPlayerActivity 8'
 check_or_abort "the edited MP3 plays" playing
 back 2
