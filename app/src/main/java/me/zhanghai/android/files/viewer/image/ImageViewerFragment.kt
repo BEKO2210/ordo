@@ -41,7 +41,7 @@ import me.zhanghai.android.files.util.args
 import me.zhanghai.android.files.util.createSendImageIntent
 import me.zhanghai.android.files.util.extraPathList
 import me.zhanghai.android.files.util.finish
-import me.zhanghai.android.files.util.getState
+import me.zhanghai.android.files.util.getStateOrNull
 import me.zhanghai.android.files.util.mediumAnimTime
 import me.zhanghai.android.files.util.putState
 import me.zhanghai.android.files.util.showToast
@@ -78,7 +78,8 @@ class ImageViewerFragment : Fragment(), ConfirmDeleteDialogFragment.Listener {
 
         vaultStoppedAt = savedInstanceState?.getLong(STATE_VAULT_STOPPED_AT) ?: 0L
         // The model outlives a rotation. Its list wins over the state saved before the delete finished.
-        pathsModel.ensure(savedInstanceState?.getState<State>()?.paths ?: argsPaths)
+        // State is saved only after a delete, so a restore after process death often has none.
+        pathsModel.ensure(savedInstanceState?.getStateOrNull<State>()?.paths ?: argsPaths)
         paths = pathsModel.paths.value.orEmpty().toMutableList()
 
         setHasOptionsMenu(true)
