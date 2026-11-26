@@ -8,7 +8,7 @@ e2e/run.sh <adb serial>            # read-only tests
 e2e/run.sh --write <adb serial>    # plus tests that create and delete their own files
 e2e/preflight.sh <adb serial>      # a few seconds: can a run start at all?
 e2e/farm.sh --write                # every suite but the four release ones, portrait and landscape
-FARM_NIGHT=1 e2e/farm.sh --write    # those four as well, plus the 30-minute monkey
+FARM_NIGHT=1 e2e/farm.sh --write    # those four as well, plus the 20-minute monkey
 ```
 
 `e2e/selftest.sh` (no device) tests the farm's own checks against planted defects: the a11y scanner (`a11y-scan.py`)
@@ -52,9 +52,9 @@ FARM_NIGHT=1 e2e/farm.sh --write                                     # plus shad
   somebody is using it. The job goes back and another device takes it.
 - **Night** (`FARM_NIGHT=1`) is the only way the farm queues the release suites and sets their switches:
   `video-notification` (`E2E_SHADE`), `ftp-server-defaults` (`E2E_FTP_LIVE`), `vault-secure-flag`
-  (`E2E_VAULT_HAND`), `text-editor-atomic-save` (`E2E_FILL_DISK`). The same switch adds `monkey.sh` (thirty minutes
-  of `adb monkey` against `PKG` with seed `MONKEY_SEED`, default 53, aborted on a crash or ANR in `logcat -b crash`
-  and `logcat -b anr`, then five process deaths: Home, `am kill` in the background, reopen, home still shows its
+  (`E2E_VAULT_HAND`), `text-editor-atomic-save` (`E2E_FILL_DISK`). The same switch adds `monkey.sh` (twenty minutes
+  of `adb monkey` against `PKG`, with `-p`, `--pct-syskeys 0`, `--pct-appswitch 0`, `--pct-nav 0`, progress logged line by line; Wi-Fi, airplane mode and ADB-over-Wi-Fi must be the same before and after, with seed `MONKEY_SEED`, default 53, aborted on a crash or ANR in `logcat -b crash`
+  and `logcat -b anr`, then up to five process deaths within ten minutes: Home, `am kill` in the background, reopen, home still shows its
   categories). Without the switch the farm unsets those four variables, so one left in the environment cannot turn a
   release check on. `monkey.sh` skips on its own unless the switch is set. It runs in the first orientation only.
 - `summary.txt` in the run's folder (`FARM_OUT`, default `~/.cache/ordo-e2e/farm/<start time>/`) is rewritten every
@@ -178,7 +178,7 @@ scroll position). A control that moves on a fixed screen (e.g. below a message o
 | `vault-secure-flag.sh` (`--write`, `E2E_VAULT_HAND=1`, release build) | a test PNG and PDF moved into the Tresor and opened from it: each viewer window has FLAG_SECURE like the Tresor screen (`dumpsys window windows`) and a screen capture (stand-in for the Recents preview) shows no picture; the owner unlocks by hand, both files are restored out of the Tresor; a debug build only says SKIP | blocker before 1.0.0 |
 | `text-editor-atomic-save.sh` (`--write`, emulator or `E2E_FILL_DISK=1`) | a 128-KiB text file edited in the text editor and saved while the storage is full: the file keeps its size and MD5, the editor keeps the typed word; the filler file goes at once | blocker before 1.0.0 |
 | `back-from-quick-access.sh` (`--write`) | the Pictures tile on the home screen, a test folder and its subfolder: back walks up one level at a time, and only back on Pictures (where the tile opened) returns home; only the test folder is created and removed | fixed in 0.18.1 |
-| `monkey.sh` (`FARM_NIGHT=1`) | thirty minutes of `adb monkey` on `PKG` with seed `MONKEY_SEED` (default 53), stopped on a crash or ANR (`logcat -b crash`, `logcat -b anr`); then five times Home, `am kill` in the background, reopen, and the home categories are back with no crash and no ANR. Not part of `run.sh`; the farm queues it only with the night switch | test plan level 8 |
+| `monkey.sh` (`FARM_NIGHT=1`) | twenty minutes of `adb monkey` on `PKG` (only that package, no system keys, app switches or navigation events; Wi-Fi, airplane mode and ADB-over-Wi-Fi state compared before and after) with seed `MONKEY_SEED` (default 53), stopped on a crash or ANR (`logcat -b crash`, `logcat -b anr`); then up to five times (ten minutes at most) Home, `am kill` in the background, reopen, and the home categories are back with no Ordo crash (`Process: PKG`) and no ANR for `PKG`. Not part of `run.sh`; the farm queues it only with the night switch | test plan level 8 |
 
 Every test starts through `launch` in `lib.sh`, which also copes with a fresh install: on an emulator it grants what
 adb may grant (notifications on Android 13+, all-files access as an app op on Android 11+), so no system dialog comes
