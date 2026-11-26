@@ -79,7 +79,7 @@ class ImageViewerFragment : Fragment(), ConfirmDeleteDialogFragment.Listener {
         vaultStoppedAt = savedInstanceState?.getLong(STATE_VAULT_STOPPED_AT) ?: 0L
         // The model outlives a rotation. Its list wins over the state saved before the delete finished.
         // State is saved only after a delete, so a restore after process death often has none.
-        pathsModel.ensure(savedInstanceState?.getStateOrNull<State>()?.paths ?: argsPaths)
+        pathsModel.ensure(restoredImageViewerPaths(savedInstanceState?.getStateOrNull<State>()?.paths, argsPaths))
         paths = pathsModel.paths.value.orEmpty().toMutableList()
 
         setHasOptionsMenu(true)
@@ -311,3 +311,6 @@ class ImageViewerFragment : Fragment(), ConfirmDeleteDialogFragment.Listener {
 /** True when the open list is no longer the one the intent carried, so the saved state must keep it. */
 internal fun shouldKeepImageViewerState(openedPaths: List<*>, currentPaths: List<*>): Boolean =
     currentPaths != openedPaths
+
+/** The list saved after a delete, else the one the intent carried: state is saved only after a delete. */
+internal fun <T> restoredImageViewerPaths(saved: List<T>?, opened: List<T>): List<T> = saved ?: opened
