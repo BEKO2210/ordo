@@ -261,7 +261,9 @@ check "the playlist is an M3U8 file in Music/Playlists" eval 'sleep 2; in_playli
 close_search
 ui has "$MENU" || ui has "Bibliothek|Library" titleText || { echo "DIAG before the side menu:"; ui texts | head -20 | sed 's/^/  /'; }
 check_or_abort "the side menu lists the playlist" eval 'open_menu && nav_row "Wiedergabelisten|Playlists" && ui tap "Wiedergabelisten|Playlists" titleText && ui wait Ordoe2eList 5'
-check_or_abort "the playlist opens with its songs" eval 'ui tap Ordoe2eList && ui wait "Ordoe2e Alpha" 5 && ui has "Ordoe2e Beta"'
+# As song rows (id title): the mini player names Alpha too, and on a landscape phone the rows start below the
+# playlist's header (A15, rc1d).
+check_or_abort "the playlist opens with its songs" eval 'ui tap Ordoe2eList && ui wait "Ordoe2e Alpha" 5 && row_shown "Ordoe2e Alpha" title && row_shown "Ordoe2e Beta" title'
 back 1.5; back 1.5
 # Gamma's row scrolled into sight: on a landscape tablet the results start below the menu (W90, a15g-7).
 check "a song becomes a favourite from its menu" eval 'search Ordoe2e && row_shown "Weitere Optionen für Ordoe2e Gamma|More options for Ordoe2e Gamma" \
