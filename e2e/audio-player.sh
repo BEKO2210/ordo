@@ -63,9 +63,8 @@ a shell input keyevent KEYCODE_BACK; sleep 1
 check "Sound opens from the player toolbar" paused_ui tap actionSound
 check "the equalizer and deliberate-drag guidance are visible" paused_ui wait "Equalizer" 5
 sleep 1 # the sheet is still sliding up: a tap now would land where the switch is about to leave
-# The sheet is long: scroll down until the row appears. Six effect cards sit before playback; from the sheet's top
-# on a landscape phone that took more than eleven swipes (A15, rc1d2), so up to sixteen.
-scrolled_to() { local i; for i in $(seq 16); do paused_ui has "$1" && return 0; swipe_up; done; return 1; }
+# The sheet is long: scroll down until the row appears (at most ten swipes; six effect cards sit before playback).
+scrolled_to() { local i; for i in 1 2 3 4 5 6 7 8 9 10 11; do paused_ui has "$1" && return 0; swipe_up; done; return 1; }
 # On a landscape phone the curve alone fills the sheet and the header (switch, status) scrolls away with it: the
 # sheet opens again at its top to reach them.
 # A reopened sheet starts with Fine-tune collapsed again (fine_open remembers whether its band rows are shown).
@@ -110,20 +109,19 @@ check "the equalizer switches off again" equalizer off
 # In the pane of the fine-tune card: a landscape tablet shows the sheet in two panes, and a swipe in the middle of the
 # screen moved the other one (W90, a15g-5).
 # Switched off, the fine-tune card is disabled and does not open: a sheet reopened since (landscape phone, A15 rc1b)
-# switches the equalizer on for the look and off again from the sheet's top.
+# switches the equalizer on for the look; it goes off again after the playback checks, from the sheet's top (from
+# there a swipe through the sheet lands on the curve and does not scroll, A15 rc1d2).
 band_row() {
-    local ok reopened=0
     if [ "${fine_open:-0}" != 1 ]; then
         equalizer on && fine_tune_opened || return 1
-        reopened=1
+        eq_left_on=1
     fi
-    scroll_to "31 Hz" 6 fineTuneToggle || scrolled_to "31 Hz"; ok=$?
-    [ $reopened = 1 ] && { sound_at_top; equalizer off || return 1; }
-    return $ok
+    scroll_to "31 Hz" 6 fineTuneToggle || scrolled_to "31 Hz"
 }
 check "a band row shows its gain" band_row
 check "the playback section reaches skip silence and mono" scrolled_to "Skip silence|Stille überspringen"
 check "the sleep timer offers end of track" scrolled_to "End of track|Titelende"
+[ "${eq_left_on:-0}" = 1 ] && { sound_at_top; check "the equalizer is off again after the band rows" equalizer off; }
 back 1
 back 2
 check "closing the player returns to the file list" on filelist.FileListActivity

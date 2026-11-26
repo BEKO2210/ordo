@@ -263,7 +263,9 @@ ui has "$MENU" || ui has "Bibliothek|Library" titleText || { echo "DIAG before t
 check_or_abort "the side menu lists the playlist" eval 'open_menu && nav_row "Wiedergabelisten|Playlists" && ui tap "Wiedergabelisten|Playlists" titleText && ui wait Ordoe2eList 5'
 # As song rows (id title): the mini player names Alpha too, and on a landscape phone the rows start below the
 # playlist's header (A15, rc1d).
-check_or_abort "the playlist opens with its songs" eval 'ui tap Ordoe2eList && ui wait "Ordoe2e Alpha" 5 && row_shown "Ordoe2e Alpha" title && row_shown "Ordoe2e Beta" title'
+# No song row may be on screen yet, so the page's own scroller moves (row_shown anchors on a row).
+page_row() { local i; for i in 1 2 3 4 5 6; do ui has "$1" title && return 0; scroll_in up || return 1; done; ui has "$1" title; }
+check_or_abort "the playlist opens with its songs" eval 'ui tap Ordoe2eList && ui wait "Ordoe2e Alpha" 5 && page_row "Ordoe2e Alpha" && page_row "Ordoe2e Beta"'
 back 1.5; back 1.5
 # Gamma's row scrolled into sight: on a landscape tablet the results start below the menu (W90, a15g-7).
 check "a song becomes a favourite from its menu" eval 'search Ordoe2e && row_shown "Weitere Optionen für Ordoe2e Gamma|More options for Ordoe2e Gamma" \
