@@ -450,7 +450,6 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
 
     override fun onDestroy() {
         handler.removeCallbacksAndMessages(null)
-        if (::controls.isInitialized) controls.release()
         network?.release()
         castSession?.release()
         subtitles?.release()
@@ -464,6 +463,8 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
         player?.release()
         player = null
         if (isFinishing) AudioQueueRequests.release(intent.getStringExtra(EXTRA_QUEUE_TOKEN))
+        // Last: releasing the player still shows the controls (paused), which posts their hide again (heap dump rc1d).
+        if (::controls.isInitialized) controls.release()
         super.onDestroy()
     }
 
