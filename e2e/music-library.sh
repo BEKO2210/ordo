@@ -276,7 +276,8 @@ check_or_abort "the favourites show it" eval 'open_menu && nav_row "Favoriten|Fa
 # Favourites and playlists are tabs of the library: the tab row stays, the selected tab scrolled into view (phones).
 check "the favourites keep the tab row, their tab in view" ui has "Favoriten|Favorites"
 # The menu still stands at Favourites: on a landscape phone Library is scrolled off its top (A15, rc1d).
-check "the menu returns to the library" eval 'open_menu && nav_row "Bibliothek|Library" && ui tap "Bibliothek|Library" && ui wait "Alben|Albums" 5'
+# A second first: the menu that opened Favourites may still be sliding shut, and open_menu then took it for open.
+check "the menu returns to the library" eval 'sleep 1; open_menu && nav_row "Bibliothek|Library" && ui tap "Bibliothek|Library" && ui wait "Alben|Albums" 5'
 
 # The tag editor: a new title for the MP3 and the FLAC; the library shows it and the song still plays.
 # A field of the editor's page, scrolled to downwards, then upwards (the page may keep its scroll across a rotation).
