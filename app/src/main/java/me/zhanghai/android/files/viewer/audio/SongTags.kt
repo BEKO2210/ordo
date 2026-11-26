@@ -114,9 +114,11 @@ object SongTagIo {
             backupDir.mkdirs()
             val backup = File(backupDir, "${UUID.randomUUID()}.${file.extension}")
             file.copyTo(backup)
-            if (!temp.renameTo(file)) {
+            try {
+                replace(file, temp)
+            } catch (e: IOException) {
                 backup.delete()
-                throw IOException("Could not replace $file")
+                throw e
             }
             return backup
         } finally {
@@ -129,10 +131,25 @@ object SongTagIo {
         val temp = File(file.parentFile, ".ordo-edit-${UUID.randomUUID()}.${file.extension}")
         try {
             backup.copyTo(temp)
-            if (!temp.renameTo(file)) throw IOException("Could not restore $file")
+            replace(file, temp)
         } finally {
             temp.delete()
         }
+    }
+
+    /**
+     * Puts [temp] in [file]'s place. The original is renamed aside first, never overwritten by a rename: on Android's
+     * media storage a rename over an existing song left MediaStore's row (title, date) as it was, and no later scan
+     * read the new tags (Galaxy A15, Android 16, rc1d). Moved aside, the new file gets its own row and the scan fills it.
+     */
+    private fun replace(file: File, temp: File) {
+        val old = File(file.parentFile, ".ordo-old-${UUID.randomUUID()}.${file.extension}")
+        if (!file.renameTo(old)) throw IOException("Could not replace $file")
+        if (!temp.renameTo(file)) {
+            old.renameTo(file)
+            throw IOException("Could not replace $file")
+        }
+        old.delete()
     }
 
     private fun verify(written: SongTags, changes: TagChanges) {
