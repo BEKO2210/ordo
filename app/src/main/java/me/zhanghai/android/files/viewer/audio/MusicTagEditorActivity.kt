@@ -75,9 +75,7 @@ internal class TagEditorWriteViewModel(application: Application) : AndroidViewMo
             val result = runCatching {
                 val backupDir = TagEditUndo.backupDir(getApplication())
                 for (file in files) done += file to SongTagIo.write(file, changes, backupDir)
-                // Until MediaStore is through: the library loads on the result, and on the A15 the scan took longer
-                // than the usual 5 s, so the song's half-rewritten row made it vanish from the library (rc1b).
-                MusicTagEditorActivity.scan(getApplication(), files, timeoutMs = Long.MAX_VALUE)
+                MusicTagEditorActivity.scan(getApplication(), files)
                 done.toList()
             }
             if (result.isFailure) {
@@ -530,10 +528,9 @@ class MusicTagEditorActivity : AppActivity(), AppAccentActivity {
         fun createIntent(context: Context, paths: List<String>): Intent =
             Intent(context, MusicTagEditorActivity::class.java).putStringArrayListExtra(EXTRA_PATHS, ArrayList(paths))
 
-        /** Asks MediaStore to read the files again and waits (at most [timeoutMs]), so the library shows the new info. */
-        suspend fun scan(context: Context, files: List<File>, timeoutMs: Long = 5_000L) {
-            if (files.isEmpty()) return
-            withTimeoutOrNull(timeoutMs) {
+        /** Asks MediaStore to read the files again and waits (at most 5 s), so the library shows the new info. */
+        suspend fun scan(context: Context, files: List<File>) {
+            withTimeoutOrNull(5_000L) {
                 suspendCancellableCoroutine { continuation ->
                     var left = files.size
                     MediaScanner.scanPaths(files.map { it.path }) { _, _ ->
