@@ -63,8 +63,9 @@ a shell input keyevent KEYCODE_BACK; sleep 1
 check "Sound opens from the player toolbar" paused_ui tap actionSound
 check "the equalizer and deliberate-drag guidance are visible" paused_ui wait "Equalizer" 5
 sleep 1 # the sheet is still sliding up: a tap now would land where the switch is about to leave
-# The sheet is long: scroll down until the row appears (at most ten swipes; six effect cards sit before playback).
-scrolled_to() { local i; for i in 1 2 3 4 5 6 7 8 9 10 11; do paused_ui has "$1" && return 0; swipe_up; done; return 1; }
+# The sheet is long: scroll down until the row appears. Six effect cards sit before playback; from the sheet's top
+# on a landscape phone that took more than eleven swipes (A15, rc1d2), so up to sixteen.
+scrolled_to() { local i; for i in $(seq 16); do paused_ui has "$1" && return 0; swipe_up; done; return 1; }
 # On a landscape phone the curve alone fills the sheet and the header (switch, status) scrolls away with it: the
 # sheet opens again at its top to reach them.
 # A reopened sheet starts with Fine-tune collapsed again (fine_open remembers whether its band rows are shown).
