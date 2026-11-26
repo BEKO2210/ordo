@@ -147,7 +147,11 @@ object SongTagIo {
         val old = File(file.parentFile, ".ordo-old-${UUID.randomUUID()}.${file.extension}")
         if (!file.renameTo(old)) throw ReplaceException("Could not replace $file", originalInPlace = true)
         if (!temp.renameTo(file)) {
-            if (!old.renameTo(file)) {
+            // Back to its path: by rename, else by copy; only if both fail it stays next to it (.ordo-old-*), and the
+            // message names it.
+            val back = old.renameTo(file) ||
+                runCatching { old.copyTo(file, overwrite = true) }.onSuccess { old.delete() }.isSuccess
+            if (!back) {
                 throw ReplaceException("Could not replace $file; the original is kept as $old", originalInPlace = false)
             }
             throw ReplaceException("Could not replace $file", originalInPlace = true)
