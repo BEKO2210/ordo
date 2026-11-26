@@ -425,6 +425,8 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener, AppAccentA
     }
 
     private fun load() {
+        // The newest load wins: an older one finishing later must not put stale songs back.
+        loadJob?.cancel()
         if (!hasStorageAccess()) {
             library = null
             render()
@@ -432,12 +434,11 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener, AppAccentA
         }
         val context = applicationContext
         val showHiddenFiles = Settings.FILE_LIST_SHOW_HIDDEN_FILES.valueCompat
-        // The newest load wins: an older one finishing later must not put stale songs back.
-        loadJob?.cancel()
         loadJob = lifecycleScope.launch {
-            // Read off the main thread, taken over only by the load that is not cancelled.
-            val loadedHistory = withContext(Dispatchers.IO) { PlayHistoryStore(context).read() }
-            val loadedPlaylists = withContext(Dispatchers.IO) { readPlaylists() }
+            // Taken over at once (a cancelled load stops here), before the long query: a playlist changed meanwhile
+            // is not overwritten by this older read.
+            history = withContext(Dispatchers.IO) { PlayHistoryStore(context).read() }
+            playlistData = withContext(Dispatchers.IO) { readPlaylists() }
             val (loaded, savedState) = withContext(Dispatchers.IO) {
                 MusicLibrary(
                     queryMusic(context), showHiddenFiles, Collator.getInstance(),
@@ -445,8 +446,6 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener, AppAccentA
                 ) to
                     PlaybackStateStore(context).read()?.let { restorableState(it, ::pathUriExists) }
             }
-            history = loadedHistory
-            playlistData = loadedPlaylists
             library = loaded
             songsByPath = loaded.songs.associateBy { it.path }
             // A song deleted meanwhile (the library follows MediaStore) leaves the selection.
