@@ -5,6 +5,7 @@
 
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-parcelize'
+apply plugin: 'org.jetbrains.kotlinx.kover'
 
 apply from: '../signing.gradle'
 
@@ -116,6 +117,61 @@ repositories {
         url 'https://jitpack.io'
     }
 }
+
+// JVM line coverage for the debug variant. Each bound is the measured package value minus two percentage points.
+kover {
+    currentProject {
+        providedVariant('debug') {
+            sources {
+                includedSourceSets.addAll('main', 'debug')
+            }
+        }
+        instrumentation {
+            includedClasses.add('me.zhanghai.android.files.*')
+            // Instrumentation changes class-init order; ProviderFtpFileTest then reaches the root/Linux
+            // providers, which need Android/native code the JVM lacks. FTP is covered by its device tests.
+            excludedClasses.add('org.apache.ftpserver.*')
+            excludedClasses.add('org.apache.mina.*')
+            excludedClasses.add('me.zhanghai.android.files.ftpserver.*')
+            excludedClasses.add('me.zhanghai.android.files.provider.root.*')
+            excludedClasses.add('me.zhanghai.android.files.provider.linux.*')
+        }
+    }
+    reports {
+        variant('debug') {
+            filters {
+                includes {
+                    packages('me.zhanghai.android.files')
+                }
+            }
+            html {
+                htmlDir = layout.buildDirectory.dir('reports/kover/debug/html')
+            }
+            xml {
+                xmlFile = layout.buildDirectory.file('reports/kover/debug/report.xml')
+            }
+            verify {
+                // TODO: Add minBound values after measuring the complete debug report.
+                rule {
+                    filters { includes { packages('me.zhanghai.android.files.ai') } }
+                }
+                rule {
+                    filters { includes { packages('me.zhanghai.android.files.vault') } }
+                }
+                rule {
+                    filters { includes { packages('me.zhanghai.android.files.backup') } }
+                }
+                rule {
+                    filters { includes { packages('me.zhanghai.android.files.filejob') } }
+                }
+                rule {
+                    filters { includes { packages('me.zhanghai.android.files.provider.common') } }
+                }
+            }
+        }
+    }
+}
+
 dependencies {
     // We need
     // https://github.com/bitfireAT/dav4jvm/commit/c1bc14348831bcdb00f3a6eec4859b81c7dc3728 , but we

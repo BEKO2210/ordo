@@ -33,13 +33,14 @@
 </p>
 
 <!-- AUTO:new -->
-> **Neu in 0.18.1**
-> - Absturz beim Antippen der Video-Benachrichtigung behoben
-> - Sicherer mit Dateien: Gemischte Auswahl landet im Papierkorb, Rückgängig geht wieder
-> - Tresor und Bildbetrachter gegen das Öffnen interner Dateien geschützt
-> - FTP-Server startet mit Passwort und ohne anonymen Zugang
-> - Netzwerkfreigaben bleiben im Leerlauf verbunden
-> - Musik und Cast: zuverlässigere Wiedergabe und Schlaf-Timer
+> **Neu in 0.18.2**
+> - Sicheres Kopieren und Wiederherstellen: keine verlorenen Dateien bei Konflikten
+> - KI-Befehle: „nie“, „nicht“ und Ähnliches fragen vor dem Löschen immer nach
+> - FTP-Server weist auf unverschlüsselte Übertragung hin
+> - Knöpfe brechen bei großem Bildschirmzoom nicht mehr mitten im Wort um
+> - Handy quer: Menüs und Listen passen und bleiben erreichbar
+> - Video, Musik und Cast: zuverlässigeres Fortsetzen und Rückgängig
+> - Netzwerkfreigaben: kein endloses Hängen mehr
 <!-- /AUTO:new -->
 
 ## Stand
@@ -257,7 +258,6 @@ Tippe oder diktiere „Verschiebe alle MP3s aus Download nach Musik“. Ordo zei
 - Tresor: Dateien werden mit AES-256-GCM verschlüsselt und mit deiner Bildschirmsperre geöffnet
 - Sicherung: Ordner und Tresor als ZIP-Datei auf einen USB-Stick oder an jeden Ort, den dein Handy anbietet – auf Wunsch mit Passwort
 - Wiederherstellen, ohne vorhandene Dateien zu ersetzen
-- Eine Datei ersetzt keinen Ordner gleichen Namens
 
 **Für Profis**
 

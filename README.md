@@ -33,13 +33,14 @@
 </p>
 
 <!-- AUTO:new -->
-> **New in 0.18.1**
-> - Fixed a crash when tapping the video notification
-> - Safer file handling: mixed selections go to the trash, undo works again
-> - Vault and image viewer protected against opening internal files
-> - FTP server now starts with a password and no anonymous access
-> - Network shares stay connected while idle
-> - Music and Cast: more reliable playback and sleep timer
+> **New in 0.18.2**
+> - Safer copy, move and restore: no lost or overwritten files on conflicts
+> - AI commands: "never", "don't" and similar always ask before deleting
+> - FTP server warns that transfers are unencrypted
+> - Buttons no longer break words with large display zoom
+> - Phones in landscape: menus and lists fit and stay reachable
+> - Video, music and Cast: more reliable resume and undo
+> - Network shares: no more endless hangs
 <!-- /AUTO:new -->
 
 ## Status
@@ -257,7 +258,6 @@ Type or dictate “Move all MP3s from Download to Music”. Ordo shows the plan 
 - Vault: files are encrypted with AES-256-GCM and opened with your screen lock
 - Backup: folders and the vault as a ZIP file to a USB drive or any storage your phone offers, with an optional password
 - Restore without replacing the files you already have
-- A file cannot replace a folder of the same name
 
 **For power users**
 
