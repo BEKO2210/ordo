@@ -11,10 +11,12 @@ import android.Manifest
 import android.content.ComponentName
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.database.ContentObserver
 import android.os.Bundle
 import android.os.Environment
 import android.os.Handler
 import android.os.Looper
+import android.provider.MediaStore
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.MenuItem
@@ -60,6 +62,7 @@ import java.net.URI
 import java.text.Collator
 import java8.nio.file.Paths
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
@@ -176,6 +179,16 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener, AppAccentA
     private var controller: MediaController? = null
     private var miniArtKey: Any? = null
     private val handler = Handler(Looper.getMainLooper())
+    private var loadJob: Job? = null
+    // MediaStore changed (a tag edit's scan, songs added or removed): the library loads again. The tag editor waits at
+    // most 5 s for its scan; on the A15 it took longer and the library had loaded the half-rewritten row (rc1b).
+    private val reload = Runnable { load() }
+    private val mediaObserver = object : ContentObserver(handler) {
+        override fun onChange(selfChange: Boolean) {
+            handler.removeCallbacks(reload)
+            handler.postDelayed(reload, RELOAD_DELAY_MS)
+        }
+    }
     private val progressUpdater = object : Runnable {
         override fun run() {
             updateMiniProgress()
@@ -337,12 +350,15 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener, AppAccentA
         // Back from the player the search stays, but the keyboard must not cover the list again.
         (searchItem.actionView as SearchView).clearFocus()
         load()
+        contentResolver.registerContentObserver(MediaStore.Audio.Media.getContentUri("external"), true, mediaObserver)
         connectController()
         // Back from Ordo Musik's settings with "Colours from the cover" switched: the mini player follows.
         if (miniCoverColors != Settings.MUSIC_COVER_COLORS.valueCompat) miniArtKey = null
     }
 
     override fun onStop() {
+        contentResolver.unregisterContentObserver(mediaObserver)
+        handler.removeCallbacks(reload)
         handler.removeCallbacks(progressUpdater)
         controller?.removeListener(playerListener)
         controller = null
@@ -409,6 +425,8 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener, AppAccentA
     }
 
     private fun load() {
+        // The newest load wins: an older one finishing later must not put stale songs back.
+        loadJob?.cancel()
         if (!hasStorageAccess()) {
             library = null
             render()
@@ -416,10 +434,12 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener, AppAccentA
         }
         val context = applicationContext
         val showHiddenFiles = Settings.FILE_LIST_SHOW_HIDDEN_FILES.valueCompat
-        lifecycleScope.launch {
+        loadJob = lifecycleScope.launch {
+            // Taken over at once (a cancelled load stops here), before the long query: a playlist changed meanwhile
+            // is not overwritten by this older read.
+            history = withContext(Dispatchers.IO) { PlayHistoryStore(context).read() }
+            playlistData = withContext(Dispatchers.IO) { readPlaylists() }
             val (loaded, savedState) = withContext(Dispatchers.IO) {
-                history = PlayHistoryStore(context).read()
-                playlistData = readPlaylists()
                 MusicLibrary(
                     queryMusic(context), showHiddenFiles, Collator.getInstance(),
                     getString(R.string.home_storage_internal), getString(R.string.backup_target_sd)
@@ -428,9 +448,13 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener, AppAccentA
             }
             library = loaded
             songsByPath = loaded.songs.associateBy { it.path }
+            // A song deleted meanwhile (the library follows MediaStore) leaves the selection.
+            val hadSelection = selection.isNotEmpty()
+            selection.retainAll(songsByPath.keys)
             hasLyrics.clear()
             saved = savedState
             render()
+            if (hadSelection && selection.isEmpty()) binding.root.post { restoreSearch() }
             updateMiniPlayer()
         }
     }
@@ -1733,6 +1757,7 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener, AppAccentA
     }
 
     companion object {
+        private const val RELOAD_DELAY_MS = 500L
         private const val STATE_TAB = "tab"
         private const val STATE_DETAIL = "detail"
         private const val STATE_QUERY = "query"

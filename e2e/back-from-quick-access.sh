@@ -18,8 +18,18 @@ tap_in() {
     read -r x1 y1 x2 y2 < <(ui bounds "$2" nameText | awk -v l="$l" -v t="$t" '$2 >= l && $4 <= t' | head -1)
     [ -n "${y2:-}" ] && a shell input tap $(((x1 + x2) / 2)) $(((y1 + y2) / 2))
 }
+# The list's header can be on screen while its tiles are still below the edge (rc1b, A15 portrait): scroll on
+# until the tile itself lies inside the list, then tap it.
+tap_tile() {
+    local i
+    for i in 1 2 3 4 5 6 7 8; do
+        tap_in quickAccessList "Bilder|Pictures" && return 0
+        scroll_in up scrollView || return 1
+    done
+    return 1
+}
 check_or_abort "the Pictures tile is on the home screen" scroll_to quickAccessList
-check_or_abort "the Pictures tile opens the file list" eval 'tap_in quickAccessList "Bilder|Pictures" && wait_on filelist.FileListActivity 6'
+check_or_abort "the Pictures tile opens the file list" eval 'tap_tile && wait_on filelist.FileListActivity 6'
 guard
 check_or_abort "the test folder is listed in Pictures" ui see ordo-e2e-back nameText
 ui tap ordo-e2e-back nameText >/dev/null

@@ -19,7 +19,8 @@ import java.io.IOException
 abstract class RootablePosixFileAttributeView(
     private val path: Path,
     private val localAttributeView: PosixFileAttributeView,
-    rootAttributeViewCreator: (PosixFileAttributeView) -> RootPosixFileAttributeView
+    rootAttributeViewCreator: (PosixFileAttributeView) -> RootPosixFileAttributeView,
+    private val noFollowLinks: Boolean = false
 ) : PosixFileAttributeView, Parcelable {
     private val rootAttributeView: RootPosixFileAttributeView = rootAttributeViewCreator(this)
 
@@ -64,5 +65,5 @@ abstract class RootablePosixFileAttributeView(
 
     @Throws(IOException::class)
     private fun <R> callRootable(path: Path, block: PosixFileAttributeView.() -> R): R =
-        callRootable(path, true, localAttributeView, rootAttributeView, block)
+        callRootable(path, true, noFollowLinks, localAttributeView, rootAttributeView, block)
 }

@@ -206,6 +206,20 @@ internal class VideoControls(
         return true
     }
 
+    /**
+     * The screen is destroyed: drops every pending runnable. They hold this (and with it the activity) in the window's
+     * queue up to [HIDE_DELAY_MS] after onDestroy; a second player destroyed meanwhile counted three instances
+     * (StrictMode InstanceCountViolation, A15, rc1b; heap dump: Message.callback -> VideoControls -> activity).
+     */
+    fun release() {
+        // From every view that posts: one posted before the window was attached waits in that view's own queue.
+        for (view in listOfNotNull(controls, unlockButton, touchView)) {
+            for (runnable in listOf(hide, hideUnlock, singleTap, unlock, hold)) view.removeCallbacks(runnable)
+        }
+        controls.animate().cancel() // a fade's end action is not run on cancel
+        unlockButton.animate().cancel()
+    }
+
     /** The screen goes away mid-gesture: no 2× left behind, no hold firing later. */
     fun cancelGestures() {
         touchView?.removeCallbacks(hold)

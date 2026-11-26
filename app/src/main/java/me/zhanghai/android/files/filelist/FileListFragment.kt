@@ -56,6 +56,7 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
@@ -1147,6 +1148,7 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
         updateSelectionBar(if (pickOptions == null) overlayActionMode.menu else null)
         if (!overlayActionMode.isActive) {
             binding.appBarLayout.setExpanded(true)
+            pinToolbar(true)
             binding.appBarLayout.addOnOffsetChangedListener(
                 AppBarLayoutExpandHackListener(binding.recyclerView)
             )
@@ -1287,7 +1289,17 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
         }
 
     private fun onOverlayActionModeFinished() {
+        pinToolbar(false)
         viewModel.clearSelectedFiles()
+    }
+
+    // A landscape phone scrolls the toolbar away (values-land); during a selection it holds the count and Close, so
+    // it stays (A15 landscape, rc1b: "2 selected" was scrolled off screen).
+    private fun pinToolbar(pinned: Boolean) {
+        val bar = binding.toolbar.parent as View
+        val params = bar.layoutParams as AppBarLayout.LayoutParams
+        params.scrollFlags = if (pinned) 0 else resources.getInteger(R.integer.file_list_toolbar_scroll_flags)
+        bar.layoutParams = params
     }
 
     private fun confirmReplaceFile(file: FileItem, setFileName: Boolean = true) {

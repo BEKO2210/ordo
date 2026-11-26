@@ -1,7 +1,8 @@
-Flüssiger und sicherer:
-• Schnellerer Start, weniger Ruckeln in Listen und im Player
+Release-Kandidat für Ordo 1.0:
 • Zurück aus einem Schnellzugriff-Ordner geht eine Ebene hoch
-• Suche: Zurück blendet zuerst die Tastatur aus
-• Sicherungen enthalten sich nicht mehr selbst
-• Absturz beim Scannen von Musik und Videos behoben
-• Handy quer: Menüs passen und bleiben erreichbar
+• Bearbeitete Musik-Tags erscheinen sofort in der Bibliothek
+• Videoplayer schließt sauber, braucht weniger Speicher
+• Videotitel aus anderen Apps erscheinen in der Benachrichtigung
+• „/sdcard“-Pfade öffnen ohne Root; sicherere Root-Prüfung
+• Sicherungen enthalten sich nie selbst
+• Auswahl-Leiste bleibt am Handy quer sichtbar

@@ -111,6 +111,16 @@ class SongTagsTest {
     }
 
     @Test
+    fun theReplaceLeavesNoHelperFiles() {
+        val file = fixture("mp3")
+        val backup = SongTagIo.write(file, TagChanges(mapOf(TagField.TITLE to "Changed")), backups)
+        assertEquals("Changed", SongTagIo.read(file)[TagField.TITLE])
+        SongTagIo.restore(file, backup)
+        assertEquals("Fixture", SongTagIo.read(file)[TagField.TITLE])
+        assertEquals(listOf("backups", "song.mp3"), folder.root.list()!!.sorted())
+    }
+
+    @Test
     fun undoRestoresTheOriginalBytes() {
         val file = fixture("mp3")
         val before = file.readBytes()

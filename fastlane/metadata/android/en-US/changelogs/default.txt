@@ -1,7 +1,8 @@
-Smoother and safer:
-• Faster start, less stutter in lists and the player
+Release candidate for Ordo 1.0:
 • Back from a quick-access folder goes up one level
-• Search: back first hides the keyboard
-• Backups no longer contain themselves
-• Fixed a crash when scanning music and videos
-• Phones in landscape: menus fit and stay reachable
+• Edited music tags show up in the library right away
+• Video player closes cleanly, less memory in use
+• Video titles from other apps appear in the notification
+• "/sdcard" paths open without root; safer root checks
+• Backups never include themselves
+• Selection bar stays visible on phones in landscape

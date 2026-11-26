@@ -242,7 +242,9 @@ check "back from the player returns to the library" on viewer.audio.MusicLaunche
 
 # Selection, playlists and favourites: a long press selects, the songs go into a new M3U8 playlist in
 # Music/Playlists, the playlist and the favourites show them in the side menu.
-check "a long press selects a song" eval 'search Ordoe2e && ui longtap "Ordoe2e Alpha" title && ui wait "1 ausgewählt|1 selected" 5'
+# The search also finds the tag editor's songs (folder OrdoE2E-Edit) and sorts them first: on a landscape phone Alpha
+# lies below the window (A15, rc1b), so it is scrolled into sight before the long press.
+check "a long press selects a song" eval 'search Ordoe2e && row_shown "Ordoe2e Alpha" title && ui longtap "Ordoe2e Alpha" title && ui wait "1 ausgewählt|1 selected" 5'
 # On failure the log shows what the toolbar showed instead.
 ui has "1 ausgewählt|1 selected" || { echo "DIAG selection:"; ui texts | head -20 | sed 's/^/  /'; }
 # Scrolled into sight first: on the W90 the selection showed the whole library, Beta below the window (a15g-5).
@@ -259,7 +261,11 @@ check "the playlist is an M3U8 file in Music/Playlists" eval 'sleep 2; in_playli
 close_search
 ui has "$MENU" || ui has "Bibliothek|Library" titleText || { echo "DIAG before the side menu:"; ui texts | head -20 | sed 's/^/  /'; }
 check_or_abort "the side menu lists the playlist" eval 'open_menu && nav_row "Wiedergabelisten|Playlists" && ui tap "Wiedergabelisten|Playlists" titleText && ui wait Ordoe2eList 5'
-check_or_abort "the playlist opens with its songs" eval 'ui tap Ordoe2eList && ui wait "Ordoe2e Alpha" 5 && ui has "Ordoe2e Beta"'
+# As song rows (id title): the mini player names Alpha too, and on a landscape phone the rows start below the
+# playlist's header (A15, rc1d).
+# No song row may be on screen yet, so the page's own scroller moves (row_shown anchors on a row).
+page_row() { local i; for i in 1 2 3 4 5 6; do ui has "$1" title && return 0; scroll_in up || return 1; done; ui has "$1" title; }
+check_or_abort "the playlist opens with its songs" eval 'ui tap Ordoe2eList && ui wait "Ordoe2e Alpha" 5 && page_row "Ordoe2e Alpha" && page_row "Ordoe2e Beta"'
 back 1.5; back 1.5
 # Gamma's row scrolled into sight: on a landscape tablet the results start below the menu (W90, a15g-7).
 check "a song becomes a favourite from its menu" eval 'search Ordoe2e && row_shown "Weitere Optionen für Ordoe2e Gamma|More options for Ordoe2e Gamma" \
@@ -269,7 +275,9 @@ close_search
 check_or_abort "the favourites show it" eval 'open_menu && nav_row "Favoriten|Favorites" && ui tap "Favoriten|Favorites" titleText && ui wait "Ordoe2e Gamma" 5'
 # Favourites and playlists are tabs of the library: the tab row stays, the selected tab scrolled into view (phones).
 check "the favourites keep the tab row, their tab in view" ui has "Favoriten|Favorites"
-check "the menu returns to the library" eval 'open_menu && ui tap "Bibliothek|Library" && ui wait "Alben|Albums" 5'
+# The menu still stands at Favourites: on a landscape phone Library is scrolled off its top (A15, rc1d).
+# A second first: the menu that opened Favourites may still be sliding shut, and open_menu then took it for open.
+check "the menu returns to the library" eval 'sleep 1; open_menu && nav_row "Bibliothek|Library" && ui tap "Bibliothek|Library" && ui wait "Alben|Albums" 5'
 
 # The tag editor: a new title for the MP3 and the FLAC; the library shows it and the song still plays.
 # A field of the editor's page, scrolled to downwards, then upwards (the page may keep its scroll across a rotation).
@@ -309,6 +317,14 @@ listed() { local i; for i in 1 2 3 4 5 6; do close_search >/dev/null 2>&1; searc
 check_or_abort "the MP3 gets a new title in the editor" edit_title Mp3Test "Ordoe2e Edited Mp"
 check "Undo is offered after saving" ui wait "Rückgängig|Undo" 5
 check "the library shows the edited MP3" listed "Ordoe2e Edited Mp"
+# On failure the log shows what MediaStore holds for the edited song (title, is_music) and what the list showed.
+ui has "Ordoe2e Edited Mp" title || {
+    echo "DIAG edited MP3:"
+    a shell content query --uri content://media/external/audio/media --projection _data:title:is_music:date_modified \
+        --where "\"_data LIKE '%/OrdoE2E-Edit/%'\"" | sed 's/^/  /'
+    a shell ls -la "$EDIT" | sed 's/^/  /'
+    ui texts | head -20 | sed 's/^/  /'
+}
 check_or_abort "the edited MP3 opens the player" eval 'ui tap "Ordoe2e Edited Mp" title && wait_on viewer.audio.AudioPlayerActivity 8'
 check_or_abort "the edited MP3 plays" playing
 back 2

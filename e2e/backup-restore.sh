@@ -11,8 +11,41 @@ PW=e2eRichtig7
 # The status button moves with the length of the message above it: never tap it from the remembered spot.
 st() { E2E_FAST=0 ui tap statusButton >/dev/null; }
 picker() { case "$(top)" in com.google.android.documentsui/*|com.android.documentsui/*) ;; *) guard ;; esac; }
-# A run that stops inside the system picker must not leave it in front for the farm's next suite (a15g-5).
-trap 'for _ in 1 2 3 4; do [[ $(top) == *documentsui/* ]] || break; a shell input keyevent KEYCODE_BACK; sleep 1; done' EXIT
+# close_picker: back out of the system picker, and only out of it: never past Ordo (W90 rc1b: further backs reached
+# the launcher and the farm took the whole device out). Also the exit trap, so a stopped run leaves no picker open.
+close_picker() {
+    local _; for _ in 1 2 3 4 5 6 7 8; do
+        [[ $(top) == *documentsui/* ]] || return 0
+        a shell input keyevent KEYCODE_BACK; sleep 1
+        [[ $(top) == "$PKG"/* ]] && return 0
+    done
+}
+trap close_picker EXIT
+# pui: ui for the system picker, which this test opened itself (ui.py taps only into Ordo without E2E_TAP_ANY=1).
+pui() { E2E_TAP_ANY=1 ui "$@"; }
+# The form runs on behind the start bar: on a landscape tablet a row behind it is in the screen read, but a tap there
+# hits the bar, and a swipe starting on the bar moves nothing (W90 rc1b, as in backup-self-include.sh). form_to scrolls
+# the form until TARGET [INSIDE] stands above the bar.
+bar_top() { ui bounds startBar | awk '{ print $2; exit }'; }
+above_bar() {
+    local y bar; y=$(ui bounds "$1" ${2:+"$2"} | awk '{ print int(($2 + $4) / 2); exit }'); bar=$(bar_top)
+    [ -n "$y" ] && [ "$y" -lt "${bar:-99999}" ]
+}
+form_swipe() {
+    local x1 y1 x2 y2 bot x
+    read -r x1 y1 x2 y2 < <(ui scrollbounds formView); [ -n "${y2:-}" ] || return 1
+    bot=$(bar_top); [ -n "$bot" ] && [ "$bot" -lt "$y2" ] || bot=$y2
+    x=$(((x1 + x2) / 2))
+    if [ "$1" = up ]; then a shell input swipe "$x" $((y1 + (bot - y1) * 3 / 4)) "$x" $((y1 + (bot - y1) / 4)) 400
+    else a shell input swipe "$x" $((y1 + (bot - y1) / 4)) "$x" $((y1 + (bot - y1) * 3 / 4)) 400; fi
+    sleep 0.5
+}
+form_to() { local _; above_bar "$@" && return 0; for _ in 1 2 3 4 5 6 7 8; do form_swipe up || return 1; above_bar "$@" && return 0; done; return 1; }
+form_top() { local _; for _ in 1 2 3 4 5 6 7 8; do form_swipe down || return 0; done; }
+# form_tap TARGET [INSIDE]: scrolled above the bar, then tapped.
+form_tap() { form_to "$@" && ui tap "$@" >/dev/null; }
+# The keyboard away (Escape), only while it shows: without it Escape counts as Back and left the screen.
+hide_keyboard() { a shell dumpsys input_method | grep -q "mInputShown=true" && a shell input keyevent 111; sleep 0.5; }
 # wait_picker: up to 5 s for the system picker to be in front, then the check above.
 wait_picker() {
     local end=$((SECONDS + 5))
@@ -33,21 +66,20 @@ check "the backup screen opens" wait_on backup.BackupActivity 4; guard
 # Only the test folder: remember what was ticked and give it back at the end.
 mapfile -t ticked < <(ui texts | awk -F'|' '$2 == "titleText" { print $1 }' | while read -r t; do
     [ "$t" != ordo-e2e-restore ] && ui checked "$t" && echo "$t"; done)
-for t in "${ticked[@]}"; do ui tap "$t" titleText >/dev/null; done
-ui checked ordo-e2e-restore || ui tap ordo-e2e-restore titleText >/dev/null
-ui tap sdRow >/dev/null
+for t in "${ticked[@]}"; do form_tap "$t" titleText; done
+form_top
+form_to ordo-e2e-restore titleText; ui checked ordo-e2e-restore || form_tap ordo-e2e-restore titleText
 # On a short screen (W90) the protection card starts under the bottom bar: a tap on its visible sliver hit the
-# system's Home button. Scrolled into view first, and again once the password fields are open.
-swipe_up; swipe_up
-ui tap encryptRow >/dev/null
-swipe_up
-ui tap passwordEdit >/dev/null; a shell input text $PW
-ui tap passwordRepeatEdit >/dev/null; a shell input text $PW; a shell input keyevent 111; sleep 0.5
-ui tap startButton >/dev/null; wait_picker
+# system's Home button. Each row is scrolled above the bar first (form_tap).
+form_tap sdRow
+form_tap encryptRow
+form_tap passwordEdit; a shell input text $PW
+form_tap passwordRepeatEdit; a shell input text $PW; hide_keyboard
+form_tap startButton; wait_picker
 # Turned while the picker is open: the backup screen is made anew behind it and must still start the backup.
 rotation=$(a shell settings get system user_rotation | tr -d '\r'); auto=$(a shell settings get system accelerometer_rotation | tr -d '\r')
 a shell settings put system accelerometer_rotation 0; a shell settings put system user_rotation 1; sleep 3; picker # deliberate: the rotation, with the picker rebuilt
-E2E_TAP_ANY=1 ui tap button1 >/dev/null; wait_on backup.BackupActivity 8   # the system picker's "save", file name given by Ordo
+pui tap button1 >/dev/null; wait_on backup.BackupActivity 8 || close_picker   # the system picker's "save", file name given by Ordo
 a shell settings put system user_rotation "${rotation:-0}"; a shell settings put system accelerometer_rotation "${auto:-1}"
 sleep 1 # deliberate: the rotation back
 check "the backup is done" ui see "Sicherung fertig|Backup done" statusTitle; guard
@@ -58,7 +90,9 @@ ui tap Sicherung >/dev/null; wait_on backup.BackupActivity 5; guard
 a shell "rm $DIR/a.txt $DIR/sub/c.bin; echo geaendert-laenger > $DIR/b.txt"
 restore() {   # restore PASSWORD
     ui tap "ZIP-Sicherung auswählen|Choose ZIP backup" >/dev/null; wait_picker
-    E2E_TAP_ANY=1 ui tap "$(basename "$zip")" title >/dev/null; wait_on backup.BackupActivity 6; guard # in the system picker
+    # In the system picker; the ZIP scrolled into sight first (a landscape tablet shows few rows).
+    scroll_to "$(basename "$zip")" 4 >/dev/null; pui tap "$(basename "$zip")" title >/dev/null
+    wait_on backup.BackupActivity 6 || close_picker; guard
     sleep 1 # deliberate: the password field takes the focus; the text is typed blind
     a shell input text "$1"; ui tap button1 >/dev/null; guard
 }
@@ -87,11 +121,12 @@ st
 # GB-10: an older backup chosen as the target must stay as it is; Ordo asks for a new file name.
 zip_sum=$(a shell "md5sum '$zip'" | awk '{print $1}')
 ui tap Sicherung >/dev/null; sleep 2.5; guard
-ui checked ordo-e2e-restore || ui tap ordo-e2e-restore titleText >/dev/null
-ui tap sdRow >/dev/null; sleep 0.5
-ui tap startButton >/dev/null; sleep 3; picker
-ui tap "$(basename "$zip")" title >/dev/null; sleep 2
-ui tap button1 >/dev/null; sleep 6   # the picker's "replace this file?" question
+form_to ordo-e2e-restore titleText; ui checked ordo-e2e-restore || form_tap ordo-e2e-restore titleText
+form_tap sdRow; sleep 0.5
+form_tap startButton; sleep 3; picker
+scroll_to "$(basename "$zip")" 4 >/dev/null; pui tap "$(basename "$zip")" title >/dev/null; sleep 2
+pui tap button1 >/dev/null; sleep 6   # the picker's "replace this file?" question
+close_picker; guard
 check "an old backup as target is refused with a hint" \
     ui has "neuen Dateinamen|new file name" statusMessage
 check "the old backup ZIP is left as it was" \
@@ -100,8 +135,8 @@ st; sleep 2
 
 # The ticks as they were; the test folder goes, so its entry leaves the list by itself.
 ui tap Sicherung >/dev/null; guard
-ui tap ordo-e2e-restore titleText >/dev/null
-for t in "${ticked[@]}"; do ui tap "$t" titleText >/dev/null; done
+form_top; form_tap ordo-e2e-restore titleText
+for t in "${ticked[@]}"; do form_tap "$t" titleText; done
 all_ticked() { local t; for t in "${ticked[@]}"; do ui checked "$t" || return 1; done; }
 check "the ticks are back as they were" all_ticked
 back 2
