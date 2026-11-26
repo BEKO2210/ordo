@@ -214,6 +214,8 @@ internal class VideoControls(
      */
     fun release() {
         for (runnable in listOf(hide, hideUnlock, singleTap, unlock, hold)) controls.removeCallbacks(runnable)
+        controls.animate().cancel() // a fade's end action is not run on cancel
+        unlockButton.animate().cancel()
     }
 
     /** The screen goes away mid-gesture: no 2× left behind, no hold firing later. */

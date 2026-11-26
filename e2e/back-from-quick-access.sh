@@ -24,7 +24,7 @@ tap_tile() {
     local i
     for i in 1 2 3 4 5 6 7 8; do
         tap_in quickAccessList "Bilder|Pictures" && return 0
-        scroll_in up || return 1
+        scroll_in up scrollView || return 1
     done
     return 1
 }

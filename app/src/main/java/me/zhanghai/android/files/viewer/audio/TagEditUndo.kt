@@ -50,12 +50,6 @@ object TagEditUndo {
         val files = data?.getStringArrayListExtra(EXTRA_FILES)?.map(::File) ?: return
         val backups = data.getStringArrayListExtra(EXTRA_BACKUPS)?.map(::File) ?: return
         onChanged()
-        // The editor waits at most 5 s for MediaStore; on the A15 the scan took longer (rc1b), so the library loaded
-        // while the song's row was still being rewritten and lost it. Once the scan is through, it loads again.
-        scope.launch {
-            MusicTagEditorActivity.scan(context, files, timeoutMs = Long.MAX_VALUE)
-            onChanged()
-        }
         var undone = false
         Snackbar.make(anchor, R.string.music_tag_saved, UNDO_MS)
             .setAction(R.string.music_tag_undo) {

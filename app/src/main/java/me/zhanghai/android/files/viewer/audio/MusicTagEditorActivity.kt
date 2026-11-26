@@ -75,7 +75,9 @@ internal class TagEditorWriteViewModel(application: Application) : AndroidViewMo
             val result = runCatching {
                 val backupDir = TagEditUndo.backupDir(getApplication())
                 for (file in files) done += file to SongTagIo.write(file, changes, backupDir)
-                MusicTagEditorActivity.scan(getApplication(), files)
+                // Until MediaStore is through: the library loads on the result, and on the A15 the scan took longer
+                // than the usual 5 s, so the song's half-rewritten row made it vanish from the library (rc1b).
+                MusicTagEditorActivity.scan(getApplication(), files, timeoutMs = Long.MAX_VALUE)
                 done.toList()
             }
             if (result.isFailure) {

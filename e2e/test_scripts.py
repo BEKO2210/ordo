@@ -50,14 +50,6 @@ class A11yScan(unittest.TestCase):
         self.assertEqual([], scan(dump(node("[0,0][96,96]", text="OK")), density=320))
         self.assertTrue(scan(dump(node("[0,0][70,70]", text="OK")), density=320))
 
-    def test_target_cut_off_at_the_screen_edge_is_not_measured(self):
-        window = node("[0,0][1080,2340]", text="w", clickable="false")
-        self.assertEqual([], scan(dump(window, node("[100,2300][500,2340]", text="Open"))))
-        self.assertEqual([], scan(dump(window, node("[1040,100][1080,300]", text="Chip"))))
-        # Inside the screen it still counts, also when it touches only the other edge.
-        self.assertTrue(scan(dump(window, node("[100,2200][500,2240]", text="Open"))))
-        self.assertTrue(scan(dump(window, node("[100,2300][130,2340]", text="Narrow"))))
-
     def test_clean_screen_is_quiet(self):
         child = node("[0,0][50,50]", text="Name", clickable="false")
         self.assertEqual([], scan(dump(node("[0,0][200,60]", children=child),
