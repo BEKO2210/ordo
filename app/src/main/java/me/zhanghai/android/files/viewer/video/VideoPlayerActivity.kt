@@ -450,6 +450,7 @@ class VideoPlayerActivity : AppActivity(), AppAccentActivity, CastChooserSheet.H
 
     override fun onDestroy() {
         handler.removeCallbacksAndMessages(null)
+        if (::controls.isInitialized) controls.release()
         network?.release()
         castSession?.release()
         subtitles?.release()

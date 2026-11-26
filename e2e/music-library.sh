@@ -242,7 +242,9 @@ check "back from the player returns to the library" on viewer.audio.MusicLaunche
 
 # Selection, playlists and favourites: a long press selects, the songs go into a new M3U8 playlist in
 # Music/Playlists, the playlist and the favourites show them in the side menu.
-check "a long press selects a song" eval 'search Ordoe2e && ui longtap "Ordoe2e Alpha" title && ui wait "1 ausgewählt|1 selected" 5'
+# The search also finds the tag editor's songs (folder OrdoE2E-Edit) and sorts them first: on a landscape phone Alpha
+# lies below the window (A15, rc1b), so it is scrolled into sight before the long press.
+check "a long press selects a song" eval 'search Ordoe2e && row_shown "Ordoe2e Alpha" title && ui longtap "Ordoe2e Alpha" title && ui wait "1 ausgewählt|1 selected" 5'
 # On failure the log shows what the toolbar showed instead.
 ui has "1 ausgewählt|1 selected" || { echo "DIAG selection:"; ui texts | head -20 | sed 's/^/  /'; }
 # Scrolled into sight first: on the W90 the selection showed the whole library, Beta below the window (a15g-5).

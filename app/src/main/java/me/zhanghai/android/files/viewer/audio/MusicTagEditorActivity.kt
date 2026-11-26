@@ -528,9 +528,10 @@ class MusicTagEditorActivity : AppActivity(), AppAccentActivity {
         fun createIntent(context: Context, paths: List<String>): Intent =
             Intent(context, MusicTagEditorActivity::class.java).putStringArrayListExtra(EXTRA_PATHS, ArrayList(paths))
 
-        /** Asks MediaStore to read the files again and waits (at most 5 s), so the library shows the new info. */
-        suspend fun scan(context: Context, files: List<File>) {
-            withTimeoutOrNull(5_000L) {
+        /** Asks MediaStore to read the files again and waits (at most [timeoutMs]), so the library shows the new info. */
+        suspend fun scan(context: Context, files: List<File>, timeoutMs: Long = 5_000L) {
+            if (files.isEmpty()) return
+            withTimeoutOrNull(timeoutMs) {
                 suspendCancellableCoroutine { continuation ->
                     var left = files.size
                     MediaScanner.scanPaths(files.map { it.path }) { _, _ ->
