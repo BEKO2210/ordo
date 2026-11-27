@@ -33,7 +33,8 @@
 </p>
 
 <!-- AUTO:new -->
-> **New in 0.19.0**
+> **New in 0.19.1**
+> - Image viewer no longer crashes when you come back to it later
 > - Back from a quick-access folder goes up one level
 > - Edited music tags show up in the library right away
 > - Video player closes cleanly, less memory in use

@@ -33,7 +33,8 @@
 </p>
 
 <!-- AUTO:new -->
-> **Neu in 0.19.0**
+> **Neu in 0.19.1**
+> - Bildbetrachter stürzt beim Zurückkehren nicht mehr ab
 > - Zurück aus einem Schnellzugriff-Ordner geht eine Ebene hoch
 > - Bearbeitete Musik-Tags erscheinen sofort in der Bibliothek
 > - Videoplayer schließt sauber, braucht weniger Speicher
