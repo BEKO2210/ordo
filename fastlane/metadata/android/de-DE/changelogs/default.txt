@@ -1,4 +1,5 @@
 Release-Kandidat für Ordo 1.0:
+• Bildbetrachter stürzt beim Zurückkehren nicht mehr ab
 • Zurück aus einem Schnellzugriff-Ordner geht eine Ebene hoch
 • Bearbeitete Musik-Tags erscheinen sofort in der Bibliothek
 • Videoplayer schließt sauber, braucht weniger Speicher
