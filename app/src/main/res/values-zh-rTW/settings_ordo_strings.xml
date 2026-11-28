@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_group_general">常規</string>
+    <string name="settings_group_files">檔案</string>
+    <string name="settings_group_more">更多</string>
+    <string name="settings_section_appearance">外觀</string>
+    <string name="settings_section_appearance_summary">強調色、深色模式、搜尋欄、動效、語言</string>
+    <string name="settings_section_ai">AI 助手</string>
+    <string name="settings_section_ai_summary">速度和裝置端語言模型</string>
+    <string name="settings_section_files">檔案和檢視</string>
+    <string name="settings_section_files_summary">起始頁、檔名、壓縮包、APK</string>
+    <string name="settings_section_storage">儲存空間和資料夾</string>
+    <string name="settings_section_storage_summary">儲存空間列表、標準資料夾、書籤</string>
+    <string name="settings_section_trash_summary">將已刪除的檔案保留一段時間</string>
+    <string name="settings_link_ftp_server_summary">透過 Wi-Fi 分享檔案</string>
+    <string name="settings_link_legal_summary">隱私政策和許可</string>
+    <string name="settings_about_summary">版本 %1$s</string>
+    <string name="settings_wallpaper_colors_title">桌布顏色</string>
+    <string name="settings_wallpaper_colors_summary">使用桌布的顏色，而不是 Ordo 的顏色</string>
+    <string name="settings_accent_title">強調色</string>
+    <string-array name="settings_accent_entries">
+        <item>極光</item>
+        <item>藍色</item>
+        <item>薄荷綠</item>
+        <item>紫羅蘭</item>
+        <item>琥珀色</item>
+    </string-array>
+    <string name="settings_home_header_position_title">主頁搜尋欄</string>
+    <string-array name="settings_home_header_position_entries">
+        <item>頂部</item>
+        <item>底部——拇指易於觸及</item>
+    </string-array>
+    <string name="settings_motion_title">動效</string>
+    <string-array name="settings_motion_entries">
+        <item>完整——所有效果</item>
+        <item>精簡——僅過渡動畫</item>
+        <item>關閉</item>
+    </string-array>
+    <string name="settings_ai_preview_title">試用新命令（預覽版）</string>
+    <string name="settings_ai_preview_summary">可查詢並顯示檔案（“顯示……”“……在哪裡”），理解日期和大小，不確定時會詢問你。這是預覽版，可能出錯。未經你確認，不會做任何更改。下次開啟 AI 命令時生效。</string>
+    <string name="settings_ai_speed_title">速度</string>
+    <string-array name="settings_ai_speed_entries">
+        <item>極速——最快，保持就緒的時間更長</item>
+        <item>均衡</item>
+        <item>溫和——較慢，手機更涼爽</item>
+    </string-array>
+    <string name="settings_ai_model_title">裝置端語言模型</string>
+    <string name="settings_ai_model_ready">已就緒 · 此裝置上 %1$s</string>
+    <string name="settings_ai_model_missing">尚未設定。點按即可設定</string>
+    <string name="settings_ai_model_downloading">正在下載… %1$d %%</string>
+    <string name="settings_ai_model_verifying">正在檢查下載內容…</string>
+    <string name="settings_ai_model_failed">設定已中止。點按即可重試</string>
+    <string name="settings_ai_privacy_summary">Ordo 在此裝置上理解你的命令，絕不會將其傳送到任何地方。</string>
+    <string name="settings_section_launcher_icons">內建應用</string>
+    <string name="settings_section_launcher_icons_summary">內建應用的獨立圖示和圖示顏色</string>
+    <string name="launcher_icons_info">Ordo 絕不會自動啟用圖示。</string>
+    <string name="launcher_music_label">Ordo Music</string>
+    <string name="launcher_video_label">Ordo Video</string>
+    <string name="navigation_app_subtitle">播放器和媒體庫</string>
+    <string name="launcher_images_label">圖片</string>
+    <string name="launcher_pdf_label">PDF</string>
+    <string name="launcher_notes_label">筆記</string>
+    <string name="launcher_music_summary">在應用列表中擁有獨立圖示，直達你的音樂庫</string>
+    <string name="launcher_video_summary">在應用列表中擁有獨立圖示，直達你的所有影片</string>
+    <string name="launcher_coming_soon">應用準備好後即將推出</string>
+    <string name="launcher_soon_title">即將推出</string>
+    <string name="launcher_icon_enabled_message">“%1$s”已開啟。啟動器可能需要片刻才會顯示圖示。</string>
+    <string name="launcher_icon_disabled_message">“%1$s”已關閉。啟動器重新整理後，圖示會立即消失。</string>
+    <string name="launcher_icon_failed">無法更改圖示。</string>
+    <string name="launcher_colors_title">圖示顏色</string>
+    <string name="launcher_color_description">圖示顏色 %1$s</string>
+    <string name="launcher_color_off_summary">開啟圖示後立即生效</string>
+    <string name="launcher_color_pending_summary">退出 Ordo 後更改</string>
+    <string name="launcher_color_changed_message">“%1$s”的圖示顏色現為%2$s。主螢幕可能需要片刻才會更新，部分主螢幕需要重新放置圖示。</string>
+    <string name="launcher_color_saved_message">已儲存。開啟後，“%1$s”的圖示顏色將為%2$s。</string>
+    <string name="launcher_color_blue">藍色</string>
+    <string name="launcher_color_teal">青色</string>
+    <string name="launcher_color_green">綠色</string>
+    <string name="launcher_color_amber">琥珀色</string>
+    <string name="launcher_color_red">紅色</string>
+    <string name="launcher_color_pink">粉色</string>
+    <string name="launcher_color_violet">紫羅蘭</string>
+    <string name="launcher_color_graphite">石墨灰</string>
+    <string name="launcher_music_start_title">音樂</string>
+    <string name="music_tab_songs">歌曲</string>
+    <string name="music_tab_albums">專輯</string>
+    <string name="music_tab_artists">藝術家</string>
+    <string name="music_tab_folders">資料夾</string>
+    <string name="music_shuffle_all">全部隨機播放 (%1$d)</string>
+    <string name="music_shuffle">隨機播放</string>
+    <string name="music_unknown_album">未知專輯</string>
+    <plurals name="music_song_count">
+        <item quantity="other">%d 首歌曲</item>
+    </plurals>
+    <string name="music_search_hint">搜尋音樂</string>
+    <string name="music_empty">尚未找到音樂。將歌曲放入 Music 或 Download 等資料夾後，它們會顯示在這裡。</string>
+    <string name="music_no_results">未找到與“%1$s”相關的內容</string>
+    <string name="music_access_message">請允許訪問儲存空間，以便 Ordo 找到你的音樂。</string>
+    <string name="music_play_next">下一首播放</string>
+    <string name="music_add_to_queue">新增到播放佇列</string>
+    <string name="music_show_file">顯示檔案</string>
+    <string name="music_more_options">%1$s 的更多選項</string>
+    <string name="music_has_lyrics">有歌詞</string>
+    <string name="music_added_next">將在下一首播放</string>
+    <string name="music_added_to_queue">已新增到播放佇列</string>
+    <string name="music_nav_library">媒體庫</string>
+    <string name="music_nav_recent">最近播放</string>
+    <string name="music_nav_most">播放最多</string>
+    <string name="music_nav_files">前往檔案管理器</string>
+    <string name="music_history_empty">尚未播放任何內容。你聽過的內容會顯示在這裡。</string>
+    <string name="music_edit_tags">編輯資訊</string>
+    <string name="music_edit_tags_all">全部編輯</string>
+    <string name="music_tag_change_cover">更換封面</string>
+    <string name="music_tag_remove_cover">移除</string>
+    <string name="music_tag_edit_copy">編輯副本</string>
+    <string name="music_tag_save">儲存</string>
+    <string name="music_tag_title">標題</string>
+    <string name="music_tag_artist">藝術家</string>
+    <string name="music_tag_album">專輯</string>
+    <string name="music_tag_album_artist">專輯藝術家</string>
+    <string name="music_tag_track">曲目</string>
+    <string name="music_tag_track_total">共</string>
+    <string name="music_tag_disc">光碟</string>
+    <string name="music_tag_year">年份</string>
+    <string name="music_tag_genre">流派</string>
+    <string name="music_tag_lyrics">歌詞</string>
+    <string name="music_tag_several">多個值</string>
+    <string name="music_tag_error_year">四位數字，例如 2026</string>
+    <string name="music_tag_error_number">1 到 999 之間的數字</string>
+    <string name="music_tag_error_track">大於曲目總數</string>
+    <string name="music_tag_readonly_format">Ordo 暫時無法寫入 %1$s 檔案的資訊，因此只能在此檢視。支援編輯 MP3、FLAC、Ogg Vorbis 和 M4A。</string>
+    <string name="music_tag_readonly_storage">Ordo 無權在原位置更改此檔案（例如無訪問許可權的 SD 卡或受保護的資料夾中）。你可以改為編輯 Music 資料夾中的副本。</string>
+    <string name="music_tag_readonly_android">編輯音樂資訊需要 Android 8 或更高版本。</string>
+    <string name="music_tag_preview_title">儲存這些更改？</string>
+    <string name="music_tag_preview_files">涉及 %1$d 個檔案</string>
+    <string name="music_tag_preview_change">%1$s：%2$s → %3$s</string>
+    <string name="music_tag_preview_empty">空</string>
+    <string name="music_tag_preview_cover_new">封面：新圖片</string>
+    <string name="music_tag_preview_cover_removed">封面：已移除</string>
+    <string name="music_tag_nothing_changed">未做任何更改。</string>
+    <string name="music_tag_saving">正在儲存…</string>
+    <string name="music_tag_saved">資訊已儲存</string>
+    <string name="music_tag_undo">撤消</string>
+    <string name="music_tag_undone">已恢復之前的資訊</string>
+    <string name="music_tag_failed">未儲存，檔案未更改：%1$s</string>
+    <string name="music_tag_restore_error">無法恢復備份</string>
+    <string name="music_tag_cover_too_large">此圖片大於 10 MB。請選擇較小的圖片。</string>
+    <string name="music_tag_read_failed">Ordo 無法讀取此檔案的資訊。</string>
+    <string name="music_nav_favorites">收藏</string>
+    <string name="music_nav_playlists">播放列表</string>
+    <string name="music_favorite_add">新增到收藏</string>
+    <string name="music_favorite_remove">從收藏中移除</string>
+    <string name="music_favorite_added">已新增到收藏</string>
+    <string name="music_favorite_removed">已從收藏中移除</string>
+    <string name="music_playlist_add">新增到播放列表…</string>
+    <string name="music_playlist_new">新建播放列表</string>
+    <string name="music_playlist_name">名稱</string>
+    <string name="music_playlist_added">已新增到“%1$s”</string>
+    <string name="music_playlist_remove">從播放列表中移除</string>
+    <string name="music_playlist_delete">刪除播放列表</string>
+    <string name="music_playlist_delete_confirm">刪除“%1$s”？歌曲本身會保留。</string>
+    <string name="music_playlist_failed">無法儲存播放列表。</string>
+    <string name="music_playlists_empty">尚無播放列表。點按歌曲上的 ⋮，或長按歌曲以選擇多首，即可新建。</string>
+    <string name="music_favorites_empty">尚無收藏。點按播放器中的心形圖示，或使用歌曲上的 ⋮。</string>
+    <plurals name="music_selected">
+        <item quantity="other">已選擇 %d 項</item>
+    </plurals>
+    <string name="music_selection_close">結束選擇</string>
+    <string name="music_now_playing">正在播放：%1$s，%2$s。開啟播放器</string>
+    <string name="settings_music_title">Ordo Music</string>
+    <string name="settings_video_title">Ordo Video</string>
+    <string name="settings_accent_same_as_ordo">與 Ordo 相同</string>
+    <string name="settings_app_accent_title">顏色</string>
+    <string name="settings_music_cover_colors_title">取自封面的顏色</string>
+    <string name="settings_music_cover_colors_on">播放器和迷你播放器採用當前播放封面的顏色</string>
+    <string name="settings_music_cover_colors_off">播放器使用下方選擇的強調色</string>
+    <string name="settings_music_preview_cover">採用播放封面顏色的迷你播放器</string>
+    <string name="settings_music_preview_accent">採用所選強調色的迷你播放器</string>
+    <string name="settings_music_icon_colors_title">Ordo Music 的圖示顏色</string>
+    <string name="settings_music_icon_colors_summary">其獨立主螢幕圖示的顏色</string>
+    <string name="settings_music_effects_title">視覺效果</string>
+    <string-array name="settings_music_effects_entries">
+        <item>最大（稍多耗電）</item>
+        <item>均衡</item>
+        <item>省電（對電池更友好）</item>
+    </string-array>
+    <string name="settings_rate_title">為 Ordo 評分</string>
+    <string name="settings_rate_summary">在 Google Play 上——幫助更多人發現 Ordo</string>
+    <string name="settings_share_title">分享 Ordo</string>
+    <string name="settings_share_summary">將連結傳送給朋友</string>
+    <string name="settings_share_text">我在用 Ordo，一款沒有廣告、沒有跟蹤的免費檔案管理器：%1$s</string>
+    <string name="settings_feedback_title">傳送反饋或報告錯誤</string>
+    <string name="settings_feedback_summary">在 GitHub 上公開，僅包含應用版本和裝置型別</string>
+    <string name="settings_feedback_body">發生了什麼，或者你希望增加什麼？\n\n\n---\nOrdo %1$s · %2$s · Android %3$s</string>
+    <string name="rate_hint_text">喜歡 Ordo 嗎？評分能幫助更多人發現它。</string>
+    <string name="rate_hint_action">評分</string>
+</resources>

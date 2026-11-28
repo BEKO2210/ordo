@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="video_seek_chapters">章节</string>
+    <string name="video_seek_chapter_untitled">第 %1$d 章</string>
+    <string name="video_seek_chapter_current">正在播放</string>
+    <string name="video_seek_frame_mode">逐帧播放</string>
+    <string name="video_seek_frame_back">上一帧</string>
+    <string name="video_seek_frame_ahead">下一帧</string>
+    <string name="video_seek_frame_close">结束逐帧播放</string>
+    <string name="video_seek_frame_format">第 %1$d 帧</string>
+    <string name="video_seek_ab_set_a">设置循环起点 (A)</string>
+    <string name="video_seek_ab_set_b">设置循环终点 (B)</string>
+    <string name="video_seek_ab_clear">结束 A-B 循环</string>
+    <string name="video_seek_ab_a_format">A 点位于 %1$s。现在请设置 B 点。</string>
+    <string name="video_seek_ab_looping_format">正在循环 %1$s – %2$s</string>
+    <string name="video_seek_ab_cleared">A-B 循环已结束</string>
+    <string name="video_seek_ab_too_short">请将 B 点设置得离 A 点远一些</string>
+    <string name="video_seek_snapshot">保存当前帧</string>
+    <string name="video_seek_snapshot_saved">帧已保存到 Pictures/Ordo</string>
+    <string name="video_seek_snapshot_open">打开</string>
+    <string name="video_seek_snapshot_failed">无法保存该帧</string>
+    <string name="video_seek_zoom_format">%1$s×</string>
+    <string name="video_seek_zoom_reset_format">缩放 %1$s。点按即可重置。</string>
+</resources>

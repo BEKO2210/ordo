@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="onboarding_skip">跳過</string>
+    <string name="onboarding_next">下一步</string>
+    <string name="onboarding_start">開始使用</string>
+    <string name="onboarding_allow">允許訪問</string>
+    <string name="onboarding_page">第 %1$d 頁，共 %2$d 頁</string>
+    <string name="onboarding_welcome_title">歡迎使用 Ordo</string>
+    <string name="onboarding_welcome_text">讓你的檔案井然有序。快速、安全、免費——無廣告，無跟蹤。</string>
+    <string name="onboarding_safety_title">從一開始就安全</string>
+    <string name="onboarding_feature_trash">已刪除的檔案會在回收站保留 30 天——不會因誤操作而丟失。</string>
+    <string name="onboarding_feature_vault">保險箱使用 AES-256 和螢幕鎖保護私密檔案。</string>
+    <string name="onboarding_feature_privacy">無廣告，無跟蹤，無需賬號。你的資料只保留在手機上。</string>
+    <string name="onboarding_ai_title">永不離開手機的 AI</string>
+    <string name="onboarding_ai_example">將 Download 中的所有 MP3 移動到 Music</string>
+    <string name="onboarding_ai_text">用你自己的話說出想做的事。Ordo 會先展示計劃，確認後才會執行。隨時可透過搜尋欄中的魔杖進行設定。</string>
+    <string name="onboarding_access_title">訪問你的檔案</string>
+    <string name="onboarding_access_text">為了整理、移動和保護你的檔案，Ordo 需要訪問這些檔案。Android 只會詢問一次。</string>
+    <string name="onboarding_access_done">已授予許可權，一切就緒。</string>
+    <string name="onboarding_apps_title">不止是檔案</string>
+    <string name="onboarding_feature_analysis">“分析儲存空間”會顯示哪些資料夾佔用了空間，並找出重複檔案。</string>
+    <string name="onboarding_feature_music">Ordo Music 可播放你的歌曲，支援均衡器和歌詞。</string>
+    <string name="onboarding_feature_video">Ordo Video 可播放你的影片。可在“設定 › 內建應用”中為兩者新增主螢幕圖示。</string>
+</resources>

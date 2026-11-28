@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="headphones_title">耳机</string>
+    <string name="headphones_entry_summary">已关闭 · 提供虚拟环绕声、低音量完整音质、耳机校正</string>
+    <string name="headphones_open">打开耳机设置</string>
+    <string name="headphones_virtual_surround">虚拟环绕声</string>
+    <string name="headphones_virtual_surround_summary">5.1 和 7.1 声音听起来像扬声器环绕在你周围，而不是在脑中。仅限耳机，且仅在 Android 尚未启用空间音频时有效。音乐：从下一首起生效。</string>
+    <string name="headphones_virtual_surround_format">虚拟环绕声：%1$s 声音听起来像扬声器环绕在你周围</string>
+    <string name="headphones_calibration_title">你的耳机声音有多大？</string>
+    <string name="headphones_calibration_summary">根据你的耳机调整“低音量完整音质”。如果耳机在低音量时就很响，请选择“更大”。</string>
+    <string name="headphones_calibration_quieter">更小</string>
+    <string name="headphones_calibration_normal">正常</string>
+    <string name="headphones_calibration_louder">更大</string>
+    <string name="headphones_correction_title">耳机校正</string>
+    <string name="headphones_correction_summary">根据 AutoEq 测量数据，均衡你的型号的声音。仅在连接耳机时有效。</string>
+    <string name="headphones_correction_search">搜索型号，例如 HD 650</string>
+    <string name="headphones_correction_off">关闭校正</string>
+    <string name="headphones_correction_state">校正：%1$s</string>
+    <string name="headphones_correction_source">测量方：%1$s</string>
+    <string name="headphones_correction_selected">%1$s，已选择</string>
+    <string name="headphones_correction_none">未找到型号</string>
+    <string name="headphones_correction_more">显示 %2$d 个中的 %1$d 个。请输入更多内容以缩小范围。</string>
+    <string name="headphones_correction_count">%1$d 个型号</string>
+</resources>

@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="analysis_usage_title">存储空间</string>
+    <string name="analysis_usage_subtitle">%1$s / %2$s</string>
+    <string name="analysis_usage_center_label">已用</string>
+    <string name="analysis_kind_image">图片</string>
+    <string name="analysis_kind_audio">音频</string>
+    <string name="analysis_kind_document">文档</string>
+    <string name="analysis_kind_video">视频</string>
+    <string name="analysis_kind_apps">APK 文件</string>
+    <string name="analysis_kind_other">其他文件</string>
+    <string name="analysis_kind_system">系统和应用数据</string>
+    <string name="analysis_kind_free">可用</string>
+    <string name="analysis_cleanup_title">可清理空间</string>
+    <string name="analysis_cleanup_headline">可安全释放 %s</string>
+    <string name="analysis_cleanup_none">没有需要清理的内容，非常整洁。</string>
+    <string name="analysis_cleanup_duplicates">重复文件</string>
+    <string name="analysis_cleanup_large">大文件</string>
+    <string name="analysis_cleanup_old">6 个月未使用</string>
+    <string name="analysis_cleanup_apks">安装包（APK）</string>
+    <string name="analysis_cleanup_trash">回收站</string>
+    <string name="analysis_cleanup_thumbnails">缩略图缓存</string>
+    <string name="analysis_cleanup_thumbnails_hint">图库会在需要时重新生成</string>
+    <string name="analysis_cleanup_empty_folders">空文件夹</string>
+    <string name="analysis_view">查看</string>
+    <string name="analysis_suggestions_title">建议</string>
+    <string name="analysis_suggestion_old_downloads">超过 6 个月的下载内容</string>
+    <string name="analysis_suggestion_old_downloads_command">删除 Download 中超过 6 个月的文件</string>
+    <string name="analysis_suggestion_download_apks">Download 中的安装包（APK）</string>
+    <string name="analysis_suggestion_download_apks_command">删除 Download 中的 APK 文件</string>
+    <plurals name="analysis_suggestion_detail">
+        <item quantity="other">%1$,d 个文件 · %2$s</item>
+    </plurals>
+    <string name="analysis_preview">预览</string>
+    <string name="analysis_treemap_title">空间都用在哪了</string>
+    <string name="analysis_treemap_subtitle">最大的文件夹 – 点按即可打开</string>
+    <string name="analysis_growth_title">每月新增</string>
+    <string name="analysis_growth_subtitle">平均每月 %1$s · 本月 %2$s</string>
+    <plurals name="analysis_treemap_more">
+        <item quantity="other">另有 %d 个文件夹</item>
+    </plurals>
+    <string name="analysis_kind_mine">你的文件</string>
+    <string name="analysis_cleanup_safe_none">没有可清理的副本、安装包、缩略图或回收站内容</string>
+    <string name="analysis_cleanup_review">值得看看</string>
+    <string name="analysis_folder_apps">应用文件（%s）</string>
+    <string name="analysis_folder_hidden">%s（隐藏）</string>
+    <string name="analysis_usage_mine_hint">照片、视频、音乐、下载内容：所有你自己保存的内容</string>
+    <string name="analysis_usage_system_hint">Android 系统本身、你的应用及其数据</string>
+    <string name="analysis_usage_free_hint">可用于存放新照片、应用和更新</string>
+    <string name="analysis_open_folder">在文件列表中打开</string>
+    <string name="analysis_share_of_files">占你文件的 %s</string>
+    <string name="analysis_share_of_folder">占 %2$s 的 %1$s</string>
+    <plurals name="analysis_folder_count">
+        <item quantity="other">%,d 个文件夹</item>
+    </plurals>
+    <plurals name="analysis_file_count">
+        <item quantity="other">%,d 个文件</item>
+    </plurals>
+    <string name="analysis_files_subtitle">点按圆环查看详情，点按某一行查看其中的文件</string>
+    <string name="analysis_scan_walking">正在读取存储空间</string>
+    <string name="analysis_scan_comparing">正在查找重复文件</string>
+    <string name="analysis_chart_show_each">分别显示</string>
+    <string name="analysis_chart_all_types">所有类型</string>
+    <string name="analysis_tile_loose">零散文件</string>
+    <string name="analysis_tile_direct">%s 中的文件</string>
+    <string name="analysis_map_hint">点按方块查看详情</string>
+    <plurals name="analysis_scan_files">
+        <item quantity="other">个文件</item>
+    </plurals>
+    <plurals name="analysis_chart_small_types">
+        <item quantity="other">另有 %d 种较小类型</item>
+    </plurals>
+    <plurals name="analysis_trash_folders_message_format">
+        <item quantity="other">要将 %1$d 个空文件夹移至回收站吗？</item>
+    </plurals>
+    <plurals name="analysis_delete_folders_message_format">
+        <item quantity="other">要永久删除 %1$d 个空文件夹吗？此操作无法撤销。</item>
+    </plurals>
+</resources>

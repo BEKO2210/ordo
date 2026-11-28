@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="video_network_buffering_format">正在加载… %1$d %% · %2$s</string>
+    <string name="video_network_reconnecting">连接已中断。正在重新连接…</string>
+    <string name="video_network_error_unreachable">无法连接服务器。网络恢复后，Ordo 会立即重试。</string>
+    <string name="video_network_error_missing">此视频已不在服务器上。</string>
+    <string name="video_library_network">网络</string>
+    <string name="video_library_network_empty">已加书签的服务器文件夹中没有视频。</string>
+    <string name="video_cast_privacy">Ordo 仅分享此视频及其字幕，仅分享给这台电视，且仅在播放期间分享。数据不会离开你的 Wi-Fi。</string>
+    <string name="video_cast_no_screen">%1$s 没有屏幕。请选择电视。</string>
+    <string name="video_cast_format_unsupported">电视无法播放 %1$s 视频。支持 MP4、WebM 和 MKV。</string>
+    <string name="video_cast_error_format">电视无法播放此视频。请尝试其他格式，或在本机观看。</string>
+    <string name="video_cast_error_lost">与 %1$s 的连接已断开。视频已在本机暂停。</string>
+    <string name="video_cast_watch_here">在这部手机上观看</string>
+    <string name="video_cast_loading">正在电视上加载…</string>
+    <string name="video_cast_paused">已暂停</string>
+    <string name="video_cast_subtitles">字幕</string>
+    <string name="video_cast_volume_format">音量 %1$d %%</string>
+    <string name="video_cast_volume_down">更小</string>
+    <string name="video_cast_volume_up">更大</string>
+    <string name="video_cast_continues_here">%1$s 视频将在本机继续播放。</string>
+</resources>
