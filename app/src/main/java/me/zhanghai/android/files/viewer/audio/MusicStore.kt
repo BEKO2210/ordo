@@ -13,8 +13,9 @@ import android.provider.MediaStore
 import java.io.File
 
 /**
- * Every song MediaStore counts as music, on every storage volume (the same volumes as the home screen's categories).
- * Rows of files that are gone are left out. Filtering and sorting happen in [MusicLibrary].
+ * Every song MediaStore counts as music, an audiobook or a podcast, on every storage volume (the same volumes as the
+ * home screen's categories). Rows of files that are gone are left out. Filtering and sorting happen in
+ * [MusicLibrary].
  */
 fun queryMusic(context: Context): List<MusicSong> {
     val volumes = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -45,7 +46,7 @@ fun queryMusic(context: Context): List<MusicSong> {
         }
         try {
             context.contentResolver.query(
-                MediaStore.Audio.Media.getContentUri(volume), projection, "${MediaStore.Audio.Media.IS_MUSIC} != 0",
+                MediaStore.Audio.Media.getContentUri(volume), projection, musicSelection(Build.VERSION.SDK_INT),
                 null, null
             )?.use { cursor ->
                 buildList {
@@ -83,6 +84,16 @@ fun queryMusic(context: Context): List<MusicSong> {
         val file = File(song.path)
         if (file.exists()) song.withFileTimes(file.lastModified()) else null
     }
+}
+
+/** Only playable library categories; unlike selecting all audio, this leaves system sounds and recordings out. */
+internal fun musicSelection(sdkInt: Int): String {
+    val columns = buildList {
+        add(MediaStore.Audio.Media.IS_MUSIC)
+        if (sdkInt >= Build.VERSION_CODES.Q) add(MediaStore.Audio.Media.IS_AUDIOBOOK)
+        add(MediaStore.Audio.Media.IS_PODCAST)
+    }
+    return columns.joinToString(" OR ", prefix = "(", postfix = ")") { "$it != 0" }
 }
 
 // The file's own time has milliseconds; MediaStore's counts seconds, so two edits within one second stay apart.
