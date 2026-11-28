@@ -843,9 +843,9 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
         if (stateful is Success) {
             viewModel.pendingState?.let { layoutManager.onRestoreInstanceState(it) }
             focusPath?.takeUnless { focusHandled }?.let { path ->
-                val index = focusedFileIndex(stateful.value, path)
+                val index = focusedFileIndex(adapter.list, path)
                 if (index >= 0) {
-                    val file = stateful.value[index]
+                    val file = adapter.getItem(index)
                     focusHandled = true
                     layoutManager.scrollToPositionWithOffset(index, 0)
                     viewModel.selectFile(file, true)

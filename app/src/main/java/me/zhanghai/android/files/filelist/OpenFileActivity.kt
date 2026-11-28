@@ -7,10 +7,14 @@ package me.zhanghai.android.files.filelist
 
 import android.content.Intent
 import android.os.Bundle
+import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import java.io.File
 import java.io.IOException
 import java8.nio.file.Path
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import me.zhanghai.android.files.R
 import me.zhanghai.android.files.app.AppActivity
 import me.zhanghai.android.files.app.application
@@ -44,14 +48,22 @@ class OpenFileActivity : AppActivity() {
         val intent = intent
         val path = intent.extraPath
         val mimeType = intent.type?.asMimeTypeOrNull()
-        if (path != null && mimeType != null) {
-            if (!File(path.toString()).isFile) {
+        if (path == null || mimeType == null) {
+            finish()
+            return
+        }
+        lifecycleScope.launch {
+            val (isFile, isAllowedSharedFile) = withContext(Dispatchers.IO) {
+                val isFile = File(path.toString()).isFile
+                isFile to (isFile && isSharedFile(path))
+            }
+            if (!isFile) {
                 showToast(R.string.file_open_unavailable)
-            } else if (isSharedFile(path)) {
+            } else if (isAllowedSharedFile) {
                 openFile(path, mimeType)
             }
+            if (!isFinishing && !isApkDialogVisible) finish()
         }
-        if (!isFinishing && !isApkDialogVisible) finish()
     }
 
     // This activity is exported for home-screen shortcuts, so any app can call it: only files on shared

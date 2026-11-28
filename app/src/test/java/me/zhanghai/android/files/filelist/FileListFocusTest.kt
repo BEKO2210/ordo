@@ -5,12 +5,14 @@
 
 package me.zhanghai.android.files.filelist
 
+import java.io.File
 import java8.nio.file.Paths
 import java8.nio.file.attribute.BasicFileAttributes
 import java.text.Collator
 import me.zhanghai.android.files.file.FileItem
 import me.zhanghai.android.files.file.MimeType
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class FileListFocusTest {
@@ -37,6 +39,32 @@ class FileListFocusTest {
     @Test fun findsFocusedFileByFullPath() {
         val files = listOf(file("/Music/same.mp3"), file("/Download/same.mp3"))
         assertEquals(1, focusedFileIndex(files, Paths.get("/Download/same.mp3")))
+    }
+
+    @Test fun findsFocusedFileAtItsDisplayedPositionAfterSorting() {
+        val files = listOf(file("/Music/z.mp3"), file("/Music/a.mp3"))
+        val displayedFiles = files.sortedWith(
+            FileSortOptions(
+                FileSortOptions.By.NAME, FileSortOptions.Order.ASCENDING,
+                isDirectoriesFirst = true
+            ).createComparator()
+        )
+
+        assertEquals(0, focusedFileIndex(displayedFiles, Paths.get("/Music/a.mp3")))
+    }
+
+    @Test fun fragmentFocusUsesDisplayedAdapterOrder() {
+        val repo = File(System.getProperty("user.dir")!!).let {
+            if (File(it, "README.md").exists()) it else it.parentFile!!
+        }
+        val source = File(
+            repo, "app/src/main/java/me/zhanghai/android/files/filelist/FileListFragment.kt"
+        ).readText()
+        val focus = source.substringAfter("focusPath?.takeUnless { focusHandled }")
+            .substringBefore("private fun getSubtitle")
+
+        assertTrue(focus.contains("focusedFileIndex(adapter.list, path)"))
+        assertTrue(focus.contains("val file = adapter.getItem(index)"))
     }
 
     @Test fun missingFocusedFileIsNotSelected() {
