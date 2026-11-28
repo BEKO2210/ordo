@@ -40,7 +40,8 @@ Quelle: GitHub-API (`gh api repos/...`, `search/repositories`), README-Feature-L
 
 ## Samsung „Eigene Dateien" – Pflichtumfang
 
-Kategorien (Bilder, Videos, Audio, Dokumente, Downloads, APKs), Zuletzt verwendet, Speicher analysieren
+Kategorien (Bilder, Videos, Audio, Dokumente, Downloads, APKs), direktes Öffnen unter „Zuletzt verwendet“ mit
+Hinweis bei nicht mehr vorhandenen Dateien, Speicher analysieren
 (große / doppelte / ungenutzte Dateien), Papierkorb, Cloud (OneDrive/Google Drive), Netzwerkspeicher (FTP/SFTP/SMB),
 USB/SD, ZIP packen/entpacken, Favoriten, Homescreen-Verknüpfungen, Suche, versteckte Dateien, Liste/Raster/Sortierung,
 Details, Teilen, „Öffnen mit".

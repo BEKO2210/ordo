@@ -44,9 +44,7 @@ import me.zhanghai.android.files.analysis.AnalysisActivity
 import me.zhanghai.android.files.apps.AppsActivity
 import me.zhanghai.android.files.backup.BackupActivity
 import me.zhanghai.android.files.databinding.HomeFragmentBinding
-import me.zhanghai.android.files.file.MimeType
 import me.zhanghai.android.files.file.asFileSize
-import me.zhanghai.android.files.file.asMimeTypeOrNull
 import me.zhanghai.android.files.filelist.FileListActivity
 import me.zhanghai.android.files.filelist.OpenFileActivity
 import me.zhanghai.android.files.filelist.ShowRequestAllFilesAccessRationaleDialogFragment
@@ -98,9 +96,7 @@ class HomeFragment : Fragment(), ShowRequestAllFilesAccessRationaleDialogFragmen
     override fun onViewCreated(view: View, state: Bundle?) {
         recentAdapter = RecentFileAdapter { file ->
             startActivitySafe(
-                OpenFileActivity.createIntent(
-                    file.path, file.mimeType?.asMimeTypeOrNull() ?: MimeType.ANY
-                )
+                OpenFileActivity.createIntent(file.path, recentMimeType(file.path, file.mimeType))
             )
         }
         binding.recentList.apply {
