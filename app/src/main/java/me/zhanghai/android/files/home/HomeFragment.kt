@@ -78,6 +78,7 @@ import me.zhanghai.android.files.ui.setGlassAmount
 import me.zhanghai.android.files.ui.setUpGlass
 import me.zhanghai.android.files.util.getColorByAttr
 import me.zhanghai.android.files.util.getQuantityString
+import me.zhanghai.android.files.util.showToast
 import me.zhanghai.android.files.util.startActivitySafe
 import me.zhanghai.android.files.util.withChooser
 import me.zhanghai.android.files.storage.StorageVolumeListLiveData
@@ -277,8 +278,9 @@ class HomeFragment : Fragment(), ShowRequestAllFilesAccessRationaleDialogFragmen
         viewLifecycleOwner.lifecycleScope.launch {
             val file = withContext(Dispatchers.IO) {
                 runCatching { recent.path.loadFileItem() }.getOrNull()
-            } ?: return@launch
+            }
             if (!isAdded || !ViewCompat.isAttachedToWindow(anchor)) return@launch
+            if (file == null) return@launch showToast(R.string.file_open_unavailable)
             PopupMenu(requireContext(), anchor, Gravity.END).apply {
                 inflate(R.menu.home_recent_file)
                 menu.findItem(R.id.action_move_to).isVisible = !file.path.fileSystem.isReadOnly

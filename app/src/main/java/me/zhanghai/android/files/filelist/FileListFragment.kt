@@ -269,6 +269,8 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
             pendingTransfer = savedInstanceState.getBoolean(STATE_TRANSFER_COPY) to
                 uris.map { Paths.get(URI.create(it)) }
         }
+        // A rotation must not scroll back to and reselect the file the user already moved on from.
+        focusHandled = savedInstanceState?.getBoolean(STATE_FOCUS_HANDLED) ?: false
     }
 
     private var backStopPath: Path? = null
@@ -277,6 +279,7 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
         super.onSaveInstanceState(outState)
 
         outState.putString(STATE_BACK_STOP_PATH, backStopPath?.toUri()?.toString())
+        outState.putBoolean(STATE_FOCUS_HANDLED, focusHandled)
         pendingTransfer?.let { (copy, paths) ->
             outState.putBoolean(STATE_TRANSFER_COPY, copy)
             outState.putStringArrayList(STATE_TRANSFER_PATHS, ArrayList(paths.map { it.toUri().toString() }))
@@ -2088,6 +2091,7 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
     companion object {
         private const val STATE_BACK_STOP_PATH = "back_stop_path"
         private const val STATE_TRANSFER_COPY = "transfer_copy"
+        private const val STATE_FOCUS_HANDLED = "focus_handled"
         private const val STATE_TRANSFER_PATHS = "transfer_paths"
         private val SELECTION_BAR_ACTIONS = listOf(
             R.id.selectionMoveButton to R.id.action_cut,
