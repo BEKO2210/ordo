@@ -4,7 +4,7 @@
     <string name="video_subtitles_off">关闭</string>
     <string name="video_subtitles_load">加载字幕…</string>
     <string name="video_subtitles_forced">强制</string>
-    <string name="video_subtitles_track_format">轨道 %1$d</string>
+    <string name="video_subtitles_track_format">字幕轨 %1$d</string>
     <string name="video_subtitles_delay">延迟</string>
     <string name="video_subtitles_earlier_format">提前 %1$s 显示</string>
     <string name="video_subtitles_later_format">延后 %1$s 显示</string>
@@ -55,7 +55,7 @@
         <item>青色</item>
         <item>绿色</item>
     </string-array>
-    <string name="video_subtitles_bitmap_note">此轨道由图片组成，因此大小和颜色无法更改。</string>
+    <string name="video_subtitles_bitmap_note">此字幕轨由图片组成，因此大小和颜色无法更改。</string>
     <string name="video_subtitles_not_subtitle">此文件不是字幕文件（SRT、VTT、ASS、SSA 或 TTML）。</string>
     <string name="video_subtitles_read_error">无法读取字幕。</string>
     <string name="video_subtitles_too_large">字幕文件过大。</string>

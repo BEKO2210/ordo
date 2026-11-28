@@ -3,7 +3,7 @@
     <string name="video_sound_menu">聲音</string>
     <string name="video_sound_own_settings">僅對影片生效 – 音樂的音效保持不變</string>
     <string name="video_sound_dialog">清晰對白</string>
-    <string name="video_sound_dialog_summary">將人聲提高到比音樂和噪聲高 10 LU（輕度）或 15 LU（強力）</string>
+    <string name="video_sound_dialog_summary">將人聲提高到比音樂和噪音高 10 LU（輕度）或 15 LU（強力）</string>
     <string name="video_sound_dialog_light">輕度 · 10 LU</string>
     <string name="video_sound_dialog_strong">強力 · 15 LU</string>
     <string name="video_sound_dialog_state">人聲現比其餘聲音高 %1$s LU（之前：%2$s LU）</string>
@@ -27,7 +27,7 @@
     <string name="video_audio_track_unplayable">此裝置無法播放</string>
     <string name="video_audio_track_none">此影片沒有音軌。</string>
     <string name="video_audio_sync">音訊同步</string>
-    <string name="video_audio_sync_summary">如果口型和聲音對不上，請以 50 毫秒為步長調整聲音。Ordo 會為每個輸出裝置（如藍芽耳機）分別記住設定。</string>
+    <string name="video_audio_sync_summary">如果口型和聲音對不上，請以 50 毫秒為步長調整聲音。Ordo 會為每個輸出裝置（如藍牙耳機）分別記住設定。</string>
     <string name="video_audio_sync_zero">已同步（0 毫秒）</string>
     <string name="video_audio_sync_later">聲音延後 %1$d 毫秒</string>
     <string name="video_audio_sync_earlier">聲音提前 %1$d 毫秒</string>
@@ -36,7 +36,7 @@
     <string name="video_audio_sync_device">適用於：%1$s</string>
     <string name="video_audio_sync_speaker">裝置揚聲器</string>
     <string name="video_audio_sync_unknown_device">此輸出裝置</string>
-    <string name="video_audio_sync_reset">重置</string>
+    <string name="video_audio_sync_reset">重設</string>
     <string name="video_sound_balance_left_button">偏左</string>
     <string name="video_sound_balance_right_button">偏右</string>
     <string name="video_signal_stage_downmix">Ordo 混縮為立體聲</string>

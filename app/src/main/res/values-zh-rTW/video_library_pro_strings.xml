@@ -20,7 +20,7 @@
     <string name="video_library_search">搜尋</string>
     <string name="video_library_search_hint">影片、資料夾、劇集</string>
     <string name="video_library_results">結果</string>
-    <string name="video_library_no_results">沒有與搜尋匹配的影片。</string>
+    <string name="video_library_no_results">沒有符合搜尋條件的影片。</string>
     <string name="video_library_no_unwatched">這裡的內容你都看完了。</string>
     <plurals name="video_library_selected_format">
         <item quantity="other">已選擇 %1$d 項</item>
@@ -43,5 +43,5 @@
     <plurals name="video_library_delete_title_format">
         <item quantity="other">要刪除 %1$d 個影片嗎？</item>
     </plurals>
-    <string name="video_library_delete_message">資源回收筒已關閉，因此此操作無法撤銷。</string>
+    <string name="video_library_delete_message">資源回收筒已關閉，因此此操作無法復原。</string>
 </resources>

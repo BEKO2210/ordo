@@ -17,16 +17,16 @@
     <string name="analysis_cleanup_duplicates">重複檔案</string>
     <string name="analysis_cleanup_large">大檔案</string>
     <string name="analysis_cleanup_old">6 個月未使用</string>
-    <string name="analysis_cleanup_apks">安裝包（APK）</string>
+    <string name="analysis_cleanup_apks">安裝檔（APK）</string>
     <string name="analysis_cleanup_trash">資源回收筒</string>
     <string name="analysis_cleanup_thumbnails">縮圖快取</string>
-    <string name="analysis_cleanup_thumbnails_hint">相簿會在需要時重新生成</string>
+    <string name="analysis_cleanup_thumbnails_hint">相簿會在需要時重新產生</string>
     <string name="analysis_cleanup_empty_folders">空資料夾</string>
     <string name="analysis_view">檢視</string>
     <string name="analysis_suggestions_title">建議</string>
     <string name="analysis_suggestion_old_downloads">超過 6 個月的下載內容</string>
     <string name="analysis_suggestion_old_downloads_command">刪除 Download 中超過 6 個月的檔案</string>
-    <string name="analysis_suggestion_download_apks">Download 中的安裝包（APK）</string>
+    <string name="analysis_suggestion_download_apks">Download 中的安裝檔（APK）</string>
     <string name="analysis_suggestion_download_apks_command">刪除 Download 中的 APK 檔案</string>
     <plurals name="analysis_suggestion_detail">
         <item quantity="other">%1$,d 個檔案 · %2$s</item>
@@ -40,7 +40,7 @@
         <item quantity="other">另有 %d 個資料夾</item>
     </plurals>
     <string name="analysis_kind_mine">你的檔案</string>
-    <string name="analysis_cleanup_safe_none">沒有可清理的副本、安裝包、縮圖或資源回收筒內容</string>
+    <string name="analysis_cleanup_safe_none">沒有可清理的副本、安裝檔、縮圖或資源回收筒內容</string>
     <string name="analysis_cleanup_review">值得看看</string>
     <string name="analysis_folder_apps">應用程式檔案（%s）</string>
     <string name="analysis_folder_hidden">%s（隱藏）</string>
@@ -58,7 +58,7 @@
     </plurals>
     <string name="analysis_files_subtitle">輕觸圓環檢視詳情，輕觸某一行檢視其中的檔案</string>
     <string name="analysis_scan_walking">正在讀取儲存空間</string>
-    <string name="analysis_scan_comparing">正在查詢重複檔案</string>
+    <string name="analysis_scan_comparing">正在尋找重複檔案</string>
     <string name="analysis_chart_show_each">分別顯示</string>
     <string name="analysis_chart_all_types">所有類型</string>
     <string name="analysis_tile_loose">零散檔案</string>
@@ -74,6 +74,6 @@
         <item quantity="other">要將 %1$d 個空資料夾移至資源回收筒嗎？</item>
     </plurals>
     <plurals name="analysis_delete_folders_message_format">
-        <item quantity="other">要永久刪除 %1$d 個空資料夾嗎？此操作無法撤銷。</item>
+        <item quantity="other">要永久刪除 %1$d 個空資料夾嗎？此操作無法復原。</item>
     </plurals>
 </resources>

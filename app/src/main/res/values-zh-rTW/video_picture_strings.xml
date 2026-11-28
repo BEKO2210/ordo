@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="video_settings_cat_picture">畫面</string>
-    <string name="video_settings_frame_rate">匹配畫格率</string>
+    <string name="video_settings_frame_rate">配合畫格率</string>
     <string-array name="video_settings_frame_rate_entries">
         <item>關閉</item>
         <item>僅在無縫切換時</item>
@@ -57,15 +57,15 @@
     <string name="video_signal_hardware_format">硬體 · %1$s</string>
     <string name="video_signal_software_format">軟體，更耗電 · %1$s</string>
     <string name="video_signal_ffmpeg_format">軟體解碼（FFmpeg），因為晶片無法播放此格式 · %1$s</string>
-    <string name="video_signal_passthrough">無：碼流原樣送往裝置</string>
+    <string name="video_signal_passthrough">無：串流原樣送往裝置</string>
     <string name="video_signal_resolution_scaled_format">%1$s → %2$s，由螢幕縮放</string>
     <string name="video_signal_resolution_lanczos_format">%1$s → %2$s，使用 Lanczos 3</string>
     <string name="video_signal_resolution_same_format">%1$s，逐畫素顯示</string>
     <string name="video_signal_sdr">否（SDR）</string>
     <string name="video_signal_hdr_direct_format">%1$s，由螢幕直接顯示</string>
     <string name="video_signal_hdr_mapped_format">%1$s，由 Android 為此螢幕轉換為 SDR（色調對映）</string>
-    <string name="video_signal_frame_rate_format">%1$s fps · 螢幕 %2$s Hz · 匹配：%3$s</string>
-    <string name="video_signal_frame_rate_unknown_format">未知 · 螢幕 %1$s Hz · 匹配：%2$s</string>
+    <string name="video_signal_frame_rate_format">%1$s fps · 螢幕 %2$s Hz · 配合：%3$s</string>
+    <string name="video_signal_frame_rate_unknown_format">未知 · 螢幕 %1$s Hz · 配合：%2$s</string>
     <string name="video_signal_stages_balanced">放大（Lanczos 3）、銳化（CAS）、去色帶、抖動 · 均衡</string>
     <string name="video_signal_stages_max">放大（Lanczos 3）、銳化（CAS）、去色帶、抖動 · 最強</string>
     <string name="video_signal_off_format">關閉：%1$s</string>
@@ -86,12 +86,12 @@
     <string name="video_signal_channels_spatial_format">%1$s → 系統空間音訊</string>
     <string name="video_signal_device_speaker">手機揚聲器</string>
     <string name="video_signal_device_wired">有線耳機</string>
-    <string name="video_signal_device_bluetooth">藍芽</string>
+    <string name="video_signal_device_bluetooth">藍牙</string>
     <string name="video_signal_device_usb">USB 音訊</string>
     <string name="video_signal_device_hdmi">HDMI</string>
     <string name="video_signal_device_other">其他裝置</string>
     <string name="video_signal_bit_perfect">無損直通</string>
-    <string name="video_signal_offload">卸載（在音訊晶片中解碼）</string>
+    <string name="video_signal_offload">硬體卸載（在音訊晶片中解碼）</string>
     <string name="video_signal_waiting">等待播放</string>
     <string name="video_info_signal_path">訊號路徑</string>
     <string name="video_settings_ambient_gamma">根據室內光線調整 Gamma（實驗性）</string>
@@ -113,18 +113,18 @@
     <string name="video_picture_adjust_less_format">降低%1$s</string>
     <string name="video_picture_adjust_more_format">提高%1$s</string>
     <string name="video_picture_adjust_value_format">%1$s：%2$d</string>
-    <string name="video_picture_adjust_reset">重置</string>
+    <string name="video_picture_adjust_reset">重設</string>
     <string name="video_picture_adjust_unavailable">HDR 或受保護的影片無法使用。</string>
     <string name="video_picture_adjust_not_remembered">更改會立即生效，但不會為此影片儲存。</string>
-    <string name="video_picture_deinterlace">去隔行</string>
+    <string name="video_picture_deinterlace">去交錯</string>
     <string-array name="video_picture_deinterlace_names">
         <item>自動</item>
         <item>開啟</item>
         <item>關閉</item>
     </string-array>
-    <string name="video_picture_deinterlace_detected_interlaced">此影片為隔行掃描：自動模式會去除隔行。</string>
+    <string name="video_picture_deinterlace_detected_interlaced">此影片為交錯掃描：自動模式會去除交錯。</string>
     <string name="video_picture_deinterlace_detected_progressive">此影片為完整畫格：自動模式不作處理。</string>
-    <string name="video_picture_deinterlace_detected_unknown">檔案未說明是否為隔行掃描。如果畫面移動時出現梳狀條紋，請將其開啟。</string>
+    <string name="video_picture_deinterlace_detected_unknown">檔案未說明是否為交錯掃描。如果畫面移動時出現梳狀條紋，請將其開啟。</string>
     <string name="video_settings_upscaler">放大</string>
     <string-array name="video_settings_upscaler_entries">
         <item>標準（Lanczos）</item>
@@ -136,7 +136,7 @@
     <string-array name="video_settings_upscaler_summaries">
         <item>Lanczos 3 放大銳利且快速，適用於所有裝置。</item>
         <item>小型神經網路可還原電影和劇集中的細微細節。更耗電。</item>
-        <item>適合線條幹淨、色塊平整的網路。更耗電。</item>
+        <item>適合線條乾淨、色塊平整的模型。更耗電。</item>
         <item>為每個影片自動選擇：裝置足夠快時用細節增強，動漫用動畫模式，否則用 Lanczos。</item>
     </string-array>
     <string name="video_detail_plus_slow_notice">細節增強已暫停：此裝置無法流暢處理此影片。改用 Lanczos 放大。</string>
@@ -151,8 +151,8 @@
     <string name="video_signal_upscaler_auto_free_format">空閒 %1$s 毫秒</string>
     <string name="video_signal_upscaler_auto_measuring">正在測量時間</string>
     <string name="video_signal_upscaler_auto_film_format">自動：細節增強電影模式，因為 %1$s → %2$s，且%3$s</string>
-    <string name="video_signal_upscaler_auto_anime_format">自動：細節增強動畫模式，因為檢測到動漫，%1$s → %2$s，且%3$s</string>
-    <string name="video_signal_upscaler_auto_anime_film_format">自動：細節增強電影模式，因為檢測到動漫，但動畫網路在此處太慢，%1$s → %2$s，且%3$s</string>
+    <string name="video_signal_upscaler_auto_anime_format">自動：細節增強動畫模式，因為偵測到動漫，%1$s → %2$s，且%3$s</string>
+    <string name="video_signal_upscaler_auto_anime_film_format">自動：細節增強電影模式，因為偵測到動漫，但動畫模型在此處太慢，%1$s → %2$s，且%3$s</string>
     <string name="video_signal_upscaler_auto_measuring_offscreen">自動：在背景測量細節增強期間使用 Lanczos 3</string>
     <string name="video_signal_upscaler_auto_slow_format">自動：Lanczos 3，因為細節增強在此處需要 %1$s 毫秒（目標 %2$s 毫秒）</string>
     <string name="video_signal_upscaler_auto_slow_unknown">自動：Lanczos 3，因為細節增強在此處太慢</string>
@@ -182,6 +182,6 @@
     <string name="video_meter_audio_format">%1$s 毫秒 · %2$s 毫秒，最近一秒 %3$d 個緩衝區</string>
     <string name="video_meter_audio_idle">最近一秒沒有緩衝區</string>
     <string name="video_meter_underruns">聲音緩衝不足次數</string>
-    <string name="video_meter_duration">測量時長</string>
+    <string name="video_meter_duration">測量時間</string>
     <string name="video_meter_share">以 CSV 分享</string>
 </resources>

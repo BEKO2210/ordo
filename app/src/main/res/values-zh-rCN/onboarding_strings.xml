@@ -9,7 +9,7 @@
     <string name="onboarding_welcome_text">让你的文件井然有序。快速、安全、免费——无广告，无跟踪。</string>
     <string name="onboarding_safety_title">从一开始就安全</string>
     <string name="onboarding_feature_trash">已删除的文件会在回收站保留 30 天——不会因误操作而丢失。</string>
-    <string name="onboarding_feature_vault">保险箱使用 AES-256 和屏幕锁保护私密文件。</string>
+    <string name="onboarding_feature_vault">保险库使用 AES-256 和屏幕锁定保护私密文件。</string>
     <string name="onboarding_feature_privacy">无广告，无跟踪，无需账号。你的数据只保留在手机上。</string>
     <string name="onboarding_ai_title">永不离开手机的 AI</string>
     <string name="onboarding_ai_example">将 Download 中的所有 MP3 移动到 Music</string>

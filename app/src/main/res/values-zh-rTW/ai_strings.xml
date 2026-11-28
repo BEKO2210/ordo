@@ -16,7 +16,7 @@
         <item>正在規劃步驟…</item>
         <item>馬上就好…</item>
     </string-array>
-    <string name="ai_finding_files">正在查詢檔案…</string>
+    <string name="ai_finding_files">正在尋找檔案…</string>
     <string name="ai_action_move">移動</string>
     <string name="ai_action_copy">複製</string>
     <string name="ai_action_delete">移到資源回收筒</string>
@@ -33,10 +33,10 @@
         <item quantity="other">以及另外 %d 個</item>
     </plurals>
     <string name="ai_note_trash">將移到資源回收筒，%d 天內可還原。</string>
-    <string name="ai_note_new_folder">將建立資料夾“%s”。</string>
+    <string name="ai_note_new_folder">將建立資料夾「%s」。</string>
     <string name="ai_edit">更改</string>
     <string name="ai_confirm_format">%1$s（%2$d）</string>
-    <string name="ai_filter_name">名稱包含“%s”</string>
+    <string name="ai_filter_name">名稱包含「%s」</string>
     <plurals name="ai_filter_older_days">
         <item quantity="other">超過 %d 天</item>
     </plurals>
@@ -67,12 +67,12 @@
     <string name="ai_refused_unsupported_title">Ordo 暫時還做不到</string>
     <string name="ai_refused_unsupported_text">Ordo 可以移動、複製、整理檔案，以及將檔案移到資源回收筒。</string>
     <string name="ai_refused_delete_title">最好先確認</string>
-    <string name="ai_refused_delete_text">你想刪除檔案嗎？請明確說明，例如“刪除……”。</string>
+    <string name="ai_refused_delete_text">你想刪除檔案嗎？請明確說明，例如「刪除……」。</string>
     <string name="ai_refused_protected_title">此資料夾受保護</string>
     <string name="ai_refused_protected_text">系統資料夾、隱藏資料夾和你的相機照片不會被改動。如確有需要，請明確指出相機。</string>
     <string name="ai_refused_trash_off_title">資源回收筒已關閉</string>
     <string name="ai_refused_trash_off_text">Ordo 只會將檔案刪除到資源回收筒。請先在設定中開啟資源回收筒。</string>
-    <string name="ai_no_files_title">沒有匹配的檔案</string>
+    <string name="ai_no_files_title">沒有符合的檔案</string>
     <string name="ai_no_files_text">%s 中沒有符合你指令的內容。</string>
     <plurals name="ai_done_move">
         <item quantity="other">已移動 %d 個檔案</item>
@@ -86,14 +86,14 @@
     <plurals name="ai_done_organize">
         <item quantity="other">已整理 %d 個檔案</item>
     </plurals>
-    <string name="ai_undo">撤消</string>
+    <string name="ai_undo">復原</string>
     <string name="ai_setup_title">設定 Ordo AI</string>
-    <string name="ai_setup_subtitle">用你自己的話下達指令。Ordo 會將其轉換為計劃，由你確認。</string>
+    <string name="ai_setup_subtitle">用你自己的話下達指令。Ordo 會將其轉換為計畫，由你確認。</string>
     <string name="ai_setup_privacy">完全在你的手機上執行。你的檔案和指令絕不會離開裝置。</string>
     <string name="ai_check_ram">記憶體：%1$s（需要 %2$s）</string>
     <string name="ai_check_space">可用空間：%1$s（需要 %2$s）</string>
-    <string name="ai_check_device_ok">64 位處理器</string>
-    <string name="ai_check_device_bad">需要 64 位處理器</string>
+    <string name="ai_check_device_ok">64 位元處理器</string>
+    <string name="ai_check_device_bad">需要 64 位元處理器</string>
     <string name="ai_check_device_old">需要更新的處理器</string>
     <string name="ai_setup_download">透過 Wi-Fi 下載 AI（%s）</string>
     <string name="ai_setup_not_enough">此手機無法執行 Ordo AI</string>
@@ -119,7 +119,7 @@
     <plurals name="ai_eta_seconds">
         <item quantity="other">%d 秒</item>
     </plurals>
-    <string name="ai_running">Ordo 正在執行計劃…</string>
+    <string name="ai_running">Ordo 正在執行計畫…</string>
     <string name="ai_ask_which">有多個資料夾同名。是哪一個？</string>
     <plurals name="ai_skipped">
         <item quantity="other">已跳過 %d 個</item>
@@ -127,11 +127,11 @@
     <plurals name="ai_undone">
         <item quantity="other">已還原 %d 個檔案</item>
     </plurals>
-    <string name="ai_check_passed">已透過</string>
+    <string name="ai_check_passed">已通過</string>
     <string name="ai_check_failed">未滿足</string>
     <string name="ai_download_no_space">可用空間不足。請騰出一些空間後重試。</string>
     <string name="ai_download_waiting_wifi">正在等待 Wi-Fi</string>
-    <string name="ai_mobile_data">改用移動資料下載</string>
+    <string name="ai_mobile_data">改用行動數據下載</string>
     <string name="ai_remove_title">移除 AI 模型</string>
     <string name="ai_remove_text">這將釋放 %s。你可以隨時重新下載。</string>
     <string name="ai_remove_confirm">移除</string>
@@ -168,8 +168,8 @@
     <plurals name="ai_show_older_years">
         <item quantity="other">超過 %d 年的</item>
     </plurals>
-    <string name="ai_show_named">名為“%s”的</string>
-    <string name="ai_show_word">含“%s”的</string>
+    <string name="ai_show_named">名為「%s」的</string>
+    <string name="ai_show_word">含「%s」的</string>
     <string name="ai_show_in">位於 %s 的</string>
     <string name="ai_show_largest_first">最大的在前</string>
     <string name="ai_show_newest_first">最新的在前</string>
@@ -187,7 +187,7 @@
     <string name="ai_hint_searched">我不會保留搜尋記錄。請告訴我檔名中的某個詞。</string>
     <string name="ai_hint_habit">我暫時還不會學習習慣。請告訴我如何整理，例如按類型或按月份。</string>
     <string name="ai_hint_dismiss">輕觸即可輸入新指令</string>
-    <string name="ai_filter_word">包含“%s”</string>
+    <string name="ai_filter_word">包含「%s」</string>
     <string name="ai_filter_today">今天更改過</string>
     <plurals name="ai_filter_newer_days">
         <item quantity="one">最近一天內更改過</item>
@@ -227,19 +227,19 @@
     <string name="ai_net_ask_title">快速確認</string>
     <string name="ai_net_ask_refine">請修改上方的指令，然後重新傳送。</string>
     <string name="ai_net_ask_model">你指的是哪些檔案？例如，請告訴我資料夾或時間範圍。</string>
-    <string name="ai_net_ask_no_source">我該使用哪個資料夾？請指明，例如“來自 Download”。</string>
-    <string name="ai_net_ask_no_dest">檔案要放到哪裡？請告訴我資料夾，例如“到 Documents”。</string>
-    <string name="ai_net_ask_ambiguous_folder">有多個資料夾匹配：%1$s。你指的是哪一個？</string>
-    <string name="ai_net_ask_unknown_folder">我找不到名為“%1$s”的資料夾。它的確切名稱是什麼？</string>
-    <string name="ai_net_ask_uncovered">“%1$s”是什麼意思？如果它在檔名中，請說“名稱中含有 %1$s”。</string>
-    <string name="ai_net_ask_no_reading">我找不到與“%1$s”相關的檔案。它在檔名中嗎？否則請告訴我資料夾或時間範圍。</string>
-    <string name="ai_net_ask_vague_time">“%1$s”對你來說是多久？請說得更具體些，例如“超過一年”。</string>
-    <string name="ai_net_ask_vague_size">“%1$s”對你來說有多大？例如“大於 100 MB”。</string>
+    <string name="ai_net_ask_no_source">我該使用哪個資料夾？請指明，例如「來自 Download」。</string>
+    <string name="ai_net_ask_no_dest">檔案要放到哪裡？請告訴我資料夾，例如「到 Documents」。</string>
+    <string name="ai_net_ask_ambiguous_folder">有多個資料夾符合：%1$s。你指的是哪一個？</string>
+    <string name="ai_net_ask_unknown_folder">我找不到名為「%1$s」的資料夾。它的確切名稱是什麼？</string>
+    <string name="ai_net_ask_uncovered">「%1$s」是什麼意思？如果它在檔名中，請說「名稱中含有 %1$s」。</string>
+    <string name="ai_net_ask_no_reading">我找不到與「%1$s」相關的檔案。它在檔名中嗎？否則請告訴我資料夾或時間範圍。</string>
+    <string name="ai_net_ask_vague_time">「%1$s」對你來說是多久？請說得更具體些，例如「超過一年」。</string>
+    <string name="ai_net_ask_vague_size">「%1$s」對你來說有多大？例如「大於 100 MB」。</string>
     <string name="ai_net_refuse_memory">我記不住之前的指令或搜尋。請明確告訴我你指的是哪些檔案。</string>
     <string name="ai_net_refuse_archive">我暫時還不能壓縮或解壓檔案。</string>
     <string name="ai_net_refuse_convert">我不能轉換或合併檔案。</string>
-    <string name="ai_net_refuse_rename">我暫時還不能透過指令重新命名。請長按檔案並選擇“重新命名”。</string>
-    <string name="ai_net_refuse_share">我不能透過指令分享或傳送。請長按檔案並選擇“分享”。</string>
+    <string name="ai_net_refuse_rename">我暫時還不能透過指令重新命名。請長按檔案並選擇「重新命名」。</string>
+    <string name="ai_net_refuse_share">我不能透過指令分享或傳送。請長按檔案並選擇「分享」。</string>
     <string name="ai_net_refuse_open">我不能透過指令開啟、播放或列印。我可以為你顯示檔案，之後輕觸它即可。</string>
     <string name="ai_net_refuse_restore">我不能透過指令還原檔案。你刪除的內容都在資源回收筒中，可以在那裡還原。</string>
     <string name="ai_net_refuse_edit">我不能編輯檔案。</string>
@@ -248,19 +248,19 @@
     <string name="ai_show_until">截至 %1$s</string>
     <string name="ai_show_min_size">%1$s 以上</string>
     <string name="ai_show_max_size">最大 %1$s</string>
-    <string name="ai_show_terms">含“%1$s”的</string>
+    <string name="ai_show_terms">含「%1$s」的</string>
     <string name="ai_show_without">不含 %1$s 的</string>
     <string name="ai_show_oldest_first">最舊的在前</string>
     <string name="ai_show_smallest_first">最小的在前</string>
     <string name="ai_download_not_published">AI 指令所需的附加元件暫不可用，將在後續更新中提供。</string>
-    <string name="ai_net_none">Ordo 可以查詢並顯示檔案、移動、複製、整理檔案，以及將檔案移到資源回收筒。</string>
-    <string name="ai_net_quoted">“%1$s”</string>
+    <string name="ai_net_none">Ordo 可以尋找並顯示檔案、移動、複製、整理檔案，以及將檔案移到資源回收筒。</string>
+    <string name="ai_net_quoted">「%1$s」</string>
     <string name="ai_net_dropped">我沒有找到同時包含 %1$s 的內容，因此只搜尋了 %2$s。</string>
-    <string name="ai_net_dropped_all">我沒有找到與 %1$s 相關的內容，因此顯示其餘所有匹配的內容。</string>
+    <string name="ai_net_dropped_all">我沒有找到與 %1$s 相關的內容，因此顯示其餘所有符合的內容。</string>
     <string name="ai_net_count_warning">你說的是 %1$d 個，但我找到了 %2$d 個。請仔細核對清單。</string>
     <string-array name="ai_examples_preview">
         <item>顯示上週的 PDF</item>
-        <item>我的話費帳單在哪裡？</item>
+        <item>我的電話帳單在哪裡？</item>
     </string-array>
     <string name="ai_net_and">" 和 "</string>
 </resources>

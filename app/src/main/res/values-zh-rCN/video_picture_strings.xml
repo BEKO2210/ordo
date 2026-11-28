@@ -91,7 +91,7 @@
     <string name="video_signal_device_hdmi">HDMI</string>
     <string name="video_signal_device_other">其他设备</string>
     <string name="video_signal_bit_perfect">无损直通</string>
-    <string name="video_signal_offload">卸载（在音频芯片中解码）</string>
+    <string name="video_signal_offload">硬件卸载（在音频芯片中解码）</string>
     <string name="video_signal_waiting">等待播放</string>
     <string name="video_info_signal_path">信号路径</string>
     <string name="video_settings_ambient_gamma">根据室内光线调整 Gamma（实验性）</string>
@@ -136,7 +136,7 @@
     <string-array name="video_settings_upscaler_summaries">
         <item>Lanczos 3 放大锐利且快速，适用于所有设备。</item>
         <item>小型神经网络可还原电影和剧集中的细微细节。更耗电。</item>
-        <item>适合线条干净、色块平整的网络。更耗电。</item>
+        <item>适合线条干净、色块平整的模型。更耗电。</item>
         <item>为每个视频自动选择：设备足够快时用细节增强，动漫用动画模式，否则用 Lanczos。</item>
     </string-array>
     <string name="video_detail_plus_slow_notice">细节增强已暂停：此设备无法流畅处理此视频。改用 Lanczos 放大。</string>
@@ -152,7 +152,7 @@
     <string name="video_signal_upscaler_auto_measuring">正在测量时间</string>
     <string name="video_signal_upscaler_auto_film_format">自动：细节增强电影模式，因为 %1$s → %2$s，且%3$s</string>
     <string name="video_signal_upscaler_auto_anime_format">自动：细节增强动画模式，因为检测到动漫，%1$s → %2$s，且%3$s</string>
-    <string name="video_signal_upscaler_auto_anime_film_format">自动：细节增强电影模式，因为检测到动漫，但动画网络在此处太慢，%1$s → %2$s，且%3$s</string>
+    <string name="video_signal_upscaler_auto_anime_film_format">自动：细节增强电影模式，因为检测到动漫，但动画模型在此处太慢，%1$s → %2$s，且%3$s</string>
     <string name="video_signal_upscaler_auto_measuring_offscreen">自动：在后台测量细节增强期间使用 Lanczos 3</string>
     <string name="video_signal_upscaler_auto_slow_format">自动：Lanczos 3，因为细节增强在此处需要 %1$s 毫秒（目标 %2$s 毫秒）</string>
     <string name="video_signal_upscaler_auto_slow_unknown">自动：Lanczos 3，因为细节增强在此处太慢</string>

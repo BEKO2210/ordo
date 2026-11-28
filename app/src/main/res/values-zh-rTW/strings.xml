@@ -56,11 +56,11 @@
         <item quantity="other">%1$,d 位元組</item>
     </plurals>
 
-    <string name="all_files_access_rationale_message">程式需要管理所有檔案的權限。請在接下來的系統設定中授予權限。</string>
-    <string name="storage_permission_rationale_message">程式需要存取檔案的權限。請在接下來的系統對話框中輕觸「允許」。</string>
-    <string name="storage_permission_permanently_denied_message">程式需要存取檔案的權限。請在系統設定中授予「儲存空間」權限。</string>
-    <string name="notification_permission_rationale_message">程式需要發布檔案作業相關通知的權限。請在接下來的系統對話框中輕觸「允許」。</string>
-    <string name="notification_permission_permanently_denied_message">程式需要發布檔案作業相關通知的權限。請在系統設定中授予「通知」權限。</string>
+    <string name="all_files_access_rationale_message">應用程式需要管理所有檔案的權限。請在接下來的系統設定中授予權限。</string>
+    <string name="storage_permission_rationale_message">應用程式需要存取檔案的權限。請在接下來的系統對話方塊中輕觸「允許」。</string>
+    <string name="storage_permission_permanently_denied_message">應用程式需要存取檔案的權限。請在系統設定中授予「儲存空間」權限。</string>
+    <string name="notification_permission_rationale_message">應用程式需要發布檔案作業相關通知的權限。請在接下來的系統對話方塊中輕觸「允許」。</string>
+    <string name="notification_permission_permanently_denied_message">應用程式需要發布檔案作業相關通知的權限。請在系統設定中授予「通知」權限。</string>
 
     <string name="notification_channel_background_activity_start_name">背景期間動作</string>
     <string name="notification_channel_background_activity_start_description">在應用程式處於背景期間採取動作</string>
@@ -70,7 +70,7 @@
     <string name="notification_channel_ftp_server_description">顯示和控制 FTP 伺服器</string>
 
     <string name="file_action_archive_password_title">需要密碼</string>
-    <string name="file_action_archive_password_message_format">“%1$s”受密碼保護。</string>
+    <string name="file_action_archive_password_message_format">「%1$s」受密碼保護。</string>
     <string name="file_action_archive_password_error_empty">密碼不能為空</string>
 
     <plurals name="file_job_archive_scan_notification_title_format">
@@ -558,7 +558,7 @@
     <string name="text_editor_title_format">%1$s</string>
     <string name="text_editor_title_changed_format">*%1$s</string>
     <string name="text_editor_save_success">已儲存</string>
-    <string name="text_editor_reload_message">你確定要重新載入嗎？對此文件未儲存的變更將丟失。</string>
+    <string name="text_editor_reload_message">你確定要重新載入嗎？對此文件未儲存的變更將遺失。</string>
     <string name="text_editor_encoding">編碼</string>
     <string name="text_editor_close_message">你確定要捨棄對此文件未儲存的變更嗎？</string>
 
@@ -646,7 +646,7 @@
     <string name="about_author_twitter_title">在 Twitter 上關注</string>
 
     <string name="file_job_cannot_replace_type_message">檔案不能替換資料夾，資料夾也不能替換檔案。</string>
-    <string name="file_job_read_error_message_format">無法讀取“%1$s”。\n%2$s</string>
+    <string name="file_job_read_error_message_format">無法讀取「%1$s」。\n%2$s</string>
     <string name="file_list_action_size_small">小</string>
     <string name="file_list_action_size_medium">中</string>
     <string name="file_list_action_size_large">大</string>
@@ -656,7 +656,7 @@
     <string name="file_properties_media_address_failed">暫時找不到地址。請檢查網路連線後重試。</string>
     <string name="file_properties_media_address_unavailable">此裝置沒有地址服務。</string>
     <string name="settings_show_home_on_start_title">啟動時顯示主螢幕</string>
-    <string name="home_title">主頁</string>
+    <string name="home_title">首頁</string>
     <string name="home_recent">最近的檔案</string>
     <string name="documents_root_summary">你的書籤</string>
     <string name="documents_recent_summary">最近在 Ordo 中使用</string>
@@ -687,8 +687,8 @@
     <string name="vault_no_screen_lock_title">請先設定螢幕鎖定</string>
     <string name="vault_no_screen_lock_message">保險庫使用你的螢幕鎖定來保護檔案。請先設定 PIN 碼、圖案或指紋後再使用。</string>
     <string name="vault_open_settings_action">開啟安全設定</string>
-    <string name="vault_empty">保險庫中還沒有檔案。\n選擇檔案並輕觸“移至保險庫”即可保護它們。</string>
-    <string name="vault_notice">保險庫中的檔案只存在於此裝置上。解除安裝 Ordo 或清除其資料之前，請先將它們還原，否則檔案會丟失。</string>
+    <string name="vault_empty">保險庫中還沒有檔案。\n選擇檔案並輕觸「移至保險庫」即可保護它們。</string>
+    <string name="vault_notice">保險庫中的檔案只存在於此裝置上。解除安裝 Ordo 或清除其資料之前，請先將它們還原，否則檔案會遺失。</string>
     <string name="vault_item_description_format">新增於 %1$s · %2$s\n來自 %3$s</string>
     <string name="vault_move_action">移至保險庫</string>
     <string name="vault_move_title">移至保險庫？</string>
@@ -700,7 +700,7 @@
     <string name="file_job_vault_move_notification_title">正在移至保險庫</string>
     <string name="file_job_vault_restore_notification_title">正在從保險庫還原</string>
     <string name="file_job_vault_error_title">移至保險庫時出錯</string>
-    <string name="file_job_vault_error_message_format">“%1$s”出現錯誤。\n%2$s</string>
+    <string name="file_job_vault_error_message_format">「%1$s」出現錯誤。\n%2$s</string>
     <string name="home_vault_summary_short">已加密</string>
     <string name="home_backup_summary_short">USB 或雲端</string>
     <string name="home_vault_summary">受螢幕鎖定保護</string>
@@ -724,7 +724,7 @@
     <string name="backup_add_folder">新增資料夾</string>
     <string name="backup_remove_folder_format">從清單中移除 %1$s</string>
     <string name="backup_folder_removed">資料夾已移除。其中的檔案保持不變。</string>
-    <string name="backup_folder_removed_undo">撤銷</string>
+    <string name="backup_folder_removed_undo">復原</string>
     <string name="backup_add_folder_error">無法備份此資料夾。請選擇裝置上的資料夾。</string>
     <string name="backup_content_empty_error">請至少選擇一個資料夾。</string>
     <string name="backup_protection_title">保護</string>
@@ -749,7 +749,7 @@
         <item quantity="other">已備份 %1$d 個檔案（%2$s）</item>
     </plurals>
     <plurals name="backup_done_skipped_format">
-        <item quantity="other">有 %1$d 個檔案無法備份，已缺失：\n%2$s</item>
+        <item quantity="other">有 %1$d 個檔案無法備份，備份中缺少這些檔案：\n%2$s</item>
     </plurals>
     <string name="backup_done_restore_hint">你可以隨時在此螢幕中還原此備份。</string>
     <string name="backup_done_action">完成</string>
@@ -759,7 +759,7 @@
     <string name="backup_failed_name_taken">已存在同名的備份或其他檔案。請選擇新的檔名。</string>
     <string name="backup_failed_message">請檢查 USB 隨身碟是否仍已插入且空間充足，然後重試。</string>
     <string name="backup_failed_space_format">空間不足。備份需要 %1$s，但只有 %2$s 可用。請選擇更少的資料夾或其他位置。</string>
-    <string name="backup_failed_read_format">無法完整讀取“%1$s”，備份已停止。請檢查該檔案或將其所在資料夾排除，然後重試。</string>
+    <string name="backup_failed_read_format">無法完整讀取「%1$s」，備份已停止。請檢查該檔案或將其所在資料夾排除，然後重試。</string>
     <string name="backup_retry_action">重試</string>
     <string name="file_job_timeout_title">任務已停止</string>
     <string name="file_job_timeout_message">任務在背景執行 6 小時後，被 Android 停止。請重新開始，並在此期間保持 Ordo 開啟。</string>
@@ -777,7 +777,7 @@
         <item quantity="other">%1$d 個檔案 · %2$s</item>
     </plurals>
     <string name="restore_preview_destination_format">檔案將放回 %1$s 下的原資料夾。</string>
-    <string name="restore_conflict_rule">不會替換現有檔案。路徑相同且大小相同的檔案會被跳過；如果大小不同，還原的檔案會在副檔名前加上“(restored)”。</string>
+    <string name="restore_conflict_rule">不會替換現有檔案。路徑相同且大小相同的檔案會被跳過；如果大小不同，還原的檔案會在副檔名前加上「(restored)」。</string>
     <plurals name="restore_vault_not_supported_format">
         <item quantity="other">此備份還包含 %1$d 個保險庫檔案。由於備份中的資訊不足，無法安全地重建保險庫，因此不會還原這些檔案。</item>
     </plurals>
@@ -812,15 +812,15 @@
     <string name="trash_move_action">移至資源回收筒</string>
     <string name="trash_delete_permanently_action">永久刪除</string>
     <string name="trash_empty_action">清空資源回收筒</string>
-    <string name="trash_move_message_one_format">將“%1$s”移至資源回收筒？</string>
+    <string name="trash_move_message_one_format">將「%1$s」移至資源回收筒？</string>
     <plurals name="trash_move_message_multiple_format">
         <item quantity="other">將 %1$d 項移至資源回收筒？</item>
     </plurals>
     <plurals name="trash_delete_message_format">
-        <item quantity="other">永久刪除 %1$d 項？此操作無法撤銷。</item>
+        <item quantity="other">永久刪除 %1$d 項？此操作無法復原。</item>
     </plurals>
     <plurals name="trash_empty_message_format">
-        <item quantity="other">永久刪除資源回收筒中的全部 %1$d 項？此操作無法撤銷。</item>
+        <item quantity="other">永久刪除資源回收筒中的全部 %1$d 項？此操作無法復原。</item>
     </plurals>
     <string name="trash_not_supported_message">這些檔案無法移至資源回收筒，將被永久刪除。</string>
     <string name="file_job_trash_error_title">移至資源回收筒時出錯</string>
@@ -852,7 +852,7 @@
         <item quantity="other">將 %1$d 個檔案（%2$s）移至資源回收筒？</item>
     </plurals>
     <plurals name="analysis_delete_message_format">
-        <item quantity="other">永久刪除 %1$d 個檔案（%2$s）？此操作無法撤銷。</item>
+        <item quantity="other">永久刪除 %1$d 個檔案（%2$s）？此操作無法復原。</item>
     </plurals>
     <string name="file_job_transfer_speed_format">%1$s · %2$s/秒 · 剩餘 %3$s</string>
     <string name="file_list_action_search_content">在檔案內容中搜尋</string>
@@ -889,10 +889,10 @@
     <string name="home_recent_view_hidden">隱藏</string>
     <string name="home_search_hint">搜尋檔案</string>
     <string name="home_show_quick_access">顯示快速存取</string>
-    <string name="drag_handle_description">拖動以重新排序</string>
+    <string name="drag_handle_description">拖曳以重新排序</string>
     <string name="audio_player_title">音樂播放器</string>
     <string name="audio_player_unknown_title">未知標題</string>
-    <string name="audio_player_unknown_artist">未知藝術家</string>
+    <string name="audio_player_unknown_artist">未知演出者</string>
     <string name="audio_player_artist_album_format">%1$s · %2$s</string>
     <string name="audio_player_play">播放</string>
     <string name="audio_player_pause">暫停</string>
@@ -903,8 +903,8 @@
     <string name="audio_player_shuffle_off">隨機播放已關閉</string>
     <string name="audio_player_repeat">重複播放</string>
     <string name="audio_player_repeat_off">重複播放已關閉</string>
-    <string name="audio_player_repeat_all">全部迴圈</string>
-    <string name="audio_player_repeat_one">單曲迴圈</string>
+    <string name="audio_player_repeat_all">全部重複播放</string>
+    <string name="audio_player_repeat_one">單曲重複播放</string>
     <string name="audio_player_position">位置</string>
     <string name="music_queue">播放佇列</string>
     <string name="music_queue_next">接下來播放 · %1$d</string>
@@ -923,7 +923,7 @@
     <string name="audio_sound_title">聲音</string>
     <string name="audio_sound_checking">正在檢查音效…</string>
     <string name="audio_sound_equalizer">均衡器</string>
-    <string name="audio_sound_curve_hint">按住滑塊 150 毫秒後再拖動。</string>
+    <string name="audio_sound_curve_hint">按住控點 150 毫秒後再拖曳。</string>
     <string name="audio_sound_fine_tune">微調</string>
     <string name="audio_sound_collapsed">已收起</string>
     <string name="audio_sound_expanded">已展開</string>
@@ -956,14 +956,14 @@
     <string name="audio_sound_focus_summary">選擇其他應用程式播放時的處理方式</string>
     <string name="audio_sound_focus_duck">降低 Ordo 的音量</string>
     <string name="audio_sound_focus_pause">暫停 Ordo</string>
-    <string name="audio_sound_resume_headphones">連線耳機時繼續播放</string>
-    <string name="audio_sound_headphones_summary">連線後繼續已暫停的播放</string>
+    <string name="audio_sound_resume_headphones">連接耳機時繼續播放</string>
+    <string name="audio_sound_headphones_summary">連接後繼續已暫停的播放</string>
     <string name="audio_sound_bit_perfect">Bit-perfect 輸出到 USB DAC</string>
-    <string name="audio_sound_bit_perfect_summary">將每首歌曲原樣傳送到支援該功能的 USB DAC。執行期間，音效、音量均衡和限幅器會&#160;關閉。</string>
+    <string name="audio_sound_bit_perfect_summary">將每首歌曲原樣傳送到支援該功能的 USB DAC。執行期間，音效、音量均衡和限幅器會關閉。</string>
     <string name="audio_sound_bypassed">Bit-perfect 輸出到 USB DAC – 這首歌曲已繞過音效</string>
     <string name="audio_sound_bit_perfect_song_not">DAC 無法原樣播放這首歌曲，因此將按所有聲音設定正常播放。</string>
     <string name="audio_output_bit_perfect_format">Bit-perfect · %1$s</string>
-    <string name="audio_output_offload">Offload</string>
+    <string name="audio_output_offload">硬體卸載</string>
     <string name="audio_sound_sleep_heading">睡眠定時器</string>
     <string name="audio_sound_sleep_summary">在一段時間後或曲目結束時暫停</string>
     <string name="audio_sleep_off">關閉</string>
@@ -984,11 +984,11 @@
     <string name="audio_preset_jazz">爵士</string>
     <string name="audio_preset_classical">古典</string>
     <string name="audio_preset_night">夜間</string>
-    <string name="audio_preset_custom">自定義</string>
-    <string name="audio_sound_presets">預設</string>
-    <string name="audio_sound_status_custom">自定義設定</string>
+    <string name="audio_preset_custom">自訂</string>
+    <string name="audio_sound_presets">預設集</string>
+    <string name="audio_sound_status_custom">自訂設定</string>
     <string name="audio_sound_curve_off">均衡器已關閉</string>
-    <string name="audio_sound_reset">重置</string>
+    <string name="audio_sound_reset">重設</string>
     <string name="audio_sound_bubble">%1$+.1f dB · %2$s</string>
     <string name="audio_sound_db_spoken">%1$+.1f 分貝</string>
     <string name="audio_frequency_hz_spoken">%1$d 赫茲</string>
@@ -1013,8 +1013,8 @@
     <string name="audio_reverb_studio">錄音室</string>
     <string name="audio_reverb_club">俱樂部</string>
     <string name="audio_reverb_hall">音樂廳</string>
-    <string name="audio_sound_warmth">模擬溫暖感</string>
-    <string name="audio_sound_warmth_summary">像磁帶或電子管一樣柔和地圓滑峰值</string>
+    <string name="audio_sound_warmth">類比溫暖感</string>
+    <string name="audio_sound_warmth_summary">像磁帶或真空管一樣柔和地圓滑峰值</string>
     <string name="audio_sound_clarity">清晰度</string>
     <string name="audio_sound_clarity_summary">突出安靜的細節，且不會過載</string>
     <string name="audio_sound_level">級別</string>
@@ -1032,5 +1032,5 @@
     <string name="audio_sound_highs_none">未發現缺失的高頻，不會新增任何內容</string>
     <string name="audio_sound_quiet">低音量時保持飽滿音質</string>
     <string name="audio_sound_quiet_summary">低音量時，輕微提升低音和高音</string>
-    <string name="audio_sound_quiet_value">在當前音量下最多提升 +%1$d dB 低音</string>
+    <string name="audio_sound_quiet_value">在目前音量下最多提升 +%1$d dB 低音</string>
 </resources>

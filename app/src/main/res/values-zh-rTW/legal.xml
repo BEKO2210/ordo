@@ -14,7 +14,7 @@
         <item>Belkis Aslani\nVogelsangstraße 32\n71691 Freiberg am Neckar\n德國</item>
         <item>電子郵件：nullmesh@protonmail.com\n電話：+49 176 81462526</item>
         <item>Belkis Aslani，地址同上。</item>
-        <item>Ordo 是免費的開源軟體。本應用程式採用 GNU 通用公共許可證第 3 版或更高版本授權。在法律允許的範圍內，不提供任何擔保。\n\n原始碼：https://github.com/BEKO2210/ordo\n\nOrdo 基於 Hai Zhang 的“Material Files”。</item>
+        <item>Ordo 是免費的開源軟體。本應用程式採用 GNU 通用公眾授權條款第 3 版或更高版本授權。在法律允許的範圍內，不提供任何擔保。\n\n原始碼：https://github.com/BEKO2210/ordo\n\nOrdo 基於 Hai Zhang 的「Material Files」。</item>
         <item>我不參加消費者仲裁機構的爭議解決程序，也沒有義務參加。</item>
     </string-array>
     <string-array name="legal_privacy_titles">
@@ -33,17 +33,17 @@
         <item>最後更新</item>
     </string-array>
     <string-array name="legal_privacy_texts">
-        <item>Ordo 不收集任何關於你的資料。應用程式沒有廣告、沒有追蹤、沒有分析。你的檔案保留在你的裝置上。Ordo 絕不會自行連線網際網路。僅有的例外，且僅在你主動要求時：如果你設定 AI 命令，Ordo 會下載一次語言模型；如果你在包含位置資訊的照片或影片上輕觸“顯示地址”，Ordo 會向你裝置的地址服務發起查詢。</item>
+        <item>Ordo 不收集任何關於你的資料。應用程式沒有廣告、沒有追蹤、沒有分析。你的檔案保留在你的裝置上。Ordo 絕不會自行連線網際網路。僅有的例外，且僅在你主動要求時：如果你設定 AI 命令，Ordo 會下載一次語言模型；如果你在包含位置資訊的照片或影片上輕觸「顯示地址」，Ordo 會向你裝置的地址服務發起查詢。</item>
         <item>Belkis Aslani\nVogelsangstraße 32\n71691 Freiberg am Neckar\n德國\n電子郵件：nullmesh@protonmail.com</item>
-        <item>Ordo 只申請檔案管理器所需的權限：\n\n• 存取所有檔案：檢視、複製、移動、重新命名和刪除檔案。\n• 檢視已安裝的應用程式：顯示應用程式概覽，並用合適的應用程式開啟檔案。\n• 安裝和解除安裝應用程式：僅在你於 Ordo 中發起時執行。\n• 網際網路和 Wi-Fi 狀態：僅用於你設定的伺服器、內建 FTP 伺服器，以及一次性下載 AI 模型。\n• 通知和背景服務：讓耗時任務持續執行並顯示進度。\n• 指紋或螢幕鎖：由 Android 進行驗證。Ordo 只會得知是否成功。\n• 快捷方式：僅在你將其新增到主螢幕時使用。</item>
-        <item>Ordo 僅在你的裝置上儲存資料：你的設定、書籤，以及你設定的伺服器的登入資訊。已刪除的檔案會保留在同一儲存空間的“.OrdoTrash”資料夾中，通常為 30 天。\n\nOrdo 不會將這些資料傳送給我或任何其他人。Ordo 已被排除在 Android 備份之外：設定、登入資訊和保險庫在換機傳輸時不會進入你的 Google 帳號或新手機。\n\n解除安裝 Ordo 時，Android 會刪除裝置上的應用程式資料。\n\n在包含位置資訊的照片或影片的屬性中，Ordo 起初只顯示座標。只有當你輕觸“顯示地址”時，它才會查詢地址。Ordo 隨後會向你裝置的地址服務發起查詢，該服務通常會將座標傳送給 Google。Ordo 本身不會儲存或傳送座標。</item>
-        <item>Ordo 使用 AES-256 加密保險庫中的檔案，並將其存放在應用程式的受保護儲存空間中。金鑰儲存在你裝置的金鑰庫中，不會離開裝置。\n\n重要提示：如果你解除安裝 Ordo 或清除其應用程式資料，保險庫中的檔案將丟失。請先將檔案取出或備份。</item>
-        <item>備份是儲存在你所選位置（例如 隨身碟）的 ZIP 檔案。如果你願意，Ordo 會用你的密碼（AES-256）對其加密。Ordo 不會儲存密碼。\n\n如果你選擇 Google Drive 等雲端儲存，則由該服務提供商的應用程式傳輸檔案，並適用其隱私政策。</item>
-        <item>當你設定伺服器（FTP、SFTP、SMB 或 WebDAV）時，Ordo 會直接連線到該伺服器。伺服器運營方能看到你的 IP 地址和你傳輸的檔案，不涉及其他任何人。\n\n內建 FTP 伺服器僅在你開啟時執行。</item>
-        <item>在你設定之前，AI 命令處於關閉狀態。之後 Ordo 會從 Hugging Face（Hugging Face, Inc.，美國）一次性下載語言模型 Qwen3.5-4B（約 2.6 GB）。Hugging Face 會看到你的 IP 地址以便傳送檔案（GDPR 第 6 條第 1 款 f 項）：https://huggingface.co/privacy\n\n此後 AI 僅在你的裝置上執行。你的命令和檔名不會離開裝置。你可以隨時在 AI 面板中移除該模型。</item>
-        <item>當你從 Google Play 下載 Ordo 時，Google 會按其自身規則處理資料：https://policies.google.com/privacy\n\nGoogle 只向我提供彙總資料，例如安裝量，以及你在 Android 中允許時的崩潰報告。我無法據此識別任何人。</item>
-        <item>Ordo 網站託管在 GitHub Pages 上（GitHub, Inc.，88 Colin P. Kelly Jr. Street, San Francisco, CA 94107，美國）。當你開啟網站時，GitHub 會處理你的 IP 地址等技術資料，以提供並保護該網站。法律依據為 GDPR 第 6 條第 1 款 f 項。GitHub 也在美國處理資料，並依據歐盟-美國資料隱私框架和標準合同條款。\n\n該網站不設定 Cookie，也不從其他提供商載入任何內容。\n\n更多資訊：https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement</item>
-        <item>當你給我傳送電子郵件時，我會處理你的地址和郵件內容以便回覆（GDPR 第 6 條第 1 款 f 項）。你的請求處理完畢後，我會將其刪除。我的郵件服務提供商是瑞士的 Proton AG。</item>
+        <item>Ordo 只申請檔案管理器所需的權限：\n\n• 存取所有檔案：檢視、複製、移動、重新命名和刪除檔案。\n• 檢視已安裝的應用程式：顯示應用程式概覽，並用合適的應用程式開啟檔案。\n• 安裝和解除安裝應用程式：僅在你於 Ordo 中發起時執行。\n• 網際網路和 Wi-Fi 狀態：僅用於你設定的伺服器、內建 FTP 伺服器，以及一次性下載 AI 模型。\n• 通知和背景服務：讓耗時任務持續執行並顯示進度。\n• 指紋或螢幕鎖定：由 Android 進行驗證。Ordo 只會得知是否成功。\n• 快捷方式：僅在你將其新增到主螢幕時使用。</item>
+        <item>Ordo 僅在你的裝置上儲存資料：你的設定、書籤，以及你設定的伺服器的登入資訊。已刪除的檔案會保留在同一儲存空間的「.OrdoTrash」資料夾中，通常為 30 天。\n\nOrdo 不會將這些資料傳送給我或任何其他人。Ordo 已被排除在 Android 備份之外：設定、登入資訊和保險庫在換機傳輸時不會進入你的 Google 帳號或新手機。\n\n解除安裝 Ordo 時，Android 會刪除裝置上的應用程式資料。\n\n在包含位置資訊的照片或影片的屬性中，Ordo 起初只顯示座標。只有當你輕觸「顯示地址」時，它才會查詢地址。Ordo 隨後會向你裝置的地址服務發起查詢，該服務通常會將座標傳送給 Google。Ordo 本身不會儲存或傳送座標。</item>
+        <item>Ordo 使用 AES-256 加密保險庫中的檔案，並將其存放在應用程式的受保護儲存空間中。金鑰儲存在你裝置的金鑰庫中，不會離開裝置。\n\n重要提示：如果你解除安裝 Ordo 或清除其應用程式資料，保險庫中的檔案將遺失。請先將檔案取出或備份。</item>
+        <item>備份是儲存在你所選位置（例如隨身碟）的 ZIP 檔案。如果你願意，Ordo 會用你的密碼（AES-256）對其加密。Ordo 不會儲存密碼。\n\n如果你選擇 Google Drive 等雲端儲存，則由該服務供應商的應用程式傳輸檔案，並適用其隱私政策。</item>
+        <item>當你設定伺服器（FTP、SFTP、SMB 或 WebDAV）時，Ordo 會直接連線到該伺服器。伺服器經營者能看到你的 IP 位址和你傳輸的檔案，不涉及其他任何人。\n\n內建 FTP 伺服器僅在你開啟時執行。</item>
+        <item>在你設定之前，AI 命令處於關閉狀態。之後 Ordo 會從 Hugging Face（Hugging Face, Inc.，美國）一次性下載語言模型 Qwen3.5-4B（約 2.6 GB）。Hugging Face 會看到你的 IP 位址以便傳送檔案（GDPR 第 6 條第 1 款 f 項）：https://huggingface.co/privacy\n\n此後 AI 僅在你的裝置上執行。你的命令和檔名不會離開裝置。你可以隨時在 AI 面板中移除該模型。</item>
+        <item>當你從 Google Play 下載 Ordo 時，Google 會按其自身規則處理資料：https://policies.google.com/privacy\n\nGoogle 只向我提供彙總資料，例如安裝量，以及你在 Android 中允許時的當機報告。我無法據此識別任何人。</item>
+        <item>Ordo 網站託管在 GitHub Pages 上（GitHub, Inc.，88 Colin P. Kelly Jr. Street, San Francisco, CA 94107，美國）。當你開啟網站時，GitHub 會處理你的 IP 位址等技術資料，以提供並保護該網站。法律依據為 GDPR 第 6 條第 1 款 f 項。GitHub 也在美國處理資料，並依據歐盟-美國資料隱私框架和標準契約條款。\n\n該網站不設定 Cookie，也不從其他供應商載入任何內容。\n\n更多資訊：https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement</item>
+        <item>當你給我傳送電子郵件時，我會處理你的地址和郵件內容以便回覆（GDPR 第 6 條第 1 款 f 項）。你的請求處理完畢後，我會將其刪除。我的郵件服務供應商是瑞士的 Proton AG。</item>
         <item>你享有存取權（GDPR 第 15 條）、更正權（第 16 條）、刪除權（第 17 條）、限制處理權（第 18 條）、資料可攜權（第 20 條）和反對權（第 21 條）。請傳送電子郵件給我以行使這些權利。\n\n你也可以向監管機構投訴（GDPR 第 77 條）。負責我的監管機構是巴登-符騰堡州資料保護與資訊自由專員：https://www.baden-wuerttemberg.datenschutz.de\n\n由於 Ordo 不會向我傳送資料，我沒有任何來自該應用程式的關於你的資料。</item>
         <item>2026 年 11 月 15 日。應用程式有變化時，我會更新此文字。以德語版本為準。</item>
     </string-array>
