@@ -17,7 +17,9 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.accessibility.AccessibilityNodeInfoCompat
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import androidx.media3.common.MediaItem
@@ -40,6 +42,7 @@ class PlayerQueueSheet : BottomSheetDialogFragment() {
         get() = (activity as? AudioPlayerActivity)?.queuePlayer()
 
     private val adapter = QueueAdapter()
+    private var songsLoadJob: Job? = null
     private lateinit var touchHelper: ItemTouchHelper
 
     private val listener = object : Player.Listener {
@@ -126,10 +129,18 @@ class PlayerQueueSheet : BottomSheetDialogFragment() {
             state = com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_EXPANDED
         }
         if (songs.isEmpty()) {
+            songsLoadJob?.cancel()
             val context = requireContext().applicationContext
-            viewLifecycleOwner.lifecycleScope.launch {
+            songsLoadJob = viewLifecycleOwner.lifecycleScope.launch {
                 songs = withContext(Dispatchers.IO) {
-                    runCatching { queryMusic(context).associateBy { it.path } }.getOrDefault(emptyMap())
+                    try {
+                        queryMusic(context).associateBy { it.path }
+                    } catch (e: CancellationException) {
+                        throw e
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                        emptyMap()
+                    }
                 }
                 adapter.notifyDataSetChanged()
             }
@@ -140,6 +151,8 @@ class PlayerQueueSheet : BottomSheetDialogFragment() {
     }
 
     override fun onStop() {
+        songsLoadJob?.cancel()
+        songsLoadJob = null
         player?.removeListener(listener)
         super.onStop()
     }

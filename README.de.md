@@ -102,7 +102,7 @@ Was als Nächstes kommt, steht in der [lebenden Roadmap](docs/ROADMAP-LIVE.md): 
 
 ### Ordo Musik – eine eigene Musik-App
 
-- Titel, Alben, Interpreten, Wiedergabelisten, Favoriten und Ordner mit Suche, „Alle zufällig“ und Mini-Player
+- Musik, Hörbücher und Podcasts in Titel, Alben, Interpreten, Wiedergabelisten, Favoriten und Ordnern, mit Suche, „Alle zufällig“ und Mini-Player; zusätzliche Ordner mit abspielbaren Dateien lassen sich in den Einstellungen von Ordo Musik aufnehmen, auch wenn Android sie nicht als Musik einstuft
 - Ein Player, der seine Farbe vom Cover nimmt, vor einem sanft bewegten Hintergrund aus dem Cover, mit einer Wellen-Zeitleiste, die sich nur nach Festhalten bewegt, Warteschlange und Steuerung im Hintergrund
 - Synchrone Liedtexte aus einer .lrc neben dem Lied oder eingebettet, Cover wischen wechselt das Lied, eine sortierbare Warteschlange und eigene Einstellungen für Ordo Musik mit „Farben aus dem Cover“
 - Klang: 10-Band-Equalizer, direkt an der Kurve geformt, Voreinstellungen, Geräteeffekte, ReplayGain/R128 und ein ausblendender Einschlaf-Timer
@@ -515,7 +515,7 @@ Unit-Tests:
 ```
 
 <!-- AUTO:tests -->
-Gerätetests: 55 Skripte in [`e2e/`](e2e/README.md), gestartet mit `e2e/run.sh`: 16 nur lesend (`first-run`, `smoke`, `settings-visual`, `category-search`, `back-navigation`, `bars-replay`, `home-header`, `header-position`, `home-pull`, `drawer`, `selection-more`, `tablet-landscape`, `analysis`, `ai-show-guard`, `documents-provider`, `a11y-scan`) und 39 weitere mit `--write` (`stress-delete`, `backup-restore`, `copy-unreadable`, `home-auto-refresh`, `audio-player`, `cast`, `klang`, `klang-landscape`, `klang-stress`, `music-formats`, `music-library`, `launcher-icons`, `icon-colors`, `ai-show`, `pick-file`, `no-midword-breaks`, `player-seek`, `player-stage2`, `video-player`, `video-network`, `video-sound`, `video-dialog-isolate`, `video-subtitles`, `video-background`, `video-library`, `video-seek`, `video-picture`, `video-picture-adjust`, `video-detailplus`, `video-menus`, `sheets-polish`, `copy-replace`, `ftp-server-fd`, `video-notification`, `ftp-server-defaults`, `backup-self-include`, `vault-secure-flag`, `text-editor-atomic-save`, `back-from-quick-access`). Unit-Tests: 168 Testklassen in `app/src/test`.
+Gerätetests: 55 Skripte in [`e2e/`](e2e/README.md), gestartet mit `e2e/run.sh`: 16 nur lesend (`first-run`, `smoke`, `settings-visual`, `category-search`, `back-navigation`, `bars-replay`, `home-header`, `header-position`, `home-pull`, `drawer`, `selection-more`, `tablet-landscape`, `analysis`, `ai-show-guard`, `documents-provider`, `a11y-scan`) und 39 weitere mit `--write` (`stress-delete`, `backup-restore`, `copy-unreadable`, `home-auto-refresh`, `audio-player`, `cast`, `klang`, `klang-landscape`, `klang-stress`, `music-formats`, `music-library`, `launcher-icons`, `icon-colors`, `ai-show`, `pick-file`, `no-midword-breaks`, `player-seek`, `player-stage2`, `video-player`, `video-network`, `video-sound`, `video-dialog-isolate`, `video-subtitles`, `video-background`, `video-library`, `video-seek`, `video-picture`, `video-picture-adjust`, `video-detailplus`, `video-menus`, `sheets-polish`, `copy-replace`, `ftp-server-fd`, `video-notification`, `ftp-server-defaults`, `backup-self-include`, `vault-secure-flag`, `text-editor-atomic-save`, `back-from-quick-access`). Unit-Tests: 169 Testklassen in `app/src/test`.
 <!-- /AUTO:tests -->
 
 ## Ausblick

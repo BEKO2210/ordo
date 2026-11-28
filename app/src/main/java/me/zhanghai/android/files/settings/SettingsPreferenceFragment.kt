@@ -11,7 +11,11 @@ import android.os.Bundle
 import android.view.View
 import android.graphics.drawable.VectorDrawable
 import android.view.animation.PathInterpolator
+import android.widget.Button
 import android.widget.ImageView
+import android.widget.LinearLayout
+import android.widget.ScrollView
+import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.Preference
@@ -19,6 +23,8 @@ import androidx.preference.PreferenceCategory
 import androidx.preference.PreferenceGroup
 import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import java8.nio.file.Path
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -32,8 +38,10 @@ import me.zhanghai.android.files.ai.CommandModel
 import me.zhanghai.android.files.ai.CommandSheetFragment
 import me.zhanghai.android.files.backup.BackupActivity
 import me.zhanghai.android.files.file.asFileSize
+import me.zhanghai.android.files.filelist.FileListActivity
 import me.zhanghai.android.files.ftpserver.FtpServerActivity
 import me.zhanghai.android.files.legal.LegalActivity
+import me.zhanghai.android.files.provider.linux.isLinuxPath
 import me.zhanghai.android.files.theme.custom.CustomThemeHelper
 import me.zhanghai.android.files.theme.custom.ThemeColor
 import me.zhanghai.android.files.theme.night.NightMode
@@ -46,6 +54,9 @@ import me.zhanghai.android.files.util.startActivitySafe
 open class SettingsPreferenceFragment : PreferenceFragmentCompat() {
     private var localePreference: LocalePreference? = null
     private var iconSettleCount = 0
+    private var musicFoldersDialog: androidx.appcompat.app.AlertDialog? = null
+    private val musicFolderLauncher =
+        registerForActivityResult(FileListActivity.OpenDirectoryContract(), ::onMusicFolderPicked)
 
     private val section: String?
         get() = (requireActivity() as SettingsActivity).section
@@ -73,6 +84,7 @@ open class SettingsPreferenceFragment : PreferenceFragmentCompat() {
             }
         }
         if (section == SettingsActivity.SECTION_MUSIC) {
+            bindMusicFolders()
             preferenceScreen.findPreference<Preference>("music_icon_colors")?.setOnPreferenceClickListener {
                 startActivitySafe(SettingsActivity.createIntent(SettingsActivity.SECTION_LAUNCHER_ICONS))
                 true
@@ -85,6 +97,86 @@ open class SettingsPreferenceFragment : PreferenceFragmentCompat() {
             // Rows without an icon keep the same text start as rows that have one.
             reserveIconSpace(preferenceScreen)
         }
+    }
+
+    private fun bindMusicFolders() {
+        val preference = preferenceScreen.findPreference<Preference>(
+            getString(R.string.pref_key_music_extra_folders)
+        ) ?: return
+        Settings.MUSIC_EXTRA_FOLDERS.observe(this) { folders ->
+            preference.summary = folders.sorted().joinToString("\n")
+                .ifEmpty { getString(R.string.settings_music_extra_folders_none) }
+        }
+        preference.setOnPreferenceClickListener {
+            showMusicFoldersDialog()
+            true
+        }
+    }
+
+    /** A compact list editor around Ordo's own path picker; no filesystem work happens on the UI thread. */
+    private fun showMusicFoldersDialog() {
+        musicFoldersDialog?.dismiss()
+        val context = requireContext()
+        val density = resources.displayMetrics.density
+        val padding = (20 * density).toInt()
+        val rows = LinearLayout(context).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(padding, 0, padding, padding)
+        }
+        Settings.MUSIC_EXTRA_FOLDERS.value.orEmpty().sorted().forEach { path ->
+            rows.addView(LinearLayout(context).apply {
+                orientation = LinearLayout.HORIZONTAL
+                gravity = android.view.Gravity.CENTER_VERTICAL
+                addView(TextView(context).apply {
+                    text = path
+                    setPadding(0, (8 * density).toInt(), (12 * density).toInt(), (8 * density).toInt())
+                }, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
+                addView(Button(context).apply {
+                    setText(R.string.settings_music_extra_folders_remove)
+                    contentDescription = getString(R.string.settings_music_extra_folders_remove_named, path)
+                    setOnClickListener {
+                        Settings.MUSIC_EXTRA_FOLDERS.putValue(
+                            Settings.MUSIC_EXTRA_FOLDERS.value.orEmpty() - path
+                        )
+                        showMusicFoldersDialog()
+                    }
+                })
+            })
+        }
+        rows.addView(Button(context).apply {
+            setText(R.string.settings_music_extra_folders_add)
+            setOnClickListener { musicFolderLauncher.launch(null) }
+        })
+        val scroll = ScrollView(context).apply { addView(rows) }
+        musicFoldersDialog = MaterialAlertDialogBuilder(context)
+            .setTitle(R.string.settings_music_extra_folders_title)
+            .setView(scroll)
+            .setNegativeButton(android.R.string.cancel, null)
+            .create().also { dialog ->
+                dialog.setOnDismissListener { if (musicFoldersDialog === dialog) musicFoldersDialog = null }
+                dialog.show()
+            }
+    }
+
+    private fun onMusicFolderPicked(path: Path?) {
+        path ?: return
+        if (!path.isLinuxPath) {
+            android.widget.Toast.makeText(
+                requireContext(), R.string.settings_music_extra_folders_local_only,
+                android.widget.Toast.LENGTH_LONG
+            ).show()
+            return
+        }
+        Settings.MUSIC_EXTRA_FOLDERS.putValue(
+            Settings.MUSIC_EXTRA_FOLDERS.value.orEmpty() + path.toFile().absolutePath
+        )
+        showMusicFoldersDialog()
+    }
+
+    override fun onDestroyView() {
+        musicFoldersDialog?.dismiss()
+        musicFoldersDialog = null
+        super.onDestroyView()
     }
 
     private fun reserveIconSpace(group: PreferenceGroup) {
