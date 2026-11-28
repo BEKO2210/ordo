@@ -103,7 +103,7 @@
     <string name="music_access_message">Erlaube den Speicherzugriff, damit Ordo deine Musik findet.</string>
     <string name="music_play_next">Als Nächstes spielen</string>
     <string name="music_add_to_queue">Zur Warteschlange</string>
-    <string name="music_show_file">Datei anzeigen</string>
+    <string name="music_show_file">Im Ordner zeigen</string>
     <string name="music_more_options">Weitere Optionen für %1$s</string>
     <string name="music_has_lyrics">Songtext vorhanden</string>
     <string name="music_added_next">Kommt als Nächstes</string>

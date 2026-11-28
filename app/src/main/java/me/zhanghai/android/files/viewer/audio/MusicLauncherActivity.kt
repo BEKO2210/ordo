@@ -740,9 +740,8 @@ class MusicLauncherActivity : AppActivity(), NavigationItem.Listener, AppAccentA
                 }
                 R.id.actionEditTags ->
                     editTagsLauncher.launch(MusicTagEditorActivity.createIntent(this, listOf(song.path)))
-                R.id.actionShowFile -> Paths.get(song.path).parent?.let {
-                    startActivitySafe(FileListActivity.createViewIntent(it))
-                }
+                R.id.actionShowFile ->
+                    startActivitySafe(FileListActivity.createShowInFolderIntent(Paths.get(song.path)))
             }
             true
         }

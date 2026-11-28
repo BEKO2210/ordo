@@ -45,7 +45,9 @@ direkt darunter, höchstens zwei Zeilen, nie unter einem Bedienelement. Silbentr
 - Nie nur Text: Aktionstasten tragen ein Material-Symbol (Rounded, `utils/material-symbols.py`), z. B. „Ansehen“ (Auge),
   „Löschen“ (Papierkorb), „Zugriff erlauben“ (offenes Schloss), „Zurücksetzen“ (Pfeil im Kreis).
 - Zuletzt verwendete Dateien: Name einzeilig; ist er länger, endet er mit „…“, nie mitten im Wort
-  umbrochen.
+  umbrochen. Langes Drücken (auch als benannte TalkBack-Aktion) öffnet das Dateimenü mit „Im Ordner zeigen“,
+  Öffnen mit, Teilen, Kopieren, Verschieben, Umbenennen, der vorhandenen Löschbestätigung und Eigenschaften.
+  „Im Ordner zeigen“ öffnet die normale Dateiliste, scrollt zur Datei und wählt sie aus.
 
 ## Umstellung, Bildschirm für Bildschirm
 
