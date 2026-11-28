@@ -91,7 +91,7 @@
     <string name="video_signal_device_hdmi">HDMI</string>
     <string name="video_signal_device_other">其他裝置</string>
     <string name="video_signal_bit_perfect">無損直通</string>
-    <string name="video_signal_offload">解除安裝（在音訊晶片中解碼）</string>
+    <string name="video_signal_offload">卸載（在音訊晶片中解碼）</string>
     <string name="video_signal_waiting">等待播放</string>
     <string name="video_info_signal_path">訊號路徑</string>
     <string name="video_settings_ambient_gamma">根據室內光線調整 Gamma（實驗性）</string>

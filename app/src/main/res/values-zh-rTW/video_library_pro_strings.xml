@@ -34,14 +34,14 @@
     <string name="video_library_mark_watched">標記為已觀看</string>
     <string name="video_library_mark_unwatched">標記為未觀看</string>
     <string name="video_library_share">分享</string>
-    <string name="video_library_trash">移至回收站</string>
+    <string name="video_library_trash">移至資源回收筒</string>
     <string name="video_library_delete">刪除</string>
     <plurals name="video_library_trash_title_format">
-        <item quantity="other">要將 %1$d 個影片移至回收站嗎？</item>
+        <item quantity="other">要將 %1$d 個影片移至資源回收筒嗎？</item>
     </plurals>
-    <string name="video_library_trash_message">你可以從 Ordo 的回收站中恢復。</string>
+    <string name="video_library_trash_message">你可以從 Ordo 的資源回收筒中恢復。</string>
     <plurals name="video_library_delete_title_format">
         <item quantity="other">要刪除 %1$d 個影片嗎？</item>
     </plurals>
-    <string name="video_library_delete_message">回收站已關閉，因此此操作無法撤銷。</string>
+    <string name="video_library_delete_message">資源回收筒已關閉，因此此操作無法撤銷。</string>
 </resources>

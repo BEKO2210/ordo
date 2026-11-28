@@ -20,7 +20,7 @@
     <string-array name="legal_privacy_titles">
         <item>簡而言之</item>
         <item>資料控制者</item>
-        <item>許可權</item>
+        <item>權限</item>
         <item>裝置上的資料</item>
         <item>保險庫</item>
         <item>備份</item>
@@ -35,10 +35,10 @@
     <string-array name="legal_privacy_texts">
         <item>Ordo 不收集任何關於你的資料。應用沒有廣告、沒有跟蹤、沒有分析。你的檔案保留在你的裝置上。Ordo 絕不會自行連線網際網路。僅有的例外，且僅在你主動要求時：如果你設定 AI 命令，Ordo 會下載一次語言模型；如果你在包含位置資訊的照片或影片上點按“顯示地址”，Ordo 會向你裝置的地址服務發起查詢。</item>
         <item>Belkis Aslani\nVogelsangstraße 32\n71691 Freiberg am Neckar\n德國\n電子郵件：nullmesh@protonmail.com</item>
-        <item>Ordo 只申請檔案管理器所需的許可權：\n\n• 訪問所有檔案：檢視、複製、移動、重新命名和刪除檔案。\n• 檢視已安裝的應用：顯示應用概覽，並用合適的應用開啟檔案。\n• 安裝和解除安裝應用：僅在你於 Ordo 中發起時執行。\n• 網際網路和 Wi-Fi 狀態：僅用於你設定的伺服器、內建 FTP 伺服器，以及一次性下載 AI 模型。\n• 通知和後臺服務：讓耗時任務持續執行並顯示進度。\n• 指紋或螢幕鎖：由 Android 進行驗證。Ordo 只會得知是否成功。\n• 快捷方式：僅在你將其新增到主螢幕時使用。</item>
+        <item>Ordo 只申請檔案管理器所需的權限：\n\n• 訪問所有檔案：檢視、複製、移動、重新命名和刪除檔案。\n• 檢視已安裝的應用：顯示應用概覽，並用合適的應用開啟檔案。\n• 安裝和解除安裝應用：僅在你於 Ordo 中發起時執行。\n• 網際網路和 Wi-Fi 狀態：僅用於你設定的伺服器、內建 FTP 伺服器，以及一次性下載 AI 模型。\n• 通知和後臺服務：讓耗時任務持續執行並顯示進度。\n• 指紋或螢幕鎖：由 Android 進行驗證。Ordo 只會得知是否成功。\n• 快捷方式：僅在你將其新增到主螢幕時使用。</item>
         <item>Ordo 僅在你的裝置上儲存資料：你的設定、書籤，以及你設定的伺服器的登入資訊。已刪除的檔案會保留在同一儲存空間的“.OrdoTrash”資料夾中，通常為 30 天。\n\nOrdo 不會將這些資料傳送給我或任何其他人。Ordo 已被排除在 Android 備份之外：設定、登入資訊和保險庫在換機傳輸時不會進入你的 Google 賬號或新手機。\n\n解除安裝 Ordo 時，Android 會刪除裝置上的應用資料。\n\n在包含位置資訊的照片或影片的屬性中，Ordo 起初只顯示座標。只有當你點按“顯示地址”時，它才會查詢地址。Ordo 隨後會向你裝置的地址服務發起查詢，該服務通常會將座標傳送給 Google。Ordo 本身不會儲存或傳送座標。</item>
         <item>Ordo 使用 AES-256 加密保險庫中的檔案，並將其存放在應用的受保護儲存空間中。金鑰儲存在你裝置的金鑰庫中，不會離開裝置。\n\n重要提示：如果你解除安裝 Ordo 或清除其應用資料，保險庫中的檔案將丟失。請先將檔案取出或備份。</item>
-        <item>備份是儲存在你所選位置（例如 U 盤）的 ZIP 檔案。如果你願意，Ordo 會用你的密碼（AES-256）對其加密。Ordo 不會儲存密碼。\n\n如果你選擇 Google Drive 等雲端儲存，則由該服務提供商的應用傳輸檔案，並適用其隱私政策。</item>
+        <item>備份是儲存在你所選位置（例如 隨身碟）的 ZIP 檔案。如果你願意，Ordo 會用你的密碼（AES-256）對其加密。Ordo 不會儲存密碼。\n\n如果你選擇 Google Drive 等雲端儲存，則由該服務提供商的應用傳輸檔案，並適用其隱私政策。</item>
         <item>當你設定伺服器（FTP、SFTP、SMB 或 WebDAV）時，Ordo 會直接連線到該伺服器。伺服器運營方能看到你的 IP 地址和你傳輸的檔案，不涉及其他任何人。\n\n內建 FTP 伺服器僅在你開啟時執行。</item>
         <item>在你設定之前，AI 命令處於關閉狀態。之後 Ordo 會從 Hugging Face（Hugging Face, Inc.，美國）一次性下載語言模型 Qwen3.5-4B（約 2.6 GB）。Hugging Face 會看到你的 IP 地址以便傳送檔案（GDPR 第 6 條第 1 款 f 項）：https://huggingface.co/privacy\n\n此後 AI 僅在你的裝置上執行。你的命令和檔名不會離開裝置。你可以隨時在 AI 面板中移除該模型。</item>
         <item>當你從 Google Play 下載 Ordo 時，Google 會按其自身規則處理資料：https://policies.google.com/privacy\n\nGoogle 只向我提供彙總資料，例如安裝量，以及你在 Android 中允許時的崩潰報告。我無法據此識別任何人。</item>

@@ -19,7 +19,7 @@
     <string name="ai_finding_files">正在查詢檔案…</string>
     <string name="ai_action_move">移動</string>
     <string name="ai_action_copy">複製</string>
-    <string name="ai_action_delete">移到回收站</string>
+    <string name="ai_action_delete">移到資源回收筒</string>
     <string name="ai_action_organize">整理</string>
     <string name="ai_route_from_to">從 %1$s 到 %2$s</string>
     <string name="ai_route_from">來自 %1$s</string>
@@ -32,7 +32,7 @@
     <plurals name="ai_more_files">
         <item quantity="other">以及另外 %d 個</item>
     </plurals>
-    <string name="ai_note_trash">將移到回收站，%d 天內可恢復。</string>
+    <string name="ai_note_trash">將移到資源回收筒，%d 天內可恢復。</string>
     <string name="ai_note_new_folder">將建立資料夾“%s”。</string>
     <string name="ai_edit">更改</string>
     <string name="ai_confirm_format">%1$s（%2$d）</string>
@@ -41,7 +41,7 @@
         <item quantity="other">超過 %d 天</item>
     </plurals>
     <plurals name="ai_filter_older_weeks">
-        <item quantity="other">超過 %d 周</item>
+        <item quantity="other">超過 %d 週</item>
     </plurals>
     <plurals name="ai_filter_older_months">
         <item quantity="other">超過 %d 個月</item>
@@ -52,7 +52,7 @@
     <string name="ai_filter_larger">大於 %1$d %2$s</string>
     <string name="ai_filter_duplicates">僅多餘的副本（保留原件）</string>
     <plurals name="ai_large_delete_title">
-        <item quantity="other">確定將 %d 個檔案移到回收站嗎？</item>
+        <item quantity="other">確定將 %d 個檔案移到資源回收筒嗎？</item>
     </plurals>
     <string name="ai_large_delete_text">來自 %1$s，共 %2$s。這是大量刪除，請確認這正是您想要的操作。</string>
     <string name="ai_kind_audio">音訊</string>
@@ -65,13 +65,13 @@
     <string name="ai_ask_destination">檔案要放到哪裡？</string>
     <string name="ai_ask_text">請選擇一個資料夾，或將其新增到指令中。</string>
     <string name="ai_refused_unsupported_title">Ordo 暫時還做不到</string>
-    <string name="ai_refused_unsupported_text">Ordo 可以移動、複製、整理檔案，以及將檔案移到回收站。</string>
+    <string name="ai_refused_unsupported_text">Ordo 可以移動、複製、整理檔案，以及將檔案移到資源回收筒。</string>
     <string name="ai_refused_delete_title">最好先確認</string>
     <string name="ai_refused_delete_text">您想刪除檔案嗎？請明確說明，例如“刪除……”。</string>
     <string name="ai_refused_protected_title">此資料夾受保護</string>
     <string name="ai_refused_protected_text">系統資料夾、隱藏資料夾和您的相機照片不會被改動。如確有需要，請明確指出相機。</string>
-    <string name="ai_refused_trash_off_title">回收站已關閉</string>
-    <string name="ai_refused_trash_off_text">Ordo 只會將檔案刪除到回收站。請先在設定中開啟回收站。</string>
+    <string name="ai_refused_trash_off_title">資源回收筒已關閉</string>
+    <string name="ai_refused_trash_off_text">Ordo 只會將檔案刪除到資源回收筒。請先在設定中開啟資源回收筒。</string>
     <string name="ai_no_files_title">沒有匹配的檔案</string>
     <string name="ai_no_files_text">%s 中沒有符合您指令的內容。</string>
     <plurals name="ai_done_move">
@@ -81,7 +81,7 @@
         <item quantity="other">已複製 %d 個檔案</item>
     </plurals>
     <plurals name="ai_done_delete">
-        <item quantity="other">已將 %d 個檔案移到回收站</item>
+        <item quantity="other">已將 %d 個檔案移到資源回收筒</item>
     </plurals>
     <plurals name="ai_done_organize">
         <item quantity="other">已整理 %d 個檔案</item>
@@ -146,7 +146,7 @@
     </plurals>
     <plurals name="ai_show_newer_weeks">
         <item quantity="one">最近一週的</item>
-        <item quantity="other">最近 %d 周的</item>
+        <item quantity="other">最近 %d 週的</item>
     </plurals>
     <plurals name="ai_show_newer_months">
         <item quantity="one">最近一個月的</item>
@@ -160,7 +160,7 @@
         <item quantity="other">超過 %d 天的</item>
     </plurals>
     <plurals name="ai_show_older_weeks">
-        <item quantity="other">超過 %d 周的</item>
+        <item quantity="other">超過 %d 週的</item>
     </plurals>
     <plurals name="ai_show_older_months">
         <item quantity="other">超過 %d 個月的</item>
@@ -195,7 +195,7 @@
     </plurals>
     <plurals name="ai_filter_newer_weeks">
         <item quantity="one">最近一週內更改過</item>
-        <item quantity="other">最近 %d 周內更改過</item>
+        <item quantity="other">最近 %d 週內更改過</item>
     </plurals>
     <plurals name="ai_filter_newer_months">
         <item quantity="one">最近一個月內更改過</item>
@@ -241,7 +241,7 @@
     <string name="ai_net_refuse_rename">我暫時還不能透過指令重新命名。請長按檔案並選擇“重新命名”。</string>
     <string name="ai_net_refuse_share">我不能透過指令分享或傳送。請長按檔案並選擇“分享”。</string>
     <string name="ai_net_refuse_open">我不能透過指令開啟、播放或列印。我可以為您顯示檔案，之後點按它即可。</string>
-    <string name="ai_net_refuse_restore">我不能透過指令恢復檔案。您刪除的內容都在回收站中，可以在那裡恢復。</string>
+    <string name="ai_net_refuse_restore">我不能透過指令恢復檔案。您刪除的內容都在資源回收筒中，可以在那裡恢復。</string>
     <string name="ai_net_refuse_edit">我不能編輯檔案。</string>
     <string name="ai_show_between">%1$s 到 %2$s</string>
     <string name="ai_show_since">自 %1$s 起</string>
@@ -253,7 +253,7 @@
     <string name="ai_show_oldest_first">最舊的在前</string>
     <string name="ai_show_smallest_first">最小的在前</string>
     <string name="ai_download_not_published">AI 指令所需的附加元件暫不可用，將在後續更新中提供。</string>
-    <string name="ai_net_none">Ordo 可以查詢並顯示檔案、移動、複製、整理檔案，以及將檔案移到回收站。</string>
+    <string name="ai_net_none">Ordo 可以查詢並顯示檔案、移動、複製、整理檔案，以及將檔案移到資源回收筒。</string>
     <string name="ai_net_quoted">“%1$s”</string>
     <string name="ai_net_dropped">我沒有找到同時包含 %1$s 的內容，因此只搜尋了 %2$s。</string>
     <string name="ai_net_dropped_all">我沒有找到與 %1$s 相關的內容，因此顯示其餘所有匹配的內容。</string>

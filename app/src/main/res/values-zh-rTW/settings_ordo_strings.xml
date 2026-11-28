@@ -129,7 +129,7 @@
     <string name="music_tag_error_number">1 到 999 之間的數字</string>
     <string name="music_tag_error_track">大於曲目總數</string>
     <string name="music_tag_readonly_format">Ordo 暫時無法寫入 %1$s 檔案的資訊，因此只能在此檢視。支援編輯 MP3、FLAC、Ogg Vorbis 和 M4A。</string>
-    <string name="music_tag_readonly_storage">Ordo 無權在原位置更改此檔案（例如無訪問許可權的 SD 卡或受保護的資料夾中）。你可以改為編輯 Music 資料夾中的副本。</string>
+    <string name="music_tag_readonly_storage">Ordo 無權在原位置更改此檔案（例如無訪問權限的 SD 卡或受保護的資料夾中）。你可以改為編輯 Music 資料夾中的副本。</string>
     <string name="music_tag_readonly_android">編輯音樂資訊需要 Android 8 或更高版本。</string>
     <string name="music_tag_preview_title">儲存這些更改？</string>
     <string name="music_tag_preview_files">涉及 %1$d 個檔案</string>

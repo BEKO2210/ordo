@@ -18,7 +18,7 @@
     <string name="analysis_cleanup_large">大檔案</string>
     <string name="analysis_cleanup_old">6 個月未使用</string>
     <string name="analysis_cleanup_apks">安裝包（APK）</string>
-    <string name="analysis_cleanup_trash">回收站</string>
+    <string name="analysis_cleanup_trash">資源回收筒</string>
     <string name="analysis_cleanup_thumbnails">縮圖快取</string>
     <string name="analysis_cleanup_thumbnails_hint">相簿會在需要時重新生成</string>
     <string name="analysis_cleanup_empty_folders">空資料夾</string>
@@ -40,7 +40,7 @@
         <item quantity="other">另有 %d 個資料夾</item>
     </plurals>
     <string name="analysis_kind_mine">你的檔案</string>
-    <string name="analysis_cleanup_safe_none">沒有可清理的副本、安裝包、縮圖或回收站內容</string>
+    <string name="analysis_cleanup_safe_none">沒有可清理的副本、安裝包、縮圖或資源回收筒內容</string>
     <string name="analysis_cleanup_review">值得看看</string>
     <string name="analysis_folder_apps">應用檔案（%s）</string>
     <string name="analysis_folder_hidden">%s（隱藏）</string>
@@ -71,7 +71,7 @@
         <item quantity="other">另有 %d 種較小型別</item>
     </plurals>
     <plurals name="analysis_trash_folders_message_format">
-        <item quantity="other">要將 %1$d 個空資料夾移至回收站嗎？</item>
+        <item quantity="other">要將 %1$d 個空資料夾移至資源回收筒嗎？</item>
     </plurals>
     <plurals name="analysis_delete_folders_message_format">
         <item quantity="other">要永久刪除 %1$d 個空資料夾嗎？此操作無法撤銷。</item>
