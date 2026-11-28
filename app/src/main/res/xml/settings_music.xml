@@ -6,6 +6,16 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
+    <PreferenceCategory android:title="@string/settings_music_library_category">
+
+        <Preference
+            android:key="@string/pref_key_music_extra_folders"
+            android:icon="@drawable/directory_icon_white_24dp"
+            android:title="@string/settings_music_extra_folders_title"
+            android:summary="@string/settings_music_extra_folders_none"
+            android:persistent="false" />
+    </PreferenceCategory>
+
     <PreferenceCategory android:title="@string/settings_section_appearance">
 
         <me.zhanghai.android.files.settings.MusicLookPreviewPreference android:key="music_preview" />

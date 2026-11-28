@@ -264,6 +264,12 @@ object Settings {
     val MUSIC_EFFECTS: SettingLiveData<String> =
         StringSettingLiveData(R.string.pref_key_music_effects, R.string.pref_default_value_music_effects)
 
+    /** Local folders whose playable audio is added even when MediaStore does not classify it as music. */
+    val MUSIC_EXTRA_FOLDERS: SettingLiveData<Set<String>> =
+        StringSetSettingLiveData(
+            R.string.pref_key_music_extra_folders, R.array.pref_default_value_empty_set
+        )
+
     /** full, subtle or off: see ui/Motion.kt. */
     val MOTION: SettingLiveData<String> =
         StringSettingLiveData(R.string.pref_key_motion, R.string.pref_default_value_motion)
