@@ -58,8 +58,11 @@ class ImageViewerActivity : AppActivity() {
     }
 
     private fun privateRoots(): List<String> {
-        val roots = mutableListOf(dataDir.path, filesDir.path)
-        createDeviceProtectedStorageContext().dataDir?.path?.let { roots.add(it) }
+        // Paths from ApplicationInfo only: dataDir/filesDir/createDeviceProtectedStorageContext() touch the disk
+        // on the main thread (StrictMode, ~200 ms on a cold Galaxy Tab S9 Ultra).
+        val dataDir = applicationInfo.dataDir
+        val roots = mutableListOf(dataDir, "$dataDir/files")
+        applicationInfo.deviceProtectedDataDir?.let { roots.add(it) }
         // /data/data/<pkg> and /data/user/0/<pkg> are the same directory under different names.
         roots.add("/data/data/$packageName")
         roots.add("/data/user/0/$packageName")
