@@ -11,6 +11,9 @@ import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import java8.nio.file.Path
 import java8.nio.file.attribute.BasicFileAttributes
+import me.zhanghai.android.files.file.MimeType
+import me.zhanghai.android.files.file.asMimeTypeOrNull
+import me.zhanghai.android.files.file.guessFromPath
 
 data class RecentFile(
     val path: Path,
@@ -19,6 +22,13 @@ data class RecentFile(
     val mimeType: String?,
     val attributes: BasicFileAttributes?
 )
+
+/** MediaStore may omit a MIME type for otherwise valid files, so use the same extension fallback as the file list. */
+internal fun recentMimeType(path: Path, mediaStoreMimeType: String?): MimeType =
+    mediaStoreMimeType?.asMimeTypeOrNull()
+        ?.takeUnless { it == MimeType.ANY || it == MimeType.GENERIC }
+        ?: MimeType.guessFromPath(path.toString())
+
 data class CategorySummary(val category: HomeCategory, val count: Long, val size: Long)
 data class StorageSummary(
     val name: String,

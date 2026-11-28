@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="legal_title">法律声明与隐私</string>
+    <string name="legal_imprint_title">法律声明</string>
+    <string name="legal_privacy_title">隐私政策</string>
+    <string-array name="legal_imprint_titles">
+        <item>提供者（德国 DDG 第 5 条）</item>
+        <item>联系方式</item>
+        <item>内容负责人</item>
+        <item>开源与责任</item>
+        <item>争议解决</item>
+    </string-array>
+    <string-array name="legal_imprint_texts">
+        <item>Belkis Aslani\nVogelsangstraße 32\n71691 Freiberg am Neckar\n德国</item>
+        <item>电子邮件：nullmesh@protonmail.com\n电话：+49 176 81462526</item>
+        <item>Belkis Aslani，地址同上。</item>
+        <item>Ordo 是免费的开源软件。本应用采用 GNU 通用公共许可证第 3 版或更高版本授权。在法律允许的范围内，不提供任何担保。\n\n源代码：https://github.com/BEKO2210/ordo\n\nOrdo 基于 Hai Zhang 的“Material Files”。</item>
+        <item>我不参加消费者仲裁机构的争议解决程序，也没有义务参加。</item>
+    </string-array>
+    <string-array name="legal_privacy_titles">
+        <item>简而言之</item>
+        <item>数据控制者</item>
+        <item>权限</item>
+        <item>设备上的数据</item>
+        <item>保险库</item>
+        <item>备份</item>
+        <item>你自己的服务器</item>
+        <item>AI 命令</item>
+        <item>Google Play</item>
+        <item>网站</item>
+        <item>电子邮件联系</item>
+        <item>你的权利</item>
+        <item>最后更新</item>
+    </string-array>
+    <string-array name="legal_privacy_texts">
+        <item>Ordo 不收集任何关于你的数据。应用没有广告、没有跟踪、没有分析。你的文件保留在你的设备上。Ordo 绝不会自行连接互联网。仅有的例外，且仅在你主动要求时：如果你设置 AI 命令，Ordo 会下载一次语言模型；如果你在包含位置信息的照片或视频上点按“显示地址”，Ordo 会向你设备的地址服务发起查询。</item>
+        <item>Belkis Aslani\nVogelsangstraße 32\n71691 Freiberg am Neckar\n德国\n电子邮件：nullmesh@protonmail.com</item>
+        <item>Ordo 只申请文件管理器所需的权限：\n\n• 访问所有文件：查看、复制、移动、重命名和删除文件。\n• 查看已安装的应用：显示应用概览，并用合适的应用打开文件。\n• 安装和卸载应用：仅在你于 Ordo 中发起时执行。\n• 互联网和 Wi-Fi 状态：仅用于你设置的服务器、内置 FTP 服务器，以及一次性下载 AI 模型。\n• 通知和后台服务：让耗时任务持续运行并显示进度。\n• 指纹或屏幕锁：由 Android 进行验证。Ordo 只会得知是否成功。\n• 快捷方式：仅在你将其添加到主屏幕时使用。</item>
+        <item>Ordo 仅在你的设备上存储数据：你的设置、书签，以及你设置的服务器的登录信息。已删除的文件会保留在同一存储空间的“.OrdoTrash”文件夹中，通常为 30 天。\n\nOrdo 不会将这些数据发送给我或任何其他人。Ordo 已被排除在 Android 备份之外：设置、登录信息和保险库在换机传输时不会进入你的 Google 账号或新手机。\n\n卸载 Ordo 时，Android 会删除设备上的应用数据。\n\n在包含位置信息的照片或视频的属性中，Ordo 起初只显示坐标。只有当你点按“显示地址”时，它才会查询地址。Ordo 随后会向你设备的地址服务发起查询，该服务通常会将坐标发送给 Google。Ordo 本身不会存储或发送坐标。</item>
+        <item>Ordo 使用 AES-256 加密保险库中的文件，并将其存放在应用的受保护存储空间中。密钥保存在你设备的密钥库中，不会离开设备。\n\n重要提示：如果你卸载 Ordo 或清除其应用数据，保险库中的文件将丢失。请先将文件取出或备份。</item>
+        <item>备份是保存在你所选位置（例如 U 盘）的 ZIP 文件。如果你愿意，Ordo 会用你的密码（AES-256）对其加密。Ordo 不会存储密码。\n\n如果你选择 Google Drive 等云存储，则由该服务提供商的应用传输文件，并适用其隐私政策。</item>
+        <item>当你设置服务器（FTP、SFTP、SMB 或 WebDAV）时，Ordo 会直接连接到该服务器。服务器运营方能看到你的 IP 地址和你传输的文件，不涉及其他任何人。\n\n内置 FTP 服务器仅在你开启时运行。</item>
+        <item>在你设置之前，AI 命令处于关闭状态。之后 Ordo 会从 Hugging Face（Hugging Face, Inc.，美国）一次性下载语言模型 Qwen3.5-4B（约 2.6 GB）。Hugging Face 会看到你的 IP 地址以便传送文件（GDPR 第 6 条第 1 款 f 项）：https://huggingface.co/privacy\n\n此后 AI 仅在你的设备上运行。你的命令和文件名不会离开设备。你可以随时在 AI 面板中移除该模型。</item>
+        <item>当你从 Google Play 下载 Ordo 时，Google 会按其自身规则处理数据：https://policies.google.com/privacy\n\nGoogle 只向我提供汇总数据，例如安装量，以及你在 Android 中允许时的崩溃报告。我无法据此识别任何人。</item>
+        <item>Ordo 网站托管在 GitHub Pages 上（GitHub, Inc.，88 Colin P. Kelly Jr. Street, San Francisco, CA 94107，美国）。当你打开网站时，GitHub 会处理你的 IP 地址等技术数据，以提供并保护该网站。法律依据为 GDPR 第 6 条第 1 款 f 项。GitHub 也在美国处理数据，并依据欧盟-美国数据隐私框架和标准合同条款。\n\n该网站不设置 Cookie，也不从其他提供商加载任何内容。\n\n更多信息：https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement</item>
+        <item>当你给我发送电子邮件时，我会处理你的地址和邮件内容以便回复（GDPR 第 6 条第 1 款 f 项）。你的请求处理完毕后，我会将其删除。我的邮件服务提供商是瑞士的 Proton AG。</item>
+        <item>你享有访问权（GDPR 第 15 条）、更正权（第 16 条）、删除权（第 17 条）、限制处理权（第 18 条）、数据可携权（第 20 条）和反对权（第 21 条）。请发送电子邮件给我以行使这些权利。\n\n你也可以向监管机构投诉（GDPR 第 77 条）。负责我的监管机构是巴登-符腾堡州数据保护与信息自由专员：https://www.baden-wuerttemberg.datenschutz.de\n\n由于 Ordo 不会向我发送数据，我没有任何来自该应用的关于你的数据。</item>
+        <item>2026 年 11 月 15 日。应用有变化时，我会更新此文本。以德语版本为准。</item>
+    </string-array>
+</resources>

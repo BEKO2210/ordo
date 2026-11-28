@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="video_library_series">剧集</string>
+    <string name="video_library_films">电影</string>
+    <string name="video_library_recent">最近添加</string>
+    <string name="video_library_season_format">第 %1$d 季</string>
+    <string name="video_library_episode_format">第 %1$d 集</string>
+    <string name="video_library_next_episode_format">接下来 · S%1$d E%2$d</string>
+    <string name="video_library_next_episode_description_format">下一集：第 %1$d 季第 %2$d 集</string>
+    <string name="video_library_series_info_format">%1$s · %2$s</string>
+    <plurals name="video_library_seasons_format">
+        <item quantity="other">%1$d 季</item>
+    </plurals>
+    <plurals name="video_library_episodes_format">
+        <item quantity="other">%1$d 集</item>
+    </plurals>
+    <string name="video_library_watched">已观看</string>
+    <string name="video_library_unwatched">未观看</string>
+    <string name="video_library_unwatched_only">仅未观看</string>
+    <string name="video_library_search">搜索</string>
+    <string name="video_library_search_hint">视频、文件夹、剧集</string>
+    <string name="video_library_results">结果</string>
+    <string name="video_library_no_results">没有与搜索匹配的视频。</string>
+    <string name="video_library_no_unwatched">这里的内容你都看完了。</string>
+    <plurals name="video_library_selected_format">
+        <item quantity="other">已选择 %1$d 项</item>
+    </plurals>
+    <string name="video_library_select">选择</string>
+    <string name="video_library_vault_title">保险库视频</string>
+    <string name="video_library_deselect">取消选择</string>
+    <string name="video_library_selected">已选择</string>
+    <string name="video_library_close_selection">关闭选择</string>
+    <string name="video_library_play_selection">播放</string>
+    <string name="video_library_mark_watched">标记为已观看</string>
+    <string name="video_library_mark_unwatched">标记为未观看</string>
+    <string name="video_library_share">分享</string>
+    <string name="video_library_trash">移至回收站</string>
+    <string name="video_library_delete">删除</string>
+    <plurals name="video_library_trash_title_format">
+        <item quantity="other">要将 %1$d 个视频移至回收站吗？</item>
+    </plurals>
+    <string name="video_library_trash_message">你可以从 Ordo 的回收站中恢复。</string>
+    <plurals name="video_library_delete_title_format">
+        <item quantity="other">要删除 %1$d 个视频吗？</item>
+    </plurals>
+    <string name="video_library_delete_message">回收站已关闭，因此此操作无法撤销。</string>
+</resources>

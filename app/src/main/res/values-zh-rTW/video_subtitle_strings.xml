@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="video_subtitles_title">字幕</string>
+    <string name="video_subtitles_off">關閉</string>
+    <string name="video_subtitles_load">載入字幕…</string>
+    <string name="video_subtitles_forced">強制</string>
+    <string name="video_subtitles_track_format">字幕軌 %1$d</string>
+    <string name="video_subtitles_delay">延遲</string>
+    <string name="video_subtitles_earlier_format">提前 %1$s 顯示</string>
+    <string name="video_subtitles_later_format">延後 %1$s 顯示</string>
+    <string name="video_subtitles_delay_text_only">僅文字字幕支援時間偏移。</string>
+    <string name="video_subtitles_charset">字元編碼</string>
+    <string name="video_subtitles_charset_auto_format">自動（%1$s）</string>
+    <string-array name="video_subtitles_charset_names">
+        <item>UTF-8</item>
+        <item>西歐語言 (Windows-1252)</item>
+        <item>西歐語言 (ISO-8859-15)</item>
+        <item>中歐語言 (Windows-1250)</item>
+        <item>西里爾語 (Windows-1251)</item>
+        <item>希臘語 (Windows-1253)</item>
+        <item>土耳其語 (Windows-1254)</item>
+    </string-array>
+    <string name="video_subtitles_size">大小</string>
+    <string name="video_subtitles_size_smaller">更小</string>
+    <string name="video_subtitles_size_larger">更大</string>
+    <string name="video_subtitles_style">字幕樣式</string>
+    <string name="video_subtitles_style_system">跟隨系統</string>
+    <string name="video_subtitles_style_system_summary">Android 的字幕設定（無障礙 › 字幕）</string>
+    <string name="video_subtitles_style_file">檔案自帶樣式</string>
+    <string name="video_subtitles_style_file_summary">ASS 和 SSA 檔案保留各自的顏色、字型和大小</string>
+    <string name="video_subtitles_style_reset">重設樣式</string>
+    <string name="video_subtitles_preview_text">來自科隆的問候 –\n字幕就是這個樣子。</string>
+    <string name="video_subtitles_preview_description">淺色和深色畫面上的字幕預覽</string>
+    <string name="video_subtitles_font">字型</string>
+    <string-array name="video_subtitles_font_names">
+        <item>標準</item>
+        <item>中等</item>
+        <item>緊湊</item>
+        <item>襯線</item>
+    </string-array>
+    <string name="video_subtitles_position">高度</string>
+    <string name="video_subtitles_position_summary">與畫面底部的距離</string>
+    <string name="video_subtitles_position_lower">更低</string>
+    <string name="video_subtitles_position_higher">更高</string>
+    <string name="video_subtitles_background">邊緣</string>
+    <string-array name="video_subtitles_background_names">
+        <item>描邊</item>
+        <item>陰影</item>
+        <item>方框</item>
+    </string-array>
+    <string name="video_subtitles_color">顏色</string>
+    <string-array name="video_subtitles_color_names">
+        <item>白色</item>
+        <item>黃色</item>
+        <item>青色</item>
+        <item>綠色</item>
+    </string-array>
+    <string name="video_subtitles_bitmap_note">此字幕軌由圖片組成，因此大小和顏色無法更改。</string>
+    <string name="video_subtitles_not_subtitle">此檔案不是字幕檔案（SRT、VTT、ASS、SSA 或 TTML）。</string>
+    <string name="video_subtitles_read_error">無法讀取字幕。</string>
+    <string name="video_subtitles_too_large">字幕檔案過大。</string>
+    <string name="video_settings_cat_subtitles">字幕</string>
+    <string name="video_settings_subtitle_language">偏好的字幕語言</string>
+    <string-array name="video_settings_subtitle_language_entries">
+        <item>裝置語言</item>
+        <item>德語</item>
+        <item>英語</item>
+    </string-array>
+    <string name="video_settings_subtitles_auto">自動顯示字幕</string>
+    <string name="video_settings_subtitles_auto_summary">聲音為其他語言時，自動開啟你所用語言的字幕：優先使用影片旁的字幕檔案，其次使用影片內的字幕軌道。</string>
+    <string name="video_settings_subtitle_reading">閱讀輔助</string>
+    <string-array name="video_settings_subtitle_reading_entries">
+        <item>關閉</item>
+        <item>正常（每秒 17 個字元）</item>
+        <item>慢（每秒 13 個字元）</item>
+        <item>快（每秒 20 個字元）</item>
+    </string-array>
+    <string name="video_settings_subtitle_slow_down">文字過快時短暫減速</string>
+    <string name="video_settings_subtitle_slow_down_summary">當某行字幕的速度超過閱讀輔助允許的範圍時，影片將以 0.9× 播放，音調保持不變。</string>
+    <string name="video_settings_subtitle_sounds">顯示聲音描述</string>
+    <string name="video_settings_subtitle_sounds_summary">字幕檔案中的 [MUSIC] 或 (DOOR SLAMS) 等提示</string>
+    <string name="video_settings_subtitle_speaker_colors">為說話者姓名著色</string>
+    <string name="video_settings_subtitle_speaker_colors_summary">每個說話者姓名（如 ANNA:）使用各自的顏色：黃色、青色、綠色</string>
+</resources>

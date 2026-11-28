@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="video_player_title">视频播放器</string>
+    <string name="video_player_back">返回</string>
+    <string name="video_player_play">播放</string>
+    <string name="video_player_pause">暂停</string>
+    <string name="video_player_rewind">后退 10 秒</string>
+    <string name="video_player_forward">快进 10 秒</string>
+    <string name="video_player_seek_back_format">−%1$d 秒</string>
+    <string name="video_player_seek_forward_format">+%1$d 秒</string>
+    <string name="video_player_position">进度</string>
+    <string name="video_player_progress_format">%1$s / %2$s</string>
+    <string name="video_player_show_remaining">显示剩余时间</string>
+    <string name="video_player_show_elapsed">显示已播放时间</string>
+    <string name="video_player_show_controls">显示控件</string>
+    <string name="video_player_previous">上一个视频</string>
+    <string name="video_player_next">下一个视频</string>
+    <string name="video_player_speed">速度</string>
+    <string name="video_player_speed_title">播放速度</string>
+    <string name="video_player_speed_format">%1$s×</string>
+    <string name="video_player_resize">画面比例</string>
+    <string name="video_player_resize_fit">适应</string>
+    <string name="video_player_resize_fill">填充</string>
+    <string name="video_player_resize_stretch">拉伸</string>
+    <string name="video_player_rotate">旋转屏幕</string>
+    <string name="video_player_lock">锁定控件</string>
+    <string name="video_player_locked">已锁定</string>
+    <string name="video_player_unlock">解锁</string>
+    <string name="video_player_unlock_hint">长按解锁</string>
+    <string name="video_player_resume_format">从 %1$s 继续播放</string>
+    <string name="video_player_open_with">用其他应用打开</string>
+    <string name="video_player_file_info">视频信息</string>
+    <string name="video_player_external_refused">Ordo 只播放其他应用分享的视频。</string>
+    <string name="video_player_error_format">Ordo 无法播放此视频格式。</string>
+    <string name="video_player_error_damaged">此文件似乎已损坏或不完整。</string>
+    <string name="video_player_error_read">Ordo 无法读取此文件。</string>
+    <string name="video_player_error">无法播放此视频。</string>
+    <string name="video_player_brightness_format">亮度 %1$d %%</string>
+    <string name="video_player_volume_format">音量 %1$d %%</string>
+    <string name="video_player_seek_preview_format">%1$s · %2$s</string>
+    <string name="video_library_camera_title_format">%1$s · %2$s</string>
+    <string name="video_player_repeat">重复播放</string>
+    <string name="video_player_repeat_stop">播完后停止</string>
+    <string name="video_player_repeat_one">重复播放此视频</string>
+    <string name="video_player_repeat_next">自动播放下一个</string>
+    <string name="video_player_watch_again">再看一遍</string>
+    <string name="video_player_error_device_format">此设备无法播放该视频格式（%1$s）。</string>
+    <string name="video_player_ten_bit_format">%1$s 10 位</string>
+    <string name="video_player_audio_unsupported_format">此设备不支持 %1$s 音轨。</string>
+    <string name="video_player_audio_switched_format">此设备不支持 %1$s 音轨，已改为播放其他音轨。</string>
+    <string name="video_settings_cat_playback">播放</string>
+    <string name="video_settings_cat_gestures">手势</string>
+    <string name="video_settings_cat_sound">声音</string>
+    <string name="video_settings_cat_library">媒体库</string>
+    <string name="video_settings_cat_privacy">隐私</string>
+    <string name="video_settings_end">播放结束时</string>
+    <string name="video_settings_resume">继续播放</string>
+    <string name="video_settings_speed">默认速度</string>
+    <string name="video_settings_jump">双击跳转</string>
+    <string name="video_settings_resize">启动时的画面比例</string>
+    <string name="video_settings_orientation">屏幕方向</string>
+    <string name="video_settings_keep_screen_on">保持屏幕常亮</string>
+    <string name="video_settings_keep_screen_on_summary">播放视频时</string>
+    <string name="video_settings_g_brightness">滑动调节亮度</string>
+    <string name="video_settings_g_brightness_summary">在左半屏上下滑动</string>
+    <string name="video_settings_g_volume">滑动调节音量</string>
+    <string name="video_settings_g_volume_summary">在右半屏上下滑动</string>
+    <string name="video_settings_g_seek">滑动调节进度</string>
+    <string name="video_settings_g_seek_summary">左右滑动，松手后跳转</string>
+    <string name="video_settings_g_double_tap">双击跳转</string>
+    <string name="video_settings_g_double_tap_summary">左侧后退，右侧快进</string>
+    <string name="video_settings_g_hold">长按加速播放</string>
+    <string name="video_settings_g_hold_summary">手指按住画面时加速播放</string>
+    <string name="video_settings_hold_speed">长按时的速度</string>
+    <string name="video_settings_remember_brightness">记住亮度</string>
+    <string name="video_settings_remember_brightness_summary">下一个视频沿用上次滑动调节的亮度</string>
+    <string name="video_settings_audio_language">首选音频语言</string>
+    <string name="video_settings_sort">排序方式</string>
+    <string name="video_settings_view">视图</string>
+    <string name="video_settings_show_continue">显示“继续观看”</string>
+    <string name="video_settings_show_continue_summary">显示在媒体库顶部</string>
+    <string name="video_settings_camera_names">易读的相机文件名</string>
+    <string name="video_settings_camera_names_summary">“VID_20261118_141941”显示为日期和时间</string>
+    <string name="video_settings_hidden_folders">隐藏的文件夹</string>
+    <string name="video_settings_hidden_folders_none">无</string>
+    <string name="video_settings_clear_history">清除“继续观看”</string>
+    <string name="video_settings_clear_history_summary">忘记每个视频的播放位置</string>
+    <string name="video_settings_clear_history_confirm">要忘记每个视频的播放位置吗？</string>
+    <string name="video_settings_clear_history_action">清除</string>
+    <string name="video_settings_clear_history_done">“继续观看”已清空。</string>
+    <string name="video_settings_no_history">不记住播放位置</string>
+    <string name="video_settings_no_history_summary">视频始终从头开始播放</string>
+    <string-array name="video_settings_end_entries">
+        <item>播完后停止</item>
+        <item>重复播放此视频</item>
+        <item>自动播放下一个</item>
+    </string-array>
+    <string-array name="video_settings_resume_entries">
+        <item>询问</item>
+        <item>始终自动继续</item>
+        <item>从不</item>
+    </string-array>
+    <string-array name="video_settings_speed_entries">
+        <item>0.5×</item>
+        <item>0.75×</item>
+        <item>1×（正常）</item>
+        <item>1.25×</item>
+        <item>1.5×</item>
+        <item>2×</item>
+    </string-array>
+    <string-array name="video_settings_jump_entries">
+        <item>5 秒</item>
+        <item>10 秒</item>
+        <item>15 秒</item>
+        <item>30 秒</item>
+    </string-array>
+    <string-array name="video_settings_resize_entries">
+        <item>适应</item>
+        <item>填充</item>
+        <item>拉伸</item>
+    </string-array>
+    <string-array name="video_settings_orientation_entries">
+        <item>跟随视频</item>
+        <item>跟随系统</item>
+        <item>始终横屏</item>
+    </string-array>
+    <string-array name="video_settings_hold_speed_entries">
+        <item>1.5×</item>
+        <item>2×</item>
+        <item>3×</item>
+    </string-array>
+    <string-array name="video_settings_audio_language_entries">
+        <item>设备语言</item>
+        <item>原声</item>
+        <item>德语</item>
+        <item>英语</item>
+    </string-array>
+    <string-array name="video_settings_sort_entries">
+        <item>最新</item>
+        <item>名称</item>
+        <item>大小</item>
+        <item>时长</item>
+    </string-array>
+    <string-array name="video_settings_view_entries">
+        <item>网格</item>
+        <item>列表</item>
+    </string-array>
+    <string name="video_player_seek_back_n">后退 %1$d 秒</string>
+    <string name="video_player_seek_ahead_n">快进 %1$d 秒</string>
+    <string name="video_info_title">视频信息</string>
+    <string name="video_info_name">标题</string>
+    <string name="video_info_file_name">文件名</string>
+    <string name="video_info_duration">时长</string>
+    <string name="video_info_resolution">分辨率</string>
+    <string name="video_info_hdr">HDR</string>
+    <string name="video_info_codec">视频编码</string>
+    <string name="video_info_bitrate">比特率</string>
+    <string name="video_info_audio">音轨</string>
+    <string name="video_info_subtitles">字幕</string>
+    <string name="video_info_size">大小</string>
+    <string name="video_info_folder">文件夹</string>
+    <string name="video_info_recorded">录制时间</string>
+    <string name="video_info_yes">是</string>
+    <string name="video_info_no">否</string>
+    <string name="video_info_none">无</string>
+    <string name="video_info_copied">已复制</string>
+    <string name="video_info_not_playable">此设备无法播放</string>
+    <string name="video_info_all_details">所有文件详情</string>
+    <string name="video_library_continue">继续观看</string>
+    <string name="video_library_all">全部</string>
+    <string name="video_library_all_videos">所有视频</string>
+    <string name="video_library_folders">文件夹</string>
+    <string name="video_library_left_format">剩余 %1$s</string>
+    <string name="video_library_empty">尚未找到视频。将视频放入 Movies、DCIM 或 Download 等文件夹后，就会显示在这里。</string>
+    <string name="video_library_access_message">请允许访问存储空间，以便 Ordo 查找你的视频。</string>
+    <string name="video_more_button">更多选项</string>
+    <string name="video_more_title">更多</string>
+    <string name="video_more_picture_sound">画面和声音</string>
+    <string name="video_more_playback">播放</string>
+    <string name="video_more_file">文件</string>
+</resources>

@@ -15,7 +15,7 @@
 
 <p align="center">
 <!-- AUTO:badges -->
-  <a href="https://github.com/BEKO2210/ordo/releases/tag/v0.19.1"><img alt="release 0.19.1" src="https://img.shields.io/badge/release-0.19.1-2563EB"></a>
+  <a href="https://github.com/BEKO2210/ordo/releases/tag/v0.19.2"><img alt="release 0.19.2" src="https://img.shields.io/badge/release-0.19.2-2563EB"></a>
   <img alt="Android 7.0+" src="https://img.shields.io/badge/Android-7.0%2B-3DDC84">
   <a href="LICENSE"><img alt="License: GPL-3.0-or-later" src="https://img.shields.io/badge/license-GPL--3.0--or--later-blue"></a>
 <!-- /AUTO:badges -->
@@ -47,7 +47,7 @@
 ## Status
 
 <!-- AUTO:status -->
-Current version 0.19.1 · [release v0.19.1](https://github.com/BEKO2210/ordo/releases/tag/v0.19.1) · Android 7.0 and later (minSdk 24, targetSdk 36 = Android 16) · [GPL-3.0-or-later](LICENSE)
+Current version 0.19.2 · [release v0.19.2](https://github.com/BEKO2210/ordo/releases/tag/v0.19.2) · Android 7.0 and later (minSdk 24, targetSdk 36 = Android 16) · [GPL-3.0-or-later](LICENSE)
 <!-- /AUTO:status -->
 
 Ordo is in development. A closed test runs on Google Play; test builds are also published as
@@ -58,7 +58,7 @@ What comes next is in the [living roadmap](docs/ROADMAP-LIVE.md): every goal has
 
 ### Find anything, tidy up everything
 
-- Home screen with recent files, categories, apps, trash, vault, backup and your storage at a glance
+- Home screen with recent files that open directly (and say when a file is gone); long-press a file for Show in folder, Open with, share, copy, move, rename, delete and properties
 - List or grid in three sizes; search by name or by text inside files
 - Deleted files wait in the trash for 30 days
 
@@ -103,7 +103,7 @@ What comes next is in the [living roadmap](docs/ROADMAP-LIVE.md): every goal has
 
 ### Ordo Music – a music app of its own
 
-- Songs, Albums, Artists, Playlists, Favorites and Folders with search, “Shuffle all” and a mini player
+- Music, audiobooks and podcasts in Songs, Albums, Artists, Playlists, Favorites and Folders, with search, “Shuffle all” and a mini player; additional folders can be included from Ordo Music’s settings even when Android does not classify their playable files as music
 - A player that takes its colour from the cover, over a softly moving backdrop made from it, with a wavy seek bar that moves only when you hold it, queue and background controls
 - Synced lyrics from a .lrc beside the song or embedded in it, swipe the cover to change songs, a queue you can reorder, and Ordo Music settings with “Colours from the cover”
 - Sound: a 10-band EQ you shape on the curve, presets, device effects, ReplayGain/R128, a fading sleep timer
@@ -345,8 +345,9 @@ Type or dictate “Move all MP3s from Download to Music”. Ordo shows the plan 
   big cover and the songs in track order with Play and Shuffle, round artist pictures and folder tiles made of album
   covers (a calm colour with initials where a cover is missing), a mini player with play/pause and next at the
   bottom, and Ordo’s side menu with Library, Recently played, Most played (counted on the device only), Sound, Sleep
-  timer, Settings and a way back to the file manager. Songs come from Android’s media library (only what the player
-  plays; hidden folders only when you show hidden files) Edit a song’s info (title, artist, album, numbers, year,
+  timer, Settings and a way back to the file manager. Songs come from Android’s media library plus any additional
+  folders selected in Ordo Music’s settings (only formats the player plays; hidden folders only when you show hidden
+  files). Edit a song’s info (title, artist, album, numbers, year,
   genre, lyrics, cover) for MP3, FLAC, Ogg Vorbis and M4A, one song or a whole album at once, with a preview before
   saving and undo afterwards; the file is only replaced once the new info reads back right. Hold a song to select
   several, then play them next, queue them, put them on a playlist or into your favorites. Playlists and favorites
@@ -513,7 +514,7 @@ Run the unit tests with:
 ```
 
 <!-- AUTO:tests -->
-Device tests: 55 scripts in [`e2e/`](e2e/README.md), run with `e2e/run.sh`: 16 read-only (`first-run`, `smoke`, `settings-visual`, `category-search`, `back-navigation`, `bars-replay`, `home-header`, `header-position`, `home-pull`, `drawer`, `selection-more`, `tablet-landscape`, `analysis`, `ai-show-guard`, `documents-provider`, `a11y-scan`) and 39 more with `--write` (`stress-delete`, `backup-restore`, `copy-unreadable`, `home-auto-refresh`, `audio-player`, `cast`, `klang`, `klang-landscape`, `klang-stress`, `music-formats`, `music-library`, `launcher-icons`, `icon-colors`, `ai-show`, `pick-file`, `no-midword-breaks`, `player-seek`, `player-stage2`, `video-player`, `video-network`, `video-sound`, `video-dialog-isolate`, `video-subtitles`, `video-background`, `video-library`, `video-seek`, `video-picture`, `video-picture-adjust`, `video-detailplus`, `video-menus`, `sheets-polish`, `copy-replace`, `ftp-server-fd`, `video-notification`, `ftp-server-defaults`, `backup-self-include`, `vault-secure-flag`, `text-editor-atomic-save`, `back-from-quick-access`). Unit tests: 168 test classes in `app/src/test`.
+Device tests: 55 scripts in [`e2e/`](e2e/README.md), run with `e2e/run.sh`: 16 read-only (`first-run`, `smoke`, `settings-visual`, `category-search`, `back-navigation`, `bars-replay`, `home-header`, `header-position`, `home-pull`, `drawer`, `selection-more`, `tablet-landscape`, `analysis`, `ai-show-guard`, `documents-provider`, `a11y-scan`) and 39 more with `--write` (`stress-delete`, `backup-restore`, `copy-unreadable`, `home-auto-refresh`, `audio-player`, `cast`, `klang`, `klang-landscape`, `klang-stress`, `music-formats`, `music-library`, `launcher-icons`, `icon-colors`, `ai-show`, `pick-file`, `no-midword-breaks`, `player-seek`, `player-stage2`, `video-player`, `video-network`, `video-sound`, `video-dialog-isolate`, `video-subtitles`, `video-background`, `video-library`, `video-seek`, `video-picture`, `video-picture-adjust`, `video-detailplus`, `video-menus`, `sheets-polish`, `copy-replace`, `ftp-server-fd`, `video-notification`, `ftp-server-defaults`, `backup-self-include`, `vault-secure-flag`, `text-editor-atomic-save`, `back-from-quick-access`). Unit tests: 169 test classes in `app/src/test`.
 <!-- /AUTO:tests -->
 
 ## Roadmap
@@ -526,8 +527,8 @@ and cloud storage. The full plan is in [docs/ROADMAP.md](docs/ROADMAP.md) (Germa
 Bug reports and pull requests are welcome. Please keep changes small, follow the code around them, and add a unit
 test for new logic. Report security problems as described in [SECURITY.md](SECURITY.md), not in a public issue.
 
-Ordo is fully translated into English and German. Other languages come from Material Files and do not cover the
-newer screens yet.
+Ordo is fully translated into English, German, Simplified Chinese and Traditional Chinese (Taiwan). Other languages
+come from Material Files and do not cover the newer screens yet.
 
 ## Credits
 

@@ -15,7 +15,7 @@
 
 <p align="center">
 <!-- AUTO:badges -->
-  <a href="https://github.com/BEKO2210/ordo/releases/tag/v0.19.1"><img alt="Version 0.19.1" src="https://img.shields.io/badge/Version-0.19.1-2563EB"></a>
+  <a href="https://github.com/BEKO2210/ordo/releases/tag/v0.19.2"><img alt="Version 0.19.2" src="https://img.shields.io/badge/Version-0.19.2-2563EB"></a>
   <img alt="Android 7.0+" src="https://img.shields.io/badge/Android-7.0%2B-3DDC84">
   <a href="LICENSE"><img alt="Lizenz: GPL-3.0-or-later" src="https://img.shields.io/badge/Lizenz-GPL--3.0--or--later-blue"></a>
 <!-- /AUTO:badges -->
@@ -47,7 +47,7 @@
 ## Stand
 
 <!-- AUTO:status -->
-Aktuelle Version 0.19.1 · [Release v0.19.1](https://github.com/BEKO2210/ordo/releases/tag/v0.19.1) · ab Android 7.0 (minSdk 24, targetSdk 36 = Android 16) · [GPL-3.0-or-later](LICENSE)
+Aktuelle Version 0.19.2 · [Release v0.19.2](https://github.com/BEKO2210/ordo/releases/tag/v0.19.2) · ab Android 7.0 (minSdk 24, targetSdk 36 = Android 16) · [GPL-3.0-or-later](LICENSE)
 <!-- /AUTO:status -->
 
 Ordo ist in Entwicklung. Bei Google Play läuft ein geschlossener Test; Testversionen erscheinen auch als
@@ -58,7 +58,7 @@ Was als Nächstes kommt, steht in der [lebenden Roadmap](docs/ROADMAP-LIVE.md): 
 
 ### Alles finden, alles aufräumen
 
-- Startseite mit zuletzt verwendeten Dateien, Kategorien, Apps, Papierkorb, Tresor, Sicherung und Speicher auf einen Blick
+- Startseite mit direkt öffnenden zuletzt verwendeten Dateien (und Hinweis, wenn eine fehlt); langes Drücken bietet Im Ordner zeigen, Öffnen mit, Teilen, Kopieren, Verschieben, Umbenennen, Löschen und Eigenschaften
 - Liste oder Raster in drei Größen; Suche nach Namen oder nach Text in Dateien
 - Gelöschtes wartet 30 Tage im Papierkorb
 
@@ -103,7 +103,7 @@ Was als Nächstes kommt, steht in der [lebenden Roadmap](docs/ROADMAP-LIVE.md): 
 
 ### Ordo Musik – eine eigene Musik-App
 
-- Titel, Alben, Interpreten, Wiedergabelisten, Favoriten und Ordner mit Suche, „Alle zufällig“ und Mini-Player
+- Musik, Hörbücher und Podcasts in Titel, Alben, Interpreten, Wiedergabelisten, Favoriten und Ordnern, mit Suche, „Alle zufällig“ und Mini-Player; zusätzliche Ordner mit abspielbaren Dateien lassen sich in den Einstellungen von Ordo Musik aufnehmen, auch wenn Android sie nicht als Musik einstuft
 - Ein Player, der seine Farbe vom Cover nimmt, vor einem sanft bewegten Hintergrund aus dem Cover, mit einer Wellen-Zeitleiste, die sich nur nach Festhalten bewegt, Warteschlange und Steuerung im Hintergrund
 - Synchrone Liedtexte aus einer .lrc neben dem Lied oder eingebettet, Cover wischen wechselt das Lied, eine sortierbare Warteschlange und eigene Einstellungen für Ordo Musik mit „Farben aus dem Cover“
 - Klang: 10-Band-Equalizer, direkt an der Kurve geformt, Voreinstellungen, Geräteeffekte, ReplayGain/R128 und ein ausblendender Einschlaf-Timer
@@ -516,7 +516,7 @@ Unit-Tests:
 ```
 
 <!-- AUTO:tests -->
-Gerätetests: 55 Skripte in [`e2e/`](e2e/README.md), gestartet mit `e2e/run.sh`: 16 nur lesend (`first-run`, `smoke`, `settings-visual`, `category-search`, `back-navigation`, `bars-replay`, `home-header`, `header-position`, `home-pull`, `drawer`, `selection-more`, `tablet-landscape`, `analysis`, `ai-show-guard`, `documents-provider`, `a11y-scan`) und 39 weitere mit `--write` (`stress-delete`, `backup-restore`, `copy-unreadable`, `home-auto-refresh`, `audio-player`, `cast`, `klang`, `klang-landscape`, `klang-stress`, `music-formats`, `music-library`, `launcher-icons`, `icon-colors`, `ai-show`, `pick-file`, `no-midword-breaks`, `player-seek`, `player-stage2`, `video-player`, `video-network`, `video-sound`, `video-dialog-isolate`, `video-subtitles`, `video-background`, `video-library`, `video-seek`, `video-picture`, `video-picture-adjust`, `video-detailplus`, `video-menus`, `sheets-polish`, `copy-replace`, `ftp-server-fd`, `video-notification`, `ftp-server-defaults`, `backup-self-include`, `vault-secure-flag`, `text-editor-atomic-save`, `back-from-quick-access`). Unit-Tests: 168 Testklassen in `app/src/test`.
+Gerätetests: 55 Skripte in [`e2e/`](e2e/README.md), gestartet mit `e2e/run.sh`: 16 nur lesend (`first-run`, `smoke`, `settings-visual`, `category-search`, `back-navigation`, `bars-replay`, `home-header`, `header-position`, `home-pull`, `drawer`, `selection-more`, `tablet-landscape`, `analysis`, `ai-show-guard`, `documents-provider`, `a11y-scan`) und 39 weitere mit `--write` (`stress-delete`, `backup-restore`, `copy-unreadable`, `home-auto-refresh`, `audio-player`, `cast`, `klang`, `klang-landscape`, `klang-stress`, `music-formats`, `music-library`, `launcher-icons`, `icon-colors`, `ai-show`, `pick-file`, `no-midword-breaks`, `player-seek`, `player-stage2`, `video-player`, `video-network`, `video-sound`, `video-dialog-isolate`, `video-subtitles`, `video-background`, `video-library`, `video-seek`, `video-picture`, `video-picture-adjust`, `video-detailplus`, `video-menus`, `sheets-polish`, `copy-replace`, `ftp-server-fd`, `video-notification`, `ftp-server-defaults`, `backup-self-include`, `vault-secure-flag`, `text-editor-atomic-save`, `back-from-quick-access`). Unit-Tests: 169 Testklassen in `app/src/test`.
 <!-- /AUTO:tests -->
 
 ## Ausblick
@@ -530,8 +530,8 @@ Fehlerberichte und Pull Requests sind willkommen. Bitte Änderungen klein halten
 Logik mit einem Unit-Test absichern. Sicherheitsprobleme bitte wie in [SECURITY.md](SECURITY.md) beschrieben melden,
 nicht in einem öffentlichen Issue.
 
-Ordo ist vollständig auf Englisch und Deutsch übersetzt. Andere Sprachen stammen aus Material Files und decken die
-neueren Bildschirme noch nicht ab.
+Ordo ist vollständig auf Englisch, Deutsch, Chinesisch (vereinfacht) und Chinesisch (traditionell, Taiwan)
+übersetzt. Andere Sprachen stammen aus Material Files und decken die neueren Bildschirme noch nicht ab.
 
 ## Danksagung
 

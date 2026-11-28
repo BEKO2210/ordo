@@ -159,7 +159,8 @@ zusammen mit Ordos Token wirksam). Logik ohne Android in `VideoLibrary`, geteste
 - **Auswahl:** Langes Drücken wählt aus (TalkBack-Aktion „Auswählen“), danach wählt jeder Tipp. Oben: Abspielen (die
   Auswahl als Warteschlange), Teilen, In den Papierkorb (mit Rückfrage; ist der Papierkorb aus: „Löschen“ mit
   Hinweis), Als gesehen/ungesehen markieren, In den Tresor (Rückfrage wie in der Dateiliste), Videoinfos (bei
-  einem). Zurück beendet erst die Auswahl, dann die Suche, dann die Serienseite.
+  einem) und „Im Ordner zeigen“ (bei einem; Dateiliste im Elternordner, zur Datei gescrollt und ausgewählt). Zurück
+  beendet erst die Auswahl, dann die Suche, dann die Serienseite.
 
 ## Tresor-Videos
 

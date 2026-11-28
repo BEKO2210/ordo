@@ -1,9 +1,6 @@
 Release candidate for Ordo 1.0:
+• Files from Recent open again; long-press for Show in folder, share, copy, move, rename, delete
+• Show in folder also in the video and music libraries
+• Music library finds audiobooks and podcasts; add your own extra music folders
+• Complete Simplified and Traditional Chinese
 • Image viewer no longer crashes when you come back to it later
-• Back from a quick-access folder goes up one level
-• Edited music tags show up in the library right away
-• Video player closes cleanly, less memory in use
-• Video titles from other apps appear in the notification
-• "/sdcard" paths open without root; safer root checks
-• Backups never include themselves
-• Selection bar stays visible on phones in landscape

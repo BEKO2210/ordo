@@ -49,6 +49,7 @@
 
     <!-- android.R.string.app_not_found -->
     <string name="activity_not_found">No application found to handle this action</string>
+    <string name="file_open_unavailable">This file is no longer available</string>
     <string name="copied_to_clipboard_format" translatable="false">@string/preference_copied</string>
     <string name="open_settings">Open settings</string>
     <string name="shortcut_created">Shortcut created</string>
@@ -811,6 +812,9 @@
     <string name="documents_root_summary">Your bookmarks</string>
     <string name="documents_recent_summary">Recently used in Ordo</string>
     <string name="home_recent_empty">No recent files</string>
+    <string name="home_recent_file_actions">File actions for %1$s</string>
+    <string name="file_action_show_in_folder">Show in folder</string>
+    <string name="home_recent_move">Move</string>
     <string name="home_categories">Categories</string>
     <string name="home_storage">Storage</string>
     <string name="home_quick_access">Quick access</string>

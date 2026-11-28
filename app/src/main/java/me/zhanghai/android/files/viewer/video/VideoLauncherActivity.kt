@@ -55,6 +55,7 @@ import me.zhanghai.android.files.file.MimeType
 import me.zhanghai.android.files.file.fileProviderUri
 import me.zhanghai.android.files.file.guessFromPath
 import me.zhanghai.android.files.filejob.FileJobService
+import me.zhanghai.android.files.filelist.FileListActivity
 import me.zhanghai.android.files.trash.Trash
 import me.zhanghai.android.files.util.createSendStreamIntent
 import me.zhanghai.android.files.util.getQuantityString
@@ -610,6 +611,7 @@ class VideoLauncherActivity : AppActivity(), AppAccentActivity {
             toolbar.inflateMenu(menu)
             if (!selecting) setUpSearch()
         }
+        toolbar.menu.findItem(R.id.actionShowInFolderSelection)?.isVisible = selected.size == 1
         val seriesName = shelves?.series?.find { seriesKey(it) == openSeries }?.name
         toolbar.title = when {
             selecting -> getQuantityString(R.plurals.video_library_selected_format, selected.size, selected.size)
@@ -747,6 +749,10 @@ class VideoLauncherActivity : AppActivity(), AppAccentActivity {
             R.id.actionInfoSelection -> videos.singleOrNull()?.let {
                 endSelection()
                 showInfo(it)
+            }
+            R.id.actionShowInFolderSelection -> videos.singleOrNull()?.let {
+                endSelection()
+                startActivitySafe(FileListActivity.createShowInFolderIntent(Paths.get(it.path)))
             }
             else -> return false
         }

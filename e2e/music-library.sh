@@ -209,7 +209,7 @@ check_or_abort "a song row opens its options" eval 'row_shown "Weitere Optionen 
 pass "options offer play next"
 check "options offer add to queue" ui has "Zur Warteschlange|Add to queue"
 # On a landscape phone the popup shows four rows: the last one is scrolled into sight within the popup's list.
-check "options offer showing the file" scroll_to "Datei anzeigen|Show file" 3 "Zur Warteschlange|Add to queue"
+check "options offer showing the file" scroll_to "Im Ordner zeigen|Show in folder" 3 "Zur Warteschlange|Add to queue"
 back 1
 check "closing search keeps the library open" close_search
 check "the library is still in front" on viewer.audio.MusicLauncherActivity

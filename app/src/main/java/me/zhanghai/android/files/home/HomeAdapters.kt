@@ -9,6 +9,8 @@ import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.core.view.doOnLayout
+import androidx.core.view.ViewCompat
+import androidx.core.view.accessibility.AccessibilityNodeInfoCompat
 import androidx.core.view.isInvisible
 import androidx.core.view.updateLayoutParams
 import androidx.core.view.isVisible
@@ -38,7 +40,10 @@ import me.zhanghai.android.files.util.getQuantityString
 import java.util.Locale
 import me.zhanghai.android.files.analysis.StorageInsights
 
-class RecentFileAdapter(private val onClick: (RecentFile) -> Unit) :
+class RecentFileAdapter(
+    private val onClick: (RecentFile) -> Unit,
+    private val onLongClick: (android.view.View, RecentFile) -> Unit
+) :
     RecyclerView.Adapter<RecentFileAdapter.ViewHolder>() {
     var items: List<RecentFile> = emptyList()
         set(value) {
@@ -103,6 +108,16 @@ class RecentFileAdapter(private val onClick: (RecentFile) -> Unit) :
             // One line, cut at the end: the tile is narrow and a name never wraps inside a word.
             binding.nameText.text = item.name
             binding.root.setOnClickListener { onClick(item) }
+            binding.root.setOnLongClickListener {
+                onLongClick(it, item)
+                true
+            }
+            ViewCompat.replaceAccessibilityAction(
+                binding.root,
+                AccessibilityNodeInfoCompat.AccessibilityActionCompat.ACTION_LONG_CLICK,
+                binding.root.context.getString(R.string.home_recent_file_actions, item.name),
+                null
+            )
         }
     }
 }

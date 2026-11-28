@@ -101,6 +101,9 @@ cell "Einstellungen bildlich: Symbol an jedem Eintrag, Auswahl mit Bildern" \
 cell "Bewegung aus einem Guss: Menüs, Dialoge, Piktogramme" \
     "grep -q 'ThemeOverlay.Ordo.Material3.NoMotion' app/src/main/res/values/styles.xml && ls app/src/main/res/drawable/settings_pictogram_*.xml >/dev/null 2>&1" \
     "Menüs, Dialoge und Seitenmenü öffnen und schließen einheitlich; Piktogramme der Einstellungen bewegen sich ruhig. Alles folgt Einstellungen > Aussehen > Animationen und dem Systemschalter."
+cell "Dateien aus Zuletzt und Medienbibliotheken im Ordner zeigen" \
+    "test -f $TESTS/filelist/FileListFocusTest.kt && grep -q action_show_in_folder app/src/main/res/menu/home_recent_file.xml && grep -q actionShowInFolderSelection app/src/main/res/menu/video_library_selection.xml" \
+    "Zuletzt bietet per langem Drücken die vorhandenen Dateiaktionen; Musik und Video können eine Datei im Elternordner öffnen, dorthin scrollen und sie auswählen. TalkBack erreicht das Menü als benannte Aktion."
 
 # ---- Everything opens and can be edited inside Ordo, one building block at a time --------------------------------
 cell "Stand der Technik für Medien belegt" \
@@ -122,6 +125,10 @@ cell "Ordo Musik: eigene Musiksammlung mit Titeln, Alben, Interpreten und Ordner
     "test -s app/src/main/java/me/zhanghai/android/files/viewer/audio/MusicLibrary.kt && test -s $TESTS/viewer/audio/MusicLibraryTest.kt && test -x e2e/music-library.sh && grep -q music-library e2e/run.sh" \
     "Ordo Musik zeigt immer die Sammlung statt in den Player zu springen: Titel, Alben (Raster), Interpreten und Ordner aus MediaStore, Suche, „Alle zufällig“, Albumseiten in Titelreihenfolge, Mini-Player unten. Aussehen nach dem Vorbild Samsung Music (großer Titel, Reiter), Goldener Schnitt, hell und dunkel, Telefon und Tablet; e2e/music-library.sh auf dem Emulator und dem Tab bestanden." \
     "Musik-Player als eigenes App-Symbol zum Einschalten"
+cell "Ordo Musik: zusätzliche Ordner in die Bibliothek aufnehmen" \
+    "grep -q 'MUSIC_EXTRA_FOLDERS' app/src/main/java/me/zhanghai/android/files/settings/Settings.kt && grep -q 'fun additionalFoldersKeepOnlyPlayableAudioAndRemoveAllPathDuplicates' $TESTS/viewer/audio/MusicStoreTest.kt" \
+    "In Ordo Musiks Einstellungen lokale Ordner hinzufügen und einzeln entfernen; spielbare Audiodateien rekursiv und im Hintergrund aufnehmen, auch unter .nomedia, ohne Duplikate zu MediaStore oder überlappenden Ordnern." \
+    "Ordo Musik: eigene Musiksammlung mit Titeln, Alben, Interpreten und Ordnern"
 cell "Ordo Musik: Infos bearbeiten (Tag-Editor)" \
     "test -s app/src/main/java/me/zhanghai/android/files/viewer/audio/SongTags.kt && test -s $TESTS/viewer/audio/SongTagsTest.kt && grep -q 'net.jthink:jaudiotagger' app/build.gradle && grep -q 'edit_title' e2e/music-library.sh" \
     "Titel, Interpret, Album, Album-Interpret, Nummern, Jahr, Genre, Songtext und Cover für MP3, FLAC, Ogg Vorbis und M4A ändern, einzeln oder für ein ganzes Album; Vorschau, Schreiben über eine geprüfte Kopie, Rückgängig; MediaStore und Player zeigen es sofort, die Datei spielt danach weiter. Auf Tab, S21 und Pixel geprüft." \

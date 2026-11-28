@@ -200,6 +200,11 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
 
     private val args by args<Args>()
     private val argsPath by lazy { args.intent.extraPath }
+    private val focusPath: Path? by lazy {
+        args.intent.getStringExtra(FileListActivity.EXTRA_FOCUS_PATH)
+            ?.let { runCatching { Paths.get(URI.create(it)) }.getOrNull() }
+    }
+    private var focusHandled = false
 
     // Only internal launches (no action) may open a category; the activity is exported.
     private val homeCategory by lazy {
@@ -264,6 +269,8 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
             pendingTransfer = savedInstanceState.getBoolean(STATE_TRANSFER_COPY) to
                 uris.map { Paths.get(URI.create(it)) }
         }
+        // A rotation must not scroll back to and reselect the file the user already moved on from.
+        focusHandled = savedInstanceState?.getBoolean(STATE_FOCUS_HANDLED) ?: false
     }
 
     private var backStopPath: Path? = null
@@ -272,6 +279,7 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
         super.onSaveInstanceState(outState)
 
         outState.putString(STATE_BACK_STOP_PATH, backStopPath?.toUri()?.toString())
+        outState.putBoolean(STATE_FOCUS_HANDLED, focusHandled)
         pendingTransfer?.let { (copy, paths) ->
             outState.putBoolean(STATE_TRANSFER_COPY, copy)
             outState.putStringArrayList(STATE_TRANSFER_PATHS, ArrayList(paths.map { it.toUri().toString() }))
@@ -837,6 +845,15 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
         }
         if (stateful is Success) {
             viewModel.pendingState?.let { layoutManager.onRestoreInstanceState(it) }
+            focusPath?.takeUnless { focusHandled }?.let { path ->
+                val index = focusedFileIndex(adapter.list, path)
+                if (index >= 0) {
+                    val file = adapter.getItem(index)
+                    focusHandled = true
+                    layoutManager.scrollToPositionWithOffset(index, 0)
+                    viewModel.selectFile(file, true)
+                }
+            }
         }
     }
 
@@ -2074,6 +2091,7 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
     companion object {
         private const val STATE_BACK_STOP_PATH = "back_stop_path"
         private const val STATE_TRANSFER_COPY = "transfer_copy"
+        private const val STATE_FOCUS_HANDLED = "focus_handled"
         private const val STATE_TRANSFER_PATHS = "transfer_paths"
         private val SELECTION_BAR_ACTIONS = listOf(
             R.id.selectionMoveButton to R.id.action_cut,
