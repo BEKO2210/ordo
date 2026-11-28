@@ -179,6 +179,7 @@
     <string name="settings_music_extra_folders_none">Keine zusätzlichen Ordner</string>
     <string name="settings_music_extra_folders_add">Ordner hinzufügen</string>
     <string name="settings_music_extra_folders_remove">Entfernen</string>
+    <string name="settings_music_extra_folders_remove_named">%1$s entfernen</string>
     <string name="settings_music_extra_folders_local_only">Wähle einen Ordner auf diesem Gerät oder einem angeschlossenen Speicher</string>
     <string name="settings_video_title">Ordo Video</string>
     <string name="settings_accent_same_as_ordo">Wie Ordo</string>

@@ -12,6 +12,9 @@ import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
 import java.io.File
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import me.zhanghai.android.files.file.MimeType
 import me.zhanghai.android.files.file.guessFromPath
 import me.zhanghai.android.files.player.isPlayableAudioMimeType
@@ -23,7 +26,14 @@ import me.zhanghai.android.files.util.valueCompat
  * home screen's categories). Rows of files that are gone are left out. Filtering and sorting happen in
  * [MusicLibrary].
  */
-fun queryMusic(context: Context): List<MusicSong> {
+suspend fun queryMusic(context: Context): List<MusicSong> {
+    val coroutineContext = currentCoroutineContext()
+    return queryMusicBlocking(context) { coroutineContext.ensureActive() }
+}
+
+/** For executor callers that do not have a coroutine to cancel. */
+internal fun queryMusicBlocking(context: Context, ensureActive: () -> Unit = {}): List<MusicSong> {
+    ensureActive()
     val volumes = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
         MediaStore.getExternalVolumeNames(context).ifEmpty { setOf(MediaStore.VOLUME_EXTERNAL) }
     } else {
@@ -57,6 +67,7 @@ fun queryMusic(context: Context): List<MusicSong> {
             )?.use { cursor ->
                 buildList {
                     while (cursor.moveToNext()) {
+                        ensureActive()
                         val path = cursor.getString(0) ?: continue
                         val albumId = cursor.getLong(4)
                         add(
@@ -82,29 +93,43 @@ fun queryMusic(context: Context): List<MusicSong> {
                     }
                 }
             }.orEmpty()
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             e.printStackTrace()
             emptyList()
         }
     }.mapNotNull { song ->
+        ensureActive()
         val file = File(song.path)
         if (file.exists()) song.withFileTimes(file.lastModified()) else null
     }
     val extraFolders = Settings.MUSIC_EXTRA_FOLDERS.valueCompat
     if (extraFolders.isEmpty()) return mediaStoreSongs
-    val candidates = extraFolders.asSequence().flatMap(::additionalMusicCandidates)
+    val candidates = extraFolders.asSequence().flatMap { additionalMusicCandidates(it, ensureActive) }
     val mediaStorePaths = mediaStoreSongs.mapTo(HashSet()) { song ->
         runCatching { File(song.path).canonicalPath }.getOrDefault(File(song.path).absolutePath)
     }
     val additionalSongs = filterAdditionalMusic(candidates, mediaStorePaths)
-        .map { candidate -> readAdditionalSong(File(candidate.path), candidate.mimeType) }
+        .mapNotNull { candidate ->
+            ensureActive()
+            additionalSongCache.getOrLoad(candidate.path, candidate.modifiedMs) {
+                readAdditionalSong(File(candidate.path), candidate.mimeType)
+            }
+        }
     return mediaStoreSongs + additionalSongs
 }
 
 /** The filesystem scan and this filtering run on queryMusic's background caller. */
-internal data class AdditionalMusicCandidate(val path: String, val mimeType: String)
+internal data class AdditionalMusicCandidate(
+    val path: String,
+    val mimeType: String,
+    val modifiedMs: Long = File(path).lastModified()
+)
 
-private fun additionalMusicCandidates(folder: String): Sequence<AdditionalMusicCandidate> {
+internal fun additionalMusicCandidates(
+    folder: String, ensureActive: () -> Unit
+): Sequence<AdditionalMusicCandidate> {
     val root = File(folder)
     val rootPath = runCatching { root.canonicalPath }.getOrDefault(root.absolutePath)
     val rootPrefix = rootPath + File.separator
@@ -117,10 +142,11 @@ private fun additionalMusicCandidates(folder: String): Sequence<AdditionalMusicC
         }
         .onFail { _, _ -> }
         .mapNotNull { file ->
+            ensureActive()
             if (!file.isFile) return@mapNotNull null
             val path = runCatching { file.canonicalPath }.getOrNull() ?: return@mapNotNull null
             if (path != rootPath && !path.startsWith(rootPrefix)) return@mapNotNull null
-            AdditionalMusicCandidate(path, MimeType.guessFromPath(path).value)
+            AdditionalMusicCandidate(path, MimeType.guessFromPath(path).value, file.lastModified())
         }
 }
 
@@ -132,7 +158,7 @@ internal fun filterAdditionalMusic(
     .distinctBy { it.path }
     .toList()
 
-private fun readAdditionalSong(file: File, guessedMimeType: String): MusicSong {
+private fun readAdditionalSong(file: File, guessedMimeType: String): MusicSong? {
     val retriever = MediaMetadataRetriever()
     return try {
         retriever.setDataSource(file.absolutePath)
@@ -165,25 +191,34 @@ private fun readAdditionalSong(file: File, guessedMimeType: String): MusicSong {
         )
     } catch (e: Exception) {
         e.printStackTrace()
-        additionalSongWithoutTags(file, guessedMimeType)
+        null
     } finally {
         retriever.release()
     }
 }
 
-private fun additionalSongWithoutTags(file: File, mimeType: String): MusicSong = MusicSong(
-    path = file.absolutePath,
-    title = file.nameWithoutExtension.takeIf { it.isNotBlank() } ?: file.name,
-    artist = null,
-    album = null,
-    albumId = Long.MIN_VALUE + file.parent.orEmpty().hashCode().toUInt().toLong(),
-    durationMs = 0,
-    track = 0,
-    mimeType = mimeType,
-    artUri = null,
-    dateModifiedMs = file.lastModified(),
-    sizeBytes = file.length()
-)
+private const val ADDITIONAL_SONG_CACHE_SIZE = 4096
+private val additionalSongCache = PathModificationCache<MusicSong>(ADDITIONAL_SONG_CACHE_SIZE)
+
+/** A bounded process cache: edits invalidate by modification time; exclusions are cached as null. */
+internal class PathModificationCache<T>(private val maxEntries: Int) {
+    private data class Entry<T>(val modifiedMs: Long, val value: T?)
+
+    private val entries = object : LinkedHashMap<String, Entry<T>>(16, 0.75f, true) {
+        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, Entry<T>>?): Boolean =
+            size > maxEntries
+    }
+
+    fun getOrLoad(path: String, modifiedMs: Long, loader: () -> T?): T? {
+        synchronized(entries) {
+            entries[path]?.takeIf { it.modifiedMs == modifiedMs }?.let { return it.value }
+            entries.remove(path)
+        }
+        val value = loader()
+        synchronized(entries) { entries[path] = Entry(modifiedMs, value) }
+        return value
+    }
+}
 
 /** Only playable library categories; unlike selecting all audio, this leaves system sounds and recordings out. */
 internal fun musicSelection(sdkInt: Int): String {

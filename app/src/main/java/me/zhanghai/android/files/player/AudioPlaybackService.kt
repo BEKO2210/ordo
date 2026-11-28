@@ -57,7 +57,7 @@ import me.zhanghai.android.files.viewer.audio.MusicCatalog
 import me.zhanghai.android.files.viewer.audio.MusicFilter
 import me.zhanghai.android.files.viewer.audio.MusicLibrary
 import me.zhanghai.android.files.viewer.audio.MusicSelection
-import me.zhanghai.android.files.viewer.audio.queryMusic
+import me.zhanghai.android.files.viewer.audio.queryMusicBlocking
 import me.zhanghai.android.files.viewer.video.sound.VideoSpatial
 
 @UnstableApi
@@ -713,7 +713,9 @@ class AudioPlaybackService : MediaSessionService() {
 
         // Nothing found fails the request, so the caller says so instead of silence.
         private fun searchResults(query: String): List<MediaItem> {
-            val songs = MusicLibrary(queryMusic(this@AudioPlaybackService), false, java.text.Collator.getInstance()).songs
+            val songs = MusicLibrary(
+                queryMusicBlocking(this@AudioPlaybackService), false, java.text.Collator.getInstance()
+            ).songs
             // "Play music" without a name: everything, shuffled.
             val found = if (query.isBlank()) MusicLibrary.shuffled(songs)
             else MusicSelection.select(MusicCatalog(songs), MusicFilter(query = query))

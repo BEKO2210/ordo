@@ -133,6 +133,7 @@ open class SettingsPreferenceFragment : PreferenceFragmentCompat() {
                 }, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
                 addView(Button(context).apply {
                     setText(R.string.settings_music_extra_folders_remove)
+                    contentDescription = getString(R.string.settings_music_extra_folders_remove_named, path)
                     setOnClickListener {
                         Settings.MUSIC_EXTRA_FOLDERS.putValue(
                             Settings.MUSIC_EXTRA_FOLDERS.value.orEmpty() - path
@@ -170,6 +171,12 @@ open class SettingsPreferenceFragment : PreferenceFragmentCompat() {
             Settings.MUSIC_EXTRA_FOLDERS.value.orEmpty() + path.toFile().absolutePath
         )
         showMusicFoldersDialog()
+    }
+
+    override fun onDestroyView() {
+        musicFoldersDialog?.dismiss()
+        musicFoldersDialog = null
+        super.onDestroyView()
     }
 
     private fun reserveIconSpace(group: PreferenceGroup) {
