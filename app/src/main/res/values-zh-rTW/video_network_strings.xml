@@ -6,7 +6,7 @@
     <string name="video_network_error_missing">此影片已不在伺服器上。</string>
     <string name="video_library_network">網路</string>
     <string name="video_library_network_empty">已加書籤的伺服器資料夾中沒有影片。</string>
-    <string name="video_cast_privacy">Ordo 僅分享此影片及其字幕，僅分享給這臺電視，且僅在播放期間分享。資料不會離開你的 Wi-Fi。</string>
+    <string name="video_cast_privacy">Ordo 僅分享此影片及其字幕，僅分享給這台電視，且僅在播放期間分享。資料不會離開你的 Wi-Fi。</string>
     <string name="video_cast_no_screen">%1$s 沒有螢幕。請選擇電視。</string>
     <string name="video_cast_format_unsupported">電視無法播放 %1$s 影片。支援 MP4、WebM 和 MKV。</string>
     <string name="video_cast_error_format">電視無法播放此影片。請嘗試其他格式，或在本機觀看。</string>

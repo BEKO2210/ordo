@@ -39,7 +39,7 @@
     <plurals name="video_library_trash_title_format">
         <item quantity="other">要將 %1$d 個影片移至資源回收筒嗎？</item>
     </plurals>
-    <string name="video_library_trash_message">你可以從 Ordo 的資源回收筒中恢復。</string>
+    <string name="video_library_trash_message">你可以從 Ordo 的資源回收筒中還原。</string>
     <plurals name="video_library_delete_title_format">
         <item quantity="other">要刪除 %1$d 個影片嗎？</item>
     </plurals>

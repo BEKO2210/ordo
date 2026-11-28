@@ -8,7 +8,7 @@
     <string name="settings_section_ai">AI 助手</string>
     <string name="settings_section_ai_summary">速度和裝置端語言模型</string>
     <string name="settings_section_files">檔案和檢視</string>
-    <string name="settings_section_files_summary">起始頁、檔名、壓縮包、APK</string>
+    <string name="settings_section_files_summary">起始頁、檔名、壓縮檔、APK</string>
     <string name="settings_section_storage">儲存空間和資料夾</string>
     <string name="settings_section_storage_summary">儲存空間清單、標準資料夾、書籤</string>
     <string name="settings_section_trash_summary">將已刪除的檔案保留一段時間</string>
@@ -70,7 +70,7 @@
     <string name="launcher_colors_title">圖示顏色</string>
     <string name="launcher_color_description">圖示顏色 %1$s</string>
     <string name="launcher_color_off_summary">開啟圖示後立即生效</string>
-    <string name="launcher_color_pending_summary">退出 Ordo 後更改</string>
+    <string name="launcher_color_pending_summary">離開 Ordo 後更改</string>
     <string name="launcher_color_changed_message">“%1$s”的圖示顏色現為%2$s。主螢幕可能需要片刻才會更新，部分主螢幕需要重新放置圖示。</string>
     <string name="launcher_color_saved_message">已儲存。開啟後，“%1$s”的圖示顏色將為%2$s。</string>
     <string name="launcher_color_blue">藍色</string>
@@ -141,9 +141,9 @@
     <string name="music_tag_saving">正在儲存…</string>
     <string name="music_tag_saved">資訊已儲存</string>
     <string name="music_tag_undo">撤消</string>
-    <string name="music_tag_undone">已恢復之前的資訊</string>
+    <string name="music_tag_undone">已還原之前的資訊</string>
     <string name="music_tag_failed">未儲存，檔案未更改：%1$s</string>
-    <string name="music_tag_restore_error">無法恢復備份</string>
+    <string name="music_tag_restore_error">無法還原備份</string>
     <string name="music_tag_cover_too_large">此圖片大於 10 MB。請選擇較小的圖片。</string>
     <string name="music_tag_read_failed">Ordo 無法讀取此檔案的資訊。</string>
     <string name="music_nav_favorites">收藏</string>

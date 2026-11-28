@@ -57,9 +57,9 @@
     </plurals>
 
     <string name="all_files_access_rationale_message">程式需要管理所有檔案的權限。請在接下來的系統設定中授予權限。</string>
-    <string name="storage_permission_rationale_message">程式需要存取檔案的權限。請在接下來的系統對話框中點擊「允許」。</string>
+    <string name="storage_permission_rationale_message">程式需要存取檔案的權限。請在接下來的系統對話框中輕觸「允許」。</string>
     <string name="storage_permission_permanently_denied_message">程式需要存取檔案的權限。請在系統設定中授予「儲存空間」權限。</string>
-    <string name="notification_permission_rationale_message">程式需要發布檔案作業相關通知的權限。請在接下來的系統對話框中點擊「允許」。</string>
+    <string name="notification_permission_rationale_message">程式需要發布檔案作業相關通知的權限。請在接下來的系統對話框中輕觸「允許」。</string>
     <string name="notification_permission_permanently_denied_message">程式需要發布檔案作業相關通知的權限。請在系統設定中授予「通知」權限。</string>
 
     <string name="notification_channel_background_activity_start_name">背景期間動作</string>
@@ -199,7 +199,7 @@
     <string name="file_job_remount_success_format">「%1$s」已被重新掛接為讀寫模式</string>
     <string name="file_job_action_all">套用此操作到所有檔案</string>
 
-    <string name="file_open_apk_message">這個檔案是一個 Android 套件。您想要安裝它，還是查看它的內容？</string>
+    <string name="file_open_apk_message">這個檔案是一個 Android 套件。你想要安裝它，還是查看它的內容？</string>
     <string name="file_open_as_title">開啟為…</string>
     <string name="file_open_as_title_format">將「%1$s」開啟為</string>
     <string name="file_open_as_type_text">文字</string>
@@ -558,9 +558,9 @@
     <string name="text_editor_title_format">%1$s</string>
     <string name="text_editor_title_changed_format">*%1$s</string>
     <string name="text_editor_save_success">已儲存</string>
-    <string name="text_editor_reload_message">您確定要重新載入嗎？對此文件未儲存的變更將丟失。</string>
+    <string name="text_editor_reload_message">你確定要重新載入嗎？對此文件未儲存的變更將丟失。</string>
     <string name="text_editor_encoding">編碼</string>
-    <string name="text_editor_close_message">您確定要捨棄對此文件未儲存的變更嗎？</string>
+    <string name="text_editor_close_message">你確定要捨棄對此文件未儲存的變更嗎？</string>
 
     <string name="ftp_server_title">FTP 伺服器</string>
     <string name="ftp_server_unencrypted_warning">傳輸未加密。請僅在可信任的網路中使用，並在使用後關閉伺服器。</string>
@@ -622,7 +622,7 @@
         <item>僅 root 存取</item>
     </string-array>
     <plurals name="settings_root_strategy_message_format">
-        <item quantity="other">您有 %1$,d 個正在執行的檔案作業，因此現在變更 root 存取模式可能會導致未預期的錯誤。您確定要現在變更它嗎？</item>
+        <item quantity="other">你有 %1$,d 個正在執行的檔案作業，因此現在變更 root 存取模式可能會導致未預期的錯誤。你確定要現在變更它嗎？</item>
     </plurals>
     <string name="settings_archive_file_name_encoding_title">封存檔名稱編碼</string>
     <string name="settings_open_apk_default_action_title">開啟 Android 套件</string>
@@ -672,7 +672,7 @@
     <string name="home_category_documents">文件</string>
     <string name="home_category_downloads">下載</string>
     <string name="home_category_apks">APK</string>
-    <string name="home_category_archives">壓縮包</string>
+    <string name="home_category_archives">壓縮檔</string>
     <plurals name="home_category_summary">
         <item quantity="other">%1$d · %2$s</item>
     </plurals>
@@ -688,17 +688,17 @@
     <string name="vault_no_screen_lock_message">保險庫使用你的螢幕鎖定來保護檔案。請先設定 PIN 碼、圖案或指紋後再使用。</string>
     <string name="vault_open_settings_action">開啟安全設定</string>
     <string name="vault_empty">保險庫中還沒有檔案。\n選擇檔案並輕觸“移至保險庫”即可保護它們。</string>
-    <string name="vault_notice">保險庫中的檔案只存在於此裝置上。解除安裝 Ordo 或清除其資料之前，請先將它們恢復，否則檔案會丟失。</string>
+    <string name="vault_notice">保險庫中的檔案只存在於此裝置上。解除安裝 Ordo 或清除其資料之前，請先將它們還原，否則檔案會丟失。</string>
     <string name="vault_item_description_format">新增於 %1$s · %2$s\n來自 %3$s</string>
     <string name="vault_move_action">移至保險庫</string>
     <string name="vault_move_title">移至保險庫？</string>
     <string name="vault_move_confirm_action">移動</string>
     <plurals name="vault_move_message_format">
-        <item quantity="other">%1$d 個檔案將被加密，並從原資料夾中移除。之後它們只存在於此裝置的保險庫中。解除安裝 Ordo 之前請先恢復它們。</item>
+        <item quantity="other">%1$d 個檔案將被加密，並從原資料夾中移除。之後它們只存在於此裝置的保險庫中。解除安裝 Ordo 之前請先還原它們。</item>
     </plurals>
-    <string name="vault_error_message">無法開啟保險庫。請重啟裝置後重試。</string>
+    <string name="vault_error_message">無法開啟保險庫。請重新啟動裝置後重試。</string>
     <string name="file_job_vault_move_notification_title">正在移至保險庫</string>
-    <string name="file_job_vault_restore_notification_title">正在從保險庫恢復</string>
+    <string name="file_job_vault_restore_notification_title">正在從保險庫還原</string>
     <string name="file_job_vault_error_title">移至保險庫時出錯</string>
     <string name="file_job_vault_error_message_format">“%1$s”出現錯誤。\n%2$s</string>
     <string name="home_vault_summary_short">已加密</string>
@@ -706,17 +706,17 @@
     <string name="home_vault_summary">受螢幕鎖定保護</string>
     <string name="navigation_backup">備份</string>
     <string name="backup_title">備份</string>
-    <string name="home_backup_summary">備份到 USB 驅動器或雲端</string>
+    <string name="home_backup_summary">備份到 USB 隨身碟或雲端</string>
     <string name="backup_target_title">儲存到哪裡？</string>
-    <string name="backup_target_usb">USB 驅動器</string>
-    <string name="backup_target_usb_waiting">請插入 USB 驅動器，它會自動顯示在這裡。</string>
+    <string name="backup_target_usb">USB 隨身碟</string>
+    <string name="backup_target_usb_waiting">請插入 USB 隨身碟，它會自動顯示在這裡。</string>
     <string name="backup_target_usb_connected_format">已連線 · 可用 %1$s</string>
     <string name="backup_target_usb_connected">已連線。你將在下一步選擇它。</string>
     <string name="backup_target_sd">SD 卡</string>
-    <string name="backup_target_sd_summary_format">位於此裝置內 · 可用 %1$s。USB 驅動器更安全：它與手機分開儲存。</string>
+    <string name="backup_target_sd_summary_format">位於此裝置內 · 可用 %1$s。USB 隨身碟更安全：它與手機分開儲存。</string>
     <string name="backup_target_other">Google 雲端硬碟或其他位置</string>
     <string name="backup_target_other_summary">你將在下一步選擇位置</string>
-    <string name="backup_target_usb_missing_error">尚未找到 USB 驅動器。請插入驅動器或選擇其他位置。</string>
+    <string name="backup_target_usb_missing_error">尚未找到 USB 隨身碟。請插入隨身碟或選擇其他位置。</string>
     <string name="backup_content_title">備份什麼？</string>
     <plurals name="backup_vault_summary_format">
         <item quantity="other">%1$d 個檔案，僅限使用密碼</item>
@@ -742,7 +742,7 @@
     <string name="backup_notification_title">正在備份</string>
     <string name="backup_running_title">正在備份…</string>
     <string name="backup_counting">正在統計檔案…</string>
-    <string name="backup_running_notice">你離開 Ordo 後，備份仍會繼續。請在備份完成後再拔出 USB 驅動器。</string>
+    <string name="backup_running_notice">你離開 Ordo 後，備份仍會繼續。請在備份完成後再拔出 USB 隨身碟。</string>
     <string name="backup_cancel_action">取消備份</string>
     <string name="backup_done_toast">備份完成</string>
     <plurals name="backup_done_message_format">
@@ -751,19 +751,19 @@
     <plurals name="backup_done_skipped_format">
         <item quantity="other">有 %1$d 個檔案無法備份，已缺失：\n%2$s</item>
     </plurals>
-    <string name="backup_done_restore_hint">你可以隨時在此螢幕中恢復此備份。</string>
+    <string name="backup_done_restore_hint">你可以隨時在此螢幕中還原此備份。</string>
     <string name="backup_done_action">完成</string>
     <string name="backup_failed_title">備份未完成</string>
     <string name="backup_failed_empty">所選資料夾中沒有檔案。</string>
-    <string name="backup_failed_large">備份超過 4 GB。許多 USB 驅動器無法儲存這麼大的檔案。請選擇更少的資料夾或其他位置。</string>
+    <string name="backup_failed_large">備份超過 4 GB。許多 USB 隨身碟無法儲存這麼大的檔案。請選擇更少的資料夾或其他位置。</string>
     <string name="backup_failed_name_taken">已存在同名的備份或其他檔案。請選擇新的檔名。</string>
-    <string name="backup_failed_message">請檢查 USB 驅動器是否仍已插入且空間充足，然後重試。</string>
+    <string name="backup_failed_message">請檢查 USB 隨身碟是否仍已插入且空間充足，然後重試。</string>
     <string name="backup_failed_space_format">空間不足。備份需要 %1$s，但只有 %2$s 可用。請選擇更少的資料夾或其他位置。</string>
     <string name="backup_failed_read_format">無法完整讀取“%1$s”，備份已停止。請檢查該檔案或將其所在資料夾排除，然後重試。</string>
     <string name="backup_retry_action">重試</string>
     <string name="file_job_timeout_title">任務已停止</string>
     <string name="file_job_timeout_message">任務在背景執行 6 小時後，被 Android 停止。請重新開始，並在此期間保持 Ordo 開啟。</string>
-    <string name="restore_section_title">恢復備份</string>
+    <string name="restore_section_title">還原備份</string>
     <string name="restore_choose_title">選擇備份 ZIP</string>
     <string name="restore_choose_summary">Ordo 會先進行檢查，並在寫入任何檔案之前顯示將執行的操作</string>
     <string name="restore_checking_title">正在檢查備份…</string>
@@ -772,43 +772,43 @@
     <string name="restore_password_message">此備份已加密。請輸入其密碼，以便 Ordo 進行檢查。</string>
     <string name="restore_password_action">檢查備份</string>
     <string name="restore_password_empty_error">請輸入備份密碼。</string>
-    <string name="restore_preview_title">可以恢復</string>
+    <string name="restore_preview_title">可以還原</string>
     <plurals name="restore_preview_files_format">
         <item quantity="other">%1$d 個檔案 · %2$s</item>
     </plurals>
     <string name="restore_preview_destination_format">檔案將放回 %1$s 下的原資料夾。</string>
-    <string name="restore_conflict_rule">不會替換現有檔案。路徑相同且大小相同的檔案會被跳過；如果大小不同，恢復的檔案會在副檔名前加上“(restored)”。</string>
+    <string name="restore_conflict_rule">不會替換現有檔案。路徑相同且大小相同的檔案會被跳過；如果大小不同，還原的檔案會在副檔名前加上“(restored)”。</string>
     <plurals name="restore_vault_not_supported_format">
-        <item quantity="other">此備份還包含 %1$d 個保險庫檔案。由於備份中的資訊不足，無法安全地重建保險庫，因此不會恢復這些檔案。</item>
+        <item quantity="other">此備份還包含 %1$d 個保險庫檔案。由於備份中的資訊不足，無法安全地重建保險庫，因此不會還原這些檔案。</item>
     </plurals>
-    <string name="restore_confirm_action">立即恢復</string>
+    <string name="restore_confirm_action">立即還原</string>
     <string name="restore_choose_another_action">選擇其他備份</string>
-    <string name="restore_cancel_action">取消恢復</string>
-    <string name="restore_running_title">正在恢復…</string>
-    <string name="restore_running_notice">你離開 Ordo 後，恢復仍會繼續。不會替換現有檔案。</string>
-    <string name="restore_notification_title">正在恢復</string>
-    <string name="restore_done_title">恢復完成</string>
-    <string name="restore_done_with_problems_title">恢復完成，但有問題</string>
-    <string name="restore_counts_format">已恢復 %1$d 個 · 已跳過 %2$d 個 · 失敗 %3$d 個</string>
+    <string name="restore_cancel_action">取消還原</string>
+    <string name="restore_running_title">正在還原…</string>
+    <string name="restore_running_notice">你離開 Ordo 後，還原仍會繼續。不會替換現有檔案。</string>
+    <string name="restore_notification_title">正在還原</string>
+    <string name="restore_done_title">還原完成</string>
+    <string name="restore_done_with_problems_title">還原完成，但有問題</string>
+    <string name="restore_counts_format">已還原 %1$d 個 · 已跳過 %2$d 個 · 失敗 %3$d 個</string>
     <string name="restore_done_detail">被跳過的檔案在相同路徑下已存在，且大小相同。</string>
-    <string name="restore_done_failed_detail">部分檔案無法寫入。請檢查可用空間，然後重新恢復。</string>
-    <string name="restore_failed_title">恢復已停止</string>
+    <string name="restore_done_failed_detail">部分檔案無法寫入。請檢查可用空間，然後重新還原。</string>
+    <string name="restore_failed_title">還原已停止</string>
     <string name="restore_retry_password_action">重新輸入密碼</string>
-    <string name="restore_error_wrong_password">該密碼無法開啟備份。恢復已停止，不會再寫入任何檔案。</string>
-    <string name="restore_error_corrupt_archive">備份已損壞或不完整。恢復已停止，不會再寫入任何檔案。</string>
-    <string name="restore_error_unsafe_archive">此備份包含可能不安全的檔案，因此 Ordo 沒有恢復它。</string>
+    <string name="restore_error_wrong_password">該密碼無法開啟備份。還原已停止，不會再寫入任何檔案。</string>
+    <string name="restore_error_corrupt_archive">備份已損壞或不完整。還原已停止，不會再寫入任何檔案。</string>
+    <string name="restore_error_unsafe_archive">此備份包含可能不安全的檔案，因此 Ordo 沒有還原它。</string>
     <string name="restore_error_read_archive">Ordo 無法讀取此備份。請確認它仍然可用，然後重試。</string>
-    <string name="restore_error_write">有檔案無法恢復。恢復已停止；已完成的檔案保持原樣，現有檔案未被替換。請檢查可用空間後重試。</string>
-    <string name="restore_error_changed_archive">備份在 Ordo 檢查之後發生了變化。恢復已停止，不會再寫入任何檔案。</string>
-    <string name="restore_error_empty">此備份中沒有可恢復的檔案。</string>
-    <string name="restore_error_vault_only">此備份僅包含保險庫檔案。由於備份中的資訊不足，無法安全地重建保險庫，因此無法恢復這些檔案。</string>
-    <string name="restore_error_cancelled">恢復已取消。已寫入的檔案保持原樣。</string>
+    <string name="restore_error_write">有檔案無法還原。還原已停止；已完成的檔案保持原樣，現有檔案未被替換。請檢查可用空間後重試。</string>
+    <string name="restore_error_changed_archive">備份在 Ordo 檢查之後發生了變化。還原已停止，不會再寫入任何檔案。</string>
+    <string name="restore_error_empty">此備份中沒有可還原的檔案。</string>
+    <string name="restore_error_vault_only">此備份僅包含保險庫檔案。由於備份中的資訊不足，無法安全地重建保險庫，因此無法還原這些檔案。</string>
+    <string name="restore_error_cancelled">還原已取消。已寫入的檔案保持原樣。</string>
     <string name="navigation_trash">資源回收筒</string>
     <string name="trash_title">資源回收筒</string>
     <string name="trash_empty">資源回收筒為空</string>
     <string name="trash_selected_format">已選擇 %1$d 項</string>
     <string name="trash_item_description_format">刪除於 %1$s · %2$s\n來自 %3$s</string>
-    <string name="trash_restore_action">恢復</string>
+    <string name="trash_restore_action">還原</string>
     <string name="trash_move_action">移至資源回收筒</string>
     <string name="trash_delete_permanently_action">永久刪除</string>
     <string name="trash_empty_action">清空資源回收筒</string>
@@ -824,10 +824,10 @@
     </plurals>
     <string name="trash_not_supported_message">這些檔案無法移至資源回收筒，將被永久刪除。</string>
     <string name="file_job_trash_error_title">移至資源回收筒時出錯</string>
-    <string name="file_job_restore_trash_error_title">恢復時出錯</string>
+    <string name="file_job_restore_trash_error_title">還原時出錯</string>
     <string name="settings_trash_title">資源回收筒</string>
     <string name="settings_trash_enabled_title">將刪除的檔案移至資源回收筒</string>
-    <string name="settings_trash_enabled_summary">內部儲存空間和 SD 卡上的檔案可以恢復</string>
+    <string name="settings_trash_enabled_summary">內部儲存空間和 SD 卡上的檔案可以還原</string>
     <string name="settings_trash_retention_title">自動清空資源回收筒</string>
     <string-array name="settings_trash_retention_entries">
         <item>7 天後</item>
