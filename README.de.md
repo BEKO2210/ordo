@@ -33,15 +33,12 @@
 </p>
 
 <!-- AUTO:new -->
-> **Neu in 0.19.1**
+> **Neu in 0.19.2**
+> - Dateien aus „Zuletzt“ öffnen wieder; lange drücken für Im Ordner zeigen, Teilen, Kopieren, Verschieben, Umbenennen, Löschen
+> - „Im Ordner zeigen“ auch in Video- und Musik-Bibliothek
+> - Musik-Bibliothek findet Hörbücher und Podcasts; eigene Zusatzordner wählbar
+> - Vollständiges Chinesisch (vereinfacht und traditionell)
 > - Bildbetrachter stürzt beim Zurückkehren nicht mehr ab
-> - Zurück aus einem Schnellzugriff-Ordner geht eine Ebene hoch
-> - Bearbeitete Musik-Tags erscheinen sofort in der Bibliothek
-> - Videoplayer schließt sauber, braucht weniger Speicher
-> - Videotitel aus anderen Apps erscheinen in der Benachrichtigung
-> - „/sdcard“-Pfade öffnen ohne Root; sicherere Root-Prüfung
-> - Sicherungen enthalten sich nie selbst
-> - Auswahl-Leiste bleibt am Handy quer sichtbar
 <!-- /AUTO:new -->
 
 ## Stand
@@ -516,7 +513,7 @@ Unit-Tests:
 ```
 
 <!-- AUTO:tests -->
-Gerätetests: 55 Skripte in [`e2e/`](e2e/README.md), gestartet mit `e2e/run.sh`: 16 nur lesend (`first-run`, `smoke`, `settings-visual`, `category-search`, `back-navigation`, `bars-replay`, `home-header`, `header-position`, `home-pull`, `drawer`, `selection-more`, `tablet-landscape`, `analysis`, `ai-show-guard`, `documents-provider`, `a11y-scan`) und 39 weitere mit `--write` (`stress-delete`, `backup-restore`, `copy-unreadable`, `home-auto-refresh`, `audio-player`, `cast`, `klang`, `klang-landscape`, `klang-stress`, `music-formats`, `music-library`, `launcher-icons`, `icon-colors`, `ai-show`, `pick-file`, `no-midword-breaks`, `player-seek`, `player-stage2`, `video-player`, `video-network`, `video-sound`, `video-dialog-isolate`, `video-subtitles`, `video-background`, `video-library`, `video-seek`, `video-picture`, `video-picture-adjust`, `video-detailplus`, `video-menus`, `sheets-polish`, `copy-replace`, `ftp-server-fd`, `video-notification`, `ftp-server-defaults`, `backup-self-include`, `vault-secure-flag`, `text-editor-atomic-save`, `back-from-quick-access`). Unit-Tests: 169 Testklassen in `app/src/test`.
+Gerätetests: 55 Skripte in [`e2e/`](e2e/README.md), gestartet mit `e2e/run.sh`: 16 nur lesend (`first-run`, `smoke`, `settings-visual`, `category-search`, `back-navigation`, `bars-replay`, `home-header`, `header-position`, `home-pull`, `drawer`, `selection-more`, `tablet-landscape`, `analysis`, `ai-show-guard`, `documents-provider`, `a11y-scan`) und 39 weitere mit `--write` (`stress-delete`, `backup-restore`, `copy-unreadable`, `home-auto-refresh`, `audio-player`, `cast`, `klang`, `klang-landscape`, `klang-stress`, `music-formats`, `music-library`, `launcher-icons`, `icon-colors`, `ai-show`, `pick-file`, `no-midword-breaks`, `player-seek`, `player-stage2`, `video-player`, `video-network`, `video-sound`, `video-dialog-isolate`, `video-subtitles`, `video-background`, `video-library`, `video-seek`, `video-picture`, `video-picture-adjust`, `video-detailplus`, `video-menus`, `sheets-polish`, `copy-replace`, `ftp-server-fd`, `video-notification`, `ftp-server-defaults`, `backup-self-include`, `vault-secure-flag`, `text-editor-atomic-save`, `back-from-quick-access`). Unit-Tests: 171 Testklassen in `app/src/test`.
 <!-- /AUTO:tests -->
 
 ## Ausblick
