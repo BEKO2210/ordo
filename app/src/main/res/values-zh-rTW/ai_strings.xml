@@ -1,0 +1,266 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="ai_open">向 Ordo 下達指令</string>
+    <string name="ai_title">要讓 Ordo 做什麼？</string>
+    <string name="ai_subtitle">輸入或語音說出指令。在任何更改發生前，Ordo 都會先向你展示全部內容。</string>
+    <string name="ai_hint">例如：將 Download 中的 MP3 移到 Music</string>
+    <string name="ai_send">傳送</string>
+    <string-array name="ai_examples">
+        <item>將 Download 中的所有 MP3 移到 Music</item>
+        <item>刪除 Download 中超過 30 天的影片</item>
+        <item>按類型整理 Download</item>
+        <item>將 Download 中的 PDF 複製到 Documents</item>
+    </string-array>
+    <string-array name="ai_thinking">
+        <item>正在閱讀你的指令…</item>
+        <item>正在規劃步驟…</item>
+        <item>馬上就好…</item>
+    </string-array>
+    <string name="ai_finding_files">正在尋找檔案…</string>
+    <string name="ai_action_move">移動</string>
+    <string name="ai_action_copy">複製</string>
+    <string name="ai_action_delete">移到資源回收筒</string>
+    <string name="ai_action_organize">整理</string>
+    <string name="ai_route_from_to">從 %1$s 到 %2$s</string>
+    <string name="ai_route_from">來自 %1$s</string>
+    <string name="ai_route_by_type">將 %1$s 按類型分到資料夾</string>
+    <string name="ai_route_by_month">將 %1$s 按月份分到資料夾</string>
+    <string name="ai_internal_storage">內部儲存空間</string>
+    <plurals name="ai_summary">
+        <item quantity="other">%1$d 個檔案 · %2$s</item>
+    </plurals>
+    <plurals name="ai_more_files">
+        <item quantity="other">以及另外 %d 個</item>
+    </plurals>
+    <string name="ai_note_trash">將移到資源回收筒，%d 天內可還原。</string>
+    <string name="ai_note_new_folder">將建立資料夾「%s」。</string>
+    <string name="ai_edit">更改</string>
+    <string name="ai_confirm_format">%1$s（%2$d）</string>
+    <string name="ai_filter_name">名稱包含「%s」</string>
+    <plurals name="ai_filter_older_days">
+        <item quantity="other">超過 %d 天</item>
+    </plurals>
+    <plurals name="ai_filter_older_weeks">
+        <item quantity="other">超過 %d 週</item>
+    </plurals>
+    <plurals name="ai_filter_older_months">
+        <item quantity="other">超過 %d 個月</item>
+    </plurals>
+    <plurals name="ai_filter_older_years">
+        <item quantity="other">超過 %d 年</item>
+    </plurals>
+    <string name="ai_filter_larger">大於 %1$d %2$s</string>
+    <string name="ai_filter_duplicates">僅多餘的副本（保留原件）</string>
+    <plurals name="ai_large_delete_title">
+        <item quantity="other">確定將 %d 個檔案移到資源回收筒嗎？</item>
+    </plurals>
+    <string name="ai_large_delete_text">來自 %1$s，共 %2$s。這是大量刪除，請確認這正是你想要的操作。</string>
+    <string name="ai_kind_audio">音訊</string>
+    <string name="ai_kind_video">影片</string>
+    <string name="ai_kind_image">圖片</string>
+    <string name="ai_kind_document">文件</string>
+    <string name="ai_kind_archive">壓縮檔</string>
+    <string name="ai_kind_other">其他</string>
+    <string name="ai_ask_source">你指的是哪個資料夾？</string>
+    <string name="ai_ask_destination">檔案要放到哪裡？</string>
+    <string name="ai_ask_text">請選擇一個資料夾，或將其新增到指令中。</string>
+    <string name="ai_refused_unsupported_title">Ordo 暫時還做不到</string>
+    <string name="ai_refused_unsupported_text">Ordo 可以移動、複製、整理檔案，以及將檔案移到資源回收筒。</string>
+    <string name="ai_refused_delete_title">最好先確認</string>
+    <string name="ai_refused_delete_text">你想刪除檔案嗎？請明確說明，例如「刪除……」。</string>
+    <string name="ai_refused_protected_title">此資料夾受保護</string>
+    <string name="ai_refused_protected_text">系統資料夾、隱藏資料夾和你的相機照片不會被改動。如確有需要，請明確指出相機。</string>
+    <string name="ai_refused_trash_off_title">資源回收筒已關閉</string>
+    <string name="ai_refused_trash_off_text">Ordo 只會將檔案刪除到資源回收筒。請先在設定中開啟資源回收筒。</string>
+    <string name="ai_no_files_title">沒有符合的檔案</string>
+    <string name="ai_no_files_text">%s 中沒有符合你指令的內容。</string>
+    <plurals name="ai_done_move">
+        <item quantity="other">已移動 %d 個檔案</item>
+    </plurals>
+    <plurals name="ai_done_copy">
+        <item quantity="other">已複製 %d 個檔案</item>
+    </plurals>
+    <plurals name="ai_done_delete">
+        <item quantity="other">已將 %d 個檔案移到資源回收筒</item>
+    </plurals>
+    <plurals name="ai_done_organize">
+        <item quantity="other">已整理 %d 個檔案</item>
+    </plurals>
+    <string name="ai_undo">復原</string>
+    <string name="ai_setup_title">設定 Ordo AI</string>
+    <string name="ai_setup_subtitle">用你自己的話下達指令。Ordo 會將其轉換為計畫，由你確認。</string>
+    <string name="ai_setup_privacy">完全在你的手機上執行。你的檔案和指令絕不會離開裝置。</string>
+    <string name="ai_check_ram">記憶體：%1$s（需要 %2$s）</string>
+    <string name="ai_check_space">可用空間：%1$s（需要 %2$s）</string>
+    <string name="ai_check_device_ok">64 位元處理器</string>
+    <string name="ai_check_device_bad">需要 64 位元處理器</string>
+    <string name="ai_check_device_old">需要更新的處理器</string>
+    <string name="ai_setup_download">透過 Wi-Fi 下載 AI（%s）</string>
+    <string name="ai_setup_not_enough">此手機無法執行 Ordo AI</string>
+    <string name="ai_setup_retry">重新下載</string>
+    <string name="ai_download_progress">%1$s / %2$s · %3$d %% · 將在背景繼續</string>
+    <string name="ai_download_paused">已暫停 – 正在等待連線</string>
+    <string name="ai_download_failed">下載已中斷。請檢查網路連線後重試。</string>
+    <string name="ai_verifying">正在檢查下載內容…</string>
+    <string name="ai_verify_failed">下載內容已損壞並已被移除。請重試。</string>
+    <string name="ai_ready">已就緒。請下達你的第一條指令。</string>
+    <string name="ai_starting">正在喚醒 AI…</string>
+    <string name="ai_start_failed_title">AI 無法啟動</string>
+    <string name="ai_start_failed_text">請關閉其他應用程式以釋放記憶體，然後重試。</string>
+    <string name="ai_retry">重試</string>
+    <string name="ai_phase_download">第 2 步，共 3 步 · 下載</string>
+    <string name="ai_phase_verify">第 3 步，共 3 步 · 安全檢查</string>
+    <string name="ai_phase_ready">已就緒</string>
+    <string name="ai_download_progress_rate">%1$s / %2$s · %3$s/秒 · 剩餘 %4$s</string>
+    <string name="ai_download_starting">正在連線…</string>
+    <plurals name="ai_eta_minutes">
+        <item quantity="other">%d 分鐘</item>
+    </plurals>
+    <plurals name="ai_eta_seconds">
+        <item quantity="other">%d 秒</item>
+    </plurals>
+    <string name="ai_running">Ordo 正在執行計畫…</string>
+    <string name="ai_ask_which">有多個資料夾同名。是哪一個？</string>
+    <plurals name="ai_skipped">
+        <item quantity="other">已跳過 %d 個</item>
+    </plurals>
+    <plurals name="ai_undone">
+        <item quantity="other">已還原 %d 個檔案</item>
+    </plurals>
+    <string name="ai_check_passed">已通過</string>
+    <string name="ai_check_failed">未滿足</string>
+    <string name="ai_download_no_space">可用空間不足。請騰出一些空間後重試。</string>
+    <string name="ai_download_waiting_wifi">正在等待 Wi-Fi</string>
+    <string name="ai_mobile_data">改用行動數據下載</string>
+    <string name="ai_remove_title">移除 AI 模型</string>
+    <string name="ai_remove_text">這將釋放 %s。你可以隨時重新下載。</string>
+    <string name="ai_remove_confirm">移除</string>
+    <string name="ai_removed">已移除 AI 模型</string>
+    <string name="ai_show_files">檔案</string>
+    <string name="ai_show_extension">%s 檔案</string>
+    <string name="ai_show_larger">大於 %1$d %2$s</string>
+    <string name="ai_show_today">今天的</string>
+    <plurals name="ai_show_newer_days">
+        <item quantity="one">昨天以來的</item>
+        <item quantity="other">最近 %d 天的</item>
+    </plurals>
+    <plurals name="ai_show_newer_weeks">
+        <item quantity="one">最近一週的</item>
+        <item quantity="other">最近 %d 週的</item>
+    </plurals>
+    <plurals name="ai_show_newer_months">
+        <item quantity="one">最近一個月的</item>
+        <item quantity="other">最近 %d 個月的</item>
+    </plurals>
+    <plurals name="ai_show_newer_years">
+        <item quantity="one">最近一年的</item>
+        <item quantity="other">最近 %d 年的</item>
+    </plurals>
+    <plurals name="ai_show_older_days">
+        <item quantity="other">超過 %d 天的</item>
+    </plurals>
+    <plurals name="ai_show_older_weeks">
+        <item quantity="other">超過 %d 週的</item>
+    </plurals>
+    <plurals name="ai_show_older_months">
+        <item quantity="other">超過 %d 個月的</item>
+    </plurals>
+    <plurals name="ai_show_older_years">
+        <item quantity="other">超過 %d 年的</item>
+    </plurals>
+    <string name="ai_show_named">名為「%s」的</string>
+    <string name="ai_show_word">含「%s」的</string>
+    <string name="ai_show_in">位於 %s 的</string>
+    <string name="ai_show_largest_first">最大的在前</string>
+    <string name="ai_show_newest_first">最新的在前</string>
+    <plurals name="ai_show_top">
+        <item quantity="one">最靠前的檔案</item>
+        <item quantity="other">前 %d 個</item>
+    </plurals>
+    <string name="ai_show_text_note">目前僅按名稱搜尋 PDF 和 Office 檔案。</string>
+    <string name="ai_show_capped">檔案過多：Ordo 提前停止，僅顯示部分結果。</string>
+    <string name="ai_hint_title">Ordo 暫時還不知道這個</string>
+    <string name="ai_hint_opened">我看不到你上次開啟檔案的時間。我可以顯示一個月內沒有更改過的檔案。</string>
+    <string name="ai_hint_opened_action">顯示未更改的檔案</string>
+    <string name="ai_hint_work">我不知道哪些檔案是工作用的。請告訴我名稱或文字中的某個詞，例如公司名稱。</string>
+    <string name="ai_hint_conversation">我暫時還記不住之前的指令。請明確說明你指的是哪些檔案。</string>
+    <string name="ai_hint_searched">我不會保留搜尋記錄。請告訴我檔名中的某個詞。</string>
+    <string name="ai_hint_habit">我暫時還不會學習習慣。請告訴我如何整理，例如按類型或按月份。</string>
+    <string name="ai_hint_dismiss">輕觸即可輸入新指令</string>
+    <string name="ai_filter_word">包含「%s」</string>
+    <string name="ai_filter_today">今天更改過</string>
+    <plurals name="ai_filter_newer_days">
+        <item quantity="one">最近一天內更改過</item>
+        <item quantity="other">最近 %d 天內更改過</item>
+    </plurals>
+    <plurals name="ai_filter_newer_weeks">
+        <item quantity="one">最近一週內更改過</item>
+        <item quantity="other">最近 %d 週內更改過</item>
+    </plurals>
+    <plurals name="ai_filter_newer_months">
+        <item quantity="one">最近一個月內更改過</item>
+        <item quantity="other">最近 %d 個月內更改過</item>
+    </plurals>
+    <plurals name="ai_filter_newer_years">
+        <item quantity="one">最近一年內更改過</item>
+        <item quantity="other">最近 %d 年內更改過</item>
+    </plurals>
+    <plurals name="ai_filter_limit_size">
+        <item quantity="one">僅最大的</item>
+        <item quantity="other">僅最大的 %d 個</item>
+    </plurals>
+    <plurals name="ai_filter_limit_oldest">
+        <item quantity="one">僅最舊的</item>
+        <item quantity="other">僅最舊的 %d 個</item>
+    </plurals>
+    <plurals name="ai_filter_limit_smallest">
+        <item quantity="one">僅最小的</item>
+        <item quantity="other">僅最小的 %d 個</item>
+    </plurals>
+    <plurals name="ai_filter_limit_newest">
+        <item quantity="one">僅最新的</item>
+        <item quantity="other">僅最新的 %d 個</item>
+    </plurals>
+    <plurals name="ai_changed">
+        <item quantity="other">有 %d 個在預覽後發生了更改，已保持原樣</item>
+    </plurals>
+    <string name="ai_net_ask_title">快速確認</string>
+    <string name="ai_net_ask_refine">請修改上方的指令，然後重新傳送。</string>
+    <string name="ai_net_ask_model">你指的是哪些檔案？例如，請告訴我資料夾或時間範圍。</string>
+    <string name="ai_net_ask_no_source">我該使用哪個資料夾？請指明，例如「來自 Download」。</string>
+    <string name="ai_net_ask_no_dest">檔案要放到哪裡？請告訴我資料夾，例如「到 Documents」。</string>
+    <string name="ai_net_ask_ambiguous_folder">有多個資料夾符合：%1$s。你指的是哪一個？</string>
+    <string name="ai_net_ask_unknown_folder">我找不到名為「%1$s」的資料夾。它的確切名稱是什麼？</string>
+    <string name="ai_net_ask_uncovered">「%1$s」是什麼意思？如果它在檔名中，請說「名稱中含有 %1$s」。</string>
+    <string name="ai_net_ask_no_reading">我找不到與「%1$s」相關的檔案。它在檔名中嗎？否則請告訴我資料夾或時間範圍。</string>
+    <string name="ai_net_ask_vague_time">「%1$s」對你來說是多久？請說得更具體些，例如「超過一年」。</string>
+    <string name="ai_net_ask_vague_size">「%1$s」對你來說有多大？例如「大於 100 MB」。</string>
+    <string name="ai_net_refuse_memory">我記不住之前的指令或搜尋。請明確告訴我你指的是哪些檔案。</string>
+    <string name="ai_net_refuse_archive">我暫時還不能壓縮或解壓檔案。</string>
+    <string name="ai_net_refuse_convert">我不能轉換或合併檔案。</string>
+    <string name="ai_net_refuse_rename">我暫時還不能透過指令重新命名。請長按檔案並選擇「重新命名」。</string>
+    <string name="ai_net_refuse_share">我不能透過指令分享或傳送。請長按檔案並選擇「分享」。</string>
+    <string name="ai_net_refuse_open">我不能透過指令開啟、播放或列印。我可以為你顯示檔案，之後輕觸它即可。</string>
+    <string name="ai_net_refuse_restore">我不能透過指令還原檔案。你刪除的內容都在資源回收筒中，可以在那裡還原。</string>
+    <string name="ai_net_refuse_edit">我不能編輯檔案。</string>
+    <string name="ai_show_between">%1$s 到 %2$s</string>
+    <string name="ai_show_since">自 %1$s 起</string>
+    <string name="ai_show_until">截至 %1$s</string>
+    <string name="ai_show_min_size">%1$s 以上</string>
+    <string name="ai_show_max_size">最大 %1$s</string>
+    <string name="ai_show_terms">含「%1$s」的</string>
+    <string name="ai_show_without">不含 %1$s 的</string>
+    <string name="ai_show_oldest_first">最舊的在前</string>
+    <string name="ai_show_smallest_first">最小的在前</string>
+    <string name="ai_download_not_published">AI 指令所需的附加元件暫不可用，將在後續更新中提供。</string>
+    <string name="ai_net_none">Ordo 可以尋找並顯示檔案、移動、複製、整理檔案，以及將檔案移到資源回收筒。</string>
+    <string name="ai_net_quoted">「%1$s」</string>
+    <string name="ai_net_dropped">我沒有找到同時包含 %1$s 的內容，因此只搜尋了 %2$s。</string>
+    <string name="ai_net_dropped_all">我沒有找到與 %1$s 相關的內容，因此顯示其餘所有符合的內容。</string>
+    <string name="ai_net_count_warning">你說的是 %1$d 個，但我找到了 %2$d 個。請仔細核對清單。</string>
+    <string-array name="ai_examples_preview">
+        <item>顯示上週的 PDF</item>
+        <item>我的電話帳單在哪裡？</item>
+    </string-array>
+    <string name="ai_net_and">" 和 "</string>
+</resources>

@@ -529,8 +529,8 @@ Fehlerberichte und Pull Requests sind willkommen. Bitte Änderungen klein halten
 Logik mit einem Unit-Test absichern. Sicherheitsprobleme bitte wie in [SECURITY.md](SECURITY.md) beschrieben melden,
 nicht in einem öffentlichen Issue.
 
-Ordo ist vollständig auf Englisch und Deutsch übersetzt. Andere Sprachen stammen aus Material Files und decken die
-neueren Bildschirme noch nicht ab.
+Ordo ist vollständig auf Englisch, Deutsch, Chinesisch (vereinfacht) und Chinesisch (traditionell, Taiwan)
+übersetzt. Andere Sprachen stammen aus Material Files und decken die neueren Bildschirme noch nicht ab.
 
 ## Danksagung
 

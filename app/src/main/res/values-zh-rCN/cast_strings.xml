@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="cast_title">在电视上播放</string>
+    <string name="cast_searching">正在此 Wi-Fi 中查找电视和扬声器…</string>
+    <string name="cast_none_found">尚未找到电视。手机和电视需要连接同一个 Wi-Fi。</string>
+    <string name="cast_this_phone">这部手机</string>
+    <string name="cast_this_phone_summary">在本机播放</string>
+    <string name="cast_connecting">正在连接…</string>
+    <string name="cast_playing_here">正在播放</string>
+    <string name="cast_stop">停止投放</string>
+    <string name="cast_chip">正在 %1$s 上播放</string>
+    <string name="cast_chip_connecting">正在连接 %1$s…</string>
+    <string name="cast_privacy">Ordo 仅分享正在播放的歌曲，仅分享给此设备，且仅在播放期间分享。数据不会离开你的 Wi-Fi。</string>
+    <string name="cast_effects_note">音效仅在这部手机上有效。</string>
+    <string name="cast_error_connect">无法连接 %1$s。</string>
+    <string name="cast_error_identity">%1$s 无法证明自己是正版 Cast 设备，因此 Ordo 未连接。</string>
+    <string name="cast_changed_title">这真的是 %1$s 吗？</string>
+    <string name="cast_changed_message">%1$s 显示为与上次不同的设备。仅在你更换或重置过它时再连接。</string>
+    <string name="cast_changed_connect">仍然连接</string>
+    <string name="cast_unfamiliar">与之前不同的设备</string>
+    <string name="cast_error_lost">与 %1$s 的连接已断开。音乐已在本机暂停。</string>
+</resources>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="video_settings_background">在后台继续播放</string>
+    <string-array name="video_settings_background_entries">
+        <item>关闭</item>
+        <item>仅声音</item>
+    </string-array>
+    <string name="video_settings_pip">画中画</string>
+    <string name="video_settings_pip_summary">播放视频时返回主屏幕，视频会在小窗口中继续播放</string>
+    <string name="video_background_channel">视频播放</string>
+    <string name="video_player_pip">画中画</string>
+    <string name="video_player_sleep_timer">睡眠定时器</string>
+    <string name="video_sleep_off">关闭</string>
+    <string name="video_sleep_minutes_format">%1$d 分钟</string>
+    <string name="video_sleep_end_of_video">视频结束时</string>
+    <string name="video_sleep_remaining_format">%1$d 分钟后停止</string>
+    <string name="video_sleep_remaining_end">将在此视频结束时停止</string>
+    <string name="video_sleep_set_format">视频将在 %1$d 分钟后停止。</string>
+    <string name="video_sleep_set_end">视频将在结束时停止。</string>
+    <string name="video_sleep_cancelled">睡眠定时器已关闭。</string>
+</resources>
