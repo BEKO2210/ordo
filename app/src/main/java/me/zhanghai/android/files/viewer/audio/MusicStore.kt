@@ -135,12 +135,15 @@ internal fun additionalMusicCandidates(
     val rootPrefix = rootPath + File.separator
     val visitedDirectories = HashSet<String>()
     return root.walkTopDown()
+        .maxDepth(ADDITIONAL_SCAN_MAX_DEPTH)
         // Do not follow a link out of the selected tree or loop through one back to an ancestor.
         .onEnter { directory ->
             val path = runCatching { directory.canonicalPath }.getOrNull() ?: return@onEnter false
             (path == rootPath || path.startsWith(rootPrefix)) && visitedDirectories.add(path)
         }
         .onFail { _, _ -> }
+        // A huge tree (a whole storage root) stops here instead of keeping every library load busy.
+        .take(ADDITIONAL_SCAN_MAX_ENTRIES)
         .mapNotNull { file ->
             ensureActive()
             if (!file.isFile) return@mapNotNull null
@@ -151,12 +154,18 @@ internal fun additionalMusicCandidates(
 }
 
 internal fun filterAdditionalMusic(
-    candidates: Sequence<AdditionalMusicCandidate>, mediaStorePaths: Set<String>
+    candidates: Sequence<AdditionalMusicCandidate>, mediaStorePaths: Set<String>,
+    limit: Int = ADDITIONAL_SONG_CACHE_SIZE
 ): List<AdditionalMusicCandidate> = candidates
     .filter { isPlayableAudioMimeType(it.mimeType) }
     .filterNot { it.path in mediaStorePaths }
     .distinctBy { it.path }
+    // Lazy: stops the scan once the cache is full, so every added song stays cached between loads.
+    .take(limit)
     .toList()
+
+private const val ADDITIONAL_SCAN_MAX_DEPTH = 16
+private const val ADDITIONAL_SCAN_MAX_ENTRIES = 50_000
 
 private fun readAdditionalSong(file: File, guessedMimeType: String): MusicSong? {
     val retriever = MediaMetadataRetriever()

@@ -55,6 +55,14 @@ class MusicStoreTest {
     }
 
     @Test
+    fun additionalFoldersStopAtLimit() {
+        val candidates = generateSequence(0) { it + 1 }
+            .map { AdditionalMusicCandidate("/music/$it.mp3", "audio/mpeg", 0) }
+
+        assertEquals(listOf("/music/0.mp3", "/music/1.mp3"), filterAdditionalMusic(candidates, emptySet(), 2).map { it.path })
+    }
+
+    @Test
     fun additionalSongCacheReusesOnlyMatchingModificationTime() {
         val cache = PathModificationCache<String>(2)
         var loads = 0
