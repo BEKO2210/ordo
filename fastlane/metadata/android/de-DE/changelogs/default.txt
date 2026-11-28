@@ -1,9 +1,6 @@
 Release-Kandidat für Ordo 1.0:
+• Dateien aus „Zuletzt“ öffnen wieder; lange drücken für Im Ordner zeigen, Teilen, Kopieren, Verschieben, Umbenennen, Löschen
+• „Im Ordner zeigen“ auch in Video- und Musik-Bibliothek
+• Musik-Bibliothek findet Hörbücher und Podcasts; eigene Zusatzordner wählbar
+• Vollständiges Chinesisch (vereinfacht und traditionell)
 • Bildbetrachter stürzt beim Zurückkehren nicht mehr ab
-• Zurück aus einem Schnellzugriff-Ordner geht eine Ebene hoch
-• Bearbeitete Musik-Tags erscheinen sofort in der Bibliothek
-• Videoplayer schließt sauber, braucht weniger Speicher
-• Videotitel aus anderen Apps erscheinen in der Benachrichtigung
-• „/sdcard“-Pfade öffnen ohne Root; sicherere Root-Prüfung
-• Sicherungen enthalten sich nie selbst
-• Auswahl-Leiste bleibt am Handy quer sichtbar
