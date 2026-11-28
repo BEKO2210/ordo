@@ -57,7 +57,7 @@ Was als Nächstes kommt, steht in der [lebenden Roadmap](docs/ROADMAP-LIVE.md): 
 
 ### Alles finden, alles aufräumen
 
-- Startseite mit direkt öffnenden zuletzt verwendeten Dateien (und Hinweis, wenn eine fehlt), Kategorien, Apps, Papierkorb, Tresor, Sicherung und Speicher auf einen Blick
+- Startseite mit direkt öffnenden zuletzt verwendeten Dateien (und Hinweis, wenn eine fehlt); langes Drücken bietet Im Ordner zeigen, Öffnen mit, Teilen, Kopieren, Verschieben, Umbenennen, Löschen und Eigenschaften
 - Liste oder Raster in drei Größen; Suche nach Namen oder nach Text in Dateien
 - Gelöschtes wartet 30 Tage im Papierkorb
 

@@ -682,6 +682,9 @@
     <string name="documents_root_summary">Deine Lesezeichen</string>
     <string name="documents_recent_summary">Zuletzt verwendet in Ordo</string>
     <string name="home_recent_empty">Keine zuletzt verwendeten Dateien</string>
+    <string name="home_recent_file_actions">Dateiaktionen für %1$s</string>
+    <string name="file_action_show_in_folder">Im Ordner zeigen</string>
+    <string name="home_recent_move">Verschieben</string>
     <string name="home_categories">Kategorien</string>
     <string name="home_storage">Speicher</string>
     <string name="home_quick_access">Schnellzugriff</string>

@@ -50,6 +50,11 @@ class FileListActivity : AppActivity() {
                 .setAction(Intent.ACTION_VIEW)
                 .apply { extraPath = path }
 
+        /** Opens the containing folder and asks its normal file list to reveal and select [path]. */
+        fun createShowInFolderIntent(path: Path): Intent =
+            createViewIntent(path.parent ?: path)
+                .putExtra(EXTRA_FOCUS_PATH, path.toUri().toString())
+
         fun createCategoryIntent(category: HomeCategory): Intent =
             FileListActivity::class.createIntent()
                 .putExtra(EXTRA_HOME_CATEGORY, category.name)
@@ -67,6 +72,8 @@ class FileListActivity : AppActivity() {
         const val EXTRA_SHOW_TOKEN = "me.zhanghai.android.files.extra.SHOW_TOKEN"
 
         const val EXTRA_HOME_CATEGORY = "me.zhanghai.android.files.extra.HOME_CATEGORY"
+
+        const val EXTRA_FOCUS_PATH = "me.zhanghai.android.files.extra.FOCUS_PATH"
     }
 
     class OpenFileContract : ActivityResultContract<List<MimeType>, Path?>() {

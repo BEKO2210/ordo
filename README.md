@@ -57,7 +57,7 @@ What comes next is in the [living roadmap](docs/ROADMAP-LIVE.md): every goal has
 
 ### Find anything, tidy up everything
 
-- Home screen with recent files that open directly (and say when a file is gone), categories, apps, trash, vault, backup and your storage at a glance
+- Home screen with recent files that open directly (and say when a file is gone); long-press a file for Show in folder, Open with, share, copy, move, rename, delete and properties
 - List or grid in three sizes; search by name or by text inside files
 - Deleted files wait in the trash for 30 days
 

@@ -812,6 +812,9 @@
     <string name="documents_root_summary">Your bookmarks</string>
     <string name="documents_recent_summary">Recently used in Ordo</string>
     <string name="home_recent_empty">No recent files</string>
+    <string name="home_recent_file_actions">File actions for %1$s</string>
+    <string name="file_action_show_in_folder">Show in folder</string>
+    <string name="home_recent_move">Move</string>
     <string name="home_categories">Categories</string>
     <string name="home_storage">Storage</string>
     <string name="home_quick_access">Quick access</string>

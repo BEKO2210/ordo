@@ -33,11 +33,17 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.commit
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.LinearSnapHelper
+import java.net.URI
 import java8.nio.file.Path
+import java8.nio.file.Paths
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import me.zhanghai.android.files.R
 import me.zhanghai.android.files.ai.CommandSheetFragment
 import me.zhanghai.android.files.analysis.AnalysisActivity
@@ -45,8 +51,16 @@ import me.zhanghai.android.files.apps.AppsActivity
 import me.zhanghai.android.files.backup.BackupActivity
 import me.zhanghai.android.files.databinding.HomeFragmentBinding
 import me.zhanghai.android.files.file.asFileSize
+import me.zhanghai.android.files.file.FileItem
+import me.zhanghai.android.files.file.fileProviderUri
+import me.zhanghai.android.files.file.loadFileItem
+import me.zhanghai.android.files.filejob.FileJobService
+import me.zhanghai.android.files.filelist.ConfirmDeleteFilesDialogFragment
 import me.zhanghai.android.files.filelist.FileListActivity
+import me.zhanghai.android.files.filelist.RenameFileDialogFragment
+import me.zhanghai.android.files.filelist.fileItemSetOf
 import me.zhanghai.android.files.filelist.OpenFileActivity
+import me.zhanghai.android.files.fileproperties.FilePropertiesDialogFragment
 import me.zhanghai.android.files.filelist.ShowRequestAllFilesAccessRationaleDialogFragment
 import me.zhanghai.android.files.filelist.ShowRequestStoragePermissionRationaleDialogFragment
 import me.zhanghai.android.files.legal.LegalActivity
@@ -57,12 +71,15 @@ import me.zhanghai.android.files.trash.TrashActivity
 import me.zhanghai.android.files.ui.DrawerLayoutOnBackPressedCallback
 import me.zhanghai.android.files.util.addOnBackPressedCallback
 import me.zhanghai.android.files.util.createIntent
+import me.zhanghai.android.files.util.createSendStreamIntent
+import me.zhanghai.android.files.util.createViewIntent
 import me.zhanghai.android.files.util.createManageAppAllFilesAccessPermissionIntent
 import me.zhanghai.android.files.ui.setGlassAmount
 import me.zhanghai.android.files.ui.setUpGlass
 import me.zhanghai.android.files.util.getColorByAttr
 import me.zhanghai.android.files.util.getQuantityString
 import me.zhanghai.android.files.util.startActivitySafe
+import me.zhanghai.android.files.util.withChooser
 import me.zhanghai.android.files.storage.StorageVolumeListLiveData
 import me.zhanghai.android.files.util.supportsExternalStorageManager
 import me.zhanghai.android.files.util.valueCompat
@@ -70,7 +87,8 @@ import me.zhanghai.android.files.vault.VaultActivity
 import me.zhanghai.android.files.util.viewModels
 
 class HomeFragment : Fragment(), ShowRequestAllFilesAccessRationaleDialogFragment.Listener,
-    ShowRequestStoragePermissionRationaleDialogFragment.Listener, NavigationFragment.Listener {
+    ShowRequestStoragePermissionRationaleDialogFragment.Listener, NavigationFragment.Listener,
+    ConfirmDeleteFilesDialogFragment.Listener, RenameFileDialogFragment.Listener {
     private lateinit var recentAdapter: RecentFileAdapter
     private lateinit var tileAdapter: TileAdapter
     private lateinit var storageAdapter: StorageAdapter
@@ -80,6 +98,7 @@ class HomeFragment : Fragment(), ShowRequestAllFilesAccessRationaleDialogFragmen
     private var _binding: HomeFragmentBinding? = null
     private val binding get() = _binding!!
     private lateinit var menu: Menu
+    private var pendingTransfer: Pair<Boolean, Path>? = null
 
     private val allFilesAccessLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -87,6 +106,33 @@ class HomeFragment : Fragment(), ShowRequestAllFilesAccessRationaleDialogFragmen
     private val storagePermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { onStorageAccessResult() }
+    private val transferTargetLauncher = registerForActivityResult(
+        FileListActivity.OpenDirectoryContract()
+    ) { target ->
+        val (copy, path) = pendingTransfer ?: return@registerForActivityResult
+        pendingTransfer = null
+        target ?: return@registerForActivityResult
+        if (copy) FileJobService.copy(listOf(path), target, requireContext())
+        else FileJobService.move(listOf(path), target, requireContext())
+    }
+
+    override fun onCreate(state: Bundle?) {
+        super.onCreate(state)
+        val transferPath = state?.getString(STATE_TRANSFER_PATH)
+        if (transferPath != null) {
+            pendingTransfer = state.getBoolean(STATE_TRANSFER_COPY) to Paths.get(URI.create(transferPath))
+        }
+        pendingRenameParent = state?.getString(STATE_RENAME_PARENT)?.let { Paths.get(URI.create(it)) }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        pendingTransfer?.let { (copy, path) ->
+            outState.putBoolean(STATE_TRANSFER_COPY, copy)
+            outState.putString(STATE_TRANSFER_PATH, path.toUri().toString())
+        }
+        outState.putString(STATE_RENAME_PARENT, pendingRenameParent?.toUri()?.toString())
+    }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, state: Bundle?): View {
         _binding = HomeFragmentBinding.inflate(inflater, container, false)
@@ -94,11 +140,14 @@ class HomeFragment : Fragment(), ShowRequestAllFilesAccessRationaleDialogFragmen
     }
 
     override fun onViewCreated(view: View, state: Bundle?) {
-        recentAdapter = RecentFileAdapter { file ->
-            startActivitySafe(
-                OpenFileActivity.createIntent(file.path, recentMimeType(file.path, file.mimeType))
-            )
-        }
+        recentAdapter = RecentFileAdapter(
+            onClick = { file ->
+                startActivitySafe(
+                    OpenFileActivity.createIntent(file.path, recentMimeType(file.path, file.mimeType))
+                )
+            },
+            onLongClick = ::showRecentFileMenu
+        )
         binding.recentList.apply {
             adapter = recentAdapter
             isNestedScrollingEnabled = false
@@ -222,6 +271,69 @@ class HomeFragment : Fragment(), ShowRequestAllFilesAccessRationaleDialogFragmen
                 binding.storageList.post { replayStorageBars() }
             }
         }
+    }
+
+    private fun showRecentFileMenu(anchor: View, recent: RecentFile) {
+        viewLifecycleOwner.lifecycleScope.launch {
+            val file = withContext(Dispatchers.IO) {
+                runCatching { recent.path.loadFileItem() }.getOrNull()
+            } ?: return@launch
+            if (!isAdded || !ViewCompat.isAttachedToWindow(anchor)) return@launch
+            PopupMenu(requireContext(), anchor, Gravity.END).apply {
+                inflate(R.menu.home_recent_file)
+                menu.findItem(R.id.action_move_to).isVisible = !file.path.fileSystem.isReadOnly
+                menu.findItem(R.id.action_rename).isVisible = !file.path.fileSystem.isReadOnly
+                menu.findItem(R.id.action_delete).isVisible = !file.path.fileSystem.isReadOnly
+                setOnMenuItemClickListener { item -> onRecentFileAction(item.itemId, file) }
+                show()
+            }
+        }
+    }
+
+    private fun onRecentFileAction(action: Int, file: FileItem): Boolean {
+        when (action) {
+            R.id.action_show_in_folder -> showInFolder(file.path)
+            R.id.action_open_with -> startActivitySafe(
+                file.path.fileProviderUri.createViewIntent(file.mimeType)
+                    .addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+                    .withChooser()
+            )
+            R.id.action_share -> startActivitySafe(
+                listOf(file.path.fileProviderUri).createSendStreamIntent(listOf(file.mimeType)).withChooser()
+            )
+            R.id.action_copy_to, R.id.action_move_to -> {
+                pendingTransfer = (action == R.id.action_copy_to) to file.path
+                transferTargetLauncher.launch(file.path.parent)
+            }
+            R.id.action_rename -> {
+                pendingRenameParent = file.path.parent
+                RenameFileDialogFragment.show(file, this)
+            }
+            R.id.action_delete -> ConfirmDeleteFilesDialogFragment.show(fileItemSetOf(file), this)
+            R.id.action_properties -> FilePropertiesDialogFragment.show(file, this)
+            else -> return false
+        }
+        return true
+    }
+
+    private fun showInFolder(path: Path) {
+        startActivitySafe(FileListActivity.createShowInFolderIntent(path))
+    }
+
+    override fun deleteFiles(files: me.zhanghai.android.files.filelist.FileItemSet, permanently: Boolean) {
+        FileJobService.delete(files.map { it.path }, requireContext(), permanently)
+    }
+
+    override fun hasFileWithName(name: String): Boolean {
+        val parent = pendingRenameParent ?: return false
+        return java.io.File(parent.resolve(name).toString()).exists()
+    }
+
+    private var pendingRenameParent: Path? = null
+
+    override fun renameFile(file: FileItem, newName: String) {
+        FileJobService.rename(file.path, newName, requireContext())
+        pendingRenameParent = null
     }
 
     private var replayBars = false
@@ -537,6 +649,9 @@ class HomeFragment : Fragment(), ShowRequestAllFilesAccessRationaleDialogFragmen
         private const val RECENT_VIEW_ROW = "row"
         private const val RECENT_VIEW_HIDDEN = "hidden"
         private const val HEADER_POSITION_BOTTOM = "bottom"
+        private const val STATE_TRANSFER_COPY = "recentTransferCopy"
+        private const val STATE_TRANSFER_PATH = "recentTransferPath"
+        private const val STATE_RENAME_PARENT = "recentRenameParent"
         // Finger travel before letting go refreshes; the stock 64 dp fired by accident while scrolling.
         private const val PULL_TRIGGER_DP = 120
     }

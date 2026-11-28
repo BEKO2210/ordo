@@ -31,4 +31,8 @@
         android:id="@+id/actionInfoSelection"
         android:title="@string/video_info_title"
         app:showAsAction="never" />
+    <item
+        android:id="@+id/actionShowInFolderSelection"
+        android:title="@string/file_action_show_in_folder"
+        app:showAsAction="never" />
 </menu>

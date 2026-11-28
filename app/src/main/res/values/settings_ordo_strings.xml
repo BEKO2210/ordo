@@ -103,7 +103,7 @@
     <string name="music_access_message">Allow storage access so Ordo can find your music.</string>
     <string name="music_play_next">Play next</string>
     <string name="music_add_to_queue">Add to queue</string>
-    <string name="music_show_file">Show file</string>
+    <string name="music_show_file">Show in folder</string>
     <string name="music_more_options">More options for %1$s</string>
     <string name="music_has_lyrics">Lyrics available</string>
     <string name="music_added_next">Plays next</string>

@@ -200,6 +200,11 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
 
     private val args by args<Args>()
     private val argsPath by lazy { args.intent.extraPath }
+    private val focusPath: Path? by lazy {
+        args.intent.getStringExtra(FileListActivity.EXTRA_FOCUS_PATH)
+            ?.let { runCatching { Paths.get(URI.create(it)) }.getOrNull() }
+    }
+    private var focusHandled = false
 
     // Only internal launches (no action) may open a category; the activity is exported.
     private val homeCategory by lazy {
@@ -837,6 +842,15 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
         }
         if (stateful is Success) {
             viewModel.pendingState?.let { layoutManager.onRestoreInstanceState(it) }
+            focusPath?.takeUnless { focusHandled }?.let { path ->
+                val index = focusedFileIndex(stateful.value, path)
+                if (index >= 0) {
+                    val file = stateful.value[index]
+                    focusHandled = true
+                    layoutManager.scrollToPositionWithOffset(index, 0)
+                    viewModel.selectFile(file, true)
+                }
+            }
         }
     }
 

@@ -101,6 +101,9 @@ cell "Einstellungen bildlich: Symbol an jedem Eintrag, Auswahl mit Bildern" \
 cell "Bewegung aus einem Guss: Menüs, Dialoge, Piktogramme" \
     "grep -q 'ThemeOverlay.Ordo.Material3.NoMotion' app/src/main/res/values/styles.xml && ls app/src/main/res/drawable/settings_pictogram_*.xml >/dev/null 2>&1" \
     "Menüs, Dialoge und Seitenmenü öffnen und schließen einheitlich; Piktogramme der Einstellungen bewegen sich ruhig. Alles folgt Einstellungen > Aussehen > Animationen und dem Systemschalter."
+cell "Dateien aus Zuletzt und Medienbibliotheken im Ordner zeigen" \
+    "test -f $TESTS/filelist/FileListFocusTest.kt && grep -q action_show_in_folder app/src/main/res/menu/home_recent_file.xml && grep -q actionShowInFolderSelection app/src/main/res/menu/video_library_selection.xml" \
+    "Zuletzt bietet per langem Drücken die vorhandenen Dateiaktionen; Musik und Video können eine Datei im Elternordner öffnen, dorthin scrollen und sie auswählen. TalkBack erreicht das Menü als benannte Aktion."
 
 # ---- Everything opens and can be edited inside Ordo, one building block at a time --------------------------------
 cell "Stand der Technik für Medien belegt" \
