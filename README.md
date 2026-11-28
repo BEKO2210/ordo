@@ -525,8 +525,8 @@ and cloud storage. The full plan is in [docs/ROADMAP.md](docs/ROADMAP.md) (Germa
 Bug reports and pull requests are welcome. Please keep changes small, follow the code around them, and add a unit
 test for new logic. Report security problems as described in [SECURITY.md](SECURITY.md), not in a public issue.
 
-Ordo is fully translated into English and German. Other languages come from Material Files and do not cover the
-newer screens yet.
+Ordo is fully translated into English, German, Simplified Chinese and Traditional Chinese (Taiwan). Other languages
+come from Material Files and do not cover the newer screens yet.
 
 ## Credits
 

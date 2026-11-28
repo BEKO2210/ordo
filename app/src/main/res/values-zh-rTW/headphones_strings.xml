@@ -19,6 +19,6 @@
     <string name="headphones_correction_source">測量方：%1$s</string>
     <string name="headphones_correction_selected">%1$s，已選擇</string>
     <string name="headphones_correction_none">未找到型號</string>
-    <string name="headphones_correction_more">顯示 %2$d 箇中的 %1$d 個。請輸入更多內容以縮小範圍。</string>
+    <string name="headphones_correction_more">顯示 %2$d 個中的 %1$d 個。請輸入更多內容以縮小範圍。</string>
     <string name="headphones_correction_count">%1$d 個型號</string>
 </resources>

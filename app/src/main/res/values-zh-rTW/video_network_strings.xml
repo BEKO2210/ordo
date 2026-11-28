@@ -16,7 +16,7 @@
     <string name="video_cast_paused">已暫停</string>
     <string name="video_cast_subtitles">字幕</string>
     <string name="video_cast_volume_format">音量 %1$d %%</string>
-    <string name="video_cast_volume_down">更小</string>
-    <string name="video_cast_volume_up">更大</string>
+    <string name="video_cast_volume_down">降低音量</string>
+    <string name="video_cast_volume_up">提高音量</string>
     <string name="video_cast_continues_here">%1$s 影片將在本機繼續播放。</string>
 </resources>

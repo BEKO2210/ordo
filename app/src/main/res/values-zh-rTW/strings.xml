@@ -600,7 +600,7 @@
         <item>基於省電模式</item>
     </string-array>
     <string name="settings_black_night_mode">黑色夜間模式</string>
-    <string name="settings_file_list_animation_title">檔案列表動畫</string>
+    <string name="settings_file_list_animation_title">檔案清單動畫</string>
     <string name="settings_file_name_ellipsize_title">顯示長檔案名稱</string>
     <string-array name="settings_file_name_ellipsize_entries">
         <item>省略開頭</item>
@@ -651,7 +651,7 @@
     <string name="file_list_action_size_medium">中</string>
     <string name="file_list_action_size_large">大</string>
     <string name="file_properties_media_address_show">顯示地址</string>
-    <string name="file_properties_media_address_hint">使用裝置的地址服務（通常為 Google）。僅在你點按時才會傳送座標。</string>
+    <string name="file_properties_media_address_hint">使用裝置的地址服務（通常為 Google）。僅在你輕觸時才會傳送座標。</string>
     <string name="file_properties_media_address_loading">正在查詢地址…</string>
     <string name="file_properties_media_address_failed">暫時找不到地址。請檢查網路連線後重試。</string>
     <string name="file_properties_media_address_unavailable">此裝置沒有地址服務。</string>
@@ -663,9 +663,9 @@
     <string name="home_recent_empty">沒有最近的檔案</string>
     <string name="home_categories">分類</string>
     <string name="home_storage">儲存空間</string>
-    <string name="home_quick_access">快速訪問</string>
-    <string name="home_permission_message">允許訪問儲存空間，以顯示你的檔案、分類和儲存空間用量。</string>
-    <string name="home_permission_action">允許訪問</string>
+    <string name="home_quick_access">快速存取</string>
+    <string name="home_permission_message">允許存取儲存空間，以顯示你的檔案、分類和儲存空間用量。</string>
+    <string name="home_permission_action">允許存取</string>
     <string name="home_category_images">圖片</string>
     <string name="home_category_videos">影片</string>
     <string name="home_category_audio">音訊</string>
@@ -687,7 +687,7 @@
     <string name="vault_no_screen_lock_title">請先設定螢幕鎖定</string>
     <string name="vault_no_screen_lock_message">保險庫使用你的螢幕鎖定來保護檔案。請先設定 PIN 碼、圖案或指紋後再使用。</string>
     <string name="vault_open_settings_action">開啟安全設定</string>
-    <string name="vault_empty">保險庫中還沒有檔案。\n選擇檔案並點按“移至保險庫”即可保護它們。</string>
+    <string name="vault_empty">保險庫中還沒有檔案。\n選擇檔案並輕觸“移至保險庫”即可保護它們。</string>
     <string name="vault_notice">保險庫中的檔案只存在於此裝置上。解除安裝 Ordo 或清除其資料之前，請先將它們恢復，否則檔案會丟失。</string>
     <string name="vault_item_description_format">新增於 %1$s · %2$s\n來自 %3$s</string>
     <string name="vault_move_action">移至保險庫</string>
@@ -722,7 +722,7 @@
         <item quantity="other">%1$d 個檔案，僅限使用密碼</item>
     </plurals>
     <string name="backup_add_folder">新增資料夾</string>
-    <string name="backup_remove_folder_format">從列表中移除 %1$s</string>
+    <string name="backup_remove_folder_format">從清單中移除 %1$s</string>
     <string name="backup_folder_removed">資料夾已移除。其中的檔案保持不變。</string>
     <string name="backup_folder_removed_undo">撤銷</string>
     <string name="backup_add_folder_error">無法備份此資料夾。請選擇裝置上的資料夾。</string>
@@ -762,7 +762,7 @@
     <string name="backup_failed_read_format">無法完整讀取“%1$s”，備份已停止。請檢查該檔案或將其所在資料夾排除，然後重試。</string>
     <string name="backup_retry_action">重試</string>
     <string name="file_job_timeout_title">任務已停止</string>
-    <string name="file_job_timeout_message">任務在後臺執行 6 小時後，被 Android 停止。請重新開始，並在此期間保持 Ordo 開啟。</string>
+    <string name="file_job_timeout_message">任務在背景執行 6 小時後，被 Android 停止。請重新開始，並在此期間保持 Ordo 開啟。</string>
     <string name="restore_section_title">恢復備份</string>
     <string name="restore_choose_title">選擇備份 ZIP</string>
     <string name="restore_choose_summary">Ordo 會先進行檢查，並在寫入任何檔案之前顯示將執行的操作</string>
@@ -830,9 +830,9 @@
     <string name="settings_trash_enabled_summary">內部儲存空間和 SD 卡上的檔案可以恢復</string>
     <string name="settings_trash_retention_title">自動清空資源回收筒</string>
     <string-array name="settings_trash_retention_entries">
-        <item>7 天后</item>
-        <item>30 天后</item>
-        <item>90 天后</item>
+        <item>7 天後</item>
+        <item>30 天後</item>
+        <item>90 天後</item>
         <item>從不</item>
     </string-array>
     <string name="navigation_analysis">分析儲存空間</string>
@@ -857,13 +857,13 @@
     <string name="file_job_transfer_speed_format">%1$s · %2$s/秒 · 剩餘 %3$s</string>
     <string name="file_list_action_search_content">在檔案內容中搜尋</string>
     <string name="file_list_action_search_regex">正規表示式</string>
-    <string name="navigation_apps">應用</string>
-    <string name="apps_title">應用</string>
-    <string name="apps_empty">未找到應用</string>
-    <string name="apps_show_system">顯示系統應用</string>
+    <string name="navigation_apps">應用程式</string>
+    <string name="apps_title">應用程式</string>
+    <string name="apps_empty">未找到應用程式</string>
+    <string name="apps_show_system">顯示系統應用程式</string>
     <string name="apps_item_description_format">%1$s\n%2$s</string>
     <string name="apps_open">開啟</string>
-    <string name="apps_info">應用資訊</string>
+    <string name="apps_info">應用程式資訊</string>
     <string name="apps_backup">儲存 APK</string>
     <string name="apps_uninstall">解除安裝</string>
     <string name="apps_backup_done_format">已儲存到 %1$s</string>
@@ -874,7 +874,7 @@
     <string name="file_action_copy_to">複製到…</string>
     <string name="file_action_move_to">移動到…</string>
     <plurals name="home_apps_summary">
-        <item quantity="other">%1$d 個應用</item>
+        <item quantity="other">%1$d 個應用程式</item>
     </plurals>
     <string name="file_list_selection_more">更多</string>
     <string name="batch_rename_title_format">重新命名 %1$d 項</string>
@@ -888,7 +888,7 @@
     <string name="home_recent_view_row">橫向</string>
     <string name="home_recent_view_hidden">隱藏</string>
     <string name="home_search_hint">搜尋檔案</string>
-    <string name="home_show_quick_access">顯示快速訪問</string>
+    <string name="home_show_quick_access">顯示快速存取</string>
     <string name="drag_handle_description">拖動以重新排序</string>
     <string name="audio_player_title">音樂播放器</string>
     <string name="audio_player_unknown_title">未知標題</string>
@@ -917,7 +917,7 @@
     <string name="audio_player_seek_back">−10 秒</string>
     <string name="audio_player_seek_forward">+10 秒</string>
     <string name="audio_player_progress_format">%1$s / %2$s</string>
-    <string name="audio_player_external_refused">Ordo 只播放其他應用共享的音訊。</string>
+    <string name="audio_player_external_refused">Ordo 只播放其他應用程式共享的音訊。</string>
     <string name="audio_player_error">無法播放這首歌曲。</string>
     <string name="audio_player_connection_error">無法開啟播放器。</string>
     <string name="audio_sound_title">聲音</string>
@@ -952,8 +952,8 @@
     <string name="audio_sound_balance_center">居中</string>
     <string name="audio_sound_balance_left">左 %1$d %%</string>
     <string name="audio_sound_balance_right">右 %1$d %%</string>
-    <string name="audio_sound_focus_title">其他應用播放音訊時</string>
-    <string name="audio_sound_focus_summary">選擇其他應用播放時的處理方式</string>
+    <string name="audio_sound_focus_title">其他應用程式播放音訊時</string>
+    <string name="audio_sound_focus_summary">選擇其他應用程式播放時的處理方式</string>
     <string name="audio_sound_focus_duck">降低 Ordo 的音量</string>
     <string name="audio_sound_focus_pause">暫停 Ordo</string>
     <string name="audio_sound_resume_headphones">連線耳機時繼續播放</string>

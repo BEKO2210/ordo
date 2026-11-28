@@ -9,7 +9,7 @@
     <string name="analysis_kind_video">影片</string>
     <string name="analysis_kind_apps">APK 檔案</string>
     <string name="analysis_kind_other">其他檔案</string>
-    <string name="analysis_kind_system">系統和應用資料</string>
+    <string name="analysis_kind_system">系統和應用程式資料</string>
     <string name="analysis_kind_free">可用</string>
     <string name="analysis_cleanup_title">可清理空間</string>
     <string name="analysis_cleanup_headline">可安全釋放 %s</string>
@@ -33,7 +33,7 @@
     </plurals>
     <string name="analysis_preview">預覽</string>
     <string name="analysis_treemap_title">空間都用在哪了</string>
-    <string name="analysis_treemap_subtitle">最大的資料夾 – 點按即可開啟</string>
+    <string name="analysis_treemap_subtitle">最大的資料夾 – 輕觸即可開啟</string>
     <string name="analysis_growth_title">每月新增</string>
     <string name="analysis_growth_subtitle">平均每月 %1$s · 本月 %2$s</string>
     <plurals name="analysis_treemap_more">
@@ -42,12 +42,12 @@
     <string name="analysis_kind_mine">你的檔案</string>
     <string name="analysis_cleanup_safe_none">沒有可清理的副本、安裝包、縮圖或資源回收筒內容</string>
     <string name="analysis_cleanup_review">值得看看</string>
-    <string name="analysis_folder_apps">應用檔案（%s）</string>
+    <string name="analysis_folder_apps">應用程式檔案（%s）</string>
     <string name="analysis_folder_hidden">%s（隱藏）</string>
     <string name="analysis_usage_mine_hint">照片、影片、音樂、下載內容：所有你自己儲存的內容</string>
-    <string name="analysis_usage_system_hint">Android 系統本身、你的應用及其資料</string>
-    <string name="analysis_usage_free_hint">可用於存放新照片、應用和更新</string>
-    <string name="analysis_open_folder">在檔案列表中開啟</string>
+    <string name="analysis_usage_system_hint">Android 系統本身、你的應用程式及其資料</string>
+    <string name="analysis_usage_free_hint">可用於存放新照片、應用程式和更新</string>
+    <string name="analysis_open_folder">在檔案清單中開啟</string>
     <string name="analysis_share_of_files">佔你檔案的 %s</string>
     <string name="analysis_share_of_folder">佔 %2$s 的 %1$s</string>
     <plurals name="analysis_folder_count">
@@ -56,19 +56,19 @@
     <plurals name="analysis_file_count">
         <item quantity="other">%,d 個檔案</item>
     </plurals>
-    <string name="analysis_files_subtitle">點按圓環檢視詳情，點按某一行檢視其中的檔案</string>
+    <string name="analysis_files_subtitle">輕觸圓環檢視詳情，輕觸某一行檢視其中的檔案</string>
     <string name="analysis_scan_walking">正在讀取儲存空間</string>
     <string name="analysis_scan_comparing">正在查詢重複檔案</string>
     <string name="analysis_chart_show_each">分別顯示</string>
-    <string name="analysis_chart_all_types">所有型別</string>
+    <string name="analysis_chart_all_types">所有類型</string>
     <string name="analysis_tile_loose">零散檔案</string>
     <string name="analysis_tile_direct">%s 中的檔案</string>
-    <string name="analysis_map_hint">點按方塊檢視詳情</string>
+    <string name="analysis_map_hint">輕觸方塊檢視詳情</string>
     <plurals name="analysis_scan_files">
         <item quantity="other">個檔案</item>
     </plurals>
     <plurals name="analysis_chart_small_types">
-        <item quantity="other">另有 %d 種較小型別</item>
+        <item quantity="other">另有 %d 種較小類型</item>
     </plurals>
     <plurals name="analysis_trash_folders_message_format">
         <item quantity="other">要將 %1$d 個空資料夾移至資源回收筒嗎？</item>

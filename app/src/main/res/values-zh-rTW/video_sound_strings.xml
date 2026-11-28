@@ -19,7 +19,7 @@
     <string name="video_sound_spatial_held_back_format">Ordo 混音：在清晰對白、夜間模式或單聲道開啟時，%1$s 聲音由 Ordo 混音，而不使用系統空間音訊</string>
     <string name="video_sound_spatial_format">系統空間音訊：%1$s 聲音原樣送往 Android</string>
     <string name="video_sound_level">均衡音量</string>
-    <string name="video_sound_level_summary">在後臺對每部影片測量一次，使輕聲和響亮的影片播放音量一致</string>
+    <string name="video_sound_level_summary">在背景對每部影片測量一次，使輕聲和響亮的影片播放音量一致</string>
     <string name="video_audio_track_menu">音軌</string>
     <string name="video_audio_track_title">音軌</string>
     <string name="video_audio_track_unknown_language">音軌 %1$d</string>

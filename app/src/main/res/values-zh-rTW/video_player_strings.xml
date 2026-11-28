@@ -28,9 +28,9 @@
     <string name="video_player_unlock">解鎖</string>
     <string name="video_player_unlock_hint">長按解鎖</string>
     <string name="video_player_resume_format">從 %1$s 繼續播放</string>
-    <string name="video_player_open_with">用其他應用開啟</string>
+    <string name="video_player_open_with">用其他應用程式開啟</string>
     <string name="video_player_file_info">影片資訊</string>
-    <string name="video_player_external_refused">Ordo 只播放其他應用分享的影片。</string>
+    <string name="video_player_external_refused">Ordo 只播放其他應用程式分享的影片。</string>
     <string name="video_player_error_format">Ordo 無法播放此影片格式。</string>
     <string name="video_player_error_damaged">此檔案似乎已損壞或不完整。</string>
     <string name="video_player_error_read">Ordo 無法讀取此檔案。</string>
@@ -143,7 +143,7 @@
     </string-array>
     <string-array name="video_settings_view_entries">
         <item>網格</item>
-        <item>列表</item>
+        <item>清單</item>
     </string-array>
     <string name="video_player_seek_back_n">後退 %1$d 秒</string>
     <string name="video_player_seek_ahead_n">快進 %1$d 秒</string>
@@ -172,7 +172,7 @@
     <string name="video_library_folders">資料夾</string>
     <string name="video_library_left_format">剩餘 %1$s</string>
     <string name="video_library_empty">尚未找到影片。將影片放入 Movies、DCIM 或 Download 等資料夾後，就會顯示在這裡。</string>
-    <string name="video_library_access_message">請允許訪問儲存空間，以便 Ordo 查詢你的影片。</string>
+    <string name="video_library_access_message">請允許存取儲存空間，以便 Ordo 查詢你的影片。</string>
     <string name="video_more_button">更多選項</string>
     <string name="video_more_title">更多</string>
     <string name="video_more_picture_sound">畫面和聲音</string>
